@@ -3,6 +3,7 @@ import moment from 'moment';
 import SKU from 'tf2-sku';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import Bot from './Bot';
 import { UnknownDictionary } from '../types/common';

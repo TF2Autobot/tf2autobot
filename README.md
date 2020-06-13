@@ -2,10 +2,11 @@
 
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf
 
-[![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2-automatic)](https://github.com/idinium96/tf2-automatic/issues)
-[![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2-automatic)](https://github.com/idinium96/tf2-automatic/network)
-[![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2-automatic)](https://github.com/idinium96/tf2-automatic/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/issues)
+[![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
+![License](https://img.shields.io/github/license/idinium96/tf2-automatic-discord)
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
@@ -13,15 +14,15 @@ Before you install the bot, there are a few things you need to have taken care o
 - NodeJS version 8 or more
 - Typescript 3.7 or above
 
-Please refer to the [wiki](https://github.com/Nicklason/tf2-automatic/wiki) for setting up the bot. For additional help and questions, please ask in the IdiNium's Trading Bot [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2-automatic/issues/new/choose).
+Please refer to the [wiki](https://github.com/idinium96/tf2-automatic-discord/wiki) for setting up the bot. For additional help and questions, please ask in the IdiNium's Trading Bot [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2-automatic-discord/issues/new/choose).
 
 ## Download and installation
 
-You can clone or download the bot by clicking on the green button in the top right, follow the [installation guide](https://github.com/Nicklason/tf2-automatic/wiki/Installation) for more instructions.
+You can clone or download the bot by clicking on the green button in the top right, follow the [installation guide](https://github.com/idinium96/tf2-automatic-discord/wiki/Installation) for more instructions.
 
 ## Configuration
 
-Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/Nicklason/tf2-automatic/wiki/Configuration).
+Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/idinium96/tf2-automatic-discord/wiki/Configuration).
 
 
 ## Discord Webhook feature

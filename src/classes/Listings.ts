@@ -96,7 +96,7 @@ export = class Listings {
 
         this.getAccountInfo().asCallback((err, info) => {
             if (err) {
-                log.warn('Failed to  get account info from backpack.tf: ', err);
+                log.warn('Failed to get account info from backpack.tf: ', err);
                 return;
             }
 
