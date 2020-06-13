@@ -157,7 +157,7 @@ export = class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            'tf2-automatic v' +
+            'tf2autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
                 pluralize('item', this.bot.pricelist.getLength(), true) +
