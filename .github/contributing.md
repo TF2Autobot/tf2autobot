@@ -2,9 +2,9 @@
 Inspiration from https://github.com/atom/atom/blob/master/CONTRIBUTING.md
 -->
 
-# Contributing to TF2 Automatic
+# Contributing to TF2 Automatic/tf2autobot
 
-The following is a set of guidelines for contributing to TF2 Automatic. These are guidelines and not rules, use your own judgement and feel free to propose changes to this in a pull request.
+The following is a set of guidelines for contributing to TF2 Automatic/tf2autobot. These are guidelines and not rules, use your own judgement and feel free to propose changes to this in a pull request.
 
 ## Table of Contents
 
@@ -24,17 +24,17 @@ The following is a set of guidelines for contributing to TF2 Automatic. These ar
 
 ### Reporting bugs
 
-Please don't use GitHub issues for questions, we have a [Discord server](https://discord.tf2automatic.com) for that.
+Please don't use GitHub issues for questions, we have a [Main TF2 Automatic Discord server](https://discord.tf2automatic.com) and [IdiNium's Discord server](https://discord.gg/ZrVT7mc) for that.
 
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find that you don't need to create one. When creating a bug report please include as many details as possible.
 
 * **Make sure that it an actual problem.** You might be able to find the cause of the problem and fix it yourself. Most importantly, check if you can reproduce the problem.
 * **Check perviously made issues** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
-* **Ask for help in the [Discord server](https://discord.tf2automatic.com).** Someone might know the issue and tell you what to do to fix it.
+* **Ask for help in the [Discord server](https://discord.tf2automatic.com) or [IdiNium's Discord server](https://discord.gg/ZrVT7mc).** Someone might know the issue and tell you what to do to fix it.
 
 #### How to submit a bug report
 
-Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/Nicklason/tf2-automatic/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
+Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/idinium96/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
 
 #### Before submitting a bug report
 
@@ -45,7 +45,7 @@ Explain the problem and include additional details to help reproduce the problem
 * **Describe the behavior you observed following the steps** and point out what the problem is with the behavior.
 * **Describe what you expected to see instead and why.**
 * **Include screenshots and GIFs** which show you following the described steps and clearly demonstrate the problem.
-* **If you're reporting that TF2 Automatic crashed** then include the crash report with a stack trace. Crash reports are saved in `/tf2-automatic/logs/<STEAM_ACCOUNT_NAME>.error.log`.
+* **If you're reporting that TF2 Automatic/tf2autobot crashed** then include the crash report with a stack trace. Crash reports are saved in `~/tf2autobot/logs/<STEAM_ACCOUNT_NAME>.error.log`.
 
 Provide more context by answering these questions:
 
@@ -59,7 +59,7 @@ Before suggesting changes, please check [this list](#before-submitting-a-feature
 
 #### How to suggest changes
 
-Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/Nicklason/tf2-automatic/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
+Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/idinium96/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
 
 #### Before submitting a feature request
 
@@ -70,7 +70,7 @@ Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHu
 
 When contributing to this repository, please first discuss the change you wish to make via issue, or any other method with the owners or contributors of this repository before making a change.
 
-All pull requests should be made to [the development branch](https://github.com/Nicklason/tf2-automatic/tree/development). When a new release is made the development branch will be merged with the master branch.
+All pull requests should be made to [the development branch](https://github.com/idinium96/tf2autobot/tree/development). When a new release is made the development branch will be merged with the master branch.
 
 Please make sure that you follow the [style guides](#styleguides).
 

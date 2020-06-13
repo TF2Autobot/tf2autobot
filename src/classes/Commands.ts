@@ -1625,7 +1625,7 @@ export = class Commands {
                 if (!restarting) {
                     this.bot.sendMessage(
                         steamID,
-                        '❌ You are not running the bot with PM2! See the documentation: https://github.com/Nicklason/tf2-automatic/wiki/PM2'
+                        '❌ You are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2'
                     );
                 }
             })
@@ -1638,14 +1638,14 @@ export = class Commands {
     private versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            `Currently running tf2-automatic-discord@v${process.env.BOT_VERSION}. Checking for a new version...`
+            `Currently running tf2autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
         this.bot
             .checkForUpdates()
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2-automatic-discord!');
+                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,

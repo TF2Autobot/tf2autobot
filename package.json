@@ -1,5 +1,5 @@
 {
-    "name": "tf2-automatic-discord",
+    "name": "tf2autobot",
     "version": "1.0.0",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf",
     "main": "dist/app.js",
@@ -14,14 +14,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/idinium96/tf2-automatic-discord.git"
+        "url": "git+https://github.com/idinium96/tf2autobot.git"
     },
     "author": "Nicklas Marc Pedersen",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/idinium96/tf2-automatic-discord/issues"
+        "url": "https://github.com/idinium96/tf2autobot/issues"
     },
-    "homepage": "https://github.com/idinium96/tf2-automatic-discord#readme",
+    "homepage": "https://github.com/idinium96/tf2autobot#readme",
     "dependencies": {
         "@nicklason/request-retry": "^1.1.2",
         "@types/cheerio": "^0.22.18",

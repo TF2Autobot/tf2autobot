@@ -1,12 +1,12 @@
-# tf2-automatic-discord
+# tf2autobot
 
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf
 
-[![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/issues)
-[![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/network/members)
-[![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2-automatic-discord)](https://github.com/idinium96/tf2-automatic-discord/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/issues)
+[![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
-![License](https://img.shields.io/github/license/idinium96/tf2-automatic-discord)
+![License](https://img.shields.io/github/license/idinium96/tf2autobot)
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
@@ -14,15 +14,15 @@ Before you install the bot, there are a few things you need to have taken care o
 - NodeJS version 8 or more
 - Typescript 3.7 or above
 
-Please refer to the [wiki](https://github.com/idinium96/tf2-automatic-discord/wiki) for setting up the bot. For additional help and questions, please ask in the IdiNium's Trading Bot [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2-automatic-discord/issues/new/choose).
+Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for setting up the bot. For additional help and questions, please ask in the IdiNium's Trading Bot [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 ## Download and installation
 
-You can clone or download the bot by clicking on the green button in the top right, follow the [installation guide](https://github.com/idinium96/tf2-automatic-discord/wiki/Installation) for more instructions.
+You can clone or download the bot by clicking on the green button in the top right, follow the [installation guide](https://github.com/idinium96/tf2autobot/wiki/a.-Installation) for more instructions.
 
 ## Configuration
 
-Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/idinium96/tf2-automatic-discord/wiki/Configuration).
+Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/idinium96/tf2autobot/wiki/b.-Configuration).
 
 
 ## Discord Webhook feature
@@ -32,15 +32,15 @@ Instead of the bot sending trade summary, review offer and messages to you via S
 Screenshots:
 - Trade summary (or live-trades) -
 
-![trade-summary](https://user-images.githubusercontent.com/47635037/83710459-5bbf9500-a653-11ea-9391-691a3f1f56f5.PNG)
+![trade-summary](https://gyazo.com/a75e9889ac9839fcec0321cb0736db3a)
 
 - Offer review (when trade partner sent wrong value/overstocked/etc) -
 
-![Offer-review](https://user-images.githubusercontent.com/47635037/83710458-5b26fe80-a653-11ea-96a3-55470bc1f2be.png)
+![Offer-review](https://gyazo.com/2a8d5fcc2ea1219fb543e2ea65c249e2)
 
 - Messages (when trade partner send "!message" command -
 
-![Messages](https://user-images.githubusercontent.com/47635037/83710455-5a8e6800-a653-11ea-832c-127d6d48b9fd.PNG)
+![Messages](https://gyazo.com/2d612256094affef3a433e0243d7b652)
 
 - Price update (Discord Only) - Show price change for every items that are on your pricelist -
 
@@ -50,26 +50,28 @@ You can also only set it to send only trade summary, but the others like Offer r
 
 Note that, it's an option to show key rate/ pure stock/ quick links on each feature.
 
-If you want to use this feature, you must use [ecosystem.template.json](https://github.com/idinium96/tf2-automatic/blob/Public/ecosystem.template.json) from this version, which contains much more variables for you to fill in.
+If you want to use this feature, you must use [ecosystem.template.json](https://github.com/idinium96/tf2autobot/blob/master/template.ecosystem.json) from this version, which contains much more variables for you to fill in.
 
 ## Autokeys (auto buy or sell keys) feature
 
-This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll have to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2-automatic/#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
+This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll have to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot/#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
 
 Some screenshots:
 - When your bot have enough key to sell to get more ref (if your ref is less than minimum) OR enough ref to buy more keys (when your ref > maximum and keys < max)
 
-![Autokeys1](https://user-images.githubusercontent.com/47635037/83779990-2d779f00-a6bf-11ea-8891-fa92cdb534c7.PNG)
+![Autokeys1](https://gyazo.com/3e59afaf4c522d34dde68f70acd8d6c5)
+![Autokeys2](https://gyazo.com/56f0e6733d8f6374d9c3cb4dcca8612b)
+
 
 - When your bot don't have enough of what I've said before:
 
-![Autokeys2](https://user-images.githubusercontent.com/47635037/83780154-5e57d400-a6bf-11ea-8dc1-0c833d9c3268.PNG)
+![Autokeys3](https://gyazo.com/51aa56771aae436b06524c2d7d240aa9)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2-automatic/blob/Public/src/classes/MyHandler.ts#L1094-L1421).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1126-L1588).
 
 ## Emojis and more commands added
 
-![commands](https://user-images.githubusercontent.com/47635037/83876566-a46a7180-a76b-11ea-8e2b-15920e4a4994.PNG)
+![commands](https://gyazo.com/1b6224d748db3fccce960f51a623883c)
 
 ## Variables in ecosystem.json summary
 
@@ -147,7 +149,7 @@ Time will be use in "!time" command and
 
 #### Set to true if want to enable debugging notes in console
 - `DEBUG`: [true|false] - Used to debug if any problem occured.
-- `DEBUG_FILE`: [true|false] - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2-automatic/issues/new/choose).
+- `DEBUG_FILE`: [true|false] - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 #### Backpack.tf sell or buy order listings note on all items in pricelist
 - `BPTF_DETAILS_BUY`: [string] - Your buy order message. It will do for all items. available parameters: %name% (print out item name), %price% (item current buying price), %current_stock%, %max_stock% and %keyPrice% (print out: `Key rate: x ref/key`).
@@ -197,7 +199,7 @@ Time will be use in "!time" command and
 
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to true if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2-automatic/blob/Public/src/classes/MyHandler.ts#L998-L1059)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1022-L1056)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
 - `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 - `INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.

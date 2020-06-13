@@ -264,7 +264,7 @@ export = class Bot {
             request(
                 {
                     method: 'GET',
-                    url: 'https://raw.githubusercontent.com/idinium96/tf2-automatic-discord/master/package.json',
+                    url: 'https://raw.githubusercontent.com/idinium96/tf2autobot/master/package.json',
                     json: true
                 },
                 function(err, response, body) {

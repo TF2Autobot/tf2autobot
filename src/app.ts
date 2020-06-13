@@ -28,7 +28,7 @@ import log from './lib/logger';
 
 if (process.env.pm_id === undefined) {
     log.warn(
-        "You are not running the bot with PM2! If the bot crashes it won't start again, see the documentation: https://github.com/Nicklason/tf2-automatic/wiki/PM2"
+        "You are not running the bot with PM2! If the bot crashes it won't start again, see the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2"
     );
 }
 
@@ -71,7 +71,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
 
         log.error(
             [
-                'tf2-automatic' +
+                'tf2autobot' +
                     (!botReady
                         ? ' failed to start properly, this is most likely a temporary error. See the log:'
                         : ' crashed! Please create an issue with the following log:'),
@@ -85,7 +85,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
 
         if (botReady) {
             log.error(
-                'Create an issue here: https://github.com/idinium96/tf2-automatic-discord/issues/new?assignees=&labels=bug&template=bug_report.md&title='
+                'Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
             );
         }
     } else {

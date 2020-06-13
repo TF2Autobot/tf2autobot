@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report an issue with TF2 Automatic
+about: Report an issue with TF2 Automatic/tf2autobot
 title: ''
 labels: bug
 assignees: ''
@@ -9,7 +9,7 @@ assignees: ''
 
 <!--
   Your issue may already be reported!
-  Please search on the [issue tracker](https://github.com/Nicklason/tf2-automatic/search?type=Issues) before creating one.
+  Please search on the [issue tracker](https://github.com/idinium96/tf2autobot/search?type=Issues) before creating one.
 -->
 
 **Describe the bug**
@@ -44,7 +44,7 @@ Steps to reproduce the behavior:
 
   For errors, add a screenshot of the error. If that is not possible, then see the error log.
 
-  Log files are located at `/tf2-automatic/logs`. There are three log files:
+  Log files are located at `~/tf2autobot/logs`. There are three log files:
   * <STEAM_ACCOUNT_NAME>-<DATE>.log - Default log file (excluding error and trade log levels)
   * <STEAM_ACCOUNT_NAME>.error.log - Error log
   * <STEAM_ACCOUNT_NAME>.trade.log - Trade log
