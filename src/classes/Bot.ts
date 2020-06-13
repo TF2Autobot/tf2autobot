@@ -249,7 +249,7 @@ export = class Bot {
 
                 this.messageAdmins(
                     'version',
-                    `Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git stash && git checkout Public && git pull && npm install && npm run build] and then restart your bot.` +
+                    `Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                         '\n Contact IdiNium if you have any other problem. Thank you.',
                     []
                 );
@@ -264,7 +264,7 @@ export = class Bot {
             request(
                 {
                     method: 'GET',
-                    url: 'https://raw.githubusercontent.com/idinium96/tf2-automatic/Public/package.json',
+                    url: 'https://raw.githubusercontent.com/idinium96/tf2-automatic-discord/master/package.json',
                     json: true
                 },
                 function(err, response, body) {

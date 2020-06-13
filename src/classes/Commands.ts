@@ -1638,18 +1638,18 @@ export = class Commands {
     private versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            `Currently running tf2-automatic@v${process.env.BOT_VERSION}. Checking for a new version...`
+            `Currently running tf2-automatic-discord@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
         this.bot
             .checkForUpdates()
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2-automatic!');
+                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2-automatic-discord!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
-                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git stash && git checkout Public && git pull && npm install && npm run build] and then restart your bot.` +
+                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                             '\n Contact IdiNium if you have any other problem. Thank you.'
                     );
                 }
@@ -1663,7 +1663,7 @@ export = class Commands {
         const newName = CommandParser.removeCommand(message);
 
         if (newName === '') {
-            this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name Nicklason"');
+            this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
 
