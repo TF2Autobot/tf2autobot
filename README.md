@@ -32,15 +32,15 @@ Instead of the bot sending trade summary, review offer and messages to you via S
 Screenshots:
 - Trade summary (or live-trades) -
 
-![trade-summary](https://gyazo.com/a75e9889ac9839fcec0321cb0736db3a)
+![trade-summary](https://user-images.githubusercontent.com/47635037/84581315-9de69480-ae12-11ea-806f-2408bfb4b5b9.PNG)
 
 - Offer review (when trade partner sent wrong value/overstocked/etc) -
 
-![Offer-review](https://gyazo.com/2a8d5fcc2ea1219fb543e2ea65c249e2)
+![Offer-review](https://user-images.githubusercontent.com/47635037/84581314-9d4dfe00-ae12-11ea-88e2-9a65369b4e22.png)
 
 - Messages (when trade partner send "!message" command -
 
-![Messages](https://gyazo.com/2d612256094affef3a433e0243d7b652)
+![Messages](https://user-images.githubusercontent.com/47635037/84581313-9cb56780-ae12-11ea-9dcf-2d660d8ae184.PNG)
 
 - Price update (Discord Only) - Show price change for every items that are on your pricelist -
 
@@ -59,19 +59,19 @@ This feature when enabled, your bot will automatically buy or sell keys based on
 Some screenshots:
 - When your bot have enough key to sell to get more ref (if your ref is less than minimum) OR enough ref to buy more keys (when your ref > maximum and keys < max)
 
-![Autokeys1](https://gyazo.com/3e59afaf4c522d34dde68f70acd8d6c5)
-![Autokeys2](https://gyazo.com/56f0e6733d8f6374d9c3cb4dcca8612b)
+![autokeys1](https://user-images.githubusercontent.com/47635037/84581306-9a530d80-ae12-11ea-9bd5-3a988ac447d9.png)
+![autokeys2](https://user-images.githubusercontent.com/47635037/84581309-9b843a80-ae12-11ea-8374-0f7d3c631fa6.png)
 
 
 - When your bot don't have enough of what I've said before:
 
-![Autokeys3](https://gyazo.com/51aa56771aae436b06524c2d7d240aa9)
+![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
 You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1126-L1588).
 
 ## Emojis and more commands added
 
-![commands](https://gyazo.com/1b6224d748db3fccce960f51a623883c)
+![commands](https://user-images.githubusercontent.com/47635037/84581311-9c1cd100-ae12-11ea-8aae-29733d9e0334.PNG)
 
 ## Variables in ecosystem.json summary
 
