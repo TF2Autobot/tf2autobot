@@ -99,17 +99,19 @@ You can run your bot without this first, which then on the first run, it will pr
 #### Autokeys feature
 - `ENABLE_AUTO_SELL_AND_BUY_KEYS`: [true|false] Default is false. If you set to true, the bot will automatically sell/buy keys based on the availability of the refined metals and keys in your bot inventory. Set it to false if you want to custom price your key.
 - `ENABLE_AUTO_KEY_BANKING`: [true|false] Default is false. If set to true, it will do key banking (must also set **ENABLE_AUTO_SELL_AND_BUY_KEYS** to true and for banking, meaning if current ref is in between min and max and keys > min, it will do key banking).
-- `MINIMUM_KEYS`: [Number] When current keys >= minimum keys, it will start selling keys (with when current ref < minimum ref), else it will stop selling keys.
+- `MINIMUM_KEYS`: [Number] When current keys > minimum keys, it will start selling keys (with when current ref < minimum ref), else it will stop selling keys.
 - `MAXIMUM_KEYS`: [Number] When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
 - `MINIMUM_REFINED_TO_START_SELL_KEYS`: [Number] - Already explained.
 - `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`: [Number] - Already explained.
+
+**This feature is meant to make your bot to have enough pure in their inventory. Enabling Autokeys - Banking might cause your bot to not function as intended.
 
 #### Set to true if want to disable
 - `DISABLE_INVENTORY_SORT`: [true|false] Default: true. Sort your bot inventory.
 - `DISABLE_LISTINGS`: [true|false] Default: false. This is used if you want to temporarily disable trading while your bot is alive.
 - `DISABLE_CRAFTING`: [true|false] Default: false. **NOT RECOMMENDED** to set is as true, as it cause bot and trade partner to not be able to trade because of missing pure changes.
 - `DISABLE_MESSAGES`: [true|false] Default: true. When true, people (that are friend with your bot) can send messages with "!message" command.
-- `DISABLE_QUEUE_ALERT`: [true|false] - Default: true. My custom - Used to notify owner if your bot has a queue problem, which you'll need to restart your bot.
+- `DISABLE_SOMETHING_WROMG_ALERT`: [true|false] - Default: true. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page.
@@ -167,8 +169,8 @@ Time will be use in "!time" command and
 
 **Note on How to get DISCORD_WEBHOOK_X_URL** - See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your respective channels)
 #### Queue alert
-- `DISABLE_DISCORD_WEBHOOK_QUEUE_ALERT`: [true|false] - Same as `DISABLE_QUEUE_ALERT`, but if set to false, it will be sent to Discord Webhook instead of Steam Chat.
-- `DISCORD_WEBHOOK_QUEUE_ALERT_URL` - Discord Webhook URL for QUEUE_ALERT.
+- `DISABLE_DISCORD_WEBHOOK_SOMETHING_WROMG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to false, it will be sent to Discord Webhook instead of Steam Chat.
+- `DISCORD_WEBHOOK_SOMETHING_WROMG_ALERT_URL` - Discord Webhook URL for SOMETHING_WROMG_ALERT.
 
 #### Pricelist update
 - `DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE`: [true|false] - Used to display price updates on the items that are in your pricelist.
