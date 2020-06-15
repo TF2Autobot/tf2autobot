@@ -485,7 +485,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     weaponSku.includes(sku) &&
-                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false' &&
+                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
