@@ -1,6 +1,7 @@
 # tf2autobot
 
-A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf
+A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf.
+**tf2autobot** is an improved version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more on the original repository [here](https://github.com/Nicklason/tf2-automatic).
 
 [![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/issues)
 [![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/network/members)
@@ -24,6 +25,26 @@ You can clone or download the bot by clicking on the green button in the top rig
 
 Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/idinium96/tf2autobot/wiki/b.-Configuration).
 
+## Difference between tf2autobot and tf2-automatic
+
+The original tf2-automatic repository already have a lot of features, but some features in this version have their own advantages. Let me list out what features that worth mentioning, which already exist and what features that have been added into this version:
+
+### Original tf2-automatic
+- free autoprice (use prices from [prices.tf](https://prices.tf/)) and unlimited listings (depends on your backpack.tf listings cap)
+- automatically craft/smelt pure metals (for currency changes)
+- offer review (on invalid value/item or overstocked or duped items)
+- dupe check on items that are more than minimum keys (you set it yourself)
+
+### tf2autobot version
+- add an option to use Discord Webhook for your bot to send accepted trade summary
+- add an option to disable show only metal in trade summary (it will show x keys, y ref, it will show only x ref on original version)
+- add an option to enable Autokeys (to keep your refined metal stock) and key banking ([jump](https://github.com/idinium96/tf2autobot#autokeys-auto-buy-or-sell-keys-feature))
+- add an option to set your own custom greeting/success/failed messages and offer review notes
+- send to trade partner a summary of their offer if need to be reviewed ([jump](https://github.com/idinium96/tf2autobot#offer-review-summary-on-trade-partner-side))
+- alert admins when there's something wrong, like queue problem (which the original one is still not fixed yet, and I have no idea why) and when your bot is out of space or if your bot has less than minimum pure (must enable Autokeys feature)
+- use emojis on almost all messages
+- add an option to set all craft weapons as currency (0.05 ref)
+- and more to come!
 
 ## Discord Webhook feature
 
@@ -73,6 +94,10 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 ![commands](https://user-images.githubusercontent.com/47635037/84581311-9c1cd100-ae12-11ea-8aae-29733d9e0334.PNG)
 
+## Offer review summary on trade partner side
+
+![review-note-trade-partner](https://user-images.githubusercontent.com/47635037/84629412-d1ade100-af1c-11ea-9a9d-a9c5df6b8eb3.PNG)
+
 ## Variables in ecosystem.json summary
 
 ### Your bot credentials
@@ -110,13 +135,14 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_INVENTORY_SORT`: [true|false] Default: true. Sort your bot inventory.
 - `DISABLE_LISTINGS`: [true|false] Default: false. This is used if you want to temporarily disable trading while your bot is alive.
 - `DISABLE_CRAFTING`: [true|false] Default: false. **NOT RECOMMENDED** to set is as true, as it cause bot and trade partner to not be able to trade because of missing pure changes.
-- `DISABLE_MESSAGES`: [true|false] Default: true. When true, people (that are friend with your bot) can send messages with "!message" command.
-- `DISABLE_SOMETHING_WROMG_ALERT`: [true|false] - Default: true. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
+- `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) can send messages with "!message" command.
+- `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
+- `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (only support for trade offer that your bot will receive, not when your bot send an offer to the trade partner via chat.)
 
 #### Misc feature
-- `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page.
-- `LAST_TOTAL_TRADES`: [Number] - Used if your polldata.json is getting bigger which consumed a lot of RAM, but you want to keep total successful trades that your bot has made.
-- `TRADING_STARTING_TIME_UNIX`: [Number - Unix format] - Also same as LAST_TOTAL_TRADES, but this one is the latest time. You can read more on my [Discord server post](https://discordapp.com/channels/664971400678998016/666909518604533760/707706994932449410).
+- `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
+- `LAST_TOTAL_TRADES`: [Number] - Used if your polldata.json is getting bigger which consumed a lot of RAM, but you want to keep total successful trades that your bot has made (leave it 0 if you don't care about it).
+- `TRADING_STARTING_TIME_UNIX`: [Number - Unix format] - Also same as LAST_TOTAL_TRADES, but this one is the latest time (leave it 0 if you don't care about it). You can read more on my [Discord server post](https://discordapp.com/channels/664971400678998016/666909518604533760/707706994932449410).
 
 #### Duped unusual check feature
 - `ENABLE_SHOW_ONLY_METAL`: [true|false] - Default: true. My custom - If set to false, it will show [x keys, y ref].
@@ -169,8 +195,8 @@ Time will be use in "!time" command and
 
 **Note on How to get DISCORD_WEBHOOK_X_URL** - See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your respective channels)
 #### Queue alert
-- `DISABLE_DISCORD_WEBHOOK_SOMETHING_WROMG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to false, it will be sent to Discord Webhook instead of Steam Chat.
-- `DISCORD_WEBHOOK_SOMETHING_WROMG_ALERT_URL` - Discord Webhook URL for SOMETHING_WROMG_ALERT.
+- `DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to false, it will be sent to Discord Webhook instead of Steam Chat.
+- `DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL` - Discord Webhook URL for SOMETHING_WROMG_ALERT.
 
 #### Pricelist update
 - `DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE`: [true|false] - Used to display price updates on the items that are in your pricelist.

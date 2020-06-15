@@ -462,6 +462,7 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
+            const weaponSku = this.craftweapon();
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -480,6 +481,14 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (sku === '5002;6') {
                     const value = 9 * amount;
+                    exchange[which].value += value;
+                    exchange[which].scrap += value;
+                } else if (
+                    weaponSku.includes(sku) &&
+                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    this.bot.pricelist.getPrice(sku, true) === null
+                ) {
+                    const value = 0.5 * amount;
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
@@ -506,7 +515,7 @@ export = class MyHandler extends Handler {
                         const buyingOverstockCheck = diff > 0;
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, buyingOverstockCheck);
 
-                        if (diff !== 0 && amountCanTrade < diff) {
+                        if (diff !== 0 && amountCanTrade < diff && !weaponSku.includes(sku)) {
                             // User is taking too many / offering too many
                             hasOverstock = true;
 
@@ -534,7 +543,7 @@ export = class MyHandler extends Handler {
                         // Offer contains keys and we are not trading keys, add key value
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
-                    } else if (match === null || match.intent === (buying ? 1 : 0)) {
+                    } else if ((match === null && !weaponSku.includes(sku)) || match.intent === (buying ? 1 : 0)) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
@@ -550,7 +559,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (process.env.ENABLE_SHOW_ONLY_METAL !== 'false') {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1066,9 +1075,7 @@ export = class MyHandler extends Handler {
                     (meta.uniqueReasons.includes('🟥INVALID_VALUE') && !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
                         ? missingPureNote
                         : '') +
-                    (process.env.DISABLE_REVIEW_OFFER_NOTE === 'false'
-                        ? `\n\nNote:\n${reviewReasons.join('\n')}`
-                        : '') +
+                    (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true' ? `\n\nNote:\n${reviewReasons.join('\n')}` : '') +
                     (process.env.ADDITIONAL_NOTE
                         ? '\n\n' +
                           process.env.ADDITIONAL_NOTE.replace(
@@ -1076,7 +1083,7 @@ export = class MyHandler extends Handler {
                               `${keyPrice.sell.metal.toString()} ref`
                           ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                         : '') +
-                    (process.env.DISABLE_SHOW_CURRENT_TIME === 'false'
+                    (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
                         ? `\n\nMy owner time is currently at ${emoji} ${time +
                               (timeNote !== '' ? `. ${timeNote}.` : '.')}`
                         : '')
@@ -1311,7 +1318,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                     if (
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
@@ -1366,7 +1373,7 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
@@ -1419,7 +1426,7 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
@@ -1829,6 +1836,293 @@ Autokeys status:-
             pureStock.push(`${pure[i].name}: ${pure[i].amount}`);
         }
         return pureStock;
+    }
+
+    private craftweapon(): string[] {
+        const weaponSku: string[] = [
+            '61;6',
+            '61;6;uncraftable',
+            '1101;6',
+            '1101;6;uncraftable',
+            '226;6',
+            '226;6;uncraftable',
+            '46;6',
+            '46;6;uncraftable',
+            '129;6',
+            '129;6;uncraftable',
+            '311;6',
+            '311;6;uncraftable',
+            '131;6',
+            '131;6;uncraftable',
+            '751;6',
+            '751;6;uncraftable',
+            '354;6',
+            '354;6;uncraftable',
+            '642;6',
+            '642;6;uncraftable',
+            '163;6',
+            '163;6;uncraftable',
+            '159;6',
+            '159;6;uncraftable',
+            '231;6',
+            '231;6;uncraftable',
+            '351;6',
+            '351;6;uncraftable',
+            '525;6',
+            '525;6;uncraftable',
+            '460;6',
+            '460;6;uncraftable',
+            '425;6',
+            '425;6;uncraftable',
+            '39;6',
+            '39;6;uncraftable',
+            '812;6',
+            '812;6;uncraftable',
+            '133;6',
+            '133;6;uncraftable',
+            '58;6',
+            '58;6;uncraftable',
+            '35;6',
+            '35;6;uncraftable',
+            '224;6',
+            '224;6;uncraftable',
+            '222;6',
+            '222;6;uncraftable',
+            '595;6',
+            '595;6;uncraftable',
+            '444;6',
+            '444;6;uncraftable',
+            '773;6',
+            '773;6;uncraftable',
+            '411;6',
+            '411;6;uncraftable',
+            '1150;6',
+            '1150;6;uncraftable',
+            '57;6',
+            '57;6;uncraftable',
+            '415;6',
+            '415;6;uncraftable',
+            '442;6',
+            '442;6;uncraftable',
+            '42;6',
+            '42;6;uncraftable',
+            '740;6',
+            '740;6;uncraftable',
+            '130;6',
+            '130;6;uncraftable',
+            '528;6',
+            '528;6;uncraftable',
+            '406;6',
+            '406;6;uncraftable',
+            '265;6',
+            '265;6;uncraftable',
+            '1099;6',
+            '1099;6;uncraftable',
+            '998;6',
+            '998;6;uncraftable',
+            '449;6',
+            '449;6;uncraftable',
+            '140;6',
+            '140;6;uncraftable',
+            '1104;6',
+            '1104;6;uncraftable',
+            '405;6',
+            '405;6;uncraftable',
+            '772;6',
+            '772;6;uncraftable',
+            '1103;6',
+            '1103;6;uncraftable',
+            '40;6',
+            '40;6;uncraftable',
+            '402;6',
+            '402;6;uncraftable',
+            '730;6',
+            '730;6;uncraftable',
+            '228;6',
+            '228;6;uncraftable',
+            '36;6',
+            '36;6;uncraftable',
+            '608;6',
+            '608;6;uncraftable',
+            '312;6',
+            '312;6;uncraftable',
+            '1098;6',
+            '1098;6;uncraftable',
+            '441;6',
+            '441;6;uncraftable',
+            '305;6',
+            '305;6;uncraftable',
+            '215;6',
+            '215;6;uncraftable',
+            '127;6',
+            '127;6;uncraftable',
+            '45;6',
+            '45;6;uncraftable',
+            '1092;6',
+            '1092;6;uncraftable',
+            '141;6',
+            '141;6;uncraftable',
+            '752;6',
+            '752;6;uncraftable',
+            '56;6',
+            '56;6;uncraftable',
+            '811;6',
+            '811;6;uncraftable',
+            '1151;6',
+            '1151;6;uncraftable',
+            '414;6',
+            '414;6;uncraftable',
+            '308;6',
+            '308;6;uncraftable',
+            '996;6',
+            '996;6;uncraftable',
+            '526;6',
+            '526;6;uncraftable',
+            '41;6',
+            '41;6;uncraftable',
+            '513;6',
+            '513;6;uncraftable',
+            '412;6',
+            '412;6;uncraftable',
+            '1153;6',
+            '1153;6;uncraftable',
+            '594;6',
+            '594;6;uncraftable',
+            '588;6',
+            '588;6;uncraftable',
+            '741;6',
+            '741;6;uncraftable',
+            '997;6',
+            '997;6;uncraftable',
+            '237;6',
+            '237;6;uncraftable',
+            '220;6',
+            '220;6;uncraftable',
+            '448;6',
+            '448;6;uncraftable',
+            '230;6',
+            '230;6;uncraftable',
+            '424;6',
+            '424;6;uncraftable',
+            '527;6',
+            '527;6;uncraftable',
+            '60;6',
+            '60;6;uncraftable',
+            '59;6',
+            '59;6;uncraftable',
+            '304;6',
+            '304;6;uncraftable',
+            '450;6',
+            '450;6;uncraftable',
+            '38;6',
+            '38;6;uncraftable',
+            '326;6',
+            '326;6;uncraftable',
+            '939;6',
+            '939;6;uncraftable',
+            '461;6',
+            '461;6;uncraftable',
+            '325;6',
+            '325;6;uncraftable',
+            '232;6',
+            '232;6;uncraftable',
+            '317;6',
+            '317;6;uncraftable',
+            '327;6',
+            '327;6;uncraftable',
+            '356;6',
+            '356;6;uncraftable',
+            '447;6',
+            '447;6;uncraftable',
+            '128;6',
+            '128;6;uncraftable',
+            '775;6',
+            '775;6;uncraftable',
+            '589;6',
+            '589;6;uncraftable',
+            '426;6',
+            '426;6;uncraftable',
+            '132;6',
+            '132;6;uncraftable',
+            '355;6',
+            '355;6;uncraftable',
+            '331;6',
+            '331;6;uncraftable',
+            '239;6',
+            '239;6;uncraftable',
+            '142;6',
+            '142;6;uncraftable',
+            '357;6',
+            '357;6;uncraftable',
+            '656;6',
+            '656;6;uncraftable',
+            '221;6',
+            '221;6;uncraftable',
+            '153;6',
+            '153;6;uncraftable',
+            '329;6',
+            '329;6;uncraftable',
+            '43;6',
+            '43;6;uncraftable',
+            '739;6',
+            '739;6;uncraftable',
+            '416;6',
+            '416;6;uncraftable',
+            '813;6',
+            '813;6;uncraftable',
+            '482;6',
+            '482;6;uncraftable',
+            '154;6',
+            '154;6;uncraftable',
+            '404;6',
+            '404;6;uncraftable',
+            '457;6',
+            '457;6;uncraftable',
+            '214;6',
+            '214;6;uncraftable',
+            '44;6',
+            '44;6;uncraftable',
+            '172;6',
+            '172;6;uncraftable',
+            '609;6',
+            '609;6;uncraftable',
+            '401;6',
+            '401;6;uncraftable',
+            '348;6',
+            '348;6;uncraftable',
+            '413;6',
+            '413;6;uncraftable',
+            '155;6',
+            '155;6;uncraftable',
+            '649;6',
+            '649;6;uncraftable',
+            '349;6',
+            '349;6;uncraftable',
+            '593;6',
+            '593;6;uncraftable',
+            '171;6',
+            '171;6;uncraftable',
+            '37;6',
+            '37;6;uncraftable',
+            '307;6',
+            '307;6;uncraftable',
+            '173;6',
+            '173;6;uncraftable',
+            '310;6',
+            '310;6;uncraftable',
+            '648;6',
+            '648;6;uncraftable',
+            '225;6',
+            '225;6;uncraftable',
+            '810;6',
+            '810;6;uncraftable',
+            '1180;6',
+            '1190;6',
+            '1179;6',
+            '1178;6',
+            '1181;6'
+        ];
+        return weaponSku;
     }
 
     private checkGroupInvites(): void {
