@@ -1842,7 +1842,7 @@ Autokeys status:-
 
     private craftweapon(): string[] {
         const weaponSku: string[] = [
-            '61;6;6',
+            '61;6',
             '61;6;uncraftable',
             '1101;6',
             '1101;6;uncraftable',
