@@ -559,7 +559,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (process.env.ENABLE_SHOW_ONLY_METAL !== 'false') {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1075,9 +1075,7 @@ export = class MyHandler extends Handler {
                     (meta.uniqueReasons.includes('🟥INVALID_VALUE') && !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
                         ? missingPureNote
                         : '') +
-                    (process.env.DISABLE_REVIEW_OFFER_NOTE === 'false'
-                        ? `\n\nNote:\n${reviewReasons.join('\n')}`
-                        : '') +
+                    (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true' ? `\n\nNote:\n${reviewReasons.join('\n')}` : '') +
                     (process.env.ADDITIONAL_NOTE
                         ? '\n\n' +
                           process.env.ADDITIONAL_NOTE.replace(
@@ -1085,7 +1083,7 @@ export = class MyHandler extends Handler {
                               `${keyPrice.sell.metal.toString()} ref`
                           ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                         : '') +
-                    (process.env.DISABLE_SHOW_CURRENT_TIME === 'false'
+                    (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
                         ? `\n\nMy owner time is currently at ${emoji} ${time +
                               (timeNote !== '' ? `. ${timeNote}.` : '.')}`
                         : '')
@@ -1320,7 +1318,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                     if (
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
@@ -1375,7 +1373,7 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
@@ -1428,7 +1426,7 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
