@@ -845,7 +845,6 @@ export = class MyHandler extends Handler {
                 this.autokeys();
 
                 const isAutoKeysEnabled = this.autokeysEnabled;
-                const isKeysBankingEnabled = this.keyBankingEnabled;
                 const autoKeysStatus = this.checkAutokeysStatus;
                 const isBuyingKeys = this.isBuyingKeys;
                 const isBankingKeys = this.isBankingKeys;
@@ -864,7 +863,6 @@ export = class MyHandler extends Handler {
                     this.discord.sendTradeSummary(
                         offer,
                         isAutoKeysEnabled,
-                        isKeysBankingEnabled,
                         autoKeysStatus,
                         isBuyingKeys,
                         isBankingKeys,
@@ -893,13 +891,7 @@ export = class MyHandler extends Handler {
                                     ? ' | Autokeys: ' +
                                       (autoKeysStatus
                                           ? '✅' +
-                                            (isKeysBankingEnabled
-                                                ? isBankingKeys
-                                                    ? ' (banking)'
-                                                    : isBuyingKeys
-                                                    ? ' (buying)'
-                                                    : ' (selling)'
-                                                : 'Not active')
+                                            (isBankingKeys ? ' (banking)' : isBuyingKeys ? ' (buying)' : ' (selling)')
                                           : '🛑')
                                     : ''
                             }

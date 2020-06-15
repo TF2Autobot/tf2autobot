@@ -174,7 +174,6 @@ export = class DiscordWebhook {
     sendTradeSummary(
         offer: TradeOffer,
         isAutoKeysEnabled: boolean,
-        isKeysBankingEnabled: boolean,
         autoKeysStatus: boolean,
         isBuyingKeys: boolean,
         isBankingKeys: boolean,
@@ -283,13 +282,11 @@ export = class DiscordWebhook {
                                           ? ' | Autokeys: ' +
                                             (autoKeysStatus
                                                 ? '✅' +
-                                                  (isKeysBankingEnabled
-                                                      ? isBankingKeys
-                                                          ? ' (banking)'
-                                                          : isBuyingKeys
-                                                          ? ' (buying)'
-                                                          : ' (selling)'
-                                                      : 'Not active')
+                                                  (isBankingKeys
+                                                      ? ' (banking)'
+                                                      : isBuyingKeys
+                                                      ? ' (buying)'
+                                                      : ' (selling)')
                                                 : '🛑')
                                           : ''
                                   }`
