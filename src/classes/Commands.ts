@@ -387,75 +387,18 @@ export = class Commands {
     }
 
     private timeCommand(steamID: SteamID): void {
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
-
-        const timeEmoji = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
-            .format();
-        const emoji =
-            timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
-                ? '🕛'
-                : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
-                ? '🕐'
-                : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
-                ? '🕑'
-                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
-                ? '🕒'
-                : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
-                ? '🕓'
-                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
-                ? '🕔'
-                : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
-                ? '🕕'
-                : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
-                ? '🕖'
-                : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
-                ? '🕗'
-                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
-                ? '🕘'
-                : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
-                ? '🕙'
-                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
-                ? '🕚'
-                : '';
-
-        const note = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
-
+        const timeWithEmojis = (this.bot.handler as MyHandler).timeWithEmoji();
         this.bot.sendMessage(
             steamID,
-            `My owner time is currently at ${emoji} ${time + (note !== '' ? `. ${note}.` : '.')}`
+            `My owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
         );
     }
 
     private pureCommand(steamID: SteamID): void {
-        const pureStock = this.pureStock();
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
 
         this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
-    }
-
-    private pureStock(): string[] {
-        const pureStock: string[] = [];
-        const pureScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const pureRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const pureRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const pureKeys = this.bot.inventoryManager.getInventory().getAmount('5021;6');
-        const pureScrapTotal = Currencies.toScrap(pureRef + pureRec + pureScrap);
-        const pure = [
-            {
-                name: pluralize('key', pureKeys),
-                amount: pureKeys
-            },
-            {
-                name: pluralize('ref', pureScrapTotal),
-                amount: Currencies.toRefined(pureScrapTotal)
-            }
-        ];
-        for (let i = 0; i < pure.length; i++) {
-            pureStock.push(`${pure[i].amount} ${pure[i].name}`);
-        }
-        return pureStock;
     }
 
     private autoKeysCommand(steamID: SteamID): void {
@@ -633,6 +576,9 @@ export = class Commands {
                 return;
             }
 
+            const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
+            const time = (this.bot.handler as MyHandler).timeWithEmoji();
+
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
                 process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL
@@ -641,7 +587,11 @@ export = class Commands {
                     steamID.toString(),
                     msg,
                     adminDetails.player_name,
-                    adminDetails.avatar_url_full
+                    adminDetails.avatar_url_full,
+                    links.steamProfile,
+                    links.backpackTF,
+                    links.steamREP,
+                    time.time
                 );
             } else {
                 this.bot.messageAdmins(
@@ -649,9 +599,9 @@ export = class Commands {
                     
                     "${msg}".
                     
-                    Steam: https://steamcommunity.com/profiles/${steamID}
-                    Backpack.tf: https://backpack.tf/profiles/${steamID}
-                    SteamREP: https://steamrep.com/profiles/${steamID}`,
+                    Steam: ${links.steamProfile}
+                    Backpack.tf: ${links.backpackTF}
+                    SteamREP: ${links.steamREP}`,
                     []
                 );
             }
@@ -804,7 +754,8 @@ export = class Commands {
                     process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                     process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                 ) {
-                    this.discord.sendQueueAlert(position);
+                    const time = (this.bot.handler as MyHandler).timeWithEmoji();
+                    this.discord.sendQueueAlert(position, time.time);
                 } else {
                     this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
                 }

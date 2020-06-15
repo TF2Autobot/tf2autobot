@@ -1,9 +1,9 @@
 import Bot from './Bot';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import moment from 'moment-timezone';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
+import Currencies from 'tf2-currencies';
 
 export = class DiscordWebhook {
     private readonly bot: Bot;
@@ -12,70 +12,64 @@ export = class DiscordWebhook {
         this.bot = bot;
     }
 
-    sendLowPureAlert(msg: string): void {
+    sendLowPureAlert(msg: string, time: string): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        const ownerID = process.env.DISCORD_OWNER_ID;
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format('MMMM Do YYYY, HH:mm:ss ZZ');
+
         /*eslint-disable */
         const discordQueue = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: `<@!${ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
+            content: `<@!${process.env.DISCORD_OWNER_ID}> [Something Wrong alert]: "${msg}" - ${time}`
         };
         /*eslint-enable */
         request.send(JSON.stringify(discordQueue));
     }
 
-    sendQueueAlert(position: number): void {
+    sendQueueAlert(position: number, time: string): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        const ownerID = process.env.DISCORD_OWNER_ID;
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format('MMMM Do YYYY, HH:mm:ss ZZ');
+
         /*eslint-disable */
         const discordQueue = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: `<@!${ownerID}> [Queue alert] Current position: ${position} - ${time}`
+            content: `<@!${process.env.DISCORD_OWNER_ID}> [Queue alert] Current position: ${position} - ${time}`
         };
         /*eslint-enable */
         request.send(JSON.stringify(discordQueue));
     }
 
-    sendPartnerMessage(steamID: string, msg: string, theirName: string, theirAvatar: string): void {
+    sendPartnerMessage(
+        steamID: string,
+        msg: string,
+        theirName: string,
+        theirAvatar: string,
+        steamProfile: string,
+        backpackTF: string,
+        steamREP: string,
+        time: string
+    ): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
         request.setRequestHeader('Content-type', 'application/json');
-
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format('MMMM Do YYYY, HH:mm:ss ZZ');
-
-        const partnerSteamID = steamID;
-        const steamProfile = `https://steamcommunity.com/profiles/${partnerSteamID}`;
-        const backpackTF = `https://backpack.tf/profiles/${partnerSteamID}`;
-        const steamREP = `https://steamrep.com/profiles/${partnerSteamID}`;
 
         /*eslint-disable */
         const discordPartnerMsg = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: `<@!${process.env.DISCORD_OWNER_ID}>, new message! - ${partnerSteamID}`,
+            content: `<@!${process.env.DISCORD_OWNER_ID}>, new message! - ${steamID}`,
             embeds: [
                 {
                     author: {
                         name: theirName,
-                        url: `https://steamcommunity.com/profiles/${partnerSteamID}`,
+                        url: steamProfile,
                         icon_url: theirAvatar
                     },
                     footer: {
-                        text: `Partner SteamID: ${partnerSteamID} • ${time}`
+                        text: `Partner SteamID: ${steamID} • ${time}`
                     },
                     title: '',
                     description: `💬 ${msg}\n\n🔍 ${theirName}'s info:\n[Steam Profile](${steamProfile}) | [backpack.tf](${backpackTF}) | [steamREP](${steamREP})`,
@@ -89,28 +83,21 @@ export = class DiscordWebhook {
     }
 
     sendOfferReview(
-        offer: TradeOfferManager.TradeOffer,
+        offer: TradeOffer,
         reason: string,
         pureStock: string[],
-        valueDiff: number,
-        valueDiffRef: number,
-        valueDiffKey: string,
-        time: string
+        time: string,
+        tradeSummary: string,
+        offerMessage: string,
+        keyPrice: { buy: Currencies; sell: Currencies },
+        value: { diff: number; diffRef: number; diffKey: string },
+        links: { steamProfile: string; backpackTF: string; steamREP: string }
     ): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
         request.setRequestHeader('Content-type', 'application/json');
 
-        const partnerSteamID = offer.partner.toString();
-        const tradeSummary = offer.summarizeWithLink(this.bot.schema);
-
-        const offerMessage = offer.message;
-        const keyPrice = this.bot.pricelist.getKeyPrices();
-
-        const steamProfile = `https://steamcommunity.com/profiles/${partnerSteamID}`;
-        const backpackTF = `https://backpack.tf/profiles/${partnerSteamID}`;
-        const steamREP = `https://steamrep.com/profiles/${partnerSteamID}`;
-
+        const mentionOwner = `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`;
         let partnerAvatar: string;
         let partnerName: string;
         log.debug('getting partner Avatar and Name...');
@@ -142,16 +129,16 @@ export = class DiscordWebhook {
             const webhookReview = JSON.stringify({
                 username: process.env.DISCORD_WEBHOOK_USERNAME,
                 avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-                content: `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`,
+                content: mentionOwner,
                 embeds: [
                     {
                         author: {
                             name: 'Offer from: ' + partnerName,
-                            url: `https://steamcommunity.com/profiles/${partnerSteamID}`,
+                            url: links.steamProfile,
                             icon_url: partnerAvatar
                         },
                         footer: {
-                            text: `Offer #${offer.id} • SteamID: ${partnerSteamID} • ${time}`
+                            text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
                         },
                         thumbnail: {
                             url: ''
@@ -160,16 +147,16 @@ export = class DiscordWebhook {
                         description:
                             `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reason}\n\n__Offer Summary__:\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (valueDiff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
-                                : valueDiff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
+                            (value.diff > 0
+                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : value.diff < 0
+                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
                             (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${offerMessage}_` : '') +
                             (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${steamProfile}) | [backpack.tf](${backpackTF}) | [steamREP](${steamREP})\n`
+                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                 : '\n') +
                             (isShowKeyRate
                                 ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
@@ -185,43 +172,32 @@ export = class DiscordWebhook {
     }
 
     sendTradeSummary(
-        offer: TradeOfferManager.TradeOffer,
+        offer: TradeOffer,
         isAutoKeysEnabled: boolean,
         isKeysBankingEnabled: boolean,
         autoKeysStatus: boolean,
         isBuyingKeys: boolean,
         isBankingKeys: boolean,
+        tradeSummary: string,
         pureStock: string[],
-        valueDiff: number,
-        valueDiffRef: number,
-        valueDiffKey: string
+        keyPrice: { buy: Currencies; sell: Currencies },
+        value: { diff: number; diffRef: number; diffKey: string },
+        links: { steamProfile: string; backpackTF: string; steamREP: string },
+        time: string
     ): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
         request.setRequestHeader('Content-type', 'application/json');
 
-        const partnerSteamID = offer.partner.toString();
-        const tradeSummary = offer.summarizeWithLink(this.bot.schema);
-
-        const skuSummary = offer.summarizeSKU();
+        const tradeSummarySKU = offer.summarizeSKU();
         let skuFromEnv = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU;
         if (skuFromEnv === '') {
             skuFromEnv = ';';
         }
         const mentionOwner =
-            process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true' && skuSummary.includes(skuFromEnv)
+            process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true' && tradeSummarySKU.includes(skuFromEnv)
                 ? `<@!${process.env.DISCORD_OWNER_ID}>`
                 : '';
-
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format('MMMM Do YYYY, HH:mm:ss ZZ');
-
-        const keyPrice = this.bot.pricelist.getKeyPrices();
-
-        const steamProfile = `https://steamcommunity.com/profiles/${partnerSteamID}`;
-        const backpackTF = `https://backpack.tf/profiles/${partnerSteamID}`;
-        const steamREP = `https://steamrep.com/profiles/${partnerSteamID}`;
 
         let tradesTotal = 0;
         const offerData = this.bot.manager.pollData.offerData;
@@ -277,11 +253,11 @@ export = class DiscordWebhook {
                     {
                         author: {
                             name: `Trade from: ${personaName} #${tradesMade.toString()}`,
-                            url: `https://steamcommunity.com/profiles/${partnerSteamID}`,
+                            url: links.steamProfile,
                             icon_url: avatarFull
                         },
                         footer: {
-                            text: `Offer #${offer.id} • SteamID: ${partnerSteamID} • ${time}`
+                            text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
                         },
                         thumbnail: {
                             url: ''
@@ -290,15 +266,15 @@ export = class DiscordWebhook {
                         description:
                             `A trade with ${partnerNameNoFormat} has been marked as accepted.\n__Summary__:\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (valueDiff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
-                                : valueDiff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
+                            (value.diff > 0
+                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : value.diff < 0
+                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
                             (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${steamProfile}) | [backpack.tf](${backpackTF}) | [steamREP](${steamREP})\n`
+                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                 : '\n') +
                             (isShowKeyRate
                                 ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
@@ -331,7 +307,7 @@ export = class DiscordWebhook {
         });
     }
 
-    private getPartnerDetails(offer: TradeOfferManager.TradeOffer, callback: (err: any, details: any) => void): any {
+    private getPartnerDetails(offer: TradeOffer, callback: (err: any, details: any) => void): any {
         // check state of the offer
         if (offer.state === TradeOfferManager.ETradeOfferState.active) {
             offer.getUserDetails(function(err, me, them) {
