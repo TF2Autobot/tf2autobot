@@ -402,7 +402,7 @@ export = class Commands {
     }
 
     private autoKeysCommand(steamID: SteamID): void {
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'false') {
+        if ((this.bot.handler as MyHandler).getAutokeysBankingStatus() === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
@@ -418,12 +418,10 @@ export = class Commands {
         const userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
         const userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
 
-        const isBuyingKeys = (currReftoScrap > userMaxReftoScrap && currKeys < userMaxKeys) !== false;
-        const isSellingKeys = (currReftoScrap < userMinReftoScrap && currKeys > userMinKeys) !== false;
-        const enableKeyBanking = process.env.ENABLE_AUTO_BANKING === 'true';
-        const isBankingKeys =
-            (currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap && currKeys > userMinKeys) !==
-            false;
+        const autokeysStatus = (this.bot.handler as MyHandler).getAutokeysStatus();
+        const isBuyingKeys = (this.bot.handler as MyHandler).getAutokeysBuyingStatus();
+        const enableKeyBanking = (this.bot.handler as MyHandler).getAutokeysBankingEnabled();
+        const isBankingKeys = (this.bot.handler as MyHandler).getAutokeysBankingStatus();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -473,7 +471,7 @@ export = class Commands {
         let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n   Auto-banking: ${enableKeyBanking ? 'enabled' : 'disabled'}`;
         reply += `\nAutokeys status: ${
-            isBankingKeys ? 'banking' : isSellingKeys ? 'selling' : isBuyingKeys ? 'buying' : 'not active'
+            autokeysStatus ? (isBankingKeys ? 'banking' : isBuyingKeys ? 'buying' : 'selling') : 'not active'
         }`;
         /*
         //        X

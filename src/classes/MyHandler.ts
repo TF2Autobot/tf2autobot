@@ -139,6 +139,26 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
+    getAutokeysEnabled(): boolean {
+        return this.autokeysEnabled;
+    }
+
+    getAutokeysStatus(): boolean {
+        return this.checkAutokeysStatus;
+    }
+
+    getAutokeysBuyingStatus(): boolean {
+        return this.isBuyingKeys;
+    }
+
+    getAutokeysBankingEnabled(): boolean {
+        return this.keyBankingEnabled;
+    }
+
+    getAutokeysBankingStatus(): boolean {
+        return this.isBankingKeys;
+    }
+
     onRun(): Promise<{
         loginAttempts?: number[];
         pricelist?: EntryData[];
