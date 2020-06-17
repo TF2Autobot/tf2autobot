@@ -211,7 +211,7 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: [true|false] - self explained.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE` - Notes.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to true if you want your bot to mention on every successful trades.
-- `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` - Only support ONE SKU or SKU format. Let say you want it to mention on every unusual trade, then set it to ";5;u".
+- `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
 
 #### Offer review summary
 - `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: [true|false] - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to false, it will send to your Steam Chat.
