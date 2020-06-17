@@ -238,15 +238,15 @@ export = class DiscordWebhook {
         const ourItems = items.our;
         const theirItems = items.their;
 
-        const isMentionOurItems = this.skuToMention.some((env: string) => {
-            return ourItems.some((sku: string) => {
-                return sku.includes(env);
+        const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
+            return ourItems.some((ourItemSKU: string) => {
+                return ourItemSKU.includes(fromEnv);
             });
         });
 
-        const isMentionThierItems = this.skuToMention.some((env: string) => {
-            return theirItems.some((sku: string) => {
-                return sku.includes(env);
+        const isMentionThierItems = this.skuToMention.some((fromEnv: string) => {
+            return theirItems.some((theirItemSKU: string) => {
+                return theirItemSKU.includes(fromEnv);
             });
         });
 
