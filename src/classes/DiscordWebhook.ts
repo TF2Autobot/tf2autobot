@@ -4,9 +4,12 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
+import { parseJSON } from '../lib/helpers';
 
 export = class DiscordWebhook {
     private readonly bot: Bot;
+
+    private skuToMention: string[] = [];
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -181,6 +184,7 @@ export = class DiscordWebhook {
         pureStock: string[],
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
+        items: { their: string[]; our: string[] },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
         time: string
     ): void {
@@ -188,13 +192,37 @@ export = class DiscordWebhook {
         request.open('POST', process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
         request.setRequestHeader('Content-type', 'application/json');
 
-        const tradeSummarySKU = offer.summarizeSKU();
-        let skuFromEnv = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU;
-        if (skuFromEnv === '') {
-            skuFromEnv = ';';
+        const ourItems = items.our;
+        const theirItems = items.their;
+        let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
+        log.debug('on parseJSON: ' + skuFromEnv);
+        if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
+            skuFromEnv.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    skuFromEnv = [';'];
+                }
+            });
+            this.skuToMention = skuFromEnv;
+        } else {
+            log.warn('You did not set items SKU to mention as an array, resetting to mention all items');
+            this.skuToMention = [';'];
         }
+
+        const isMentionOurItems = this.skuToMention.some((env: string) => {
+            return ourItems.some((sku: string) => {
+                return sku.includes(env);
+            });
+        });
+
+        const isMentionThierItems = this.skuToMention.some((env: string) => {
+            return theirItems.some((sku: string) => {
+                return sku.includes(env);
+            });
+        });
+
         const mentionOwner =
-            process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true' && tradeSummarySKU.includes(skuFromEnv)
+            process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true' &&
+            (isMentionOurItems || isMentionThierItems)
                 ? `<@!${process.env.DISCORD_OWNER_ID}>`
                 : '';
 

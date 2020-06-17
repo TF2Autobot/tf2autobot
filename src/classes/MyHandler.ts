@@ -872,6 +872,7 @@ export = class MyHandler extends Handler {
                 const pureStock = this.pureStock();
                 const timeWithEmojis = this.timeWithEmoji();
                 const links = this.tradePartnerLinks(offer.partner.toString());
+                const itemsList = this.itemList(offer);
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
                 const value = this.valueDiff(offer, keyPrice);
@@ -890,6 +891,7 @@ export = class MyHandler extends Handler {
                         pureStock,
                         keyPrice,
                         value,
+                        itemsList,
                         links,
                         timeWithEmojis.time
                     );
