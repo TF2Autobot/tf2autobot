@@ -402,7 +402,7 @@ export = class Commands {
     }
 
     private autoKeysCommand(steamID: SteamID): void {
-        if ((this.bot.handler as MyHandler).getAutokeysBankingStatus() === false) {
+        if ((this.bot.handler as MyHandler).getAutokeysEnabled() === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
