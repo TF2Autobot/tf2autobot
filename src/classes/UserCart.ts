@@ -513,7 +513,7 @@ class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = this.pureStock();
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -792,28 +792,6 @@ class UserCart extends Cart {
         this.offer = offer;
 
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
-    }
-
-    private pureStock(): string[] {
-        const pureStock: string[] = [];
-        const pureScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const pureRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const pureRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const pureScrapTotal = Currencies.toScrap(pureRef + pureRec + pureScrap);
-        const pure = [
-            {
-                name: 'Key',
-                amount: this.bot.inventoryManager.getInventory().getAmount('5021;6')
-            },
-            {
-                name: 'Ref',
-                amount: Currencies.toRefined(pureScrapTotal)
-            }
-        ];
-        for (let i = 0; i < pure.length; i++) {
-            pureStock.push(`${pure[i].name}: ${pure[i].amount}`);
-        }
-        return pureStock;
     }
 
     // We Override the toString function so that the currencies are added

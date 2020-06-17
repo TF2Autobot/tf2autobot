@@ -139,6 +139,26 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
+    getAutokeysEnabled(): boolean {
+        return this.autokeysEnabled;
+    }
+
+    getAutokeysStatus(): boolean {
+        return this.checkAutokeysStatus;
+    }
+
+    getAutokeysBuyingStatus(): boolean {
+        return this.isBuyingKeys;
+    }
+
+    getAutokeysBankingEnabled(): boolean {
+        return this.keyBankingEnabled;
+    }
+
+    getAutokeysBankingStatus(): boolean {
+        return this.isBankingKeys;
+    }
+
     onRun(): Promise<{
         loginAttempts?: number[];
         pricelist?: EntryData[];
@@ -845,33 +865,17 @@ export = class MyHandler extends Handler {
                 this.autokeys();
 
                 const isAutoKeysEnabled = this.autokeysEnabled;
-                const isKeysBankingEnabled = this.keyBankingEnabled;
                 const autoKeysStatus = this.checkAutokeysStatus;
                 const isBuyingKeys = this.isBuyingKeys;
                 const isBankingKeys = this.isBankingKeys;
 
                 const pureStock = this.pureStock();
+                const timeWithEmojis = this.timeWithEmoji();
+                const links = this.tradePartnerLinks(offer.partner.toString());
+                const itemsList = this.itemList(offer);
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
-                const value: { our: Currency; their: Currency } = offer.data('value');
-
-                let valueDiff: number;
-                let valueDiffRef: number;
-                let valueDiffKey: string;
-                if (!value) {
-                    valueDiff = 0;
-                    valueDiffRef = 0;
-                    valueDiffKey = '';
-                } else {
-                    valueDiff =
-                        new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                        new Currencies(value.our).toValue(keyPrice.sell.metal);
-                    valueDiffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(valueDiff * (1 / 9))));
-                    valueDiffKey = Currencies.toCurrencies(
-                        Math.abs(valueDiff),
-                        Math.abs(valueDiff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
-                    ).toString();
-                }
+                const value = this.valueDiff(offer, keyPrice);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
@@ -880,26 +884,28 @@ export = class MyHandler extends Handler {
                     this.discord.sendTradeSummary(
                         offer,
                         isAutoKeysEnabled,
-                        isKeysBankingEnabled,
                         autoKeysStatus,
                         isBuyingKeys,
                         isBankingKeys,
+                        offer.summarizeWithLink(this.bot.schema),
                         pureStock,
-                        valueDiff,
-                        valueDiffRef,
-                        valueDiffKey
+                        keyPrice,
+                        value,
+                        itemsList,
+                        links,
+                        timeWithEmojis.time
                     );
                 } else {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅\n\nSummary:\n` +
                             offer.summarize(this.bot.schema) +
-                            (valueDiff > 0
-                                ? `\n\n📈 Profit from overpay: ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
-                                : valueDiff < 0
-                                ? `\n\n📉 Loss from underpay: ${valueDiffRef} ref` +
-                                  (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
+                            (value.diff > 0
+                                ? `\n\n📈 Profit from overpay: ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : value.diff < 0
+                                ? `\n\n📉 Loss from underpay: ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${
@@ -907,13 +913,7 @@ export = class MyHandler extends Handler {
                                     ? ' | Autokeys: ' +
                                       (autoKeysStatus
                                           ? '✅' +
-                                            (isKeysBankingEnabled
-                                                ? isBankingKeys
-                                                    ? ' (banking)'
-                                                    : isBuyingKeys
-                                                    ? ' (buying)'
-                                                    : ' (selling)'
-                                                : 'Not active')
+                                            (isBankingKeys ? ' (banking)' : isBuyingKeys ? ' (buying)' : ' (selling)')
                                           : '🛑')
                                     : ''
                             }
@@ -958,73 +958,13 @@ export = class MyHandler extends Handler {
         if (!notify) {
             return;
         }
+
         const keyPrice = this.bot.pricelist.getKeyPrices();
         const pureStock = this.pureStock();
-        const items: { our: {}; their: {} } = offer.data('dict');
-        const value: { our: Currency; their: Currency } = offer.data('value');
-
-        let valueDiff: number;
-        let valueDiffRef: number;
-        let valueDiffKey: string;
-        if (!value) {
-            valueDiff = 0;
-            valueDiffRef = 0;
-            valueDiffKey = '';
-        } else {
-            valueDiff =
-                new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                new Currencies(value.our).toValue(keyPrice.sell.metal);
-            valueDiffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(valueDiff * (1 / 9))));
-            valueDiffKey = Currencies.toCurrencies(
-                Math.abs(valueDiff),
-                Math.abs(valueDiff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
-            ).toString();
-        }
-
-        const itemsList: string[] = [];
-        for (const sku in items.their) {
-            if (!Object.prototype.hasOwnProperty.call(items.their, sku)) {
-                continue;
-            }
-            const theirItemsSku = sku;
-            itemsList.push(theirItemsSku);
-        }
-
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
-
-        const timeEmoji = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
-            .format();
-        const emoji =
-            timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
-                ? '🕛'
-                : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
-                ? '🕐'
-                : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
-                ? '🕑'
-                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
-                ? '🕒'
-                : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
-                ? '🕓'
-                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
-                ? '🕔'
-                : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
-                ? '🕕'
-                : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
-                ? '🕖'
-                : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
-                ? '🕗'
-                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
-                ? '🕘'
-                : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
-                ? '🕙'
-                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
-                ? '🕚'
-                : '';
-
-        const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
+        const value = this.valueDiff(offer, keyPrice);
+        const timeWithEmojis = this.timeWithEmoji();
+        const links = this.tradePartnerLinks(offer.partner.toString());
+        const itemsList = this.itemList(offer);
 
         if (action === 'skip') {
             const reviewReasons: string[] = [];
@@ -1049,7 +989,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (itemsList.includes('5021;6') ? `${valueDiffKey}]` : `${valueDiffRef} ref]`);
+                    (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             if (meta.uniqueReasons.includes('🟫DUPED_ITEMS')) {
                 note = process.env.DUPE_ITEMS_NOTE
@@ -1084,8 +1024,8 @@ export = class MyHandler extends Handler {
                           ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                         : '') +
                     (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                        ? `\n\nMy owner time is currently at ${emoji} ${time +
-                              (timeNote !== '' ? `. ${timeNote}.` : '.')}`
+                        ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                              (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
                         : '')
             );
             if (
@@ -1096,10 +1036,12 @@ export = class MyHandler extends Handler {
                     offer,
                     meta.uniqueReasons.join(', '),
                     pureStock,
-                    valueDiff,
-                    valueDiffRef,
-                    valueDiffKey,
-                    time
+                    timeWithEmojis.time,
+                    offer.summarizeWithLink(this.bot.schema),
+                    offer.message,
+                    keyPrice,
+                    value,
+                    links
                 );
             } else {
                 const offerMessage = offer.message;
@@ -1109,18 +1051,18 @@ export = class MyHandler extends Handler {
                     
                     Offer Summary:
                     ${offer.summarize(this.bot.schema)}${
-                        valueDiff > 0
-                            ? `\n📈 Profit from overpay: ${valueDiffRef} ref` +
-                              (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
-                            : valueDiff < 0
-                            ? `\n📉 Loss from underpay: ${valueDiffRef} ref` +
-                              (valueDiffRef >= keyPrice.sell.metal ? ` (${valueDiffKey})` : '')
+                        value.diff > 0
+                            ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
+                              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                            : value.diff < 0
+                            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
+                              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                             : ''
                     }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}
                     
-                    Steam: https://steamcommunity.com/profiles/${offer.partner}
-                    Backpack.tf: https://backpack.tf/profiles/${offer.partner}
-                    SteamREP: https://steamrep.com/profiles/${offer.partner}
+                    Steam: ${links.steamProfile}
+                    Backpack.tf: ${links.backpackTF}
+                    SteamREP: ${links.steamREP}
 
                     🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref
                     💰 Pure stock: ${pureStock.join(', ').toString()} ref`,
@@ -1255,6 +1197,7 @@ Autokeys status:-
 
         const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
+        const time = this.timeWithEmoji();
 
         if (isAlreadyRunningAutokeys) {
             // if Autokeys already running
@@ -1323,7 +1266,7 @@ Autokeys status:-
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                     ) {
-                        this.discord.sendLowPureAlert(msg);
+                        this.discord.sendLowPureAlert(msg, time.time);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -1378,7 +1321,7 @@ Autokeys status:-
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendLowPureAlert(msg);
+                            this.discord.sendLowPureAlert(msg, time.time);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -1431,7 +1374,7 @@ Autokeys status:-
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendLowPureAlert(msg);
+                            this.discord.sendLowPureAlert(msg, time.time);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -1816,7 +1759,109 @@ Autokeys status:-
         }
     }
 
-    private pureStock(): string[] {
+    private itemList(offer: TradeOffer): { their: string[]; our: string[] } {
+        const items: { our: {}; their: {} } = offer.data('dict');
+        const their: string[] = [];
+        for (const sku in items.their) {
+            if (!Object.prototype.hasOwnProperty.call(items.their, sku)) {
+                continue;
+            }
+            const theirItemsSku = sku;
+            their.push(theirItemsSku);
+        }
+
+        const our: string[] = [];
+        for (const sku in items.our) {
+            if (!Object.prototype.hasOwnProperty.call(items.our, sku)) {
+                continue;
+            }
+            const ourItemsSku = sku;
+            our.push(ourItemsSku);
+        }
+        return { their, our };
+    }
+
+    private valueDiff(
+        offer: TradeOffer,
+        keyPrice: { buy: Currencies; sell: Currencies }
+    ): { diff: number; diffRef: number; diffKey: string } {
+        const value: { our: Currency; their: Currency } = offer.data('value');
+
+        let diff: number;
+        let diffRef: number;
+        let diffKey: string;
+        if (!value) {
+            diff = 0;
+            diffRef = 0;
+            diffKey = '';
+        } else {
+            diff =
+                new Currencies(value.their).toValue(keyPrice.sell.metal) -
+                new Currencies(value.our).toValue(keyPrice.sell.metal);
+            diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
+            diffKey = Currencies.toCurrencies(
+                Math.abs(diff),
+                Math.abs(diff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
+            ).toString();
+        }
+        return { diff, diffRef, diffKey };
+    }
+
+    tradePartnerLinks(steamID: string): { steamProfile: string; backpackTF: string; steamREP: string } {
+        const links = {
+            steamProfile: `https://steamcommunity.com/profiles/${steamID}`,
+            backpackTF: `https://backpack.tf/profiles/${steamID}`,
+            steamREP: `https://steamrep.com/profiles/${steamID}`
+        };
+        return links;
+    }
+
+    timeWithEmoji(): { time: string; emoji: string; note: string } {
+        const time = moment()
+            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+
+        const timeEmoji = moment()
+            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+            .format();
+        const emoji =
+            timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
+                ? '🕛'
+                : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
+                ? '🕐'
+                : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
+                ? '🕑'
+                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
+                ? '🕒'
+                : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
+                ? '🕓'
+                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
+                ? '🕔'
+                : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
+                ? '🕕'
+                : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
+                ? '🕖'
+                : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
+                ? '🕗'
+                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
+                ? '🕘'
+                : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
+                ? '🕙'
+                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
+                ? '🕚'
+                : '';
+
+        const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
+
+        const timeWithEmoji = {
+            time: time,
+            emoji: emoji,
+            note: timeNote
+        };
+        return timeWithEmoji;
+    }
+
+    pureStock(): string[] {
         const pureStock: string[] = [];
         const pureScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
         const pureRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
