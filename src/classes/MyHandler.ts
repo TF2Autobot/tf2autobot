@@ -1769,12 +1769,12 @@ Autokeys status:-
         }
 
         const our: string[] = [];
-        for (const sku in items.their) {
+        for (const sku in items.our) {
             if (!Object.prototype.hasOwnProperty.call(items.our, sku)) {
                 continue;
             }
-            const theirItemsSku = sku;
-            our.push(theirItemsSku);
+            const ourItemsSku = sku;
+            our.push(ourItemsSku);
         }
         return { their, our };
     }
