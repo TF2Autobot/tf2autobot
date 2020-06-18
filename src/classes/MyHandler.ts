@@ -62,6 +62,10 @@ export = class MyHandler extends Handler {
 
     private alreadyUpdatedToSell = false;
 
+    private invalidValueException: number;
+
+    private invalidValueExceptionSKU: string[] = [];
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -74,6 +78,25 @@ export = class MyHandler extends Handler {
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+        const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
+
+        let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
+        if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
+            invalidValueExceptionSKU.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    invalidValueExceptionSKU = ['Not Set'];
+                }
+            });
+            this.invalidValueExceptionSKU = invalidValueExceptionSKU;
+        } else {
+            log.warn(
+                'You did not set invalid value excepted items SKU as an array, resetting to apply only for Unusual and Australium'
+            );
+            this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
+        }
+
+        const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
+        this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
 
         if (!isNaN(minimumScrap)) {
             this.minimumScrap = minimumScrap;
@@ -643,15 +666,46 @@ export = class MyHandler extends Handler {
             }
         }
 
+        const exceptionSKU = this.invalidValueExceptionSKU;
+        const itemsList = this.itemList(offer);
+        const ourItemsSKU = itemsList.our;
+        const theirItemsSKU = itemsList.their;
+
+        const isOurItems = exceptionSKU.some((fromEnv: string) => {
+            return ourItemsSKU.some((ourItemSKU: string) => {
+                return ourItemSKU.includes(fromEnv);
+            });
+        });
+
+        const isThierItems = exceptionSKU.some((fromEnv: string) => {
+            return theirItemsSKU.some((theirItemSKU: string) => {
+                return theirItemSKU.includes(fromEnv);
+            });
+        });
+
+        const isExcept = isOurItems || isThierItems;
+        const exceptionValue = this.invalidValueException;
+
         let hasInvalidValue = false;
         if (exchange.our.value > exchange.their.value) {
-            // Check if the values are correct
-            hasInvalidValue = true;
-            wrongAboutOffer.push({
-                reason: '🟥INVALID_VALUE',
-                our: exchange.our.value,
-                their: exchange.their.value
-            });
+            if (!isExcept || (isExcept && exchange.our.value - exchange.their.value >= exceptionValue)) {
+                // Check if the values are correct and is not include the exception sku
+                // OR include the exception sku but the invalid value is more than or equal to exception value
+                hasInvalidValue = true;
+                wrongAboutOffer.push({
+                    reason: '🟥INVALID_VALUE',
+                    our: exchange.our.value,
+                    their: exchange.their.value
+                });
+            } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
+                log.info(
+                    `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
+                        exchange.our.value - exchange.their.value
+                    )} ref which is less than your exception value of ${Currencies.toRefined(
+                        exceptionValue
+                    )} ref. Accepting/checking for other reasons...`
+                );
+            }
         }
 
         if (!manualReviewEnabled) {
