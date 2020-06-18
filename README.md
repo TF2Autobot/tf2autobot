@@ -49,6 +49,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - use emojis on almost all messages
 - add an option to set all craft weapons as currency (0.05 ref)
 - INVALID_VALUE exception
+- Mention every items on each offer review reasons
 - and more to come!
 
 ## Added features
@@ -64,7 +65,7 @@ Screenshots:
 
 - Offer review (when trade partner sent wrong value/overstocked/etc) -
 
-![Offer-review](https://user-images.githubusercontent.com/47635037/84581314-9d4dfe00-ae12-11ea-88e2-9a65369b4e22.png)
+![Offer-review](https://user-images.githubusercontent.com/47635037/85020166-80168800-b1a2-11ea-99f2-04766677fdf7.PNG)
 
 - Messages (when trade partner send "!message" command -
 
@@ -103,7 +104,7 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 ### Offer review summary on trade partner side
 
-![review-note-trade-partner](https://user-images.githubusercontent.com/47635037/84629412-d1ade100-af1c-11ea-9a9d-a9c5df6b8eb3.PNG)
+![review-note-trade-partner](https://user-images.githubusercontent.com/47635037/85020170-8147b500-b1a2-11ea-96b5-1805ad8cc31c.PNG)
 
 ### INVALID_VALUE exception
 
@@ -248,20 +249,19 @@ Time will be use in "!time" command and
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
 - `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0`.
 - `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
-- `INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
-- `OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.
-- `DUPE_ITEMS_NOTE` - Your custom DUPE_ITEMS note.
-- `DUPE_CHECK_FAILED_NOTE` - Your custom DUPE_CHECK_FAILED note.
+- *`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
+- *`OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.
+- *`DUPE_ITEMS_NOTE` - Your custom DUPE_ITEMS note.
+- *`DUPE_CHECK_FAILED_NOTE` - Your custom DUPE_CHECK_FAILED note.
 - `ADDITIONAL_NOTE` - Your custom ADDITIONAL note.
 
-**Notes:** 
+**Notes:**
 On each reasons **except INVALID_VALUE**, you can put `%name%` to list all the items that are on that reason, and `%isName%` for plural of "is", where if %name% is just 1 item, it will use "is", else if more then one item, it will use "are".
 
 Example:
 Let say the trade contains items with `INVALID_ITEMS`. The items are: Dueling Mini-Game, Secret Saxton.
 
 You use custom `INVALID_ITEMS` note as: "%name% %isName% not in my pricelist. Please wait for my owner to check it."
-
 What the trade partner will received: "Dueling Mini-Game, Secret Saxton are not in my pricelist. Please wait for my owner to check it."
 
 
