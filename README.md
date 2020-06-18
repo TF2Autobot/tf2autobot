@@ -44,6 +44,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - alert admins when there's something wrong, like queue problem (which the original one is still not fixed yet, and I have no idea why) and when your bot is out of space or if your bot has less than minimum pure (must enable Autokeys feature)
 - use emojis on almost all messages
 - add an option to set all craft weapons as currency (0.05 ref)
+- INVALID_VALUE exception
 - and more to come!
 
 ## Discord Webhook feature
