@@ -98,6 +98,14 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 ![review-note-trade-partner](https://user-images.githubusercontent.com/47635037/84629412-d1ade100-af1c-11ea-9a9d-a9c5df6b8eb3.PNG)
 
+## INVALID_VALUE exception
+
+Let say you want to trade an unusual OR an australium, which the value as we know is huge (more than 5 keys), and then someone sent a trade offer with 0.11 ref less, your bot will skip this offer and send you notification to do review on this offer. With this exception, your bot will accept the trade as long as it's less than the exception value in ref that you set. See [here](https://github.com/idinium96/tf2autobot#manual-review-settings).
+
+![Invalid_value_exception1](https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG)
+
+![Invalid_value_exception2](https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG)
+
 ## Variables in ecosystem.json summary
 
 ### Your bot credentials
