@@ -699,7 +699,7 @@ export = class MyHandler extends Handler {
                 });
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
-                    `Contains ${exceptionSKU} and difference is ${Currencies.toRefined(
+                    `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
                         exchange.our.value - exchange.their.value
                     )} ref which is less than your exception value of ${Currencies.toRefined(
                         exceptionValue
