@@ -254,6 +254,17 @@ Time will be use in "!time" command and
 - `DUPE_CHECK_FAILED_NOTE` - Your custom DUPE_CHECK_FAILED note.
 - `ADDITIONAL_NOTE` - Your custom ADDITIONAL note.
 
+**Notes:** 
+On each reasons **except INVALID_VALUE**, you can put `%name%` to list all the items that are on that reason, and `%isName%` for plural of "is", where if %name% is just 1 item, it will use "is", else if more then one item, it will use "are".
+
+Example:
+Let say the trade contains items with `INVALID_ITEMS`. The items are: Dueling Mini-Game, Secret Saxton.
+
+You use custom `INVALID_ITEMS` note as: "%name% %isName% not in my pricelist. Please wait for my owner to check it."
+
+What the trade partner will received: "Dueling Mini-Game, Secret Saxton are not in my pricelist. Please wait for my owner to check it."
+
+
 ### Others
 - `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note.
 - `CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN` - Your custom note when people sends wrong command.
