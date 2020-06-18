@@ -1041,9 +1041,12 @@ export = class MyHandler extends Handler {
             const reviewReasons: string[] = [];
             let note: string;
             let missingPureNote: string;
+            const invalidItemsName: string[] = [];
+            const overstockedItemsName: string[] = [];
+            const dupedItemsName: string[] = [];
+            const dupedFailedItemsName: string[] = [];
 
             if (meta.uniqueReasons.includes('🟨INVALID_ITEMS')) {
-                const invalidItemsName: string[] = [];
                 this.invalidItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     invalidItemsName.push(name);
@@ -1061,12 +1064,9 @@ export = class MyHandler extends Handler {
                           invalidItemsName.join(', ')
                       );
                 reviewReasons.push(note);
-
-                this.invalidItemsSKU = []; // reset invalidItemsSKU in memory
             }
 
             if (meta.uniqueReasons.includes('🟦OVERSTOCKED')) {
-                const overstockedItemsName: string[] = [];
                 this.overstockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     overstockedItemsName.push(name);
@@ -1084,8 +1084,6 @@ export = class MyHandler extends Handler {
                           overstockedItemsName.join(', ')
                       );
                 reviewReasons.push(note);
-
-                this.overstockedItemsSKU = []; // reset overstockedItemsSKU in memory
             }
 
             if (meta.uniqueReasons.includes('🟥INVALID_VALUE')) {
@@ -1099,7 +1097,6 @@ export = class MyHandler extends Handler {
             }
 
             if (meta.uniqueReasons.includes('🟫DUPED_ITEMS')) {
-                const dupedItemsName: string[] = [];
                 this.dupedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedItemsName.push(name);
@@ -1117,12 +1114,9 @@ export = class MyHandler extends Handler {
                           dupedItemsName.join(', ')
                       );
                 reviewReasons.push(note);
-
-                this.dupedItemsSKU = []; // reset dupedItemsSKU in memory
             }
 
             if (meta.uniqueReasons.includes('🟪DUPE_CHECK_FAILED')) {
-                const dupedFailedItemsName: string[] = [];
                 this.dupedFailedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedFailedItemsName.push(name);
@@ -1140,8 +1134,6 @@ export = class MyHandler extends Handler {
                           dupedFailedItemsName.join(', ')
                       );
                 reviewReasons.push(note);
-
-                this.dupedFailedItemsSKU = []; // reset dupedFailedItemsSKU in memory
             }
             // Notify partner and admin that the offer is waiting for manual review
             this.bot.sendMessage(
@@ -1181,7 +1173,11 @@ export = class MyHandler extends Handler {
                     offer.message,
                     keyPrice,
                     value,
-                    links
+                    links,
+                    invalidItemsName,
+                    overstockedItemsName,
+                    dupedItemsName,
+                    dupedFailedItemsName
                 );
             } else {
                 const offerMessage = offer.message;
@@ -1198,7 +1194,31 @@ export = class MyHandler extends Handler {
                             ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
                               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                             : ''
-                    }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}
+                    }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}${
+                        invalidItemsName.length !== 0 ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}` : ''
+                    }${
+                        invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
+                            ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                            : overstockedItemsName.length !== 0
+                            ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                            : ''
+                    }${
+                        (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
+                        dupedItemsName.length !== 0
+                            ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                            : dupedItemsName.length !== 0
+                            ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                            : ''
+                    }${
+                        (invalidItemsName.length !== 0 ||
+                            overstockedItemsName.length !== 0 ||
+                            dupedItemsName.length !== 0) &&
+                        dupedFailedItemsName.length !== 0
+                            ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                            : dupedFailedItemsName.length !== 0
+                            ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                            : ''
+                    }
                     
                     Steam: ${links.steamProfile}
                     Backpack.tf: ${links.backpackTF}
@@ -1209,6 +1229,11 @@ export = class MyHandler extends Handler {
                     []
                 );
             }
+            // clear/reset these in memory
+            this.invalidItemsSKU = [];
+            this.overstockedItemsSKU = [];
+            this.dupedItemsSKU = [];
+            this.dupedFailedItemsSKU = [];
         }
     }
 

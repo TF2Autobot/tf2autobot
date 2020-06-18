@@ -133,7 +133,11 @@ export = class DiscordWebhook {
         offerMessage: string,
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
-        links: { steamProfile: string; backpackTF: string; steamREP: string }
+        links: { steamProfile: string; backpackTF: string; steamREP: string },
+        invalidItemsName: string[],
+        overstockedItemsName: string[],
+        dupedItemsName: string[],
+        dupedFailedItemsName: string[]
     ): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
@@ -201,6 +205,31 @@ export = class DiscordWebhook {
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
                             (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${offerMessage}_` : '') +
+                            `${
+                                invalidItemsName.length !== 0 ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}` : ''
+                            }${
+                                invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
+                                    ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                                    : overstockedItemsName.length !== 0
+                                    ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                                    : ''
+                            }${
+                                (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
+                                dupedItemsName.length !== 0
+                                    ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                                    : dupedItemsName.length !== 0
+                                    ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                                    : ''
+                            }${
+                                (invalidItemsName.length !== 0 ||
+                                    overstockedItemsName.length !== 0 ||
+                                    dupedItemsName.length !== 0) &&
+                                dupedFailedItemsName.length !== 0
+                                    ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                                    : dupedFailedItemsName.length !== 0
+                                    ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                                    : ''
+                            }` +
                             (isShowQuickLinks
                                 ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                 : '\n') +
