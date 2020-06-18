@@ -10,6 +10,8 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
+[![Donate-paypal](https://img.shields.io/badge/paypal-donate-blue)](https://www.paypal.me/idinium)
+[![Donate-steam](https://img.shields.io/badge/steam-donate-lightgrey)](https://bit.ly/3gbldTM)
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
