@@ -3,6 +3,8 @@
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf.
 **tf2autobot** is an improved version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more on the original repository [here](https://github.com/Nicklason/tf2-automatic).
 
+![GitHub package version](https://img.shields.io/github/package-json/v/idinium96/tf2autobot.svg)
+[![Build Status](https://img.shields.io/github/workflow/status/idinium96/tf2autobot/CI/development)](https://github.com/idinium96/tf2autobot/actions)
 [![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/issues)
 [![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/network/members)
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
@@ -47,7 +49,9 @@ The original tf2-automatic repository already have a lot of features, but some f
 - INVALID_VALUE exception
 - and more to come!
 
-## Discord Webhook feature
+## Added features
+
+### Discord Webhook feature
 
 Instead of the bot sending trade summary, review offer and messages to you via Steam Chat, this version will let your bot to send it to a different channels in your discord server.
 
@@ -74,7 +78,7 @@ Note that, it's an option to show key rate/ pure stock/ quick links on each feat
 
 If you want to use this feature, you must use [ecosystem.template.json](https://github.com/idinium96/tf2autobot/blob/master/template.ecosystem.json) from this version, which contains much more variables for you to fill in.
 
-## Autokeys (auto buy or sell keys) feature
+### Autokeys (auto buy or sell keys) feature
 
 This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll have to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot/#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
 
@@ -91,21 +95,22 @@ Some screenshots:
 
 You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1129-L1592).
 
-## Emojis and more commands added
+### Emojis and more commands added
 
 ![commands](https://user-images.githubusercontent.com/47635037/84581311-9c1cd100-ae12-11ea-8aae-29733d9e0334.PNG)
 
-## Offer review summary on trade partner side
+### Offer review summary on trade partner side
 
 ![review-note-trade-partner](https://user-images.githubusercontent.com/47635037/84629412-d1ade100-af1c-11ea-9a9d-a9c5df6b8eb3.PNG)
 
-## INVALID_VALUE exception
+### INVALID_VALUE exception
 
-Let say you want to trade an unusual OR an australium, which the value as we know is huge (more than 5 keys), and then someone sent a trade offer with 0.11 ref less, your bot will skip this offer and send you notification to do review on this offer. With this exception, your bot will accept the trade as long as it's less than the exception value in ref that you set. See [here](https://github.com/idinium96/tf2autobot#manual-review-settings).
+Let say you want to trade an unusual OR an australium, which the value as we know is huge (more than 5 keys), and then someone sent a trade offer with 0.11 ref less, your bot will skip this offer and send you notification to do review on this offer. With this exception, your bot will accept the trade as long as it's less than the exception value in ref that you've set. To use this feature, you'll need to set it on both `INVALID_VALUE_EXCEPTION_SKUS` and `INVALID_VALUE_EXCEPTION_VALUE_IN_REF`. See [here](https://github.com/idinium96/tf2autobot#manual-review-settings).
 
 ![Invalid_value_exception1](https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG)
 
 ![Invalid_value_exception2](https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG)
+
 
 ## Variables in ecosystem.json summary
 
