@@ -1267,7 +1267,7 @@ export = class MyHandler extends Handler {
         }
         const pure = this.currPure();
         const currKeys = pure.key;
-        const currReftoScrap = Currencies.toScrap(pure.refTotalInScrap);
+        const currReftoScrap = pure.refTotalInScrap;
 
         const userMinKeys = this.userMinKeys;
         const userMaxKeys = this.userMaxKeys;
