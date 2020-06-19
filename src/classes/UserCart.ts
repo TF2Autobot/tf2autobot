@@ -193,7 +193,12 @@ class UserCart extends Cart {
         let reverse = false;
         let index = 0;
 
-        const pickedCurrencies: CurrencyObject = { '5021;6': 0, '5002;6': 0, '5001;6': 0, '5000;6': 0 };
+        const pickedCurrencies: CurrencyObject = {
+            '5021;6': 0,
+            '5002;6': 0,
+            '5001;6': 0,
+            '5000;6': 0
+        };
 
         /* eslint-disable-next-line no-constant-condition */
         while (true) {
@@ -649,6 +654,7 @@ class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = sellerInventory.getCurrencies();
+            const weapons = (this.bot.handler as MyHandler).craftweapon();
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -665,6 +671,12 @@ class UserCart extends Cart {
                     value = 3;
                 } else if (sku === '5000;6') {
                     value = 1;
+                } else if (
+                    weapons.includes(sku) &&
+                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    this.bot.pricelist.getPrice(sku, true) === null
+                ) {
+                    value = 0.5;
                 }
 
                 if (change / value >= 1) {

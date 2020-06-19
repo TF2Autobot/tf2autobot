@@ -75,6 +75,14 @@ export = class MyHandler extends Handler {
 
     private dupedFailedItemsSKU: string[] = [];
 
+    private userMinKeys: number;
+
+    private userMaxKeys: number;
+
+    private userMinReftoScrap: number;
+
+    private userMaxReftoScrap: number;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -87,6 +95,12 @@ export = class MyHandler extends Handler {
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+
+        this.userMinKeys = parseInt(process.env.MINIMUM_KEYS);
+        this.userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
+        this.userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
+        this.userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
         let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
@@ -173,6 +187,16 @@ export = class MyHandler extends Handler {
 
     getAutokeysEnabled(): boolean {
         return this.autokeysEnabled;
+    }
+
+    getUserAutokeysSettings(): { minKeys: number; maxKeys: number; minRef: number; maxRef: number } {
+        const settings = {
+            minKeys: this.userMinKeys,
+            maxKeys: this.userMaxKeys,
+            minRef: this.userMinReftoScrap,
+            maxRef: this.userMaxReftoScrap
+        };
+        return settings;
     }
 
     getAutokeysStatus(): boolean {
@@ -1241,16 +1265,14 @@ export = class MyHandler extends Handler {
         if (this.autokeysEnabled === false) {
             return;
         }
-        const currKeys = this.bot.inventoryManager.getInventory().getAmount('5021;6');
-        const currScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const currRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const currRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+        const pure = this.currPure();
+        const currKeys = pure.key;
+        const currReftoScrap = pure.refTotalInScrap;
 
-        const userMinKeys = parseInt(process.env.MINIMUM_KEYS);
-        const userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
-        const userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
-        const userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+        const userMinKeys = this.userMinKeys;
+        const userMaxKeys = this.userMaxKeys;
+        const userMinReftoScrap = this.userMinReftoScrap;
+        const userMaxReftoScrap = this.userMaxReftoScrap;
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
@@ -1706,11 +1728,11 @@ Autokeys status:-
         if (process.env.DISABLE_CRAFTING === 'true') {
             return;
         }
-        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+        const pure = this.currPure();
 
-        // let refined = currencies['5002;6'].length;
-        let reclaimed = currencies['5001;6'].length;
-        let scrap = currencies['5000;6'].length;
+        // let refined = pure.ref;
+        let reclaimed = pure.rec * 3; // Because it was divided by 3
+        let scrap = pure.scrap * 9; // Because it was divided by 9
 
         // const maxRefined = this.maximumRefined;
         const maxReclaimed = this.minimumReclaimed + this.combineThreshold;
@@ -2028,311 +2050,380 @@ Autokeys status:-
 
     pureStock(): string[] {
         const pureStock: string[] = [];
-        const pureScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const pureRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const pureRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const pureScrapTotal = Currencies.toScrap(pureRef + pureRec + pureScrap);
-        const pure = [
+        const pure = this.currPure();
+
+        const pureCombine = [
             {
                 name: 'Key',
-                amount: this.bot.inventoryManager.getInventory().getAmount('5021;6')
+                amount: pure.key
             },
             {
                 name: 'Ref',
-                amount: Currencies.toRefined(pureScrapTotal)
+                amount: Currencies.toRefined(pure.refTotalInScrap)
             }
         ];
-        for (let i = 0; i < pure.length; i++) {
-            pureStock.push(`${pure[i].name}: ${pure[i].amount}`);
+        for (let i = 0; i < pureCombine.length; i++) {
+            pureStock.push(`${pureCombine[i].name}: ${pureCombine[i].amount}`);
         }
         return pureStock;
     }
 
-    private craftweapon(): string[] {
-        const weaponSku: string[] = [
-            '61;6',
-            '61;6;uncraftable',
-            '1101;6',
-            '1101;6;uncraftable',
-            '226;6',
-            '226;6;uncraftable',
-            '46;6',
-            '46;6;uncraftable',
-            '129;6',
-            '129;6;uncraftable',
-            '311;6',
-            '311;6;uncraftable',
-            '131;6',
-            '131;6;uncraftable',
-            '751;6',
-            '751;6;uncraftable',
-            '354;6',
-            '354;6;uncraftable',
-            '642;6',
-            '642;6;uncraftable',
-            '163;6',
-            '163;6;uncraftable',
-            '159;6',
-            '159;6;uncraftable',
-            '231;6',
-            '231;6;uncraftable',
-            '351;6',
-            '351;6;uncraftable',
-            '525;6',
-            '525;6;uncraftable',
-            '460;6',
-            '460;6;uncraftable',
-            '425;6',
-            '425;6;uncraftable',
-            '39;6',
-            '39;6;uncraftable',
-            '812;6',
-            '812;6;uncraftable',
-            '133;6',
-            '133;6;uncraftable',
-            '58;6',
-            '58;6;uncraftable',
-            '35;6',
-            '35;6;uncraftable',
-            '224;6',
-            '224;6;uncraftable',
-            '222;6',
-            '222;6;uncraftable',
-            '595;6',
-            '595;6;uncraftable',
-            '444;6',
-            '444;6;uncraftable',
-            '773;6',
-            '773;6;uncraftable',
-            '411;6',
-            '411;6;uncraftable',
-            '1150;6',
-            '1150;6;uncraftable',
-            '57;6',
-            '57;6;uncraftable',
-            '415;6',
-            '415;6;uncraftable',
-            '442;6',
-            '442;6;uncraftable',
-            '42;6',
-            '42;6;uncraftable',
-            '740;6',
-            '740;6;uncraftable',
-            '130;6',
-            '130;6;uncraftable',
-            '528;6',
-            '528;6;uncraftable',
-            '406;6',
-            '406;6;uncraftable',
-            '265;6',
-            '265;6;uncraftable',
-            '1099;6',
-            '1099;6;uncraftable',
-            '998;6',
-            '998;6;uncraftable',
-            '449;6',
-            '449;6;uncraftable',
-            '140;6',
-            '140;6;uncraftable',
-            '1104;6',
-            '1104;6;uncraftable',
-            '405;6',
-            '405;6;uncraftable',
-            '772;6',
-            '772;6;uncraftable',
-            '1103;6',
-            '1103;6;uncraftable',
-            '40;6',
-            '40;6;uncraftable',
-            '402;6',
-            '402;6;uncraftable',
-            '730;6',
-            '730;6;uncraftable',
-            '228;6',
-            '228;6;uncraftable',
-            '36;6',
-            '36;6;uncraftable',
-            '608;6',
-            '608;6;uncraftable',
-            '312;6',
-            '312;6;uncraftable',
-            '1098;6',
-            '1098;6;uncraftable',
-            '441;6',
-            '441;6;uncraftable',
-            '305;6',
-            '305;6;uncraftable',
-            '215;6',
-            '215;6;uncraftable',
-            '127;6',
-            '127;6;uncraftable',
+    currPure(): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        const currKeys = currencies['5021;6'].length;
+        const currScrap = currencies['5000;6'].length * (1 / 9);
+        const currRec = currencies['5001;6'].length * (1 / 3);
+        const currRef = currencies['5002;6'].length;
+        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+
+        const pure = {
+            key: currKeys,
+            scrap: currScrap,
+            rec: currRec,
+            ref: currRef,
+            refTotalInScrap: currReftoScrap
+        };
+        return pure;
+    }
+
+    polldata(): { totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number } {
+        const now = moment();
+        const aDayAgo = moment().subtract(24, 'hour');
+        const startOfDay = moment().startOf('day');
+
+        let tradesToday = 0;
+        let trades24Hours = 0;
+        let tradesTotal = 0;
+
+        const pollData = this.bot.manager.pollData;
+        const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
+        const timeSince =
+            +process.env.TRADING_STARTING_TIME_UNIX === 0
+                ? pollData.timestamps[oldestId]
+                : +process.env.TRADING_STARTING_TIME_UNIX;
+        const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
+
+        const offerData = this.bot.manager.pollData.offerData;
+        for (const offerID in offerData) {
+            if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
+                continue;
+            }
+
+            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
+                // Sucessful trades handled by the bot
+                tradesTotal++;
+
+                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                    // Within the last 24 hours
+                    trades24Hours++;
+                }
+
+                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    // All trades since 0:00 in the morning.
+                    tradesToday++;
+                }
+            }
+        }
+
+        const polldata = {
+            totalDays: totalDays,
+            tradesTotal: tradesTotal,
+            trades24Hours: trades24Hours,
+            tradesToday: tradesToday
+        };
+        return polldata;
+    }
+
+    craftweapon(): string[] {
+        const weapons = [
+            '5021;6',
+            '5002;6',
+            '5001;6',
+            '5000;6',
             '45;6',
-            '45;6;uncraftable',
-            '1092;6',
-            '1092;6;uncraftable',
-            '141;6',
-            '141;6;uncraftable',
-            '752;6',
-            '752;6;uncraftable',
-            '56;6',
-            '56;6;uncraftable',
-            '811;6',
-            '811;6;uncraftable',
-            '1151;6',
-            '1151;6;uncraftable',
-            '414;6',
-            '414;6;uncraftable',
-            '308;6',
-            '308;6;uncraftable',
-            '996;6',
-            '996;6;uncraftable',
-            '526;6',
-            '526;6;uncraftable',
-            '41;6',
-            '41;6;uncraftable',
-            '513;6',
-            '513;6;uncraftable',
-            '412;6',
-            '412;6;uncraftable',
-            '1153;6',
-            '1153;6;uncraftable',
-            '594;6',
-            '594;6;uncraftable',
-            '588;6',
-            '588;6;uncraftable',
-            '741;6',
-            '741;6;uncraftable',
-            '997;6',
-            '997;6;uncraftable',
-            '237;6',
-            '237;6;uncraftable',
             '220;6',
-            '220;6;uncraftable',
             '448;6',
-            '448;6;uncraftable',
-            '230;6',
-            '230;6;uncraftable',
-            '424;6',
-            '424;6;uncraftable',
-            '527;6',
-            '527;6;uncraftable',
-            '60;6',
-            '60;6;uncraftable',
-            '59;6',
-            '59;6;uncraftable',
-            '304;6',
-            '304;6;uncraftable',
-            '450;6',
-            '450;6;uncraftable',
-            '38;6',
-            '38;6;uncraftable',
-            '326;6',
-            '326;6;uncraftable',
-            '939;6',
-            '939;6;uncraftable',
-            '461;6',
-            '461;6;uncraftable',
-            '325;6',
-            '325;6;uncraftable',
-            '232;6',
-            '232;6;uncraftable',
-            '317;6',
-            '317;6;uncraftable',
-            '327;6',
-            '327;6;uncraftable',
-            '356;6',
-            '356;6;uncraftable',
-            '447;6',
-            '447;6;uncraftable',
-            '128;6',
-            '128;6;uncraftable',
-            '775;6',
-            '775;6;uncraftable',
-            '589;6',
-            '589;6;uncraftable',
-            '426;6',
-            '426;6;uncraftable',
-            '132;6',
-            '132;6;uncraftable',
-            '355;6',
-            '355;6;uncraftable',
-            '331;6',
-            '331;6;uncraftable',
-            '239;6',
-            '239;6;uncraftable',
-            '142;6',
-            '142;6;uncraftable',
-            '357;6',
-            '357;6;uncraftable',
-            '656;6',
-            '656;6;uncraftable',
-            '221;6',
-            '221;6;uncraftable',
-            '153;6',
-            '153;6;uncraftable',
-            '329;6',
-            '329;6;uncraftable',
-            '43;6',
-            '43;6;uncraftable',
-            '739;6',
-            '739;6;uncraftable',
-            '416;6',
-            '416;6;uncraftable',
-            '813;6',
-            '813;6;uncraftable',
-            '482;6',
-            '482;6;uncraftable',
-            '154;6',
-            '154;6;uncraftable',
-            '404;6',
-            '404;6;uncraftable',
-            '457;6',
-            '457;6;uncraftable',
-            '214;6',
-            '214;6;uncraftable',
+            '772;6',
+            '1103;6',
+            '46;6',
+            '163;6',
+            '222;6',
+            '449;6',
+            '773;6',
+            '812;6',
             '44;6',
-            '44;6;uncraftable',
-            '172;6',
-            '172;6;uncraftable',
-            '609;6',
-            '609;6;uncraftable',
-            '401;6',
-            '401;6;uncraftable',
-            '348;6',
-            '348;6;uncraftable',
-            '413;6',
-            '413;6;uncraftable',
-            '155;6',
-            '155;6;uncraftable',
-            '649;6',
-            '649;6;uncraftable',
+            '221;6',
+            '317;6',
+            '325;6',
             '349;6',
-            '349;6;uncraftable',
-            '593;6',
-            '593;6;uncraftable',
-            '171;6',
-            '171;6;uncraftable',
-            '37;6',
-            '37;6;uncraftable',
-            '307;6',
-            '307;6;uncraftable',
-            '173;6',
-            '173;6;uncraftable',
-            '310;6',
-            '310;6;uncraftable',
+            '355;6',
+            '450;6',
             '648;6',
-            '648;6;uncraftable',
-            '225;6',
-            '225;6;uncraftable',
-            '810;6',
-            '810;6;uncraftable',
-            '1180;6',
-            '1190;6',
-            '1179;6',
+            '127;6',
+            '228;6',
+            '237;6',
+            '414;6',
+            '441;6',
+            '513;6',
+            '730;6',
+            '1104;6',
+            '129;6',
+            '133;6',
+            '226;6',
+            '354;6',
+            '415;6',
+            '442;6',
+            '1101;6',
+            '1153;6',
+            '444;6',
+            '128;6',
+            '154;6',
+            '357;6',
+            '416;6',
+            '447;6',
+            '775;6',
+            '40;6',
+            '215;6',
+            '594;6',
+            '741;6',
             '1178;6',
-            '1181;6'
+            '39;6',
+            '351;6',
+            '595;6',
+            '740;6',
+            '1179;6',
+            '1180;6',
+            '38;6',
+            '153;6',
+            '214;6',
+            '326;6',
+            '348;6',
+            '457;6',
+            '593;6',
+            '739;6',
+            '813;6',
+            '1181;6',
+            '308;6',
+            '405;6',
+            '608;6',
+            '996;6',
+            '1151;6',
+            '130;6',
+            '131;6',
+            '265;6',
+            '406;6',
+            '1099;6',
+            '1150;6',
+            '132;6',
+            '172;6',
+            '307;6',
+            '327;6',
+            '404;6',
+            '482;6',
+            '609;6',
+            '41;6',
+            '312;6',
+            '424;6',
+            '811;6',
+            '42;6',
+            '159;6',
+            '311;6',
+            '425;6',
+            '1190;6',
+            '43;6',
+            '239;6',
+            '310;6',
+            '331;6',
+            '426;6',
+            '656;6',
+            '141;6',
+            '527;6',
+            '588;6',
+            '997;6',
+            '140;6',
+            '528;6',
+            '142;6',
+            '155;6',
+            '329;6',
+            '589;6',
+            '36;6',
+            '305;6',
+            '412;6',
+            '35;6',
+            '411;6',
+            '998;6',
+            '37;6',
+            '173;6',
+            '304;6',
+            '413;6',
+            '56;6',
+            '230;6',
+            '402;6',
+            '526;6',
+            '752;6',
+            '1092;6',
+            '1098;6',
+            '57;6',
+            '58;6',
+            '231;6',
+            '642;6',
+            '751;6',
+            '171;6',
+            '232;6',
+            '401;6',
+            '61;6',
+            '224;6',
+            '460;6',
+            '525;6',
+            '810;6',
+            '225;6',
+            '356;6',
+            '461;6',
+            '649;6',
+            '60;6',
+            '59;6',
+            '939;6',
+            '61;6;uncraftable',
+            '1101;6;uncraftable',
+            '226;6;uncraftable',
+            '46;6;uncraftable',
+            '129;6;uncraftable',
+            '311;6;uncraftable',
+            '131;6;uncraftable',
+            '751;6;uncraftable',
+            '354;6;uncraftable',
+            '642;6;uncraftable',
+            '163;6;uncraftable',
+            '159;6;uncraftable',
+            '231;6;uncraftable',
+            '351;6;uncraftable',
+            '525;6;uncraftable',
+            '460;6;uncraftable',
+            '425;6;uncraftable',
+            '39;6;uncraftable',
+            '812;6;uncraftable',
+            '133;6;uncraftable',
+            '58;6;uncraftable',
+            '35;6;uncraftable',
+            '224;6;uncraftable',
+            '222;6;uncraftable',
+            '595;6;uncraftable',
+            '444;6;uncraftable',
+            '773;6;uncraftable',
+            '411;6;uncraftable',
+            '1150;6;uncraftable',
+            '57;6;uncraftable',
+            '415;6;uncraftable',
+            '442;6;uncraftable',
+            '42;6;uncraftable',
+            '740;6;uncraftable',
+            '130;6;uncraftable',
+            '528;6;uncraftable',
+            '406;6;uncraftable',
+            '265;6;uncraftable',
+            '1099;6;uncraftable',
+            '998;6;uncraftable',
+            '449;6;uncraftable',
+            '140;6;uncraftable',
+            '1104;6;uncraftable',
+            '405;6;uncraftable',
+            '772;6;uncraftable',
+            '1103;6;uncraftable',
+            '40;6;uncraftable',
+            '402;6;uncraftable',
+            '730;6;uncraftable',
+            '228;6;uncraftable',
+            '36;6;uncraftable',
+            '608;6;uncraftable',
+            '312;6;uncraftable',
+            '1098;6;uncraftable',
+            '441;6;uncraftable',
+            '305;6;uncraftable',
+            '215;6;uncraftable',
+            '127;6;uncraftable',
+            '45;6;uncraftable',
+            '1092;6;uncraftable',
+            '141;6;uncraftable',
+            '752;6;uncraftable',
+            '56;6;uncraftable',
+            '811;6;uncraftable',
+            '1151;6;uncraftable',
+            '414;6;uncraftable',
+            '308;6;uncraftable',
+            '996;6;uncraftable',
+            '526;6;uncraftable',
+            '41;6;uncraftable',
+            '513;6;uncraftable',
+            '412;6;uncraftable',
+            '1153;6;uncraftable',
+            '594;6;uncraftable',
+            '588;6;uncraftable',
+            '741;6;uncraftable',
+            '997;6;uncraftable',
+            '237;6;uncraftable',
+            '220;6;uncraftable',
+            '448;6;uncraftable',
+            '230;6;uncraftable',
+            '424;6;uncraftable',
+            '527;6;uncraftable',
+            '60;6;uncraftable',
+            '59;6;uncraftable',
+            '304;6;uncraftable',
+            '450;6;uncraftable',
+            '38;6;uncraftable',
+            '326;6;uncraftable',
+            '939;6;uncraftable',
+            '461;6;uncraftable',
+            '325;6;uncraftable',
+            '232;6;uncraftable',
+            '317;6;uncraftable',
+            '327;6;uncraftable',
+            '356;6;uncraftable',
+            '447;6;uncraftable',
+            '128;6;uncraftable',
+            '775;6;uncraftable',
+            '589;6;uncraftable',
+            '426;6;uncraftable',
+            '132;6;uncraftable',
+            '355;6;uncraftable',
+            '331;6;uncraftable',
+            '239;6;uncraftable',
+            '142;6;uncraftable',
+            '357;6;uncraftable',
+            '656;6;uncraftable',
+            '221;6;uncraftable',
+            '153;6;uncraftable',
+            '329;6;uncraftable',
+            '43;6;uncraftable',
+            '739;6;uncraftable',
+            '416;6;uncraftable',
+            '813;6;uncraftable',
+            '482;6;uncraftable',
+            '154;6;uncraftable',
+            '404;6;uncraftable',
+            '457;6;uncraftable',
+            '214;6;uncraftable',
+            '44;6;uncraftable',
+            '172;6;uncraftable',
+            '609;6;uncraftable',
+            '401;6;uncraftable',
+            '348;6;uncraftable',
+            '413;6;uncraftable',
+            '155;6;uncraftable',
+            '649;6;uncraftable',
+            '349;6;uncraftable',
+            '593;6;uncraftable',
+            '171;6;uncraftable',
+            '37;6;uncraftable',
+            '307;6;uncraftable',
+            '173;6;uncraftable',
+            '310;6;uncraftable',
+            '648;6;uncraftable',
+            '225;6;uncraftable',
+            '810;6;uncraftable'
         ];
-        return weaponSku;
+        return weapons;
     }
 
     private checkGroupInvites(): void {

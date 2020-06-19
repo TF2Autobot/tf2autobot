@@ -407,16 +407,11 @@ export = class Commands {
             return;
         }
 
-        const currKeys = this.bot.inventoryManager.getInventory().getAmount('5021;6');
-        const currScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const currRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const currRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+        const pure = (this.bot.handler as MyHandler).currPure();
+        const currKey = pure.key;
+        const currRef = pure.refTotalInScrap;
 
-        const userMinKeys = parseInt(process.env.MINIMUM_KEYS);
-        const userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
-        const userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
-        const userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+        const user = (this.bot.handler as MyHandler).getUserAutokeysSettings();
 
         const autokeysStatus = (this.bot.handler as MyHandler).getAutokeysStatus();
         const isBuyingKeys = (this.bot.handler as MyHandler).getAutokeysBuyingStatus();
@@ -437,36 +432,35 @@ export = class Commands {
         const refsLine = `Refs ————|—————————|————▶`;
         const xAxisRef = `        min       max`;
         const keysPosition =
-            currKeys < userMinKeys
+            currKey < user.minKeys
                 ? keyBlMin
-                : currKeys > userMaxKeys
+                : currKey > user.maxKeys
                 ? keyAbMax
-                : currKeys > userMinKeys && currKeys < userMaxKeys
+                : currKey > user.minKeys && currKey < user.maxKeys
                 ? keyAtBet
-                : currKeys === userMinKeys
+                : currKey === user.minKeys
                 ? keyAtMin
-                : currKeys === userMaxKeys
+                : currKey === user.maxKeys
                 ? keyAtMax
                 : '';
         const refsPosition =
-            currReftoScrap < userMinReftoScrap
+            currRef < user.minRef
                 ? refBlMin
-                : currReftoScrap > userMaxReftoScrap
+                : currRef > user.maxRef
                 ? refAbMax
-                : currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap
+                : currRef > user.minRef && currRef < user.maxRef
                 ? refAtBet
-                : currReftoScrap === userMinReftoScrap
+                : currRef === user.minRef
                 ? refAtMin
-                : currReftoScrap === userMaxReftoScrap
+                : currRef === user.maxRef
                 ? refAtMax
                 : '';
-        const summary = `\n• ${userMinKeys} ≤ ${pluralize(
-            'key',
-            currKeys
-        )}(${currKeys}) ≤ ${userMaxKeys}\n• ${Currencies.toRefined(userMinReftoScrap)} < ${pluralize(
+        const summary = `\n• ${user.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
+            user.maxKeys
+        }\n• ${Currencies.toRefined(user.minRef)} < ${pluralize(
             'ref',
-            Currencies.toRefined(currReftoScrap)
-        )}(${Currencies.toRefined(currReftoScrap)}) < ${Currencies.toRefined(userMaxReftoScrap)}`;
+            Currencies.toRefined(currRef)
+        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(user.maxRef)}`;
 
         let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n   Auto-banking: ${enableKeyBanking ? 'enabled' : 'disabled'}`;
@@ -1663,54 +1657,19 @@ export = class Commands {
     }
 
     private statsCommand(steamID: SteamID): void {
-        const now = moment();
-        const aDayAgo = moment().subtract(24, 'hour');
-        const startOfDay = moment().startOf('day');
-
-        let tradesToday = 0;
-        let trades24Hours = 0;
-        let tradesTotal = 0;
-
-        const pollData = this.bot.manager.pollData;
-        const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
-        const timeSince =
-            +process.env.TRADING_STARTING_TIME_UNIX === 0
-                ? pollData.timestamps[oldestId]
-                : +process.env.TRADING_STARTING_TIME_UNIX;
-        const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
-
-        const offerData = this.bot.manager.pollData.offerData;
-        for (const offerID in offerData) {
-            if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
-                continue;
-            }
-
-            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
-                // Sucessful trades handled by the bot
-                tradesTotal++;
-
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
-                    // Within the last 24 hours
-                    trades24Hours++;
-                }
-
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
-                    // All trades since 0:00 in the morning.
-                    tradesToday++;
-                }
-            }
-        }
+        const tradesFromEnv = parseInt(process.env.LAST_TOTAL_TRADES);
+        const trades = (this.bot.handler as MyHandler).polldata();
 
         this.bot.sendMessage(
             steamID,
             'All trades are recorded from ' +
-                pluralize('day', totalDays, true) +
+                pluralize('day', trades.totalDays, true) +
                 ' ago 📊\n\n Total: ' +
-                (process.env.LAST_TOTAL_TRADES ? +process.env.LAST_TOTAL_TRADES + tradesTotal : tradesTotal) +
+                (tradesFromEnv !== 0 ? tradesFromEnv + trades.tradesTotal : trades.tradesTotal) +
                 ' \n Last 24 hours: ' +
-                trades24Hours +
+                trades.trades24Hours +
                 ' \n Since beginning of today: ' +
-                tradesToday
+                trades.tradesToday
         );
     }
 
