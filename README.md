@@ -10,8 +10,8 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
-[![Donate-paypal](https://img.shields.io/badge/paypal-donate-blue)](https://www.paypal.me/idinium)
-[![Donate-steam](https://img.shields.io/badge/steam-donate-lightgrey)](https://bit.ly/3gbldTM)
+[![Donate-paypal](https://img.shields.io/badge/donate-paypal-blue)](https://www.paypal.me/idinium)
+[![Donate-steam](https://img.shields.io/badge/donate-steam-lightgrey)](https://bit.ly/3gbldTM)
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
@@ -85,6 +85,24 @@ If you want to use this feature, you must use [ecosystem.template.json](https://
 
 This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll need to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
 
+```
+.____________________________________________________________________________________________.                                                                                         
+|       **Buying Keys**       |       **Selling Keys**       |       **Banking Keys**        |
+|      <—————————————○        |            ○——————————————>  |            ○——————————————>   |
+| Keys -----|--------|----->  |  Keys -----|--------|----->  |  Keys -----|--------|----->   |
+|                   ○——————>  |       <————○                 |            ○————————○         |
+| Refs -----|--------|----->  |  Refs -----|--------|----->  |  Refs -----|--------|----->   |
+|          min      max       |           min      max       |           min      max        |
+|_____________________________|______________________________|______________________________.|
+                |        **Disabled**         |              |         **Disabled**          |
+                |      <—————————————○        |              |            ○——————————————>   |
+                | Keys -----|--------|----->  |              |  Keys -----|--------|----->   |
+                |                   ○——————>  |              |       <————○                  |
+                | Refs -----|--------|----->  |              |  Refs -----|--------|----->   |
+                |          min      max       |              |           min      max        |
+                |_____________________________|              |_______________________________|
+```
+
 Some screenshots:
 - When your bot have enough key to sell to get more ref (if your ref is less than minimum) OR enough ref to buy more keys (when your ref > maximum and keys < max)
 
@@ -154,7 +172,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_CRAFTING`: [true|false] Default: false. **NOT RECOMMENDED** to set is as true, as it cause bot and trade partner to not be able to trade because of missing pure changes.
 - `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) can send messages with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
-- `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref). **Please note that your bot will ONLY pick weapons from your bot side.**
+- `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref). **Please note that your bot will ONLY pick weapons from your bot side when constructing an offer.**
 
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
