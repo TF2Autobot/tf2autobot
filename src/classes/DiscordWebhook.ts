@@ -5,6 +5,7 @@ import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
 import { parseJSON } from '../lib/helpers';
+import MyHandler from './MyHandler';
 
 export = class DiscordWebhook {
     private readonly bot: Bot;
@@ -206,7 +207,9 @@ export = class DiscordWebhook {
                                 : '') +
                             (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${offerMessage}_` : '') +
                             `${
-                                invalidItemsName.length !== 0 ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}` : ''
+                                invalidItemsName.length !== 0
+                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}`
+                                    : ''
                             }${
                                 invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
                                     ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
@@ -285,21 +288,12 @@ export = class DiscordWebhook {
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
 
-        let tradesTotal = 0;
-        const offerData = this.bot.manager.pollData.offerData;
-        for (const offerID in offerData) {
-            if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
-                continue;
-            }
-
-            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
-                // Sucessful trades handled by the bot
-                tradesTotal++;
-            }
-        }
-        const tradesMade = process.env.TRADES_MADE_STARTER_VALUE
-            ? +process.env.TRADES_MADE_STARTER_VALUE + tradesTotal
-            : 0 + tradesTotal;
+        const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
+        const trades = (this.bot.handler as MyHandler).polldata();
+        const tradesMade =
+            tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
+                ? tradeNumbertoShowStarter + trades.tradesTotal
+                : trades.tradesTotal;
 
         let personaName: string;
         let avatarFull: string;
@@ -327,8 +321,7 @@ export = class DiscordWebhook {
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
             const isShowPureStock = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK !== 'false';
-            const isShowAdditionalNotes =
-                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE !== 'false';
+            const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
             const acceptedTradeSummary = JSON.stringify({
@@ -379,9 +372,7 @@ export = class DiscordWebhook {
                                   }`
                                 : '') +
                             (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()} ref` : '') +
-                            (isShowAdditionalNotes
-                                ? '\n' + process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE
-                                : ''),
+                            (AdditionalNotes ? '\n' + AdditionalNotes : ''),
                         color: botEmbedColor
                     }
                 ]

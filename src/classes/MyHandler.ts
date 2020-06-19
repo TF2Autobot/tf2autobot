@@ -75,6 +75,14 @@ export = class MyHandler extends Handler {
 
     private dupedFailedItemsSKU: string[] = [];
 
+    private userMinKeys: number;
+
+    private userMaxKeys: number;
+
+    private userMinReftoScrap: number;
+
+    private userMaxReftoScrap: number;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -87,6 +95,12 @@ export = class MyHandler extends Handler {
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+
+        this.userMinKeys = parseInt(process.env.MINIMUM_KEYS);
+        this.userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
+        this.userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
+        this.userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
         let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
@@ -173,6 +187,16 @@ export = class MyHandler extends Handler {
 
     getAutokeysEnabled(): boolean {
         return this.autokeysEnabled;
+    }
+
+    getUserAutokeysSettings(): { minKeys: number; maxKeys: number; minRef: number; maxRef: number } {
+        const settings = {
+            minKeys: this.userMinKeys,
+            maxKeys: this.userMaxKeys,
+            minRef: this.userMinReftoScrap,
+            maxRef: this.userMaxReftoScrap
+        };
+        return settings;
     }
 
     getAutokeysStatus(): boolean {
@@ -1241,16 +1265,14 @@ export = class MyHandler extends Handler {
         if (this.autokeysEnabled === false) {
             return;
         }
-        const currKeys = this.bot.inventoryManager.getInventory().getAmount('5021;6');
-        const currScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const currRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const currRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+        const pure = this.currPure();
+        const currKeys = pure.key;
+        const currReftoScrap = Currencies.toScrap(pure.refTotalInScrap);
 
-        const userMinKeys = parseInt(process.env.MINIMUM_KEYS);
-        const userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
-        const userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
-        const userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+        const userMinKeys = this.userMinKeys;
+        const userMaxKeys = this.userMaxKeys;
+        const userMinReftoScrap = this.userMinReftoScrap;
+        const userMaxReftoScrap = this.userMaxReftoScrap;
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
@@ -1706,11 +1728,11 @@ Autokeys status:-
         if (process.env.DISABLE_CRAFTING === 'true') {
             return;
         }
-        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+        const pure = this.currPure();
 
-        // let refined = currencies['5002;6'].length;
-        let reclaimed = currencies['5001;6'].length;
-        let scrap = currencies['5000;6'].length;
+        // let refined = pure.ref;
+        let reclaimed = pure.rec;
+        let scrap = pure.scrap;
 
         // const maxRefined = this.maximumRefined;
         const maxReclaimed = this.minimumReclaimed + this.combineThreshold;
@@ -2028,24 +2050,89 @@ Autokeys status:-
 
     pureStock(): string[] {
         const pureStock: string[] = [];
-        const pureScrap = this.bot.inventoryManager.getInventory().getAmount('5000;6') * (1 / 9);
-        const pureRec = this.bot.inventoryManager.getInventory().getAmount('5001;6') * (1 / 3);
-        const pureRef = this.bot.inventoryManager.getInventory().getAmount('5002;6');
-        const pureScrapTotal = Currencies.toScrap(pureRef + pureRec + pureScrap);
-        const pure = [
+        const pure = this.currPure();
+
+        const pureCombine = [
             {
                 name: 'Key',
-                amount: this.bot.inventoryManager.getInventory().getAmount('5021;6')
+                amount: pure.key
             },
             {
                 name: 'Ref',
-                amount: Currencies.toRefined(pureScrapTotal)
+                amount: Currencies.toRefined(pure.refTotalInScrap)
             }
         ];
-        for (let i = 0; i < pure.length; i++) {
-            pureStock.push(`${pure[i].name}: ${pure[i].amount}`);
+        for (let i = 0; i < pureCombine.length; i++) {
+            pureStock.push(`${pureCombine[i].name}: ${pureCombine[i].amount}`);
         }
         return pureStock;
+    }
+
+    currPure(): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        const currKeys = currencies['5021;6'].length;
+        const currScrap = currencies['5000;6'].length * (1 / 9);
+        const currRec = currencies['5001;6'].length * (1 / 3);
+        const currRef = currencies['5002;6'].length;
+        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+
+        const pure = {
+            key: currKeys,
+            scrap: currScrap,
+            rec: currRec,
+            ref: currRef,
+            refTotalInScrap: currReftoScrap
+        };
+        return pure;
+    }
+
+    polldata(): { totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number } {
+        const now = moment();
+        const aDayAgo = moment().subtract(24, 'hour');
+        const startOfDay = moment().startOf('day');
+
+        let tradesToday = 0;
+        let trades24Hours = 0;
+        let tradesTotal = 0;
+
+        const pollData = this.bot.manager.pollData;
+        const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
+        const timeSince =
+            +process.env.TRADING_STARTING_TIME_UNIX === 0
+                ? pollData.timestamps[oldestId]
+                : +process.env.TRADING_STARTING_TIME_UNIX;
+        const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
+
+        const offerData = this.bot.manager.pollData.offerData;
+        for (const offerID in offerData) {
+            if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
+                continue;
+            }
+
+            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
+                // Sucessful trades handled by the bot
+                tradesTotal++;
+
+                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                    // Within the last 24 hours
+                    trades24Hours++;
+                }
+
+                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    // All trades since 0:00 in the morning.
+                    tradesToday++;
+                }
+            }
+        }
+
+        const polldata = {
+            totalDays: totalDays,
+            tradesTotal: tradesTotal,
+            trades24Hours: trades24Hours,
+            tradesToday: tradesToday
+        };
+        return polldata;
     }
 
     private craftweapon(): string[] {
