@@ -1731,8 +1731,8 @@ Autokeys status:-
         const pure = this.currPure();
 
         // let refined = pure.ref;
-        let reclaimed = pure.rec;
-        let scrap = pure.scrap;
+        let reclaimed = pure.rec * 3; // Because it was divided by 3
+        let scrap = pure.scrap * 9; // Because it was divided by 9
 
         // const maxRefined = this.maximumRefined;
         const maxReclaimed = this.minimumReclaimed + this.combineThreshold;
