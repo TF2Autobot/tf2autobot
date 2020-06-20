@@ -1080,13 +1080,10 @@ export = class MyHandler extends Handler {
                     ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
                           .replace(/%name%/g, invalidItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', invalidItemsName.length))
-                    : `🟨INVALID_ITEMS - %name% ${pluralize(
+                    : `🟨INVALID_ITEMS - ${invalidItemsName.join(', ')} ${pluralize(
                           'is',
                           invalidItemsName.length
-                      )} not in my pricelist. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          invalidItemsName.join(', ')
-                      );
+                      )} not in my pricelist. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
             }
 
@@ -1100,13 +1097,10 @@ export = class MyHandler extends Handler {
                     ? `🟦OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
                           .replace(/%name%/g, overstockedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', overstockedItemsName.length))
-                    : `🟦OVERSTOCKED - %name% ${pluralize(
+                    : `🟦OVERSTOCKED - ${invalidItemsName.join(', ')} ${pluralize(
                           'is',
                           overstockedItemsName.length
-                      )} already reached max amount I can have. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          overstockedItemsName.join(', ')
-                      );
+                      )} already reached max amount I can have. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
             }
 
@@ -1130,13 +1124,10 @@ export = class MyHandler extends Handler {
                     ? `🟫DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫DUPED_ITEMS - %name% ${pluralize(
+                    : `🟫DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
                           'is',
                           dupedItemsName.length
-                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`.replace(
-                          /%name%/g,
-                          dupedItemsName.join(', ')
-                      );
+                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`;
                 reviewReasons.push(note);
             }
 
@@ -1150,13 +1141,12 @@ export = class MyHandler extends Handler {
                     ? `🟪DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize %name% Original ${pluralize(
+                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize ${dupedFailedItemsName.join(
+                          ', '
+                      )} Original ${pluralize(
                           'ID',
                           dupedFailedItemsName.length
-                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`.replace(
-                          /%name%/g,
-                          dupedFailedItemsName.join(', ')
-                      );
+                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`;
                 reviewReasons.push(note);
             }
             // Notify partner and admin that the offer is waiting for manual review
