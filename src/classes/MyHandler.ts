@@ -2127,10 +2127,6 @@ Autokeys status:-
 
     craftweapon(): string[] {
         const weapons = [
-            '5021;6',
-            '5002;6',
-            '5001;6',
-            '5000;6',
             '45;6',
             '220;6',
             '448;6',
