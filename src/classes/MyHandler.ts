@@ -83,6 +83,8 @@ export = class MyHandler extends Handler {
 
     private userMaxReftoScrap: number;
 
+    private isTradingKeys = false;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -687,6 +689,7 @@ export = class MyHandler extends Handler {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'];
                 // If the diff is greater than 0 then we are buying, less than is selling
+                this.isTradingKeys = true;
 
                 const buying = diff > 0;
                 const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', buying);
@@ -1972,9 +1975,16 @@ Autokeys status:-
             diffRef = 0;
             diffKey = '';
         } else {
-            diff =
-                new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                new Currencies(value.our).toValue(keyPrice.sell.metal);
+            if (this.isTradingKeys === true) {
+                diff =
+                    new Currencies(value.their).toValue(keyPrice.buy.metal) -
+                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                this.isTradingKeys = false; // reset
+            } else {
+                diff =
+                    new Currencies(value.their).toValue(keyPrice.sell.metal) -
+                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+            }
             diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
