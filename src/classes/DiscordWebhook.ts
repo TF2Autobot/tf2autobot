@@ -190,7 +190,7 @@ export = class DiscordWebhook {
                 noMentionOnInvalidValue = false;
             }
         }
-        const mentionOwner = noMentionOnInvalidValue ? '' : `<@!${this.ownerID}>, check this! - ${offer.id}`;
+        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
