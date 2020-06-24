@@ -714,6 +714,7 @@ export = class MyHandler extends Handler {
             }
             if (this.autokeysEnabled !== false) {
                 if (this.autoRelistNotSellingKeys > 4 || this.autoRelistNotBuyingKeys > 4) {
+                    log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
                     this.bot.listings.checkAllWithDelay();
                     this.autoRelistNotSellingKeys = 0;
                     this.autoRelistNotBuyingKeys = 0;

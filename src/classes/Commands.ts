@@ -744,6 +744,7 @@ export = class Commands {
                     ` ${position} infront of you.`
             );
             clearTimeout(this.queuePositionCheck);
+            log.debug(`Checking queue position in 3 minutes...`);
             this.queuePositionCheck = setTimeout(() => {
                 // Check position after 3 minutes
                 if (position >= 2 && process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
