@@ -175,7 +175,7 @@ export = class DiscordWebhook {
         request.setRequestHeader('Content-type', 'application/json');
 
         let noMentionOnInvalidValue = false;
-        if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'true') {
+        if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
             if (
                 reason.includes('🟥INVALID_VALUE') &&
                 !(
