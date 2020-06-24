@@ -174,7 +174,23 @@ export = class DiscordWebhook {
         request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
         request.setRequestHeader('Content-type', 'application/json');
 
-        const mentionOwner = `<@!${this.ownerID}>, check this! - ${offer.id}`;
+        let noMentionOnInvalidValue: boolean;
+        if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE) {
+            if (
+                reason.includes('🟥INVALID_VALUE') &&
+                !(
+                    reason.includes('🟨INVALID_ITEMS') ||
+                    reason.includes('🟦OVERSTOCKED') ||
+                    reason.includes('🟫DUPED_ITEMS') ||
+                    reason.includes('🟪DUPE_CHECK_FAILED')
+                )
+            ) {
+                noMentionOnInvalidValue = true;
+            } else {
+                noMentionOnInvalidValue = false;
+            }
+        }
+        const mentionOwner = noMentionOnInvalidValue ? '' : `<@!${this.ownerID}>, check this! - ${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
