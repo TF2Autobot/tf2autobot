@@ -747,7 +747,7 @@ export = class Commands {
             log.debug(`Checking queue position in 3 minutes...`);
             this.queuePositionCheck = setTimeout(() => {
                 // Check position after 3 minutes
-                if (position >= 2 && process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
+                if (position >= 2) {
                     if (
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
