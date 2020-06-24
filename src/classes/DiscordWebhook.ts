@@ -79,7 +79,37 @@ export = class DiscordWebhook {
         const discordQueue = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Queue alert] Current position: ${position} - ${time}`
+            content: `<@!${this.ownerID}> [Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
+        };
+        /*eslint-enable */
+        request.send(JSON.stringify(discordQueue));
+    }
+
+    sendQueueAlertFailedPM2(time: string): void {
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+
+        /*eslint-disable */
+        const discordQueue = {
+            username: this.botName,
+            avatar_url: this.botAvatarURL,
+            content: `<@!${this.ownerID}> ❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
+        };
+        /*eslint-enable */
+        request.send(JSON.stringify(discordQueue));
+    }
+
+    sendQueueAlertFailedError(err: any, time: string): void {
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+
+        /*eslint-disable */
+        const discordQueue = {
+            username: this.botName,
+            avatar_url: this.botAvatarURL,
+            content: `<@!${this.ownerID}> ❌ An error occurred while trying to restart: ${err.message} - ${time}`
         };
         /*eslint-enable */
         request.send(JSON.stringify(discordQueue));

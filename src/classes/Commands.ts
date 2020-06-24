@@ -748,8 +748,33 @@ export = class Commands {
                 ) {
                     const time = (this.bot.handler as MyHandler).timeWithEmoji();
                     this.discord.sendQueueAlert(position, time.time);
+                    this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                this.discord.sendQueueAlertFailedPM2(time.time);
+                            }
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.discord.sendQueueAlertFailedError(err.message, time.time);
+                        });
                 } else {
                     this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
+                    this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                this.bot.messageAdmins(
+                                    '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
+                                    []
+                                );
+                            }
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.bot.messageAdmins(`❌ An error occurred while trying to restart: ${err.message}`, []);
+                        });
                 }
             }
         }
