@@ -105,11 +105,14 @@ export = class TF2GC {
 
         const job = this.jobs[0];
 
-        if (
-            (!this.canProcessJob(job) && this.combineWeaponStatus === false) ||
-            (!this.canProcessJobWeapon(job) && this.combineWeaponStatus === true)
-        ) {
-            log.debug("Can't handle job", { job });
+        if (this.combineWeaponStatus === false) {
+            if (!this.canProcessJob(job)) {
+                log.debug("Can't handle job", { job });
+            }
+        } else {
+            if (!this.canProcessJobWeapon(job)) {
+                log.debug("Can't handle crafting weapons job", { job });
+            }
         }
 
         this.startedProcessing = true;
