@@ -83,6 +83,12 @@ export = class MyHandler extends Handler {
 
     private userMaxReftoScrap: number;
 
+    private isTradingKeys = false;
+
+    private autoRelistNotSellingKeys = 0;
+
+    private autoRelistNotBuyingKeys = 0;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -249,6 +255,9 @@ export = class MyHandler extends Handler {
 
         // Smelt / combine metal if needed
         this.keepMetalSupply();
+
+        // Craft duplicate weapons
+        this.craftDuplicateWeapons();
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys();
@@ -678,15 +687,18 @@ export = class MyHandler extends Handler {
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
+                this.autoRelistNotSellingKeys++;
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
+                this.autoRelistNotBuyingKeys++;
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'];
                 // If the diff is greater than 0 then we are buying, less than is selling
+                this.isTradingKeys = true;
 
                 const buying = diff > 0;
                 const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', buying);
@@ -702,6 +714,17 @@ export = class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
                 }
+            }
+            if (this.autokeysEnabled !== false) {
+                if (this.autoRelistNotSellingKeys > 4 || this.autoRelistNotBuyingKeys > 4) {
+                    log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
+                    this.bot.listings.checkAllWithDelay();
+                    this.autoRelistNotSellingKeys = 0;
+                    this.autoRelistNotBuyingKeys = 0;
+                }
+            } else {
+                this.autoRelistNotSellingKeys = 0;
+                this.autoRelistNotBuyingKeys = 0;
             }
         }
 
@@ -1024,6 +1047,9 @@ export = class MyHandler extends Handler {
 
             // Smelt / combine metal
             this.keepMetalSupply();
+
+            // Craft duplicated weapons
+            this.craftDuplicateWeapons();
 
             // Sort inventory
             this.sortInventory();
@@ -1775,6 +1801,23 @@ Autokeys status:-
         }
     }
 
+    private craftDuplicateWeapons(): void {
+        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+            return;
+        }
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        this.craftweaponOnlyCraftable().forEach(sku => {
+            const weapon = currencies[sku].length;
+            if (weapon >= 2) {
+                const combineWeapon = Math.ceil(weapon / 2);
+                for (let i = 0; i < combineWeapon; i++) {
+                    this.bot.tf2gc.combineWeapon(sku);
+                }
+            }
+        });
+    }
+
     private sortInventory(): void {
         if (process.env.DISABLE_INVENTORY_SORT !== 'true') {
             this.bot.tf2gc.sortInventory(3);
@@ -1972,9 +2015,16 @@ Autokeys status:-
             diffRef = 0;
             diffKey = '';
         } else {
-            diff =
-                new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                new Currencies(value.our).toValue(keyPrice.sell.metal);
+            if (this.isTradingKeys === true) {
+                diff =
+                    new Currencies(value.their).toValue(keyPrice.buy.metal) -
+                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                this.isTradingKeys = false; // reset
+            } else {
+                diff =
+                    new Currencies(value.their).toValue(keyPrice.sell.metal) -
+                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+            }
             diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
@@ -2408,6 +2458,155 @@ Autokeys status:-
             '648;6;uncraftable',
             '225;6;uncraftable',
             '810;6;uncraftable'
+        ];
+        return weapons;
+    }
+
+    craftweaponOnlyCraftable(): string[] {
+        const weapons = [
+            '45;6',
+            '220;6',
+            '448;6',
+            '772;6',
+            '1103;6',
+            '46;6',
+            '163;6',
+            '222;6',
+            '449;6',
+            '773;6',
+            '812;6',
+            '44;6',
+            '221;6',
+            '317;6',
+            '325;6',
+            '349;6',
+            '355;6',
+            '450;6',
+            '648;6',
+            '127;6',
+            '228;6',
+            '237;6',
+            '414;6',
+            '441;6',
+            '513;6',
+            '730;6',
+            '1104;6',
+            '129;6',
+            '133;6',
+            '226;6',
+            '354;6',
+            '415;6',
+            '442;6',
+            '1101;6',
+            '1153;6',
+            '444;6',
+            '128;6',
+            '154;6',
+            '357;6',
+            '416;6',
+            '447;6',
+            '775;6',
+            '40;6',
+            '215;6',
+            '594;6',
+            '741;6',
+            '1178;6',
+            '39;6',
+            '351;6',
+            '595;6',
+            '740;6',
+            '1179;6',
+            '1180;6',
+            '38;6',
+            '153;6',
+            '214;6',
+            '326;6',
+            '348;6',
+            '457;6',
+            '593;6',
+            '739;6',
+            '813;6',
+            '1181;6',
+            '308;6',
+            '405;6',
+            '608;6',
+            '996;6',
+            '1151;6',
+            '130;6',
+            '131;6',
+            '265;6',
+            '406;6',
+            '1099;6',
+            '1150;6',
+            '132;6',
+            '172;6',
+            '307;6',
+            '327;6',
+            '404;6',
+            '482;6',
+            '609;6',
+            '41;6',
+            '312;6',
+            '424;6',
+            '811;6',
+            '42;6',
+            '159;6',
+            '311;6',
+            '425;6',
+            '1190;6',
+            '43;6',
+            '239;6',
+            '310;6',
+            '331;6',
+            '426;6',
+            '656;6',
+            '141;6',
+            '527;6',
+            '588;6',
+            '997;6',
+            '140;6',
+            '528;6',
+            '142;6',
+            '155;6',
+            '329;6',
+            '589;6',
+            '36;6',
+            '305;6',
+            '412;6',
+            '35;6',
+            '411;6',
+            '998;6',
+            '37;6',
+            '173;6',
+            '304;6',
+            '413;6',
+            '56;6',
+            '230;6',
+            '402;6',
+            '526;6',
+            '752;6',
+            '1092;6',
+            '1098;6',
+            '57;6',
+            '58;6',
+            '231;6',
+            '642;6',
+            '751;6',
+            '171;6',
+            '232;6',
+            '401;6',
+            '61;6',
+            '224;6',
+            '460;6',
+            '525;6',
+            '810;6',
+            '225;6',
+            '356;6',
+            '461;6',
+            '649;6',
+            '60;6',
+            '59;6',
+            '939;6'
         ];
         return weapons;
     }

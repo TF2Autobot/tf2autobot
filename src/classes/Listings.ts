@@ -292,6 +292,75 @@ export = class Listings {
         });
     }
 
+    checkAllWithDelay(): Promise<void> {
+        return new Promise(resolve => {
+            if (process.env.DISABLE_LISTINGS === 'true') {
+                return resolve();
+            }
+
+            log.debug('Checking all');
+
+            const doneRemovingAll = (): void => {
+                const next = callbackQueue.add('checkAllListings', function() {
+                    resolve();
+                });
+
+                if (next === false) {
+                    return;
+                }
+
+                this.checkingAllListings = true;
+
+                const inventory = this.bot.inventoryManager.getInventory();
+
+                const pricelist = this.bot.pricelist.getPrices().sort((a, b) => {
+                    return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
+                });
+
+                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+
+                this.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                    log.debug('Done checking all');
+                    // Done checking all listings
+                    this.checkingAllListings = false;
+                    next();
+                });
+            };
+
+            if (!this.removingAllListings) {
+                doneRemovingAll();
+                return;
+            }
+
+            callbackQueue.add('removeAllListings', () => {
+                doneRemovingAll();
+            });
+        });
+    }
+
+    private recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
+        return new Promise(resolve => {
+            let index = 0;
+
+            const iteration = (): void => {
+                if (pricelist.length <= index || this.cancelCheckingListings) {
+                    this.cancelCheckingListings = false;
+                    return resolve();
+                }
+
+                setTimeout(() => {
+                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
+
+                    index++;
+
+                    iteration();
+                }, 200);
+            };
+
+            iteration();
+        });
+    }
+
     removeAll(): Promise<void> {
         return new Promise((resolve, reject) => {
             if (this.checkingAllListings) {

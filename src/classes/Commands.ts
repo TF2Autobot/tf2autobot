@@ -74,6 +74,8 @@ export = class Commands {
 
     readonly discord: DiscordWebhook;
 
+    private queuePositionCheck;
+
     constructor(bot: Bot) {
         this.bot = bot;
         this.discord = new DiscordWebhook(bot);
@@ -741,17 +743,50 @@ export = class Commands {
                     (position !== 1 ? 'are' : 'is') +
                     ` ${position} infront of you.`
             );
-            if (position >= 2 && process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                    process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                ) {
-                    const time = (this.bot.handler as MyHandler).timeWithEmoji();
-                    this.discord.sendQueueAlert(position, time.time);
-                } else {
-                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
+            clearTimeout(this.queuePositionCheck);
+            log.debug(`Checking queue position in 3 minutes...`);
+            this.queuePositionCheck = setTimeout(() => {
+                // Check position after 3 minutes
+                if (this.cartQueue.enqueue(cart) >= 2) {
+                    if (
+                        process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                        process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                    ) {
+                        const time = (this.bot.handler as MyHandler).timeWithEmoji();
+                        this.discord.sendQueueAlert(position + 1, time.time);
+                        this.bot.botManager
+                            .restartProcess()
+                            .then(restarting => {
+                                if (!restarting) {
+                                    this.discord.sendQueueAlertFailedPM2(time.time);
+                                }
+                            })
+                            .catch(err => {
+                                log.warn('Error occurred while trying to restart: ', err);
+                                this.discord.sendQueueAlertFailedError(err.message, time.time);
+                            });
+                    } else {
+                        this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position + 1}`, []);
+                        this.bot.botManager
+                            .restartProcess()
+                            .then(restarting => {
+                                if (!restarting) {
+                                    this.bot.messageAdmins(
+                                        '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
+                                        []
+                                    );
+                                }
+                            })
+                            .catch(err => {
+                                log.warn('Error occurred while trying to restart: ', err);
+                                this.bot.messageAdmins(
+                                    `❌ An error occurred while trying to restart: ${err.message}`,
+                                    []
+                                );
+                            });
+                    }
                 }
-            }
+            }, 3 * 60 * 1000);
         }
     }
 
