@@ -216,6 +216,7 @@ export = class DiscordWebhook {
                           .replace(/_/g, '‗')
                           .replace(/\*/g, '★')
                           .replace(/~/g, '⁓')
+                          .replace(/`/g, '^')
                     : partnerName;
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
@@ -362,6 +363,7 @@ export = class DiscordWebhook {
                           .replace(/_/g, '‗')
                           .replace(/\*/g, '★')
                           .replace(/~/g, '⁓')
+                          .replace(/`/g, '^')
                     : personaName;
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
