@@ -40,7 +40,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - dupe check on items that are more than minimum keys (you set it yourself)
 
 ### tf2autobot version
-- add an option to use Discord Webhook for your bot to send accepted trade summary
+- add an option to use Discord Webhook for your bot to send accepted trade summary/ offer review/ messages.
 - add an option to disable show only metal in trade summary (it will show x keys, y ref, it will show only x ref on original version)
 - add an option to enable Autokeys (to keep your refined metal stock) and key banking ([jump](https://github.com/idinium96/tf2autobot#autokeys-auto-buy-or-sell-keys-feature))
 - add an option to set your own custom greeting/success/failed messages and offer review notes
@@ -48,8 +48,9 @@ The original tf2-automatic repository already have a lot of features, but some f
 - alert admins when there's something wrong, like queue problem (which the original one is still not fixed yet, and I have no idea why) and when your bot is out of space or if your bot has less than minimum pure (must enable Autokeys feature)
 - automatically restart your bot on queue problem, and automatically relist if backpack.tf does not synchronized with your bot listings on Autokeys (sometimes it's set to automatically buy keys, but at backpack.tf, it's listed to sell.)
 - use emojis on almost all messages
-- add an option to set all craft weapons as currency (0.05 ref)
+- add an option to set all craft weapons as currency (0.05 ref) and automatically craft duplicate craftable weapons
 - INVALID_VALUE exception
+- add an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
 - and more to come!
 
@@ -58,6 +59,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 ### Discord Webhook feature
 
 Instead of the bot sending trade summary, review offer and messages to you via Steam Chat, this version will let your bot to send it to a different channels in your discord server.
+If you want to use Offer Review and Messages as Discord Webhook, you can not reply to the message sent by your Discord Webhook bot, unless you have [tf2-autocord](https://github.com/idinium96/tf2-autocord) installed.
 
 Screenshots:
 - Trade summary (or live-trades) -
@@ -76,7 +78,7 @@ Screenshots:
 
 ![price-update](https://user-images.githubusercontent.com/47635037/83712639-cc1ce500-a658-11ea-855d-5de43b39ff2f.png)
 
-You can also only set it to send only trade summary, but the others like Offer review and messages will be sent to you via Steam Chat.
+You can also only set it to send only trade summary, but the others like Offer review and Messages will be sent to you via Steam Chat.
 
 Note that, it's an option to show key rate/ pure stock/ quick links on each feature.
 
@@ -173,7 +175,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_INVENTORY_SORT`: [true|false] Default: true. Sort your bot inventory.
 - `DISABLE_LISTINGS`: [true|false] Default: false. This is used if you want to temporarily disable trading while your bot is alive.
 - `DISABLE_CRAFTING`: [true|false] Default: false. **NOT RECOMMENDED** to set is as true, as it cause bot and trade partner to not be able to trade because of missing pure changes.
-- `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: false. Set to true if you want your bot to automatically craft any duplicated craftable weapons.
+- `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: false. Set to **true if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
 - `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) can send messages with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref). **Please note that your bot will ONLY pick weapons from your bot side when constructing an offer.**
