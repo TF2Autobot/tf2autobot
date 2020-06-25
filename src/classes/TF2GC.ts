@@ -1,10 +1,12 @@
 import Bot from './Bot';
 
 import log from '../lib/logger';
+import MyHandler from './MyHandler';
 
 type Job = {
     type: 'smelt' | 'combine' | 'use' | 'delete' | 'sort';
     defindex?: number;
+    sku?: string;
     assetid?: string;
     sortType?: number;
     callback?: (err?: Error) => void;
@@ -16,6 +18,8 @@ export = class TF2GC {
     private processingQueue = false;
 
     private startedProcessing = false;
+
+    private combineWeaponStatus = false;
 
     private jobs: Job[] = [];
 
@@ -41,6 +45,18 @@ export = class TF2GC {
         log.debug('Enqueueing combine job for ' + defindex);
 
         this.newJob({ type: 'combine', defindex: defindex, callback: callback });
+    }
+
+    combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
+        if (!(this.bot.handler as MyHandler).craftweaponOnlyCraftable().includes(sku)) {
+            return;
+        }
+
+        this.combineWeaponStatus = true;
+
+        log.debug('Enqueueing combine job for ' + sku);
+
+        this.newJob({ type: 'combine', sku: sku, callback: callback });
     }
 
     useItem(assetid: string, callback?: (err: Error | null) => void): void {
@@ -89,7 +105,10 @@ export = class TF2GC {
 
         const job = this.jobs[0];
 
-        if (!this.canProcessJob(job)) {
+        if (
+            (!this.canProcessJob(job) && this.combineWeaponStatus === false) ||
+            (!this.canProcessJobWeapon(job) && this.combineWeaponStatus === true)
+        ) {
             log.debug("Can't handle job", { job });
         }
 
@@ -104,7 +123,9 @@ export = class TF2GC {
 
             let func;
 
-            if (job.type === 'smelt' || job.type === 'combine') {
+            if (job.type === 'combine' && this.combineWeaponStatus === true) {
+                func = this.handleCraftJobWeapon.bind(this, job);
+            } else if ((job.type === 'smelt' || job.type === 'combine') && this.combineWeaponStatus === false) {
                 func = this.handleCraftJob.bind(this, job);
             } else if (job.type === 'use' || job.type === 'delete') {
                 func = this.handleUseOrDeleteJob.bind(this, job);
@@ -151,6 +172,43 @@ export = class TF2GC {
                 this.finishedProcessingJob();
             },
             err => {
+                this.finishedProcessingJob(err);
+            }
+        );
+    }
+
+    private handleCraftJobWeapon(job: Job): void {
+        if (!this.canProcessJobWeapon(job)) {
+            return this.finishedProcessingJob(new Error("Can't process job"));
+        }
+
+        const assetids = this.bot.inventoryManager
+            .getInventory()
+            .findBySKU(job.sku, true)
+            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+
+        const ids = assetids.splice(0, 2);
+
+        log.debug('Sending craft request');
+
+        this.bot.tf2.craft(ids);
+
+        const gainSKU = '5000;6';
+
+        this.listenForEvent(
+            'craftingComplete',
+            (recipe: number, itemsGained: string[]) => {
+                // Remove items used for recipe
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory().removeItem(assetid));
+
+                // Add items gained
+                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
+
+                this.combineWeaponStatus = false;
+                this.finishedProcessingJob();
+            },
+            err => {
+                this.combineWeaponStatus = false;
                 this.finishedProcessingJob(err);
             }
         );
@@ -328,6 +386,18 @@ export = class TF2GC {
             return this.bot.inventoryManager.getInventory().findByAssetid(job.assetid) !== null;
         }
 
+        return true;
+    }
+
+    private canProcessJobWeapon(job: Job): boolean {
+        if (job.type === 'combine') {
+            const assetids = this.bot.inventoryManager
+                .getInventory()
+                .findBySKU(job.sku, true)
+                .filter(assetid => !this.bot.trades.isInTrade(assetid));
+
+            return job.type === 'combine' && assetids.length >= 2;
+        }
         return true;
     }
 
