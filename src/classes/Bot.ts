@@ -427,7 +427,7 @@ export = class Bot {
                                     this.listingManager.init(callback);
                                 },
                                 (callback): void => {
-                                    if (process.env.SKIP_UPDATE_PROFILE_SETTINGS !== 'true') {
+                                    if (process.env.SKIP_UPDATE_PROFILE_SETTINGS === 'true') {
                                         return callback(null);
                                     }
 
