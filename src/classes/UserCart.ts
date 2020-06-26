@@ -1101,7 +1101,7 @@ class UserCart extends Cart {
             '1101;6;uncraftable': 0.5,
             '226;6;uncraftable': 0.5,
             '46;6;uncraftable': 0.5,
-            '12;6;uncraftable': 0.5,
+            '129;6;uncraftable': 0.5,
             '311;6;uncraftable': 0.5,
             '131;6;uncraftable': 0.5,
             '751;6;uncraftable': 0.5,
@@ -1237,7 +1237,7 @@ class UserCart extends Cart {
             '810;6;uncraftable': 0.5
         };
 
-        log.debug('Currency values', currencyValues);
+        // log.debug('Currency values', currencyValues);
 
         const skus = Object.keys(currencyValues);
 
@@ -1399,7 +1399,7 @@ class UserCart extends Cart {
             '1101;6;uncraftable': 0,
             '226;6;uncraftable': 0,
             '46;6;uncraftable': 0,
-            '12;6;uncraftable': 0,
+            '129;6;uncraftable': 0,
             '311;6;uncraftable': 0,
             '131;6;uncraftable': 0,
             '751;6;uncraftable': 0,
@@ -1630,7 +1630,7 @@ class UserCart extends Cart {
                     pickedCurrencies[sku] -= amount;
                 }
 
-                log.debug('Iteration', { sku: sku, amount: amount, remaining: remaining, picked: pickedCurrencies });
+                // log.debug('Iteration', { sku: sku, amount: amount, remaining: remaining, picked: pickedCurrencies });
             }
         }
 
@@ -2043,7 +2043,7 @@ class UserCart extends Cart {
             '1101;6;uncraftable': buyerCurrenciesWithAssetids['1101;6;uncraftable'].length,
             '226;6;uncraftable': buyerCurrenciesWithAssetids['226;6;uncraftable'].length,
             '46;6;uncraftable': buyerCurrenciesWithAssetids['46;6;uncraftable'].length,
-            '12;6;uncraftable': buyerCurrenciesWithAssetids['12;6;uncraftable'].length,
+            '129;6;uncraftable': buyerCurrenciesWithAssetids['129;6;uncraftable'].length,
             '311;6;uncraftable': buyerCurrenciesWithAssetids['311;6;uncraftable'].length,
             '131;6;uncraftable': buyerCurrenciesWithAssetids['131;6;uncraftable'].length,
             '751;6;uncraftable': buyerCurrenciesWithAssetids['751;6;uncraftable'].length,

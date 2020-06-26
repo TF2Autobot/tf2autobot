@@ -161,7 +161,7 @@ export interface CurrencyObjectWithWeapons {
     '1101;6;uncraftable': number;
     '226;6;uncraftable': number;
     '46;6;uncraftable': number;
-    '12;6;uncraftable': number;
+    '129;6;uncraftable': number;
     '311;6;uncraftable': number;
     '131;6;uncraftable': number;
     '751;6;uncraftable': number;
