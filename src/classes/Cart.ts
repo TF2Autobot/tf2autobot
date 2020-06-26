@@ -234,99 +234,9 @@ abstract class Cart {
         return summary;
     }
 
-    summarizeWithWeapons(): string {
-        const ourSummary = this.summarizeOurWithWeapons();
-
-        let ourSummaryString: string;
-
-        if (ourSummary.length > 1) {
-            ourSummaryString =
-                ourSummary.slice(0, ourSummary.length - 1).join(', ') + ' and ' + ourSummary[ourSummary.length - 1];
-        } else if (ourSummary.length === 0) {
-            ourSummaryString = 'nothing';
-        } else {
-            ourSummaryString = ourSummary.join(', ');
-        }
-
-        const theirSummary = this.summarizeTheirWithWeapons();
-
-        let theirSummaryString: string;
-
-        if (theirSummary.length > 1) {
-            theirSummaryString =
-                theirSummary.slice(0, theirSummary.length - 1).join(', ') +
-                ' and ' +
-                theirSummary[theirSummary.length - 1];
-        } else if (theirSummary.length === 0) {
-            theirSummaryString = 'nothing';
-        } else {
-            theirSummaryString = theirSummary.join(', ');
-        }
-
-        return `You will be offered ${ourSummaryString} for ${theirSummaryString}`;
-    }
-
-    summarizeOurWithWeapons(): string[] {
-        const items: { name: string; amount: number }[] = [];
-
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                continue;
-            }
-
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
-        }
-
-        let summary: string[];
-
-        if (items.length <= 1) {
-            summary = items.map(v => {
-                if (v.amount === 1) {
-                    return 'a ' + v.name;
-                } else {
-                    return pluralize(v.name, v.amount, true);
-                }
-            });
-        } else {
-            summary = items.map(v => pluralize(v.name, v.amount, true));
-        }
-
-        return summary;
-    }
-
-    summarizeTheirWithWeapons(): string[] {
-        const items: { name: string; amount: number }[] = [];
-
-        for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                continue;
-            }
-
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.their[sku] });
-        }
-
-        let summary: string[];
-
-        if (items.length <= 1) {
-            summary = items.map(v => {
-                if (v.amount === 1) {
-                    return 'a ' + v.name;
-                } else {
-                    return pluralize(v.name, v.amount, true);
-                }
-            });
-        } else {
-            summary = items.map(v => pluralize(v.name, v.amount, true));
-        }
-
-        return summary;
-    }
-
     protected abstract preSendOffer(): Promise<void>;
 
     abstract constructOffer(): Promise<string>;
-
-    abstract constructOfferWithWeapons(): Promise<string>;
 
     sendOffer(): Promise<string | void> {
         if (this.isEmpty()) {
@@ -473,37 +383,6 @@ abstract class Cart {
         return str;
     }
 
-    toStringWithWeapons(): string {
-        if (this.isEmpty()) {
-            return '❌ Your cart is empty.';
-        }
-
-        let str = '🛒== YOUR CART ==🛒';
-
-        str += '\n\nMy side (items you will receive):';
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                continue;
-            }
-
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]}x ${name}`;
-        }
-
-        str += '\n\nYour side (items you will lose):';
-        for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                continue;
-            }
-
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]}x ${name}`;
-        }
-        str += '\n\nType !checkout to checkout and proceed trade, or !clearcart to cancel.';
-
-        return str;
-    }
-
     static hasCart(steamID: SteamID): boolean {
         return this.carts[steamID.getSteamID64()] !== undefined;
     }
@@ -531,10 +410,6 @@ abstract class Cart {
             return '❌ Your cart is empty.';
         }
 
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
-            return cart.toStringWithWeapons();
-        } else {
-            return cart.toString();
-        }
+        return cart.toString();
     }
 }

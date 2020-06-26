@@ -90,106 +90,52 @@ class CartQueue {
 
         log.debug('Constructing offer');
 
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
-            Promise.resolve(cart.constructOfferWithWeapons())
-                .then(alteredMessage => {
-                    log.debug('Constructed offer');
-                    if (alteredMessage) {
-                        cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
-                    }
+        Promise.resolve(cart.constructOffer())
+            .then(alteredMessage => {
+                log.debug('Constructed offer');
+                if (alteredMessage) {
+                    cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
+                }
 
-                    cart.sendNotification(`⌛ Please wait while I process your offer! ${cart.summarizeWithWeapons()}.`);
+                cart.sendNotification(`⌛ Please wait while I process your offer! ${cart.summarize()}.`);
 
-                    log.debug('Sending offer...');
-                    return cart.sendOffer();
-                })
-                .then(status => {
-                    log.debug('Sent offer');
-                    if (status === 'pending') {
-                        cart.sendNotification(
-                            '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
-                        );
+                log.debug('Sending offer...');
+                return cart.sendOffer();
+            })
+            .then(status => {
+                log.debug('Sent offer');
+                if (status === 'pending') {
+                    cart.sendNotification(
+                        '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
+                    );
 
-                        log.debug('Accepting mobile confirmation...');
+                    log.debug('Accepting mobile confirmation...');
 
-                        // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
-                    }
-                })
-                .catch(err => {
-                    if (!(err instanceof Error)) {
-                        cart.sendNotification(`❌ I failed to make the offer! Reason: ${err}.`);
-                    } else {
-                        log.warn('Failed to make offer');
-                        log.error(require('util').inspect(err));
+                    // Wait for confirmation to be accepted
+                    return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
+                }
+            })
+            .catch(err => {
+                if (!(err instanceof Error)) {
+                    cart.sendNotification(`❌ I failed to make the offer! Reason: ${err}.`);
+                } else {
+                    log.warn('Failed to make offer');
+                    log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
-                    }
-                })
-                .finally(() => {
-                    log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
+                    cart.sendNotification('❌ Something went wrong while trying to make the offer, try again later!');
+                }
+            })
+            .finally(() => {
+                log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
 
-                    // Remove cart from the queue
-                    this.carts.shift();
+                // Remove cart from the queue
+                this.carts.shift();
 
-                    // Now ready to handle a different cart
-                    this.busy = false;
+                // Now ready to handle a different cart
+                this.busy = false;
 
-                    // Handle the queue
-                    this.handleQueue();
-                });
-        } else {
-            Promise.resolve(cart.constructOffer())
-                .then(alteredMessage => {
-                    log.debug('Constructed offer');
-                    if (alteredMessage) {
-                        cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
-                    }
-
-                    cart.sendNotification(`⌛ Please wait while I process your offer! ${cart.summarize()}.`);
-
-                    log.debug('Sending offer...');
-                    return cart.sendOffer();
-                })
-                .then(status => {
-                    log.debug('Sent offer');
-                    if (status === 'pending') {
-                        cart.sendNotification(
-                            '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
-                        );
-
-                        log.debug('Accepting mobile confirmation...');
-
-                        // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
-                    }
-                })
-                .catch(err => {
-                    if (!(err instanceof Error)) {
-                        cart.sendNotification(`❌ I failed to make the offer! Reason: ${err}.`);
-                    } else {
-                        log.warn('Failed to make offer');
-                        log.error(require('util').inspect(err));
-
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
-                    }
-                })
-                .finally(() => {
-                    log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
-
-                    // Remove cart from the queue
-                    this.carts.shift();
-
-                    // Now ready to handle a different cart
-                    this.busy = false;
-
-                    // Handle the queue
-                    this.handleQueue();
-                });
-        }
+                // Handle the queue
+                this.handleQueue();
+            });
     }
 }
