@@ -904,6 +904,20 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
+            // TO DO: Counter offer?
+            //
+            // if (
+            //     uniqueReasons.includes('🟥INVALID_VALUE') &&
+            //     !(
+            //         uniqueReasons.includes('🟨INVALID_ITEMS') ||
+            //         uniqueReasons.includes('🟦OVERSTOCKED') ||
+            //         uniqueReasons.includes('🟫DUPED_ITEMS') ||
+            //         uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+            //     )
+            // ) {
+            //     const counteroffer = offer.counter();
+            // }
+
             offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
             return {
                 action: 'skip',
@@ -1400,7 +1414,15 @@ Autokeys status:-
                 currReftoScrap
             )}) < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})
     Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})
- Status: ${isBuyingKeys ? 'Buying' : isSellingKeys ? 'Selling' : isBankingKeys ? 'Banking' : 'Not active'}`
+ Status: ${
+     isBuyingKeys
+         ? 'Buying'
+         : isSellingKeys
+         ? 'Selling'
+         : isBankingKeys && isEnableKeyBanking
+         ? 'Banking'
+         : 'Not active'
+ }`
         );
 
         const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
