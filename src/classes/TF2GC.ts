@@ -408,7 +408,7 @@ export = class TF2GC {
         return new Promise((resolve, reject) => {
             if (!this.isConnectedToGC()) {
                 log.debug('Not playing TF2');
-                this.bot.client.gamesPlayed([440]);
+                this.bot.client.gamesPlayed(440);
             }
 
             if (this.bot.tf2.haveGCSession) {

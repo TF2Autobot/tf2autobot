@@ -15,7 +15,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
-- You need a separate Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate generating 2FA codes and managing mobile confirmations.
+- You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate generating 2FA codes and managing mobile confirmations.
 - NodeJS version 8 or more
 - Typescript 3.7 or above
 
@@ -94,7 +94,7 @@ This feature when enabled, your bot will automatically buy or sell keys based on
 |       ***************       |       ****************       |         |       ****************        |
 |      <—————————————○        |            ○——————————————>  |         |            ○——————————————>   |
 | Keys -----|--------|----->  |  Keys -----|--------|----->  |         |  Keys -----|--------|----->   |
-|                    ○——————> |       <————○                 |         |            ○————————○         |
+|                    ○—————>  |       <————○                 |         |            ○————————○         |
 | Refs -----|--------|----->  |  Refs -----|--------|----->  |         |  Refs -----|--------|----->   |
 |          min      max       |           min      max       |         |           min      max        |
 |_____________________________|______________________________|         |______________________________.|
@@ -178,7 +178,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: false. Set to **true if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
 - `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) can send messages with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
-- `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref). **Please note that your bot will ONLY pick weapons from your bot side when constructing an offer.**
+- `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref).
 
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
@@ -269,10 +269,11 @@ Time will be use in "!time" command and
 
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to true if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
+- `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to true if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
 - `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1091-L1202)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
-- `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0`.
+- `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).
 - `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 - *`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
 - *`OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.

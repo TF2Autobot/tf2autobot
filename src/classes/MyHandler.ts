@@ -904,6 +904,20 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
+            // TO DO: Counter offer?
+            //
+            // if (
+            //     uniqueReasons.includes('🟥INVALID_VALUE') &&
+            //     !(
+            //         uniqueReasons.includes('🟨INVALID_ITEMS') ||
+            //         uniqueReasons.includes('🟦OVERSTOCKED') ||
+            //         uniqueReasons.includes('🟫DUPED_ITEMS') ||
+            //         uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+            //     )
+            // ) {
+            //     const counteroffer = offer.counter();
+            // }
+
             offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
             return {
                 action: 'skip',
@@ -1179,15 +1193,20 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 `/pre ⚠️ Your offer is waiting for review.\nReason: ${meta.uniqueReasons.join(', ')}` +
-                    '\n\nYour offer summary:\n' +
-                    offer
-                        .summarize(this.bot.schema)
-                        .replace('Asked', '  My side')
-                        .replace('Offered', 'Your side') +
-                    (meta.uniqueReasons.includes('🟥INVALID_VALUE') && !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
-                        ? missingPureNote
+                    (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                        ? '\n\nYour offer summary:\n' +
+                          offer
+                              .summarize(this.bot.schema)
+                              .replace('Asked', '  My side')
+                              .replace('Offered', 'Your side') +
+                          (meta.uniqueReasons.includes('🟥INVALID_VALUE') &&
+                          !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
+                              ? missingPureNote
+                              : '') +
+                          (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                              ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                              : '')
                         : '') +
-                    (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true' ? `\n\nNote:\n${reviewReasons.join('\n')}` : '') +
                     (process.env.ADDITIONAL_NOTE
                         ? '\n\n' +
                           process.env.ADDITIONAL_NOTE.replace(
@@ -1395,7 +1414,15 @@ Autokeys status:-
                 currReftoScrap
             )}) < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})
     Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})
- Status: ${isBuyingKeys ? 'Buying' : isSellingKeys ? 'Selling' : isBankingKeys ? 'Banking' : 'Not active'}`
+ Status: ${
+     isBuyingKeys
+         ? 'Buying'
+         : isSellingKeys
+         ? 'Selling'
+         : isBankingKeys && isEnableKeyBanking
+         ? 'Banking'
+         : 'Not active'
+ }`
         );
 
         const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
