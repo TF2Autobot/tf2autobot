@@ -269,6 +269,7 @@ Time will be use in "!time" command and
 
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to true if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
+- `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to true if you do not want your bot to show offer summary to trade partner.
 - `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1091-L1202)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.

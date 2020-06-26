@@ -1179,15 +1179,20 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 `/pre ⚠️ Your offer is waiting for review.\nReason: ${meta.uniqueReasons.join(', ')}` +
-                    '\n\nYour offer summary:\n' +
-                    offer
-                        .summarize(this.bot.schema)
-                        .replace('Asked', '  My side')
-                        .replace('Offered', 'Your side') +
-                    (meta.uniqueReasons.includes('🟥INVALID_VALUE') && !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
-                        ? missingPureNote
+                    (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                        ? '\n\nYour offer summary:\n' +
+                          offer
+                              .summarize(this.bot.schema)
+                              .replace('Asked', '  My side')
+                              .replace('Offered', 'Your side') +
+                          (meta.uniqueReasons.includes('🟥INVALID_VALUE') &&
+                          !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
+                              ? missingPureNote
+                              : '') +
+                          (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                              ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                              : '')
                         : '') +
-                    (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true' ? `\n\nNote:\n${reviewReasons.join('\n')}` : '') +
                     (process.env.ADDITIONAL_NOTE
                         ? '\n\n' +
                           process.env.ADDITIONAL_NOTE.replace(
