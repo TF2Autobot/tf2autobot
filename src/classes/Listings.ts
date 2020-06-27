@@ -474,7 +474,7 @@ export = class Listings {
 
         let details: string;
 
-        if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
+        if (entry.sku === '241;6') {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
@@ -487,7 +487,23 @@ export = class Listings {
                         .toString()
                 )
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%keyPrice%/g, '');
+                .replace(/%keyPrice%/g, '✨')
+                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+        } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
+            details = this.templates[key]
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, entry.max.toString())
+                .replace(
+                    /%current_stock%/g,
+                    this.bot.inventoryManager
+                        .getInventory()
+                        .getAmount(entry.sku)
+                        .toString()
+                )
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%keyPrice%/g, '✨')
+                .replace(/%dueling%/g, '✨');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -501,7 +517,8 @@ export = class Listings {
                         .toString()
                 )
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key');
+                .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                .replace(/%dueling%/g, '✨');
         }
 
         return details;
