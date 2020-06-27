@@ -52,6 +52,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - INVALID_VALUE exception
 - add an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
+- Dueling Mini-Game: Only accept 5 Uses!
 - and more to come!
 
 ## Added features
