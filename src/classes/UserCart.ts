@@ -464,24 +464,17 @@ class UserCart extends Cart {
             if (sku === '241;6') {
                 fetched.forEach(item => {
                     if (item.name === 'Dueling Mini-Game') {
-                        for (let i = 0; item.descriptions.length; i++) {
-                            if (!item.descriptions[i]) {
-                                continue;
-                            }
+                        for (let i = 0; i < item.descriptions.length; i++) {
                             const descriptionValue = item.descriptions[i].value;
                             const descriptionColor = item.descriptions[i].color;
 
                             if (
-                                descriptionValue.includes('This is a limited use item.') &&
+                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
                                 descriptionColor === '00a000'
                             ) {
-                                if (!descriptionValue.includes('Uses: 5')) {
-                                    hasNot5Uses = true;
-                                    log.info(
-                                        'Trade partner inventory contains Dueling Mini-Game that is not 5 uses, declining...'
-                                    );
-                                    break;
-                                }
+                                hasNot5Uses = true;
+                                offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                                break;
                             }
                         }
                     }
@@ -1841,24 +1834,17 @@ class UserCart extends Cart {
             if (sku === '241;6') {
                 fetched.forEach(item => {
                     if (item.name === 'Dueling Mini-Game') {
-                        for (let i = 0; item.descriptions.length; i++) {
-                            if (!item.descriptions[i]) {
-                                continue;
-                            }
+                        for (let i = 0; i < item.descriptions.length; i++) {
                             const descriptionValue = item.descriptions[i].value;
                             const descriptionColor = item.descriptions[i].color;
 
                             if (
-                                descriptionValue.includes('This is a limited use item.') &&
+                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
                                 descriptionColor === '00a000'
                             ) {
-                                if (!descriptionValue.includes('Uses: 5')) {
-                                    hasNot5Uses = true;
-                                    log.info(
-                                        'Trade partner inventory contains Dueling Mini-Game that is not 5 uses, declining...'
-                                    );
-                                    break;
-                                }
+                                hasNot5Uses = true;
+                                offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                                break;
                             }
                         }
                     }
