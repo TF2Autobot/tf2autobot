@@ -363,7 +363,7 @@ export = class MyHandler extends Handler {
     onGroupRelationship(groupID: SteamID, relationship: number): void {
         log.debug('Group relation changed', { steamID: groupID, relationship: relationship });
         if (relationship === SteamUser.EClanRelationship.Invited) {
-            const join = !this.groups.includes(groupID.getSteamID64());
+            const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
             this.bot.client.respondToGroupInvite(groupID, !this.groups.includes(groupID.getSteamID64()));
