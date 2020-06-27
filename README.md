@@ -52,6 +52,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - INVALID_VALUE exception
 - add an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
+- Dueling Mini-Game: Only accept 5 Uses!
 - and more to come!
 
 ## Added features
@@ -119,7 +120,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1280-L1741).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1339-L1808).
 
 ### Emojis and more commands added
 
@@ -221,8 +222,20 @@ Time will be use in "!time" command and
 - `DEBUG_FILE`: [true|false] - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 #### Backpack.tf sell or buy order listings note on all items in pricelist
-- `BPTF_DETAILS_BUY`: [string] - Your buy order message. It will do for all items. available parameters: %name% (print out item name), %price% (item current buying price), %current_stock%, %max_stock% and %keyPrice% (print out: `Key rate: x ref/key`).
-- `BPTF_DETAILS_SELL` [string] - Same as buy order, except have %amount_trade% parameter.
+- `BPTF_DETAILS_BUY`: [string] - Your buy order message.
+- `BPTF_DETAILS_SELL` [string] - Your sell order message.
+
+**Parameters:**
+- `%name%` - display an item name
+- `%price%` - display item's buying/selling price
+- `%current_stock%` - display item's current stock
+- `%max_stock%` - display item's maximum stock
+- `%amount_trade%` - display amount that can be traded (between minimum and maximum stock)
+- `%keyPrice%` - display current key rate (selling price), it will show as `Key rate: x ref/key` only if the item price include x key, otherwise, it will show as ✨
+- `%dueling%` - will display `(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)` on only Dueling Mini-Game listing - prefer to only place this on `BPTF_DETAILS_BUY`, on other item will show as ✨
+
+**Usage example:**
+![listings](https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG)
 
 #### Custom offer message
 - `OFFER_MESSAGE`: [string] - Message that will appear when bot sends offer to trade partner. If leave empty (""), it will print *Powered by tf2-automatic* by default.
@@ -270,7 +283,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to true if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to true if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1091-L1202)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1137-L1261)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
 - `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).

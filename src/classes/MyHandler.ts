@@ -363,10 +363,10 @@ export = class MyHandler extends Handler {
     onGroupRelationship(groupID: SteamID, relationship: number): void {
         log.debug('Group relation changed', { steamID: groupID, relationship: relationship });
         if (relationship === SteamUser.EClanRelationship.Invited) {
-            const join = !this.groups.includes(groupID.getSteamID64());
+            const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
-            this.bot.client.respondToGroupInvite(groupID, !this.groups.includes(groupID.getSteamID64()));
+            this.bot.client.respondToGroupInvite(groupID, this.groups.includes(groupID.getSteamID64()));
         } else if (relationship === SteamUser.EClanRelationship.Member) {
             log.info(`Joined group ${groupID.getSteamID64()}`);
         }
@@ -499,7 +499,30 @@ export = class MyHandler extends Handler {
             return { action: 'accept', reason: 'GIFT' };
         } else if (offer.itemsToReceive.length === 0 || offer.itemsToGive.length === 0) {
             offer.log('info', 'is a gift offer, declining...');
-            return { action: 'decline', reason: 'GIFT' };
+            return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+        }
+
+        let hasNot5Uses = false;
+        offer.itemsToReceive.forEach(item => {
+            if (item.name === 'Dueling Mini-Game') {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                        descriptionColor === '00a000'
+                    ) {
+                        hasNot5Uses = true;
+                        offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                        break;
+                    }
+                }
+            }
+        });
+
+        if (hasNot5Uses) {
+            return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
@@ -955,11 +978,20 @@ export = class MyHandler extends Handler {
                             : '/pre ✅ Success! The offer went through successfully.'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
+                    const offerReason: { reason: string } = offer.data('action');
+                    let reason: string;
+                    if (offerReason.reason === 'GIFT_NO_NOTE') {
+                        reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
+                    } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
+                        reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                    }
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
                             ? process.env.CUSTOM_DECLINED_MESSAGE
-                            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined.'
+                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
+                                  reason ? ` because ${reason}` : '.'
+                              }`
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1109,8 +1141,9 @@ export = class MyHandler extends Handler {
             const overstockedItemsName: string[] = [];
             const dupedItemsName: string[] = [];
             const dupedFailedItemsName: string[] = [];
+            const reasons = meta.uniqueReasons;
 
-            if (meta.uniqueReasons.includes('🟨INVALID_ITEMS')) {
+            if (reasons.includes('🟨INVALID_ITEMS')) {
                 this.invalidItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     invalidItemsName.push(name);
@@ -1120,14 +1153,17 @@ export = class MyHandler extends Handler {
                     ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
                           .replace(/%name%/g, invalidItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', invalidItemsName.length))
-                    : `🟨INVALID_ITEMS - ${invalidItemsName.join(', ')} ${pluralize(
+                    : `🟨INVALID_ITEMS - %name% ${pluralize(
                           'is',
                           invalidItemsName.length
-                      )} not in my pricelist. Please wait for the response from my owner.`;
+                      )} not in my pricelist. Please wait for the response from my owner.`.replace(
+                          /%name%/g,
+                          invalidItemsName.join(', ')
+                      );
                 reviewReasons.push(note);
             }
 
-            if (meta.uniqueReasons.includes('🟦OVERSTOCKED')) {
+            if (reasons.includes('🟦OVERSTOCKED')) {
                 this.overstockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     overstockedItemsName.push(name);
@@ -1137,24 +1173,17 @@ export = class MyHandler extends Handler {
                     ? `🟦OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
                           .replace(/%name%/g, overstockedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', overstockedItemsName.length))
-                    : `🟦OVERSTOCKED - ${invalidItemsName.join(', ')} ${pluralize(
+                    : `🟦OVERSTOCKED - %name% ${pluralize(
                           'is',
                           overstockedItemsName.length
-                      )} already reached max amount I can have. Please wait for the response from my owner.`;
+                      )} already reached max amount I can have. Please wait for the response from my owner.`.replace(
+                          /%name%/g,
+                          overstockedItemsName.join(', ')
+                      );
                 reviewReasons.push(note);
             }
 
-            if (meta.uniqueReasons.includes('🟥INVALID_VALUE')) {
-                note = process.env.INVALID_VALUE_NOTE
-                    ? `🟥INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
-                    : '🟥INVALID_VALUE - Your offer will be ignored. Please cancel it and make another offer with correct value.';
-                reviewReasons.push(note);
-                missingPureNote =
-                    "\n[You're missing: " +
-                    (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
-            }
-
-            if (meta.uniqueReasons.includes('🟫DUPED_ITEMS')) {
+            if (reasons.includes('🟫DUPED_ITEMS')) {
                 this.dupedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedItemsName.push(name);
@@ -1164,14 +1193,17 @@ export = class MyHandler extends Handler {
                     ? `🟫DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
+                    : `🟫DUPED_ITEMS - %name% ${pluralize(
                           'is',
                           dupedItemsName.length
-                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`;
+                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`.replace(
+                          /%name%/g,
+                          dupedItemsName.join(', ')
+                      );
                 reviewReasons.push(note);
             }
 
-            if (meta.uniqueReasons.includes('🟪DUPE_CHECK_FAILED')) {
+            if (reasons.includes('🟪DUPE_CHECK_FAILED')) {
                 this.dupedFailedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedFailedItemsName.push(name);
@@ -1181,28 +1213,36 @@ export = class MyHandler extends Handler {
                     ? `🟪DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize ${dupedFailedItemsName.join(
-                          ', '
-                      )} Original ${pluralize(
+                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize %name% Original ${pluralize(
                           'ID',
                           dupedFailedItemsName.length
-                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`;
+                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`.replace(
+                          /%name%/g,
+                          dupedFailedItemsName.join(', ')
+                      );
                 reviewReasons.push(note);
+            }
+
+            if (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')) {
+                note = process.env.INVALID_VALUE_NOTE
+                    ? `🟥INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
+                    : '🟥INVALID_VALUE - Your offer will be ignored. Please cancel it and make another offer with correct value.';
+                reviewReasons.push(note);
+                missingPureNote =
+                    "\n[You're missing: " +
+                    (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             // Notify partner and admin that the offer is waiting for manual review
             this.bot.sendMessage(
                 offer.partner,
-                `/pre ⚠️ Your offer is waiting for review.\nReason: ${meta.uniqueReasons.join(', ')}` +
+                `/pre ⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
                     (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
                         ? '\n\nYour offer summary:\n' +
                           offer
                               .summarize(this.bot.schema)
                               .replace('Asked', '  My side')
                               .replace('Offered', 'Your side') +
-                          (meta.uniqueReasons.includes('🟥INVALID_VALUE') &&
-                          !meta.uniqueReasons.includes('🟨INVALID_ITEMS')
-                              ? missingPureNote
-                              : '') +
+                          (missingPureNote !== '' ? missingPureNote : '') +
                           (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
                               ? `\n\nNote:\n${reviewReasons.join('\n')}`
                               : '')
@@ -1225,7 +1265,7 @@ export = class MyHandler extends Handler {
             ) {
                 this.discord.sendOfferReview(
                     offer,
-                    meta.uniqueReasons.join(', '),
+                    reasons.join(', '),
                     pureStock,
                     timeWithEmojis.time,
                     offer.summarizeWithLink(this.bot.schema),
@@ -1311,7 +1351,7 @@ export = class MyHandler extends Handler {
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
-                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autosell/buy keys is disabled until you correct it."
+                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
             );
             return;
         }
