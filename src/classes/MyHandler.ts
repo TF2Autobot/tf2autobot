@@ -506,6 +506,9 @@ export = class MyHandler extends Handler {
         offer.itemsToReceive.forEach(item => {
             if (item.name === 'Dueling Mini-Game') {
                 for (let i = 0; item.descriptions.length; i++) {
+                    if (!item.descriptions[i]) {
+                        continue;
+                    }
                     const descriptionValue = item.descriptions[i].value;
                     const descriptionColor = item.descriptions[i].color;
 
