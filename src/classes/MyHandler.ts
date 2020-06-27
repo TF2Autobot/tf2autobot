@@ -366,7 +366,7 @@ export = class MyHandler extends Handler {
             const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
-            this.bot.client.respondToGroupInvite(groupID, !this.groups.includes(groupID.getSteamID64()));
+            this.bot.client.respondToGroupInvite(groupID, this.groups.includes(groupID.getSteamID64()));
         } else if (relationship === SteamUser.EClanRelationship.Member) {
             log.info(`Joined group ${groupID.getSteamID64()}`);
         }
