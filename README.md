@@ -222,8 +222,20 @@ Time will be use in "!time" command and
 - `DEBUG_FILE`: [true|false] - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 #### Backpack.tf sell or buy order listings note on all items in pricelist
-- `BPTF_DETAILS_BUY`: [string] - Your buy order message. It will do for all items. available parameters: %name% (print out item name), %price% (item current buying price), %current_stock%, %max_stock% and %keyPrice% (print out: `Key rate: x ref/key`).
-- `BPTF_DETAILS_SELL` [string] - Same as buy order, except have %amount_trade% parameter.
+- `BPTF_DETAILS_BUY`: [string] - Your buy order message.
+- `BPTF_DETAILS_SELL` [string] - Your sell order message.
+
+**Parameters:**
+`%name%` - display an item name
+`%price%` - display item's buying/selling price
+`%current_stock%` - display item's current stock
+`%max_stock%` - display item's maximum stock
+`%amount_trade%` - display amount that can be traded (between minimum and maximum stock)
+`%keyPrice%` - display current key rate (selling price), it will show as `Key rate: x ref/key` only if the item price include x key, otherwise, it will show as ✨
+`%dueling%` - will display `(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)` on only Dueling Mini-Game listing - prefer to only place this on `BPTF_DETAILS_BUY`, on other item will show as ✨
+
+**example**
+![listings](https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG)
 
 #### Custom offer message
 - `OFFER_MESSAGE`: [string] - Message that will appear when bot sends offer to trade partner. If leave empty (""), it will print *Powered by tf2-automatic* by default.
