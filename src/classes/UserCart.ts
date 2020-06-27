@@ -443,9 +443,11 @@ class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        let fetched;
 
         try {
             await theirInventory.fetch();
+            fetched = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
@@ -455,6 +457,38 @@ class UserCart extends Cart {
         for (const sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                 continue;
+            }
+
+            let hasNot5Uses = false;
+
+            if (sku === '241;6') {
+                fetched.forEach(item => {
+                    if (item.name === 'Dueling Mini-Game') {
+                        for (let i = 0; item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                descriptionValue.includes('This is a limited use item.') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                if (!descriptionValue.includes('Uses: 5')) {
+                                    hasNot5Uses = true;
+                                    log.info(
+                                        'Trade partner inventory contains Dueling Mini-Game that is not 5 uses, declining...'
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (hasNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
             }
 
             let alteredMessage: string;
@@ -1783,9 +1817,11 @@ class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        let fetched;
 
         try {
             await theirInventory.fetch();
+            fetched = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
@@ -1795,6 +1831,38 @@ class UserCart extends Cart {
         for (const sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                 continue;
+            }
+
+            let hasNot5Uses = false;
+
+            if (sku === '241;6') {
+                fetched.forEach(item => {
+                    if (item.name === 'Dueling Mini-Game') {
+                        for (let i = 0; item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                descriptionValue.includes('This is a limited use item.') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                if (!descriptionValue.includes('Uses: 5')) {
+                                    hasNot5Uses = true;
+                                    log.info(
+                                        'Trade partner inventory contains Dueling Mini-Game that is not 5 uses, declining...'
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (hasNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
             }
 
             let alteredMessage: string;

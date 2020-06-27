@@ -499,7 +499,29 @@ export = class MyHandler extends Handler {
             return { action: 'accept', reason: 'GIFT' };
         } else if (offer.itemsToReceive.length === 0 || offer.itemsToGive.length === 0) {
             offer.log('info', 'is a gift offer, declining...');
-            return { action: 'decline', reason: 'GIFT' };
+            return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+        }
+
+        let hasNot5Uses = false;
+        offer.itemsToReceive.forEach(item => {
+            if (item.name === 'Dueling Mini-Game') {
+                for (let i = 0; item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (descriptionValue.includes('This is a limited use item.') && descriptionColor === '00a000') {
+                        if (!descriptionValue.includes('Uses: 5')) {
+                            hasNot5Uses = true;
+                            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        if (hasNot5Uses) {
+            return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
@@ -955,11 +977,20 @@ export = class MyHandler extends Handler {
                             : '/pre ✅ Success! The offer went through successfully.'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
+                    const offerReason: { reason: string } = offer.data('action');
+                    let reason: string;
+                    if (offerReason.reason === 'GIFT_NO_NOTE') {
+                        reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
+                    } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
+                        reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                    }
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
                             ? process.env.CUSTOM_DECLINED_MESSAGE
-                            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined.'
+                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined ${
+                                  reason ? `because ${reason}` : '.'
+                              }`
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1335,7 +1366,7 @@ export = class MyHandler extends Handler {
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
-                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autosell/buy keys is disabled until you correct it."
+                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
             );
             return;
         }

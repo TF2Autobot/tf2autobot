@@ -87,6 +87,20 @@ export = class Inventory {
         });
     }
 
+    fetchWithReturn(): Promise<EconItem[]> {
+        return new Promise((resolve, reject) => {
+            this.manager.getUserInventoryContents(this.getSteamID(), 440, '2', false, (err, items) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                this.setItems(items);
+
+                resolve(items);
+            });
+        });
+    }
+
     private setItems(items: EconItem[]): void {
         const tradable: EconItem[] = [];
         const nonTradable: EconItem[] = [];
