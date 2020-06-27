@@ -1222,15 +1222,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
             }
 
-            if (
-                reasons.includes('🟥INVALID_VALUE') &&
-                !(
-                    reasons.includes('🟨INVALID_ITEMS') ||
-                    reasons.includes('🟦OVERSTOCKED') ||
-                    reasons.includes('🟫DUPED_ITEMS') ||
-                    reasons.includes('🟪DUPE_CHECK_FAILED')
-                )
-            ) {
+            if (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')) {
                 note = process.env.INVALID_VALUE_NOTE
                     ? `🟥INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
                     : '🟥INVALID_VALUE - Your offer will be ignored. Please cancel it and make another offer with correct value.';
@@ -1249,15 +1241,7 @@ export = class MyHandler extends Handler {
                               .summarize(this.bot.schema)
                               .replace('Asked', '  My side')
                               .replace('Offered', 'Your side') +
-                          (reasons.includes('🟥INVALID_VALUE') &&
-                          !(
-                              reasons.includes('🟨INVALID_ITEMS') ||
-                              reasons.includes('🟦OVERSTOCKED') ||
-                              reasons.includes('🟫DUPED_ITEMS') ||
-                              reasons.includes('🟪DUPE_CHECK_FAILED')
-                          )
-                              ? missingPureNote
-                              : '') +
+                          (missingPureNote !== '' ? missingPureNote : '') +
                           (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
                               ? `\n\nNote:\n${reviewReasons.join('\n')}`
                               : '')
