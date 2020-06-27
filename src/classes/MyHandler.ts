@@ -988,8 +988,8 @@ export = class MyHandler extends Handler {
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
                             ? process.env.CUSTOM_DECLINED_MESSAGE
-                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined ${
-                                  reason ? `because ${reason}` : '.'
+                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
+                                  reason ? ` because ${reason}` : '.'
                               }`
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
