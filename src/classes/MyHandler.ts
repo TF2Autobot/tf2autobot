@@ -514,7 +514,7 @@ export = class MyHandler extends Handler {
                         descriptionColor === '00a000'
                     ) {
                         hasNot5Uses = true;
-                        offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                        log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
                         break;
                     }
                 }
@@ -522,6 +522,7 @@ export = class MyHandler extends Handler {
         });
 
         if (hasNot5Uses) {
+            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
             return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
         }
 
