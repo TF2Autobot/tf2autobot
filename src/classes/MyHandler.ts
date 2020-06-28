@@ -604,9 +604,7 @@ export = class MyHandler extends Handler {
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
                     const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !weaponSku.includes(sku) && match === null
-                            : true;
+                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' ? !weaponSku.includes(sku) : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
