@@ -521,7 +521,7 @@ export = class MyHandler extends Handler {
             }
         });
 
-        if (hasNot5Uses) {
+        if (hasNot5Uses && this.bot.pricelist.getPrice('241;6', true) !== null) {
             offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
             return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
         }
