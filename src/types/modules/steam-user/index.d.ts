@@ -81,6 +81,10 @@ declare module 'steam-user' {
 
         removeFriend(steamID: SteamID | string): void;
 
+        blockUser(steamID: SteamID | string, callback?: (err: Error | null) => void): void;
+
+        unblockUser(steamID: SteamID | string, callback?: (err: Error | null) => void): void;
+
         respondToGroupInvite(groupSteamID: SteamID | string, accept: boolean): void;
 
         logOff(): void;
