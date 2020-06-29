@@ -204,8 +204,26 @@ export = class Commands {
             message.startsWith('💬') ||
             message.startsWith('⇌') ||
             message.startsWith('Command') || // Other custom bots
-            message.startsWith('Hello')
-            // TODO: Find more possible messages from any other custom bots
+            message.startsWith('Hello') ||
+            message.startsWith('✋ Hold on') ||
+            message.startsWith('Hold on') ||
+            message.startsWith('Sending') ||
+            message.startsWith('👋 Welcome') ||
+            message.startsWith('Welcome') ||
+            message.startsWith('To') ||
+            message.startsWith('🔰') ||
+            message.startsWith('My') ||
+            message.startsWith('Owner') ||
+            message.startsWith('Bot') ||
+            message.startsWith('Those') ||
+            message.startsWith('👨🏼‍💻') ||
+            message.startsWith('🔶') ||
+            message.startsWith('Buying') ||
+            message.startsWith('🔷') ||
+            message.startsWith('Selling') ||
+            message.startsWith('📥') ||
+            message.startsWith('Stock') ||
+            message.startsWith('Thank')
         ) {
             return null;
         } else {
