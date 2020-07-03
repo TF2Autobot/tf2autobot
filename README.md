@@ -53,6 +53,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - add an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
 - Dueling Mini-Game: Only accept 5 Uses!
+- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock" and "!autokeys"
 - and more to come!
 
 ## Added features
@@ -120,7 +121,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1339-L1808).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1342-L1798).
 
 ### Emojis and more commands added
 
@@ -177,7 +178,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_LISTINGS`: [true|false] Default: false. This is used if you want to temporarily disable trading while your bot is alive.
 - `DISABLE_CRAFTING`: [true|false] Default: false. **NOT RECOMMENDED** to set is as true, as it cause bot and trade partner to not be able to trade because of missing pure changes.
 - `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: false. Set to **true if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
-- `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) can send messages with "!message" command.
+- `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) will be unable send messages to you with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref).
 
@@ -267,6 +268,10 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to true if you want your bot to mention on every successful trades.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
 
+![trade-summary-full](https://user-images.githubusercontent.com/47635037/86468435-ffdb4f80-bd69-11ea-9ab6-a7f5be2c22f0.PNG)
+
+![trade-summary-full2](https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG)
+
 #### Offer review summary
 - `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: [true|false] - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to false, it will send to your Steam Chat.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_URL` - Discord Webhook URL for REVIEW_OFFER.
@@ -274,6 +279,8 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE`: [true|false] - Set to true if you want your bot to not mention on only INVALID_VALUE offer.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE`: [true|false] - self explained.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK`: [true|false] - self explained.
+
+![only non-invalid-value2](https://user-images.githubusercontent.com/47635037/86468430-feaa2280-bd69-11ea-8f25-26a7a430b2e1.PNG)
 
 #### Messages
 - `DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER`: [true|false] - Used to alert you on any messages sent from trade partner. If set to false, it will send to your Steam Chat.
@@ -283,7 +290,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to true if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to true if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1137-L1261)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1140-L1264)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
 - `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).
