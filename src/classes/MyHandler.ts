@@ -983,7 +983,9 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
                     let reason: string;
-                    if (offerReason.reason === 'GIFT_NO_NOTE') {
+                    if (!offerReason) {
+                        reason = '';
+                    } else if (offerReason.reason === 'GIFT_NO_NOTE') {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
