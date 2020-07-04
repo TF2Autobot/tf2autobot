@@ -514,14 +514,15 @@ export = class MyHandler extends Handler {
                         descriptionColor === '00a000'
                     ) {
                         hasNot5Uses = true;
-                        offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                        log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
                         break;
                     }
                 }
             }
         });
 
-        if (hasNot5Uses) {
+        if (hasNot5Uses && this.bot.pricelist.getPrice('241;6', true) !== null) {
+            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
             return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
         }
 
@@ -603,9 +604,7 @@ export = class MyHandler extends Handler {
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
                     const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !weaponSku.includes(sku) && match === null
-                            : true;
+                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' ? !weaponSku.includes(sku) : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -984,7 +983,9 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
                     let reason: string;
-                    if (offerReason.reason === 'GIFT_NO_NOTE') {
+                    if (!offerReason) {
+                        reason = '';
+                    } else if (offerReason.reason === 'GIFT_NO_NOTE') {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';

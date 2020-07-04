@@ -210,14 +210,13 @@ export = class DiscordWebhook {
                 partnerName = them.personaName;
             }
 
-            const partnerNameNoFormat =
-                partnerName.includes('_') || partnerName.includes('*') || partnerName.includes('~~')
-                    ? partnerName
-                          .replace(/_/g, '‗')
-                          .replace(/\*/g, '★')
-                          .replace(/~/g, '⁓')
-                          .replace(/`/g, '^')
-                    : partnerName;
+            const partnerNameNoFormat = partnerName
+                .replace(/_/g, '‗')
+                .replace(/\*/g, '★')
+                .replace(/~/g, '⁓')
+                .replace(/`/g, '^')
+                .replace(/>/g, '<')
+                .replace(/\|/g, '!');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
@@ -252,7 +251,15 @@ export = class DiscordWebhook {
                                 ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
-                            (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${offerMessage}_` : '') +
+                            (offerMessage.length !== 0
+                                ? `\n\n💬 Offer message: _${offerMessage
+                                      .replace(/_/g, '‗')
+                                      .replace(/\*/g, '★')
+                                      .replace(/~/g, '⁓')
+                                      .replace(/`/g, '^')
+                                      .replace(/>/g, '<')
+                                      .replace(/\|/g, '!')}_`
+                                : '') +
                             `${
                                 invalidItemsName.length !== 0
                                     ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}`
@@ -357,14 +364,13 @@ export = class DiscordWebhook {
                 avatarFull = details.avatarFull;
             }
 
-            const partnerNameNoFormat =
-                personaName.includes('_') || personaName.includes('*') || personaName.includes('~~')
-                    ? personaName
-                          .replace(/_/g, '‗')
-                          .replace(/\*/g, '★')
-                          .replace(/~/g, '⁓')
-                          .replace(/`/g, '^')
-                    : personaName;
+            const partnerNameNoFormat = personaName
+                .replace(/_/g, '‗')
+                .replace(/\*/g, '★')
+                .replace(/~/g, '⁓')
+                .replace(/`/g, '^')
+                .replace(/>/g, '<')
+                .replace(/\|/g, '!');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';

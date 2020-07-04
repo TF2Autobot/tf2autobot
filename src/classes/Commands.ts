@@ -61,6 +61,8 @@ const ADMIN_COMMANDS: string[] = [
     '!autokeys - Get info on your current autoBuy/Sell Keys settings 🔑',
     '!avatar <image_URL> - Change avatar',
     '!name <new_name> - Change name',
+    '!block <steamid> - Block a specific user',
+    '!unblock <steamid> - Unblock specific user',
     '!stats - Get statistics for accepted trades 📊',
     '!trades - Get a list of offers pending for manual review 🔍',
     '!trade <offerID> - Get info about a trade',
@@ -158,6 +160,10 @@ export = class Commands {
             this.avatarCommand(steamID, message);
         } else if (command === 'stats' && isAdmin) {
             this.statsCommand(steamID);
+        } else if (command === 'unblock' && isAdmin) {
+            this.unblockCommand(steamID, message);
+        } else if (command === 'block' && isAdmin) {
+            this.blockCommand(steamID, message);
         } else if (command === 'trades' && isAdmin) {
             this.tradesCommand(steamID);
         } else if (command === 'trade' && isAdmin) {
@@ -198,8 +204,26 @@ export = class Commands {
             message.startsWith('💬') ||
             message.startsWith('⇌') ||
             message.startsWith('Command') || // Other custom bots
-            message.startsWith('Hello')
-            // TODO: Find more possible messages from any other custom bots
+            message.startsWith('Hello') ||
+            message.startsWith('✋ Hold on') ||
+            message.startsWith('Hold on') ||
+            message.startsWith('Sending') ||
+            message.startsWith('👋 Welcome') ||
+            message.startsWith('Welcome') ||
+            message.startsWith('To') ||
+            message.startsWith('🔰') ||
+            message.startsWith('My') ||
+            message.startsWith('Owner') ||
+            message.startsWith('Bot') ||
+            message.startsWith('Those') ||
+            message.startsWith('👨🏼‍💻') ||
+            message.startsWith('🔶') ||
+            message.startsWith('Buying') ||
+            message.startsWith('🔷') ||
+            message.startsWith('Selling') ||
+            message.startsWith('📥') ||
+            message.startsWith('Stock') ||
+            message.startsWith('Thank')
         ) {
             return null;
         } else {
@@ -1688,6 +1712,60 @@ export = class Commands {
             }
 
             this.bot.sendMessage(steamID, '✅ Successfully uploaded new avatar.');
+        });
+    }
+
+    private blockCommand(steamID: SteamID, message: string): void {
+        const steamid = CommandParser.removeCommand(message);
+
+        if (steamid === '') {
+            this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
+            return;
+        }
+
+        const targetSteamID64 = new SteamID(steamid);
+
+        if (!targetSteamID64.isValid()) {
+            this.bot.sendMessage(steamID, '❌ SteamID is not valid. Example: 76561198798404909');
+            return;
+        }
+
+        const sendMessage = this.bot;
+
+        this.bot.client.blockUser(targetSteamID64, function(err) {
+            if (err) {
+                log.warn(`Failed to block user ${targetSteamID64}: `, err);
+                sendMessage.sendMessage(steamID, `❌ Failed to block user ${targetSteamID64}: ${err}`);
+                return;
+            }
+            sendMessage.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64}`);
+        });
+    }
+
+    private unblockCommand(steamID: SteamID, message: string): void {
+        const steamid = CommandParser.removeCommand(message);
+
+        if (steamid === '') {
+            this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
+            return;
+        }
+
+        const targetSteamID64 = new SteamID(steamid);
+
+        if (!targetSteamID64.isValid()) {
+            this.bot.sendMessage(steamID, '❌ SteamID is not valid. Example: 76561198798404909');
+            return;
+        }
+
+        const sendMessage = this.bot;
+
+        this.bot.client.unblockUser(targetSteamID64, function(err) {
+            if (err) {
+                log.warn(`Failed to unblock user ${targetSteamID64}: `, err);
+                sendMessage.sendMessage(steamID, `❌ Failed to unblock user ${targetSteamID64}: ${err}`);
+                return;
+            }
+            sendMessage.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64}`);
         });
     }
 
