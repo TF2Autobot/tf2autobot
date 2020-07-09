@@ -1086,7 +1086,7 @@ export = class MyHandler extends Handler {
                                           : '🛑')
                                     : ''
                             }
-                        💰 Pure stock: ${pureStock.join(', ').toString()} ref`,
+                        💰 Pure stock: ${pureStock.join(', ').toString()}`,
                         []
                     );
                 }
@@ -1329,7 +1329,7 @@ export = class MyHandler extends Handler {
                     SteamREP: ${links.steamREP}
 
                     🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref
-                    💰 Pure stock: ${pureStock.join(', ').toString()} ref`,
+                    💰 Pure stock: ${pureStock.join(', ').toString()}`,
                     []
                 );
             }
@@ -2169,19 +2169,21 @@ Autokeys status:-
     pureStock(): string[] {
         const pureStock: string[] = [];
         const pure = this.currPure();
+        const totalKeys = pure.key;
+        const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
 
         const pureCombine = [
             {
-                name: 'Key',
-                amount: pure.key
+                name: pluralize('key', totalKeys),
+                amount: totalKeys
             },
             {
-                name: 'Ref',
-                amount: Currencies.toRefined(pure.refTotalInScrap)
+                name: pluralize('ref', Math.trunc(totalRefs)),
+                amount: totalRefs
             }
         ];
         for (let i = 0; i < pureCombine.length; i++) {
-            pureStock.push(`${pureCombine[i].name}: ${pureCombine[i].amount}`);
+            pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
         }
         return pureStock;
     }
