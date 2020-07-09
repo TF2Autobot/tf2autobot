@@ -312,7 +312,7 @@ What the trade partner will received: "Dueling Mini-Game, Secret Saxton are not 
 
 
 ### Others
-- `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note.
+- `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note. Two parameters: `%name%` (display trade partner name) and `%admin%` (if admin, it will use "!help", else "!how2trade").
 - `CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN` - Your custom note when people sends wrong command.
 - `CUSTOM_HOW2TRADE_MESSAGE` - Your custom HOW2TRADE note.
 

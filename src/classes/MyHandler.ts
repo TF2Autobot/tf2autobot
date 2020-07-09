@@ -1968,7 +1968,10 @@ Autokeys status:-
                     this.bot.sendMessage(
                         steamID,
                         process.env.CUSTOM_WELCOME_MESSAGE
-                            ? process.env.CUSTOM_WELCOME_MESSAGE
+                            ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
+                                  /%admin%/g,
+                                  isAdmin ? '!help' : '!how2trade'
+                              )
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
                                   '"'
@@ -1990,7 +1993,10 @@ Autokeys status:-
             this.bot.sendMessage(
                 steamID,
                 process.env.CUSTOM_WELCOME_MESSAGE
-                    ? process.env.CUSTOM_WELCOME_MESSAGE
+                    ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
+                          /%admin%/g,
+                          isAdmin ? '!help' : '!how2trade'
+                      )
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
                           '"'
