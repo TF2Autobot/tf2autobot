@@ -498,13 +498,13 @@ export = class MyHandler extends Handler {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
             return { action: 'accept', reason: 'GIFT' };
         }
-		else if (offer.itemsToGive.length === 0) {
-		        offer.log('info', 'is a gift offer free stuff no note...');
-				return { action: 'accept', reason: 'GIFT_NO_NOTE' };
+	else if (offer.itemsToGive.length === 0) {
+	        offer.log('info', 'is a gift offer free stuff no note tho so if they ask for it back send it back could be a mistake...');
+		return { action: 'accept', reason: 'GIFT_NO_NOTE' };
         }
         else if (offer.itemsToReceive.length === 0 || offer.itemsToGive.length === 0) {
-            offer.log('info', 'is a gift offer, declining...');
-            return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+            offer.log('info', 'is a gift offer, taking out items...');
+            return { action: 'decline', reason: 'taking our stuff kill em' };
         }
 
         let hasNot5Uses = false;
