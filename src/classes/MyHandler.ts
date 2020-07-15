@@ -183,6 +183,10 @@ export = class MyHandler extends Handler {
         }, 1000);
     }
 
+    getFriendToKeep(): number {
+        return this.friendsToKeep.length;
+    }
+
     hasDupeCheckEnabled(): boolean {
         return this.dupeCheckEnabled;
     }
