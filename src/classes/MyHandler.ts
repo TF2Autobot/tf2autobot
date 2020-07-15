@@ -1427,6 +1427,19 @@ export = class MyHandler extends Handler {
         */
 
         /**
+         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
+         * Will buy keys.
+         */
+        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys < userMinKeys !== false;
+        /*
+        //        <—————○                                         \
+        // Keys --------|----------------------------|---------->  ⟩ AND
+        //              ○———————————————————————————————————>     /
+        // Refs --------|----------------------------|---------->
+        //             min                          max
+        */
+
+        /**
          * disable Autokeys - Banking - true if currRef \< minRef AND currKeys \< minKeys
          */
         const isRemoveBankingKeys = currReftoScrap <= userMaxReftoScrap && currKeys <= userMinKeys !== false;
@@ -1490,6 +1503,16 @@ Autokeys status:-
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
                 this.updateAutokeysBanking(userMinKeys, userMaxKeys);
+            } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                this.isBuyingKeys = true;
+                this.isBankingKeys = false;
+                this.checkAutokeysStatus = true;
+                this.checkAlertOnLowPure = false;
+                this.alreadyUpdatedToBank = false;
+                this.alreadyUpdatedToBuy = true;
+                this.alreadyUpdatedToSell = false;
+                this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                 // enable Autokeys - Buying - if buying keys conditions matched
                 this.isBuyingKeys = true;
@@ -1565,6 +1588,16 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     this.createAutokeysBanking(userMinKeys, userMaxKeys);
+                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
+                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                    this.isBuyingKeys = true;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = true;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = false;
+                    this.alreadyUpdatedToSell = false;
+                    this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
                     this.isBuyingKeys = true;
@@ -1618,6 +1651,16 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     this.updateAutokeysBanking(userMinKeys, userMaxKeys);
+                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                    this.isBuyingKeys = true;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = true;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = true;
+                    this.alreadyUpdatedToSell = false;
+                    this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                     // enable Autokeys - Buying - if buying keys conditions matched
                     this.isBuyingKeys = true;
