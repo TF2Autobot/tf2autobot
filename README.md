@@ -54,6 +54,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - Mention every items on each offer review reasons
 - Dueling Mini-Game: Only accept 5 Uses!
 - New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock" and "!autokeys"
+- add an option to disable acceptting friend request
 - and more to come!
 
 ## Added features
@@ -181,6 +182,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_MESSAGES`: [true|false] Default: false. When true, people (that are friend with your bot) will be unable send messages to you with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: false. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref).
+- `DISABLE_ADD_FRIENDS`: [true|false] - Default: false. Set to true if you don't want people to add your bot (not recommended).
 
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
@@ -312,7 +314,7 @@ What the trade partner will received: "Dueling Mini-Game, Secret Saxton are not 
 
 
 ### Others
-- `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note.
+- `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note. Two parameters: `%name%` (display trade partner name) and `%admin%` (if admin, it will use "!help", else "!how2trade").
 - `CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN` - Your custom note when people sends wrong command.
 - `CUSTOM_HOW2TRADE_MESSAGE` - Your custom HOW2TRADE note.
 

@@ -6,6 +6,7 @@ import { UnknownDictionary } from '../types/common';
 import Bot from './Bot';
 
 import request from '@nicklason/request-retry';
+import MyHandler from './MyHandler';
 
 export = class Friends {
     private readonly bot: Bot;
@@ -85,10 +86,13 @@ export = class Friends {
                 const result = body.response;
                 const level = result.player_level;
 
+                const friendToKeep = (this.bot.handler as MyHandler).getFriendToKeep();
+                const disableAddFriends = process.env.DISABLE_ADD_FRIENDS === 'true';
+
                 const base = 250;
                 const multiplier = 5;
 
-                this.maxFriends = base + level * multiplier;
+                this.maxFriends = disableAddFriends ? friendToKeep : base + level * multiplier;
 
                 resolve(this.maxFriends);
             });
