@@ -1430,9 +1430,9 @@ export = class MyHandler extends Handler {
          * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
          * Will buy keys.
          */
-        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys < userMinKeys !== false;
+        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys !== false;
         /*
-        //        <—————○                                         \
+        //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
         //              ○———————————————————————————————————>     /
         // Refs --------|----------------------------|---------->
