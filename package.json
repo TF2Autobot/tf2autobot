@@ -24,7 +24,7 @@
     "homepage": "https://github.com/idinium96/tf2autobot#readme",
     "dependencies": {
         "@nicklason/request-retry": "^1.1.2",
-        "@types/cheerio": "^0.22.18",
+        "@types/cheerio": "^0.22.21",
         "async": "^3.2.0",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
