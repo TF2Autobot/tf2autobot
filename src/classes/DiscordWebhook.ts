@@ -194,6 +194,13 @@ export = class DiscordWebhook {
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
+        const message = offerMessage
+            .replace(/_/g, '‗')
+            .replace(/\*/g, '★')
+            .replace(/~/g, '⁓')
+            .replace(/`/g, '^')
+            .replace(/>/g, '<')
+            .replace(/\|/g, '!');
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -251,15 +258,7 @@ export = class DiscordWebhook {
                                 ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
-                            (offerMessage.length !== 0
-                                ? `\n\n💬 Offer message: _${offerMessage
-                                      .replace(/_/g, '‗')
-                                      .replace(/\*/g, '★')
-                                      .replace(/~/g, '⁓')
-                                      .replace(/`/g, '^')
-                                      .replace(/>/g, '<')
-                                      .replace(/\|/g, '!')}_`
-                                : '') +
+                            (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
                             `${
                                 invalidItemsName.length !== 0
                                     ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}`
