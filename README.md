@@ -231,9 +231,10 @@ Time will be use in "!time" command and
 **Parameters:**
 - `%name%` - display an item name
 - `%price%` - display item's buying/selling price
-- `%current_stock%` - display item's current stock
-- `%max_stock%` - display item's maximum stock
-- `%amount_trade%` - display amount that can be traded (between minimum and maximum stock)
+- `%current_stock%` - display item's current stock (by default this is used in `BPTF_DETAILS_BUY`)
+- `%max_stock%` - display item's maximum stock (by default this is used in `BPTF_DETAILS_BUY`)
+- `%amount_trade%` - display amount that can be traded (between minimum and maximum stock, use it on `BPTF_DETAILS_SELL`)
+- `%amount_can_buy%` - display the amount that the bot can buy (use it on `BPTF_DETAILS_BUY`)
 - `%keyPrice%` - display current key rate (selling price), it will show as `Key rate: x ref/key` only if the item price include x key, otherwise, it will show as ✨
 - `%dueling%` - will display `(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)` on only Dueling Mini-Game listing - prefer to only place this on `BPTF_DETAILS_BUY`, on other item will show as ✨
 
