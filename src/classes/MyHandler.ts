@@ -1390,8 +1390,8 @@ export = class MyHandler extends Handler {
         */
 
         /**
-         * disable Autokeys - true if minRef ≤ currRef ≤ maxRef AND
-         * (currKeys ≤ minKeys OR minKeys ≤ currKeys ≤ maxKeys OR currKeys ≥ maxKeys)
+         * disable Autokeys - true if currRef \>= maxRef AND currKeys \>= maxKeys OR
+         * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
          */
         const isRemoveAutoKeys =
             (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
