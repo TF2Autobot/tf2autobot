@@ -552,6 +552,75 @@ export = class MyHandler extends Handler {
             }
         }
 
+        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+
+        if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+            let hasNot25Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                if (
+                    item.name.includes('Noise Maker - Black Cat') || // defindex: 280
+                    item.name.includes('Noise Maker - Gremlin') || // defindex: 281
+                    item.name.includes('Noise Maker - Werewolf') || // defindex: 282
+                    item.name.includes('Noise Maker - Witch') || // defindex: 283
+                    item.name.includes('Noise Maker - Banshee') || // defindex: 284
+                    item.name.includes('Noise Maker - Crazy Laugh') || // defindex: 286
+                    item.name.includes('Noise Maker - Stabby') || // defindex: 288
+                    item.name.includes('Noise Maker - Bell') || // defindex: 362
+                    item.name.includes('Noise Maker - Gong') || // defindex: 364
+                    item.name.includes('Noise Maker - Koto') || // defindex: 365
+                    item.name.includes('Noise Maker - Fireworks') || // defindex: 493
+                    item.name.includes('Noise Maker - Vuvuzela') // defindex: 542
+                ) {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot25Uses = true;
+                            log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            if (
+                hasNot25Uses &&
+                (checkExist.getPrice('280;6', true) !== null || // Noise Maker - Black Cat
+                checkExist.getPrice('280;6;uncraftable', true) !== null ||
+                checkExist.getPrice('281;6', true) !== null || // Noise Maker - Gremlin
+                checkExist.getPrice('281;6;uncraftable', true) !== null ||
+                checkExist.getPrice('282;6', true) !== null || // Noise Maker - Werewolf
+                checkExist.getPrice('282;6;uncraftable', true) !== null ||
+                checkExist.getPrice('283;6', true) !== null || // Noise Maker - Witch
+                checkExist.getPrice('283;6;uncraftable', true) !== null ||
+                checkExist.getPrice('284;6', true) !== null || // Noise Maker - Banshee
+                checkExist.getPrice('284;6;uncraftable', true) !== null ||
+                checkExist.getPrice('286;6', true) !== null || // Noise Maker - Crazy Laugh
+                checkExist.getPrice('286;6;uncraftable', true) !== null ||
+                checkExist.getPrice('288;6', true) !== null || // Noise Maker - Stabby
+                checkExist.getPrice('288;6;uncraftable', true) !== null ||
+                checkExist.getPrice('362;6', true) !== null || // Noise Maker - Bell
+                checkExist.getPrice('362;6;uncraftable', true) !== null ||
+                checkExist.getPrice('364;6', true) !== null || // Noise Maker - Gong
+                checkExist.getPrice('364;6;uncraftable', true) !== null ||
+                checkExist.getPrice('365;6', true) !== null || // Noise Maker - Koto
+                checkExist.getPrice('365;6;uncraftable', true) !== null ||
+                checkExist.getPrice('365;1', true) !== null || // Genuine
+                checkExist.getPrice('493;6', true) !== null || // Noise Maker - Fireworks
+                checkExist.getPrice('493;6;uncraftable', true) !== null ||
+                checkExist.getPrice('542;6', true) !== null || // Noise Maker - Vuvuzela
+                    checkExist.getPrice('542;6;uncraftable', true) !== null ||
+                    checkExist.getPrice('542;1', true) !== null) // Genuine
+            ) {
+                offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+            }
+        }
+
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
 
         const itemPrices = {};
@@ -1015,6 +1084,8 @@ export = class MyHandler extends Handler {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                    } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
+                        reason = 'your offer contains Noise Maker that are not 25 uses.';
                     }
                     this.bot.sendMessage(
                         offer.partner,

@@ -43,6 +43,7 @@
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
                 "DISABLE_ADD_FRIENDS": false,
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
+                "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,

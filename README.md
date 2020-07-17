@@ -53,6 +53,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - add an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
 - Dueling Mini-Game: Only accept 5 Uses! (option)
+- Noise Maker: Only accept 25 Uses! (option)
 - New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock" and "!autokeys"
 - add an option to disable acceptting friend request
 - and more to come!
@@ -184,6 +185,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: false. Set it as true if you don't want to set craft weapons as currency (0.05 ref).
 - `DISABLE_ADD_FRIENDS`: [true|false] - Default: false. Set to true if you don't want people to add your bot (not recommended).
 - `DISABLE_CHECK_USES_DUELING_MINI_GAME`: [true|false] - Default: false. Set to true if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
+- `DISABLE_CHECK_USES_NOISE_MAKER`: [true|false] - Default: false. Set to true if you want your bot to accept Noise Maker that is not 25 Uses.
 
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
