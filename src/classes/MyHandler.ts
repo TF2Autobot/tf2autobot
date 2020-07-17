@@ -129,7 +129,7 @@ export = class MyHandler extends Handler {
         if (process.env.CUSTOM_PLAYING_GAME_NAME === 'tf2-automatic') {
             this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
         } else {
-            if (process.env.CUSTOM_PLAYING_GAME_NAME.length > 45) {
+            if (process.env.CUSTOM_PLAYING_GAME_NAME.length <= 45) {
                 this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME + ' - tf2-automatic';
             } else {
                 log.warn(
