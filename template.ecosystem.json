@@ -42,6 +42,7 @@
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
                 "DISABLE_ADD_FRIENDS": false,
+                "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,

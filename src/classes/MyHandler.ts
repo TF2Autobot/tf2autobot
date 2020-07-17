@@ -521,28 +521,35 @@ export = class MyHandler extends Handler {
             return { action: 'decline', reason: 'GIFT_NO_NOTE' };
         }
 
-        let hasNot5Uses = false;
-        offer.itemsToReceive.forEach(item => {
-            if (item.name === 'Dueling Mini-Game') {
-                for (let i = 0; i < item.descriptions.length; i++) {
-                    const descriptionValue = item.descriptions[i].value;
-                    const descriptionColor = item.descriptions[i].color;
+        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
 
-                    if (
-                        !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                        descriptionColor === '00a000'
-                    ) {
-                        hasNot5Uses = true;
-                        log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
-                        break;
+        const checkExist = this.bot.pricelist;
+
+        if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+            let hasNot5Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                if (item.name === 'Dueling Mini-Game') {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot5Uses = true;
+                            log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
+                            break;
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        if (hasNot5Uses && this.bot.pricelist.getPrice('241;6', true) !== null) {
-            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
-            return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                // Only decline if exist in pricelist
+                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            }
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
