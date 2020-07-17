@@ -318,7 +318,7 @@ What the trade partner will received: "Dueling Mini-Game, Secret Saxton are not 
 
 
 ### Others
-- `CUSTOM_PLAYING_GAME_NAME` - Custom name of the game your bot is playing. Limited to only 45 characters. Example: https://gyazo.com/308e4e05bf4c49929520df4e0064864c.
+- `CUSTOM_PLAYING_GAME_NAME` - Custom name of the game your bot is playing. Limited to only 45 characters. Example: https://gyazo.com/308e4e05bf4c49929520df4e0064864c (you do not need to include that `- tf2-automatic`, just your custom game name but not more than 45 characters.)
 
 - `CUSTOM_WELCOME_MESSAGE` - Your custom WELCOME_MESSAGE note. Two parameters: `%name%` (display trade partner name) and `%admin%` (if admin, it will use "!help", else "!how2trade").
 - `CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN` - Your custom note when people sends wrong command.
