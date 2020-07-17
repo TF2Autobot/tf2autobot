@@ -89,6 +89,8 @@ export = class MyHandler extends Handler {
 
     private autoRelistNotBuyingKeys = 0;
 
+    private customGameName: string;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -122,6 +124,19 @@ export = class MyHandler extends Handler {
                 'You did not set invalid value excepted items SKU as an array, resetting to apply only for Unusual and Australium'
             );
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
+        }
+
+        if (process.env.CUSTOM_PLAYING_GAME_NAME === 'tf2-automatic') {
+            this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+        } else {
+            if (process.env.CUSTOM_PLAYING_GAME_NAME.length <= 45) {
+                this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME + ' - tf2-automatic';
+            } else {
+                log.warn(
+                    'Your custom game playing name is more than 45 characters, resetting to only "tf2-automatic"...'
+                );
+                this.customGameName = 'tf2-automatic';
+            }
         }
 
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
@@ -254,7 +269,7 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
         // Smelt / combine metal if needed
@@ -304,7 +319,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+            this.bot.client.gamesPlayed([this.customGameName, 440]);
         }
     }
 
@@ -2808,6 +2823,6 @@ Autokeys status:-
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
     }
 };
