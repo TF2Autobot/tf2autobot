@@ -1056,6 +1056,19 @@ export = class MyHandler extends Handler {
                     )}`
                 );
                 return { action: 'accept', reason: 'VALID' };
+            } else if (
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
+                process.env.DISABLE_AUTOMATIC_DECLINE_ONLY_INVALID_VALUE_THAT_DID_NOT_MATCHED_EXCEPTION_VALUE_TRADE !==
+                    'true' &&
+                uniqueReasons.includes('🟥INVALID_VALUE') &&
+                !(
+                    uniqueReasons.includes('🟨INVALID_ITEMS') ||
+                    uniqueReasons.includes('🟦OVERSTOCKED') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                )
+            ) {
+                return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
                 return {
@@ -1105,6 +1118,8 @@ export = class MyHandler extends Handler {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains Noise Maker that are not 25 uses.';
+                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
                     }
                     this.bot.sendMessage(
                         offer.partner,

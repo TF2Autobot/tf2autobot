@@ -118,6 +118,7 @@
 
                 "ACCEPT_INVALID_ITEMS_OVERPAY": false,
                 "ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_AUTOMATIC_DECLINE_ONLY_INVALID_VALUE_THAT_DID_NOT_MATCHED_EXCEPTION_VALUE_TRADE": true,
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
