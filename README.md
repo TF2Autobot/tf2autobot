@@ -13,6 +13,12 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 [![Donate-paypal](https://img.shields.io/badge/donate-paypal-blue)](https://www.paypal.me/idinium)
 [![Donate-steam](https://img.shields.io/badge/donate-steam-lightgrey)](https://bit.ly/3gbldTM)
 
+**tf2autobot made by IdiNium** 
+[![profile-Steam](https://img.shields.io/badge/Steam-profile-blue)](https://steamcommunity.com/profiles/76561198013127982/)
+[![profile-bptf](https://img.shields.io/badge/Backpack.tf-profile-blue)](https://backpack.tf/profiles/76561198013127982)
+![bptf-profile](https://user-images.githubusercontent.com/47635037/87852271-23d68d80-c933-11ea-84e4-a116d4163878.PNG)
+
+
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
 
 - You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate generating 2FA codes and managing mobile confirmations.
