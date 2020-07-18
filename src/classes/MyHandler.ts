@@ -1058,8 +1058,7 @@ export = class MyHandler extends Handler {
                 return { action: 'accept', reason: 'VALID' };
             } else if (
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
-                process.env.DISABLE_AUTOMATIC_DECLINE_ONLY_INVALID_VALUE_THAT_DID_NOT_MATCHED_EXCEPTION_VALUE_TRADE !==
-                    'true' &&
+                process.env.DISABLE_AUTOMATIC_DECLINE_ONLY_INVALID_VALUE !== 'true' &&
                 uniqueReasons.includes('🟥INVALID_VALUE') &&
                 !(
                     uniqueReasons.includes('🟨INVALID_ITEMS') ||
