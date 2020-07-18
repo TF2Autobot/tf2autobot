@@ -1673,26 +1673,20 @@ export = class Commands {
             return;
         }
 
-        let uncraft = false;
-        if (params.sku.includes('uncraftable')) {
-            params.sku = params.sku.replace(';uncraftable', '');
-            uncraft = true;
-        }
+        const uncraft = params.sku.includes(';uncraftable');
+        params.sku = params.sku.replace(';uncraftable', '');
 
-        let untrade = false;
-        if (params.sku.includes('untradable')) {
-            params.sku = params.sku.replace(';untradable', '');
-            untrade = true;
-        }
+        const untrade = params.sku.includes(';untradable');
+        params.sku = params.sku.replace(';untradable', '');
 
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
-            item.craftable = false;
+            item.craftable = !uncraft;
         }
 
         if (untrade) {
-            item.tradable = false;
+            item.tradable = !untrade;
         }
 
         const assetids = this.bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
@@ -2403,32 +2397,27 @@ export = class Commands {
 
         if (params.craftable !== undefined) {
             if (typeof params.craftable !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Craftable must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Craftable must be "true" or "false" only.`);
                 return null;
             }
-            if (params.craftable === false) {
-                item.craftable = false;
-            } else {
-                item.craftable = true;
-            }
+            item.craftable = params.craftable;
         }
 
         if (params.australium !== undefined) {
             if (typeof params.australium !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Australium must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Australium must be "true" or "false" only.`);
                 return null;
             }
-            if (params.australium === false) {
-                item.australium = false;
-            } else {
-                item.australium = true;
-            }
+            item.australium = params.australium;
         }
 
         if (params.killstreak !== undefined) {
             const killstreak = parseInt(params.killstreak);
-            if (isNaN(killstreak) || killstreak > 3) {
-                this.bot.sendMessage(steamID, `❌ Unknown killstreak "${params.killstreak}".`);
+            if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
+                this.bot.sendMessage(
+                    steamID,
+                    `Unknown killstreak "${params.killstreak}", it must be between 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS) only.`
+                );
                 return null;
             }
             item.killstreak = killstreak;
