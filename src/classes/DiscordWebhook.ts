@@ -336,10 +336,10 @@ export = class DiscordWebhook {
             });
         });
 
-        const theirItemsFiltered = theirItems.filter(sku => ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+        const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
 
         if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            theirItemsFiltered.filter(sku => (this.bot.handler as MyHandler).craftweapon().includes(sku));
+            theirItemsFiltered.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
         }
 
         const isMentionInvalidItems = theirItemsFiltered.some((sku: string) => {
