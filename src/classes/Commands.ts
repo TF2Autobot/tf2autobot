@@ -56,7 +56,7 @@ const ADMIN_COMMANDS: string[] = [
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
-    '!delete sku=<item sku> - Delete any item (use only sku) 🚮',
+    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
@@ -1594,6 +1594,22 @@ export = class Commands {
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
+        if (params.assetid !== undefined) {
+            const sku = this.bot.inventoryManager.getInventory().findByAssetid(params.assetid);
+            const item = SKU.fromString(sku);
+            const name = this.bot.schema.getName(item, false);
+
+            this.bot.tf2gc.deleteItem(params.assetid, err => {
+                if (err) {
+                    log.warn(`Error trying to delete ${name}: `, err);
+                    this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
+                    return;
+                }
+                this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
+            });
+            return;
+        }
+
         if (params.name !== undefined || params.item !== undefined) {
             this.bot.sendMessage(
                 steamID,
@@ -1669,7 +1685,7 @@ export = class Commands {
         const name = this.bot.schema.getName(item, false);
 
         if (assetids.length === 0) {
-            // No backpack expanders
+            // Item not found
             this.bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
             return;
         }
@@ -1677,11 +1693,11 @@ export = class Commands {
         this.bot.tf2gc.deleteItem(assetids[0], err => {
             if (err) {
                 log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}: ${err.message}`);
+                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetids[0]}): ${err.message}`);
                 return;
             }
 
-            this.bot.sendMessage(steamID, `✅ Deleted ${name}!`);
+            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetids[0]})!`);
         });
     }
 
