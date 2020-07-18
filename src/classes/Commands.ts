@@ -2543,10 +2543,13 @@ export = class Commands {
         const items: { amount: number; name: string }[] = [];
 
         craftWeapons.forEach(sku => {
-            items.push({
-                name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
-            });
+            const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    amount: amount
+                });
+            }
         });
 
         items.sort(function(a, b) {
@@ -2578,10 +2581,13 @@ export = class Commands {
         const items: { amount: number; name: string }[] = [];
 
         uncraftWeapons.forEach(sku => {
-            items.push({
-                name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
-            });
+            const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+                });
+            }
         });
 
         items.sort(function(a, b) {
