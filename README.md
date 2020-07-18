@@ -54,7 +54,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - Mention every items on each offer review reasons
 - Dueling Mini-Game: Only accept 5 Uses! (option)
 - Noise Maker: Only accept 25 Uses! (option)
-- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock" and "!autokeys"
+- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!craftweapon" and "!uncraftweapon" commands
 - add an option to disable acceptting friend request
 - and more to come!
 

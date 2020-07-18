@@ -32,6 +32,8 @@ const COMMANDS: string[] = [
     '!stock - Get a list of items that the bot has',
     '!pure - Get current pure stock 💰',
     '!rate - Get current key prices 🔑',
+    '!craftweapon - get a list of craft weapon stock 🔫',
+    '!uncraftweapon - get a list of uncraft weapon stock 🔫',
     '!message <your message> - Send a message to the owner of the bot 💬',
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲',
@@ -106,6 +108,10 @@ export = class Commands {
             this.timeCommand(steamID);
         } else if (command === 'autokeys' && isAdmin) {
             this.autoKeysCommand(steamID);
+        } else if (command === 'craftweapon') {
+            this.craftweaponCommand(steamID);
+        } else if (command === 'uncraftweapon') {
+            this.uncraftweaponCommand(steamID);
         } else if (command === 'rate') {
             this.rateCommand(steamID);
         } else if (command === 'message') {
@@ -409,6 +415,31 @@ export = class Commands {
             reply += `,\nand ${left} other ${pluralize('item', left)}`;
         }
 
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private craftweaponCommand(steamID: SteamID): void {
+        const crafWeaponStock = this.craftWeapons();
+
+        let reply: string;
+        if (crafWeaponStock.length > 0) {
+            reply = "📃 Here's a list of all craft weapons stock in my inventory:\n\n" + crafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any craftable weapons in my inventory.";
+        }
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private uncraftweaponCommand(steamID: SteamID): void {
+        const uncrafWeaponStock = this.uncraftWeapons();
+
+        let reply: string;
+        if (uncrafWeaponStock.length > 0) {
+            reply =
+                "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any uncraftable weapons in my inventory.";
+        }
         this.bot.sendMessage(steamID, reply);
     }
 
@@ -2469,6 +2500,76 @@ export = class Commands {
         delete params.name;
 
         return fixItem(item, this.bot.schema);
+    }
+
+    private craftWeapons(): string[] {
+        const craftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyCraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        craftWeapons.forEach(sku => {
+            items.push({
+                name: this.bot.schema.getName(SKU.fromString(sku), false),
+                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+            });
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const craftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                craftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return craftWeaponsStock;
+    }
+
+    private uncraftWeapons(): string[] {
+        const uncraftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyUncraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        uncraftWeapons.forEach(sku => {
+            items.push({
+                name: this.bot.schema.getName(SKU.fromString(sku), false),
+                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+            });
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const uncraftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                uncraftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return uncraftWeaponsStock;
     }
 };
 
