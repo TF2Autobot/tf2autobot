@@ -1154,7 +1154,12 @@ export = class MyHandler extends Handler {
                                         "\n[You're missing: " +
                                         (itemsList.their.includes('5021;6')
                                             ? `${value.diffKey}]`
-                                            : `${value.diffRef} ref]`)
+                                            : `${value.diffRef} ref]`) +
+                                        `${
+                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                : ''
+                                        }`
                                       : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {

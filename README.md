@@ -310,7 +310,8 @@ Time will be use in "!time" command and
 
 - `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
 - `DISABLE_ACCEPT_OVERSTOCKED_OVERPAY`: [true|false] - Default: `true`. Set to `false` if you want your bot to accept a trade with OVERSTOCKED but with their value more or equal to our value.
-- `DISABLE_AUTO_DECLINE_INVALID_VALUE`: [true|false]: Default: `false`. Set to `true` if you do not want to automatically decline trade with **ONLY** `INVALID_VALUE` and did not match the exception sku(s) and exception value.
+- `DISABLE_AUTO_DECLINE_INVALID_VALUE`: [true|false] - Default: `false`. Set to `true` if you do not want to automatically decline trade with **ONLY** `INVALID_VALUE` and did not match the exception sku(s) and exception value.
+- `AUTO_DECLINE_INVALID_VALUE_NOTE`: [string] - Your custom note on why the trade got declined. Default is nothing.
 
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
 - `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).
