@@ -872,12 +872,12 @@ export = class MyHandler extends Handler {
         const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
-        this.hasInvalidValueException = false;
         if (exchange.our.value > exchange.their.value) {
             if (!isExcept || (isExcept && exchange.our.value - exchange.their.value >= exceptionValue)) {
                 // Check if the values are correct and is not include the exception sku
                 // OR include the exception sku but the invalid value is more than or equal to exception value
                 hasInvalidValue = true;
+                this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
                     reason: '🟥INVALID_VALUE',
                     our: exchange.our.value,
