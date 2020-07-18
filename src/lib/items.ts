@@ -57,7 +57,10 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
             for (let i = 0; i < schemaItem.attributes.length; i++) {
                 const attribute = schemaItem.attributes[i];
 
-                if (attribute.name === 'set supply crate series') {
+                if (
+                    attribute.name === 'set supply crate series'
+                    // !(attribute.value === 82 || attribute.value === 83 || attribute.value === 77)
+                ) {
                     series = attribute.value;
                 }
             }
