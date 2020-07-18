@@ -1115,6 +1115,10 @@ export = class MyHandler extends Handler {
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
+                    const keyPrice = this.bot.pricelist.getKeyPrices();
+                    const value = this.valueDiff(offer, keyPrice);
+                    const itemsList = this.itemList(offer);
+
                     let reason: string;
                     if (!offerReason) {
                         reason = '';
@@ -1133,7 +1137,18 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_DECLINED_MESSAGE
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }`
+                              }` +
+                                  (offerReason.reason === 'ONLY_INVALID_VALUE'
+                                      ? '\n\nSummary:\n' +
+                                        offer
+                                            .summarize(this.bot.schema)
+                                            .replace('Asked', '  My side')
+                                            .replace('Offered', 'Your side') +
+                                        "\n[You're missing: " +
+                                        (itemsList.their.includes('5021;6')
+                                            ? `${value.diffKey}]`
+                                            : `${value.diffRef} ref]`)
+                                      : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
