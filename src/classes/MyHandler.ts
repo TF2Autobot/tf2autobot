@@ -1040,8 +1040,10 @@ export = class MyHandler extends Handler {
             // }
 
             if (
-                ((uniqueReasons.includes('🟨INVALID_ITEMS') && process.env.ACCEPT_INVALID_ITEMS_OVERPAY === 'true') ||
-                    (uniqueReasons.includes('🟦OVERSTOCKED') && process.env.ACCEPT_OVERSTOCKED_OVERPAY === 'true')) &&
+                ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
+                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
+                    (uniqueReasons.includes('🟦OVERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
                 !(
                     uniqueReasons.includes('🟥INVALID_VALUE') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
