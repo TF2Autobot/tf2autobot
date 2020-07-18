@@ -117,7 +117,7 @@
                 "DISABLE_SHOW_CURRENT_TIME": false,
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
@@ -259,7 +259,7 @@
                 "DISABLE_SHOW_CURRENT_TIME": false,
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
