@@ -89,6 +89,8 @@ export = class MyHandler extends Handler {
 
     private autoRelistNotBuyingKeys = 0;
 
+    private hasInvalidValueException = false;
+
     private customGameName: string;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -870,6 +872,7 @@ export = class MyHandler extends Handler {
         const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
+        this.hasInvalidValueException = false;
         if (exchange.our.value > exchange.their.value) {
             if (!isExcept || (isExcept && exchange.our.value - exchange.their.value >= exceptionValue)) {
                 // Check if the values are correct and is not include the exception sku
@@ -888,6 +891,7 @@ export = class MyHandler extends Handler {
                         exceptionValue
                     )} ref. Accepting/checking for other reasons...`
                 );
+                this.hasInvalidValueException = true;
             }
         }
 
@@ -1067,7 +1071,8 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟦OVERSTOCKED') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
-                )
+                ) &&
+                this.hasInvalidValueException === false
             ) {
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else {
