@@ -115,8 +115,13 @@
                 "DISABLE_SHOW_REVIEW_OFFER_SUMMARY": false,
                 "DISABLE_REVIEW_OFFER_NOTE": false,
                 "DISABLE_SHOW_CURRENT_TIME": false,
+
+                "ACCEPT_INVALID_ITEMS_OVERPAY": false,
+                "ACCEPT_OVERSTOCKED_OVERPAY": false,
+
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
+
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",

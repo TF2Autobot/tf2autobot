@@ -1039,15 +1039,34 @@ export = class MyHandler extends Handler {
             //     const counteroffer = offer.counter();
             // }
 
-            offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
-            return {
-                action: 'skip',
-                reason: 'REVIEW',
-                meta: {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (
+                ((uniqueReasons.includes('🟨INVALID_ITEMS') && process.env.ACCEPT_INVALID_ITEMS_OVERPAY === 'true') ||
+                    (uniqueReasons.includes('🟦OVERSTOCKED') && process.env.ACCEPT_OVERSTOCKED_OVERPAY === 'true')) &&
+                !(
+                    uniqueReasons.includes('🟥INVALID_VALUE') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                ) &&
+                exchange.our.value <= exchange.their.value
+            ) {
+                offer.log(
+                    'trade',
+                    `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                        this.bot.schema
+                    )}`
+                );
+                return { action: 'accept', reason: 'VALID' };
+            } else {
+                offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
         }
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);

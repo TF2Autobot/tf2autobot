@@ -298,8 +298,13 @@ Time will be use in "!time" command and
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to true if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
 - `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to false, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1140-L1264)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to false, it will show owner time on offer review notification that trade partner will received.
+
+- `ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: false. Set to true if you want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
+- `ACCEPT_OVERSTOCKED_OVERPAY`: [true|false] - Default: false. Set to true if you want your bot to accept a trade with OVERSTOCKED but with their value more or equal to our value.
+
 - `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
 - `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).
+
 - `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 - *`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
 - *`OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.
