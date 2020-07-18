@@ -5,7 +5,7 @@
             "script": "dist/app.js",
             "exec_mode": "fork",
             "exp_backoff_restart_delay": 1000,
-            "shutdown_with_message": true,
+            "shutdown_with_message": false,
             "kill_timeout": 30000,
             "out_file": "NULL",
             "error_file": "NULL",
