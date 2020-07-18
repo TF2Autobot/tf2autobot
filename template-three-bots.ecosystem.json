@@ -117,8 +117,9 @@
                 "DISABLE_SHOW_CURRENT_TIME": false,
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -259,8 +260,9 @@
                 "DISABLE_SHOW_CURRENT_TIME": false,
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -401,8 +403,9 @@
                 "DISABLE_SHOW_CURRENT_TIME": false,
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,

@@ -335,8 +335,17 @@ export = class DiscordWebhook {
             });
         });
 
+        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
+
         const mentionOwner =
-            this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems) ? `<@!${this.ownerID}>` : '';
+            this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
+                ? `<@!${this.ownerID}>`
+                : this.enableMentionOwner === true &&
+                  process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY === 'false' &&
+                  isMentionInvalidItems
+                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS/OVERSTOCKED same value/overpay trade here!`
+                : '';
+
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;

@@ -91,6 +91,8 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
+    private isAcceptedWithInvalidItemsOrOverstocked = false;
+
     private customGameName: string;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -210,6 +212,10 @@ export = class MyHandler extends Handler {
 
     getMinimumKeysDupeCheck(): number {
         return this.minimumKeysDupeCheck;
+    }
+
+    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
+        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysEnabled(): boolean {
@@ -1047,7 +1053,7 @@ export = class MyHandler extends Handler {
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
                     (uniqueReasons.includes('🟦OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
+                        !(process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'false'))) &&
                 !(
                     uniqueReasons.includes('🟥INVALID_VALUE') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
@@ -1061,6 +1067,7 @@ export = class MyHandler extends Handler {
                         this.bot.schema
                     )}`
                 );
+                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 return { action: 'accept', reason: 'VALID' };
             } else if (
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
@@ -1115,6 +1122,11 @@ export = class MyHandler extends Handler {
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
+                    const keyPrice = this.bot.pricelist.getKeyPrices();
+                    const value = this.valueDiff(offer, keyPrice);
+                    const itemsList = this.itemList(offer);
+
+                    let reasonForInvalidValue = false;
                     let reason: string;
                     if (!offerReason) {
                         reason = '';
@@ -1125,7 +1137,10 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains Noise Maker that are not 25 uses.';
                     } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reasonForInvalidValue = true;
                         reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
+                    } else {
+                        reason = '';
                     }
                     this.bot.sendMessage(
                         offer.partner,
@@ -1133,7 +1148,23 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_DECLINED_MESSAGE
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }`
+                              }` +
+                                  (reasonForInvalidValue
+                                      ? '\n\nSummary:\n' +
+                                        offer
+                                            .summarize(this.bot.schema)
+                                            .replace('Asked', '  My side')
+                                            .replace('Offered', 'Your side') +
+                                        "\n[You're missing: " +
+                                        (itemsList.their.includes('5021;6')
+                                            ? `${value.diffKey}]`
+                                            : `${value.diffRef} ref]`) +
+                                        `${
+                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                : ''
+                                        }`
+                                      : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1201,6 +1232,7 @@ export = class MyHandler extends Handler {
                         links,
                         timeWithEmojis.time
                     );
+                    this.isAcceptedWithInvalidItemsOrOverstocked = false;
                 } else {
                     this.bot.messageAdmins(
                         'trade',
