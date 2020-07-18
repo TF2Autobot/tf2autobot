@@ -1126,6 +1126,7 @@ export = class MyHandler extends Handler {
                     const value = this.valueDiff(offer, keyPrice);
                     const itemsList = this.itemList(offer);
 
+                    let reasonForInvalidValue = false;
                     let reason: string;
                     if (!offerReason) {
                         reason = '';
@@ -1136,7 +1137,10 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains Noise Maker that are not 25 uses.';
                     } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reasonForInvalidValue = true;
                         reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
+                    } else {
+                        reason = '';
                     }
                     this.bot.sendMessage(
                         offer.partner,
@@ -1145,7 +1149,7 @@ export = class MyHandler extends Handler {
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
                               }` +
-                                  (offerReason.reason === 'ONLY_INVALID_VALUE'
+                                  (reasonForInvalidValue
                                       ? '\n\nSummary:\n' +
                                         offer
                                             .summarize(this.bot.schema)
