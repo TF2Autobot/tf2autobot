@@ -472,51 +472,40 @@ export = class Listings {
         const key = buying ? 'buy' : 'sell';
         const keyPrice = this.bot.pricelist.getKeyPrice().toString();
 
+        const maxStock = entry.max;
+        const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+        const amountCanBuy = maxStock - currentStock;
+
         let details: string;
 
         if (entry.sku === '241;6') {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%dueling%/g, '✨');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 .replace(/%dueling%/g, '✨');
         }

@@ -89,6 +89,10 @@ export = class MyHandler extends Handler {
 
     private autoRelistNotBuyingKeys = 0;
 
+    private hasInvalidValueException = false;
+
+    private customGameName: string;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -122,6 +126,19 @@ export = class MyHandler extends Handler {
                 'You did not set invalid value excepted items SKU as an array, resetting to apply only for Unusual and Australium'
             );
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
+        }
+
+        if (process.env.CUSTOM_PLAYING_GAME_NAME === 'tf2-automatic') {
+            this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+        } else {
+            if (process.env.CUSTOM_PLAYING_GAME_NAME.length <= 45) {
+                this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME + ' - tf2-automatic';
+            } else {
+                log.warn(
+                    'Your custom game playing name is more than 45 characters, resetting to only "tf2-automatic"...'
+                );
+                this.customGameName = 'tf2-automatic';
+            }
         }
 
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
@@ -254,7 +271,7 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
         // Smelt / combine metal if needed
@@ -304,7 +321,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+            this.bot.client.gamesPlayed([this.customGameName, 440]);
         }
     }
 
@@ -506,28 +523,104 @@ export = class MyHandler extends Handler {
             return { action: 'decline', reason: 'GIFT_NO_NOTE' };
         }
 
-        let hasNot5Uses = false;
-        offer.itemsToReceive.forEach(item => {
-            if (item.name === 'Dueling Mini-Game') {
-                for (let i = 0; i < item.descriptions.length; i++) {
-                    const descriptionValue = item.descriptions[i].value;
-                    const descriptionColor = item.descriptions[i].color;
+        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
 
-                    if (
-                        !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                        descriptionColor === '00a000'
-                    ) {
-                        hasNot5Uses = true;
-                        log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
-                        break;
+        const checkExist = this.bot.pricelist;
+
+        if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+            let hasNot5Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                if (item.name === 'Dueling Mini-Game') {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot5Uses = true;
+                            log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
+                            break;
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        if (hasNot5Uses && this.bot.pricelist.getPrice('241;6', true) !== null) {
-            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
-            return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                // Only decline if exist in pricelist
+                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            }
+        }
+
+        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+
+        if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+            let hasNot25Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                if (
+                    item.name.includes('Noise Maker - Black Cat') || // defindex: 280
+                    item.name.includes('Noise Maker - Gremlin') || // defindex: 281
+                    item.name.includes('Noise Maker - Werewolf') || // defindex: 282
+                    item.name.includes('Noise Maker - Witch') || // defindex: 283
+                    item.name.includes('Noise Maker - Banshee') || // defindex: 284
+                    item.name.includes('Noise Maker - Crazy Laugh') || // defindex: 286
+                    item.name.includes('Noise Maker - Stabby') || // defindex: 288
+                    item.name.includes('Noise Maker - Bell') || // defindex: 362
+                    item.name.includes('Noise Maker - Gong') || // defindex: 364
+                    item.name.includes('Noise Maker - Koto') || // defindex: 365
+                    item.name.includes('Noise Maker - Fireworks') || // defindex: 493
+                    item.name.includes('Noise Maker - Vuvuzela') // defindex: 542
+                ) {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot25Uses = true;
+                            log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            if (
+                hasNot25Uses &&
+                (checkExist.getPrice('280;6', true) !== null || // Noise Maker - Black Cat
+                checkExist.getPrice('280;6;uncraftable', true) !== null ||
+                checkExist.getPrice('281;6', true) !== null || // Noise Maker - Gremlin
+                checkExist.getPrice('281;6;uncraftable', true) !== null ||
+                checkExist.getPrice('282;6', true) !== null || // Noise Maker - Werewolf
+                checkExist.getPrice('282;6;uncraftable', true) !== null ||
+                checkExist.getPrice('283;6', true) !== null || // Noise Maker - Witch
+                checkExist.getPrice('283;6;uncraftable', true) !== null ||
+                checkExist.getPrice('284;6', true) !== null || // Noise Maker - Banshee
+                checkExist.getPrice('284;6;uncraftable', true) !== null ||
+                checkExist.getPrice('286;6', true) !== null || // Noise Maker - Crazy Laugh
+                checkExist.getPrice('286;6;uncraftable', true) !== null ||
+                checkExist.getPrice('288;6', true) !== null || // Noise Maker - Stabby
+                checkExist.getPrice('288;6;uncraftable', true) !== null ||
+                checkExist.getPrice('362;6', true) !== null || // Noise Maker - Bell
+                checkExist.getPrice('362;6;uncraftable', true) !== null ||
+                checkExist.getPrice('364;6', true) !== null || // Noise Maker - Gong
+                checkExist.getPrice('364;6;uncraftable', true) !== null ||
+                checkExist.getPrice('365;6', true) !== null || // Noise Maker - Koto
+                checkExist.getPrice('365;6;uncraftable', true) !== null ||
+                checkExist.getPrice('365;1', true) !== null || // Genuine
+                checkExist.getPrice('493;6', true) !== null || // Noise Maker - Fireworks
+                checkExist.getPrice('493;6;uncraftable', true) !== null ||
+                checkExist.getPrice('542;6', true) !== null || // Noise Maker - Vuvuzela
+                    checkExist.getPrice('542;6;uncraftable', true) !== null ||
+                    checkExist.getPrice('542;1', true) !== null) // Genuine
+            ) {
+                offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+            }
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
@@ -784,6 +877,7 @@ export = class MyHandler extends Handler {
                 // Check if the values are correct and is not include the exception sku
                 // OR include the exception sku but the invalid value is more than or equal to exception value
                 hasInvalidValue = true;
+                this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
                     reason: '🟥INVALID_VALUE',
                     our: exchange.our.value,
@@ -797,6 +891,7 @@ export = class MyHandler extends Handler {
                         exceptionValue
                     )} ref. Accepting/checking for other reasons...`
                 );
+                this.hasInvalidValueException = true;
             }
         }
 
@@ -948,15 +1043,49 @@ export = class MyHandler extends Handler {
             //     const counteroffer = offer.counter();
             // }
 
-            offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
-            return {
-                action: 'skip',
-                reason: 'REVIEW',
-                meta: {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (
+                ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
+                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
+                    (uniqueReasons.includes('🟦OVERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
+                !(
+                    uniqueReasons.includes('🟥INVALID_VALUE') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                ) &&
+                exchange.our.value <= exchange.their.value
+            ) {
+                offer.log(
+                    'trade',
+                    `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                        this.bot.schema
+                    )}`
+                );
+                return { action: 'accept', reason: 'VALID' };
+            } else if (
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
+                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
+                uniqueReasons.includes('🟥INVALID_VALUE') &&
+                !(
+                    uniqueReasons.includes('🟨INVALID_ITEMS') ||
+                    uniqueReasons.includes('🟦OVERSTOCKED') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                ) &&
+                this.hasInvalidValueException === false
+            ) {
+                return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+            } else {
+                offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
         }
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
@@ -993,6 +1122,10 @@ export = class MyHandler extends Handler {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                    } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
+                        reason = 'your offer contains Noise Maker that are not 25 uses.';
+                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
                     }
                     this.bot.sendMessage(
                         offer.partner,
@@ -1390,8 +1523,8 @@ export = class MyHandler extends Handler {
         */
 
         /**
-         * disable Autokeys - true if minRef ≤ currRef ≤ maxRef AND
-         * (currKeys ≤ minKeys OR minKeys ≤ currKeys ≤ maxKeys OR currKeys ≥ maxKeys)
+         * disable Autokeys - true if currRef \>= maxRef AND currKeys \>= maxKeys OR
+         * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
          */
         const isRemoveAutoKeys =
             (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
@@ -2736,6 +2869,150 @@ Autokeys status:-
         return weapons;
     }
 
+    craftweaponOnlyUncraftable(): string[] {
+        const weapons = [
+            '61;6;uncraftable',
+            '1101;6;uncraftable',
+            '226;6;uncraftable',
+            '46;6;uncraftable',
+            '129;6;uncraftable',
+            '311;6;uncraftable',
+            '131;6;uncraftable',
+            '751;6;uncraftable',
+            '354;6;uncraftable',
+            '642;6;uncraftable',
+            '163;6;uncraftable',
+            '159;6;uncraftable',
+            '231;6;uncraftable',
+            '351;6;uncraftable',
+            '525;6;uncraftable',
+            '460;6;uncraftable',
+            '425;6;uncraftable',
+            '39;6;uncraftable',
+            '812;6;uncraftable',
+            '133;6;uncraftable',
+            '58;6;uncraftable',
+            '35;6;uncraftable',
+            '224;6;uncraftable',
+            '222;6;uncraftable',
+            '595;6;uncraftable',
+            '444;6;uncraftable',
+            '773;6;uncraftable',
+            '411;6;uncraftable',
+            '1150;6;uncraftable',
+            '57;6;uncraftable',
+            '415;6;uncraftable',
+            '442;6;uncraftable',
+            '42;6;uncraftable',
+            '740;6;uncraftable',
+            '130;6;uncraftable',
+            '528;6;uncraftable',
+            '406;6;uncraftable',
+            '265;6;uncraftable',
+            '1099;6;uncraftable',
+            '998;6;uncraftable',
+            '449;6;uncraftable',
+            '140;6;uncraftable',
+            '1104;6;uncraftable',
+            '405;6;uncraftable',
+            '772;6;uncraftable',
+            '1103;6;uncraftable',
+            '40;6;uncraftable',
+            '402;6;uncraftable',
+            '730;6;uncraftable',
+            '228;6;uncraftable',
+            '36;6;uncraftable',
+            '608;6;uncraftable',
+            '312;6;uncraftable',
+            '1098;6;uncraftable',
+            '441;6;uncraftable',
+            '305;6;uncraftable',
+            '215;6;uncraftable',
+            '127;6;uncraftable',
+            '45;6;uncraftable',
+            '1092;6;uncraftable',
+            '141;6;uncraftable',
+            '752;6;uncraftable',
+            '56;6;uncraftable',
+            '811;6;uncraftable',
+            '1151;6;uncraftable',
+            '414;6;uncraftable',
+            '308;6;uncraftable',
+            '996;6;uncraftable',
+            '526;6;uncraftable',
+            '41;6;uncraftable',
+            '513;6;uncraftable',
+            '412;6;uncraftable',
+            '1153;6;uncraftable',
+            '594;6;uncraftable',
+            '588;6;uncraftable',
+            '741;6;uncraftable',
+            '997;6;uncraftable',
+            '237;6;uncraftable',
+            '220;6;uncraftable',
+            '448;6;uncraftable',
+            '230;6;uncraftable',
+            '424;6;uncraftable',
+            '527;6;uncraftable',
+            '60;6;uncraftable',
+            '59;6;uncraftable',
+            '304;6;uncraftable',
+            '450;6;uncraftable',
+            '38;6;uncraftable',
+            '326;6;uncraftable',
+            '939;6;uncraftable',
+            '461;6;uncraftable',
+            '325;6;uncraftable',
+            '232;6;uncraftable',
+            '317;6;uncraftable',
+            '327;6;uncraftable',
+            '356;6;uncraftable',
+            '447;6;uncraftable',
+            '128;6;uncraftable',
+            '775;6;uncraftable',
+            '589;6;uncraftable',
+            '426;6;uncraftable',
+            '132;6;uncraftable',
+            '355;6;uncraftable',
+            '331;6;uncraftable',
+            '239;6;uncraftable',
+            '142;6;uncraftable',
+            '357;6;uncraftable',
+            '656;6;uncraftable',
+            '221;6;uncraftable',
+            '153;6;uncraftable',
+            '329;6;uncraftable',
+            '43;6;uncraftable',
+            '739;6;uncraftable',
+            '416;6;uncraftable',
+            '813;6;uncraftable',
+            '482;6;uncraftable',
+            '154;6;uncraftable',
+            '404;6;uncraftable',
+            '457;6;uncraftable',
+            '214;6;uncraftable',
+            '44;6;uncraftable',
+            '172;6;uncraftable',
+            '609;6;uncraftable',
+            '401;6;uncraftable',
+            '348;6;uncraftable',
+            '413;6;uncraftable',
+            '155;6;uncraftable',
+            '649;6;uncraftable',
+            '349;6;uncraftable',
+            '593;6;uncraftable',
+            '171;6;uncraftable',
+            '37;6;uncraftable',
+            '307;6;uncraftable',
+            '173;6;uncraftable',
+            '310;6;uncraftable',
+            '648;6;uncraftable',
+            '225;6;uncraftable',
+            '810;6;uncraftable'
+        ];
+        return weapons;
+    }
+
     private checkGroupInvites(): void {
         log.debug('Checking group invites');
 
@@ -2808,6 +3085,6 @@ Autokeys status:-
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
     }
 };

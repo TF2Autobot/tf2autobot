@@ -5,7 +5,7 @@
             "script": "dist/app.js",
             "exec_mode": "fork",
             "exp_backoff_restart_delay": 1000,
-            "shutdown_with_message": true,
+            "shutdown_with_message": false,
             "kill_timeout": 30000,
             "out_file": "NULL",
             "error_file": "NULL",
@@ -42,6 +42,8 @@
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
                 "DISABLE_ADD_FRIENDS": false,
+                "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
+                "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
@@ -113,14 +115,22 @@
                 "DISABLE_SHOW_REVIEW_OFFER_SUMMARY": false,
                 "DISABLE_REVIEW_OFFER_NOTE": false,
                 "DISABLE_SHOW_CURRENT_TIME": false,
+
+                "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
+                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": false,
+                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
+
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",
                 "DUPE_ITEMS_NOTE": "",
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
+
+                "CUSTOM_PLAYING_GAME_NAME": "tf2-automatic",
 
                 "CUSTOM_WELCOME_MESSAGE": "",
                 "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",

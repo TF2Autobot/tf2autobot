@@ -32,6 +32,8 @@ const COMMANDS: string[] = [
     '!stock - Get a list of items that the bot has',
     '!pure - Get current pure stock 💰',
     '!rate - Get current key prices 🔑',
+    '!craftweapon - get a list of craft weapon stock 🔫',
+    '!uncraftweapon - get a list of uncraft weapon stock 🔫',
     '!message <your message> - Send a message to the owner of the bot 💬',
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲',
@@ -54,7 +56,7 @@ const ADMIN_COMMANDS: string[] = [
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
-    '!delete sku=<item sku> - Delete any item (use only sku) 🚮',
+    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
@@ -106,6 +108,10 @@ export = class Commands {
             this.timeCommand(steamID);
         } else if (command === 'autokeys' && isAdmin) {
             this.autoKeysCommand(steamID);
+        } else if (command === 'craftweapon') {
+            this.craftweaponCommand(steamID);
+        } else if (command === 'uncraftweapon') {
+            this.uncraftweaponCommand(steamID);
         } else if (command === 'rate') {
             this.rateCommand(steamID);
         } else if (command === 'message') {
@@ -409,6 +415,31 @@ export = class Commands {
             reply += `,\nand ${left} other ${pluralize('item', left)}`;
         }
 
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private craftweaponCommand(steamID: SteamID): void {
+        const crafWeaponStock = this.craftWeapons();
+
+        let reply: string;
+        if (crafWeaponStock.length > 0) {
+            reply = "📃 Here's a list of all craft weapons stock in my inventory:\n\n" + crafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any craftable weapons in my inventory.";
+        }
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private uncraftweaponCommand(steamID: SteamID): void {
+        const uncrafWeaponStock = this.uncraftWeapons();
+
+        let reply: string;
+        if (uncrafWeaponStock.length > 0) {
+            reply =
+                "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any uncraftable weapons in my inventory.";
+        }
         this.bot.sendMessage(steamID, reply);
     }
 
@@ -1563,6 +1594,37 @@ export = class Commands {
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
+        if (params.assetid !== undefined && params.sku === undefined) {
+            // This most likely not working with Non-Tradable items.
+            const ourInventory = this.bot.inventoryManager.getInventory();
+            const sku = ourInventory.findByAssetid(params.assetid);
+
+            if (sku === null) {
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${params.assetid}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${params.assetid}: ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${params.assetid}!`);
+                });
+                return;
+            } else {
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item, false);
+
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${name}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
+                });
+                return;
+            }
+        }
+
         if (params.name !== undefined || params.item !== undefined) {
             this.bot.sendMessage(
                 steamID,
@@ -1611,26 +1673,20 @@ export = class Commands {
             return;
         }
 
-        let uncraft = false;
-        if (params.sku.includes('uncraftable')) {
-            params.sku = params.sku.replace(';uncraftable', '');
-            uncraft = true;
-        }
+        const uncraft = params.sku.includes(';uncraftable');
+        params.sku = params.sku.replace(';uncraftable', '');
 
-        let untrade = false;
-        if (params.sku.includes('untradable')) {
-            params.sku = params.sku.replace(';untradable', '');
-            untrade = true;
-        }
+        const untrade = params.sku.includes(';untradable');
+        params.sku = params.sku.replace(';untradable', '');
 
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
-            item.craftable = false;
+            item.craftable = !uncraft;
         }
 
         if (untrade) {
-            item.tradable = false;
+            item.tradable = !untrade;
         }
 
         const assetids = this.bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
@@ -1638,19 +1694,34 @@ export = class Commands {
         const name = this.bot.schema.getName(item, false);
 
         if (assetids.length === 0) {
-            // No backpack expanders
+            // Item not found
             this.bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
             return;
         }
 
-        this.bot.tf2gc.deleteItem(assetids[0], err => {
+        let assetid: string;
+        if (params.assetid !== undefined) {
+            if (assetids.includes(params.assetid)) {
+                assetid = params.assetid;
+            } else {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Looks like an assetid ${params.assetid} did not matched with any assetids associated with ${name}(${params.sku}) in my inventory. Try only with sku to delete a random assetid.`
+                );
+                return;
+            }
+        } else {
+            assetid = assetids[0];
+        }
+
+        this.bot.tf2gc.deleteItem(assetid, err => {
             if (err) {
                 log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}: ${err.message}`);
+                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
                 return;
             }
 
-            this.bot.sendMessage(steamID, `✅ Deleted ${name}!`);
+            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
         });
     }
 
@@ -2326,32 +2397,27 @@ export = class Commands {
 
         if (params.craftable !== undefined) {
             if (typeof params.craftable !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Craftable must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Craftable must be "true" or "false" only.`);
                 return null;
             }
-            if (params.craftable === false) {
-                item.craftable = false;
-            } else {
-                item.craftable = true;
-            }
+            item.craftable = params.craftable;
         }
 
         if (params.australium !== undefined) {
             if (typeof params.australium !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Australium must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Australium must be "true" or "false" only.`);
                 return null;
             }
-            if (params.australium === false) {
-                item.australium = false;
-            } else {
-                item.australium = true;
-            }
+            item.australium = params.australium;
         }
 
         if (params.killstreak !== undefined) {
             const killstreak = parseInt(params.killstreak);
-            if (isNaN(killstreak) || killstreak > 3) {
-                this.bot.sendMessage(steamID, `❌ Unknown killstreak "${params.killstreak}".`);
+            if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
+                this.bot.sendMessage(
+                    steamID,
+                    `Unknown killstreak "${params.killstreak}", it must be between 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS) only.`
+                );
                 return null;
             }
             item.killstreak = killstreak;
@@ -2469,6 +2535,76 @@ export = class Commands {
         delete params.name;
 
         return fixItem(item, this.bot.schema);
+    }
+
+    private craftWeapons(): string[] {
+        const craftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyCraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        craftWeapons.forEach(sku => {
+            items.push({
+                name: this.bot.schema.getName(SKU.fromString(sku), false),
+                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+            });
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const craftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                craftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return craftWeaponsStock;
+    }
+
+    private uncraftWeapons(): string[] {
+        const uncraftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyUncraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        uncraftWeapons.forEach(sku => {
+            items.push({
+                name: this.bot.schema.getName(SKU.fromString(sku), false),
+                amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+            });
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const uncraftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                uncraftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return uncraftWeaponsStock;
     }
 };
 
