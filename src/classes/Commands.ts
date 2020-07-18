@@ -1595,6 +1595,7 @@ export = class Commands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (params.assetid !== undefined && params.sku === undefined) {
+            // This most likely not working with Non-Tradable items.
             const ourInventory = this.bot.inventoryManager.getInventory();
             const sku = ourInventory.findByAssetid(params.assetid);
 
@@ -1705,8 +1706,16 @@ export = class Commands {
         }
 
         let assetid: string;
-        if (params.assetid !== undefined && assetids.includes(params.assetid)) {
-            assetid = params.assetid;
+        if (params.assetid !== undefined) {
+            if (assetids.includes(params.assetid)) {
+                assetid = params.assetid;
+            } else {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Looks like an assetid ${params.assetid} did not matched with any assetids associated with ${name}(${params.sku}) in my inventory. Try only with sku to delete a random assetid.`
+                );
+                return;
+            }
         } else {
             assetid = assetids[0];
         }
@@ -1714,25 +1723,11 @@ export = class Commands {
         this.bot.tf2gc.deleteItem(assetid, err => {
             if (err) {
                 log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Failed to delete ${name}(${
-                        assetid === params.assetid
-                            ? assetid
-                            : `assetid ${params.assetid} didn't matched, used a random assetid ${assetids[0]}`
-                    }): ${err.message}`
-                );
+                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
                 return;
             }
 
-            this.bot.sendMessage(
-                steamID,
-                `✅ Deleted ${name}(${
-                    assetid === params.assetid
-                        ? assetid
-                        : `assetid ${params.assetid} didn't matched, used a random assetid ${assetids[0]}`
-                })!`
-            );
+            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
         });
     }
 
