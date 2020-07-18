@@ -1595,19 +1595,33 @@ export = class Commands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (params.assetid !== undefined) {
-            const sku = this.bot.inventoryManager.getInventory().findByAssetid(params.assetid);
-            const item = SKU.fromString(sku);
-            const name = this.bot.schema.getName(item, false);
+            const ourInventory = this.bot.inventoryManager.getInventory();
+            const sku = ourInventory.findByAssetid(params.assetid);
 
-            this.bot.tf2gc.deleteItem(params.assetid, err => {
-                if (err) {
-                    log.warn(`Error trying to delete ${name}: `, err);
-                    this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
-                    return;
-                }
-                this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
-            });
-            return;
+            if (sku === null) {
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${params.assetid}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${params.assetid}: ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${params.assetid}!`);
+                });
+                return;
+            } else {
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item, false);
+
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${name}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
+                });
+                return;
+            }
         }
 
         if (params.name !== undefined || params.item !== undefined) {
