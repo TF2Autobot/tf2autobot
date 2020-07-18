@@ -1594,7 +1594,7 @@ export = class Commands {
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.assetid !== undefined) {
+        if (params.assetid !== undefined && params.sku === undefined) {
             const ourInventory = this.bot.inventoryManager.getInventory();
             const sku = ourInventory.findByAssetid(params.assetid);
 
@@ -1704,14 +1704,35 @@ export = class Commands {
             return;
         }
 
-        this.bot.tf2gc.deleteItem(assetids[0], err => {
+        let assetid: string;
+        if (params.assetid !== undefined && assetids.includes(params.assetid)) {
+            assetid = params.assetid;
+        } else {
+            assetid = assetids[0];
+        }
+
+        this.bot.tf2gc.deleteItem(assetid, err => {
             if (err) {
                 log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetids[0]}): ${err.message}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Failed to delete ${name}(${
+                        assetid === params.assetid
+                            ? assetid
+                            : `assetid ${params.assetid} didn't matched, used a random assetid ${assetids[0]}`
+                    }): ${err.message}`
+                );
                 return;
             }
 
-            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetids[0]})!`);
+            this.bot.sendMessage(
+                steamID,
+                `✅ Deleted ${name}(${
+                    assetid === params.assetid
+                        ? assetid
+                        : `assetid ${params.assetid} didn't matched, used a random assetid ${assetids[0]}`
+                })!`
+            );
         });
     }
 
