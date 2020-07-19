@@ -102,7 +102,7 @@ export default class Pricelist extends EventEmitter {
 
     private keyPrices: { buy: Currencies; sell: Currencies };
 
-    private oldPrice: Entry;
+    private oldPrice: Entry[];
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
@@ -366,6 +366,8 @@ export default class Pricelist extends EventEmitter {
                 return;
             }
 
+            this.oldPrice = old;
+
             return this.updateOldPrices(old);
         });
     }
@@ -431,7 +433,8 @@ export default class Pricelist extends EventEmitter {
             };
         }
 
-        this.oldPrice = this.getPrice(data.sku);
+        const oldPrice = this.oldPrice[data.sku];
+
         const match = this.getPrice(data.sku);
         if (match !== null && match.autoprice) {
             match.buy = new Currencies(data.buy);
@@ -446,7 +449,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(data.sku, itemName, match, this.oldPrice);
+                this.sendWebHookPriceUpdate(data.sku, itemName, match, oldPrice);
             }
         }
     }
