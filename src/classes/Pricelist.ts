@@ -102,8 +102,6 @@ export default class Pricelist extends EventEmitter {
 
     private keyPrices: { buy: Currencies; sell: Currencies };
 
-    private oldPrice: Entry[];
-
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
         this.schema = schema;
@@ -366,8 +364,6 @@ export default class Pricelist extends EventEmitter {
                 return;
             }
 
-            this.oldPrice = old;
-
             return this.updateOldPrices(old);
         });
     }
@@ -433,9 +429,6 @@ export default class Pricelist extends EventEmitter {
             };
         }
 
-        const oldPriceEntries = this.oldPrice.filter(entry => entry.sku === data.sku);
-        const oldPrice = oldPriceEntries[0];
-
         const match = this.getPrice(data.sku);
         if (match !== null && match.autoprice) {
             match.buy = new Currencies(data.buy);
@@ -450,7 +443,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(data.sku, itemName, match, oldPrice);
+                this.sendWebHookPriceUpdate(data.sku, itemName, match);
             }
         }
     }
@@ -460,7 +453,7 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry, oldPrice: Entry): void {
+    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
         request.setRequestHeader('Content-type', 'application/json');
@@ -639,7 +632,7 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※Buying for:**\n${oldPrice.buy.toString()} → ${newPrice.buy.toString()}\n**※Selling for:**\n${oldPrice.sell.toString()} → ${newPrice.sell.toString()}\n` +
+                        `**※Buying for:** ${newPrice.buy.toString()}\n**※Selling for:** ${newPrice.sell.toString()}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),
