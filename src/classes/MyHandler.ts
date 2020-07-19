@@ -1031,6 +1031,7 @@ export = class MyHandler extends Handler {
             }
         }
 
+        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -1232,7 +1233,6 @@ export = class MyHandler extends Handler {
                         links,
                         timeWithEmojis.time
                     );
-                    this.isAcceptedWithInvalidItemsOrOverstocked = false;
                 } else {
                     this.bot.messageAdmins(
                         'trade',
