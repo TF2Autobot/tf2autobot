@@ -102,6 +102,8 @@ export default class Pricelist extends EventEmitter {
 
     private keyPrices: { buy: Currencies; sell: Currencies };
 
+    private oldPrice: Entry;
+
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
         this.schema = schema;
@@ -429,7 +431,7 @@ export default class Pricelist extends EventEmitter {
             };
         }
 
-        const oldPrice = this.getPrice(data.sku);
+        this.oldPrice = this.getPrice(data.sku);
         const match = this.getPrice(data.sku);
         if (match !== null && match.autoprice) {
             match.buy = new Currencies(data.buy);
@@ -444,7 +446,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(data.sku, itemName, match, oldPrice);
+                this.sendWebHookPriceUpdate(data.sku, itemName, match, this.oldPrice);
             }
         }
     }
