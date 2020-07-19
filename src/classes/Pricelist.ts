@@ -433,7 +433,8 @@ export default class Pricelist extends EventEmitter {
             };
         }
 
-        const oldPrice = this.oldPrice[data.sku];
+        const oldPriceEntries = this.oldPrice.filter(entry => entry.sku === data.sku);
+        const oldPrice = oldPriceEntries[0];
 
         const match = this.getPrice(data.sku);
         if (match !== null && match.autoprice) {
