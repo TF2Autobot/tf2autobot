@@ -1256,8 +1256,8 @@ export = class MyHandler extends Handler {
                                             (isBankingKeys ? ' (banking)' : isBuyingKeys ? ' (buying)' : ' (selling)')
                                           : '🛑')
                                     : ''
-                            }
-                        💰 Pure stock: ${pureStock.join(', ').toString()}`,
+                            }` +
+                            `💰 Pure stock: ${pureStock.join(', ').toString()}`,
                         []
                     );
                 }
