@@ -130,11 +130,13 @@ export = class MyHandler extends Handler {
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
         }
 
-        if (process.env.CUSTOM_PLAYING_GAME_NAME === 'tf2-automatic') {
-            this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+        const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+
+        if (!customGameName || customGameName === 'tf2-automatic') {
+            this.customGameName = customGameName;
         } else {
-            if (process.env.CUSTOM_PLAYING_GAME_NAME.length <= 45) {
-                this.customGameName = process.env.CUSTOM_PLAYING_GAME_NAME + ' - tf2-automatic';
+            if (customGameName.length <= 45) {
+                this.customGameName = customGameName + ' - tf2-automatic';
             } else {
                 log.warn(
                     'Your custom game playing name is more than 45 characters, resetting to only "tf2-automatic"...'
