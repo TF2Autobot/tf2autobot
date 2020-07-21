@@ -647,13 +647,11 @@ export = class Commands {
                 );
             } else {
                 this.bot.messageAdmins(
-                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):
-                    
-                    "${msg}".
-                    
-                    Steam: ${links.steamProfile}
-                    Backpack.tf: ${links.backpackTF}
-                    SteamREP: ${links.steamREP}`,
+                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
+                        `"${msg}".` +
+                        `Steam: ${links.steamProfile}` +
+                        `Backpack.tf: ${links.backpackTF}` +
+                        `SteamREP: ${links.steamREP}`,
                     []
                 );
             }
