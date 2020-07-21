@@ -132,7 +132,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1481-L1991).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1509-L2006).
 
 ### Emojis and more commands added
 
@@ -156,8 +156,8 @@ Let say you want to trade an unusual OR an australium, which the value as we kno
 ### Your bot credentials
 - `STEAM_ACCOUNT_NAME`: username that is used to login (preferably your bot/alt Steam account).
 - `STEAM_PASSWORD`: your bot Steam account password.
-- `STEAM_SHARED_SECRET`: you can found this in `<Your Bot SteamID64>.maFile` inside ~/SDA/maFiles (named `shared_secret`).
-- `STEAM_IDENTITY_SECRET`: same as above (named `identity_secret`).
+- `STEAM_SHARED_SECRET`: you can found this in `<Your Bot SteamID64>.maFile` file inside ~/SDA/maFiles folder. Open the file using notepad and search for `"shared_secret": "agdgwegdgawfagxafagfkagusbuigiuefh=="` <-- take only this one (which is `agdgwegdgawfagxafagfkagusbuigiuefh==` in this example. Do not use this one).
+- `STEAM_IDENTITY_SECRET`: same as above (but now search for `identity_secret`).
 
 ### Prices.TF token
 - `PRICESTF_API_TOKEN`: You can leave this empty. No need at all.
@@ -168,7 +168,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `BPTF_API_KEY`: https://backpack.tf/developer/apikey/view - fill in site URL (`http://localhost:4566/tasks`) and comments (`Check if a user is banned on backpack.tf`).
 
 ### Your bot settings
-- `AUTOBUMP`: If you don't have backpack.tf premium, then your bot will re-list all listings every 30 minutes.
+- `AUTOBUMP`: [true|false] Default is `true`. If you don't have backpack.tf premium, then your bot will re-list all listings every 30 minutes.
 
 - `MINIMUM_SCRAP`: [Number] Default is 9 scraps. If it has less, it will smelt reclaimed metal so your bot will have more than minimum scraps.
 - `MINIMUM_RECLAIMED`: [Number] Default is 9 Reclaimed. Explained above.
@@ -185,7 +185,7 @@ You can run your bot without this first, which then on the first run, it will pr
 **This feature is meant to make your bot to have enough pure in their inventory. Enabling Autokeys - Banking might cause your bot to not function as intended.
 
 #### Set to true if want to disable
-- `DISABLE_INVENTORY_SORT`: [true|false] Default: `true`. Sort your bot inventory.
+- `DISABLE_INVENTORY_SORT`: [true|false] Default: `false`. Sort your bot inventory.
 - `DISABLE_LISTINGS`: [true|false] Default: `false`. This is used if you want to temporarily disable trading while your bot is alive.
 - `DISABLE_CRAFTING`: [true|false] Default: `false`. **NOT RECOMMENDED** to set is as `true`, as it cause bot and trade partner to not be able to trade because of missing pure changes.
 - `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: `false`. Set to **`true` if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
@@ -305,7 +305,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1278-L1478)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1312-L1500)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
 - `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
