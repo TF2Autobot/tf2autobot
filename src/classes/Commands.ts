@@ -1884,7 +1884,7 @@ export = class Commands {
     private nameCommand(steamID: SteamID, message: string): void {
         const newName = CommandParser.removeCommand(message);
 
-        if (newName === '') {
+        if (!newName || newName === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
@@ -1908,7 +1908,7 @@ export = class Commands {
     private avatarCommand(steamID: SteamID, message: string): void {
         const imageUrl = CommandParser.removeCommand(message);
 
-        if (imageUrl === '') {
+        if (!imageUrl || imageUrl === '') {
             this.bot.sendMessage(
                 steamID,
                 '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
@@ -1938,7 +1938,7 @@ export = class Commands {
     private blockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1965,7 +1965,7 @@ export = class Commands {
     private unblockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
