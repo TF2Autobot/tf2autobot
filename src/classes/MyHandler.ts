@@ -1055,7 +1055,7 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
                 ) &&
-                exchange.our.value <= exchange.their.value
+                exchange.our.value < exchange.their.value
             ) {
                 offer.log(
                     'trade',

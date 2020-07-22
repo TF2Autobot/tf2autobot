@@ -351,7 +351,7 @@ export = class DiscordWebhook {
                 : this.enableMentionOwner === true &&
                   process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY === 'false' &&
                   isMentionInvalidItems
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with same value/overpay trade here!`
+                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
 
         const botName = this.botName;
