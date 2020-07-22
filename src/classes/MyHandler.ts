@@ -91,8 +91,6 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
-
     private customGameName: string;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -214,10 +212,6 @@ export = class MyHandler extends Handler {
 
     getMinimumKeysDupeCheck(): number {
         return this.minimumKeysDupeCheck;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysEnabled(): boolean {
@@ -1033,7 +1027,6 @@ export = class MyHandler extends Handler {
             }
         }
 
-        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -1070,7 +1063,6 @@ export = class MyHandler extends Handler {
                         this.bot.schema
                     )}`
                 );
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 return { action: 'accept', reason: 'VALID' };
             } else if (
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
