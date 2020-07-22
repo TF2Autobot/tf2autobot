@@ -335,15 +335,7 @@ export = class DiscordWebhook {
             });
         });
 
-        const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
-
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            theirItemsFiltered.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
-        }
-
-        const isMentionInvalidItems = theirItemsFiltered.some((sku: string) => {
-            return this.bot.pricelist.getPrice(sku, false) === null;
-        });
+        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
@@ -351,7 +343,7 @@ export = class DiscordWebhook {
                 : this.enableMentionOwner === true &&
                   process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY === 'false' &&
                   isMentionInvalidItems
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
+                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS/OVERSTOCKED with overpay trade here!`
                 : '';
 
         const botName = this.botName;
