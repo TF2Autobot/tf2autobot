@@ -265,7 +265,7 @@ Time will be use in "!time" command and
 
 **Note on How to get DISCORD_WEBHOOK_X_URL** - See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your respective channels)
 #### Queue alert
-- `DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to `false`, it will be sent to Discord Webhook instead of Steam Chat.
+- `DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to `true`, it will send to your Steam Chat.
 - `DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL` - Discord Webhook URL for SOMETHING_WROMG_ALERT.
 
 #### Pricelist update
@@ -274,7 +274,7 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE` - You can add note there, or just leave it empty.
 
 #### Successful trade summary
-- `DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY`: [true|false] - Display every successful trade summary on your trade summary/live-trades channel. If set to `false`, it will send to your Steam Chat.
+- `DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY`: [true|false] - Display every successful trade summary on your trade summary/live-trades channel. If set to `true`, it will send to your Steam Chat.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_URL` - Discord Webhook URL for TRADE_SUMMARY.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: [true|false] - self explained.
@@ -288,7 +288,7 @@ Time will be use in "!time" command and
 ![trade-summary-full2](https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG)
 
 #### Offer review summary
-- `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: [true|false] - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to false, it will send to your Steam Chat.
+- `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: [true|false] - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to `true`, it will send to your Steam Chat.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_URL` - Discord Webhook URL for REVIEW_OFFER.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 - `DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE`: [true|false] - Set to `true` if you want your bot to not mention on only INVALID_VALUE offer.
@@ -298,7 +298,7 @@ Time will be use in "!time" command and
 ![only non-invalid-value2](https://user-images.githubusercontent.com/47635037/86468430-feaa2280-bd69-11ea-8f25-26a7a430b2e1.PNG)
 
 #### Messages
-- `DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER`: [true|false] - Used to alert you on any messages sent from trade partner. If set to `false`, it will send to your Steam Chat.
+- `DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER`: [true|false] - Used to alert you on any messages sent from trade partner. If set to `true`, it will send to your Steam Chat.
 - `DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL` - Discord Webhook URL for MESSAGE_FROM_PARTNER.
 - `DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 
