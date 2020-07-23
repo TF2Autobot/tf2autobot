@@ -2087,7 +2087,8 @@ Autokeys status:-
 
         this.craftweaponOnlyCraftable().forEach(sku => {
             const weapon = currencies[sku].length;
-            if (weapon >= 2) {
+            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) !== null) {
+                // Only craft if duplicated and not exist in pricelist
                 const combineWeapon = Math.ceil(weapon / 2);
                 for (let i = 0; i < combineWeapon; i++) {
                     this.bot.tf2gc.combineWeapon(sku);
