@@ -443,7 +443,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(itemName, match.buy.toString(), match.sell.toString(), data.sku);
+                this.sendWebHookPriceUpdate(data.sku, itemName, match);
             }
         }
     }
@@ -453,7 +453,7 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(itemName: string, buyPrice: string, sellPrice: string, sku: string): void {
+    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
         request.setRequestHeader('Content-type', 'application/json');
@@ -632,7 +632,7 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※Buying for:** ${buyPrice}\n**※Selling for:** ${sellPrice}\n` +
+                        `**※Buying for:** ${newPrice.buy.toString()}\n**※Selling for:** ${newPrice.sell.toString()}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),

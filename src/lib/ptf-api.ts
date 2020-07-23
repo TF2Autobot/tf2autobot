@@ -15,6 +15,10 @@ export function getPrice(sku: string, source: string): Promise<UnknownDictionary
     return apiRequest('GET', `/items/${sku}`, { src: source });
 }
 
+export function getSales(sku: string, source: string): Promise<UnknownDictionary<any>> {
+    return apiRequest('GET', `/items/${sku}/sales`, { src: source });
+}
+
 export function requestCheck(sku: string, source: string): Promise<UnknownDictionary<any>> {
     return apiRequest('POST', `/items/${sku}`, { source: source });
 }
@@ -24,7 +28,7 @@ function apiRequest(httpMethod: string, path: string, input: UnknownDictionary<a
         method: httpMethod,
         url: `https://api.prices.tf${path}`,
         headers: {
-            'User-Agent': 'tf2-automatic@' + process.env.BOT_VERSION
+            'User-Agent': 'tf2autobot@' + process.env.BOT_VERSION
         },
         json: true,
         gzip: true,

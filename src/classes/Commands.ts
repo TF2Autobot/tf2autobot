@@ -19,7 +19,7 @@ import DiscordWebhook from './DiscordWebhook';
 import { Item, Currency } from '../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import { fixItem } from '../lib/items';
-import { requestCheck, getPrice } from '../lib/ptf-api';
+import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema';
@@ -43,7 +43,8 @@ const COMMANDS: string[] = [
     '!clearcart - Clears the current cart ❎🛒',
     '!checkout - Make the bot send an offer the items in the cart ✅🛒',
     '!queue - See your position in the queue',
-    '!cancel - Cancel an already made offer, or cancel offer being made ❌'
+    '!cancel - Cancel an already made offer, or cancel offer being made ❌',
+    '!sales sku=<item sku> - get sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
@@ -150,6 +151,8 @@ export = class Commands {
             this.pricecheckCommand(steamID, message);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
+        } else if (command === 'sales') {
+            this.getSalesCommand(steamID, message);
         } else if (command === 'delete' && isAdmin) {
             this.deleteCommand(steamID, message);
         } else if (command === 'expand' && isAdmin) {
@@ -644,13 +647,11 @@ export = class Commands {
                 );
             } else {
                 this.bot.messageAdmins(
-                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):
-                    
-                    "${msg}".
-                    
-                    Steam: ${links.steamProfile}
-                    Backpack.tf: ${links.backpackTF}
-                    SteamREP: ${links.steamREP}`,
+                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
+                        `"${msg}".` +
+                        `Steam: ${links.steamProfile}` +
+                        `Backpack.tf: ${links.backpackTF}` +
+                        `SteamREP: ${links.steamREP}`,
                     []
                 );
             }
@@ -1540,8 +1541,11 @@ export = class Commands {
         } catch (err) {
             this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name}: ${err.body && err.body.message ? err.body.message : err.message}`
+                `Error getting price for ${name === null ? params.sku : name}: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
             );
+            return;
         }
 
         if (!price) {
@@ -1554,6 +1558,106 @@ export = class Commands {
             steamID,
             `🔎 ${name}:\n• Buy  : ${currBuy}\n• Sell : ${currSell}\n\nPrices.TF: https://prices.tf/items/${params.sku}`
         );
+    }
+
+    private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
+        message = removeLinkProtocol(message);
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku === undefined) {
+            const item = this.getItemFromParams(steamID, params);
+
+            if (item === null) {
+                return;
+            }
+
+            params.sku = SKU.fromObject(item);
+        }
+
+        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
+        const item = SKU.fromString(params.sku);
+        const name = this.bot.schema.getName(item);
+
+        let salesData;
+
+        try {
+            salesData = await getSales(params.sku, 'bptf');
+        } catch (err) {
+            this.bot.sendMessage(
+                steamID,
+                `❌ Error getting sell snapshots for ${name === null ? params.sku : name}: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
+            );
+            return;
+        }
+
+        if (!salesData) {
+            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            return;
+        }
+
+        if (salesData.sales.length === 0) {
+            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            return;
+        }
+
+        const sales: {
+            seller: string;
+            itemHistory: string;
+            keys: number;
+            metal: number;
+            date: number;
+        }[] = [];
+
+        salesData.sales.forEach(sale => {
+            sales.push({
+                seller: 'https://backpack.tf/profiles/' + sale.steamid,
+                itemHistory: 'https://backpack.tf/item/' + sale.id.replace('440_', ''),
+                keys: sale.currencies.keys,
+                metal: sale.currencies.metal,
+                date: sale.time
+            });
+        });
+
+        sales.sort(function(a, b) {
+            return b.date - a.date;
+        });
+
+        let left = 0;
+        const SalesList: string[] = [];
+
+        for (let i = 0; i < sales.length; i++) {
+            if (SalesList.length > 40) {
+                left += 1;
+            } else {
+                SalesList.push(
+                    `Listed #${i + 1}-----` +
+                        '\n• Date: ' +
+                        moment
+                            .unix(sales[i].date)
+                            .utc()
+                            .toString() +
+                        '\n• Item: ' +
+                        sales[i].itemHistory +
+                        '\n• Seller: ' +
+                        sales[i].seller +
+                        '\n• Was selling for: ' +
+                        (sales[i].keys > 0 ? sales[i].keys + ' keys, ' : '') +
+                        sales[i].metal +
+                        ' ref'
+                );
+            }
+        }
+
+        let reply = `🔎 Prices.TF: tf2-automatic/tf2autobot bots' removed sell listings from backpack.tf\n\nItem name: ${
+            salesData.name
+        }\n\n-----${SalesList.join('\n\n-----')}`;
+        if (left > 0) {
+            reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
+        }
+
+        this.bot.sendMessage(steamID, reply);
     }
 
     private expandCommand(steamID: SteamID, message: string): void {
@@ -1780,7 +1884,7 @@ export = class Commands {
     private nameCommand(steamID: SteamID, message: string): void {
         const newName = CommandParser.removeCommand(message);
 
-        if (newName === '') {
+        if (!newName || newName === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
@@ -1804,7 +1908,7 @@ export = class Commands {
     private avatarCommand(steamID: SteamID, message: string): void {
         const imageUrl = CommandParser.removeCommand(message);
 
-        if (imageUrl === '') {
+        if (!imageUrl || imageUrl === '') {
             this.bot.sendMessage(
                 steamID,
                 '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
@@ -1834,7 +1938,7 @@ export = class Commands {
     private blockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1861,7 +1965,7 @@ export = class Commands {
     private unblockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
