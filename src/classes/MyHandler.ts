@@ -95,6 +95,10 @@ export = class MyHandler extends Handler {
 
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
+    private isUsingAutoPrice = true;
+
+    private scrapAdjustmentValue = 0;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -147,6 +151,19 @@ export = class MyHandler extends Handler {
 
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
         this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
+
+        const scrapValue = parseInt(process.env.SCRAP_ADJUSTMENT_VALUE);
+
+        if (!scrapValue || isNaN(scrapValue)) {
+            log.warn('Scrap adjustment not set or not a number, resetting to 0.');
+            this.scrapAdjustmentValue = 0;
+        } else {
+            this.scrapAdjustmentValue = scrapValue;
+        }
+
+        if (process.env.DISABLE_SCRAP_ADJUSTMENT === 'false') {
+            this.isUsingAutoPrice = false;
+        }
 
         if (!isNaN(minimumScrap)) {
             this.minimumScrap = minimumScrap;
@@ -1866,14 +1883,35 @@ Autokeys status:-
     }
 
     private createAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 1
-        } as any;
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.sell.toValue() - this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.buy.toValue() - this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, true)
             .then(() => {
@@ -1886,14 +1924,35 @@ Autokeys status:-
     }
 
     private createAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 0
-        } as any;
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, true)
             .then(() => {
@@ -1946,14 +2005,35 @@ Autokeys status:-
     }
 
     private updateAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 1
-        } as any;
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.sell.toValue() - this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.buy.toValue() - this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, true)
             .then(() => {
@@ -1966,14 +2046,35 @@ Autokeys status:-
     }
 
     private updateAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 0
-        } as any;
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrice.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, true)
             .then(() => {

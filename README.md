@@ -181,6 +181,8 @@ You can run your bot without this first, which then on the first run, it will pr
 - `MAXIMUM_KEYS`: [Number] When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
 - `MINIMUM_REFINED_TO_START_SELL_KEYS`: [Number] - Already explained.
 - `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`: [Number] - Already explained.
+- `DISABLE_SCRAP_ADJUSTMENT`: [true|false] Default is `true` (disabled). Set to `false` to make an adjustment on the key price (only when sell or buy, it is not possible while banking).
+- `SCRAP_ADJUSTMENT_VALUE`: [Integer] Default is `1` (1 scrap or 0.11 ref). Please only put an integer (0, 1, 2, 3, ...).
 
 **This feature is meant to make your bot to have enough pure in their inventory. Enabling Autokeys - Banking might cause your bot to not function as intended.
 
