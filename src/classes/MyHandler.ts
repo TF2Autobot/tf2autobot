@@ -1516,10 +1516,10 @@ export = class MyHandler extends Handler {
                 );
             }
             // clear/reset these in memory
-            this.invalidItemsSKU = [];
-            this.overstockedItemsSKU = [];
-            this.dupedItemsSKU = [];
-            this.dupedFailedItemsSKU = [];
+            this.invalidItemsSKU.length = 0;
+            this.overstockedItemsSKU.length = 0;
+            this.dupedItemsSKU.length = 0;
+            this.dupedFailedItemsSKU.length = 0;
         }
     }
 
