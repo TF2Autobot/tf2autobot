@@ -1650,7 +1650,7 @@ export = class Commands {
             }
         }
 
-        let reply = `🔎 Prices.TF: tf2-automatic/tf2autobot bots' removed sell listings from backpack.tf\n\nItem name: ${
+        let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
             salesData.name
         }\n\n-----${SalesList.join('\n\n-----')}`;
         if (left > 0) {
