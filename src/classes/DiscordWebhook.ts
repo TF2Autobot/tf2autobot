@@ -200,7 +200,9 @@ export = class DiscordWebhook {
             .replace(/~/g, '⁓')
             .replace(/`/g, '^')
             .replace(/>/g, '<')
-            .replace(/\|/g, '!');
+            .replace(/\|/g, '!')
+            .replace(/\[/g, '💫')
+            .replace(/\]/g, '💫');
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -223,7 +225,9 @@ export = class DiscordWebhook {
                 .replace(/~/g, '⁓')
                 .replace(/`/g, '^')
                 .replace(/>/g, '<')
-                .replace(/\|/g, '!');
+                .replace(/\|/g, '!')
+                .replace(/\[/g, '💫')
+                .replace(/\]/g, '💫');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
@@ -378,7 +382,9 @@ export = class DiscordWebhook {
                 .replace(/~/g, '⁓')
                 .replace(/`/g, '^')
                 .replace(/>/g, '<')
-                .replace(/\|/g, '!');
+                .replace(/\|/g, '!')
+                .replace(/\[/g, '💫')
+                .replace(/\]/g, '💫');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
