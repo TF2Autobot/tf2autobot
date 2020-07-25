@@ -95,6 +95,14 @@ export = class Commands {
 
         const isAdmin = this.bot.isAdmin(steamID);
 
+        const isNoReply =
+            this.messageInputsStartWith().some(word => {
+                return message.startsWith(word);
+            }) ||
+            this.messageInputEndsWith().some(word => {
+                return message.endsWith(word);
+            });
+
         if (command === 'help') {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
@@ -181,59 +189,7 @@ export = class Commands {
             this.accepttradeCommand(steamID, message);
         } else if ((command === 'declinetrade' || command === 'decline') && isAdmin) {
             this.declinetradeCommand(steamID, message);
-        } else if (
-            message.startsWith('I') || // tf2-automatic bots
-            message.startsWith('❌') ||
-            message.startsWith('Hi') ||
-            message.startsWith('🙋🏻‍♀️Hi') ||
-            message.startsWith('⚠') ||
-            message.startsWith('⚠️') ||
-            message.startsWith('✅') ||
-            message.startsWith('⌛') ||
-            message.startsWith('💲') ||
-            message.startsWith('📜') ||
-            message.startsWith('🛒') ||
-            message.startsWith('💰') ||
-            message.startsWith('Here') ||
-            message.startsWith('The') || // or 'There'
-            message.startsWith('Please') ||
-            message.startsWith('You') || // Or 'Your'
-            message.startsWith('/quote') ||
-            message.startsWith('/pre') ||
-            message.startsWith('/me') ||
-            message.startsWith('/code') ||
-            message.startsWith('Oh') || // If errors occured
-            message.startsWith('Success!') ||
-            message.endsWith('cart.') ||
-            message.endsWith('checkout.') ||
-            message.endsWith('✅') ||
-            message.startsWith('Hey') || // Other bots possible messages - Bot.tf
-            message.startsWith('Unfortunately') ||
-            message.startsWith('==') ||
-            message.startsWith('💬') ||
-            message.startsWith('⇌') ||
-            message.startsWith('Command') || // Other custom bots
-            message.startsWith('Hello') ||
-            message.startsWith('✋ Hold on') ||
-            message.startsWith('Hold on') ||
-            message.startsWith('Sending') ||
-            message.startsWith('👋 Welcome') ||
-            message.startsWith('Welcome') ||
-            message.startsWith('To') ||
-            message.startsWith('🔰') ||
-            message.startsWith('My') ||
-            message.startsWith('Owner') ||
-            message.startsWith('Bot') ||
-            message.startsWith('Those') ||
-            message.startsWith('👨🏼‍💻') ||
-            message.startsWith('🔶') ||
-            message.startsWith('Buying') ||
-            message.startsWith('🔷') ||
-            message.startsWith('Selling') ||
-            message.startsWith('📥') ||
-            message.startsWith('Stock') ||
-            message.startsWith('Thank')
-        ) {
+        } else if (isNoReply) {
             return null;
         } else {
             this.bot.sendMessage(
@@ -2715,6 +2671,65 @@ export = class Commands {
             }
         }
         return uncraftWeaponsStock;
+    }
+
+    private messageInputsStartWith(): string[] {
+        const words = [
+            'I',
+            '❌',
+            'Hi',
+            '🙋🏻‍♀️Hi',
+            '⚠',
+            '⚠️',
+            '✅',
+            '⌛',
+            '💲',
+            '📜',
+            '🛒',
+            '💰',
+            'Here',
+            'The',
+            'Please',
+            'You',
+            '/quote',
+            '/pre',
+            '/me',
+            '/code',
+            'Oh',
+            'Success!',
+            'Hey',
+            'Unfortunately',
+            '==',
+            '💬',
+            '⇌',
+            'Command',
+            'Hello',
+            '✋ Hold on',
+            'Hold on',
+            'Sending',
+            '👋 Welcome',
+            'Welcome',
+            'To',
+            '🔰',
+            'My',
+            'Owner',
+            'Bot',
+            'Those',
+            '👨🏼‍💻',
+            '🔶',
+            'Buying',
+            '🔷',
+            'Selling',
+            '📥',
+            'Stock',
+            'Thank'
+        ];
+        return words;
+    }
+
+    private messageInputEndsWith(): string[] {
+        const words = ['cart.', 'checkout.', '✅'];
+        return words;
     }
 };
 
