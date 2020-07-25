@@ -69,6 +69,8 @@ export = class MyHandler extends Handler {
 
     private invalidItemsSKU: string[] = [];
 
+    private invalidItemsValue: string[] = [];
+
     private overstockedItemsSKU: string[] = [];
 
     private dupedItemsSKU: string[] = [];
@@ -732,6 +734,24 @@ export = class MyHandler extends Handler {
 
                         this.invalidItemsSKU.push(sku);
 
+                        this.sleep(1000);
+
+                        const price = await this.bot.pricelist.getPricesTF(sku);
+
+                        if (price === null) {
+                            this.invalidItemsValue.push('No price');
+                        } else {
+                            price.buy = new Currencies(price.buy);
+                            price.sell = new Currencies(price.sell);
+                            exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
+                            exchange[which].keys += price[intentString].keys * amount;
+                            exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                            const itemSuggestedValue = Currencies.toCurrencies(
+                                price[intentString].toValue(keyPrice.metal)
+                            );
+                            this.invalidItemsValue.push(itemSuggestedValue.toString());
+                        }
+
                         wrongAboutOffer.push({
                             reason: '🟨INVALID_ITEMS',
                             sku: sku,
@@ -1025,7 +1045,8 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
                 ) &&
-                exchange.our.value < exchange.their.value
+                exchange.our.value < exchange.their.value &&
+                exchange.our.value !== 0
             ) {
                 this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
@@ -1064,6 +1085,14 @@ export = class MyHandler extends Handler {
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
 
         return { action: 'accept', reason: 'VALID' };
+    }
+
+    private sleep(mili: number): void {
+        const date = moment().valueOf();
+        let currentDate = null;
+        do {
+            currentDate = moment().valueOf();
+        } while (currentDate - date < mili);
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
@@ -1277,6 +1306,7 @@ export = class MyHandler extends Handler {
             let note: string;
             let missingPureNote: string;
             const invalidItemsName: string[] = [];
+            const invalidItemsCombine: string[] = [];
             const overstockedItemsName: string[] = [];
             const dupedItemsName: string[] = [];
             const dupedFailedItemsName: string[] = [];
@@ -1287,6 +1317,10 @@ export = class MyHandler extends Handler {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     invalidItemsName.push(name);
                 });
+
+                for (let i = 0; i < invalidItemsName.length; i++) {
+                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                }
 
                 note = process.env.INVALID_ITEMS_NOTE
                     ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
@@ -1381,7 +1415,9 @@ export = class MyHandler extends Handler {
                               .summarize(this.bot.schema)
                               .replace('Asked', '  My side')
                               .replace('Offered', 'Your side') +
-                          (missingPureNote !== '' ? missingPureNote : '') +
+                          (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
+                              ? missingPureNote
+                              : '') +
                           (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
                               ? `\n\nNote:\n${reviewReasons.join('\n')}`
                               : '')
@@ -1412,7 +1448,7 @@ export = class MyHandler extends Handler {
                     keyPrice,
                     value,
                     links,
-                    invalidItemsName,
+                    invalidItemsCombine,
                     overstockedItemsName,
                     dupedItemsName,
                     dupedFailedItemsName
@@ -1431,7 +1467,9 @@ export = class MyHandler extends Handler {
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : ''
                         }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}${
-                            invalidItemsName.length !== 0 ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}` : ''
+                            invalidItemsName.length !== 0
+                                ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
+                                : ''
                         }${
                             invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
                                 ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
@@ -1463,6 +1501,7 @@ export = class MyHandler extends Handler {
             }
             // clear/reset these in memory
             this.invalidItemsSKU.length = 0;
+            this.invalidItemsValue.length = 0;
             this.overstockedItemsSKU.length = 0;
             this.dupedItemsSKU.length = 0;
             this.dupedFailedItemsSKU.length = 0;

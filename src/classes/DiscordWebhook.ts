@@ -165,7 +165,7 @@ export = class DiscordWebhook {
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
-        invalidItemsName: string[],
+        invalidItemsCombine: string[],
         overstockedItemsName: string[],
         dupedItemsName: string[],
         dupedFailedItemsName: string[]
@@ -264,24 +264,24 @@ export = class DiscordWebhook {
                                 : '') +
                             (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
                             `${
-                                invalidItemsName.length !== 0
-                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}`
+                                invalidItemsCombine.length !== 0
+                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
                                     : ''
                             }${
-                                invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
+                                invalidItemsCombine.length !== 0 && overstockedItemsName.length !== 0
                                     ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
                                     : overstockedItemsName.length !== 0
                                     ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
                                     : ''
                             }${
-                                (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
+                                (invalidItemsCombine.length !== 0 || overstockedItemsName.length !== 0) &&
                                 dupedItemsName.length !== 0
                                     ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
                                     : dupedItemsName.length !== 0
                                     ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
                                     : ''
                             }${
-                                (invalidItemsName.length !== 0 ||
+                                (invalidItemsCombine.length !== 0 ||
                                     overstockedItemsName.length !== 0 ||
                                     dupedItemsName.length !== 0) &&
                                 dupedFailedItemsName.length !== 0
