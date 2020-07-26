@@ -1411,7 +1411,7 @@ export = class MyHandler extends Handler {
             // Notify partner and admin that the offer is waiting for manual review
             this.bot.sendMessage(
                 offer.partner,
-                `/pre ⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
+                `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
                     (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
                         ? '\n\nYour offer summary:\n' +
                           offer
@@ -1459,9 +1459,9 @@ export = class MyHandler extends Handler {
             } else {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
-                    `/pre ⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
+                    `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
                         `\nReason: ${meta.uniqueReasons.join(', ')}` +
-                        `\n\nOffer Summary: ${offer.summarize(this.bot.schema)}${
+                        `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
                             value.diff > 0
                                 ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
