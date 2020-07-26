@@ -197,10 +197,13 @@ export = class DiscordWebhook {
         const message = offerMessage
             .replace(/_/g, '‗')
             .replace(/\*/g, '★')
-            .replace(/~/g, '⁓')
-            .replace(/`/g, '^')
-            .replace(/>/g, '<')
-            .replace(/\|/g, '!')
+            .replace(/~/g, '💫')
+            .replace(/`/g, '💫')
+            .replace(/>/g, '💫')
+            .replace(/\|/g, '💫')
+            .replace(/\\/g, '💫')
+            .replace(/\(/g, '💫')
+            .replace(/\(/g, '💫')
             .replace(/\[/g, '💫')
             .replace(/\]/g, '💫');
 
@@ -222,10 +225,13 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = partnerName
                 .replace(/_/g, '‗')
                 .replace(/\*/g, '★')
-                .replace(/~/g, '⁓')
-                .replace(/`/g, '^')
-                .replace(/>/g, '<')
-                .replace(/\|/g, '!')
+                .replace(/~/g, '💫')
+                .replace(/`/g, '💫')
+                .replace(/>/g, '💫')
+                .replace(/\|/g, '💫')
+                .replace(/\\/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\(/g, '💫')
                 .replace(/\[/g, '💫')
                 .replace(/\]/g, '💫');
 
@@ -379,10 +385,13 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = personaName
                 .replace(/_/g, '‗')
                 .replace(/\*/g, '★')
-                .replace(/~/g, '⁓')
-                .replace(/`/g, '^')
-                .replace(/>/g, '<')
-                .replace(/\|/g, '!')
+                .replace(/~/g, '💫')
+                .replace(/`/g, '💫')
+                .replace(/>/g, '💫')
+                .replace(/\|/g, '💫')
+                .replace(/\\/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\(/g, '💫')
                 .replace(/\[/g, '💫')
                 .replace(/\]/g, '💫');
 
