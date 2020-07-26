@@ -243,30 +243,33 @@ export = class MyHandler extends Handler {
         return this.autokeysEnabled;
     }
 
-    getUserAutokeysSettings(): { minKeys: number; maxKeys: number; minRef: number; maxRef: number } {
+    getUserAutokeys(): {
+        enabled: boolean;
+        status: boolean;
+        minKeys: number;
+        maxKeys: number;
+        minRef: number;
+        maxRef: number;
+        isBuying: boolean;
+        bankingEnabled: boolean;
+        isBanking: boolean;
+        scrapAdjustmentEnabled: boolean;
+        scrapAdjustmentValue: number;
+    } {
         const settings = {
+            enabled: this.autokeysEnabled,
+            status: this.checkAutokeysStatus,
             minKeys: this.userMinKeys,
             maxKeys: this.userMaxKeys,
             minRef: this.userMinReftoScrap,
-            maxRef: this.userMaxReftoScrap
+            maxRef: this.userMaxReftoScrap,
+            isBuying: this.isBuyingKeys,
+            bankingEnabled: this.keyBankingEnabled,
+            isBanking: this.isBankingKeys,
+            scrapAdjustmentEnabled: !this.isUsingAutoPrice,
+            scrapAdjustmentValue: this.scrapAdjustmentValue
         };
         return settings;
-    }
-
-    getAutokeysStatus(): boolean {
-        return this.checkAutokeysStatus;
-    }
-
-    getAutokeysBuyingStatus(): boolean {
-        return this.isBuyingKeys;
-    }
-
-    getAutokeysBankingEnabled(): boolean {
-        return this.keyBankingEnabled;
-    }
-
-    getAutokeysBankingStatus(): boolean {
-        return this.isBankingKeys;
     }
 
     onRun(): Promise<{
