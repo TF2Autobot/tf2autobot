@@ -165,7 +165,7 @@ export = class DiscordWebhook {
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
-        invalidItemsName: string[],
+        invalidItemsCombine: string[],
         overstockedItemsName: string[],
         dupedItemsName: string[],
         dupedFailedItemsName: string[]
@@ -197,10 +197,15 @@ export = class DiscordWebhook {
         const message = offerMessage
             .replace(/_/g, '‗')
             .replace(/\*/g, '★')
-            .replace(/~/g, '⁓')
-            .replace(/`/g, '^')
-            .replace(/>/g, '<')
-            .replace(/\|/g, '!');
+            .replace(/~/g, '💫')
+            .replace(/`/g, '💫')
+            .replace(/>/g, '💫')
+            .replace(/\|/g, '💫')
+            .replace(/\\/g, '💫')
+            .replace(/\(/g, '💫')
+            .replace(/\(/g, '💫')
+            .replace(/\[/g, '💫')
+            .replace(/\]/g, '💫');
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -220,10 +225,15 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = partnerName
                 .replace(/_/g, '‗')
                 .replace(/\*/g, '★')
-                .replace(/~/g, '⁓')
-                .replace(/`/g, '^')
-                .replace(/>/g, '<')
-                .replace(/\|/g, '!');
+                .replace(/~/g, '💫')
+                .replace(/`/g, '💫')
+                .replace(/>/g, '💫')
+                .replace(/\|/g, '💫')
+                .replace(/\\/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\[/g, '💫')
+                .replace(/\]/g, '💫');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
@@ -260,24 +270,24 @@ export = class DiscordWebhook {
                                 : '') +
                             (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
                             `${
-                                invalidItemsName.length !== 0
-                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}`
+                                invalidItemsCombine.length !== 0
+                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
                                     : ''
                             }${
-                                invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
+                                invalidItemsCombine.length !== 0 && overstockedItemsName.length !== 0
                                     ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
                                     : overstockedItemsName.length !== 0
                                     ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
                                     : ''
                             }${
-                                (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
+                                (invalidItemsCombine.length !== 0 || overstockedItemsName.length !== 0) &&
                                 dupedItemsName.length !== 0
                                     ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
                                     : dupedItemsName.length !== 0
                                     ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
                                     : ''
                             }${
-                                (invalidItemsName.length !== 0 ||
+                                (invalidItemsCombine.length !== 0 ||
                                     overstockedItemsName.length !== 0 ||
                                     dupedItemsName.length !== 0) &&
                                 dupedFailedItemsName.length !== 0
@@ -310,6 +320,7 @@ export = class DiscordWebhook {
         isBankingKeys: boolean,
         tradeSummary: string,
         pureStock: string[],
+        currentItems: number,
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
@@ -335,7 +346,15 @@ export = class DiscordWebhook {
             });
         });
 
-        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
+        const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+
+        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
+            theirItemsFiltered.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
+        }
+
+        const isMentionInvalidItems = theirItemsFiltered.some((sku: string) => {
+            return this.bot.pricelist.getPrice(sku, false) === null;
+        });
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
@@ -375,14 +394,20 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = personaName
                 .replace(/_/g, '‗')
                 .replace(/\*/g, '★')
-                .replace(/~/g, '⁓')
-                .replace(/`/g, '^')
-                .replace(/>/g, '<')
-                .replace(/\|/g, '!');
+                .replace(/~/g, '💫')
+                .replace(/`/g, '💫')
+                .replace(/>/g, '💫')
+                .replace(/\|/g, '💫')
+                .replace(/\\/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\(/g, '💫')
+                .replace(/\[/g, '💫')
+                .replace(/\]/g, '💫');
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
             const isShowPureStock = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK !== 'false';
+            const isShowInventory = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY !== 'false';
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
@@ -434,6 +459,7 @@ export = class DiscordWebhook {
                                   }`
                                 : '') +
                             (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                            (isShowInventory ? `\n🎒 Total items: ${currentItems}` : '') +
                             (AdditionalNotes ? '\n' + AdditionalNotes : ''),
                         color: botEmbedColor
                     }

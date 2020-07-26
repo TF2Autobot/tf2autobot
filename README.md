@@ -181,6 +181,8 @@ You can run your bot without this first, which then on the first run, it will pr
 - `MAXIMUM_KEYS`: [Number] When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
 - `MINIMUM_REFINED_TO_START_SELL_KEYS`: [Number] - Already explained.
 - `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`: [Number] - Already explained.
+- `DISABLE_SCRAP_ADJUSTMENT`: [true|false] Default is `true` (disabled). Set to `false` to make an adjustment on the key price (only when sell or buy, it is not possible while banking).
+- `SCRAP_ADJUSTMENT_VALUE`: [Integer] Default is `1` (1 scrap or 0.11 ref). Please only put an integer (0, 1, 2, 3, ...).
 
 **This feature is meant to make your bot to have enough pure in their inventory. Enabling Autokeys - Banking might cause your bot to not function as intended.
 
@@ -279,6 +281,7 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: [true|false] - self explained.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: [true|false] - self explained.
+- `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY`: [true|false] - Show total current items in your bot inventory (I have tried to include `/max slot` but it's not working).
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE` - Notes.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to `true` if you want your bot to mention on every successful trades.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.

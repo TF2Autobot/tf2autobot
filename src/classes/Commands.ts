@@ -58,6 +58,7 @@ const ADMIN_COMMANDS: string[] = [
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
     '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
+    '!inventory - Get my current inventory spaces 🎒',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
@@ -95,6 +96,14 @@ export = class Commands {
 
         const isAdmin = this.bot.isAdmin(steamID);
 
+        const isNoReply =
+            this.messageInputsStartWith().some(word => {
+                return message.startsWith(word);
+            }) ||
+            this.messageInputEndsWith().some(word => {
+                return message.endsWith(word);
+            });
+
         if (command === 'help') {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
@@ -103,6 +112,8 @@ export = class Commands {
             this.priceCommand(steamID, message);
         } else if (command === 'stock') {
             this.stockCommand(steamID);
+        } else if (command === 'inventory' && isAdmin) {
+            this.inventoryCommand(steamID);
         } else if (command === 'pure') {
             this.pureCommand(steamID);
         } else if (command === 'time') {
@@ -181,59 +192,7 @@ export = class Commands {
             this.accepttradeCommand(steamID, message);
         } else if ((command === 'declinetrade' || command === 'decline') && isAdmin) {
             this.declinetradeCommand(steamID, message);
-        } else if (
-            message.startsWith('I') || // tf2-automatic bots
-            message.startsWith('❌') ||
-            message.startsWith('Hi') ||
-            message.startsWith('🙋🏻‍♀️Hi') ||
-            message.startsWith('⚠') ||
-            message.startsWith('⚠️') ||
-            message.startsWith('✅') ||
-            message.startsWith('⌛') ||
-            message.startsWith('💲') ||
-            message.startsWith('📜') ||
-            message.startsWith('🛒') ||
-            message.startsWith('💰') ||
-            message.startsWith('Here') ||
-            message.startsWith('The') || // or 'There'
-            message.startsWith('Please') ||
-            message.startsWith('You') || // Or 'Your'
-            message.startsWith('/quote') ||
-            message.startsWith('/pre') ||
-            message.startsWith('/me') ||
-            message.startsWith('/code') ||
-            message.startsWith('Oh') || // If errors occured
-            message.startsWith('Success!') ||
-            message.endsWith('cart.') ||
-            message.endsWith('checkout.') ||
-            message.endsWith('✅') ||
-            message.startsWith('Hey') || // Other bots possible messages - Bot.tf
-            message.startsWith('Unfortunately') ||
-            message.startsWith('==') ||
-            message.startsWith('💬') ||
-            message.startsWith('⇌') ||
-            message.startsWith('Command') || // Other custom bots
-            message.startsWith('Hello') ||
-            message.startsWith('✋ Hold on') ||
-            message.startsWith('Hold on') ||
-            message.startsWith('Sending') ||
-            message.startsWith('👋 Welcome') ||
-            message.startsWith('Welcome') ||
-            message.startsWith('To') ||
-            message.startsWith('🔰') ||
-            message.startsWith('My') ||
-            message.startsWith('Owner') ||
-            message.startsWith('Bot') ||
-            message.startsWith('Those') ||
-            message.startsWith('👨🏼‍💻') ||
-            message.startsWith('🔶') ||
-            message.startsWith('Buying') ||
-            message.startsWith('🔷') ||
-            message.startsWith('Selling') ||
-            message.startsWith('📥') ||
-            message.startsWith('Stock') ||
-            message.startsWith('Thank')
-        ) {
+        } else if (isNoReply) {
             return null;
         } else {
             this.bot.sendMessage(
@@ -461,8 +420,15 @@ export = class Commands {
         this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
     }
 
+    private inventoryCommand(steamID: SteamID): void {
+        const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
+        this.bot.sendMessage(steamID, `🎒 My crrent items in my inventory: ${currentItems}`);
+    }
+
     private autoKeysCommand(steamID: SteamID): void {
-        if ((this.bot.handler as MyHandler).getAutokeysEnabled() === false) {
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
+
+        if (autokeys.enabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
@@ -471,12 +437,7 @@ export = class Commands {
         const currKey = pure.key;
         const currRef = pure.refTotalInScrap;
 
-        const user = (this.bot.handler as MyHandler).getUserAutokeysSettings();
-
-        const autokeysStatus = (this.bot.handler as MyHandler).getAutokeysStatus();
-        const isBuyingKeys = (this.bot.handler as MyHandler).getAutokeysBuyingStatus();
-        const enableKeyBanking = (this.bot.handler as MyHandler).getAutokeysBankingEnabled();
-        const isBankingKeys = (this.bot.handler as MyHandler).getAutokeysBankingStatus();
+        const keyPrices = this.bot.pricelist.getKeyPrices();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -492,40 +453,54 @@ export = class Commands {
         const refsLine = `Refs ————|—————————|————▶`;
         const xAxisRef = `        min       max`;
         const keysPosition =
-            currKey < user.minKeys
+            currKey < autokeys.minKeys
                 ? keyBlMin
-                : currKey > user.maxKeys
+                : currKey > autokeys.maxKeys
                 ? keyAbMax
-                : currKey > user.minKeys && currKey < user.maxKeys
+                : currKey > autokeys.minKeys && currKey < autokeys.maxKeys
                 ? keyAtBet
-                : currKey === user.minKeys
+                : currKey === autokeys.minKeys
                 ? keyAtMin
-                : currKey === user.maxKeys
+                : currKey === autokeys.maxKeys
                 ? keyAtMax
                 : '';
         const refsPosition =
-            currRef < user.minRef
+            currRef < autokeys.minRef
                 ? refBlMin
-                : currRef > user.maxRef
+                : currRef > autokeys.maxRef
                 ? refAbMax
-                : currRef > user.minRef && currRef < user.maxRef
+                : currRef > autokeys.minRef && currRef < autokeys.maxRef
                 ? refAtBet
-                : currRef === user.minRef
+                : currRef === autokeys.minRef
                 ? refAtMin
-                : currRef === user.maxRef
+                : currRef === autokeys.maxRef
                 ? refAtMax
                 : '';
-        const summary = `\n• ${user.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
-            user.maxKeys
-        }\n• ${Currencies.toRefined(user.minRef)} < ${pluralize(
+        const summary = `\n• ${autokeys.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
+            autokeys.maxKeys
+        }\n• ${Currencies.toRefined(autokeys.minRef)} < ${pluralize(
             'ref',
             Currencies.toRefined(currRef)
-        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(user.maxRef)}`;
+        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(autokeys.maxRef)}`;
 
         let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n   Auto-banking: ${enableKeyBanking ? 'enabled' : 'disabled'}`;
-        reply += `\nAutokeys status: ${
-            autokeysStatus ? (isBankingKeys ? 'banking' : isBuyingKeys ? 'buying' : 'selling') : 'not active'
+        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
+        reply += `\nScrap Adjustment: ${autokeys.scrapAdjustmentEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n    Auto-banking: ${autokeys.bankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n Autokeys status: ${
+            autokeys.status
+                ? autokeys.isBanking
+                    ? 'Banking' + (autokeys.scrapAdjustmentEnabled ? ' (default price)' : '')
+                    : autokeys.isBuying
+                    ? 'Buying for ' +
+                      Currencies.toRefined(keyPrices.buy.toValue() + autokeys.scrapAdjustmentValue).toString() +
+                      ' ref' +
+                      (autokeys.scrapAdjustmentEnabled ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                    : 'Selling for ' +
+                      Currencies.toRefined(keyPrices.sell.toValue() - autokeys.scrapAdjustmentValue).toString() +
+                      ' ref' +
+                      (autokeys.scrapAdjustmentEnabled ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                : 'Not active'
         }`;
         /*
         //        X
@@ -1650,7 +1625,7 @@ export = class Commands {
             }
         }
 
-        let reply = `🔎 Prices.TF: tf2-automatic/tf2autobot bots' removed sell listings from backpack.tf\n\nItem name: ${
+        let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
             salesData.name
         }\n\n-----${SalesList.join('\n\n-----')}`;
         if (left > 0) {
@@ -2715,6 +2690,65 @@ export = class Commands {
             }
         }
         return uncraftWeaponsStock;
+    }
+
+    private messageInputsStartWith(): string[] {
+        const words = [
+            'I',
+            '❌',
+            'Hi',
+            '🙋🏻‍♀️Hi',
+            '⚠',
+            '⚠️',
+            '✅',
+            '⌛',
+            '💲',
+            '📜',
+            '🛒',
+            '💰',
+            'Here',
+            'The',
+            'Please',
+            'You',
+            '/quote',
+            '/pre',
+            '/me',
+            '/code',
+            'Oh',
+            'Success!',
+            'Hey',
+            'Unfortunately',
+            '==',
+            '💬',
+            '⇌',
+            'Command',
+            'Hello',
+            '✋ Hold on',
+            'Hold on',
+            'Sending',
+            '👋 Welcome',
+            'Welcome',
+            'To',
+            '🔰',
+            'My',
+            'Owner',
+            'Bot',
+            'Those',
+            '👨🏼‍💻',
+            '🔶',
+            'Buying',
+            '🔷',
+            'Selling',
+            '📥',
+            'Stock',
+            'Thank'
+        ];
+        return words;
+    }
+
+    private messageInputEndsWith(): string[] {
+        const words = ['cart.', 'checkout.', '✅'];
+        return words;
     }
 };
 

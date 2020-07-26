@@ -474,7 +474,7 @@ export = class Listings {
 
         const maxStock = entry.max;
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
-        const amountCanBuy = maxStock - currentStock;
+        const amountCanBuy = maxStock === -1 ? '∞' : maxStock - currentStock;
 
         let details: string;
 
@@ -482,7 +482,7 @@ export = class Listings {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
@@ -492,7 +492,7 @@ export = class Listings {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
@@ -502,7 +502,7 @@ export = class Listings {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock.toString())
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())

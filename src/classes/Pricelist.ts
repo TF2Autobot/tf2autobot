@@ -224,6 +224,16 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
+    async getPricesTF(sku: string): Promise<any> {
+        let price;
+        try {
+            price = await getPrice(sku, 'bptf');
+        } catch (err) {
+            price = null;
+        }
+        return price;
+    }
+
     async addPrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
