@@ -58,6 +58,7 @@ const ADMIN_COMMANDS: string[] = [
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
     '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
+    '!inventory - Get my current inventory spaces 🎒',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
@@ -111,6 +112,8 @@ export = class Commands {
             this.priceCommand(steamID, message);
         } else if (command === 'stock') {
             this.stockCommand(steamID);
+        } else if (command === 'inventory' && isAdmin) {
+            this.inventoryCommand(steamID);
         } else if (command === 'pure') {
             this.pureCommand(steamID);
         } else if (command === 'time') {
@@ -415,6 +418,11 @@ export = class Commands {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
 
         this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
+    }
+
+    private inventoryCommand(steamID: SteamID): void {
+        const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
+        this.bot.sendMessage(steamID, `🎒 My crrent items in my inventory: ${currentItems}`);
     }
 
     private autoKeysCommand(steamID: SteamID): void {
