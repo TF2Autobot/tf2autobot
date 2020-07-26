@@ -95,8 +95,6 @@ export = class MyHandler extends Handler {
 
     private customGameName: string;
 
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
-
     private isUsingAutoPrice = true;
 
     private scrapAdjustmentValue = 0;
@@ -233,10 +231,6 @@ export = class MyHandler extends Handler {
 
     getMinimumKeysDupeCheck(): number {
         return this.minimumKeysDupeCheck;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysEnabled(): boolean {
@@ -1037,7 +1031,6 @@ export = class MyHandler extends Handler {
             //     const counteroffer = offer.counter();
             // }
 
-            this.isAcceptedWithInvalidItemsOrOverstocked = false;
             if (
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
@@ -1051,7 +1044,6 @@ export = class MyHandler extends Handler {
                 exchange.our.value < exchange.their.value &&
                 exchange.our.value !== 0
             ) {
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
