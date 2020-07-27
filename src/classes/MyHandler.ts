@@ -99,6 +99,8 @@ export = class MyHandler extends Handler {
 
     private scrapAdjustmentValue = 0;
 
+    private isAcceptedWithInvalidItemsOrOverstocked = false;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -264,6 +266,10 @@ export = class MyHandler extends Handler {
             scrapAdjustmentValue: this.scrapAdjustmentValue
         };
         return settings;
+    }
+
+    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
+        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     onRun(): Promise<{
@@ -1031,6 +1037,7 @@ export = class MyHandler extends Handler {
             //     const counteroffer = offer.counter();
             // }
 
+            this.isAcceptedWithInvalidItemsOrOverstocked = false;
             if (
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
@@ -1044,6 +1051,7 @@ export = class MyHandler extends Handler {
                 exchange.our.value < exchange.their.value &&
                 exchange.our.value !== 0
             ) {
+                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(

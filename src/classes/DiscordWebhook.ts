@@ -346,6 +346,8 @@ export = class DiscordWebhook {
             });
         });
 
+        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
+
         const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
 
         let theirItemsSecondFiltered = theirItemsFiltered;
@@ -382,7 +384,7 @@ export = class DiscordWebhook {
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
                 : this.enableMentionOwner === true &&
-                  process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY === 'false' &&
+                  isMentionInvalidItems &&
                   (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
