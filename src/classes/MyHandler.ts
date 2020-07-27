@@ -1019,6 +1019,7 @@ export = class MyHandler extends Handler {
             }
         }
 
+        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -1036,8 +1037,6 @@ export = class MyHandler extends Handler {
             // ) {
             //     const counteroffer = offer.counter();
             // }
-
-            this.isAcceptedWithInvalidItemsOrOverstocked = false;
             if (
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
