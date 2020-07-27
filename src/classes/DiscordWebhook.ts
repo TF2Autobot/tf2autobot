@@ -346,23 +346,47 @@ export = class DiscordWebhook {
             });
         });
 
+        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
+
         const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
 
+        let theirItemsSecondFiltered = theirItemsFiltered;
         if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            theirItemsFiltered.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
+            theirItemsSecondFiltered = theirItemsFiltered.filter(
+                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
+            );
         }
 
-        const isMentionInvalidItems = theirItemsFiltered.some((sku: string) => {
-            return this.bot.pricelist.getPrice(sku, false) === null;
+        const isMentionInvalidItemsTheirSide = theirItemsSecondFiltered.some((sku: string) => {
+            if (theirItemsSecondFiltered.length > 0) {
+                return this.bot.pricelist.getPrice(sku, false) === null;
+            }
+            return false;
+        });
+
+        const OurItemsFiltered = ourItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+
+        let ourItemsSecondFiltered = OurItemsFiltered;
+        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
+            ourItemsSecondFiltered = OurItemsFiltered.filter(
+                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
+            );
+        }
+
+        const isMentionInvalidItemsOurSide = ourItemsSecondFiltered.some((sku: string) => {
+            if (ourItemsSecondFiltered.length > 0) {
+                return this.bot.pricelist.getPrice(sku, false) === null;
+            }
+            return false;
         });
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
                 : this.enableMentionOwner === true &&
-                  process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY === 'false' &&
-                  isMentionInvalidItems
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS/OVERSTOCKED with overpay trade here!`
+                  isMentionInvalidItems &&
+                  (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
+                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
 
         const botName = this.botName;

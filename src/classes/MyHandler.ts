@@ -99,6 +99,8 @@ export = class MyHandler extends Handler {
 
     private scrapAdjustmentValue = 0;
 
+    private isAcceptedWithInvalidItemsOrOverstocked = false;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -264,6 +266,10 @@ export = class MyHandler extends Handler {
             scrapAdjustmentValue: this.scrapAdjustmentValue
         };
         return settings;
+    }
+
+    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
+        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     onRun(): Promise<{
@@ -1013,6 +1019,7 @@ export = class MyHandler extends Handler {
             }
         }
 
+        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -1030,7 +1037,6 @@ export = class MyHandler extends Handler {
             // ) {
             //     const counteroffer = offer.counter();
             // }
-
             if (
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
@@ -1042,9 +1048,9 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
                 ) &&
                 exchange.our.value < exchange.their.value &&
-                exchange.our.value !== 0 &&
-                !(offer.itemsToGive.length > 1)
+                exchange.our.value !== 0
             ) {
+                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
