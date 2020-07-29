@@ -24,6 +24,8 @@ export = class Listings {
 
     private autoRelistRetry = false;
 
+    private autoRelistRetryTimeout;
+
     private autoRelistTimeout;
 
     private templates: { buy: string; sell: string } = {
@@ -112,9 +114,13 @@ export = class Listings {
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
                 );
                 this.enableAutoRelist();
-            } else if (this.autoRelistRetry) {
+            } else if (this.autoRelistEnabled && this.autoRelistRetry) {
                 this.autoRelistRetry = false;
-                this.enableAutoRelist();
+                clearTimeout(this.autoRelistRetryTimeout);
+                log.warn('backpack.tf down, will wait for 30 minutes before relist again...');
+                this.autoRelistRetryTimeout = setTimeout(() => {
+                    this.enableAutoRelist();
+                }, 30 * 60 * 1000);
             }
         });
     }
