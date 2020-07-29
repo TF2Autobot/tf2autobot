@@ -22,6 +22,8 @@ export = class Listings {
 
     private autoRelistEnabled = false;
 
+    private autoRelistRetry = false;
+
     private autoRelistTimeout;
 
     private templates: { buy: string; sell: string } = {
@@ -97,6 +99,8 @@ export = class Listings {
         this.getAccountInfo().asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
+                clearTimeout(this.autoRelistTimeout);
+                this.autoRelistRetry = true;
                 return;
             }
 
@@ -107,6 +111,9 @@ export = class Listings {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
                 );
+                this.enableAutoRelist();
+            } else if (this.autoRelistRetry) {
+                this.autoRelistRetry = false;
                 this.enableAutoRelist();
             }
         });
