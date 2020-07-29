@@ -459,7 +459,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                 let hasNot5Uses = false;
 
                 if (sku === '241;6') {
@@ -485,6 +485,40 @@ class UserCart extends Cart {
                 if (hasNot5Uses) {
                     return Promise.reject(
                         'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
+                }
+            }
+
+            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
+
+                if (noiseMakerSKU.includes(sku)) {
+                    fetched.forEach(item => {
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.name.includes(name);
+                        });
+                        if (isNoiseMaker) {
+                            for (let i = 0; i < item.descriptions.length; i++) {
+                                const descriptionValue = item.descriptions[i].value;
+                                const descriptionColor = item.descriptions[i].color;
+
+                                if (
+                                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                                    descriptionColor === '00a000'
+                                ) {
+                                    hasNot25Uses = true;
+                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (hasNot25Uses) {
+                    return Promise.reject(
+                        'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
                     );
                 }
             }
