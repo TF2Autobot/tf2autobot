@@ -41,6 +41,8 @@ Once you have downloaded the source and installed the necessary packages, you ca
 Join **tf2autobot-IdiNium** Discord server [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) and go to `#🆚roles` channel and react on the first message to get yourself mentioned when an update has been released!
 ![update-noti](https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG)
 
+**There is also a giveaway that will be held on every Thursday, 8 AM - 8 PM (12 hours) Malaysia time!
+
 ## Difference between tf2autobot and tf2-automatic
 
 The original tf2-automatic repository already have a lot of features, but some features in this version have their own advantages. Let me list out what features that worth mentioning, which already exist and what features that have been added into this version:
