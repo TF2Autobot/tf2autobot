@@ -66,6 +66,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - INVALID_VALUE exception
 - added an option to automatically decline (skip manual review) **ONLY** INVALID_VALUE trade, if not within INVALID_VALUE exception sku and value range.
 - added an option to accept (skip manual review) INVALID_ITEMS or OVERSTOCKED trades if the trade partner offer more than what they're taking (overpay).
+- added an option to make `INVALID_ITEMS` to be priced using price from Prices.TF.
 - added an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
 - Mention every items on each offer review reasons
 - Dueling Mini-Game: Only accept 5 Uses! (option)
@@ -201,6 +202,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_MESSAGES`: [true|false] Default: `false`. When `true`, people (that are friend with your bot) will be unable send messages to you with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: `false`. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: `false`. Set it as `true` if you don't want to set craft weapons as currency (0.05 ref).
+- `DISABLE_GET_INVALID_ITEMS_PRICE`: [true|false] - Default: `false`. Set to `true` if you don't want `INVALID_ITEMS` (items that are not in your pricelist) to be priced using price from prices.TF.
 - `DISABLE_ADD_FRIENDS`: [true|false] - Default: `false`. Set to `true` if you don't want people to add your bot (not recommended).
 - `DISABLE_GROUPS_INVITE`: [true|false] - Default: `false`. Set to `true` if you don't want your bot to invite people to join groups **(You still need to have at least 1 group ID in the `GROUPS` array)**.
 - `DISABLE_CHECK_USES_DUELING_MINI_GAME`: [true|false] - Default: `false`. Set to `true` if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
