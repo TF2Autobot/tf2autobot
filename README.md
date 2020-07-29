@@ -195,6 +195,7 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: `false`. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
 - `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: `false`. Set it as `true` if you don't want to set craft weapons as currency (0.05 ref).
 - `DISABLE_ADD_FRIENDS`: [true|false] - Default: `false`. Set to `true` if you don't want people to add your bot (not recommended).
+- `DISABLE_GROUPS_INVITE`: [true|false] - Default: `false`. Set to `true` if you don't want your bot to invite people to join groups **(You still need to have at least 1 group ID in the `GROUPS` array)**.
 - `DISABLE_CHECK_USES_DUELING_MINI_GAME`: [true|false] - Default: `false`. Set to `true` if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
 - `DISABLE_CHECK_USES_NOISE_MAKER`: [true|false] - Default: `false`. Set to `true` if you want your bot to accept Noise Maker that is not 25 Uses.
 

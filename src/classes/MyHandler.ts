@@ -2223,6 +2223,10 @@ Autokeys status:-
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
+        if (process.env.DISABLE_GROUPS_INVITE === 'true') {
+            // You still need to include the group ID in your env.
+            return;
+        }
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
 
