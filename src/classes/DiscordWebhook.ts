@@ -321,6 +321,7 @@ export = class DiscordWebhook {
         tradeSummary: string,
         pureStock: string[],
         currentItems: number,
+        invalidItemsCombine: string[],
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
@@ -383,9 +384,7 @@ export = class DiscordWebhook {
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : this.enableMentionOwner === true &&
-                  isMentionInvalidItems &&
-                  (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
+                : isMentionInvalidItems && (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
 
@@ -466,6 +465,7 @@ export = class DiscordWebhook {
                             (isShowQuickLinks
                                 ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                 : '\n') +
+                            (isMentionInvalidItems ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n') : '') +
                             (isShowKeyRate
                                 ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                                   `${

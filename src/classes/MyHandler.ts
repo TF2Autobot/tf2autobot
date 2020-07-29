@@ -235,8 +235,8 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
-    getAutokeysEnabled(): boolean {
-        return this.autokeysEnabled;
+    getCustomGame(): string {
+        return this.customGameName;
     }
 
     getUserAutokeys(): {
@@ -1209,6 +1209,21 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
+                const invalidItemsName: string[] = [];
+                const invalidItemsCombine: string[] = [];
+                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
+
+                if (isAcceptedInvalidItemsOverpay) {
+                    this.invalidItemsSKU.forEach(sku => {
+                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                        invalidItemsName.push(name);
+                    });
+
+                    for (let i = 0; i < invalidItemsName.length; i++) {
+                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                    }
+                }
+
                 const keyPrice = this.bot.pricelist.getKeyPrices();
                 const value = this.valueDiff(offer, keyPrice);
 
@@ -1225,6 +1240,7 @@ export = class MyHandler extends Handler {
                         offer.summarizeWithLink(this.bot.schema),
                         pureStock,
                         currentItems,
+                        invalidItemsCombine,
                         keyPrice,
                         value,
                         itemsList,
@@ -1242,6 +1258,9 @@ export = class MyHandler extends Handler {
                                 : value.diff < 0
                                 ? `\n\n📉 Loss from underpay: ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : '') +
+                            (isAcceptedInvalidItemsOverpay
+                                ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${
@@ -1285,6 +1304,15 @@ export = class MyHandler extends Handler {
             }
 
             this.inviteToGroups(offer.partner);
+
+            this.sleep(3000);
+
+            // clear/reset these in memory
+            this.invalidItemsSKU.length = 0;
+            this.invalidItemsValue.length = 0;
+            this.overstockedItemsSKU.length = 0;
+            this.dupedItemsSKU.length = 0;
+            this.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -2195,6 +2223,10 @@ Autokeys status:-
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
+        if (process.env.DISABLE_GROUPS_INVITE === 'true') {
+            // You still need to include the group ID in your env.
+            return;
+        }
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
 
