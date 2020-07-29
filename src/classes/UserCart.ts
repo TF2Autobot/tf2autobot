@@ -459,32 +459,34 @@ class UserCart extends Cart {
                 continue;
             }
 
-            let hasNot5Uses = false;
+            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+                let hasNot5Uses = false;
 
-            if (sku === '241;6') {
-                fetched.forEach(item => {
-                    if (item.name === 'Dueling Mini-Game') {
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
+                if (sku === '241;6') {
+                    fetched.forEach(item => {
+                        if (item.name === 'Dueling Mini-Game') {
+                            for (let i = 0; i < item.descriptions.length; i++) {
+                                const descriptionValue = item.descriptions[i].value;
+                                const descriptionColor = item.descriptions[i].color;
 
-                            if (
-                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                hasNot5Uses = true;
-                                offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                                break;
+                                if (
+                                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                                    descriptionColor === '00a000'
+                                ) {
+                                    hasNot5Uses = true;
+                                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                                    break;
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            if (hasNot5Uses) {
-                return Promise.reject(
-                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                );
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
+                }
             }
 
             let alteredMessage: string;
