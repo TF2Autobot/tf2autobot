@@ -54,25 +54,28 @@ The original tf2-automatic repository already have a lot of features, but some f
 - dupe check on items that are more than minimum keys (you set it yourself)
 
 ### tf2autobot version
-- added an option to use Discord Webhook for your bot to send accepted trade summary/ offer review/ messages.
-- added an option to disable show only metal in trade summary (it will show x keys, y ref, it will show only x ref on original version)
-- added an option to enable Autokeys (to keep your refined metal stock) and key banking ([jump](https://github.com/idinium96/tf2autobot#autokeys-auto-buy-or-sell-keys-feature))
-- added an option to set your own custom greeting/success/failed messages and offer review notes
-- send to trade partner a summary of their offer if need to be reviewed ([jump](https://github.com/idinium96/tf2autobot#offer-review-summary-on-trade-partner-side))
+**Added an option to:**
+- use Discord Webhook for your bot to send accepted trade summary/ offer review/ messages.
+- disable show only metal in trade summary (it will show x keys, y ref, it will show only x ref on original version)
+- enable Autokeys (to keep your refined metal stock) and key banking ([jump](https://github.com/idinium96/tf2autobot#autokeys-auto-buy-or-sell-keys-feature))
+- set your own custom greeting/success/failed messages and offer review notes
+- set all craft weapons as currency (0.05 ref) and automatically craft duplicate craftable weapons
+- send to the trade partner a summary of their offer if need to be reviewed ([jump](https://github.com/idinium96/tf2autobot#offer-review-summary-on-trade-partner-side))
+- automatically accept trade with `INVALID_VALUE exception`.
+- automatically decline (skip manual review) **ONLY `INVALID_VALUE`** trade, if not within INVALID_VALUE exception sku and value range.
+- automatically accept (skip manual review) `INVALID_ITEMS` or `OVERSTOCKED` trades if the trade partner offer more than what they're taking (overpay).
+- make `INVALID_ITEMS` to be priced using price from Prices.TF.
+- NOT mention (Discord Webhook) on an `INVALID_VALUE` offer
+- check Dueling Mini-Game to only accept 5 Uses!
+- check Noise Maker to only accept 25 Uses!
+- disable acceptting friend request and inviting people to join groups.
 - alert admins when there's something wrong, like queue problem (which the original one is still not fixed yet, and I have no idea why) and when your bot is out of space or if your bot has less than minimum pure (must enable Autokeys feature)
+
+**Others:**
 - automatically restart your bot on queue problem, and automatically relist if backpack.tf does not synchronized with your bot listings on Autokeys (sometimes it's set to automatically buy keys, but at backpack.tf, it's listed to sell.)
 - use emojis on almost all messages
-- added an option to set all craft weapons as currency (0.05 ref) and automatically craft duplicate craftable weapons
-- INVALID_VALUE exception
-- added an option to automatically decline (skip manual review) **ONLY** INVALID_VALUE trade, if not within INVALID_VALUE exception sku and value range.
-- added an option to accept (skip manual review) INVALID_ITEMS or OVERSTOCKED trades if the trade partner offer more than what they're taking (overpay).
-- added an option to make `INVALID_ITEMS` to be priced using price from Prices.TF.
-- added an option to NOT mention (Discord Webhook) on an INVALID_VALUE offer
-- Mention every items on each offer review reasons
-- Dueling Mini-Game: Only accept 5 Uses! (option)
-- Noise Maker: Only accept 25 Uses! (option)
+- list out every items on each offer review reasons
 - New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!craftweapon" and "!uncraftweapon" commands
-- added an option to disable acceptting friend request and inviting people to join groups.
 - and more to come!
 
 ## Added features
@@ -140,7 +143,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1544-L2138).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1546-L2140).
 
 ### Emojis and more commands added
 
@@ -318,7 +321,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1338-L1469)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1340-L1471)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
 - `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
