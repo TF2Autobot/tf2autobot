@@ -17,7 +17,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 **tf2autobot made by IdiNium** 
 [![profile-Steam](https://img.shields.io/badge/Steam-profile-blue)](https://steamcommunity.com/profiles/76561198013127982/)
 [![profile-bptf](https://img.shields.io/badge/Backpack.tf-profile-blue)](https://backpack.tf/profiles/76561198013127982)
-![bptf-profile](https://user-images.githubusercontent.com/47635037/87852271-23d68d80-c933-11ea-84e4-a116d4163878.PNG)
+![profile](https://user-images.githubusercontent.com/47635037/88795331-708f5380-d1d2-11ea-8adf-92d94be581e9.PNG)
 
 
 Before you install the bot, there are a few things you need to have taken care off before you will be able to run the bot.
@@ -26,7 +26,7 @@ Before you install the bot, there are a few things you need to have taken care o
 - NodeJS version 8 or more
 - Typescript 3.7 or above
 
-Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for setting up the bot. For additional help and questions, please ask in the IdiNium's Trading Bot [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
+Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for setting up the bot. For additional help and questions, please ask in the tf2autobot-IdiNium [Discord server](https://discord.gg/ZrVT7mc) or create an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 ## Download and installation
 
@@ -35,6 +35,11 @@ You can clone or download the bot by clicking on the green button in the top rig
 ## Configuration
 
 Once you have downloaded the source and installed the necessary packages, you can move on to configuring the bot. Follow the [configuration guide](https://github.com/idinium96/tf2autobot/wiki/b.-Configuration).
+
+## Join our Discord server!
+
+Join **tf2autobot-IdiNium** Discord server [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) and go to `#🆚roles` channel and react on the first message to get yourself mentioned when an update has been released!
+![update-noti](https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG)
 
 ## Difference between tf2autobot and tf2-automatic
 
@@ -64,7 +69,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - Dueling Mini-Game: Only accept 5 Uses! (option)
 - Noise Maker: Only accept 25 Uses! (option)
 - New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!craftweapon" and "!uncraftweapon" commands
-- added an option to disable acceptting friend request
+- added an option to disable acceptting friend request and inviting people to join groups.
 - and more to come!
 
 ## Added features
@@ -132,7 +137,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1509-L2006).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1544-L2138).
 
 ### Emojis and more commands added
 
@@ -309,7 +314,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1312-L1500)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1338-L1469)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
 - `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
