@@ -737,24 +737,24 @@ export = class MyHandler extends Handler {
 
                         this.invalidItemsSKU.push(sku);
 
-                        if (process.env.DISABLE_GET_INVALID_ITEMS_PRICE !== 'true') {
-                            this.sleep(1000);
+                        this.sleep(1000);
+                        const price = await this.bot.pricelist.getPricesTF(sku);
 
-                            const price = await this.bot.pricelist.getPricesTF(sku);
+                        if (price === null) {
+                            this.invalidItemsValue.push('No price');
+                        } else {
+                            price.buy = new Currencies(price.buy);
+                            price.sell = new Currencies(price.sell);
 
-                            if (price === null) {
-                                this.invalidItemsValue.push('No price');
-                            } else {
-                                price.buy = new Currencies(price.buy);
-                                price.sell = new Currencies(price.sell);
+                            if (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS !== 'true') {
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
-                                const itemSuggestedValue = Currencies.toCurrencies(
-                                    price[intentString].toValue(keyPrice.metal)
-                                );
-                                this.invalidItemsValue.push(itemSuggestedValue.toString());
                             }
+                            const itemSuggestedValue = Currencies.toCurrencies(
+                                price[intentString].toValue(keyPrice.metal)
+                            );
+                            this.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
 
                         wrongAboutOffer.push({
