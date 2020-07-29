@@ -235,8 +235,8 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
-    getAutokeysEnabled(): boolean {
-        return this.autokeysEnabled;
+    getCustomGame(): string {
+        return this.customGameName;
     }
 
     getUserAutokeys(): {

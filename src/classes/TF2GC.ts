@@ -2,6 +2,7 @@ import Bot from './Bot';
 
 import log from '../lib/logger';
 import MyHandler from './MyHandler';
+import moment from 'moment';
 
 type Job = {
     type: 'smelt' | 'combine' | 'use' | 'delete' | 'sort';
@@ -20,6 +21,8 @@ export = class TF2GC {
     private startedProcessing = false;
 
     private combineWeaponStatus = false;
+
+    private iterate = 0;
 
     private jobs: Job[] = [];
 
@@ -96,6 +99,7 @@ export = class TF2GC {
 
                 this.startedProcessing = false;
 
+                this.iterate = 0;
                 this.bot.handler.onTF2QueueCompleted();
             }
             return;
@@ -118,6 +122,15 @@ export = class TF2GC {
         this.startedProcessing = true;
 
         log.debug('Ensuring TF2 GC connection...');
+
+        this.iterate++;
+
+        if (this.iterate > 1) {
+            const gameName = (this.bot.handler as MyHandler).getCustomGame();
+            this.bot.client.gamesPlayed(gameName, true);
+            this.sleep(3000);
+            this.iterate = 0;
+        }
 
         this.connectToGC().asCallback(err => {
             if (err) {
@@ -142,6 +155,14 @@ export = class TF2GC {
                 this.finishedProcessingJob(new Error('Unknown job type'));
             }
         });
+    }
+
+    private sleep(mili: number): void {
+        const date = moment().valueOf();
+        let currentDate = null;
+        do {
+            currentDate = moment().valueOf();
+        } while (currentDate - date < mili);
     }
 
     private handleCraftJob(job: Job): void {
@@ -373,6 +394,7 @@ export = class TF2GC {
         }
 
         this.processingQueue = false;
+        this.iterate = 0;
 
         this.handleJobQueue();
     }
