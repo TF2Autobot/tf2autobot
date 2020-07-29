@@ -383,9 +383,7 @@ export = class DiscordWebhook {
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : this.enableMentionOwner === true &&
-                  isMentionInvalidItems &&
-                  (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
+                : isMentionInvalidItems && (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
 
