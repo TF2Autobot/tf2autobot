@@ -63,6 +63,7 @@ export = class Listings {
 
         this.autoRelistEnabled = true;
 
+        clearTimeout(this.autoRelistRetryTimeout);
         clearTimeout(this.autoRelistTimeout);
 
         const doneWait = (): void => {
