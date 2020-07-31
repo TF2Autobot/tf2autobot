@@ -321,6 +321,7 @@ export = class DiscordWebhook {
         tradeSummary: string,
         pureStock: string[],
         currentItems: number,
+        backpackSlots: number,
         invalidItemsCombine: string[],
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
@@ -483,7 +484,9 @@ export = class DiscordWebhook {
                                   }`
                                 : '') +
                             (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                            (isShowInventory ? `\n🎒 Total items: ${currentItems}` : '') +
+                            (isShowInventory
+                                ? `\n🎒 Total items: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+                                : '') +
                             (AdditionalNotes ? '\n' + AdditionalNotes : ''),
                         color: botEmbedColor
                     }

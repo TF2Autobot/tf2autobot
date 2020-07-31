@@ -7,6 +7,7 @@ import Inventory from './Inventory';
 import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku';
+import request from '@nicklason/request-retry';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -98,6 +99,8 @@ export = class MyHandler extends Handler {
     private isUsingAutoPrice = true;
 
     private scrapAdjustmentValue = 0;
+
+    private backpackSlots = 0;
 
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
@@ -239,6 +242,10 @@ export = class MyHandler extends Handler {
         return this.customGameName;
     }
 
+    getBackpackSlots(): number {
+        return this.backpackSlots;
+    }
+
     getUserAutokeys(): {
         enabled: boolean;
         status: boolean;
@@ -303,6 +310,9 @@ export = class MyHandler extends Handler {
 
         this.bot.client.gamesPlayed([this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+
+        // GetBackpackSlots
+        this.requestBackpackSlots();
 
         // Smelt / combine metal if needed
         this.keepMetalSupply();
@@ -1242,6 +1252,7 @@ export = class MyHandler extends Handler {
                         offer.summarizeWithLink(this.bot.schema),
                         pureStock,
                         currentItems,
+                        this.backpackSlots,
                         invalidItemsCombine,
                         keyPrice,
                         value,
@@ -2387,6 +2398,38 @@ Autokeys status:-
                 this.bot.client.removeFriend(element.steamID);
             });
         }
+    }
+
+    requestBackpackSlots(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            request(
+                {
+                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+                    method: 'GET',
+                    qs: {
+                        key: this.bot.manager.apiKey,
+                        steamid: this.bot.client.steamID.getSteamID64()
+                    },
+                    json: true,
+                    gzip: true
+                },
+                (err, response, body) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    if (body.result.status != 1) {
+                        err = new Error(body.result.statusDetail);
+                        err.status = body.result.status;
+                        return reject(err);
+                    }
+
+                    this.backpackSlots = body.result.num_backpack_slots;
+
+                    return resolve();
+                }
+            );
+        });
     }
 
     private itemList(offer: TradeOffer): { their: string[]; our: string[] } {
