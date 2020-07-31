@@ -122,7 +122,7 @@ export = class Listings {
                 log.warn('backpack.tf down, will wait for 30 minutes before relist again...');
                 this.autoRelistRetryTimeout = setTimeout(() => {
                     this.enableAutoRelist();
-                }, 30 * 60 * 1000);
+                }, 5 * 60 * 1000);
             }
         });
     }
