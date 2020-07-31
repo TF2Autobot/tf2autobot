@@ -456,7 +456,7 @@ export = class Commands {
             clearTimeout(this.executeTimeout);
             this.lastExecutedTime = moment().valueOf();
 
-            this.bot.listings.checkAllWithDelay();
+            this.bot.listings.redoListingsWithDelay();
             this.bot.sendMessage(steamID, `✅ Relisting executed.`);
 
             this.executed = true;
