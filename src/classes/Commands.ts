@@ -560,6 +560,8 @@ export = class Commands {
         const sell = { keys: sellKeys, metal: sellMetal };
 
         this.bot.pricelist.adjustKeyRate(buy, sell);
+
+        this.bot.sendMessage(steamID, '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell));
     }
 
     private messageCommand(steamID: SteamID, message: string): void {
