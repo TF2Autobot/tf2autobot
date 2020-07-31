@@ -344,8 +344,8 @@ export = class MyHandler extends Handler {
             }
 
             if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.checkAutokeysStatus === true) {
-                log.debug('Disabling Autokeys...');
-                this.updateToDisableAutokeys();
+                log.debug('Disabling Autokeys and removing key from pricelist...');
+                this.removeAutoKeys();
             }
 
             this.bot.listings.removeAll().asCallback(function(err) {
@@ -1774,7 +1774,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBank = false;
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
-                this.updateToDisableAutokeys();
+                this.removeAutoKeys();
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
                 this.isBuyingKeys = false;
@@ -1784,7 +1784,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBank = false;
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
-                this.updateToDisableAutokeys();
+                this.removeAutoKeys();
             } else if (isAlertAdmins && isAlreadyAlert !== true) {
                 // alert admins when low pure
                 this.isBuyingKeys = false;
