@@ -954,7 +954,7 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
-            return;
+            return { action: 'skip', reason: '⬜STEAM_DOWN' };
         }
 
         offer.log('info', 'checking bans...');
@@ -968,7 +968,7 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
-            return;
+            return { action: 'skip', reason: '⬜BACKPACKTF_DOWN' };
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
@@ -1459,40 +1459,51 @@ export = class MyHandler extends Handler {
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             // Notify partner and admin that the offer is waiting for manual review
-            this.bot.sendMessage(
-                offer.partner,
-                `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
-                    (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
-                        ? '\n\nYour offer summary:\n' +
-                          offer
-                              .summarize(this.bot.schema)
-                              .replace('Asked', '  My side')
-                              .replace('Offered', 'Your side') +
-                          (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
-                              ? missingPureNote
-                              : '') +
-                          (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                              ? `\n\nNote:\n${reviewReasons.join('\n')}`
-                              : '')
-                        : '') +
-                    (process.env.ADDITIONAL_NOTE
-                        ? '\n\n' +
-                          process.env.ADDITIONAL_NOTE.replace(
-                              /%keyRate%/g,
-                              `${keyPrice.sell.metal.toString()} ref`
-                          ).replace(/%pureStock%/g, pureStock.join(', ').toString())
-                        : '') +
-                    (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                        ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
-                              (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
-                        : '')
-            );
+            if (reason === '⬜BACKPACKTF_DOWN' || reason === '⬜STEAM_DOWN') {
+                this.bot.sendMessage(
+                    offer.partner,
+                    (reason === '⬜BACKPACKTF_DOWN' ? 'Backpack.tf' : 'Steam') +
+                        ' is down and I failed to check your ' +
+                        (reason === '⬜BACKPACKTF_DOWN' ? 'backpack.tf' : 'Escrow') +
+                        ' status, please wait for my owner to manually accept/decline your offer.'
+                );
+            } else {
+                this.bot.sendMessage(
+                    offer.partner,
+                    `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
+                        (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                            ? '\n\nYour offer summary:\n' +
+                              offer
+                                  .summarize(this.bot.schema)
+                                  .replace('Asked', '  My side')
+                                  .replace('Offered', 'Your side') +
+                              (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
+                                  ? missingPureNote
+                                  : '') +
+                              (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                                  ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                                  : '')
+                            : '') +
+                        (process.env.ADDITIONAL_NOTE
+                            ? '\n\n' +
+                              process.env.ADDITIONAL_NOTE.replace(
+                                  /%keyRate%/g,
+                                  `${keyPrice.sell.metal.toString()} ref`
+                              ).replace(/%pureStock%/g, pureStock.join(', ').toString())
+                            : '') +
+                        (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
+                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                                  (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
+                            : '')
+                );
+            }
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
             ) {
                 this.discord.sendOfferReview(
                     offer,
+                    reason,
                     reasons.join(', '),
                     pureStock,
                     timeWithEmojis.time,
@@ -1510,7 +1521,13 @@ export = class MyHandler extends Handler {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReason: ${meta.uniqueReasons.join(', ')}` +
+                        `\nReason: ${
+                            reason === '⬜BACKPACKTF_DOWN'
+                                ? '⬜BACKPACKTF_DOWN - failed to check banned status'
+                                : reason === '⬜STEAM_DOWN'
+                                ? '⬜STEAM_DOWN - failed to check escrow status'
+                                : meta.uniqueReasons.join(', ')
+                        }` +
                         `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
                             value.diff > 0
                                 ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
