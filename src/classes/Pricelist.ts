@@ -389,7 +389,7 @@ export default class Pricelist extends EventEmitter {
             // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
             entryKey.buy = new Currencies(buy);
             entryKey.sell = new Currencies(sell);
-            entryKey.time = moment().valueOf();
+            entryKey.time = Math.trunc(moment().valueOf() / 1000);
         }
     }
 
