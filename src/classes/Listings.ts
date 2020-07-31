@@ -444,6 +444,12 @@ export = class Listings {
         });
     }
 
+    redoListingsWithDelay(): Promise<void> {
+        return this.removeAll().then(() => {
+            return this.checkAllWithDelay();
+        });
+    }
+
     waitForListings(): Promise<void> {
         return new Promise((resolve, reject) => {
             let checks = 0;
