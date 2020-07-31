@@ -103,6 +103,7 @@ export = class Listings {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
                 clearTimeout(this.autoRelistTimeout);
+                clearTimeout(this.autoRelistRetryTimeout);
                 this.autoRelistRetry = true;
                 return;
             }
