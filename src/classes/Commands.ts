@@ -617,8 +617,18 @@ export = class Commands {
         const sell = { keys: sellKeys, metal: sellMetal };
 
         this.bot.pricelist.adjustKeyRate(buy, sell);
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
 
-        this.bot.sendMessage(steamID, '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell));
+        let reply;
+        reply = '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell);
+
+        if (autokeys.enabled === false) {
+            reply += '. Autokeys is disabled so no adjustment made on Autokeys.';
+        } else {
+            (this.bot.handler as MyHandler).refreshAutoKeys();
+            reply += '. Autokeys is enabled and has been automatically refreshed.';
+        }
+        this.bot.sendMessage(steamID, reply);
     }
 
     private messageCommand(steamID: SteamID, message: string): void {
