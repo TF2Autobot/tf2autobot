@@ -52,6 +52,7 @@ const ADMIN_COMMANDS: string[] = [
     '!withdraw <name=>&<amount=> - Used to withdraw items',
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
+    '!adjustrate buy.metal=<buying price>&sell.metal=<selling price> - Manually adjust key rate (reset on restart, self-update when key rate changes)',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
@@ -126,6 +127,8 @@ export = class Commands {
             this.uncraftweaponCommand(steamID);
         } else if (command === 'rate') {
             this.rateCommand(steamID);
+        } else if (command === 'adjustrate' && isAdmin) {
+            this.adjustKeyRateCommand(steamID, message);
         } else if (command === 'message') {
             this.messageCommand(steamID, message);
         } else if (command === 'cart') {
@@ -422,7 +425,12 @@ export = class Commands {
 
     private inventoryCommand(steamID: SteamID): void {
         const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
-        this.bot.sendMessage(steamID, `🎒 My crrent items in my inventory: ${currentItems}`);
+        const backpackSlots = (this.bot.handler as MyHandler).getBackpackSlots();
+
+        this.bot.sendMessage(
+            steamID,
+            `🎒 My crrent items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+        );
     }
 
     private autoKeysCommand(steamID: SteamID): void {
@@ -493,11 +501,17 @@ export = class Commands {
                     ? 'Banking' + (autokeys.scrapAdjustmentEnabled ? ' (default price)' : '')
                     : autokeys.isBuying
                     ? 'Buying for ' +
-                      Currencies.toRefined(keyPrices.buy.toValue() + autokeys.scrapAdjustmentValue).toString() +
+                      Currencies.toRefined(
+                          keyPrices.buy.toValue() +
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
                       ' ref' +
                       (autokeys.scrapAdjustmentEnabled ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                     : 'Selling for ' +
-                      Currencies.toRefined(keyPrices.sell.toValue() - autokeys.scrapAdjustmentValue).toString() +
+                      Currencies.toRefined(
+                          keyPrices.sell.toValue() -
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
                       ' ref' +
                       (autokeys.scrapAdjustmentEnabled ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                 : 'Not active'
@@ -526,6 +540,34 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.'
         );
+    }
+
+    private adjustKeyRateCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (!params || (params.buy === undefined && params.sell === undefined)) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ You must include both buy AND sell price, example - "!adjustkeyrate sell.metal=56.33&buy.metal=56.22"'
+            );
+            return;
+        }
+
+        if (+params.buy.metal > +params.sell.metal) {
+            this.bot.sendMessage(steamID, '❌ Sell price must be higher than buy price.');
+            return;
+        }
+
+        const buyKeys = +params.buy.keys || 0;
+        const buyMetal = +params.buy.metal || 0;
+        const sellKeys = +params.sell.keys || 0;
+        const sellMetal = +params.sell.metal || 0;
+        const buy = { keys: buyKeys, metal: buyMetal };
+        const sell = { keys: sellKeys, metal: sellMetal };
+
+        this.bot.pricelist.adjustKeyRate(buy, sell);
+
+        this.bot.sendMessage(steamID, '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell));
     }
 
     private messageCommand(steamID: SteamID, message: string): void {

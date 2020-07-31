@@ -1,7 +1,7 @@
 # tf2autobot
 
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf.
-**tf2autobot** is an improved version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more about the original repository [here](https://github.com/Nicklason/tf2-automatic).
+**tf2autobot** is an improved and feature rich version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more about the original repository [here](https://github.com/Nicklason/tf2-automatic).
 
 ![GitHub package version](https://img.shields.io/github/package-json/v/idinium96/tf2autobot.svg)
 [![Build Status](https://img.shields.io/github/workflow/status/idinium96/tf2autobot/CI/development)](https://github.com/idinium96/tf2autobot/actions)
@@ -75,7 +75,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - automatically restart your bot on queue problem, and automatically relist if backpack.tf does not synchronized with your bot listings on Autokeys (sometimes it's set to automatically buy keys, but at backpack.tf, it's listed to sell.)
 - use emojis on almost all messages
 - list out every items on each offer review reasons
-- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!craftweapon" and "!uncraftweapon" commands
+- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!inventory", "!adjustrate", "!craftweapon" and "!uncraftweapon" commands
 - and more to come!
 
 ## Added features
@@ -143,7 +143,7 @@ Some screenshots:
 
 ![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1546-L2140).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1582-L2176).
 
 ### Emojis and more commands added
 
@@ -294,7 +294,7 @@ Time will be use in "!time" command and
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: [true|false] - self explained.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: [true|false] - self explained.
-- `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY`: [true|false] - Show total current items in your bot inventory (I have tried to include `/max slot` but it's not working).
+- `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY`: [true|false] - Show total current items in your bot inventory.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE` - Notes.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to `true` if you want your bot to mention on every successful trades.
 - `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
@@ -321,7 +321,7 @@ Time will be use in "!time" command and
 ### Manual Review settings
 - `ENABLE_MANUAL_REVIEW`: [true|false] - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 - `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
-- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1340-L1471)
+- `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1358-L1572)
 - `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
 - `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.

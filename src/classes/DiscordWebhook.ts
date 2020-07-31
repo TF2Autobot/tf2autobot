@@ -158,6 +158,7 @@ export = class DiscordWebhook {
     sendOfferReview(
         offer: TradeOffer,
         reason: string,
+        reasons: string,
         pureStock: string[],
         time: string,
         tradeSummary: string,
@@ -177,12 +178,12 @@ export = class DiscordWebhook {
         let noMentionOnInvalidValue = false;
         if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
             if (
-                reason.includes('🟥INVALID_VALUE') &&
+                reasons.includes('🟥INVALID_VALUE') &&
                 !(
-                    reason.includes('🟨INVALID_ITEMS') ||
-                    reason.includes('🟦OVERSTOCKED') ||
-                    reason.includes('🟫DUPED_ITEMS') ||
-                    reason.includes('🟪DUPE_CHECK_FAILED')
+                    reasons.includes('🟨INVALID_ITEMS') ||
+                    reasons.includes('🟦OVERSTOCKED') ||
+                    reasons.includes('🟫DUPED_ITEMS') ||
+                    reasons.includes('🟪DUPE_CHECK_FAILED')
                 )
             ) {
                 noMentionOnInvalidValue = true;
@@ -259,7 +260,13 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reason}\n\n__Offer Summary__:\n` +
+                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${
+                                reason === '⬜BACKPACKTF_DOWN'
+                                    ? '⬜BACKPACKTF_DOWN - failed to check banned status'
+                                    : reason === '⬜STEAM_DOWN'
+                                    ? '⬜STEAM_DOWN - failed to check escrow status'
+                                    : reasons
+                            }\n\n__Offer Summary__:\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
                             (value.diff > 0
                                 ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
@@ -321,6 +328,7 @@ export = class DiscordWebhook {
         tradeSummary: string,
         pureStock: string[],
         currentItems: number,
+        backpackSlots: number,
         invalidItemsCombine: string[],
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
@@ -483,7 +491,9 @@ export = class DiscordWebhook {
                                   }`
                                 : '') +
                             (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                            (isShowInventory ? `\n🎒 Total items: ${currentItems}` : '') +
+                            (isShowInventory
+                                ? `\n🎒 Total items: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+                                : '') +
                             (AdditionalNotes ? '\n' + AdditionalNotes : ''),
                         color: botEmbedColor
                     }
