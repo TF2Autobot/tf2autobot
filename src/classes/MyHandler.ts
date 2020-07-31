@@ -166,7 +166,7 @@ export = class MyHandler extends Handler {
             this.scrapAdjustmentValue = scrapValue;
         }
 
-        if (process.env.DISABLE_SCRAP_ADJUSTMENT === 'false') {
+        if (process.env.DISABLE_SCRAP_ADJUSTMENT !== 'true') {
             this.isUsingAutoPrice = false;
         }
 

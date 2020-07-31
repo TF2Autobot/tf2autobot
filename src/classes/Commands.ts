@@ -501,11 +501,17 @@ export = class Commands {
                     ? 'Banking' + (autokeys.scrapAdjustmentEnabled ? ' (default price)' : '')
                     : autokeys.isBuying
                     ? 'Buying for ' +
-                      Currencies.toRefined(keyPrices.buy.toValue() + autokeys.scrapAdjustmentValue).toString() +
+                      Currencies.toRefined(
+                          keyPrices.buy.toValue() +
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
                       ' ref' +
                       (autokeys.scrapAdjustmentEnabled ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                     : 'Selling for ' +
-                      Currencies.toRefined(keyPrices.sell.toValue() - autokeys.scrapAdjustmentValue).toString() +
+                      Currencies.toRefined(
+                          keyPrices.sell.toValue() -
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
                       ' ref' +
                       (autokeys.scrapAdjustmentEnabled ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                 : 'Not active'
