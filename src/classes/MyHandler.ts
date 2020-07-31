@@ -7,6 +7,7 @@ import Inventory from './Inventory';
 import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku';
+import request from '@nicklason/request-retry';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -69,6 +70,8 @@ export = class MyHandler extends Handler {
 
     private invalidItemsSKU: string[] = [];
 
+    private invalidItemsValue: string[] = [];
+
     private overstockedItemsSKU: string[] = [];
 
     private dupedItemsSKU: string[] = [];
@@ -88,6 +91,18 @@ export = class MyHandler extends Handler {
     private autoRelistNotSellingKeys = 0;
 
     private autoRelistNotBuyingKeys = 0;
+
+    private hasInvalidValueException = false;
+
+    private customGameName: string;
+
+    private isUsingAutoPrice = true;
+
+    private scrapAdjustmentValue = 0;
+
+    private backpackSlots = 0;
+
+    private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -124,8 +139,36 @@ export = class MyHandler extends Handler {
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
         }
 
+        const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+
+        if (!customGameName || customGameName === 'tf2-automatic') {
+            this.customGameName = customGameName;
+        } else {
+            if (customGameName.length <= 45) {
+                this.customGameName = customGameName + ' - tf2-automatic';
+            } else {
+                log.warn(
+                    'Your custom game playing name is more than 45 characters, resetting to only "tf2-automatic"...'
+                );
+                this.customGameName = 'tf2-automatic';
+            }
+        }
+
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
         this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
+
+        const scrapValue = parseInt(process.env.SCRAP_ADJUSTMENT_VALUE);
+
+        if (!scrapValue || isNaN(scrapValue)) {
+            log.warn('Scrap adjustment not set or not a number, resetting to 0.');
+            this.scrapAdjustmentValue = 0;
+        } else {
+            this.scrapAdjustmentValue = scrapValue;
+        }
+
+        if (process.env.DISABLE_SCRAP_ADJUSTMENT !== 'true') {
+            this.isUsingAutoPrice = false;
+        }
 
         if (!isNaN(minimumScrap)) {
             this.minimumScrap = minimumScrap;
@@ -183,6 +226,10 @@ export = class MyHandler extends Handler {
         }, 1000);
     }
 
+    getFriendToKeep(): number {
+        return this.friendsToKeep.length;
+    }
+
     hasDupeCheckEnabled(): boolean {
         return this.dupeCheckEnabled;
     }
@@ -191,34 +238,45 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
-    getAutokeysEnabled(): boolean {
-        return this.autokeysEnabled;
+    getCustomGame(): string {
+        return this.customGameName;
     }
 
-    getUserAutokeysSettings(): { minKeys: number; maxKeys: number; minRef: number; maxRef: number } {
+    getBackpackSlots(): number {
+        return this.backpackSlots;
+    }
+
+    getUserAutokeys(): {
+        enabled: boolean;
+        status: boolean;
+        minKeys: number;
+        maxKeys: number;
+        minRef: number;
+        maxRef: number;
+        isBuying: boolean;
+        bankingEnabled: boolean;
+        isBanking: boolean;
+        scrapAdjustmentEnabled: boolean;
+        scrapAdjustmentValue: number;
+    } {
         const settings = {
+            enabled: this.autokeysEnabled,
+            status: this.checkAutokeysStatus,
             minKeys: this.userMinKeys,
             maxKeys: this.userMaxKeys,
             minRef: this.userMinReftoScrap,
-            maxRef: this.userMaxReftoScrap
+            maxRef: this.userMaxReftoScrap,
+            isBuying: this.isBuyingKeys,
+            bankingEnabled: this.keyBankingEnabled,
+            isBanking: this.isBankingKeys,
+            scrapAdjustmentEnabled: !this.isUsingAutoPrice,
+            scrapAdjustmentValue: this.scrapAdjustmentValue
         };
         return settings;
     }
 
-    getAutokeysStatus(): boolean {
-        return this.checkAutokeysStatus;
-    }
-
-    getAutokeysBuyingStatus(): boolean {
-        return this.isBuyingKeys;
-    }
-
-    getAutokeysBankingEnabled(): boolean {
-        return this.keyBankingEnabled;
-    }
-
-    getAutokeysBankingStatus(): boolean {
-        return this.isBankingKeys;
+    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
+        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     onRun(): Promise<{
@@ -250,8 +308,11 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+
+        // GetBackpackSlots
+        this.requestBackpackSlots();
 
         // Smelt / combine metal if needed
         this.keepMetalSupply();
@@ -283,8 +344,8 @@ export = class MyHandler extends Handler {
             }
 
             if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.checkAutokeysStatus === true) {
-                log.debug('Disabling Autokeys...');
-                this.updateToDisableAutokeys();
+                log.debug('Disabling Autokeys and removing key from pricelist...');
+                this.removeAutoKeys();
             }
 
             this.bot.listings.removeAll().asCallback(function(err) {
@@ -300,7 +361,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+            this.bot.client.gamesPlayed([this.customGameName, 440]);
         }
     }
 
@@ -471,30 +532,11 @@ export = class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        if (
-            offer.itemsToGive.length === 0 &&
-            (offerMessage.includes('gift') ||
-            offerMessage.includes('donat') || // So that 'donate' or 'donation' will also be accepted
-            offerMessage.includes('tip') || // All others are synonyms
-            offerMessage.includes('tribute') ||
-            offerMessage.includes('souvenir') ||
-            offerMessage.includes('favor') ||
-            offerMessage.includes('giveaway') ||
-            offerMessage.includes('bonus') ||
-            offerMessage.includes('grant') ||
-            offerMessage.includes('bounty') ||
-            offerMessage.includes('present') ||
-            offerMessage.includes('contribution') ||
-            offerMessage.includes('award') ||
-            offerMessage.includes('nice') || // Up until here actually
-            offerMessage.includes('happy') || // All below people might also use
-            offerMessage.includes('thank') ||
-            offerMessage.includes('goo') || // For 'good', 'goodie' or anything else
-                offerMessage.includes('awesome') ||
-                offerMessage.includes('rep') ||
-                offerMessage.includes('joy') ||
-                offerMessage.includes('cute')) // right?
-        ) {
+        const isGift = this.giftWords().some(word => {
+            return offerMessage.includes(word);
+        });
+
+        if (offer.itemsToGive.length === 0 && isGift) {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
             return { action: 'accept', reason: 'GIFT' };
         }
@@ -507,28 +549,69 @@ export = class MyHandler extends Handler {
             return { action: 'decline', reason: 'taking our stuff kill em' };
         }
 
-        let hasNot5Uses = false;
-        offer.itemsToReceive.forEach(item => {
-            if (item.name === 'Dueling Mini-Game') {
-                for (let i = 0; i < item.descriptions.length; i++) {
-                    const descriptionValue = item.descriptions[i].value;
-                    const descriptionColor = item.descriptions[i].color;
+        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
 
-                    if (
-                        !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                        descriptionColor === '00a000'
-                    ) {
-                        hasNot5Uses = true;
-                        log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
-                        break;
+        const checkExist = this.bot.pricelist;
+
+        if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+            let hasNot5Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                if (item.name === 'Dueling Mini-Game') {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot5Uses = true;
+                            log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
+                            break;
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        if (hasNot5Uses && this.bot.pricelist.getPrice('241;6', true) !== null) {
-            offer.log('info', 'contains Dueling Mini-Game that is not 5 uses.');
-            return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                // Only decline if exist in pricelist
+                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            }
+        }
+
+        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+
+        if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+            let hasNot25Uses = false;
+            offer.itemsToReceive.forEach(item => {
+                const isNoiseMaker = this.noiseMakerNames().some(name => {
+                    return item.name.includes(name);
+                });
+                if (isNoiseMaker) {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            hasNot25Uses = true;
+                            log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            const isNoiseMaker = this.noiseMakerSKUs().some(sku => {
+                return checkExist.getPrice(sku, true) !== null;
+            });
+            if (hasNot25Uses && isNoiseMaker) {
+                offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+            }
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
@@ -669,6 +752,26 @@ export = class MyHandler extends Handler {
 
                         this.invalidItemsSKU.push(sku);
 
+                        this.sleep(1000);
+                        const price = await this.bot.pricelist.getPricesTF(sku);
+
+                        if (price === null) {
+                            this.invalidItemsValue.push('No price');
+                        } else {
+                            price.buy = new Currencies(price.buy);
+                            price.sell = new Currencies(price.sell);
+
+                            if (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS !== 'true') {
+                                exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
+                                exchange[which].keys += price[intentString].keys * amount;
+                                exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                            }
+                            const itemSuggestedValue = Currencies.toCurrencies(
+                                price[intentString].toValue(keyPrice.metal)
+                            );
+                            this.invalidItemsValue.push(itemSuggestedValue.toString());
+                        }
+
                         wrongAboutOffer.push({
                             reason: '🟨INVALID_ITEMS',
                             sku: sku,
@@ -747,7 +850,7 @@ export = class MyHandler extends Handler {
                 }
             }
             if (this.autokeysEnabled !== false) {
-                if (this.autoRelistNotSellingKeys > 4 || this.autoRelistNotBuyingKeys > 4) {
+                if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
                     log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
                     this.bot.listings.checkAllWithDelay();
                     this.autoRelistNotSellingKeys = 0;
@@ -785,6 +888,7 @@ export = class MyHandler extends Handler {
                 // Check if the values are correct and is not include the exception sku
                 // OR include the exception sku but the invalid value is more than or equal to exception value
                 hasInvalidValue = true;
+                this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
                     reason: '🟥INVALID_VALUE',
                     our: exchange.our.value,
@@ -798,6 +902,7 @@ export = class MyHandler extends Handler {
                         exceptionValue
                     )} ref. Accepting/checking for other reasons...`
                 );
+                this.hasInvalidValueException = true;
             }
         }
 
@@ -854,7 +959,7 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
-            return;
+            return { action: 'skip', reason: '⬜STEAM_DOWN' };
         }
 
         offer.log('info', 'checking bans...');
@@ -868,7 +973,7 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
-            return;
+            return { action: 'skip', reason: '⬜BACKPACKTF_DOWN' };
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
@@ -931,9 +1036,18 @@ export = class MyHandler extends Handler {
             }
         }
 
+        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            const acceptingCondition =
+                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
+                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false'
+                    ? exchange.our.value < exchange.their.value
+                    : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
+                    ? exchange.our.value <= exchange.their.value
+                    : false;
 
             // TO DO: Counter offer?
             //
@@ -948,21 +1062,64 @@ export = class MyHandler extends Handler {
             // ) {
             //     const counteroffer = offer.counter();
             // }
-
-            offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
-            return {
-                action: 'skip',
-                reason: 'REVIEW',
-                meta: {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (
+                ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
+                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
+                    (uniqueReasons.includes('🟦OVERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
+                !(
+                    uniqueReasons.includes('🟥INVALID_VALUE') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                ) &&
+                acceptingCondition &&
+                exchange.our.value !== 0
+            ) {
+                this.isAcceptedWithInvalidItemsOrOverstocked = true;
+                offer.log(
+                    'trade',
+                    `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                        this.bot.schema
+                    )}`
+                );
+                return { action: 'accept', reason: 'VALID' };
+            } else if (
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
+                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
+                uniqueReasons.includes('🟥INVALID_VALUE') &&
+                !(
+                    uniqueReasons.includes('🟨INVALID_ITEMS') ||
+                    uniqueReasons.includes('🟦OVERSTOCKED') ||
+                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                ) &&
+                this.hasInvalidValueException === false
+            ) {
+                return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+            } else {
+                offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
         }
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
 
         return { action: 'accept', reason: 'VALID' };
+    }
+
+    private sleep(mili: number): void {
+        const date = moment().valueOf();
+        let currentDate = null;
+        do {
+            currentDate = moment().valueOf();
+        } while (currentDate - date < mili);
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
@@ -985,8 +1142,22 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_SUCCESS_MESSAGE
                             : '/pre ✅ Success! The offer went through successfully.'
                     );
+                } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        '✅ Success! The offer went through successfully, but you will receive your items after ~15 days.' +
+                            ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                            '\nRead:\n' +
+                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                            '• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                    );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
+                    const keyPrice = this.bot.pricelist.getKeyPrices();
+                    const value = this.valueDiff(offer, keyPrice);
+                    const itemsList = this.itemList(offer);
+
+                    let reasonForInvalidValue = false;
                     let reason: string;
                     if (!offerReason) {
                         reason = '';
@@ -994,6 +1165,13 @@ export = class MyHandler extends Handler {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                    } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
+                        reason = 'your offer contains Noise Maker that are not 25 uses.';
+                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reasonForInvalidValue = true;
+                        reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
+                    } else {
+                        reason = '';
                     }
                     this.bot.sendMessage(
                         offer.partner,
@@ -1001,7 +1179,23 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_DECLINED_MESSAGE
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }`
+                              }` +
+                                  (reasonForInvalidValue
+                                      ? '\n\nSummary:\n' +
+                                        offer
+                                            .summarize(this.bot.schema)
+                                            .replace('Asked', '  My side')
+                                            .replace('Offered', 'Your side') +
+                                        "\n[You're missing: " +
+                                        (itemsList.their.includes('5021;6')
+                                            ? `${value.diffKey}]`
+                                            : `${value.diffRef} ref]`) +
+                                        `${
+                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                                : ''
+                                        }`
+                                      : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1047,6 +1241,22 @@ export = class MyHandler extends Handler {
                 const timeWithEmojis = this.timeWithEmoji();
                 const links = this.tradePartnerLinks(offer.partner.toString());
                 const itemsList = this.itemList(offer);
+                const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
+
+                const invalidItemsName: string[] = [];
+                const invalidItemsCombine: string[] = [];
+                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
+
+                if (isAcceptedInvalidItemsOverpay) {
+                    this.invalidItemsSKU.forEach(sku => {
+                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                        invalidItemsName.push(name);
+                    });
+
+                    for (let i = 0; i < invalidItemsName.length; i++) {
+                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                    }
+                }
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
                 const value = this.valueDiff(offer, keyPrice);
@@ -1063,6 +1273,9 @@ export = class MyHandler extends Handler {
                         isBankingKeys,
                         offer.summarizeWithLink(this.bot.schema),
                         pureStock,
+                        currentItems,
+                        this.backpackSlots,
+                        invalidItemsCombine,
                         keyPrice,
                         value,
                         itemsList,
@@ -1081,6 +1294,9 @@ export = class MyHandler extends Handler {
                                 ? `\n\n📉 Loss from underpay: ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
+                            (isAcceptedInvalidItemsOverpay
+                                ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                                : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${
                                 isAutoKeysEnabled
@@ -1090,8 +1306,9 @@ export = class MyHandler extends Handler {
                                             (isBankingKeys ? ' (banking)' : isBuyingKeys ? ' (buying)' : ' (selling)')
                                           : '🛑')
                                     : ''
-                            }
-                        💰 Pure stock: ${pureStock.join(', ').toString()} ref`,
+                            }` +
+                            `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                            `\n🎒 Total items: ${currentItems}`,
                         []
                     );
                 }
@@ -1122,6 +1339,15 @@ export = class MyHandler extends Handler {
             }
 
             this.inviteToGroups(offer.partner);
+
+            this.sleep(3000);
+
+            // clear/reset these in memory
+            this.invalidItemsSKU.length = 0;
+            this.invalidItemsValue.length = 0;
+            this.overstockedItemsSKU.length = 0;
+            this.dupedItemsSKU.length = 0;
+            this.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -1148,6 +1374,7 @@ export = class MyHandler extends Handler {
             let note: string;
             let missingPureNote: string;
             const invalidItemsName: string[] = [];
+            const invalidItemsCombine: string[] = [];
             const overstockedItemsName: string[] = [];
             const dupedItemsName: string[] = [];
             const dupedFailedItemsName: string[] = [];
@@ -1158,6 +1385,10 @@ export = class MyHandler extends Handler {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     invalidItemsName.push(name);
                 });
+
+                for (let i = 0; i < invalidItemsName.length; i++) {
+                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                }
 
                 note = process.env.INVALID_ITEMS_NOTE
                     ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
@@ -1243,38 +1474,51 @@ export = class MyHandler extends Handler {
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             // Notify partner and admin that the offer is waiting for manual review
-            this.bot.sendMessage(
-                offer.partner,
-                `/pre ⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
-                    (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
-                        ? '\n\nYour offer summary:\n' +
-                          offer
-                              .summarize(this.bot.schema)
-                              .replace('Asked', '  My side')
-                              .replace('Offered', 'Your side') +
-                          (missingPureNote !== '' ? missingPureNote : '') +
-                          (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                              ? `\n\nNote:\n${reviewReasons.join('\n')}`
-                              : '')
-                        : '') +
-                    (process.env.ADDITIONAL_NOTE
-                        ? '\n\n' +
-                          process.env.ADDITIONAL_NOTE.replace(
-                              /%keyRate%/g,
-                              `${keyPrice.sell.metal.toString()} ref`
-                          ).replace(/%pureStock%/g, pureStock.join(', ').toString())
-                        : '') +
-                    (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                        ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
-                              (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
-                        : '')
-            );
+            if (reason === '⬜BACKPACKTF_DOWN' || reason === '⬜STEAM_DOWN') {
+                this.bot.sendMessage(
+                    offer.partner,
+                    (reason === '⬜BACKPACKTF_DOWN' ? 'Backpack.tf' : 'Steam') +
+                        ' is down and I failed to check your ' +
+                        (reason === '⬜BACKPACKTF_DOWN' ? 'backpack.tf' : 'Escrow') +
+                        ' status, please wait for my owner to manually accept/decline your offer.'
+                );
+            } else {
+                this.bot.sendMessage(
+                    offer.partner,
+                    `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
+                        (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                            ? '\n\nYour offer summary:\n' +
+                              offer
+                                  .summarize(this.bot.schema)
+                                  .replace('Asked', '  My side')
+                                  .replace('Offered', 'Your side') +
+                              (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
+                                  ? missingPureNote
+                                  : '') +
+                              (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                                  ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                                  : '')
+                            : '') +
+                        (process.env.ADDITIONAL_NOTE
+                            ? '\n\n' +
+                              process.env.ADDITIONAL_NOTE.replace(
+                                  /%keyRate%/g,
+                                  `${keyPrice.sell.metal.toString()} ref`
+                              ).replace(/%pureStock%/g, pureStock.join(', ').toString())
+                            : '') +
+                        (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
+                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                                  (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
+                            : '')
+                );
+            }
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
             ) {
                 this.discord.sendOfferReview(
                     offer,
+                    reason,
                     reasons.join(', '),
                     pureStock,
                     timeWithEmojis.time,
@@ -1283,7 +1527,7 @@ export = class MyHandler extends Handler {
                     keyPrice,
                     value,
                     links,
-                    invalidItemsName,
+                    invalidItemsCombine,
                     overstockedItemsName,
                     dupedItemsName,
                     dupedFailedItemsName
@@ -1291,58 +1535,61 @@ export = class MyHandler extends Handler {
             } else {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
-                    `/pre ⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.
-                    Reason: ${meta.uniqueReasons.join(', ')}
-                    
-                    Offer Summary:
-                    ${offer.summarize(this.bot.schema)}${
-                        value.diff > 0
-                            ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
-                              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                            : value.diff < 0
-                            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
-                              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                            : ''
-                    }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}${
-                        invalidItemsName.length !== 0 ? `\n\n🟨INVALID_ITEMS - ${invalidItemsName.join(', ')}` : ''
-                    }${
-                        invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
-                            ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                            : overstockedItemsName.length !== 0
-                            ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                            : ''
-                    }${
-                        (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
-                        dupedItemsName.length !== 0
-                            ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                            : dupedItemsName.length !== 0
-                            ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                            : ''
-                    }${
-                        (invalidItemsName.length !== 0 ||
-                            overstockedItemsName.length !== 0 ||
-                            dupedItemsName.length !== 0) &&
-                        dupedFailedItemsName.length !== 0
-                            ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                            : dupedFailedItemsName.length !== 0
-                            ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                            : ''
-                    }
-                    
-                    Steam: ${links.steamProfile}
-                    Backpack.tf: ${links.backpackTF}
-                    SteamREP: ${links.steamREP}
-
-                    🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref
-                    💰 Pure stock: ${pureStock.join(', ').toString()} ref`,
+                    `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
+                        `\nReason: ${
+                            reason === '⬜BACKPACKTF_DOWN'
+                                ? '⬜BACKPACKTF_DOWN - failed to check banned status'
+                                : reason === '⬜STEAM_DOWN'
+                                ? '⬜STEAM_DOWN - failed to check escrow status'
+                                : meta.uniqueReasons.join(', ')
+                        }` +
+                        `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
+                            value.diff > 0
+                                ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : value.diff < 0
+                                ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
+                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                                : ''
+                        }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}${
+                            invalidItemsName.length !== 0
+                                ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
+                                : ''
+                        }${
+                            invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
+                                ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                                : overstockedItemsName.length !== 0
+                                ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
+                                : ''
+                        }${
+                            (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
+                            dupedItemsName.length !== 0
+                                ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                                : dupedItemsName.length !== 0
+                                ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
+                                : ''
+                        }${
+                            (invalidItemsName.length !== 0 ||
+                                overstockedItemsName.length !== 0 ||
+                                dupedItemsName.length !== 0) &&
+                            dupedFailedItemsName.length !== 0
+                                ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                                : dupedFailedItemsName.length !== 0
+                                ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
+                                : ''
+                        }` +
+                        `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+                        `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}`,
                     []
                 );
             }
             // clear/reset these in memory
-            this.invalidItemsSKU = [];
-            this.overstockedItemsSKU = [];
-            this.dupedItemsSKU = [];
-            this.dupedFailedItemsSKU = [];
+            this.invalidItemsSKU.length = 0;
+            this.invalidItemsValue.length = 0;
+            this.overstockedItemsSKU.length = 0;
+            this.dupedItemsSKU.length = 0;
+            this.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -1391,19 +1638,17 @@ export = class MyHandler extends Handler {
         */
 
         /**
-         * disable Autokeys - true if minRef ≤ currRef ≤ maxRef AND
-         * (currKeys ≤ minKeys OR minKeys ≤ currKeys ≤ maxKeys OR currKeys ≥ maxKeys)
+         * disable Autokeys - true if currRef \>= maxRef AND currKeys \>= maxKeys OR
+         * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
          */
         const isRemoveAutoKeys =
-            (currReftoScrap >= userMinReftoScrap &&
-                currReftoScrap <= userMaxReftoScrap &&
-                (currKeys <= userMinKeys ||
-                    (currKeys >= userMinKeys && currKeys <= userMaxKeys) ||
-                    currKeys >= userMaxKeys)) !== false;
+            (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
+            (currReftoScrap >= userMinReftoScrap && currReftoScrap <= userMaxReftoScrap && currKeys <= userMaxKeys) !==
+                false;
         /*
-        //        <·····●····························●·····> (OR) \
+        //        <——————————————————————————————————●·····>      \
         // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ●————————————————————————————●      (AND) /
+        //              ●————————————————————————————●·····>      /
         // Refs --------|----------------------------|---------->
         //             min                          max
         */
@@ -1423,6 +1668,19 @@ export = class MyHandler extends Handler {
         //              ○———————————————————————————————————>     \
         // Keys --------|----------------------------|---------->  ⟩ AND
         //              ○————————————————————————————○            /
+        // Refs --------|----------------------------|---------->
+        //             min                          max
+        */
+
+        /**
+         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
+         * Will buy keys.
+         */
+        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys !== false;
+        /*
+        //        <—————●                                         \
+        // Keys --------|----------------------------|---------->  ⟩ AND
+        //              ○———————————————————————————————————>     /
         // Refs --------|----------------------------|---------->
         //             min                          max
         */
@@ -1491,6 +1749,16 @@ Autokeys status:-
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
                 this.updateAutokeysBanking(userMinKeys, userMaxKeys);
+            } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                this.isBuyingKeys = true;
+                this.isBankingKeys = false;
+                this.checkAutokeysStatus = true;
+                this.checkAlertOnLowPure = false;
+                this.alreadyUpdatedToBank = false;
+                this.alreadyUpdatedToBuy = true;
+                this.alreadyUpdatedToSell = false;
+                this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                 // enable Autokeys - Buying - if buying keys conditions matched
                 this.isBuyingKeys = true;
@@ -1520,7 +1788,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBank = false;
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
-                this.updateToDisableAutokeys();
+                this.removeAutoKeys();
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
                 this.isBuyingKeys = false;
@@ -1530,7 +1798,7 @@ Autokeys status:-
                 this.alreadyUpdatedToBank = false;
                 this.alreadyUpdatedToBuy = false;
                 this.alreadyUpdatedToSell = false;
-                this.updateToDisableAutokeys();
+                this.removeAutoKeys();
             } else if (isAlertAdmins && isAlreadyAlert !== true) {
                 // alert admins when low pure
                 this.isBuyingKeys = false;
@@ -1566,6 +1834,16 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     this.createAutokeysBanking(userMinKeys, userMaxKeys);
+                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
+                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                    this.isBuyingKeys = true;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = true;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = false;
+                    this.alreadyUpdatedToSell = false;
+                    this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
                     this.isBuyingKeys = true;
@@ -1619,6 +1897,16 @@ Autokeys status:-
                     this.alreadyUpdatedToBuy = false;
                     this.alreadyUpdatedToSell = false;
                     this.updateAutokeysBanking(userMinKeys, userMaxKeys);
+                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
+                    this.isBuyingKeys = true;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = true;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = true;
+                    this.alreadyUpdatedToSell = false;
+                    this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                     // enable Autokeys - Buying - if buying keys conditions matched
                     this.isBuyingKeys = true;
@@ -1665,14 +1953,37 @@ Autokeys status:-
     }
 
     private createAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 1
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, true)
             .then(() => {
@@ -1685,14 +1996,37 @@ Autokeys status:-
     }
 
     private createAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 0
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, true)
             .then(() => {
@@ -1705,10 +2039,13 @@ Autokeys status:-
     }
 
     private createAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
+        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: true,
+            autoprice: false,
+            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -1745,14 +2082,37 @@ Autokeys status:-
     }
 
     private updateAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 1
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 1
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, true)
             .then(() => {
@@ -1765,14 +2125,37 @@ Autokeys status:-
     }
 
     private updateAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 0
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (this.isUsingAutoPrice) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                max: userMaxKeys,
+                min: userMinKeys,
+                intent: 0
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, true)
             .then(() => {
@@ -1785,10 +2168,13 @@ Autokeys status:-
     }
 
     private updateAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
+        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: true,
+            autoprice: false,
+            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
+            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -1815,6 +2201,32 @@ Autokeys status:-
                 log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
                 this.checkAutokeysStatus = true;
             });
+    }
+
+    refreshAutoKeys(): void {
+        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
+        if (isKeysAlreadyExist) {
+            this.bot.pricelist
+                .removePrice('5021;6', true)
+                .then(() => {
+                    log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
+                    this.isBuyingKeys = false;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = false;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = false;
+                    this.alreadyUpdatedToSell = false;
+                    this.sleep(2000);
+                    this.autokeys();
+                })
+                .catch(err => {
+                    log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
+                    this.checkAutokeysStatus = true;
+                });
+        } else {
+            this.autokeys();
+        }
     }
 
     private keepMetalSupply(): void {
@@ -1886,7 +2298,8 @@ Autokeys status:-
 
         this.craftweaponOnlyCraftable().forEach(sku => {
             const weapon = currencies[sku].length;
-            if (weapon >= 2) {
+            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) !== null) {
+                // Only craft if duplicated and not exist in pricelist
                 const combineWeapon = Math.ceil(weapon / 2);
                 for (let i = 0; i < combineWeapon; i++) {
                     this.bot.tf2gc.combineWeapon(sku);
@@ -1902,6 +2315,10 @@ Autokeys status:-
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
+        if (process.env.DISABLE_GROUPS_INVITE === 'true') {
+            // You still need to include the group ID in your env.
+            return;
+        }
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
 
@@ -1973,7 +2390,10 @@ Autokeys status:-
                     this.bot.sendMessage(
                         steamID,
                         process.env.CUSTOM_WELCOME_MESSAGE
-                            ? process.env.CUSTOM_WELCOME_MESSAGE
+                            ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
+                                  /%admin%/g,
+                                  isAdmin ? '!help' : '!how2trade'
+                              )
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
                                   '"'
@@ -1995,7 +2415,10 @@ Autokeys status:-
             this.bot.sendMessage(
                 steamID,
                 process.env.CUSTOM_WELCOME_MESSAGE
-                    ? process.env.CUSTOM_WELCOME_MESSAGE
+                    ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
+                          /%admin%/g,
+                          isAdmin ? '!help' : '!how2trade'
+                      )
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
                           '"'
@@ -2054,6 +2477,38 @@ Autokeys status:-
                 this.bot.client.removeFriend(element.steamID);
             });
         }
+    }
+
+    requestBackpackSlots(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            request(
+                {
+                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+                    method: 'GET',
+                    qs: {
+                        key: this.bot.manager.apiKey,
+                        steamid: this.bot.client.steamID.getSteamID64()
+                    },
+                    json: true,
+                    gzip: true
+                },
+                (err, response, body) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    if (body.result.status != 1) {
+                        err = new Error(body.result.statusDetail);
+                        err.status = body.result.status;
+                        return reject(err);
+                    }
+
+                    this.backpackSlots = body.result.num_backpack_slots;
+
+                    return resolve();
+                }
+            );
+        });
     }
 
     private itemList(offer: TradeOffer): { their: string[]; our: string[] } {
@@ -2168,19 +2623,21 @@ Autokeys status:-
     pureStock(): string[] {
         const pureStock: string[] = [];
         const pure = this.currPure();
+        const totalKeys = pure.key;
+        const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
 
         const pureCombine = [
             {
-                name: 'Key',
-                amount: pure.key
+                name: pluralize('key', totalKeys),
+                amount: totalKeys
             },
             {
-                name: 'Ref',
-                amount: Currencies.toRefined(pure.refTotalInScrap)
+                name: pluralize('ref', Math.trunc(totalRefs)),
+                amount: totalRefs
             }
         ];
         for (let i = 0; i < pureCombine.length; i++) {
-            pureStock.push(`${pureCombine[i].name}: ${pureCombine[i].amount}`);
+            pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
         }
         return pureStock;
     }
@@ -2250,6 +2707,83 @@ Autokeys status:-
             tradesToday: tradesToday
         };
         return polldata;
+    }
+
+    giftWords(): string[] {
+        const words = [
+            'gift',
+            'donat', // So that 'donate' or 'donation' will also be accepted
+            'tip', // All others are synonyms
+            'tribute',
+            'souvenir',
+            'favor',
+            'giveaway',
+            'bonus',
+            'grant',
+            'bounty',
+            'present',
+            'contribution',
+            'award',
+            'nice', // Up until here actually
+            'happy', // All below people might also use
+            'thank',
+            'goo', // For 'good', 'goodie' or anything else
+            'awesome',
+            'rep',
+            'joy',
+            'cute' // right?
+        ];
+        return words;
+    }
+
+    noiseMakerNames(): string[] {
+        const names = [
+            'Noise Maker - Black Cat',
+            'Noise Maker - Gremlin',
+            'Noise Maker - Werewolf',
+            'Noise Maker - Witch',
+            'Noise Maker - Banshee',
+            'Noise Maker - Crazy Laugh',
+            'Noise Maker - Stabby',
+            'Noise Maker - Bell',
+            'Noise Maker - Gong',
+            'Noise Maker - Koto',
+            'Noise Maker - Fireworks',
+            'Noise Maker - Vuvuzela'
+        ];
+        return names;
+    }
+
+    noiseMakerSKUs(): string[] {
+        const skus = [
+            '280;6', // Noise Maker - Black Cat
+            '280;6;uncraftable',
+            '281;6', // Noise Maker - Gremlin
+            '281;6;uncraftable',
+            '282;6', // Noise Maker - Werewolf
+            '282;6;uncraftable',
+            '283;6', // Noise Maker - Witch
+            '283;6;uncraftable',
+            '284;6', // Noise Maker - Banshee
+            '284;6;uncraftable',
+            '286;6', // Noise Maker - Crazy Laugh
+            '286;6;uncraftable',
+            '288;6', // Noise Maker - Stabby
+            '288;6;uncraftable',
+            '362;6', // Noise Maker - Bell
+            '362;6;uncraftable',
+            '364;6', // Noise Maker - Gong
+            '364;6;uncraftable',
+            '365;6', // Noise Maker - Koto
+            '365;6;uncraftable',
+            '365;1', // Genuine Noise Maker - Koto
+            '493;6', // Noise Maker - Fireworks
+            '493;6;uncraftable',
+            '542;6', // Noise Maker - Vuvuzela
+            '542;6;uncraftable',
+            '542;1' // Genuine Noise Maker - Vuvuzela
+        ];
+        return skus;
     }
 
     craftweapon(): string[] {
@@ -2688,6 +3222,150 @@ Autokeys status:-
         return weapons;
     }
 
+    craftweaponOnlyUncraftable(): string[] {
+        const weapons = [
+            '61;6;uncraftable',
+            '1101;6;uncraftable',
+            '226;6;uncraftable',
+            '46;6;uncraftable',
+            '129;6;uncraftable',
+            '311;6;uncraftable',
+            '131;6;uncraftable',
+            '751;6;uncraftable',
+            '354;6;uncraftable',
+            '642;6;uncraftable',
+            '163;6;uncraftable',
+            '159;6;uncraftable',
+            '231;6;uncraftable',
+            '351;6;uncraftable',
+            '525;6;uncraftable',
+            '460;6;uncraftable',
+            '425;6;uncraftable',
+            '39;6;uncraftable',
+            '812;6;uncraftable',
+            '133;6;uncraftable',
+            '58;6;uncraftable',
+            '35;6;uncraftable',
+            '224;6;uncraftable',
+            '222;6;uncraftable',
+            '595;6;uncraftable',
+            '444;6;uncraftable',
+            '773;6;uncraftable',
+            '411;6;uncraftable',
+            '1150;6;uncraftable',
+            '57;6;uncraftable',
+            '415;6;uncraftable',
+            '442;6;uncraftable',
+            '42;6;uncraftable',
+            '740;6;uncraftable',
+            '130;6;uncraftable',
+            '528;6;uncraftable',
+            '406;6;uncraftable',
+            '265;6;uncraftable',
+            '1099;6;uncraftable',
+            '998;6;uncraftable',
+            '449;6;uncraftable',
+            '140;6;uncraftable',
+            '1104;6;uncraftable',
+            '405;6;uncraftable',
+            '772;6;uncraftable',
+            '1103;6;uncraftable',
+            '40;6;uncraftable',
+            '402;6;uncraftable',
+            '730;6;uncraftable',
+            '228;6;uncraftable',
+            '36;6;uncraftable',
+            '608;6;uncraftable',
+            '312;6;uncraftable',
+            '1098;6;uncraftable',
+            '441;6;uncraftable',
+            '305;6;uncraftable',
+            '215;6;uncraftable',
+            '127;6;uncraftable',
+            '45;6;uncraftable',
+            '1092;6;uncraftable',
+            '141;6;uncraftable',
+            '752;6;uncraftable',
+            '56;6;uncraftable',
+            '811;6;uncraftable',
+            '1151;6;uncraftable',
+            '414;6;uncraftable',
+            '308;6;uncraftable',
+            '996;6;uncraftable',
+            '526;6;uncraftable',
+            '41;6;uncraftable',
+            '513;6;uncraftable',
+            '412;6;uncraftable',
+            '1153;6;uncraftable',
+            '594;6;uncraftable',
+            '588;6;uncraftable',
+            '741;6;uncraftable',
+            '997;6;uncraftable',
+            '237;6;uncraftable',
+            '220;6;uncraftable',
+            '448;6;uncraftable',
+            '230;6;uncraftable',
+            '424;6;uncraftable',
+            '527;6;uncraftable',
+            '60;6;uncraftable',
+            '59;6;uncraftable',
+            '304;6;uncraftable',
+            '450;6;uncraftable',
+            '38;6;uncraftable',
+            '326;6;uncraftable',
+            '939;6;uncraftable',
+            '461;6;uncraftable',
+            '325;6;uncraftable',
+            '232;6;uncraftable',
+            '317;6;uncraftable',
+            '327;6;uncraftable',
+            '356;6;uncraftable',
+            '447;6;uncraftable',
+            '128;6;uncraftable',
+            '775;6;uncraftable',
+            '589;6;uncraftable',
+            '426;6;uncraftable',
+            '132;6;uncraftable',
+            '355;6;uncraftable',
+            '331;6;uncraftable',
+            '239;6;uncraftable',
+            '142;6;uncraftable',
+            '357;6;uncraftable',
+            '656;6;uncraftable',
+            '221;6;uncraftable',
+            '153;6;uncraftable',
+            '329;6;uncraftable',
+            '43;6;uncraftable',
+            '739;6;uncraftable',
+            '416;6;uncraftable',
+            '813;6;uncraftable',
+            '482;6;uncraftable',
+            '154;6;uncraftable',
+            '404;6;uncraftable',
+            '457;6;uncraftable',
+            '214;6;uncraftable',
+            '44;6;uncraftable',
+            '172;6;uncraftable',
+            '609;6;uncraftable',
+            '401;6;uncraftable',
+            '348;6;uncraftable',
+            '413;6;uncraftable',
+            '155;6;uncraftable',
+            '649;6;uncraftable',
+            '349;6;uncraftable',
+            '593;6;uncraftable',
+            '171;6;uncraftable',
+            '37;6;uncraftable',
+            '307;6;uncraftable',
+            '173;6;uncraftable',
+            '310;6;uncraftable',
+            '648;6;uncraftable',
+            '225;6;uncraftable',
+            '810;6;uncraftable'
+        ];
+        return weapons;
+    }
+
     private checkGroupInvites(): void {
         log.debug('Checking group invites');
 
@@ -2760,6 +3438,6 @@ Autokeys status:-
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(['tf2-automatic', 440]);
+        this.bot.client.gamesPlayed([this.customGameName, 440]);
     }
 };

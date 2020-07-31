@@ -224,6 +224,16 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
+    async getPricesTF(sku: string): Promise<any> {
+        let price;
+        try {
+            price = await getPrice(sku, 'bptf');
+        } catch (err) {
+            price = null;
+        }
+        return price;
+    }
+
     async addPrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
@@ -368,6 +378,21 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
+    adjustKeyRate(buy: { keys: number; metal: number }, sell: { keys: number; metal: number }): void {
+        this.keyPrices = {
+            buy: new Currencies(buy),
+            sell: new Currencies(sell)
+        };
+        const entryKey = this.getPrice('5021;6');
+
+        if (entryKey !== null && entryKey.autoprice) {
+            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+            entryKey.buy = new Currencies(buy);
+            entryKey.sell = new Currencies(sell);
+            entryKey.time = Math.trunc(moment().valueOf() / 1000);
+        }
+    }
+
     private updateOldPrices(old: Entry[]): Promise<void> {
         log.debug('Getting pricelist...');
 
@@ -443,7 +468,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(itemName, match.buy.toString(), match.sell.toString(), data.sku);
+                this.sendWebHookPriceUpdate(data.sku, itemName, match);
             }
         }
     }
@@ -453,7 +478,7 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(itemName: string, buyPrice: string, sellPrice: string, sku: string): void {
+    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
         request.setRequestHeader('Content-type', 'application/json');
@@ -632,7 +657,7 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※Buying for:** ${buyPrice}\n**※Selling for:** ${sellPrice}\n` +
+                        `**※Buying for:** ${newPrice.buy.toString()}\n**※Selling for:** ${newPrice.sell.toString()}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),

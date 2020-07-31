@@ -19,7 +19,7 @@ import DiscordWebhook from './DiscordWebhook';
 import { Item, Currency } from '../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import { fixItem } from '../lib/items';
-import { requestCheck, getPrice } from '../lib/ptf-api';
+import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema';
@@ -32,6 +32,8 @@ const COMMANDS: string[] = [
     '!stock - Get a list of items that the bot has',
     '!pure - Get current pure stock 💰',
     '!rate - Get current key prices 🔑',
+    '!craftweapon - get a list of craft weapon stock 🔫',
+    '!uncraftweapon - get a list of uncraft weapon stock 🔫',
     '!message <your message> - Send a message to the owner of the bot 💬',
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲',
@@ -41,7 +43,8 @@ const COMMANDS: string[] = [
     '!clearcart - Clears the current cart ❎🛒',
     '!checkout - Make the bot send an offer the items in the cart ✅🛒',
     '!queue - See your position in the queue',
-    '!cancel - Cancel an already made offer, or cancel offer being made ❌'
+    '!cancel - Cancel an already made offer, or cancel offer being made ❌',
+    '!sales sku=<item sku> - get sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
@@ -49,12 +52,15 @@ const ADMIN_COMMANDS: string[] = [
     '!withdraw <name=>&<amount=> - Used to withdraw items',
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
+    '!adjustrate buy.metal=<buying price>&sell.metal=<selling price> - Manually adjust key rate (reset on restart, self-update when key rate changes)',
+    '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
-    '!delete sku=<item sku> - Delete any item (use only sku) 🚮',
+    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
+    '!inventory - Get my current inventory spaces 🎒',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
@@ -78,9 +84,24 @@ export = class Commands {
 
     private queuePositionCheck;
 
+    private first30Minutes = true;
+
+    private first30MinutesTimeout;
+
+    private executed: boolean;
+
+    private lastExecutedTime: number | null = null;
+
+    private executeTimeout;
+
     constructor(bot: Bot) {
         this.bot = bot;
         this.discord = new DiscordWebhook(bot);
+
+        this.first30MinutesTimeout = setTimeout(() => {
+            this.first30Minutes = false;
+            clearTimeout(this.first30MinutesTimeout);
+        }, 30 * 60 * 1000);
     }
 
     get cartQueue(): CartQueue {
@@ -92,6 +113,14 @@ export = class Commands {
 
         const isAdmin = this.bot.isAdmin(steamID);
 
+        const isNoReply =
+            this.messageInputsStartWith().some(word => {
+                return message.startsWith(word);
+            }) ||
+            this.messageInputEndsWith().some(word => {
+                return message.endsWith(word);
+            });
+
         if (command === 'help') {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
@@ -100,14 +129,24 @@ export = class Commands {
             this.priceCommand(steamID, message);
         } else if (command === 'stock') {
             this.stockCommand(steamID);
+        } else if (command === 'inventory' && isAdmin) {
+            this.inventoryCommand(steamID);
         } else if (command === 'pure') {
             this.pureCommand(steamID);
         } else if (command === 'time') {
             this.timeCommand(steamID);
         } else if (command === 'autokeys' && isAdmin) {
             this.autoKeysCommand(steamID);
+        } else if (command === 'craftweapon') {
+            this.craftweaponCommand(steamID);
+        } else if (command === 'uncraftweapon') {
+            this.uncraftweaponCommand(steamID);
         } else if (command === 'rate') {
             this.rateCommand(steamID);
+        } else if (command === 'adjustrate' && isAdmin) {
+            this.adjustKeyRateCommand(steamID, message);
+        } else if (command === 'relist' && isAdmin) {
+            this.relistCommand(steamID);
         } else if (command === 'message') {
             this.messageCommand(steamID, message);
         } else if (command === 'cart') {
@@ -144,6 +183,8 @@ export = class Commands {
             this.pricecheckCommand(steamID, message);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
+        } else if (command === 'sales') {
+            this.getSalesCommand(steamID, message);
         } else if (command === 'delete' && isAdmin) {
             this.deleteCommand(steamID, message);
         } else if (command === 'expand' && isAdmin) {
@@ -172,59 +213,7 @@ export = class Commands {
             this.accepttradeCommand(steamID, message);
         } else if ((command === 'declinetrade' || command === 'decline') && isAdmin) {
             this.declinetradeCommand(steamID, message);
-        } else if (
-            message.startsWith('I') || // tf2-automatic bots
-            message.startsWith('❌') ||
-            message.startsWith('Hi') ||
-            message.startsWith('🙋🏻‍♀️Hi') ||
-            message.startsWith('⚠') ||
-            message.startsWith('⚠️') ||
-            message.startsWith('✅') ||
-            message.startsWith('⌛') ||
-            message.startsWith('💲') ||
-            message.startsWith('📜') ||
-            message.startsWith('🛒') ||
-            message.startsWith('💰') ||
-            message.startsWith('Here') ||
-            message.startsWith('The') || // or 'There'
-            message.startsWith('Please') ||
-            message.startsWith('You') || // Or 'Your'
-            message.startsWith('/quote') ||
-            message.startsWith('/pre') ||
-            message.startsWith('/me') ||
-            message.startsWith('/code') ||
-            message.startsWith('Oh') || // If errors occured
-            message.startsWith('Success!') ||
-            message.endsWith('cart.') ||
-            message.endsWith('checkout.') ||
-            message.endsWith('✅') ||
-            message.startsWith('Hey') || // Other bots possible messages - Bot.tf
-            message.startsWith('Unfortunately') ||
-            message.startsWith('==') ||
-            message.startsWith('💬') ||
-            message.startsWith('⇌') ||
-            message.startsWith('Command') || // Other custom bots
-            message.startsWith('Hello') ||
-            message.startsWith('✋ Hold on') ||
-            message.startsWith('Hold on') ||
-            message.startsWith('Sending') ||
-            message.startsWith('👋 Welcome') ||
-            message.startsWith('Welcome') ||
-            message.startsWith('To') ||
-            message.startsWith('🔰') ||
-            message.startsWith('My') ||
-            message.startsWith('Owner') ||
-            message.startsWith('Bot') ||
-            message.startsWith('Those') ||
-            message.startsWith('👨🏼‍💻') ||
-            message.startsWith('🔶') ||
-            message.startsWith('Buying') ||
-            message.startsWith('🔷') ||
-            message.startsWith('Selling') ||
-            message.startsWith('📥') ||
-            message.startsWith('Stock') ||
-            message.startsWith('Thank')
-        ) {
+        } else if (isNoReply) {
             return null;
         } else {
             this.bot.sendMessage(
@@ -412,6 +401,31 @@ export = class Commands {
         this.bot.sendMessage(steamID, reply);
     }
 
+    private craftweaponCommand(steamID: SteamID): void {
+        const crafWeaponStock = this.craftWeapons();
+
+        let reply: string;
+        if (crafWeaponStock.length > 0) {
+            reply = "📃 Here's a list of all craft weapons stock in my inventory:\n\n" + crafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any craftable weapons in my inventory.";
+        }
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private uncraftweaponCommand(steamID: SteamID): void {
+        const uncrafWeaponStock = this.uncraftWeapons();
+
+        let reply: string;
+        if (uncrafWeaponStock.length > 0) {
+            reply =
+                "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
+        } else {
+            reply = "❌ I don't have any uncraftable weapons in my inventory.";
+        }
+        this.bot.sendMessage(steamID, reply);
+    }
+
     private timeCommand(steamID: SteamID): void {
         const timeWithEmojis = (this.bot.handler as MyHandler).timeWithEmoji();
         this.bot.sendMessage(
@@ -421,14 +435,59 @@ export = class Commands {
         );
     }
 
+    private relistCommand(steamID: SteamID): void {
+        if (this.first30Minutes) {
+            this.bot.sendMessage(steamID, `❌ I am just started... Please wait until the first 30 minutes has ended.`);
+            return;
+        }
+
+        const newExecutedTime = moment().valueOf();
+        const timeDiff = newExecutedTime - this.lastExecutedTime;
+
+        if (this.executed === true) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ You need to wait ' +
+                    Math.trunc((30 * 60 * 1000 - timeDiff) / (1000 * 60)) +
+                    ' minutes before you can relist again.'
+            );
+            return;
+        } else {
+            clearTimeout(this.executeTimeout);
+            this.lastExecutedTime = moment().valueOf();
+
+            this.bot.listings.checkAllWithDelay();
+            this.bot.sendMessage(steamID, `✅ Relisting executed.`);
+
+            this.executed = true;
+            this.executeTimeout = setTimeout(() => {
+                this.lastExecutedTime = null;
+                this.executed = false;
+                clearTimeout(this.executeTimeout);
+            }, 30 * 60 * 1000);
+        }
+    }
+
     private pureCommand(steamID: SteamID): void {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
 
         this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
     }
 
+    private inventoryCommand(steamID: SteamID): void {
+        const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
+        const backpackSlots = (this.bot.handler as MyHandler).getBackpackSlots();
+
+        this.bot.sendMessage(
+            steamID,
+            `🎒 My crrent items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+        );
+    }
+
     private autoKeysCommand(steamID: SteamID): void {
-        if ((this.bot.handler as MyHandler).getAutokeysEnabled() === false) {
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
+
+        if (autokeys.enabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
@@ -437,12 +496,7 @@ export = class Commands {
         const currKey = pure.key;
         const currRef = pure.refTotalInScrap;
 
-        const user = (this.bot.handler as MyHandler).getUserAutokeysSettings();
-
-        const autokeysStatus = (this.bot.handler as MyHandler).getAutokeysStatus();
-        const isBuyingKeys = (this.bot.handler as MyHandler).getAutokeysBuyingStatus();
-        const enableKeyBanking = (this.bot.handler as MyHandler).getAutokeysBankingEnabled();
-        const isBankingKeys = (this.bot.handler as MyHandler).getAutokeysBankingStatus();
+        const keyPrices = this.bot.pricelist.getKeyPrices();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -458,40 +512,60 @@ export = class Commands {
         const refsLine = `Refs ————|—————————|————▶`;
         const xAxisRef = `        min       max`;
         const keysPosition =
-            currKey < user.minKeys
+            currKey < autokeys.minKeys
                 ? keyBlMin
-                : currKey > user.maxKeys
+                : currKey > autokeys.maxKeys
                 ? keyAbMax
-                : currKey > user.minKeys && currKey < user.maxKeys
+                : currKey > autokeys.minKeys && currKey < autokeys.maxKeys
                 ? keyAtBet
-                : currKey === user.minKeys
+                : currKey === autokeys.minKeys
                 ? keyAtMin
-                : currKey === user.maxKeys
+                : currKey === autokeys.maxKeys
                 ? keyAtMax
                 : '';
         const refsPosition =
-            currRef < user.minRef
+            currRef < autokeys.minRef
                 ? refBlMin
-                : currRef > user.maxRef
+                : currRef > autokeys.maxRef
                 ? refAbMax
-                : currRef > user.minRef && currRef < user.maxRef
+                : currRef > autokeys.minRef && currRef < autokeys.maxRef
                 ? refAtBet
-                : currRef === user.minRef
+                : currRef === autokeys.minRef
                 ? refAtMin
-                : currRef === user.maxRef
+                : currRef === autokeys.maxRef
                 ? refAtMax
                 : '';
-        const summary = `\n• ${user.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
-            user.maxKeys
-        }\n• ${Currencies.toRefined(user.minRef)} < ${pluralize(
+        const summary = `\n• ${autokeys.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
+            autokeys.maxKeys
+        }\n• ${Currencies.toRefined(autokeys.minRef)} < ${pluralize(
             'ref',
             Currencies.toRefined(currRef)
-        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(user.maxRef)}`;
+        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(autokeys.maxRef)}`;
 
         let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n   Auto-banking: ${enableKeyBanking ? 'enabled' : 'disabled'}`;
-        reply += `\nAutokeys status: ${
-            autokeysStatus ? (isBankingKeys ? 'banking' : isBuyingKeys ? 'buying' : 'selling') : 'not active'
+        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
+        reply += `\nScrap Adjustment: ${autokeys.scrapAdjustmentEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n    Auto-banking: ${autokeys.bankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n Autokeys status: ${
+            autokeys.status
+                ? autokeys.isBanking
+                    ? 'Banking' + (autokeys.scrapAdjustmentEnabled ? ' (default price)' : '')
+                    : autokeys.isBuying
+                    ? 'Buying for ' +
+                      Currencies.toRefined(
+                          keyPrices.buy.toValue() +
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
+                      ' ref' +
+                      (autokeys.scrapAdjustmentEnabled ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                    : 'Selling for ' +
+                      Currencies.toRefined(
+                          keyPrices.sell.toValue() -
+                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                      ) +
+                      ' ref' +
+                      (autokeys.scrapAdjustmentEnabled ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                : 'Not active'
         }`;
         /*
         //        X
@@ -517,6 +591,44 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.'
         );
+    }
+
+    private adjustKeyRateCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (!params || (params.buy === undefined && params.sell === undefined)) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ You must include both buy AND sell price, example - "!adjustkeyrate sell.metal=56.33&buy.metal=56.22"'
+            );
+            return;
+        }
+
+        if (+params.buy.metal > +params.sell.metal) {
+            this.bot.sendMessage(steamID, '❌ Sell price must be higher than buy price.');
+            return;
+        }
+
+        const buyKeys = +params.buy.keys || 0;
+        const buyMetal = +params.buy.metal || 0;
+        const sellKeys = +params.sell.keys || 0;
+        const sellMetal = +params.sell.metal || 0;
+        const buy = { keys: buyKeys, metal: buyMetal };
+        const sell = { keys: sellKeys, metal: sellMetal };
+
+        this.bot.pricelist.adjustKeyRate(buy, sell);
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
+
+        let reply;
+        reply = '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell);
+
+        if (autokeys.enabled === false) {
+            reply += '. Autokeys is disabled so no adjustment made on Autokeys.';
+        } else {
+            (this.bot.handler as MyHandler).refreshAutoKeys();
+            reply += '. Autokeys is enabled and has been automatically refreshed.';
+        }
+        this.bot.sendMessage(steamID, reply);
     }
 
     private messageCommand(steamID: SteamID, message: string): void {
@@ -613,13 +725,11 @@ export = class Commands {
                 );
             } else {
                 this.bot.messageAdmins(
-                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):
-                    
-                    "${msg}".
-                    
-                    Steam: ${links.steamProfile}
-                    Backpack.tf: ${links.backpackTF}
-                    SteamREP: ${links.steamREP}`,
+                    `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
+                        `"${msg}".` +
+                        `Steam: ${links.steamProfile}` +
+                        `Backpack.tf: ${links.backpackTF}` +
+                        `SteamREP: ${links.steamREP}`,
                     []
                 );
             }
@@ -754,6 +864,51 @@ export = class Commands {
                         (currentPosition !== 1 ? 'are' : 'is') +
                         ` ${currentPosition} infront of you.`
                 );
+                clearTimeout(this.queuePositionCheck);
+                log.debug(`Checking queue position in 3 minutes...`);
+                this.queuePositionCheck = setTimeout(() => {
+                    // Check position after 3 minutes
+                    log.debug(`Current queue position: ${position}`);
+                    if (this.cartQueue.getPosition(cart.partner) >= 1) {
+                        if (
+                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                        ) {
+                            const time = (this.bot.handler as MyHandler).timeWithEmoji();
+                            this.discord.sendQueueAlert(position + 1, time.time);
+                            this.bot.botManager
+                                .restartProcess()
+                                .then(restarting => {
+                                    if (!restarting) {
+                                        this.discord.sendQueueAlertFailedPM2(time.time);
+                                    }
+                                })
+                                .catch(err => {
+                                    log.warn('Error occurred while trying to restart: ', err);
+                                    this.discord.sendQueueAlertFailedError(err.message, time.time);
+                                });
+                        } else {
+                            this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position + 1}`, []);
+                            this.bot.botManager
+                                .restartProcess()
+                                .then(restarting => {
+                                    if (!restarting) {
+                                        this.bot.messageAdmins(
+                                            '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
+                                            []
+                                        );
+                                    }
+                                })
+                                .catch(err => {
+                                    log.warn('Error occurred while trying to restart: ', err);
+                                    this.bot.messageAdmins(
+                                        `❌ An error occurred while trying to restart: ${err.message}`,
+                                        []
+                                    );
+                                });
+                        }
+                    }
+                }, 3 * 60 * 1000);
             }
             return;
         }
@@ -1464,8 +1619,11 @@ export = class Commands {
         } catch (err) {
             this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name}: ${err.body && err.body.message ? err.body.message : err.message}`
+                `Error getting price for ${name === null ? params.sku : name}: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
             );
+            return;
         }
 
         if (!price) {
@@ -1478,6 +1636,106 @@ export = class Commands {
             steamID,
             `🔎 ${name}:\n• Buy  : ${currBuy}\n• Sell : ${currSell}\n\nPrices.TF: https://prices.tf/items/${params.sku}`
         );
+    }
+
+    private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
+        message = removeLinkProtocol(message);
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku === undefined) {
+            const item = this.getItemFromParams(steamID, params);
+
+            if (item === null) {
+                return;
+            }
+
+            params.sku = SKU.fromObject(item);
+        }
+
+        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
+        const item = SKU.fromString(params.sku);
+        const name = this.bot.schema.getName(item);
+
+        let salesData;
+
+        try {
+            salesData = await getSales(params.sku, 'bptf');
+        } catch (err) {
+            this.bot.sendMessage(
+                steamID,
+                `❌ Error getting sell snapshots for ${name === null ? params.sku : name}: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
+            );
+            return;
+        }
+
+        if (!salesData) {
+            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            return;
+        }
+
+        if (salesData.sales.length === 0) {
+            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            return;
+        }
+
+        const sales: {
+            seller: string;
+            itemHistory: string;
+            keys: number;
+            metal: number;
+            date: number;
+        }[] = [];
+
+        salesData.sales.forEach(sale => {
+            sales.push({
+                seller: 'https://backpack.tf/profiles/' + sale.steamid,
+                itemHistory: 'https://backpack.tf/item/' + sale.id.replace('440_', ''),
+                keys: sale.currencies.keys,
+                metal: sale.currencies.metal,
+                date: sale.time
+            });
+        });
+
+        sales.sort(function(a, b) {
+            return b.date - a.date;
+        });
+
+        let left = 0;
+        const SalesList: string[] = [];
+
+        for (let i = 0; i < sales.length; i++) {
+            if (SalesList.length > 40) {
+                left += 1;
+            } else {
+                SalesList.push(
+                    `Listed #${i + 1}-----` +
+                        '\n• Date: ' +
+                        moment
+                            .unix(sales[i].date)
+                            .utc()
+                            .toString() +
+                        '\n• Item: ' +
+                        sales[i].itemHistory +
+                        '\n• Seller: ' +
+                        sales[i].seller +
+                        '\n• Was selling for: ' +
+                        (sales[i].keys > 0 ? sales[i].keys + ' keys, ' : '') +
+                        sales[i].metal +
+                        ' ref'
+                );
+            }
+        }
+
+        let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
+            salesData.name
+        }\n\n-----${SalesList.join('\n\n-----')}`;
+        if (left > 0) {
+            reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
+        }
+
+        this.bot.sendMessage(steamID, reply);
     }
 
     private expandCommand(steamID: SteamID, message: string): void {
@@ -1517,6 +1775,37 @@ export = class Commands {
 
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.assetid !== undefined && params.sku === undefined) {
+            // This most likely not working with Non-Tradable items.
+            const ourInventory = this.bot.inventoryManager.getInventory();
+            const sku = ourInventory.findByAssetid(params.assetid);
+
+            if (sku === null) {
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${params.assetid}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${params.assetid}: ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${params.assetid}!`);
+                });
+                return;
+            } else {
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item, false);
+
+                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                    if (err) {
+                        log.warn(`Error trying to delete ${name}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
+                        return;
+                    }
+                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
+                });
+                return;
+            }
+        }
 
         if (params.name !== undefined || params.item !== undefined) {
             this.bot.sendMessage(
@@ -1566,26 +1855,20 @@ export = class Commands {
             return;
         }
 
-        let uncraft = false;
-        if (params.sku.includes('uncraftable')) {
-            params.sku = params.sku.replace(';uncraftable', '');
-            uncraft = true;
-        }
+        const uncraft = params.sku.includes(';uncraftable');
+        params.sku = params.sku.replace(';uncraftable', '');
 
-        let untrade = false;
-        if (params.sku.includes('untradable')) {
-            params.sku = params.sku.replace(';untradable', '');
-            untrade = true;
-        }
+        const untrade = params.sku.includes(';untradable');
+        params.sku = params.sku.replace(';untradable', '');
 
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
-            item.craftable = false;
+            item.craftable = !uncraft;
         }
 
         if (untrade) {
-            item.tradable = false;
+            item.tradable = !untrade;
         }
 
         const assetids = this.bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
@@ -1593,19 +1876,34 @@ export = class Commands {
         const name = this.bot.schema.getName(item, false);
 
         if (assetids.length === 0) {
-            // No backpack expanders
+            // Item not found
             this.bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
             return;
         }
 
-        this.bot.tf2gc.deleteItem(assetids[0], err => {
+        let assetid: string;
+        if (params.assetid !== undefined) {
+            if (assetids.includes(params.assetid)) {
+                assetid = params.assetid;
+            } else {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Looks like an assetid ${params.assetid} did not matched with any assetids associated with ${name}(${params.sku}) in my inventory. Try only with sku to delete a random assetid.`
+                );
+                return;
+            }
+        } else {
+            assetid = assetids[0];
+        }
+
+        this.bot.tf2gc.deleteItem(assetid, err => {
             if (err) {
                 log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}: ${err.message}`);
+                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
                 return;
             }
 
-            this.bot.sendMessage(steamID, `✅ Deleted ${name}!`);
+            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
         });
     }
 
@@ -1664,7 +1962,7 @@ export = class Commands {
     private nameCommand(steamID: SteamID, message: string): void {
         const newName = CommandParser.removeCommand(message);
 
-        if (newName === '') {
+        if (!newName || newName === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
@@ -1688,7 +1986,7 @@ export = class Commands {
     private avatarCommand(steamID: SteamID, message: string): void {
         const imageUrl = CommandParser.removeCommand(message);
 
-        if (imageUrl === '') {
+        if (!imageUrl || imageUrl === '') {
             this.bot.sendMessage(
                 steamID,
                 '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
@@ -1718,7 +2016,7 @@ export = class Commands {
     private blockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1745,7 +2043,7 @@ export = class Commands {
     private unblockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (steamid === '') {
+        if (!steamid || steamid === '') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -2281,32 +2579,27 @@ export = class Commands {
 
         if (params.craftable !== undefined) {
             if (typeof params.craftable !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Craftable must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Craftable must be "true" or "false" only.`);
                 return null;
             }
-            if (params.craftable === false) {
-                item.craftable = false;
-            } else {
-                item.craftable = true;
-            }
+            item.craftable = params.craftable;
         }
 
         if (params.australium !== undefined) {
             if (typeof params.australium !== 'boolean') {
-                this.bot.sendMessage(steamID, `❌ Australium must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Australium must be "true" or "false" only.`);
                 return null;
             }
-            if (params.australium === false) {
-                item.australium = false;
-            } else {
-                item.australium = true;
-            }
+            item.australium = params.australium;
         }
 
         if (params.killstreak !== undefined) {
             const killstreak = parseInt(params.killstreak);
-            if (isNaN(killstreak) || killstreak > 3) {
-                this.bot.sendMessage(steamID, `❌ Unknown killstreak "${params.killstreak}".`);
+            if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
+                this.bot.sendMessage(
+                    steamID,
+                    `Unknown killstreak "${params.killstreak}", it must be between 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS) only.`
+                );
                 return null;
             }
             item.killstreak = killstreak;
@@ -2424,6 +2717,141 @@ export = class Commands {
         delete params.name;
 
         return fixItem(item, this.bot.schema);
+    }
+
+    private craftWeapons(): string[] {
+        const craftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyCraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        craftWeapons.forEach(sku => {
+            const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    amount: amount
+                });
+            }
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const craftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                craftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return craftWeaponsStock;
+    }
+
+    private uncraftWeapons(): string[] {
+        const uncraftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyUncraftable();
+
+        const items: { amount: number; name: string }[] = [];
+
+        uncraftWeapons.forEach(sku => {
+            const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    amount: this.bot.inventoryManager.getInventory().getAmount(sku)
+                });
+            }
+        });
+
+        items.sort(function(a, b) {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const uncraftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                uncraftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            }
+        }
+        return uncraftWeaponsStock;
+    }
+
+    private messageInputsStartWith(): string[] {
+        const words = [
+            'I',
+            '❌',
+            'Hi',
+            '🙋🏻‍♀️Hi',
+            '⚠',
+            '⚠️',
+            '✅',
+            '⌛',
+            '💲',
+            '📜',
+            '🛒',
+            '💰',
+            'Here',
+            'The',
+            'Please',
+            'You',
+            '/quote',
+            '/pre',
+            '/me',
+            '/code',
+            'Oh',
+            'Success!',
+            'Hey',
+            'Unfortunately',
+            '==',
+            '💬',
+            '⇌',
+            'Command',
+            'Hello',
+            '✋ Hold on',
+            'Hold on',
+            'Sending',
+            '👋 Welcome',
+            'Welcome',
+            'To',
+            '🔰',
+            'My',
+            'Owner',
+            'Bot',
+            'Those',
+            '👨🏼‍💻',
+            '🔶',
+            'Buying',
+            '🔷',
+            'Selling',
+            '📥',
+            'Stock',
+            'Thank'
+        ];
+        return words;
+    }
+
+    private messageInputEndsWith(): string[] {
+        const words = ['cart.', 'checkout.', '✅'];
+        return words;
     }
 };
 

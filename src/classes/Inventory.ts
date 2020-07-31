@@ -42,6 +42,19 @@ export = class Inventory {
         return this.tradable;
     }
 
+    getTotalItems(): number {
+        let items = 0;
+        const amountTradable = this.tradable;
+        for (const sku in amountTradable) {
+            items += amountTradable[sku].length;
+        }
+        const amountNonTradable = this.nonTradable;
+        for (const sku in amountNonTradable) {
+            items += amountNonTradable[sku].length;
+        }
+        return items;
+    }
+
     addItem(sku: string, assetid: string): void {
         const items = this.tradable;
         (items[sku] = items[sku] || []).push(assetid);

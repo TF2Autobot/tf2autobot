@@ -22,6 +22,10 @@ export = class Listings {
 
     private autoRelistEnabled = false;
 
+    private autoRelistRetry = false;
+
+    private autoRelistRetryTimeout;
+
     private autoRelistTimeout;
 
     private templates: { buy: string; sell: string } = {
@@ -59,6 +63,7 @@ export = class Listings {
 
         this.autoRelistEnabled = true;
 
+        clearTimeout(this.autoRelistRetryTimeout);
         clearTimeout(this.autoRelistTimeout);
 
         const doneWait = (): void => {
@@ -97,6 +102,9 @@ export = class Listings {
         this.getAccountInfo().asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
+                clearTimeout(this.autoRelistTimeout);
+                clearTimeout(this.autoRelistRetryTimeout);
+                this.autoRelistRetry = true;
                 return;
             }
 
@@ -108,6 +116,13 @@ export = class Listings {
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
                 );
                 this.enableAutoRelist();
+            } else if (this.autoRelistEnabled && this.autoRelistRetry) {
+                this.autoRelistRetry = false;
+                clearTimeout(this.autoRelistRetryTimeout);
+                log.warn('backpack.tf down, will wait for 30 minutes before relist again...');
+                this.autoRelistRetryTimeout = setTimeout(() => {
+                    this.enableAutoRelist();
+                }, 5 * 60 * 1000);
             }
         });
     }
@@ -472,51 +487,40 @@ export = class Listings {
         const key = buying ? 'buy' : 'sell';
         const keyPrice = this.bot.pricelist.getKeyPrice().toString();
 
+        const maxStock = entry.max;
+        const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+        const amountCanBuy = maxStock === -1 ? '∞' : maxStock - currentStock;
+
         let details: string;
 
         if (entry.sku === '241;6') {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%dueling%/g, '✨');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max.toString())
-                .replace(
-                    /%current_stock%/g,
-                    this.bot.inventoryManager
-                        .getInventory()
-                        .getAmount(entry.sku)
-                        .toString()
-                )
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 .replace(/%dueling%/g, '✨');
         }
