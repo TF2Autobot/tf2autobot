@@ -2184,6 +2184,30 @@ Autokeys status:-
             });
     }
 
+    refreshAutoKeys(): void {
+        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
+        if (isKeysAlreadyExist) {
+            this.bot.pricelist
+                .removePrice('5021;6', true)
+                .then(() => {
+                    log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
+                    this.isBuyingKeys = false;
+                    this.isBankingKeys = false;
+                    this.checkAutokeysStatus = false;
+                    this.checkAlertOnLowPure = false;
+                    this.alreadyUpdatedToBank = false;
+                    this.alreadyUpdatedToBuy = false;
+                    this.alreadyUpdatedToSell = false;
+                })
+                .catch(err => {
+                    log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
+                    this.checkAutokeysStatus = true;
+                });
+        }
+        this.sleep(2000);
+        this.autokeys();
+    }
+
     private keepMetalSupply(): void {
         if (process.env.DISABLE_CRAFTING === 'true') {
             return;

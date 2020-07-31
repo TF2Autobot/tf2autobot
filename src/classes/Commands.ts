@@ -53,6 +53,7 @@ const ADMIN_COMMANDS: string[] = [
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
     '!adjustrate buy.metal=<buying price>&sell.metal=<selling price> - Manually adjust key rate (reset on restart, self-update when key rate changes)',
+    '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
@@ -83,9 +84,24 @@ export = class Commands {
 
     private queuePositionCheck;
 
+    private first30Minutes = true;
+
+    private first30MinutesTimeout;
+
+    private executed: boolean;
+
+    private lastExecutedTime: number | null = null;
+
+    private executeTimeout;
+
     constructor(bot: Bot) {
         this.bot = bot;
         this.discord = new DiscordWebhook(bot);
+
+        this.first30MinutesTimeout = setTimeout(() => {
+            this.first30Minutes = false;
+            clearTimeout(this.first30MinutesTimeout);
+        }, 30 * 60 * 1000);
     }
 
     get cartQueue(): CartQueue {
@@ -129,6 +145,8 @@ export = class Commands {
             this.rateCommand(steamID);
         } else if (command === 'adjustrate' && isAdmin) {
             this.adjustKeyRateCommand(steamID, message);
+        } else if (command === 'relist' && isAdmin) {
+            this.relistCommand(steamID);
         } else if (command === 'message') {
             this.messageCommand(steamID, message);
         } else if (command === 'cart') {
@@ -417,6 +435,39 @@ export = class Commands {
         );
     }
 
+    private relistCommand(steamID: SteamID): void {
+        if (this.first30Minutes) {
+            this.bot.sendMessage(steamID, `❌ I am just started... Please wait until the first 30 minutes has ended.`);
+            return;
+        }
+
+        const newExecutedTime = moment().valueOf();
+        const timeDiff = newExecutedTime - this.lastExecutedTime;
+
+        if (this.executed === true) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ You need to wait ' +
+                    Math.trunc((30 * 60 * 1000 - timeDiff) / (1000 * 60)) +
+                    ' minutes before you can relist again.'
+            );
+            return;
+        } else {
+            clearTimeout(this.executeTimeout);
+            this.lastExecutedTime = moment().valueOf();
+
+            this.bot.listings.checkAllWithDelay();
+            this.bot.sendMessage(steamID, `✅ Relisting executed.`);
+
+            this.executed = true;
+            this.executeTimeout = setTimeout(() => {
+                this.lastExecutedTime = null;
+                this.executed = false;
+                clearTimeout(this.executeTimeout);
+            }, 30 * 60 * 1000);
+        }
+    }
+
     private pureCommand(steamID: SteamID): void {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
 
@@ -566,8 +617,18 @@ export = class Commands {
         const sell = { keys: sellKeys, metal: sellMetal };
 
         this.bot.pricelist.adjustKeyRate(buy, sell);
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
 
-        this.bot.sendMessage(steamID, '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell));
+        let reply;
+        reply = '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell);
+
+        if (autokeys.enabled === false) {
+            reply += '. Autokeys is disabled so no adjustment made on Autokeys.';
+        } else {
+            (this.bot.handler as MyHandler).refreshAutoKeys();
+            reply += '. Autokeys is enabled and has been automatically refreshed.';
+        }
+        this.bot.sendMessage(steamID, reply);
     }
 
     private messageCommand(steamID: SteamID, message: string): void {
