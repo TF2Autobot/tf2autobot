@@ -1035,6 +1035,13 @@ export = class MyHandler extends Handler {
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+            const moreThanOnly =
+                (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
+                    process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false') &&
+                exchange.our.value < exchange.their.value;
+            const moreThanOrEqualTo =
+                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true' &&
+                exchange.our.value <= exchange.their.value;
 
             // TO DO: Counter offer?
             //
@@ -1053,13 +1060,13 @@ export = class MyHandler extends Handler {
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
                     (uniqueReasons.includes('🟦OVERSTOCKED') &&
-                        !(process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'false'))) &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
                 !(
                     uniqueReasons.includes('🟥INVALID_VALUE') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
                 ) &&
-                exchange.our.value < exchange.their.value &&
+                (moreThanOnly || moreThanOrEqualTo) &&
                 exchange.our.value !== 0
             ) {
                 this.isAcceptedWithInvalidItemsOrOverstocked = true;
