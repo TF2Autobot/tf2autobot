@@ -1497,12 +1497,12 @@ export = class MyHandler extends Handler {
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             // Notify partner and admin that the offer is waiting for manual review
-            if (reason === '⬜BACKPACKTF_DOWN' || reason === '⬜STEAM_DOWN') {
+            if (reasons.includes('⬜BACKPACKTF_DOWN') || reasons.includes('⬜STEAM_DOWN')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reason === '⬜BACKPACKTF_DOWN' ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reason === '⬜BACKPACKTF_DOWN' ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
@@ -1541,7 +1541,6 @@ export = class MyHandler extends Handler {
             ) {
                 this.discord.sendOfferReview(
                     offer,
-                    reason,
                     reasons.join(', '),
                     pureStock,
                     timeWithEmojis.time,
@@ -1559,13 +1558,7 @@ export = class MyHandler extends Handler {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReason: ${
-                            reason === '⬜BACKPACKTF_DOWN'
-                                ? '⬜BACKPACKTF_DOWN - failed to check banned status'
-                                : reason === '⬜STEAM_DOWN'
-                                ? '⬜STEAM_DOWN - failed to check escrow status'
-                                : meta.uniqueReasons.join(', ')
-                        }` +
+                        `\nReason: ${meta.uniqueReasons.join(', ')}` +
                         `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
                             value.diff > 0
                                 ? `\n📈 Profit from overpay: ${value.diffRef} ref` +

@@ -157,7 +157,6 @@ export = class DiscordWebhook {
 
     sendOfferReview(
         offer: TradeOffer,
-        reason: string,
         reasons: string,
         pureStock: string[],
         time: string,
@@ -260,13 +259,7 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${
-                                reason === '⬜BACKPACKTF_DOWN'
-                                    ? '⬜BACKPACKTF_DOWN - failed to check banned status'
-                                    : reason === '⬜STEAM_DOWN'
-                                    ? '⬜STEAM_DOWN - failed to check escrow status'
-                                    : reasons
-                            }\n\n__Offer Summary__:\n` +
+                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reasons}\n\n__Offer Summary__:\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
                             (value.diff > 0
                                 ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
