@@ -1559,6 +1559,11 @@ export = class MyHandler extends Handler {
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
                         `\nReason: ${meta.uniqueReasons.join(', ')}` +
+                        (reasons.includes('⬜BACKPACKTF_DOWN')
+                            ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
+                            : reasons.includes('⬜STEAM_DOWN')
+                            ? '\nSteam down, please manually check if this person have escrow.'
+                            : '') +
                         `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
                             value.diff > 0
                                 ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
