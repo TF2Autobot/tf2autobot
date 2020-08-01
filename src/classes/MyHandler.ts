@@ -646,6 +646,14 @@ export = class MyHandler extends Handler {
                   reason: '🟫DUPED_ITEMS';
                   assetid: string;
               }
+            | {
+                  reason: '⬜STEAM_DOWN';
+                  error?: string;
+              }
+            | {
+                  reason: '⬜BACKPACKTF_DOWN';
+                  error?: string;
+              }
         )[] = [];
 
         let assetidsToCheck = [];
@@ -954,7 +962,17 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
-            return { action: 'skip', reason: '⬜STEAM_DOWN' };
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            return {
+                action: 'skip',
+                reason: '⬜STEAM_DOWN',
+                meta: {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer
+                }
+            };
         }
 
         offer.log('info', 'checking bans...');
@@ -968,7 +986,17 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
-            return { action: 'skip', reason: '⬜BACKPACKTF_DOWN' };
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            return {
+                action: 'skip',
+                reason: '⬜BACKPACKTF_DOWN',
+                meta: {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer
+                }
+            };
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
