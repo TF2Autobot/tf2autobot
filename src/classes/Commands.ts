@@ -71,7 +71,7 @@ const ADMIN_COMMANDS: string[] = [
     '!unblock <steamid> - Unblock specific user',
     '!stats - Get statistics for accepted trades 📊',
     '!trades - Get a list of offers pending for manual review 🔍',
-    '!trade <offerID> - Get info about a trade',
+    '!trade <offerID> - Get info about a trade 🔍',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
     '!message <steamid> <your message> - Send a message to a user 💬'
