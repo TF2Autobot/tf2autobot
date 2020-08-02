@@ -462,6 +462,9 @@ export = class Listings {
 
                 this.bot.listingManager.getListings(err => {
                     if (err) {
+                        clearTimeout(this.autoRelistTimeout);
+                        clearTimeout(this.autoRelistRetryTimeout);
+                        this.autoRelistRetry = true;
                         return reject(err);
                     }
 
