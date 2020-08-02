@@ -119,7 +119,7 @@ export = class Listings {
             } else if (this.autoRelistEnabled && this.autoRelistRetry) {
                 this.autoRelistRetry = false;
                 clearTimeout(this.autoRelistRetryTimeout);
-                log.warn('backpack.tf down, will wait for 30 minutes before relist again...');
+                log.warn('backpack.tf down, will wait for 5 minutes before reinitializing relist...');
                 this.autoRelistRetryTimeout = setTimeout(() => {
                     this.enableAutoRelist();
                 }, 5 * 60 * 1000);
@@ -462,6 +462,9 @@ export = class Listings {
 
                 this.bot.listingManager.getListings(err => {
                     if (err) {
+                        clearTimeout(this.autoRelistTimeout);
+                        clearTimeout(this.autoRelistRetryTimeout);
+                        this.autoRelistRetry = true;
                         return reject(err);
                     }
 

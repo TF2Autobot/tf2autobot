@@ -1980,9 +1980,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 1
@@ -2023,12 +2021,10 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
-                intent: 0
+                intent: 1
             } as any;
         } else {
             entry = {
@@ -2060,13 +2056,10 @@ Autokeys status:-
     }
 
     private createAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: false,
-            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+            autoprice: true,
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -2109,9 +2102,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 1
@@ -2152,9 +2143,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 0
@@ -2189,13 +2178,10 @@ Autokeys status:-
     }
 
     private updateAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: false,
-            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+            autoprice: true,
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -2224,34 +2210,21 @@ Autokeys status:-
             });
     }
 
-    refreshAutoKeys(): void {
-        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
-        if (isKeysAlreadyExist) {
-            this.bot.pricelist
-                .removePrice('5021;6', true)
-                .then(() => {
-                    log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.sleep(2000);
-                    this.autokeys();
-                })
-                .catch(err => {
-                    log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                    this.checkAutokeysStatus = true;
-                });
-        } else {
-            this.autokeys();
-        }
+    refreshAutokeys(): void {
+        this.removeAutoKeys();
+        this.isBuyingKeys = false;
+        this.isBankingKeys = false;
+        this.checkAutokeysStatus = false;
+        this.checkAlertOnLowPure = false;
+        this.alreadyUpdatedToBank = false;
+        this.alreadyUpdatedToBuy = false;
+        this.alreadyUpdatedToSell = false;
+        this.sleep(2000);
+        this.autokeys();
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true') {
+        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();

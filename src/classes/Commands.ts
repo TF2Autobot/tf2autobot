@@ -15,6 +15,7 @@ import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
 import DiscordWebhook from './DiscordWebhook';
+import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
@@ -52,11 +53,11 @@ const ADMIN_COMMANDS: string[] = [
     '!withdraw <name=>&<amount=> - Used to withdraw items',
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
-    '!adjustrate buy.metal=<buying price>&sell.metal=<selling price> - Manually adjust key rate (reset on restart, self-update when key rate changes)',
     '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
+    '!pricecheckall - Automatically request all items in your inventory to be checked by Prices.TF.',
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
     '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
@@ -65,6 +66,7 @@ const ADMIN_COMMANDS: string[] = [
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
     '!autokeys - Get info on your current autoBuy/Sell Keys settings 🔑',
+    '!resfreshautokeys - Refresh your autokeys settings.',
     '!avatar <image_URL> - Change avatar',
     '!name <new_name> - Change name',
     '!block <steamid> - Block a specific user',
@@ -137,14 +139,14 @@ export = class Commands {
             this.timeCommand(steamID);
         } else if (command === 'autokeys' && isAdmin) {
             this.autoKeysCommand(steamID);
+        } else if (command === 'refreshautokeys' && isAdmin) {
+            this.refreshAutokeysCommand(steamID);
         } else if (command === 'craftweapon') {
             this.craftweaponCommand(steamID);
         } else if (command === 'uncraftweapon') {
             this.uncraftweaponCommand(steamID);
         } else if (command === 'rate') {
             this.rateCommand(steamID);
-        } else if (command === 'adjustrate' && isAdmin) {
-            this.adjustKeyRateCommand(steamID, message);
         } else if (command === 'relist' && isAdmin) {
             this.relistCommand(steamID);
         } else if (command === 'message') {
@@ -181,6 +183,8 @@ export = class Commands {
             this.updateCommand(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
+        } else if (command === 'pricecheckall' && isAdmin) {
+            this.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
         } else if (command === 'sales') {
@@ -578,6 +582,18 @@ export = class Commands {
         this.bot.sendMessage(steamID, '/pre ' + reply);
     }
 
+    private refreshAutokeysCommand(steamID: SteamID): void {
+        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
+
+        if (autokeys.enabled === false) {
+            this.bot.sendMessage(steamID, `This feature is disabled.`);
+            return;
+        }
+
+        (this.bot.handler as MyHandler).refreshAutokeys();
+        this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
+    }
+
     private rateCommand(steamID: SteamID): void {
         const keyPrice = this.bot.pricelist.getKeyPrice().toString();
 
@@ -591,44 +607,6 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.'
         );
-    }
-
-    private adjustKeyRateCommand(steamID: SteamID, message: string): void {
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (!params || (params.buy === undefined && params.sell === undefined)) {
-            this.bot.sendMessage(
-                steamID,
-                '❌ You must include both buy AND sell price, example - "!adjustkeyrate sell.metal=56.33&buy.metal=56.22"'
-            );
-            return;
-        }
-
-        if (+params.buy.metal > +params.sell.metal) {
-            this.bot.sendMessage(steamID, '❌ Sell price must be higher than buy price.');
-            return;
-        }
-
-        const buyKeys = +params.buy.keys || 0;
-        const buyMetal = +params.buy.metal || 0;
-        const sellKeys = +params.sell.keys || 0;
-        const sellMetal = +params.sell.metal || 0;
-        const buy = { keys: buyKeys, metal: buyMetal };
-        const sell = { keys: sellKeys, metal: sellMetal };
-
-        this.bot.pricelist.adjustKeyRate(buy, sell);
-        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
-
-        let reply;
-        reply = '✅ Key rate adjusted to ' + new Currencies(buy) + '/' + new Currencies(sell);
-
-        if (autokeys.enabled === false) {
-            reply += '. Autokeys is disabled so no adjustment made on Autokeys.';
-        } else {
-            (this.bot.handler as MyHandler).refreshAutoKeys();
-            reply += '. Autokeys is enabled and has been automatically refreshed.';
-        }
-        this.bot.sendMessage(steamID, reply);
     }
 
     private messageCommand(steamID: SteamID, message: string): void {
@@ -1591,6 +1569,59 @@ export = class Commands {
         });
     }
 
+    private async pricecheckAllCommand(steamID): Promise<void> {
+        const pricelist = this.bot.pricelist.getPrices();
+
+        const total = pricelist.length;
+        const totalTime = total * 2 * 1000;
+        this.bot.sendMessage(
+            steamID,
+            `⌛ Price check requested for ${total} items, will be done in approximately ${
+                totalTime < 1 * 60 * 1000
+                    ? `${Math.round(totalTime / 1000)} seconds.`
+                    : totalTime < 1 * 60 * 60 * 1000
+                    ? `${Math.round(totalTime / (1 * 60 * 1000))} minutes.`
+                    : `${Math.round(totalTime / (1 * 60 * 60 * 1000))} hours.`
+            } (every 2 seconds for each items).`
+        );
+
+        const skus = pricelist.map(entry => entry.sku);
+
+        let submitted = 0;
+        let success = 0;
+        let failed = 0;
+        for (const sku of skus) {
+            await sleepasync().Promise.sleep(2 * 1000);
+            requestCheck(sku, 'bptf').asCallback(err => {
+                if (err) {
+                    submitted++;
+                    failed++;
+                    log.warn(
+                        'pricecheck failed for ' +
+                            sku +
+                            ': ' +
+                            (err.body && err.body.message ? err.body.message : err.message)
+                    );
+                    log.debug(
+                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                } else {
+                    submitted++;
+                    success++;
+                    log.debug(
+                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                }
+                if (submitted === total) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `✅ Successfully requested pricecheck for all ${total} ${pluralize('item', total)}!`
+                    );
+                }
+            });
+        }
+    }
+
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
@@ -1946,8 +1977,10 @@ export = class Commands {
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
-                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
-                            '\n Contact IdiNium if you have any other problem. Thank you.'
+                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
+                            `\n\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
+                            `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
+                            '\nContact IdiNium if you have any other problem. Thank you.'
                     );
                 }
             })
