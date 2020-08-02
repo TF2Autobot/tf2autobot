@@ -211,6 +211,9 @@ You can run your bot without this first, which then on the first run, it will pr
 - `DISABLE_CHECK_USES_DUELING_MINI_GAME`: [true|false] - Default: `false`. Set to `true` if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
 - `DISABLE_CHECK_USES_NOISE_MAKER`: [true|false] - Default: `false`. Set to `true` if you want your bot to accept Noise Maker that is not 25 Uses.
 
+#### Set to true if want to enable
+- `NORMALIZE_FESTIVIZED_ITEMS`: [true|false] Default: `false`. Set to `true` if you want your bot to recognize `Festivized` item as a `Non-Festivized` item. For example you're listing to bank `Strange Australium Black Box`, but someone sent to your bot a Festivized version with the name `Festivized Strange Australium Black Box`, the bot by default will either decline or skip (if you enable manual review) the offer becuase it's not matched. Thus, set to `true` if you want your bot to recognize `Festivized Strange Australium Black Box` as `Strange Australium Black Box`.
+
 #### Misc feature
 - `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
 - `LAST_TOTAL_TRADES`: [Number] - Used if your polldata.json is getting bigger which consumed a lot of RAM, but you want to keep total successful trades that your bot has made (leave it 0 if you don't care about it).
