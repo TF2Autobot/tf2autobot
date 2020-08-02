@@ -665,9 +665,6 @@ export = class Commands {
             if (!recipientSteamID.isValid()) {
                 this.bot.sendMessage(steamID, `❌ "${recipient}" is not a valid steamid.`);
                 return;
-            } else if (!this.bot.friends.isFriend(recipientSteamID)) {
-                this.bot.sendMessage(steamID, '❌ I am not friends with the user.');
-                return;
             }
 
             const recipentDetails = this.bot.friends.getFriend(recipientSteamID);
