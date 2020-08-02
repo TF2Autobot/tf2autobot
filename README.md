@@ -75,7 +75,7 @@ The original tf2-automatic repository already have a lot of features, but some f
 - automatically restart your bot on queue problem, and automatically relist if backpack.tf does not synchronized with your bot listings on Autokeys (sometimes it's set to automatically buy keys, but at backpack.tf, it's listed to sell.)
 - use emojis on almost all messages
 - list out every items on each offer review reasons
-- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!inventory", "!adjustrate", "!relist", "!craftweapon" and "!uncraftweapon" commands
+- New added commands: "!pure", "!time", "!delete", "!check", "!block", "!unblock", "!autokeys", "!refreshautokeys", "!inventory", "!relist", "!craftweapon" and "!uncraftweapon" commands
 - and more to come!
 
 ## Added features
