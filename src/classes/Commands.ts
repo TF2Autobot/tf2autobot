@@ -1577,14 +1577,17 @@ export = class Commands {
 
         const total = pricelist.length;
         const totalTime = total * 2 * 1000;
+        const aSecond = 1 * 1000;
+        const aMin = 1 * 60 * 1000;
+        const anHour = 1 * 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
             `⌛ Price check requested for ${total} items, will be done in approximately ${
-                totalTime < 1 * 60 * 1000
-                    ? `${Math.round(totalTime / 1000)} seconds.`
-                    : totalTime < 1 * 60 * 60 * 1000
-                    ? `${Math.round(totalTime / (1 * 60 * 1000))} minutes.`
-                    : `${Math.round(totalTime / (1 * 60 * 60 * 1000))} hours.`
+                totalTime < aMin
+                    ? `${Math.round(totalTime / aSecond)} seconds.`
+                    : totalTime < anHour
+                    ? `${Math.round(totalTime / aMin)} minutes.`
+                    : `${Math.round(totalTime / anHour)} hours.`
             } (every 2 seconds for each items).`
         );
 
