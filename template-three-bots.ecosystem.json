@@ -49,6 +49,8 @@
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
+                "NORMALIZE_FESTIVIZED_ITEMS": false,
+
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
@@ -197,6 +199,8 @@
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
+                "NORMALIZE_FESTIVIZED_ITEMS": false,
+
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
@@ -334,7 +338,7 @@
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
-                "DISABLE_CRAFTING": false,
+                "DISABLE_CRAFTING_METAL": false,
                 "DISABLE_CRAFTING_WEAPONS": false,
                 "DISABLE_MESSAGES": false,
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
@@ -344,6 +348,8 @@
                 "DISABLE_GROUPS_INVITE": false,
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
+
+                "NORMALIZE_FESTIVIZED_ITEMS": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,

@@ -651,6 +651,14 @@ export = class MyHandler extends Handler {
                   reason: '🟫DUPED_ITEMS';
                   assetid: string;
               }
+            | {
+                  reason: '⬜STEAM_DOWN';
+                  error?: string;
+              }
+            | {
+                  reason: '⬜BACKPACKTF_DOWN';
+                  error?: string;
+              }
         )[] = [];
 
         let assetidsToCheck = [];
@@ -959,7 +967,17 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
-            return { action: 'skip', reason: '⬜STEAM_DOWN' };
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            return {
+                action: 'skip',
+                reason: '⬜STEAM_DOWN',
+                meta: {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer
+                }
+            };
         }
 
         offer.log('info', 'checking bans...');
@@ -973,7 +991,17 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
-            return { action: 'skip', reason: '⬜BACKPACKTF_DOWN' };
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            return {
+                action: 'skip',
+                reason: '⬜BACKPACKTF_DOWN',
+                meta: {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer
+                }
+            };
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
@@ -1474,12 +1502,12 @@ export = class MyHandler extends Handler {
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
             // Notify partner and admin that the offer is waiting for manual review
-            if (reason === '⬜BACKPACKTF_DOWN' || reason === '⬜STEAM_DOWN') {
+            if (reasons.includes('⬜BACKPACKTF_DOWN') || reasons.includes('⬜STEAM_DOWN')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reason === '⬜BACKPACKTF_DOWN' ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reason === '⬜BACKPACKTF_DOWN' ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
@@ -1518,7 +1546,6 @@ export = class MyHandler extends Handler {
             ) {
                 this.discord.sendOfferReview(
                     offer,
-                    reason,
                     reasons.join(', '),
                     pureStock,
                     timeWithEmojis.time,
@@ -1536,13 +1563,12 @@ export = class MyHandler extends Handler {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReason: ${
-                            reason === '⬜BACKPACKTF_DOWN'
-                                ? '⬜BACKPACKTF_DOWN - failed to check banned status'
-                                : reason === '⬜STEAM_DOWN'
-                                ? '⬜STEAM_DOWN - failed to check escrow status'
-                                : meta.uniqueReasons.join(', ')
-                        }` +
+                        `\nReason: ${meta.uniqueReasons.join(', ')}` +
+                        (reasons.includes('⬜BACKPACKTF_DOWN')
+                            ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
+                            : reasons.includes('⬜STEAM_DOWN')
+                            ? '\nSteam down, please manually check if this person have escrow.'
+                            : '') +
                         `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
                             value.diff > 0
                                 ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
@@ -1959,9 +1985,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 1
@@ -2002,12 +2026,10 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
-                intent: 0
+                intent: 1
             } as any;
         } else {
             entry = {
@@ -2039,13 +2061,10 @@ Autokeys status:-
     }
 
     private createAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: false,
-            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+            autoprice: true,
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -2088,9 +2107,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 1
@@ -2131,9 +2148,7 @@ Autokeys status:-
             entry = {
                 sku: '5021;6',
                 enabled: true,
-                autoprice: false,
-                buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-                sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+                autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
                 intent: 0
@@ -2168,13 +2183,10 @@ Autokeys status:-
     }
 
     private updateAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
         const entry = {
             sku: '5021;6',
             enabled: true,
-            autoprice: false,
-            buy: { keys: keyPrices.buy.keys, metal: keyPrices.buy.metal },
-            sell: { keys: keyPrices.sell.keys, metal: keyPrices.sell.metal },
+            autoprice: true,
             max: userMaxKeys,
             min: userMinKeys,
             intent: 2
@@ -2203,34 +2215,21 @@ Autokeys status:-
             });
     }
 
-    refreshAutoKeys(): void {
-        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
-        if (isKeysAlreadyExist) {
-            this.bot.pricelist
-                .removePrice('5021;6', true)
-                .then(() => {
-                    log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.sleep(2000);
-                    this.autokeys();
-                })
-                .catch(err => {
-                    log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                    this.checkAutokeysStatus = true;
-                });
-        } else {
-            this.autokeys();
-        }
+    refreshAutokeys(): void {
+        this.removeAutoKeys();
+        this.isBuyingKeys = false;
+        this.isBankingKeys = false;
+        this.checkAutokeysStatus = false;
+        this.checkAlertOnLowPure = false;
+        this.alreadyUpdatedToBank = false;
+        this.alreadyUpdatedToBuy = false;
+        this.alreadyUpdatedToSell = false;
+        this.sleep(2000);
+        this.autokeys();
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true') {
+        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();
