@@ -2224,7 +2224,7 @@ Autokeys status:-
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true') {
+        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();

@@ -200,7 +200,7 @@ You can run your bot without this first, which then on the first run, it will pr
 #### Set to true if want to disable
 - `DISABLE_INVENTORY_SORT`: [true|false] Default: `false`. Sort your bot inventory.
 - `DISABLE_LISTINGS`: [true|false] Default: `false`. This is used if you want to temporarily disable trading while your bot is alive.
-- `DISABLE_CRAFTING`: [true|false] Default: `false`. **NOT RECOMMENDED** to set is as `true`, as it cause bot and trade partner to not be able to trade because of missing pure changes.
+- `DISABLE_CRAFTING_METAL`: [true|false] Default: `false`. **NOT RECOMMENDED** to set is as `true`, as it cause bot and trade partner to not be able to trade because of missing pure changes.
 - `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: `false`. Set to **`true` if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
 - `DISABLE_MESSAGES`: [true|false] Default: `false`. When `true`, people (that are friend with your bot) will be unable send messages to you with "!message" command.
 - `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: `false`. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
