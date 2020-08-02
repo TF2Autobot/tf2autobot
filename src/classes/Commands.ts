@@ -650,10 +650,7 @@ export = class Commands {
             const reply = message.substr(message.toLowerCase().indexOf(recipient) + 18);
 
             // Send message to recipient
-            this.bot.sendMessage(
-                recipient,
-                `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-            );
+            this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
 
             // Send confirmation message to admin
             this.bot.sendMessage(steamID, '✅ Your message has been sent.');
