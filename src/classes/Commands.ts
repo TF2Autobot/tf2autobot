@@ -1949,8 +1949,10 @@ export = class Commands {
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
-                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
-                            '\n Contact IdiNium if you have any other problem. Thank you.'
+                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
+                            `\n\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
+                            `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
+                            '\nContact IdiNium if you have any other problem. Thank you.'
                     );
                 }
             })
