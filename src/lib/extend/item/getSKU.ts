@@ -119,7 +119,7 @@ function isAustralium(item: EconItem): boolean {
  * @param item - Item object
  */
 function isFestive(item: EconItem): boolean {
-    return item.market_hash_name.includes('Festivized ');
+    return process.env.NORMALIZE_FESTIVIZED_ITEMS !== 'true' && item.market_hash_name.includes('Festivized ');
 }
 
 /**

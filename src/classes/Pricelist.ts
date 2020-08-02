@@ -378,21 +378,6 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    adjustKeyRate(buy: { keys: number; metal: number }, sell: { keys: number; metal: number }): void {
-        this.keyPrices = {
-            buy: new Currencies(buy),
-            sell: new Currencies(sell)
-        };
-        const entryKey = this.getPrice('5021;6');
-
-        if (entryKey !== null && entryKey.autoprice) {
-            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-            entryKey.buy = new Currencies(buy);
-            entryKey.sell = new Currencies(sell);
-            entryKey.time = Math.trunc(moment().valueOf() / 1000);
-        }
-    }
-
     private updateOldPrices(old: Entry[]): Promise<void> {
         log.debug('Getting pricelist...');
 
