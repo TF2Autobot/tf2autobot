@@ -8,6 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku';
 import request from '@nicklason/request-retry';
+import sleepasync from 'sleep-async';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -751,7 +752,7 @@ export = class MyHandler extends Handler {
 
                         this.invalidItemsSKU.push(sku);
 
-                        this.sleep(1000);
+                        await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
                         if (price === null) {
