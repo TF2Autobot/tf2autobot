@@ -52,7 +52,12 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         }
 
         const amount = dict[sku];
-        const name = schema.getName(SKU.fromString(sku), false);
+        const name = schema
+            .getName(SKU.fromString(sku), false)
+            .replace(/Non-Craftable/g, 'NC')
+            .replace(/Professional Killstreak/g, 'Pro KS')
+            .replace(/Specialized Killstreak/g, 'Spec KS')
+            .replace(/Killstreak/g, 'KS');
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ' x' + amount : ''));
     }
