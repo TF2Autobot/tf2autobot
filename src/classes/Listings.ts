@@ -102,9 +102,6 @@ export = class Listings {
         this.getAccountInfo().asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
-                clearTimeout(this.autoRelistTimeout);
-                clearTimeout(this.autoRelistRetryTimeout);
-                this.autoRelistRetry = true;
                 return;
             }
 
@@ -117,9 +114,12 @@ export = class Listings {
                 );
                 this.enableAutoRelist();
             } else if (this.autoRelistEnabled && this.autoRelistRetry) {
-                this.autoRelistRetry = false;
                 clearTimeout(this.autoRelistRetryTimeout);
+                clearTimeout(this.autoRelistTimeout);
+
                 log.warn('backpack.tf down, will wait for 5 minutes before reinitializing relist...');
+                this.autoRelistRetry = false;
+
                 this.autoRelistRetryTimeout = setTimeout(() => {
                     this.enableAutoRelist();
                 }, 5 * 60 * 1000);
@@ -462,8 +462,6 @@ export = class Listings {
 
                 this.bot.listingManager.getListings(err => {
                     if (err) {
-                        clearTimeout(this.autoRelistTimeout);
-                        clearTimeout(this.autoRelistRetryTimeout);
                         this.autoRelistRetry = true;
                         return reject(err);
                     }
