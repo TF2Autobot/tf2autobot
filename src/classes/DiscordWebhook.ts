@@ -304,11 +304,17 @@ export = class DiscordWebhook {
                             }` +
                             (isShowQuickLinks
                                 ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n') +
-                            (isShowKeyRate
-                                ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
-                                : '') +
-                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : ''),
+                                : '\n'),
+                        fields: [
+                            {
+                                name: 'Status',
+                                value:
+                                    (isShowKeyRate
+                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
+                                        : '') +
+                                    (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
+                            }
+                        ],
                         color: botEmbedColor
                     }
                 ]
@@ -460,7 +466,7 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `A trade with ${partnerNameNoFormat} has been marked as accepted.\n__Summary__:\n` +
+                            `__Summary__:\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
                             (value.diff > 0
                                 ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
@@ -471,29 +477,44 @@ export = class DiscordWebhook {
                                 : '') +
                             (isShowQuickLinks
                                 ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n') +
-                            (isMentionInvalidItems ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n') : '') +
-                            (isShowKeyRate
-                                ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                                  `${
-                                      isAutoKeysEnabled
-                                          ? ' | Autokeys: ' +
-                                            (autoKeysStatus
-                                                ? '✅' +
-                                                  (isBankingKeys
-                                                      ? ' (banking)'
-                                                      : isBuyingKeys
-                                                      ? ' (buying)'
-                                                      : ' (selling)')
-                                                : '🛑')
-                                          : ''
-                                  }`
-                                : '') +
-                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                            (isShowInventory
-                                ? `\n🎒 Total items: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
-                                : '') +
-                            (AdditionalNotes ? '\n' + AdditionalNotes : ''),
+                                : '\n'),
+                        fields: [
+                            {
+                                name: 'Status',
+                                value:
+                                    (isShowQuickLinks
+                                        ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
+                                        : '\n') +
+                                    (isMentionInvalidItems
+                                        ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                                        : '') +
+                                    (isShowKeyRate
+                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                                          `${
+                                              isAutoKeysEnabled
+                                                  ? ' | Autokeys: ' +
+                                                    (autoKeysStatus
+                                                        ? '✅' +
+                                                          (isBankingKeys
+                                                              ? ' (banking)'
+                                                              : isBuyingKeys
+                                                              ? ' (buying)'
+                                                              : ' (selling)')
+                                                        : '🛑')
+                                                  : ''
+                                          }`
+                                        : '') +
+                                    (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                                    (isShowInventory
+                                        ? `\n🎒 Total items: ${currentItems +
+                                              (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+                                        : '')
+                            },
+                            {
+                                name: 'Notes:',
+                                value: AdditionalNotes ? '\n' + AdditionalNotes : '-'
+                            }
+                        ],
                         color: botEmbedColor
                     }
                 ]
