@@ -948,6 +948,9 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜STEAM_DOWN'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
@@ -972,6 +975,9 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜BACKPACKTF_DOWN'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
