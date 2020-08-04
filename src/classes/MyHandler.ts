@@ -60,13 +60,13 @@ export = class MyHandler extends Handler {
         userMaxReftoScrap: number;
     };
 
-    private autokeysStatus: {
-        isBuyingKeys: boolean;
-        isBankingKeys: boolean;
-        checkAlertOnLowPure: boolean;
-        alreadyUpdatedToBank: boolean;
-        alreadyUpdatedToBuy: boolean;
-        alreadyUpdatedToSell: boolean;
+    private autokeysStatus = {
+        isBuyingKeys: false,
+        isBankingKeys: false,
+        checkAlertOnLowPure: false,
+        alreadyUpdatedToBank: false,
+        alreadyUpdatedToBuy: false,
+        alreadyUpdatedToSell: false
     };
 
     private invalidValueException: number;
@@ -81,6 +81,12 @@ export = class MyHandler extends Handler {
         overstockedItemsSKU: string[];
         dupedItemsSKU: string[];
         dupedFailedItemsSKU: string[];
+    } = {
+        invalidItemsSKU: [],
+        invalidItemsValue: [],
+        overstockedItemsSKU: [],
+        dupedItemsSKU: [],
+        dupedFailedItemsSKU: []
     };
 
     private isTradingKeys = false;
