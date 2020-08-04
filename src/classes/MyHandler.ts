@@ -2007,6 +2007,7 @@ Autokeys status:-
             .addPrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
@@ -2048,6 +2049,7 @@ Autokeys status:-
             .addPrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
@@ -2068,6 +2070,7 @@ Autokeys status:-
             .addPrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
@@ -2088,6 +2091,7 @@ Autokeys status:-
             .updatePrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically disabled Autokeys.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
@@ -2129,6 +2133,7 @@ Autokeys status:-
             .updatePrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
@@ -2170,6 +2175,7 @@ Autokeys status:-
             .updatePrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
@@ -2190,6 +2196,7 @@ Autokeys status:-
             .updatePrice(entry as EntryData, true)
             .then(() => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
@@ -2202,6 +2209,7 @@ Autokeys status:-
             .removePrice('5021;6', true)
             .then(() => {
                 log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
+                this.bot.listings.checkBySKU('5021;6');
                 this.checkAutokeysStatus = false;
             })
             .catch(err => {
