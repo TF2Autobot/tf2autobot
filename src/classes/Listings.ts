@@ -202,8 +202,8 @@ export = class Listings {
 
                     listing.update({
                         time: match.time || moment().unix(),
-                        details: newDetails,
-                        currencies: currencies
+                        currencies: currencies,
+                        details: newDetails
                     });
                 }
             }
