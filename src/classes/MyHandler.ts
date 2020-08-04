@@ -91,6 +91,10 @@ export = class MyHandler extends Handler {
 
     private isTradingKeys = false;
 
+    private autoRelistNotSellingKeys = 0;
+
+    private autoRelistNotBuyingKeys = 0;
+
     private customGameName: string;
 
     private isUsingAutoPrice = true;
@@ -824,14 +828,18 @@ export = class MyHandler extends Handler {
             const priceEntry = this.bot.pricelist.getPrice('5021;6', true);
             if (priceEntry === null) {
                 // We are not trading keys
+                this.autoRelistNotSellingKeys++;
+                this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not trading keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
+                this.autoRelistNotSellingKeys++;
                 offer.log('info', 'we are not selling keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
+                this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not buying keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else {
@@ -854,6 +862,17 @@ export = class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
                 }
+            }
+            if (this.autokeysEnabled !== false) {
+                if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
+                    log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
+                    this.bot.listings.checkAllWithDelay();
+                    this.autoRelistNotSellingKeys = 0;
+                    this.autoRelistNotBuyingKeys = 0;
+                }
+            } else {
+                this.autoRelistNotSellingKeys = 0;
+                this.autoRelistNotBuyingKeys = 0;
             }
         }
 
