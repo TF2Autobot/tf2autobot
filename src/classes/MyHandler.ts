@@ -1884,7 +1884,7 @@ Autokeys status:-
                         isBuyingKeys: false,
                         isBankingKeys: true,
                         checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBank: true,
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
@@ -1897,7 +1897,7 @@ Autokeys status:-
                         isBankingKeys: false,
                         checkAlertOnLowPure: false,
                         alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
                     this.checkAutokeysStatus = true;
@@ -1909,7 +1909,7 @@ Autokeys status:-
                         isBankingKeys: false,
                         checkAlertOnLowPure: false,
                         alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
                     this.checkAutokeysStatus = true;
@@ -1922,7 +1922,7 @@ Autokeys status:-
                         checkAlertOnLowPure: false,
                         alreadyUpdatedToBank: false,
                         alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: false
+                        alreadyUpdatedToSell: true
                     };
                     this.checkAutokeysStatus = true;
                     this.createAutokeysSell(userMinKeys, userMaxKeys);
