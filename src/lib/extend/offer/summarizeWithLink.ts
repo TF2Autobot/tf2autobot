@@ -66,5 +66,12 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         return 'nothing';
     }
 
-    return summary.join(', ');
+    let left = 0;
+
+    if (summary.length > 15) {
+        left = summary.length - 15;
+        summary.splice(15);
+    }
+
+    return summary.join(', ') + (left !== 0 ? ' and ' + left + ' more items.' : '');
 }
