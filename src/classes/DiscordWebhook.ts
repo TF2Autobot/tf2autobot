@@ -265,7 +265,7 @@ export = class DiscordWebhook {
                                 : reasons.includes('⬜STEAM_DOWN')
                                 ? '\n\nSteam down, please manually check if this person have escrow.'
                                 : '') +
-                            `\n\n__Offer Summary__:\n` +
+                            `\n\n__**Offer Summary**__\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
                             (value.diff > 0
                                 ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
@@ -307,7 +307,7 @@ export = class DiscordWebhook {
                                 : '\n'),
                         fields: [
                             {
-                                name: 'Status',
+                                name: '**Status**',
                                 value:
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
@@ -466,7 +466,7 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `__Summary__:\n` +
+                            `__**Summary**__\n` +
                             tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
                             (value.diff > 0
                                 ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
@@ -480,7 +480,7 @@ export = class DiscordWebhook {
                                 : '\n'),
                         fields: [
                             {
-                                name: 'Status',
+                                name: '__Status__',
                                 value:
                                     (isShowQuickLinks
                                         ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
@@ -511,7 +511,7 @@ export = class DiscordWebhook {
                                         : '')
                             },
                             {
-                                name: 'Notes:',
+                                name: '__Notes__',
                                 value: AdditionalNotes ? '\n' + AdditionalNotes : '-'
                             }
                         ],
