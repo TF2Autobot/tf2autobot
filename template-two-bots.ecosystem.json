@@ -49,6 +49,8 @@
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
+                "NORMALIZE_FESTIVIZED_ITEMS": false,
+
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
@@ -196,6 +198,8 @@
                 "DISABLE_GROUPS_INVITE": false,
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
+
+                "NORMALIZE_FESTIVIZED_ITEMS": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
