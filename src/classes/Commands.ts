@@ -665,9 +665,6 @@ export = class Commands {
             if (!recipientSteamID.isValid()) {
                 this.bot.sendMessage(steamID, `❌ "${recipient}" is not a valid steamid.`);
                 return;
-            } else if (!this.bot.friends.isFriend(recipientSteamID)) {
-                this.bot.sendMessage(steamID, '❌ I am not friends with the user.');
-                return;
             }
 
             const recipentDetails = this.bot.friends.getFriend(recipientSteamID);
@@ -675,10 +672,7 @@ export = class Commands {
             const reply = message.substr(message.toLowerCase().indexOf(recipient) + 18);
 
             // Send message to recipient
-            this.bot.sendMessage(
-                recipient,
-                `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-            );
+            this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
 
             // Send confirmation message to admin
             this.bot.sendMessage(steamID, '✅ Your message has been sent.');
