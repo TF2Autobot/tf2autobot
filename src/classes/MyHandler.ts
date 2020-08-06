@@ -51,7 +51,7 @@ export = class MyHandler extends Handler {
 
     private keyBankingEnabled = false;
 
-    private checkAutokeysStatus = false;
+    private autokeysIsActive = false;
 
     private autokeysPure: {
         userMinKeys: number;
@@ -268,7 +268,7 @@ export = class MyHandler extends Handler {
         const status = this.autokeysStatus;
         const settings = {
             enabled: this.autokeysEnabled,
-            status: this.checkAutokeysStatus,
+            status: this.autokeysIsActive,
             minKeys: userPure.userMinKeys,
             maxKeys: userPure.userMaxKeys,
             minRef: userPure.userMinReftoScrap,
@@ -350,7 +350,7 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.checkAutokeysStatus === true) {
+            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeysIsActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
                 this.removeAutoKeys();
             }
@@ -1275,7 +1275,7 @@ export = class MyHandler extends Handler {
                 this.autokeys();
 
                 const isAutoKeysEnabled = this.autokeysEnabled;
-                const autoKeysStatus = this.checkAutokeysStatus;
+                const autoKeysStatus = this.autokeysIsActive;
                 const isBuyingKeys = this.autokeysStatus.isBuyingKeys;
                 const isBankingKeys = this.autokeysStatus.isBankingKeys;
 
@@ -1651,7 +1651,7 @@ export = class MyHandler extends Handler {
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
         if (currKeyPrice !== this.OldKeyPrices && !this.isUsingAutoPrice) {
-            // When scrap adjustment activated, if key rate changes, then it will force update key prices.
+            // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
             this.autokeysStatus = {
                 isBuyingKeys: false,
                 isBankingKeys: false,
@@ -1790,7 +1790,7 @@ Autokeys status:-
  }`
         );
 
-        const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
+        const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
 
@@ -1806,7 +1806,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
                 this.updateAutokeysBanking(userMinKeys, userMaxKeys);
             } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -1818,7 +1818,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: true,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
                 this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                 // enable Autokeys - Buying - if buying keys conditions matched
@@ -1830,7 +1830,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: true,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
                 this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
                 // enable Autokeys - Selling - if selling keys conditions matched
@@ -1842,7 +1842,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: true
                 };
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
                 this.updateAutokeysSell(userMinKeys, userMaxKeys);
             } else if (isRemoveBankingKeys && isEnableKeyBanking) {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
@@ -1854,7 +1854,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
                 this.removeAutoKeys();
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
@@ -1866,7 +1866,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
                 this.removeAutoKeys();
             } else if (isAlertAdmins && isAlreadyAlert !== true) {
                 // alert admins when low pure
@@ -1878,7 +1878,7 @@ Autokeys status:-
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: false
                 };
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
                 const msg = 'I am now low on both keys and refs.';
                 if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                     if (
@@ -1905,7 +1905,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.createAutokeysBanking(userMinKeys, userMaxKeys);
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -1917,7 +1917,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
@@ -1929,7 +1929,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isSellingKeys) {
                     // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
@@ -1941,7 +1941,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: true
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.createAutokeysSell(userMinKeys, userMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
@@ -1953,7 +1953,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = false;
+                    this.autokeysIsActive = false;
                     const msg = 'I am now low on both keys and refs.';
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
@@ -1978,7 +1978,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBanking(userMinKeys, userMaxKeys);
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -1990,7 +1990,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                     // enable Autokeys - Buying - if buying keys conditions matched
@@ -2002,7 +2002,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
                     // enable Autokeys - Selling - if selling keys conditions matched
@@ -2014,7 +2014,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: true
                     };
-                    this.checkAutokeysStatus = true;
+                    this.autokeysIsActive = true;
                     this.updateAutokeysSell(userMinKeys, userMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
@@ -2026,7 +2026,7 @@ Autokeys status:-
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
-                    this.checkAutokeysStatus = false;
+                    this.autokeysIsActive = false;
                     const msg = 'I am now low on both keys and refs.';
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
@@ -2080,7 +2080,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2124,7 +2124,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2147,7 +2147,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2170,7 +2170,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2214,7 +2214,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2258,7 +2258,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2281,7 +2281,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2296,7 +2296,7 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
             })
             .finally(() => {
                 this.bot.listings.checkBySKU('5021;6');
@@ -2313,7 +2313,7 @@ Autokeys status:-
             alreadyUpdatedToBuy: false,
             alreadyUpdatedToSell: false
         };
-        this.checkAutokeysStatus = false;
+        this.autokeysIsActive = false;
         this.sleep(2 * 1000);
         this.autokeys();
     }
