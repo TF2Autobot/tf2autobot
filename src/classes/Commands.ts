@@ -66,7 +66,7 @@ const ADMIN_COMMANDS: string[] = [
     '!restart - Restart the bot 🔄',
     '!version - Get version that the bot is running',
     '!autokeys - Get info on your current autoBuy/Sell Keys settings 🔑',
-    '!resfreshautokeys - Refresh your autokeys settings.',
+    '!refreshautokeys - Refresh your autokeys settings.',
     '!avatar <image_URL> - Change avatar',
     '!name <new_name> - Change name',
     '!block <steamid> - Block a specific user',
@@ -484,7 +484,7 @@ export = class Commands {
 
         this.bot.sendMessage(
             steamID,
-            `🎒 My crrent items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+            `🎒 My current items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
         );
     }
 
