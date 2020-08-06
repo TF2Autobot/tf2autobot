@@ -6,6 +6,7 @@ import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
 import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
+import SKU from 'tf2-sku';
 
 export = class DiscordWebhook {
     private readonly bot: Bot;
@@ -387,6 +388,30 @@ export = class DiscordWebhook {
             );
         }
 
+        const invalidItems = theirItemsSecondFiltered.concat(ourItemsSecondFiltered);
+        const invalidItemsName: string[] = [];
+        invalidItems.forEach(sku => {
+            invalidItemsName.push(
+                this.bot.schema
+                    .getName(SKU.fromString(sku), false)
+                    .replace(/Non-Craftable/g, 'NC')
+                    .replace(/Professional Killstreak/g, 'Pro KS')
+                    .replace(/Specialized Killstreak/g, 'Spec KS')
+                    .replace(/Killstreak/g, 'KS')
+            );
+        });
+
+        const invalidItemsFromMyHandler: string[] = [];
+        invalidItemsCombine.forEach(name => {
+            invalidItemsFromMyHandler.push(
+                name
+                    .replace(/Non-Craftable/g, 'NC')
+                    .replace(/Professional Killstreak/g, 'Pro KS')
+                    .replace(/Specialized Killstreak/g, 'Spec KS')
+                    .replace(/Killstreak/g, 'KS')
+            );
+        });
+
         const isMentionInvalidItemsOurSide = ourItemsSecondFiltered.some((sku: string) => {
             if (ourItemsSecondFiltered.length > 0) {
                 return this.bot.pricelist.getPrice(sku, false) === null;
@@ -486,7 +511,10 @@ export = class DiscordWebhook {
                                         ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                         : '\n') +
                                     (isMentionInvalidItems
-                                        ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                                        ? '\n\n🟨INVALID_ITEMS:\n' +
+                                          (invalidItemsCombine.length === 0
+                                              ? invalidItemsName.join(',\n')
+                                              : invalidItemsFromMyHandler.join(',\n'))
                                         : '') +
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
