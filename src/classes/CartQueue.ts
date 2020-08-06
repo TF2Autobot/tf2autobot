@@ -113,6 +113,11 @@ class CartQueue {
         return true;
     }
 
+    resetQueue(): void {
+        log.debug('Queue reset initialized.');
+        this.carts.splice(0);
+    }
+
     getPosition(steamID: SteamID | string): number {
         const steamID64 = steamID.toString();
         return this.carts.findIndex(cart => cart.partner.toString() === steamID64);

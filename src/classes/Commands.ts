@@ -54,6 +54,7 @@ const ADMIN_COMMANDS: string[] = [
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
     '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
+    'resetqueue - Reset queue position to 0',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
@@ -159,6 +160,8 @@ export = class Commands {
             this.checkoutCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
+        } else if (command === 'resetqueue') {
+            this.resetQueueCommand(steamID);
         } else if (command === 'cancel') {
             this.cancelCommand(steamID);
         } else if (command === 'deposit' && isAdmin) {
@@ -748,6 +751,11 @@ export = class Commands {
         } else {
             this.bot.sendMessage(steamID, `There is ${position} infront of you.`);
         }
+    }
+
+    private resetQueueCommand(steamID: SteamID): void {
+        this.cartQueue.resetQueue();
+        this.bot.sendMessage(steamID, '✅ Sucessfully reset queue!');
     }
 
     private cancelCommand(steamID: SteamID): void {
