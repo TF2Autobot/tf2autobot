@@ -27,52 +27,75 @@ import SchemaManager from 'tf2-schema';
 
 const COMMANDS: string[] = [
     '!help - Get list of commands',
-    '!how2trade - Guide on how to use and trade with the bot',
-    '!time - Show owner current time 🕥',
-    '!price [amount] <name> - Get the price and stock of an item',
-    '!stock - Get a list of items that the bot has',
-    '!pure - Get current pure stock 💰',
-    '!rate - Get current key prices 🔑',
-    '!craftweapon - get a list of craft weapon stock 🔫',
-    '!uncraftweapon - get a list of uncraft weapon stock 🔫',
-    '!message <your message> - Send a message to the owner of the bot 💬',
+    '!how2trade - Guide on how to use and trade with the bot\n',
+
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲',
+    '!price [amount] <name> - Get the price and stock of an item 💲📦\n',
+
     '!buycart [amount] <name> - Adds an item you want to buy to the cart 🛒',
     '!sellcart [amount] <name> - Adds an item you want to sell to the cart 🛒',
     '!cart - See current cart 🛒',
     '!clearcart - Clears the current cart ❎🛒',
-    '!checkout - Make the bot send an offer the items in the cart ✅🛒',
-    '!queue - See your position in the queue',
-    '!cancel - Cancel an already made offer, or cancel offer being made ❌',
+    '!checkout - Make the bot send an offer the items in the cart ✅🛒\n',
+
+    '!cancel - Cancel an already made offer, or cancel offer being made ❌\n',
+
+    '!queue - See your position in the queue\n\n',
+
+    '!more - Show advanced commands list'
+];
+
+const MORE: string[] = [
+    '!message <your message> - Send a message to the owner of the bot 💬',
+    '!time - Show owner current time 🕥\n',
+
+    '!pure - Get current pure stock 💰',
+    '!rate - Get current key prices 🔑\n',
+
+    '!stock - Get a list of items that the bot has',
+    '!craftweapon - get a list of craft weapon stock 🔫',
+    '!uncraftweapon - get a list of uncraft weapon stock 🔫\n',
+
     '!sales sku=<item sku> - get sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
     '!deposit <name=>&<amount=> - Used to deposit items',
-    '!withdraw <name=>&<amount=> - Used to withdraw items',
+    '!withdraw <name=>&<amount=> - Used to withdraw items\n',
+
     '!add - Add a pricelist entry ➕',
     '!update - Update a pricelist entry',
-    '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
-    'resetqueue - Reset queue position to 0',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
-    '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
+    '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n',
+
+    '!relist - Perform relist if some of your listings are missing (you can run only once, then need to wait 30 minutes if you want to run it again)',
+    '!resetqueue - Reset queue position to 0\n',
+
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
     '!pricecheckall - Automatically request all items in your inventory to be checked by Prices.TF.',
-    '!check sku=<item sku> - Request current price for an item from Prices.TF',
+    '!check sku=<item sku> - Request current price for an item from Prices.TF\n',
+
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
-    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
-    '!inventory - Get my current inventory spaces 🎒',
+    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮\n',
+
+    '!inventory - Get my current inventory spaces 🎒\n',
+
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
-    '!version - Get version that the bot is running',
+    '!version - Get version that the bot is running\n',
+
     '!autokeys - Get info on your current autoBuy/Sell Keys settings 🔑',
-    '!refreshautokeys - Refresh your autokeys settings.',
+    '!refreshautokeys - Refresh your autokeys settings.\n',
+
     '!avatar <image_URL> - Change avatar',
-    '!name <new_name> - Change name',
+    '!name <new_name> - Change name\n',
+
     '!block <steamid> - Block a specific user',
-    '!unblock <steamid> - Unblock specific user',
-    '!stats - Get statistics for accepted trades 📊',
+    '!unblock <steamid> - Unblock specific user\n',
+
+    '!stats - Get statistics for accepted trades 📊\n',
+
     '!trades - Get a list of offers pending for manual review 🔍',
     '!trade <offerID> - Get info about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
@@ -126,6 +149,8 @@ export = class Commands {
 
         if (command === 'help') {
             this.helpCommand(steamID);
+        } else if (command === 'more') {
+            this.moreCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
         } else if (command === 'price') {
@@ -238,6 +263,12 @@ export = class Commands {
         if (this.bot.isAdmin(steamID)) {
             reply += `\n\nAdmin commands:\n- ${ADMIN_COMMANDS.join('\n- ')}`;
         }
+
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private moreCommand(steamID: SteamID): void {
+        const reply = `Advanced commands list:\n- ${MORE.join('\n- ')}`;
 
         this.bot.sendMessage(steamID, reply);
     }
