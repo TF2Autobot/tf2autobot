@@ -105,6 +105,8 @@ export = class MyHandler extends Handler {
 
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
+    private OldKeyPrices: { buy: Currencies; sell: Currencies };
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -1645,6 +1647,21 @@ export = class MyHandler extends Handler {
         const userMaxKeys = userPure.userMaxKeys;
         const userMinReftoScrap = userPure.userMinReftoScrap;
         const userMaxReftoScrap = userPure.userMaxReftoScrap;
+
+        const currKeyPrice = this.bot.pricelist.getKeyPrices();
+
+        if (currKeyPrice !== this.OldKeyPrices && !this.isUsingAutoPrice) {
+            // When scrap adjustment activated, if key rate changes, then it will force update key prices.
+            this.autokeysStatus = {
+                isBuyingKeys: false,
+                isBankingKeys: false,
+                checkAlertOnLowPure: false,
+                alreadyUpdatedToBank: false,
+                alreadyUpdatedToBuy: false,
+                alreadyUpdatedToSell: false
+            };
+            this.OldKeyPrices = { buy: currKeyPrice.buy, sell: currKeyPrice.sell };
+        }
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
