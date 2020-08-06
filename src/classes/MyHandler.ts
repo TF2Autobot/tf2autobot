@@ -2078,7 +2078,7 @@ Autokeys status:-
                 autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
-                intent: 1
+                intent: 0
             } as any;
         } else {
             entry = {
