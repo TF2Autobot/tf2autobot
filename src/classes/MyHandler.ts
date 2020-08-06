@@ -8,6 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku';
 import request from '@nicklason/request-retry';
+import sleepasync from 'sleep-async';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -50,49 +51,49 @@ export = class MyHandler extends Handler {
 
     private keyBankingEnabled = false;
 
-    private checkAutokeysStatus = false;
+    private autokeysIsActive = false;
 
-    private isBuyingKeys = false;
+    private autokeysPure: {
+        userMinKeys: number;
+        userMaxKeys: number;
+        userMinReftoScrap: number;
+        userMaxReftoScrap: number;
+    };
 
-    private isBankingKeys = false;
-
-    private checkAlertOnLowPure = false;
-
-    private alreadyUpdatedToBank = false;
-
-    private alreadyUpdatedToBuy = false;
-
-    private alreadyUpdatedToSell = false;
+    private autokeysStatus = {
+        isBuyingKeys: false,
+        isBankingKeys: false,
+        checkAlertOnLowPure: false,
+        alreadyUpdatedToBank: false,
+        alreadyUpdatedToBuy: false,
+        alreadyUpdatedToSell: false
+    };
 
     private invalidValueException: number;
 
     private invalidValueExceptionSKU: string[] = [];
 
-    private invalidItemsSKU: string[] = [];
+    private hasInvalidValueException = false;
 
-    private invalidItemsValue: string[] = [];
-
-    private overstockedItemsSKU: string[] = [];
-
-    private dupedItemsSKU: string[] = [];
-
-    private dupedFailedItemsSKU: string[] = [];
-
-    private userMinKeys: number;
-
-    private userMaxKeys: number;
-
-    private userMinReftoScrap: number;
-
-    private userMaxReftoScrap: number;
+    private reviewItems: {
+        invalidItemsSKU: string[];
+        invalidItemsValue: string[];
+        overstockedItemsSKU: string[];
+        dupedItemsSKU: string[];
+        dupedFailedItemsSKU: string[];
+    } = {
+        invalidItemsSKU: [],
+        invalidItemsValue: [],
+        overstockedItemsSKU: [],
+        dupedItemsSKU: [],
+        dupedFailedItemsSKU: []
+    };
 
     private isTradingKeys = false;
 
     private autoRelistNotSellingKeys = 0;
 
     private autoRelistNotBuyingKeys = 0;
-
-    private hasInvalidValueException = false;
 
     private customGameName: string;
 
@@ -103,6 +104,8 @@ export = class MyHandler extends Handler {
     private backpackSlots = 0;
 
     private isAcceptedWithInvalidItemsOrOverstocked = false;
+
+    private OldKeyPrices: { buy: Currencies; sell: Currencies };
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -117,10 +120,12 @@ export = class MyHandler extends Handler {
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
 
-        this.userMinKeys = parseInt(process.env.MINIMUM_KEYS);
-        this.userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
-        this.userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
-        this.userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+        this.autokeysPure = {
+            userMinKeys: parseInt(process.env.MINIMUM_KEYS),
+            userMaxKeys: parseInt(process.env.MAXIMUM_KEYS),
+            userMinReftoScrap: Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS)),
+            userMaxReftoScrap: Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS))
+        };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
@@ -259,16 +264,18 @@ export = class MyHandler extends Handler {
         scrapAdjustmentEnabled: boolean;
         scrapAdjustmentValue: number;
     } {
+        const userPure = this.autokeysPure;
+        const status = this.autokeysStatus;
         const settings = {
             enabled: this.autokeysEnabled,
-            status: this.checkAutokeysStatus,
-            minKeys: this.userMinKeys,
-            maxKeys: this.userMaxKeys,
-            minRef: this.userMinReftoScrap,
-            maxRef: this.userMaxReftoScrap,
-            isBuying: this.isBuyingKeys,
+            status: this.autokeysIsActive,
+            minKeys: userPure.userMinKeys,
+            maxKeys: userPure.userMaxKeys,
+            minRef: userPure.userMinReftoScrap,
+            maxRef: userPure.userMaxReftoScrap,
+            isBuying: status.isBuyingKeys,
             bankingEnabled: this.keyBankingEnabled,
-            isBanking: this.isBankingKeys,
+            isBanking: status.isBankingKeys,
             scrapAdjustmentEnabled: !this.isUsingAutoPrice,
             scrapAdjustmentValue: this.scrapAdjustmentValue
         };
@@ -343,7 +350,7 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.checkAutokeysStatus === true) {
+            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeysIsActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
                 this.removeAutoKeys();
             }
@@ -722,7 +729,9 @@ export = class MyHandler extends Handler {
                             // User is taking too many / offering too many
                             hasOverstock = true;
 
-                            this.overstockedItemsSKU.push(sku);
+                            if (!['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)) {
+                                this.reviewItems.overstockedItemsSKU.push(sku);
+                            }
 
                             wrongAboutOffer.push({
                                 reason: '🟦OVERSTOCKED',
@@ -753,13 +762,15 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.invalidItemsSKU.push(sku);
+                        if (!['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)) {
+                            this.reviewItems.invalidItemsSKU.push(sku);
+                        }
 
-                        this.sleep(1000);
+                        await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
                         if (price === null) {
-                            this.invalidItemsValue.push('No price');
+                            this.reviewItems.invalidItemsValue.push('No price');
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
@@ -772,7 +783,7 @@ export = class MyHandler extends Handler {
                             const itemSuggestedValue = Currencies.toCurrencies(
                                 price[intentString].toValue(keyPrice.metal)
                             );
-                            this.invalidItemsValue.push(itemSuggestedValue.toString());
+                            this.reviewItems.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
 
                         wrongAboutOffer.push({
@@ -819,17 +830,19 @@ export = class MyHandler extends Handler {
             const priceEntry = this.bot.pricelist.getPrice('5021;6', true);
             if (priceEntry === null) {
                 // We are not trading keys
+                this.autoRelistNotSellingKeys++;
+                this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not trading keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
-                offer.log('info', 'we are not selling keys, declining...');
                 this.autoRelistNotSellingKeys++;
+                offer.log('info', 'we are not selling keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
-                offer.log('info', 'we are not buying keys, declining...');
                 this.autoRelistNotBuyingKeys++;
+                offer.log('info', 'we are not buying keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -962,6 +975,9 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜STEAM_DOWN'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
@@ -986,6 +1002,9 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜BACKPACKTF_DOWN'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
@@ -1035,7 +1054,7 @@ export = class MyHandler extends Handler {
                             };
                         } else {
                             // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
-                            this.dupedItemsSKU = skuToCheck;
+                            this.reviewItems.dupedItemsSKU = skuToCheck;
                             wrongAboutOffer.push({
                                 reason: '🟫DUPED_ITEMS',
                                 assetid: assetidsToCheck[i]
@@ -1043,7 +1062,7 @@ export = class MyHandler extends Handler {
                         }
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
-                        this.dupedFailedItemsSKU = skuToCheck;
+                        this.reviewItems.dupedFailedItemsSKU = skuToCheck;
                         wrongAboutOffer.push({
                             reason: '🟪DUPE_CHECK_FAILED',
                             assetid: assetidsToCheck[i]
@@ -1256,9 +1275,9 @@ export = class MyHandler extends Handler {
                 this.autokeys();
 
                 const isAutoKeysEnabled = this.autokeysEnabled;
-                const autoKeysStatus = this.checkAutokeysStatus;
-                const isBuyingKeys = this.isBuyingKeys;
-                const isBankingKeys = this.isBankingKeys;
+                const autoKeysStatus = this.autokeysIsActive;
+                const isBuyingKeys = this.autokeysStatus.isBuyingKeys;
+                const isBankingKeys = this.autokeysStatus.isBankingKeys;
 
                 const pureStock = this.pureStock();
                 const timeWithEmojis = this.timeWithEmoji();
@@ -1271,13 +1290,13 @@ export = class MyHandler extends Handler {
                 const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
                 if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItemsSKU.forEach(sku => {
+                    this.reviewItems.invalidItemsSKU.forEach(sku => {
                         const name = this.bot.schema.getName(SKU.fromString(sku), false);
                         invalidItemsName.push(name);
                     });
 
                     for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.reviewItems.invalidItemsValue[i]);
                     }
                 }
 
@@ -1366,11 +1385,11 @@ export = class MyHandler extends Handler {
             this.sleep(3000);
 
             // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
-            this.overstockedItemsSKU.length = 0;
-            this.dupedItemsSKU.length = 0;
-            this.dupedFailedItemsSKU.length = 0;
+            this.reviewItems.invalidItemsSKU.length = 0;
+            this.reviewItems.invalidItemsValue.length = 0;
+            this.reviewItems.overstockedItemsSKU.length = 0;
+            this.reviewItems.dupedItemsSKU.length = 0;
+            this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -1404,13 +1423,13 @@ export = class MyHandler extends Handler {
             const reasons = meta.uniqueReasons;
 
             if (reasons.includes('🟨INVALID_ITEMS')) {
-                this.invalidItemsSKU.forEach(sku => {
+                this.reviewItems.invalidItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     invalidItemsName.push(name);
                 });
 
                 for (let i = 0; i < invalidItemsName.length; i++) {
-                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.reviewItems.invalidItemsValue[i]);
                 }
 
                 note = process.env.INVALID_ITEMS_NOTE
@@ -1428,7 +1447,7 @@ export = class MyHandler extends Handler {
             }
 
             if (reasons.includes('🟦OVERSTOCKED')) {
-                this.overstockedItemsSKU.forEach(sku => {
+                this.reviewItems.overstockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     overstockedItemsName.push(name);
                 });
@@ -1448,7 +1467,7 @@ export = class MyHandler extends Handler {
             }
 
             if (reasons.includes('🟫DUPED_ITEMS')) {
-                this.dupedItemsSKU.forEach(sku => {
+                this.reviewItems.dupedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedItemsName.push(name);
                 });
@@ -1468,7 +1487,7 @@ export = class MyHandler extends Handler {
             }
 
             if (reasons.includes('🟪DUPE_CHECK_FAILED')) {
-                this.dupedFailedItemsSKU.forEach(sku => {
+                this.reviewItems.dupedFailedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     dupedFailedItemsName.push(name);
                 });
@@ -1606,11 +1625,11 @@ export = class MyHandler extends Handler {
                 );
             }
             // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
-            this.overstockedItemsSKU.length = 0;
-            this.dupedItemsSKU.length = 0;
-            this.dupedFailedItemsSKU.length = 0;
+            this.reviewItems.invalidItemsSKU.length = 0;
+            this.reviewItems.invalidItemsValue.length = 0;
+            this.reviewItems.overstockedItemsSKU.length = 0;
+            this.reviewItems.dupedItemsSKU.length = 0;
+            this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -1622,10 +1641,27 @@ export = class MyHandler extends Handler {
         const currKeys = pure.key;
         const currReftoScrap = pure.refTotalInScrap;
 
-        const userMinKeys = this.userMinKeys;
-        const userMaxKeys = this.userMaxKeys;
-        const userMinReftoScrap = this.userMinReftoScrap;
-        const userMaxReftoScrap = this.userMaxReftoScrap;
+        const userPure = this.autokeysPure;
+
+        const userMinKeys = userPure.userMinKeys;
+        const userMaxKeys = userPure.userMaxKeys;
+        const userMinReftoScrap = userPure.userMinReftoScrap;
+        const userMaxReftoScrap = userPure.userMaxReftoScrap;
+
+        const currKeyPrice = this.bot.pricelist.getKeyPrices();
+
+        if (currKeyPrice !== this.OldKeyPrices && !this.isUsingAutoPrice) {
+            // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
+            this.autokeysStatus = {
+                isBuyingKeys: false,
+                isBankingKeys: false,
+                checkAlertOnLowPure: false,
+                alreadyUpdatedToBank: false,
+                alreadyUpdatedToBuy: false,
+                alreadyUpdatedToSell: false
+            };
+            this.OldKeyPrices = { buy: currKeyPrice.buy, sell: currKeyPrice.sell };
+        }
 
         if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
             log.warn(
@@ -1718,7 +1754,7 @@ export = class MyHandler extends Handler {
         //             min                          max
         */
 
-        const isAlreadyAlert = this.checkAlertOnLowPure;
+        const isAlreadyAlert = this.autokeysStatus.checkAlertOnLowPure;
 
         /**
          * send alert to admins when both keys and refs below minimum
@@ -1732,9 +1768,9 @@ export = class MyHandler extends Handler {
         //             min                          max
         */
 
-        const isAlreadyUpdatedToBank = this.alreadyUpdatedToBank;
-        const isAlreadyUpdatedToBuy = this.alreadyUpdatedToBuy;
-        const isAlreadyUpdatedToSell = this.alreadyUpdatedToSell;
+        const isAlreadyUpdatedToBank = this.autokeysStatus.alreadyUpdatedToBank;
+        const isAlreadyUpdatedToBuy = this.autokeysStatus.alreadyUpdatedToBuy;
+        const isAlreadyUpdatedToSell = this.autokeysStatus.alreadyUpdatedToSell;
 
         log.debug(
             `
@@ -1744,17 +1780,17 @@ Autokeys status:-
             )}) < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})
     Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})
  Status: ${
-     isBuyingKeys
+     isBankingKeys && isEnableKeyBanking
+         ? 'Banking'
+         : isBuyingKeys
          ? 'Buying'
          : isSellingKeys
          ? 'Selling'
-         : isBankingKeys && isEnableKeyBanking
-         ? 'Banking'
          : 'Not active'
  }`
         );
 
-        const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
+        const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
 
@@ -1762,73 +1798,87 @@ Autokeys status:-
             // if Autokeys already running
             if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
                 // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                this.isBuyingKeys = false;
-                this.isBankingKeys = true;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = true;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: false,
+                    isBankingKeys: true,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: true,
+                    alreadyUpdatedToBuy: false,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = true;
                 this.updateAutokeysBanking(userMinKeys, userMaxKeys);
             } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                this.isBuyingKeys = true;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = true;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: true,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: true,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = true;
                 this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                 // enable Autokeys - Buying - if buying keys conditions matched
-                this.isBuyingKeys = true;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = true;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: true,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: true,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = true;
                 this.updateAutokeysBuy(userMinKeys, userMaxKeys);
             } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
                 // enable Autokeys - Selling - if selling keys conditions matched
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = true;
+                this.autokeysStatus = {
+                    isBuyingKeys: false,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: false,
+                    alreadyUpdatedToSell: true
+                };
+                this.autokeysIsActive = true;
                 this.updateAutokeysSell(userMinKeys, userMaxKeys);
             } else if (isRemoveBankingKeys && isEnableKeyBanking) {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: false,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: false,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = false;
                 this.removeAutoKeys();
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: false,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: false,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: false,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = false;
                 this.removeAutoKeys();
             } else if (isAlertAdmins && isAlreadyAlert !== true) {
                 // alert admins when low pure
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = true;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
+                this.autokeysStatus = {
+                    isBuyingKeys: false,
+                    isBankingKeys: false,
+                    checkAlertOnLowPure: true,
+                    alreadyUpdatedToBank: false,
+                    alreadyUpdatedToBuy: false,
+                    alreadyUpdatedToSell: false
+                };
+                this.autokeysIsActive = false;
                 const msg = 'I am now low on both keys and refs.';
                 if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                     if (
@@ -1847,53 +1897,63 @@ Autokeys status:-
                 // if Mann Co. Supply Crate Key entry does not exist in the pricelist.json
                 if (isBankingKeys && isEnableKeyBanking) {
                     //create new Key entry and enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = true;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: true,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: true,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.createAutokeysBanking(userMinKeys, userMaxKeys);
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: true,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: true,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: true,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: true,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.createAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isSellingKeys) {
                     // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: true
+                    };
+                    this.autokeysIsActive = true;
                     this.createAutokeysSell(userMinKeys, userMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = true;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: true,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = false;
                     const msg = 'I am now low on both keys and refs.';
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
@@ -1910,53 +1970,63 @@ Autokeys status:-
                 // if Mann Co. Supply Crate Key entry already in the pricelist.json
                 if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
                     // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = true;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = true;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: true,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: true,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBanking(userMinKeys, userMaxKeys);
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = true;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: true,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: true,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
                     // enable Autokeys - Buying - if buying keys conditions matched
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = true;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: true,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: true,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = true;
                     this.updateAutokeysBuy(userMinKeys, userMaxKeys);
                 } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
                     // enable Autokeys - Selling - if selling keys conditions matched
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = true;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: false,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: true
+                    };
+                    this.autokeysIsActive = true;
                     this.updateAutokeysSell(userMinKeys, userMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = true;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
+                    this.autokeysStatus = {
+                        isBuyingKeys: false,
+                        isBankingKeys: false,
+                        checkAlertOnLowPure: true,
+                        alreadyUpdatedToBank: false,
+                        alreadyUpdatedToBuy: false,
+                        alreadyUpdatedToSell: false
+                    };
+                    this.autokeysIsActive = false;
                     const msg = 'I am now low on both keys and refs.';
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
                         if (
@@ -2010,7 +2080,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2024,7 +2097,7 @@ Autokeys status:-
                 autoprice: true,
                 max: userMaxKeys,
                 min: userMinKeys,
-                intent: 1
+                intent: 0
             } as any;
         } else {
             entry = {
@@ -2051,7 +2124,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2071,7 +2147,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2091,7 +2170,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2132,7 +2214,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2173,7 +2258,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2193,7 +2281,10 @@ Autokeys status:-
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
+                this.autokeysIsActive = false;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2202,24 +2293,28 @@ Autokeys status:-
             .removePrice('5021;6', true)
             .then(() => {
                 log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                this.checkAutokeysStatus = false;
             })
             .catch(err => {
                 log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                this.checkAutokeysStatus = true;
+                this.autokeysIsActive = true;
+            })
+            .finally(() => {
+                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
     refreshAutokeys(): void {
         this.removeAutoKeys();
-        this.isBuyingKeys = false;
-        this.isBankingKeys = false;
-        this.checkAutokeysStatus = false;
-        this.checkAlertOnLowPure = false;
-        this.alreadyUpdatedToBank = false;
-        this.alreadyUpdatedToBuy = false;
-        this.alreadyUpdatedToSell = false;
-        this.sleep(2000);
+        this.autokeysStatus = {
+            isBuyingKeys: false,
+            isBankingKeys: false,
+            checkAlertOnLowPure: false,
+            alreadyUpdatedToBank: false,
+            alreadyUpdatedToBuy: false,
+            alreadyUpdatedToSell: false
+        };
+        this.autokeysIsActive = false;
+        this.sleep(2 * 1000);
         this.autokeys();
     }
 
