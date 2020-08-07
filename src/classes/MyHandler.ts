@@ -1771,24 +1771,22 @@ export = class MyHandler extends Handler {
         const isAlreadyUpdatedToSell = this.autokeysStatus.alreadyUpdatedToSell;
 
         log.debug(
-            `
-Autokeys status:-
-    Ref: MinRef(${Currencies.toRefined(userMinReftoScrap)}) < CurrRef(${Currencies.toRefined(
-                currReftoScrap
-            )}) < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})
-    Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})
- Status: ${
-     isBankingKeys && isEnableKeyBanking
-         ? 'Banking'
-         : isBuyingKeys
-         ? 'Buying'
-         : isSellingKeys
-         ? 'Selling'
-         : 'Not active'
- }`
+            `Autokeys status:-\n   Ref: MinRef(${Currencies.toRefined(userMinReftoScrap)})` +
+                ` < CurrRef(${Currencies.toRefined(currReftoScrap)})` +
+                ` < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})` +
+                `\n   Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})` +
+                `\nStatus: ${
+                    isBankingKeys && isEnableKeyBanking
+                        ? 'Banking'
+                        : isBuyingKeys
+                        ? 'Buying'
+                        : isSellingKeys
+                        ? 'Selling'
+                        : 'Not active'
+                }`
         );
 
-        const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
+        const isAlreadyRunningAutokeys = this.autokeysIsActive;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
 
@@ -1818,7 +1816,12 @@ Autokeys status:-
                 };
                 this.autokeysIsActive = true;
                 this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-            } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
+            } else if (
+                !isBankingBuyKeysWithEnoughRefs &&
+                !isEnableKeyBanking &&
+                isBuyingKeys &&
+                isAlreadyUpdatedToBuy !== true
+            ) {
                 // enable Autokeys - Buying - if buying keys conditions matched
                 this.autokeysStatus = {
                     isBuyingKeys: true,
@@ -1917,7 +1920,7 @@ Autokeys status:-
                     };
                     this.autokeysIsActive = true;
                     this.createAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isBuyingKeys) {
+                } else if (!isBankingBuyKeysWithEnoughRefs && !isEnableKeyBanking && isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
                     this.autokeysStatus = {
                         isBuyingKeys: true,
@@ -1990,7 +1993,12 @@ Autokeys status:-
                     };
                     this.autokeysIsActive = true;
                     this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
+                } else if (
+                    !isBankingBuyKeysWithEnoughRefs &&
+                    !isEnableKeyBanking &&
+                    isBuyingKeys &&
+                    isAlreadyUpdatedToBuy !== true
+                ) {
                     // enable Autokeys - Buying - if buying keys conditions matched
                     this.autokeysStatus = {
                         isBuyingKeys: true,
