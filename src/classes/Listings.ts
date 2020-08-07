@@ -177,6 +177,7 @@ export = class Listings {
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
                 // Alrready have a sell listing, remove the listing
+                log.debug('Alrready have a sell listing for ' + sku + ', remove the listing');
                 listing.remove();
                 return;
             }
@@ -189,15 +190,18 @@ export = class Listings {
 
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
                 // We are not trading the item, remove the listing
+                log.debug('We are not trading ' + sku + ', remove the listing');
                 listing.remove();
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 // We are not buying / selling more, remove the listing
+                log.debug('We are not buying / selling more ' + sku + ', remove the listing');
                 listing.remove();
             } else {
                 const newDetails = this.getDetails(listing.intent, match);
 
                 if (listing.details !== newDetails) {
                     // Listing details don't match, update listing with new details and price
+                    log.debug("Listing details don't match, update listing for " + sku + ' with new details and price');
                     const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                     listing.update({
@@ -216,6 +220,7 @@ export = class Listings {
 
             if (!hasBuyListing && amountCanBuy > 0) {
                 // We have no buy order and we can buy more items, create buy listing
+                log.debug('We have no buy order and we can buy more items, create buy listing for ' + sku);
                 this.bot.listingManager.createListing({
                     time: match.time || moment().unix(),
                     sku: sku,
@@ -227,6 +232,7 @@ export = class Listings {
 
             if (!hasSellListing && amountCanSell > 0) {
                 // We have no sell order and we can sell items, create sell listing
+                log.debug('We have no sell order and we can sell items, create sell listing ' + sku);
                 this.bot.listingManager.createListing({
                     time: match.time || moment().unix(),
                     id: assetids[assetids.length - 1],
