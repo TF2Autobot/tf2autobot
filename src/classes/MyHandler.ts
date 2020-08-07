@@ -1673,7 +1673,7 @@ export = class MyHandler extends Handler {
         /**
          * enable Autokeys - Buying - true if currRef \> maxRef AND currKeys \< maxKeys
          */
-        const isBuyingKeys = (currReftoScrap > userMaxReftoScrap && currKeys < userMaxKeys) !== false;
+        const isBuyingKeys = currReftoScrap > userMaxReftoScrap && currKeys < userMaxKeys;
         /*
         //        <——————————————————————————————————○            \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1685,7 +1685,7 @@ export = class MyHandler extends Handler {
         /**
          * enable Autokeys - Selling - true if currRef \< minRef AND currKeys \> minKeys
          */
-        const isSellingKeys = (currReftoScrap < userMinReftoScrap && currKeys > userMinKeys) !== false;
+        const isSellingKeys = currReftoScrap < userMinReftoScrap && currKeys > userMinKeys;
         /*
         //              ○———————————————————————————————————>     \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1700,8 +1700,7 @@ export = class MyHandler extends Handler {
          */
         const isRemoveAutoKeys =
             (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
-            (currReftoScrap >= userMinReftoScrap && currReftoScrap <= userMaxReftoScrap && currKeys <= userMaxKeys) !==
-                false;
+            (currReftoScrap >= userMinReftoScrap && currReftoScrap <= userMaxReftoScrap && currKeys <= userMaxKeys);
         /*
         //        <——————————————————————————————————●·····>      \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1719,8 +1718,7 @@ export = class MyHandler extends Handler {
          * enable Autokeys - Banking - true if minRef \< currRef \< maxRef AND currKeys \> minKeys
          */
         const isBankingKeys =
-            (currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap && currKeys > userMinKeys) !==
-            false;
+            currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap && currKeys > userMinKeys;
         /*
         //              ○———————————————————————————————————>     \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1733,7 +1731,7 @@ export = class MyHandler extends Handler {
          * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
          * Will buy keys.
          */
-        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys !== false;
+        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1745,7 +1743,7 @@ export = class MyHandler extends Handler {
         /**
          * disable Autokeys - Banking - true if currRef \< minRef AND currKeys \< minKeys
          */
-        const isRemoveBankingKeys = currReftoScrap <= userMaxReftoScrap && currKeys <= userMinKeys !== false;
+        const isRemoveBankingKeys = currReftoScrap <= userMaxReftoScrap && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1759,7 +1757,7 @@ export = class MyHandler extends Handler {
         /**
          * send alert to admins when both keys and refs below minimum
          */
-        const isAlertAdmins = currReftoScrap <= userMinReftoScrap && currKeys <= userMinKeys !== false;
+        const isAlertAdmins = currReftoScrap <= userMinReftoScrap && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
