@@ -549,6 +549,8 @@ export = class DiscordWebhook {
             });
             /*eslint-enable */
             request.send(acceptedTradeSummary);
+            invalidItemsName.length = 0;
+            invalidItemsFromMyHandler.length = 0;
         });
     }
 
