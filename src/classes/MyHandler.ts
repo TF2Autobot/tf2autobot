@@ -2131,8 +2131,8 @@ export = class MyHandler extends Handler {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 1
             } as any;
         } else {
@@ -2148,22 +2148,20 @@ export = class MyHandler extends Handler {
                     keys: 0,
                     metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
                 },
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 1
             } as any;
         }
         this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
+            .addPrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2175,8 +2173,8 @@ export = class MyHandler extends Handler {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 0
             } as any;
         } else {
@@ -2192,22 +2190,20 @@ export = class MyHandler extends Handler {
                     keys: 0,
                     metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
                 },
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 0
             } as any;
         }
         this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
+            .addPrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2216,21 +2212,19 @@ export = class MyHandler extends Handler {
             sku: '5021;6',
             enabled: true,
             autoprice: true,
-            max: maxKeys,
             min: minKeys,
+            max: maxKeys,
             intent: 2
         } as any;
         this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
+            .addPrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2239,21 +2233,19 @@ export = class MyHandler extends Handler {
             sku: '5021;6',
             enabled: false,
             autoprice: true,
-            max: 1,
             min: 0,
+            max: 1,
             intent: 1
         } as any;
         this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
+            .updatePrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically disabled Autokeys.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
                 this.autokeysIsActive = true;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2265,8 +2257,8 @@ export = class MyHandler extends Handler {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 1
             } as any;
         } else {
@@ -2282,22 +2274,20 @@ export = class MyHandler extends Handler {
                     keys: 0,
                     metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
                 },
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 1
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
+            .updatePrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2309,8 +2299,8 @@ export = class MyHandler extends Handler {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 0
             } as any;
         } else {
@@ -2326,22 +2316,20 @@ export = class MyHandler extends Handler {
                     keys: 0,
                     metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
                 },
-                max: maxKeys,
                 min: minKeys,
+                max: maxKeys,
                 intent: 0
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
+            .updatePrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
@@ -2350,36 +2338,32 @@ export = class MyHandler extends Handler {
             sku: '5021;6',
             enabled: true,
             autoprice: true,
-            max: maxKeys,
             min: minKeys,
+            max: maxKeys,
             intent: 2
         } as any;
         this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
+            .updatePrice(entry as EntryData, false)
+            .then(data => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
+                this.bot.listings.checkBySKU(data.sku, data);
             })
             .catch(err => {
                 log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
                 this.autokeysIsActive = false;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
     private removeAutoKeys(): void {
         this.bot.pricelist
-            .removePrice('5021;6', true)
+            .removePrice('5021;6', false)
             .then(() => {
                 log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
+                this.bot.listings.checkBySKU('5021;6');
             })
             .catch(err => {
                 log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
                 this.autokeysIsActive = true;
-            })
-            .finally(() => {
-                this.bot.listings.checkBySKU('5021;6');
             });
     }
 
