@@ -48,12 +48,12 @@ class CartQueue {
         });
 
         clearTimeout(this.queuePositionCheck);
-        this.queueCheck();
+        this.queueCheck(cart.partner);
 
         return position;
     }
 
-    private queueCheck(): void {
+    private queueCheck(steamID: SteamID | string): void {
         log.debug(`Checking queue position in 5 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
             const position = this.carts.length;
@@ -70,6 +70,8 @@ class CartQueue {
                         .then(restarting => {
                             if (!restarting) {
                                 this.discord.sendQueueAlertFailedPM2(time.time);
+                            } else {
+                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                             }
                         })
                         .catch(err => {
@@ -86,6 +88,8 @@ class CartQueue {
                                     '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
                                     []
                                 );
+                            } else {
+                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                             }
                         })
                         .catch(err => {
