@@ -359,7 +359,7 @@ export = class MyHandler extends Handler {
 
             if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeysIsActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
-                this.removeAutoKeys();
+                this.updateToDisableAutokeys();
             }
 
             this.bot.listings.removeAll().asCallback(function(err) {
