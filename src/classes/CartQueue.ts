@@ -54,7 +54,7 @@ class CartQueue {
     }
 
     private queueCheck(steamID: SteamID | string): void {
-        log.debug(`Checking queue position in 5 minutes...`);
+        log.debug(`Checking queue position in 3 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
             const position = this.carts.length;
             log.debug(`Current queue position: ${position + 1}`);
@@ -98,7 +98,7 @@ class CartQueue {
                         });
                 }
             }
-        }, 5 * 60 * 1000);
+        }, 3 * 60 * 1000);
     }
 
     dequeue(steamID: SteamID | string): boolean {
