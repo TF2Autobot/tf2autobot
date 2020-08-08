@@ -1804,19 +1804,28 @@ export = class MyHandler extends Handler {
 
         if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
             if (amountKeysCanBuy <= 1) {
-                setMinKeys = currKeys;
-                setMaxKeys = currKeys + 1;
+                setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
+                setMaxKeys = currKeys + 1 >= userMaxKeys ? userMaxKeys : currKeys + 1;
             } else {
-                setMinKeys = currKeys;
-                setMaxKeys = currKeys + 1 + truncedAmountKeysCanBuy;
+                setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
+                setMaxKeys =
+                    currKeys + 1 + truncedAmountKeysCanBuy >= userMaxKeys
+                        ? userMaxKeys
+                        : currKeys + 1 + truncedAmountKeysCanBuy;
             }
         } else if (isSellingKeys) {
             if (amountKeysCanSell <= 1) {
-                setMinKeys = currKeys - 1;
-                setMaxKeys = userMinKeys;
+                setMinKeys = currKeys - 1 <= userMinKeys ? userMinKeys : currKeys - 1;
+                setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             } else {
-                setMinKeys = currKeys - 1 - truncedAmountKeysCanSell;
-                setMaxKeys = userMinKeys;
+                setMinKeys =
+                    currKeys - 1 - truncedAmountKeysCanSell <= userMinKeys
+                        ? userMinKeys
+                        : currKeys - 1 - truncedAmountKeysCanSell;
+                setMaxKeys =
+                    currKeys + 1 + truncedAmountKeysCanBuy >= userMaxKeys
+                        ? userMaxKeys
+                        : currKeys + 1 + truncedAmountKeysCanBuy;
             }
         } else if (isBankingKeys) {
             if (amountKeysCanBank <= 1) {
