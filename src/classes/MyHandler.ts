@@ -95,6 +95,13 @@ export = class MyHandler extends Handler {
 
     private autoRelistNotBuyingKeys = 0;
 
+    private oldAmount = {
+        keysCanBuy: 0,
+        keysCanSell: 0,
+        keysCanBank: 0,
+        ofKeys: 0
+    };
+
     private customGameName: string;
 
     private isUsingAutoPrice = true;
@@ -1648,6 +1655,13 @@ export = class MyHandler extends Handler {
         const userMinReftoScrap = userPure.userMinReftoScrap;
         const userMaxReftoScrap = userPure.userMaxReftoScrap;
 
+        if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
+            log.warn(
+                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
+            );
+            return;
+        }
+
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
         if (currKeyPrice !== this.OldKeyPrices && !this.isUsingAutoPrice) {
@@ -1661,13 +1675,6 @@ export = class MyHandler extends Handler {
                 alreadyUpdatedToSell: false
             };
             this.OldKeyPrices = { buy: currKeyPrice.buy, sell: currKeyPrice.sell };
-        }
-
-        if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
-            log.warn(
-                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
-            );
-            return;
         }
 
         /**
@@ -1788,14 +1795,58 @@ export = class MyHandler extends Handler {
 
         let setMinKeys: number;
         let setMaxKeys: number;
+        const amountKeysCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
+        const amountKeysCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
+        const amountKeysCanBank = (currReftoScrap - userMinReftoScrap) / currKeyPrice.buy.toValue();
+        const truncedAmountKeysCanBuy = Math.trunc(amountKeysCanBuy);
+        const truncedAmountKeysCanSell = Math.trunc(amountKeysCanSell);
+        const truncedAmountKeysCanBank = Math.trunc(amountKeysCanBank);
 
-        const isAlreadyRunningAutokeys = this.autokeysIsActive;
+        if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
+            if (amountKeysCanBuy <= 1) {
+                setMinKeys = currKeys;
+                setMaxKeys = currKeys + 1;
+            } else {
+                setMinKeys = currKeys;
+                setMaxKeys = currKeys + 1 + truncedAmountKeysCanBuy;
+            }
+        } else if (isSellingKeys) {
+            if (amountKeysCanSell <= 1) {
+                setMinKeys = currKeys - 1;
+                setMaxKeys = userMinKeys;
+            } else {
+                setMinKeys = currKeys - 1 - truncedAmountKeysCanSell;
+                setMaxKeys = userMinKeys;
+            }
+        } else if (isBankingKeys) {
+            if (amountKeysCanBank <= 1) {
+                setMinKeys = currKeys - 1 <= userMinKeys ? userMinKeys : currKeys - 1;
+                setMaxKeys = currKeys + 1 >= userMaxKeys ? userMaxKeys : currKeys + 1;
+            } else {
+                setMinKeys =
+                    currKeys - 1 - truncedAmountKeysCanBank <= userMinKeys
+                        ? userMinKeys
+                        : currKeys - 1 - truncedAmountKeysCanBank;
+                setMaxKeys =
+                    currKeys + 1 + truncedAmountKeysCanBank >= userMaxKeys
+                        ? userMaxKeys
+                        : currKeys + 1 + truncedAmountKeysCanBank;
+            }
+        }
+
+        const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
 
         if (isAlreadyRunningAutokeys) {
             // if Autokeys already running
-            if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
+            if (
+                isBankingKeys &&
+                isEnableKeyBanking &&
+                (isAlreadyUpdatedToBank !== true ||
+                    truncedAmountKeysCanBank !== this.oldAmount.keysCanBank ||
+                    currKeys !== this.oldAmount.ofKeys)
+            ) {
                 // enable keys banking - if banking conditions to enable banking matched and banking is enabled
                 this.autokeysStatus = {
                     isBuyingKeys: false,
@@ -1805,9 +1856,21 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: false
                 };
+                this.oldAmount = {
+                    keysCanSell: 0,
+                    keysCanBuy: 0,
+                    keysCanBank: truncedAmountKeysCanBank,
+                    ofKeys: currKeys
+                };
                 this.autokeysIsActive = true;
-                this.updateAutokeysBanking(userMinKeys, userMaxKeys);
-            } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                this.updateAutokeysBanking(setMinKeys, setMaxKeys);
+            } else if (
+                isBankingBuyKeysWithEnoughRefs &&
+                isEnableKeyBanking &&
+                (isAlreadyUpdatedToBuy !== true ||
+                    truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    currKeys !== this.oldAmount.ofKeys)
+            ) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                 this.autokeysStatus = {
                     isBuyingKeys: true,
@@ -1817,18 +1880,21 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToBuy: true,
                     alreadyUpdatedToSell: false
                 };
+                this.oldAmount = {
+                    keysCanSell: 0,
+                    keysCanBuy: truncedAmountKeysCanBuy,
+                    keysCanBank: 0,
+                    ofKeys: currKeys
+                };
                 this.autokeysIsActive = true;
-
-                const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                if (amountKeyCanBuy < 1) {
-                    setMinKeys = currKeys;
-                    setMaxKeys = currKeys + 1;
-                } else {
-                    setMinKeys = currKeys;
-                    setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                }
                 this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-            } else if (!isEnableKeyBanking && isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
+            } else if (
+                !isEnableKeyBanking &&
+                isBuyingKeys &&
+                (isAlreadyUpdatedToBuy !== true ||
+                    truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    currKeys !== this.oldAmount.ofKeys)
+            ) {
                 // enable Autokeys - Buying - if buying keys conditions matched
                 this.autokeysStatus = {
                     isBuyingKeys: true,
@@ -1838,18 +1904,20 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToBuy: true,
                     alreadyUpdatedToSell: false
                 };
+                this.oldAmount = {
+                    keysCanSell: 0,
+                    keysCanBuy: truncedAmountKeysCanBuy,
+                    keysCanBank: 0,
+                    ofKeys: currKeys
+                };
                 this.autokeysIsActive = true;
-
-                const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                if (amountKeyCanBuy < 1) {
-                    setMinKeys = currKeys;
-                    setMaxKeys = currKeys + 1;
-                } else {
-                    setMinKeys = currKeys;
-                    setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                }
                 this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-            } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
+            } else if (
+                isSellingKeys &&
+                (isAlreadyUpdatedToSell !== true ||
+                    truncedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
+                    currKeys !== this.oldAmount.ofKeys)
+            ) {
                 // enable Autokeys - Selling - if selling keys conditions matched
                 this.autokeysStatus = {
                     isBuyingKeys: false,
@@ -1859,16 +1927,13 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToBuy: false,
                     alreadyUpdatedToSell: true
                 };
+                this.oldAmount = {
+                    keysCanSell: truncedAmountKeysCanSell,
+                    keysCanBuy: 0,
+                    keysCanBank: 0,
+                    ofKeys: currKeys
+                };
                 this.autokeysIsActive = true;
-
-                const amountKeyCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
-                if (amountKeyCanSell < 1) {
-                    setMinKeys = currKeys - 1;
-                    setMaxKeys = userMinKeys;
-                } else {
-                    setMinKeys = currKeys - Math.trunc(amountKeyCanSell);
-                    setMaxKeys = userMinKeys;
-                }
                 this.updateAutokeysSell(setMinKeys, setMaxKeys);
             } else if (isRemoveBankingKeys && isEnableKeyBanking) {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
@@ -1881,7 +1946,7 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToSell: false
                 };
                 this.autokeysIsActive = false;
-                this.removeAutoKeys();
+                this.updateToDisableAutokeys();
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
                 this.autokeysStatus = {
@@ -1893,7 +1958,7 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToSell: false
                 };
                 this.autokeysIsActive = false;
-                this.removeAutoKeys();
+                this.updateToDisableAutokeys();
             } else if (isAlertAdmins && isAlreadyAlert !== true) {
                 // alert admins when low pure
                 this.autokeysStatus = {
@@ -1931,17 +1996,14 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: 0,
+                        keysCanBank: truncedAmountKeysCanBank,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                    if (amountKeyCanBuy < 1) {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + 1;
-                    } else {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                    }
-                    this.createAutokeysBuy(setMinKeys, setMaxKeys);
+                    this.createAutokeysBanking(setMinKeys, setMaxKeys);
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                     this.autokeysStatus = {
@@ -1952,16 +2014,13 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                    if (amountKeyCanBuy < 1) {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + 1;
-                    } else {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                    }
                     this.createAutokeysBuy(setMinKeys, setMaxKeys);
                 } else if (!isEnableKeyBanking && isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
@@ -1973,8 +2032,14 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-                    this.createAutokeysBuy(userMinKeys, userMaxKeys);
+                    this.createAutokeysBuy(setMinKeys, setMaxKeys);
                 } else if (isSellingKeys) {
                     // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
                     this.autokeysStatus = {
@@ -1985,16 +2050,13 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: true
                     };
+                    this.oldAmount = {
+                        keysCanSell: truncedAmountKeysCanSell,
+                        keysCanBuy: 0,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
-                    if (amountKeyCanSell < 1) {
-                        setMinKeys = currKeys - 1;
-                        setMaxKeys = userMinKeys;
-                    } else {
-                        setMinKeys = currKeys - Math.trunc(amountKeyCanSell);
-                        setMaxKeys = userMinKeys;
-                    }
                     this.createAutokeysSell(setMinKeys, setMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
@@ -2021,7 +2083,13 @@ export = class MyHandler extends Handler {
                 }
             } else {
                 // if Mann Co. Supply Crate Key entry already in the pricelist.json
-                if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
+                if (
+                    isBankingKeys &&
+                    isEnableKeyBanking &&
+                    (isAlreadyUpdatedToBank !== true ||
+                        truncedAmountKeysCanBank !== this.oldAmount.keysCanBank ||
+                        currKeys !== this.oldAmount.ofKeys)
+                ) {
                     // enable keys banking - if banking conditions to enable banking matched and banking is enabled
                     this.autokeysStatus = {
                         isBuyingKeys: false,
@@ -2031,9 +2099,21 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: 0,
+                        keysCanBank: truncedAmountKeysCanBank,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-                    this.updateAutokeysBanking(userMinKeys, userMaxKeys);
-                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
+                    this.updateAutokeysBanking(setMinKeys, setMaxKeys);
+                } else if (
+                    isBankingBuyKeysWithEnoughRefs &&
+                    isEnableKeyBanking &&
+                    (isAlreadyUpdatedToBuy !== true ||
+                        truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        currKeys !== this.oldAmount.ofKeys)
+                ) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                     this.autokeysStatus = {
                         isBuyingKeys: true,
@@ -2043,18 +2123,21 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                    if (amountKeyCanBuy < 1) {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + 1;
-                    } else {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                    }
                     this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (!isEnableKeyBanking && isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
+                } else if (
+                    !isEnableKeyBanking &&
+                    isBuyingKeys &&
+                    (isAlreadyUpdatedToBuy !== true ||
+                        truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        currKeys !== this.oldAmount.ofKeys)
+                ) {
                     // enable Autokeys - Buying - if buying keys conditions matched
                     this.autokeysStatus = {
                         isBuyingKeys: true,
@@ -2064,18 +2147,20 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: true,
                         alreadyUpdatedToSell: false
                     };
+                    this.oldAmount = {
+                        keysCanSell: 0,
+                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-                    if (amountKeyCanBuy < 1) {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + 1;
-                    } else {
-                        setMinKeys = currKeys;
-                        setMaxKeys = currKeys + Math.trunc(amountKeyCanBuy);
-                    }
                     this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
+                } else if (
+                    isSellingKeys &&
+                    (isAlreadyUpdatedToSell !== true ||
+                        truncedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
+                        currKeys !== this.oldAmount.ofKeys)
+                ) {
                     // enable Autokeys - Selling - if selling keys conditions matched
                     this.autokeysStatus = {
                         isBuyingKeys: false,
@@ -2085,16 +2170,13 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToBuy: false,
                         alreadyUpdatedToSell: true
                     };
+                    this.oldAmount = {
+                        keysCanSell: truncedAmountKeysCanSell,
+                        keysCanBuy: 0,
+                        keysCanBank: 0,
+                        ofKeys: currKeys
+                    };
                     this.autokeysIsActive = true;
-
-                    const amountKeyCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
-                    if (amountKeyCanSell < 1) {
-                        setMinKeys = currKeys - 1;
-                        setMaxKeys = userMinKeys;
-                    } else {
-                        setMinKeys = currKeys - Math.trunc(amountKeyCanSell);
-                        setMaxKeys = userMinKeys;
-                    }
                     this.updateAutokeysSell(setMinKeys, setMaxKeys);
                 } else if (isAlertAdmins && isAlreadyAlert !== true) {
                     // alert admins when low pure
@@ -2121,6 +2203,7 @@ export = class MyHandler extends Handler {
                 }
             }
         }
+        this.bot.listings.checkBySKU('5021;6');
     }
 
     private createAutokeysSell(minKeys: number, maxKeys: number): void {
