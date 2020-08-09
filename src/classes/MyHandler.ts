@@ -1800,10 +1800,10 @@ export = class MyHandler extends Handler {
         const amountKeysCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
         const amountKeysCanBankMin = (userMaxReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
         const amountKeysCanBankMax = (currReftoScrap - userMinReftoScrap) / currKeyPrice.buy.toValue();
-        const truncedAmountKeysCanBuy = Math.trunc(amountKeysCanBuy);
-        const truncedAmountKeysCanSell = Math.trunc(amountKeysCanSell);
-        const truncedAmountKeysCanBankMin = Math.trunc(amountKeysCanBankMin);
-        const truncedAmountKeysCanBankMax = Math.trunc(amountKeysCanBankMax);
+        const roundedAmountKeysCanBuy = Math.round(amountKeysCanBuy);
+        const roundedAmountKeysCanSell = Math.round(amountKeysCanSell);
+        const roundedAmountKeysCanBankMin = Math.round(amountKeysCanBankMin);
+        const roundedAmountKeysCanBankMax = Math.round(amountKeysCanBankMax);
 
         if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
             if (amountKeysCanBuy <= 1) {
@@ -1812,9 +1812,9 @@ export = class MyHandler extends Handler {
             } else {
                 setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
                 setMaxKeys =
-                    currKeys + 1 + truncedAmountKeysCanBuy >= userMaxKeys
+                    currKeys + 1 + roundedAmountKeysCanBuy >= userMaxKeys
                         ? userMaxKeys
-                        : currKeys + 1 + truncedAmountKeysCanBuy;
+                        : currKeys + 1 + roundedAmountKeysCanBuy;
             }
         } else if (isSellingKeys) {
             if (amountKeysCanSell <= 1) {
@@ -1822,20 +1822,20 @@ export = class MyHandler extends Handler {
                 setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             } else {
                 setMinKeys =
-                    currKeys - 1 - truncedAmountKeysCanSell <= userMinKeys
+                    currKeys - 1 - roundedAmountKeysCanSell <= userMinKeys
                         ? userMinKeys
-                        : currKeys - 1 - truncedAmountKeysCanSell;
+                        : currKeys - 1 - roundedAmountKeysCanSell;
                 setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             }
         } else if (isBankingKeys) {
             setMinKeys =
-                currKeys - truncedAmountKeysCanBankMin <= userMinKeys
+                currKeys - roundedAmountKeysCanBankMin <= userMinKeys
                     ? userMinKeys
-                    : currKeys - truncedAmountKeysCanBankMin;
+                    : currKeys - roundedAmountKeysCanBankMin;
             setMaxKeys =
-                currKeys + truncedAmountKeysCanBankMax >= userMaxKeys
+                currKeys + roundedAmountKeysCanBankMax >= userMaxKeys
                     ? userMaxKeys
-                    : currKeys + truncedAmountKeysCanBankMax;
+                    : currKeys + roundedAmountKeysCanBankMax;
         }
 
         if ((isBankingKeys && isEnableKeyBanking) || isBuyingKeys || isSellingKeys) {
@@ -1852,8 +1852,8 @@ export = class MyHandler extends Handler {
                 isBankingKeys &&
                 isEnableKeyBanking &&
                 (isAlreadyUpdatedToBank !== true ||
-                    truncedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                    truncedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
+                    roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
+                    roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -1868,8 +1868,8 @@ export = class MyHandler extends Handler {
                 this.oldAmount = {
                     keysCanSell: 0,
                     keysCanBuy: 0,
-                    keysCanBankMin: truncedAmountKeysCanBankMin,
-                    keysCanBankMax: truncedAmountKeysCanBankMax,
+                    keysCanBankMin: roundedAmountKeysCanBankMin,
+                    keysCanBankMax: roundedAmountKeysCanBankMax,
                     ofKeys: currKeys
                 };
                 this.autokeysIsActive = true;
@@ -1878,7 +1878,7 @@ export = class MyHandler extends Handler {
                 isBankingBuyKeysWithEnoughRefs &&
                 isEnableKeyBanking &&
                 (isAlreadyUpdatedToBuy !== true ||
-                    truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -1892,7 +1892,7 @@ export = class MyHandler extends Handler {
                 };
                 this.oldAmount = {
                     keysCanSell: 0,
-                    keysCanBuy: truncedAmountKeysCanBuy,
+                    keysCanBuy: roundedAmountKeysCanBuy,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
                     ofKeys: currKeys
@@ -1903,7 +1903,7 @@ export = class MyHandler extends Handler {
                 !isEnableKeyBanking &&
                 isBuyingKeys &&
                 (isAlreadyUpdatedToBuy !== true ||
-                    truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable Autokeys - Buying - if buying keys conditions matched
@@ -1917,7 +1917,7 @@ export = class MyHandler extends Handler {
                 };
                 this.oldAmount = {
                     keysCanSell: 0,
-                    keysCanBuy: truncedAmountKeysCanBuy,
+                    keysCanBuy: roundedAmountKeysCanBuy,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
                     ofKeys: currKeys
@@ -1927,7 +1927,7 @@ export = class MyHandler extends Handler {
             } else if (
                 isSellingKeys &&
                 (isAlreadyUpdatedToSell !== true ||
-                    truncedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
+                    roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable Autokeys - Selling - if selling keys conditions matched
@@ -1940,7 +1940,7 @@ export = class MyHandler extends Handler {
                     alreadyUpdatedToSell: true
                 };
                 this.oldAmount = {
-                    keysCanSell: truncedAmountKeysCanSell,
+                    keysCanSell: roundedAmountKeysCanSell,
                     keysCanBuy: 0,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
@@ -2012,8 +2012,8 @@ export = class MyHandler extends Handler {
                     this.oldAmount = {
                         keysCanSell: 0,
                         keysCanBuy: 0,
-                        keysCanBankMin: truncedAmountKeysCanBankMin,
-                        keysCanBankMax: truncedAmountKeysCanBankMax,
+                        keysCanBankMin: roundedAmountKeysCanBankMin,
+                        keysCanBankMax: roundedAmountKeysCanBankMax,
                         ofKeys: currKeys
                     };
                     this.autokeysIsActive = true;
@@ -2030,7 +2030,7 @@ export = class MyHandler extends Handler {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBuy: roundedAmountKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -2049,7 +2049,7 @@ export = class MyHandler extends Handler {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBuy: roundedAmountKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -2067,7 +2067,7 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToSell: true
                     };
                     this.oldAmount = {
-                        keysCanSell: truncedAmountKeysCanSell,
+                        keysCanSell: roundedAmountKeysCanSell,
                         keysCanBuy: 0,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
@@ -2104,8 +2104,8 @@ export = class MyHandler extends Handler {
                     isBankingKeys &&
                     isEnableKeyBanking &&
                     (isAlreadyUpdatedToBank !== true ||
-                        truncedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                        truncedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
+                        roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
+                        roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -2120,8 +2120,8 @@ export = class MyHandler extends Handler {
                     this.oldAmount = {
                         keysCanSell: 0,
                         keysCanBuy: 0,
-                        keysCanBankMin: truncedAmountKeysCanBankMin,
-                        keysCanBankMax: truncedAmountKeysCanBankMax,
+                        keysCanBankMin: roundedAmountKeysCanBankMin,
+                        keysCanBankMax: roundedAmountKeysCanBankMax,
                         ofKeys: currKeys
                     };
                     this.autokeysIsActive = true;
@@ -2130,7 +2130,7 @@ export = class MyHandler extends Handler {
                     isBankingBuyKeysWithEnoughRefs &&
                     isEnableKeyBanking &&
                     (isAlreadyUpdatedToBuy !== true ||
-                        truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -2144,7 +2144,7 @@ export = class MyHandler extends Handler {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBuy: roundedAmountKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -2155,7 +2155,7 @@ export = class MyHandler extends Handler {
                     !isEnableKeyBanking &&
                     isBuyingKeys &&
                     (isAlreadyUpdatedToBuy !== true ||
-                        truncedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable Autokeys - Buying - if buying keys conditions matched
@@ -2169,7 +2169,7 @@ export = class MyHandler extends Handler {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: truncedAmountKeysCanBuy,
+                        keysCanBuy: roundedAmountKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -2179,7 +2179,7 @@ export = class MyHandler extends Handler {
                 } else if (
                     isSellingKeys &&
                     (isAlreadyUpdatedToSell !== true ||
-                        truncedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
+                        roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable Autokeys - Selling - if selling keys conditions matched
@@ -2192,7 +2192,7 @@ export = class MyHandler extends Handler {
                         alreadyUpdatedToSell: true
                     };
                     this.oldAmount = {
-                        keysCanSell: truncedAmountKeysCanSell,
+                        keysCanSell: roundedAmountKeysCanSell,
                         keysCanBuy: 0,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
