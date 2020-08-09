@@ -500,6 +500,12 @@ export = class DiscordWebhook {
                                 ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
                                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                                 : '') +
+                            (isMentionInvalidItems
+                                ? '\n\n🟨INVALID_ITEMS:\n' +
+                                  (invalidItemsCombine.length === 0
+                                      ? invalidItemsName.join(',\n')
+                                      : invalidItemsFromMyHandler.join(',\n'))
+                                : '') +
                             (isShowQuickLinks
                                 ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                 : '\n'),
@@ -510,12 +516,6 @@ export = class DiscordWebhook {
                                     (isShowQuickLinks
                                         ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
                                         : '\n') +
-                                    (isMentionInvalidItems
-                                        ? '\n\n🟨INVALID_ITEMS:\n' +
-                                          (invalidItemsCombine.length === 0
-                                              ? invalidItemsName.join(',\n')
-                                              : invalidItemsFromMyHandler.join(',\n'))
-                                        : '') +
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                                           `${
