@@ -1840,6 +1840,10 @@ export = class MyHandler extends Handler {
             }
         }
 
+        if ((isBankingKeys && isEnableKeyBanking) || isBuyingKeys || isSellingKeys) {
+            log.debug(`Min: ${setMinKeys}, Max: ${setMaxKeys}`);
+        }
+
         const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
