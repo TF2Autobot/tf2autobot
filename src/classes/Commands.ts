@@ -43,6 +43,7 @@ const COMMANDS: string[] = [
 
 const MORE: string[] = [
     '!message <your message> - Send a message to the owner of the bot 💬',
+    '!autokeys - Get info my current autokeys settings 🔑',
     '!time - Show owner current time 🕥',
     '!pure - Get current pure stock 💰',
     '!rate - Get current key prices 🔑',
@@ -73,8 +74,7 @@ const ADMIN_COMMANDS: string[] = [
     '!resetqueue - Reset queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
     '!inventory - Get my current inventory spaces 🎒',
-    '!version - Get version that the bot is running',
-    '!autokeys - Get info on your current autoBuy/Sell Keys settings 🔑\n\n✨=== Manual review ===✨',
+    '!version - Get version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of offers pending for manual review 🔍',
     '!trade <offerID> - Get info about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
@@ -154,6 +154,8 @@ export = class Commands {
             this.queueCommand(steamID);
         } else if (command === 'more') {
             this.moreCommand(steamID);
+        } else if (command === 'autokeys') {
+            this.autoKeysCommand(steamID);
         } else if (command === 'message') {
             this.messageCommand(steamID, message);
         } else if (command === 'time') {
@@ -210,8 +212,6 @@ export = class Commands {
             this.inventoryCommand(steamID);
         } else if (command === 'version' && isAdmin) {
             this.versionCommand(steamID);
-        } else if (command === 'autokeys' && isAdmin) {
-            this.autoKeysCommand(steamID);
         } else if (command === 'trades' && isAdmin) {
             this.tradesCommand(steamID);
         } else if (command === 'trade' && isAdmin) {
