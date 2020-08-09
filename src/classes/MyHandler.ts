@@ -1825,19 +1825,8 @@ export = class MyHandler extends Handler {
                 setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             }
         } else if (isBankingKeys) {
-            if (amountKeysCanBank <= 1) {
-                setMinKeys = currKeys - 1 <= userMinKeys ? userMinKeys : currKeys - 1;
-                setMaxKeys = currKeys + 1 >= userMaxKeys ? userMaxKeys : currKeys + 1;
-            } else {
-                setMinKeys =
-                    currKeys - 1 - truncedAmountKeysCanBank <= userMinKeys
-                        ? userMinKeys
-                        : currKeys - 1 - truncedAmountKeysCanBank;
-                setMaxKeys =
-                    currKeys + 1 + truncedAmountKeysCanBank >= userMaxKeys
-                        ? userMaxKeys
-                        : currKeys + 1 + truncedAmountKeysCanBank;
-            }
+            setMinKeys = currKeys - 1 <= userMinKeys ? userMinKeys : currKeys - 1;
+            setMaxKeys = currKeys + 1 >= userMaxKeys ? userMaxKeys : currKeys + 1;
         }
 
         if ((isBankingKeys && isEnableKeyBanking) || isBuyingKeys || isSellingKeys) {
