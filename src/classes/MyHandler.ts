@@ -1778,22 +1778,6 @@ export = class MyHandler extends Handler {
         const isAlreadyUpdatedToBuy = this.autokeysStatus.alreadyUpdatedToBuy;
         const isAlreadyUpdatedToSell = this.autokeysStatus.alreadyUpdatedToSell;
 
-        log.debug(
-            `Autokeys status:-\n   Ref: MinRef(${Currencies.toRefined(userMinReftoScrap)})` +
-                ` < CurrRef(${Currencies.toRefined(currReftoScrap)})` +
-                ` < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})` +
-                `\n   Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})` +
-                `\nStatus: ${
-                    isBankingKeys && isEnableKeyBanking
-                        ? 'Banking'
-                        : isBuyingKeys
-                        ? 'Buying'
-                        : isSellingKeys
-                        ? 'Selling'
-                        : 'Not active'
-                }`
-        );
-
         let setMinKeys: number;
         let setMaxKeys: number;
         const amountKeysCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
@@ -1838,9 +1822,21 @@ export = class MyHandler extends Handler {
                     : currKeys + roundedAmountKeysCanBankMax;
         }
 
-        if ((isBankingKeys && isEnableKeyBanking) || isBuyingKeys || isSellingKeys) {
-            log.debug(`Min: ${setMinKeys}, Max: ${setMaxKeys}`);
-        }
+        log.debug(
+            `Autokeys status:-\n   Ref: minRef(${Currencies.toRefined(userMinReftoScrap)})` +
+                ` < currRef(${Currencies.toRefined(currReftoScrap)})` +
+                ` < maxRef(${Currencies.toRefined(userMaxReftoScrap)})` +
+                `\n   Key: minKeys(${userMinKeys}) ≤ currKeys(${currKeys}) ≤ maxKeys(${userMaxKeys})` +
+                `\nStatus: ${
+                    isBankingKeys && isEnableKeyBanking
+                        ? `Banking (Min: ${setMinKeys}, Max: ${setMaxKeys})`
+                        : isBuyingKeys
+                        ? `Buying (Min: ${setMinKeys}, Max: ${setMaxKeys})`
+                        : isSellingKeys
+                        ? `Selling (Min: ${setMinKeys}, Max: ${setMaxKeys})`
+                        : 'Not active'
+                }`
+        );
 
         const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
