@@ -89,8 +89,6 @@ export = class Commands {
 
     readonly discord: DiscordWebhook;
 
-    private queuePositionCheck;
-
     private first30Minutes = true;
 
     private first30MinutesTimeout;
