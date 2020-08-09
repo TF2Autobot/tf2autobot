@@ -43,7 +43,7 @@ const COMMANDS: string[] = [
 
 const MORE: string[] = [
     '!message <your message> - Send a message to the owner of the bot 💬',
-    '!autokeys - Get info my current autokeys settings 🔑',
+    '!autokeys - Get info on my current autokeys settings 🔑',
     '!time - Show owner current time 🕥',
     '!pure - Get current pure stock 💰',
     '!rate - Get current key prices 🔑',
