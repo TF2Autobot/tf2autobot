@@ -1838,7 +1838,7 @@ export = class MyHandler extends Handler {
                 }`
         );
 
-        const isAlreadyRunningAutokeys = this.autokeysIsActive !== false;
+        const isAlreadyRunningAutokeys = this.autokeysIsActive;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
         const time = this.timeWithEmoji();
 
@@ -1847,7 +1847,7 @@ export = class MyHandler extends Handler {
             if (
                 isBankingKeys &&
                 isEnableKeyBanking &&
-                (isAlreadyUpdatedToBank !== true ||
+                (!isAlreadyUpdatedToBank ||
                     roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
                     roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                     currKeys !== this.oldAmount.ofKeys)
@@ -1873,7 +1873,7 @@ export = class MyHandler extends Handler {
             } else if (
                 isBankingBuyKeysWithEnoughRefs &&
                 isEnableKeyBanking &&
-                (isAlreadyUpdatedToBuy !== true ||
+                (!isAlreadyUpdatedToBuy ||
                     roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
@@ -1896,9 +1896,9 @@ export = class MyHandler extends Handler {
                 this.autokeysIsActive = true;
                 this.updateAutokeysBuy(setMinKeys, setMaxKeys);
             } else if (
-                !isEnableKeyBanking &&
                 isBuyingKeys &&
-                (isAlreadyUpdatedToBuy !== true ||
+                !isEnableKeyBanking &&
+                (!isAlreadyUpdatedToBuy ||
                     roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
@@ -1922,7 +1922,7 @@ export = class MyHandler extends Handler {
                 this.updateAutokeysBuy(setMinKeys, setMaxKeys);
             } else if (
                 isSellingKeys &&
-                (isAlreadyUpdatedToSell !== true ||
+                (!isAlreadyUpdatedToSell ||
                     roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
@@ -1968,7 +1968,7 @@ export = class MyHandler extends Handler {
                 };
                 this.autokeysIsActive = false;
                 this.updateToDisableAutokeys();
-            } else if (isAlertAdmins && isAlreadyAlert !== true) {
+            } else if (isAlertAdmins && !isAlreadyAlert) {
                 // alert admins when low pure
                 this.autokeysStatus = {
                     isBuyingKeys: false,
@@ -2071,7 +2071,7 @@ export = class MyHandler extends Handler {
                     };
                     this.autokeysIsActive = true;
                     this.createAutokeysSell(setMinKeys, setMaxKeys);
-                } else if (isAlertAdmins && isAlreadyAlert !== true) {
+                } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
                     this.autokeysStatus = {
                         isBuyingKeys: false,
@@ -2099,7 +2099,7 @@ export = class MyHandler extends Handler {
                 if (
                     isBankingKeys &&
                     isEnableKeyBanking &&
-                    (isAlreadyUpdatedToBank !== true ||
+                    (!isAlreadyUpdatedToBank ||
                         roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
                         roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                         currKeys !== this.oldAmount.ofKeys)
@@ -2125,7 +2125,7 @@ export = class MyHandler extends Handler {
                 } else if (
                     isBankingBuyKeysWithEnoughRefs &&
                     isEnableKeyBanking &&
-                    (isAlreadyUpdatedToBuy !== true ||
+                    (!isAlreadyUpdatedToBuy ||
                         roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
@@ -2150,7 +2150,7 @@ export = class MyHandler extends Handler {
                 } else if (
                     !isEnableKeyBanking &&
                     isBuyingKeys &&
-                    (isAlreadyUpdatedToBuy !== true ||
+                    (!isAlreadyUpdatedToBuy ||
                         roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
@@ -2174,7 +2174,7 @@ export = class MyHandler extends Handler {
                     this.updateAutokeysBuy(setMinKeys, setMaxKeys);
                 } else if (
                     isSellingKeys &&
-                    (isAlreadyUpdatedToSell !== true ||
+                    (!isAlreadyUpdatedToSell ||
                         roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
@@ -2196,7 +2196,7 @@ export = class MyHandler extends Handler {
                     };
                     this.autokeysIsActive = true;
                     this.updateAutokeysSell(setMinKeys, setMaxKeys);
-                } else if (isAlertAdmins && isAlreadyAlert !== true) {
+                } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
                     this.autokeysStatus = {
                         isBuyingKeys: false,
