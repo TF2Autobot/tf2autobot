@@ -1808,9 +1808,9 @@ export = class MyHandler extends Handler {
             } else {
                 setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
                 setMaxKeys =
-                    currKeys + 1 + roundedAmountKeysCanBuy >= userMaxKeys
+                    currKeys + 1 + (roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy) >= userMaxKeys
                         ? userMaxKeys
-                        : currKeys + 1 + roundedAmountKeysCanBuy;
+                        : currKeys + 1 + (roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy);
             }
         } else if (isSellingKeys) {
             if (amountKeysCanSell <= 1) {
@@ -1818,20 +1818,20 @@ export = class MyHandler extends Handler {
                 setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             } else {
                 setMinKeys =
-                    currKeys - 1 - roundedAmountKeysCanSell <= userMinKeys
+                    currKeys - 1 - (roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell) <= userMinKeys
                         ? userMinKeys
-                        : currKeys - 1 - roundedAmountKeysCanSell;
+                        : currKeys - 1 - (roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell);
                 setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             }
         } else if (isBankingKeys) {
             setMinKeys =
-                currKeys - roundedAmountKeysCanBankMin <= userMinKeys
+                currKeys - (roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin) <= userMinKeys
                     ? userMinKeys
-                    : currKeys - roundedAmountKeysCanBankMin;
+                    : currKeys - (roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin);
             setMaxKeys =
-                currKeys + roundedAmountKeysCanBankMax >= userMaxKeys
+                currKeys + (roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax) >= userMaxKeys
                     ? userMaxKeys
-                    : currKeys + roundedAmountKeysCanBankMax;
+                    : currKeys + (roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax);
         }
 
         log.debug(
