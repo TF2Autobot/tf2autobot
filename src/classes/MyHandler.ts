@@ -1659,16 +1659,16 @@ export = class MyHandler extends Handler {
         }
         const pure = this.currPure();
         const currKeys = pure.key;
-        const currReftoScrap = pure.refTotalInScrap;
+        const currRef = pure.refTotalInScrap;
 
         const userPure = this.autokeysPure;
 
         const userMinKeys = userPure.userMinKeys;
         const userMaxKeys = userPure.userMaxKeys;
-        const userMinReftoScrap = userPure.userMinReftoScrap;
-        const userMaxReftoScrap = userPure.userMaxReftoScrap;
+        const userMinRef = userPure.userMinReftoScrap;
+        const userMaxRef = userPure.userMaxReftoScrap;
 
-        if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
+        if (isNaN(userMinKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
             log.warn(
                 "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
             );
@@ -1693,7 +1693,7 @@ export = class MyHandler extends Handler {
         /**
          * enable Autokeys - Buying - true if currRef \> maxRef AND currKeys \< maxKeys
          */
-        const isBuyingKeys = currReftoScrap > userMaxReftoScrap && currKeys < userMaxKeys;
+        const isBuyingKeys = currRef > userMaxRef && currKeys < userMaxKeys;
         /*
         //        <——————————————————————————————————○            \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1705,7 +1705,7 @@ export = class MyHandler extends Handler {
         /**
          * enable Autokeys - Selling - true if currRef \< minRef AND currKeys \> minKeys
          */
-        const isSellingKeys = currReftoScrap < userMinReftoScrap && currKeys > userMinKeys;
+        const isSellingKeys = currRef < userMinRef && currKeys > userMinKeys;
         /*
         //              ○———————————————————————————————————>     \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1719,8 +1719,8 @@ export = class MyHandler extends Handler {
          * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
          */
         const isRemoveAutoKeys =
-            (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
-            (currReftoScrap >= userMinReftoScrap && currReftoScrap <= userMaxReftoScrap && currKeys <= userMaxKeys);
+            (currRef >= userMaxRef && currKeys >= userMaxKeys) ||
+            (currRef >= userMinRef && currRef <= userMaxRef && currKeys <= userMaxKeys);
         /*
         //        <——————————————————————————————————●·····>      \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1737,8 +1737,7 @@ export = class MyHandler extends Handler {
         /**
          * enable Autokeys - Banking - true if minRef \< currRef \< maxRef AND currKeys \> minKeys
          */
-        const isBankingKeys =
-            currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap && currKeys > userMinKeys;
+        const isBankingKeys = currRef > userMinRef && currRef < userMaxRef && currKeys > userMinKeys;
         /*
         //              ○———————————————————————————————————>     \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1751,7 +1750,7 @@ export = class MyHandler extends Handler {
          * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
          * Will buy keys.
          */
-        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys;
+        const isBankingBuyKeysWithEnoughRefs = currRef > userMinRef && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1763,7 +1762,7 @@ export = class MyHandler extends Handler {
         /**
          * disable Autokeys - Banking - true if currRef \< minRef AND currKeys \< minKeys
          */
-        const isRemoveBankingKeys = currReftoScrap <= userMaxReftoScrap && currKeys <= userMinKeys;
+        const isRemoveBankingKeys = currRef <= userMaxRef && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1777,7 +1776,7 @@ export = class MyHandler extends Handler {
         /**
          * send alert to admins when both keys and refs below minimum
          */
-        const isAlertAdmins = currReftoScrap <= userMinReftoScrap && currKeys <= userMinKeys;
+        const isAlertAdmins = currRef <= userMinRef && currKeys <= userMinKeys;
         /*
         //        <—————●                                         \
         // Keys --------|----------------------------|---------->  ⟩ AND
@@ -1792,52 +1791,42 @@ export = class MyHandler extends Handler {
 
         let setMinKeys: number;
         let setMaxKeys: number;
-        const amountKeysCanBuy = (currReftoScrap - userMaxReftoScrap) / currKeyPrice.buy.toValue();
-        const amountKeysCanSell = (userMinReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
-        const amountKeysCanBankMin = (userMaxReftoScrap - currReftoScrap) / currKeyPrice.sell.toValue();
-        const amountKeysCanBankMax = (currReftoScrap - userMinReftoScrap) / currKeyPrice.buy.toValue();
-        const roundedAmountKeysCanBuy = Math.round(amountKeysCanBuy);
-        const roundedAmountKeysCanSell = Math.round(amountKeysCanSell);
-        const roundedAmountKeysCanBankMin = Math.round(amountKeysCanBankMin);
-        const roundedAmountKeysCanBankMax = Math.round(amountKeysCanBankMax);
+        const roundedAmountKeysCanBuy = Math.round((currRef - userMaxRef) / currKeyPrice.buy.toValue());
+        const roundedAmountKeysCanSell = Math.round((userMinRef - currRef) / currKeyPrice.sell.toValue());
+        const roundedAmountKeysCanBankMin = Math.round((userMaxRef - currRef) / currKeyPrice.sell.toValue());
+        const roundedAmountKeysCanBankMax = Math.round((currRef - userMinRef) / currKeyPrice.buy.toValue());
+        const fixedAmountKeysCanBuy = roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy;
+        const fixedAmountKeysCanSell = roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell;
+        const fixedAmountKeysCanBankMin = roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin;
+        const fixedAmountKeysCanBankMax = roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax;
 
+        // Check and set new min and max
         if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
-            if (amountKeysCanBuy <= 1) {
-                setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-                setMaxKeys = currKeys + 1 >= userMaxKeys ? userMaxKeys : currKeys + 1;
-            } else {
-                setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-                setMaxKeys =
-                    currKeys + 1 + (roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy) >= userMaxKeys
-                        ? userMaxKeys
-                        : currKeys + 1 + (roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy);
-            }
-        } else if (isSellingKeys) {
-            if (amountKeysCanSell <= 1) {
-                setMinKeys = currKeys - 1 <= userMinKeys ? userMinKeys : currKeys - 1;
-                setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
-            } else {
-                setMinKeys =
-                    currKeys - 1 - (roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell) <= userMinKeys
-                        ? userMinKeys
-                        : currKeys - 1 - (roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell);
-                setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
-            }
-        } else if (isBankingKeys) {
-            setMinKeys =
-                currKeys - (roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin) <= userMinKeys
-                    ? userMinKeys
-                    : currKeys - (roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin);
+            // If buying - we need to set min = currKeys and max = currKeys + amountCanBuy
+            setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
             setMaxKeys =
-                currKeys + (roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax) >= userMaxKeys
+                currKeys + fixedAmountKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + fixedAmountKeysCanBuy;
+        } else if (isSellingKeys) {
+            // If selling - we need to set min = currKeys - amountCanSell and max = currKeys
+            setMinKeys =
+                currKeys - fixedAmountKeysCanSell <= userMinKeys ? userMinKeys : currKeys - fixedAmountKeysCanSell;
+            setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
+        } else if (isBankingKeys && isEnableKeyBanking) {
+            // If banking - we need to set min = currKeys - amountCanBankMin and max = currKeys + amountCanBankMax
+            setMinKeys =
+                currKeys - fixedAmountKeysCanBankMin <= userMinKeys
+                    ? userMinKeys
+                    : currKeys - fixedAmountKeysCanBankMin;
+            setMaxKeys =
+                currKeys + fixedAmountKeysCanBankMax >= userMaxKeys
                     ? userMaxKeys
-                    : currKeys + (roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax);
+                    : currKeys + fixedAmountKeysCanBankMax;
         }
 
         log.debug(
-            `Autokeys status:-\n   Ref: minRef(${Currencies.toRefined(userMinReftoScrap)})` +
-                ` < currRef(${Currencies.toRefined(currReftoScrap)})` +
-                ` < maxRef(${Currencies.toRefined(userMaxReftoScrap)})` +
+            `Autokeys status:-\n   Ref: minRef(${Currencies.toRefined(userMinRef)})` +
+                ` < currRef(${Currencies.toRefined(currRef)})` +
+                ` < maxRef(${Currencies.toRefined(userMaxRef)})` +
                 `\n   Key: minKeys(${userMinKeys}) ≤ currKeys(${currKeys}) ≤ maxKeys(${userMaxKeys})` +
                 `\nStatus: ${
                     isBankingKeys && isEnableKeyBanking
