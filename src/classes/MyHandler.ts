@@ -1822,10 +1822,7 @@ export = class MyHandler extends Handler {
                     currKeys - 1 - truncedAmountKeysCanSell <= userMinKeys
                         ? userMinKeys
                         : currKeys - 1 - truncedAmountKeysCanSell;
-                setMaxKeys =
-                    currKeys + 1 + truncedAmountKeysCanBuy >= userMaxKeys
-                        ? userMaxKeys
-                        : currKeys + 1 + truncedAmountKeysCanBuy;
+                setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
             }
         } else if (isBankingKeys) {
             if (amountKeysCanBank <= 1) {
