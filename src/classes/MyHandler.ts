@@ -105,7 +105,7 @@ export = class MyHandler extends Handler {
 
     private customGameName: string;
 
-    private isUsingAutoPrice = true;
+    private isEnableScrapAdjustment = false;
 
     private scrapAdjustmentValue = 0;
 
@@ -180,7 +180,7 @@ export = class MyHandler extends Handler {
         }
 
         if (process.env.DISABLE_SCRAP_ADJUSTMENT !== 'true') {
-            this.isUsingAutoPrice = false;
+            this.isEnableScrapAdjustment = true;
         }
 
         if (!isNaN(minimumScrap)) {
@@ -284,7 +284,7 @@ export = class MyHandler extends Handler {
             isBuying: status.isBuyingKeys,
             bankingEnabled: this.keyBankingEnabled,
             isBanking: status.isBankingKeys,
-            scrapAdjustmentEnabled: !this.isUsingAutoPrice,
+            scrapAdjustmentEnabled: this.isEnableScrapAdjustment,
             scrapAdjustmentValue: this.scrapAdjustmentValue
         };
         return settings;
@@ -1665,7 +1665,7 @@ export = class MyHandler extends Handler {
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
-        if (currKeyPrice !== this.OldKeyPrices && !this.isUsingAutoPrice) {
+        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
             this.autokeysStatus = {
                 isBuyingKeys: false,
@@ -2227,7 +2227,7 @@ export = class MyHandler extends Handler {
     private createAutokeysSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (this.isUsingAutoPrice) {
+        if (!this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -2269,7 +2269,7 @@ export = class MyHandler extends Handler {
     private createAutokeysBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (this.isUsingAutoPrice) {
+        if (!this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -2353,7 +2353,7 @@ export = class MyHandler extends Handler {
     private updateAutokeysSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (this.isUsingAutoPrice) {
+        if (!this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -2395,7 +2395,7 @@ export = class MyHandler extends Handler {
     private updateAutokeysBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (this.isUsingAutoPrice) {
+        if (!this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
