@@ -1217,6 +1217,18 @@ export = class MyHandler extends Handler {
                         reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains Noise Maker that are not 25 uses.';
+                    } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
+                        reason =
+                            'I am no longer trading keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'BANNED') {
+                        reason =
+                            "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or other community.";
+                    } else if (offerReason.reason === 'ESCROW') {
+                        reason =
+                            'I do not accept trade hold (Escrow). Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                            '\nRead:\n' +
+                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                            '• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
                     } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
                         reasonForInvalidValue = true;
                         reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
