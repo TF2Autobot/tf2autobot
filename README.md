@@ -39,7 +39,7 @@ Once you have downloaded the source and installed the necessary packages, you ca
 
 Join **tf2autobot-IdiNium** Discord server [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) and go to `#🆚roles` channel and react on the first message to get yourself mentioned when an update has been released!
 
-<img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display: block; margin-left: auto; margin-right: auto; width:320px; height:200px;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
 \*\*There is also a giveaway that will be held on every Thursday, 8 AM - 8 PM (12 hours) Malaysia time!
 
@@ -93,19 +93,19 @@ Screenshots:
 
 -   Trade summary (or live-trades) -
 
-    <img src="https://user-images.githubusercontent.com/47635037/89725250-1434fb00-da40-11ea-8ccc-8755b1af89c6.PNG" alt="trade-summary" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725250-1434fb00-da40-11ea-8ccc-8755b1af89c6.PNG" alt="trade-summary" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Offer review (when trade partner sent wrong value/overstocked/etc) -
 
-    <img src="https://user-images.githubusercontent.com/47635037/85020166-80168800-b1a2-11ea-99f2-04766677fdf7.PNG" alt="Offer-review" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/85020166-80168800-b1a2-11ea-99f2-04766677fdf7.PNG" alt="Offer-review" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Messages (when trade partner send "!message" command -
 
-    <img src="https://user-images.githubusercontent.com/47635037/84581313-9cb56780-ae12-11ea-9dcf-2d660d8ae184.PNG" alt="Messages" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581313-9cb56780-ae12-11ea-9dcf-2d660d8ae184.PNG" alt="Messages" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Price update (Discord Only) - Show price change for every items that are on your pricelist -
 
-    <img src="https://user-images.githubusercontent.com/47635037/83712639-cc1ce500-a658-11ea-855d-5de43b39ff2f.png" alt="price-update" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/83712639-cc1ce500-a658-11ea-855d-5de43b39ff2f.png" alt="price-update" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 You can also only set it to send only trade summary, but the others like Offer review and Messages will be sent to you via Steam Chat.
 
@@ -141,12 +141,13 @@ Some screenshots:
 
 -   When your bot have enough key to sell to get more ref (if your ref is less than minimum) OR enough ref to buy more keys (when your ref > maximum and keys < max)
 
-    <img src="https://user-images.githubusercontent.com/47635037/84581306-9a530d80-ae12-11ea-9bd5-3a988ac447d9.png" alt="autokeys1" style="display: block; margin-left: auto; margin-right: auto;">
-    <img src="https://user-images.githubusercontent.com/47635037/84581309-9b843a80-ae12-11ea-8374-0f7d3c631fa6.png" alt="autokeys2" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581306-9a530d80-ae12-11ea-9bd5-3a988ac447d9.png" alt="autokeys1" style="display:block;margin-left:auto;margin-right:auto;"></div>
+
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581309-9b843a80-ae12-11ea-8374-0f7d3c631fa6.png" alt="autokeys2" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   When your bot don't have enough of what I've said before:
 
-    <img src="https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png" alt="autokeys3" style="display: block; margin-left: auto; margin-right: auto;">
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png" alt="autokeys3" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1643-L2461).
 
@@ -154,11 +155,11 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 #### Admin
 
-<img src="https://user-images.githubusercontent.com/47635037/89725438-22841680-da42-11ea-87a2-c0749c0d451e.png" alt="newlook-command-admin" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725438-22841680-da42-11ea-87a2-c0749c0d451e.png" alt="newlook-command-admin" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 #### Trade partner
 
-<img src="https://user-images.githubusercontent.com/47635037/89725439-244dda00-da42-11ea-9ea8-f3e159c19cea.png" alt="newlook-command-partner" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725439-244dda00-da42-11ea-9ea8-f3e159c19cea.png" alt="newlook-command-partner" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 ### Offer review summary on trade partner side
 
@@ -168,9 +169,9 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 Let say you want to trade an unusual OR an australium, which the value as we know is huge (more than 5 keys), and then someone sent a trade offer with 0.11 ref less, your bot will skip this offer and send you notification to do review on this offer. With this exception, your bot will accept the trade as long as it's less than the exception value in ref that you've set. To use this feature, you'll need to set it on both `INVALID_VALUE_EXCEPTION_SKUS` and `INVALID_VALUE_EXCEPTION_VALUE_IN_REF`. See [here](https://github.com/idinium96/tf2autobot#manual-review-settings).
 
-<img src="https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG" alt="Invalid_value_exception1" style="display: block; margin-left: auto; margin-right: auto; width:540px; height:450px;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG" alt="Invalid_value_exception2" style="display:block;margin-left:auto;margin-right:auto;width:540px;height:450px;"></div>
 
-<img src="https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG" alt="Invalid_value_exception2" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG" alt="Invalid_value_exception2" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 ## Variables in ecosystem.json summary
 
@@ -299,7 +300,7 @@ Time will be use in "!time" command and
 
 **Usage example:**
 
-<img src="https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG" alt="listings" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG" alt="listings" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
 #### Custom offer message
 
@@ -339,9 +340,9 @@ Time will be use in "!time" command and
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to `true` if you want your bot to mention on every successful trades.
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
 
-<img src="https://user-images.githubusercontent.com/47635037/86468435-ffdb4f80-bd69-11ea-9ab6-a7f5be2c22f0.PNG" alt="trade-summary-full" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/86468435-ffdb4f80-bd69-11ea-9ab6-a7f5be2c22f0.PNG" alt="trade-summary-full" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
-<img src="https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG" alt="trade-summary-full2" style="display: block; margin-left: auto; margin-right: auto;">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG" alt="trade-summary-full2" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
 #### Offer review summary
 
