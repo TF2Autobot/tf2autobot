@@ -115,7 +115,7 @@ If you want to use this feature, you must use [ecosystem.template.json](https://
 
 ### Autokeys (auto buy or sell keys) feature
 
-This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll need to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
+This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll need to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot#autokeys-feature).
 
 ```
 .____________________________________________________________.  ._______________________________.
@@ -149,7 +149,7 @@ Some screenshots:
 
     <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png" alt="autokeys3" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1643-L2461).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/Autokeys.ts).
 
 ### Emojis and more commands added
 
@@ -365,7 +365,7 @@ Time will be use in "!time" command and
 
 -   `ENABLE_MANUAL_REVIEW`: - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
 -   `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
--   `DISABLE_REVIEW_OFFER_NOTE`: - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1421-L1641)
+-   `DISABLE_REVIEW_OFFER_NOTE`: - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1345-L1565)
 -   `DISABLE_SHOW_CURRENT_TIME`: - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
 -   `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.

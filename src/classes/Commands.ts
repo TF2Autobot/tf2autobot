@@ -24,6 +24,7 @@ import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema';
+import Autokeys from './Autokeys';
 
 const COMMANDS: string[] = [
     '!help - Get list of commands',
@@ -89,6 +90,8 @@ export = class Commands {
 
     readonly discord: DiscordWebhook;
 
+    readonly autokeys: Autokeys;
+
     private first30Minutes = true;
 
     private first30MinutesTimeout;
@@ -102,6 +105,7 @@ export = class Commands {
     constructor(bot: Bot) {
         this.bot = bot;
         this.discord = new DiscordWebhook(bot);
+        this.autokeys = new Autokeys(bot);
 
         this.first30MinutesTimeout = setTimeout(() => {
             this.first30Minutes = false;
@@ -1822,14 +1826,12 @@ export = class Commands {
     }
 
     private refreshAutokeysCommand(steamID: SteamID): void {
-        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
-
-        if (autokeys.enabled === false) {
+        if (this.autokeys.isEnabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
 
-        (this.bot.handler as MyHandler).refreshAutokeys();
+        this.autokeys.refresh();
         this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
     }
 
@@ -1927,9 +1929,8 @@ export = class Commands {
     }
 
     private autoKeysCommand(steamID: SteamID): void {
-        const autokeys = (this.bot.handler as MyHandler).getUserAutokeys();
-
-        if (autokeys.enabled === false) {
+        const autokeys = this.autokeys;
+        if (autokeys.isEnabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
@@ -1939,6 +1940,9 @@ export = class Commands {
         const currRef = pure.refTotalInScrap;
 
         const keyPrices = this.bot.pricelist.getKeyPrices();
+
+        const userPure = autokeys.userPure;
+        const status = autokeys.status;
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -1954,59 +1958,59 @@ export = class Commands {
         const refsLine = `Refs ————|—————————|————▶`;
         const xAxisRef = `        min       max`;
         const keysPosition =
-            currKey < autokeys.minKeys
+            currKey < userPure.minKeys
                 ? keyBlMin
-                : currKey > autokeys.maxKeys
+                : currKey > userPure.maxKeys
                 ? keyAbMax
-                : currKey > autokeys.minKeys && currKey < autokeys.maxKeys
+                : currKey > userPure.minKeys && currKey < userPure.maxKeys
                 ? keyAtBet
-                : currKey === autokeys.minKeys
+                : currKey === userPure.minKeys
                 ? keyAtMin
-                : currKey === autokeys.maxKeys
+                : currKey === userPure.maxKeys
                 ? keyAtMax
                 : '';
         const refsPosition =
-            currRef < autokeys.minRef
+            currRef < userPure.minRefs
                 ? refBlMin
-                : currRef > autokeys.maxRef
+                : currRef > userPure.maxRefs
                 ? refAbMax
-                : currRef > autokeys.minRef && currRef < autokeys.maxRef
+                : currRef > userPure.minRefs && currRef < userPure.maxRefs
                 ? refAtBet
-                : currRef === autokeys.minRef
+                : currRef === userPure.minRefs
                 ? refAtMin
-                : currRef === autokeys.maxRef
+                : currRef === userPure.maxRefs
                 ? refAtMax
                 : '';
-        const summary = `\n• ${autokeys.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
-            autokeys.maxKeys
-        }\n• ${Currencies.toRefined(autokeys.minRef)} < ${pluralize(
+        const summary = `\n• ${userPure.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
+            userPure.maxKeys
+        }\n• ${Currencies.toRefined(userPure.minRefs)} < ${pluralize(
             'ref',
             Currencies.toRefined(currRef)
-        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(autokeys.maxRef)}`;
+        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
 
         let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
-        reply += `\nScrap Adjustment: ${autokeys.scrapAdjustmentEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
-        reply += `\n    Auto-banking: ${autokeys.bankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n Autokeys status: ${
-            autokeys.status
-                ? autokeys.isBanking
-                    ? 'Banking' + (autokeys.scrapAdjustmentEnabled ? ' (default price)' : '')
-                    : autokeys.isBuying
+            status
+                ? status.isBankingKeys
+                    ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
+                    : status.isBankingKeys
                     ? 'Buying for ' +
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +
-                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
                       ) +
                       ' ref' +
-                      (autokeys.scrapAdjustmentEnabled ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                      (autokeys.isEnableScrapAdjustment ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                     : 'Selling for ' +
                       Currencies.toRefined(
                           keyPrices.sell.toValue() -
-                              (autokeys.scrapAdjustmentEnabled ? autokeys.scrapAdjustmentValue : 0)
+                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
                       ) +
                       ' ref' +
-                      (autokeys.scrapAdjustmentEnabled ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                      (autokeys.isEnableScrapAdjustment ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
                 : 'Not active'
         }`;
         /*

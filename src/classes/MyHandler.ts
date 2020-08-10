@@ -25,11 +25,14 @@ import paths from '../resources/paths';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
 import DiscordWebhook from './DiscordWebhook';
+import Autokeys from './Autokeys';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    readonly discord: DiscordWebhook;
+    private readonly discord: DiscordWebhook;
+
+    private readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
 
@@ -46,28 +49,6 @@ export = class MyHandler extends Handler {
     private dupeCheckEnabled = false;
 
     private minimumKeysDupeCheck = 0;
-
-    private autokeysEnabled = false;
-
-    private keyBankingEnabled = false;
-
-    private autokeysIsActive = false;
-
-    private autokeysPure: {
-        userMinKeys: number;
-        userMaxKeys: number;
-        userMinReftoScrap: number;
-        userMaxReftoScrap: number;
-    };
-
-    private autokeysStatus = {
-        isBuyingKeys: false,
-        isBankingKeys: false,
-        checkAlertOnLowPure: false,
-        alreadyUpdatedToBank: false,
-        alreadyUpdatedToBuy: false,
-        alreadyUpdatedToSell: false
-    };
 
     private invalidValueException: number;
 
@@ -95,25 +76,11 @@ export = class MyHandler extends Handler {
 
     private autoRelistNotBuyingKeys = 0;
 
-    private oldAmount = {
-        keysCanBuy: 0,
-        keysCanSell: 0,
-        keysCanBankMin: 0,
-        keysCanBankMax: 0,
-        ofKeys: 0
-    };
-
     private customGameName: string;
-
-    private isEnableScrapAdjustment = false;
-
-    private scrapAdjustmentValue = 0;
 
     private backpackSlots = 0;
 
     private isAcceptedWithInvalidItemsOrOverstocked = false;
-
-    private OldKeyPrices: { buy: Currencies; sell: Currencies };
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -123,17 +90,11 @@ export = class MyHandler extends Handler {
         this.commands = new Commands(bot);
         this.cartQueue = new CartQueue(bot);
         this.discord = new DiscordWebhook(bot);
+        this.autokeys = new Autokeys(bot);
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
-
-        this.autokeysPure = {
-            userMinKeys: parseInt(process.env.MINIMUM_KEYS),
-            userMaxKeys: parseInt(process.env.MAXIMUM_KEYS),
-            userMinReftoScrap: Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS)),
-            userMaxReftoScrap: Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS))
-        };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
@@ -170,19 +131,6 @@ export = class MyHandler extends Handler {
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
         this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
 
-        const scrapValue = parseInt(process.env.SCRAP_ADJUSTMENT_VALUE);
-
-        if (!scrapValue || isNaN(scrapValue)) {
-            log.warn('Scrap adjustment not set or not a number, resetting to 0.');
-            this.scrapAdjustmentValue = 0;
-        } else {
-            this.scrapAdjustmentValue = scrapValue;
-        }
-
-        if (process.env.DISABLE_SCRAP_ADJUSTMENT !== 'true') {
-            this.isEnableScrapAdjustment = true;
-        }
-
         if (!isNaN(minimumScrap)) {
             this.minimumScrap = minimumScrap;
         }
@@ -202,14 +150,6 @@ export = class MyHandler extends Handler {
         const minimumKeysDupeCheck = parseInt(process.env.MINIMUM_KEYS_DUPE_CHECK);
         if (!isNaN(minimumKeysDupeCheck)) {
             this.minimumKeysDupeCheck = minimumKeysDupeCheck;
-        }
-
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' || process.env.ENABLE_AUTOKEYS === 'true') {
-            this.autokeysEnabled = true;
-        }
-
-        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true' || process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
-            this.keyBankingEnabled = true;
         }
 
         const groups = parseJSON(process.env.GROUPS);
@@ -259,37 +199,6 @@ export = class MyHandler extends Handler {
         return this.backpackSlots;
     }
 
-    getUserAutokeys(): {
-        enabled: boolean;
-        status: boolean;
-        minKeys: number;
-        maxKeys: number;
-        minRef: number;
-        maxRef: number;
-        isBuying: boolean;
-        bankingEnabled: boolean;
-        isBanking: boolean;
-        scrapAdjustmentEnabled: boolean;
-        scrapAdjustmentValue: number;
-    } {
-        const userPure = this.autokeysPure;
-        const status = this.autokeysStatus;
-        const settings = {
-            enabled: this.autokeysEnabled,
-            status: this.autokeysIsActive,
-            minKeys: userPure.userMinKeys,
-            maxKeys: userPure.userMaxKeys,
-            minRef: userPure.userMinReftoScrap,
-            maxRef: userPure.userMaxReftoScrap,
-            isBuying: status.isBuyingKeys,
-            bankingEnabled: this.keyBankingEnabled,
-            isBanking: status.isBankingKeys,
-            scrapAdjustmentEnabled: this.isEnableScrapAdjustment,
-            scrapAdjustmentValue: this.scrapAdjustmentValue
-        };
-        return settings;
-    }
-
     getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
         return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
@@ -336,7 +245,7 @@ export = class MyHandler extends Handler {
         this.craftDuplicateWeapons();
 
         // Auto sell and buy keys if ref < minimum
-        this.autokeys();
+        this.autokeys.check();
 
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
@@ -358,9 +267,9 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeysIsActive === true) {
+            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeys.isActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
-                this.updateToDisableAutokeys();
+                this.autokeys.disable();
             }
 
             this.bot.listings.removeAll().asCallback(function(err) {
@@ -873,7 +782,7 @@ export = class MyHandler extends Handler {
                     });
                 }
             }
-            if (this.autokeysEnabled !== false) {
+            if (this.autokeys.isEnabled !== false) {
                 if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
                     log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
                     this.bot.listings.checkAllWithDelay();
@@ -1293,12 +1202,13 @@ export = class MyHandler extends Handler {
                 offer.log('trade', 'has been accepted.');
 
                 // Auto sell and buy keys if ref < minimum
-                this.autokeys();
+                const autokeys = this.autokeys;
+                autokeys.check();
 
-                const isAutoKeysEnabled = this.autokeysEnabled;
-                const autoKeysStatus = this.autokeysIsActive;
-                const isBuyingKeys = this.autokeysStatus.isBuyingKeys;
-                const isBankingKeys = this.autokeysStatus.isBankingKeys;
+                const isAutoKeysEnabled = autokeys.isEnabled;
+                const autoKeysStatus = autokeys.isActive;
+                const isBuyingKeys = autokeys.status.isBuyingKeys;
+                const isBankingKeys = autokeys.status.isBankingKeys;
 
                 const pureStock = this.pureStock();
                 const timeWithEmojis = this.timeWithEmoji();
@@ -1652,835 +1562,6 @@ export = class MyHandler extends Handler {
             this.reviewItems.dupedItemsSKU.length = 0;
             this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
-    }
-
-    private autokeys(): void {
-        if (this.autokeysEnabled === false) {
-            return;
-        }
-        const pure = this.currPure();
-        const currKeys = pure.key;
-        const currRef = pure.refTotalInScrap;
-
-        const userPure = this.autokeysPure;
-
-        const userMinKeys = userPure.userMinKeys;
-        const userMaxKeys = userPure.userMaxKeys;
-        const userMinRef = userPure.userMinReftoScrap;
-        const userMaxRef = userPure.userMaxReftoScrap;
-
-        if (isNaN(userMinKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
-            log.warn(
-                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
-            );
-            return;
-        }
-
-        const currKeyPrice = this.bot.pricelist.getKeyPrices();
-
-        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
-            // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
-            this.autokeysStatus = {
-                isBuyingKeys: false,
-                isBankingKeys: false,
-                checkAlertOnLowPure: false,
-                alreadyUpdatedToBank: false,
-                alreadyUpdatedToBuy: false,
-                alreadyUpdatedToSell: false
-            };
-            this.OldKeyPrices = { buy: currKeyPrice.buy, sell: currKeyPrice.sell };
-        }
-
-        /**
-         * enable Autokeys - Buying - true if currRef \> maxRef AND currKeys \< maxKeys
-         */
-        const isBuyingKeys = currRef > userMaxRef && currKeys < userMaxKeys;
-        /*
-        //        <——————————————————————————————————○            \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //                                           ○——————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Selling - true if currRef \< minRef AND currKeys \> minKeys
-         */
-        const isSellingKeys = currRef < userMinRef && currKeys > userMinKeys;
-        /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————○                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * disable Autokeys - true if currRef \>= maxRef AND currKeys \>= maxKeys OR
-         * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
-         */
-        const isRemoveAutoKeys =
-            (currRef >= userMaxRef && currKeys >= userMaxKeys) ||
-            (currRef >= userMinRef && currRef <= userMaxRef && currKeys <= userMaxKeys);
-        /*
-        //        <——————————————————————————————————●·····>      \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ●————————————————————————————●·····>      /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Banking - true if user set ENABLE_AUTO_KEY_BANKING to true
-         */
-        const isEnableKeyBanking = this.keyBankingEnabled;
-
-        /**
-         * enable Autokeys - Banking - true if minRef \< currRef \< maxRef AND currKeys \> minKeys
-         */
-        const isBankingKeys = currRef > userMinRef && currRef < userMaxRef && currKeys > userMinKeys;
-        /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○————————————————————————————○            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
-         * Will buy keys.
-         */
-        const isBankingBuyKeysWithEnoughRefs = currRef > userMinRef && currKeys <= userMinKeys;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○———————————————————————————————————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * disable Autokeys - Banking - true if currRef \< minRef AND currKeys \< minKeys
-         */
-        const isRemoveBankingKeys = currRef <= userMaxRef && currKeys <= userMinKeys;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <——————————————————————————————————●            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        const isAlreadyAlert = this.autokeysStatus.checkAlertOnLowPure;
-
-        /**
-         * send alert to admins when both keys and refs below minimum
-         */
-        const isAlertAdmins = currRef <= userMinRef && currKeys <= userMinKeys;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————●                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        const isAlreadyUpdatedToBank = this.autokeysStatus.alreadyUpdatedToBank;
-        const isAlreadyUpdatedToBuy = this.autokeysStatus.alreadyUpdatedToBuy;
-        const isAlreadyUpdatedToSell = this.autokeysStatus.alreadyUpdatedToSell;
-
-        let setMinKeys: number;
-        let setMaxKeys: number;
-        const roundedAmountKeysCanBuy = Math.round((currRef - userMaxRef) / currKeyPrice.buy.toValue());
-        const roundedAmountKeysCanSell = Math.round((userMinRef - currRef) / currKeyPrice.sell.toValue());
-        const roundedAmountKeysCanBankMin = Math.round((userMaxRef - currRef) / currKeyPrice.sell.toValue());
-        const roundedAmountKeysCanBankMax = Math.round((currRef - userMinRef) / currKeyPrice.buy.toValue());
-        const fixedAmountKeysCanBuy = roundedAmountKeysCanBuy === 0 ? 1 : roundedAmountKeysCanBuy;
-        const fixedAmountKeysCanSell = roundedAmountKeysCanSell === 0 ? 1 : roundedAmountKeysCanSell;
-        const fixedAmountKeysCanBankMin = roundedAmountKeysCanBankMin === 0 ? 1 : roundedAmountKeysCanBankMin;
-        const fixedAmountKeysCanBankMax = roundedAmountKeysCanBankMax === 0 ? 1 : roundedAmountKeysCanBankMax;
-
-        // Check and set new min and max
-        if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
-            // If buying - we need to set min = currKeys and max = currKeys + amountCanBuy
-            setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-            setMaxKeys =
-                currKeys + fixedAmountKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + fixedAmountKeysCanBuy;
-        } else if (isSellingKeys) {
-            // If selling - we need to set min = currKeys - amountCanSell and max = currKeys
-            setMinKeys =
-                currKeys - fixedAmountKeysCanSell <= userMinKeys ? userMinKeys : currKeys - fixedAmountKeysCanSell;
-            setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
-        } else if (isBankingKeys && isEnableKeyBanking) {
-            // If banking - we need to set min = currKeys - amountCanBankMin and max = currKeys + amountCanBankMax
-            setMinKeys =
-                currKeys - fixedAmountKeysCanBankMin <= userMinKeys
-                    ? userMinKeys
-                    : currKeys - fixedAmountKeysCanBankMin;
-            setMaxKeys =
-                currKeys + fixedAmountKeysCanBankMax >= userMaxKeys
-                    ? userMaxKeys
-                    : currKeys + fixedAmountKeysCanBankMax;
-        }
-
-        log.debug(
-            `Autokeys status:-\n   Ref: minRef(${Currencies.toRefined(userMinRef)})` +
-                ` < currRef(${Currencies.toRefined(currRef)})` +
-                ` < maxRef(${Currencies.toRefined(userMaxRef)})` +
-                `\n   Key: minKeys(${userMinKeys}) ≤ currKeys(${currKeys}) ≤ maxKeys(${userMaxKeys})` +
-                `\nStatus: ${
-                    isBankingKeys && isEnableKeyBanking
-                        ? `Banking (Min: ${setMinKeys}, Max: ${setMaxKeys})`
-                        : isBuyingKeys
-                        ? `Buying (Min: ${setMinKeys}, Max: ${setMaxKeys})`
-                        : isSellingKeys
-                        ? `Selling (Min: ${setMinKeys}, Max: ${setMaxKeys})`
-                        : 'Not active'
-                }`
-        );
-
-        const isAlreadyRunningAutokeys = this.autokeysIsActive;
-        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
-        const time = this.timeWithEmoji();
-
-        if (isAlreadyRunningAutokeys) {
-            // if Autokeys already running
-            if (
-                isBankingKeys &&
-                isEnableKeyBanking &&
-                (!isAlreadyUpdatedToBank ||
-                    roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                    roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
-                // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                this.autokeysStatus = {
-                    isBuyingKeys: false,
-                    isBankingKeys: true,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: true,
-                    alreadyUpdatedToBuy: false,
-                    alreadyUpdatedToSell: false
-                };
-                this.oldAmount = {
-                    keysCanSell: 0,
-                    keysCanBuy: 0,
-                    keysCanBankMin: roundedAmountKeysCanBankMin,
-                    keysCanBankMax: roundedAmountKeysCanBankMax,
-                    ofKeys: currKeys
-                };
-                this.autokeysIsActive = true;
-                this.updateAutokeysBanking(setMinKeys, setMaxKeys);
-            } else if (
-                isBankingBuyKeysWithEnoughRefs &&
-                isEnableKeyBanking &&
-                (!isAlreadyUpdatedToBuy ||
-                    roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
-                // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                this.autokeysStatus = {
-                    isBuyingKeys: true,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: true,
-                    alreadyUpdatedToSell: false
-                };
-                this.oldAmount = {
-                    keysCanSell: 0,
-                    keysCanBuy: roundedAmountKeysCanBuy,
-                    keysCanBankMin: 0,
-                    keysCanBankMax: 0,
-                    ofKeys: currKeys
-                };
-                this.autokeysIsActive = true;
-                this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-            } else if (
-                isBuyingKeys &&
-                (!isAlreadyUpdatedToBuy ||
-                    roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
-                // enable Autokeys - Buying - if buying keys conditions matched
-                this.autokeysStatus = {
-                    isBuyingKeys: true,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: true,
-                    alreadyUpdatedToSell: false
-                };
-                this.oldAmount = {
-                    keysCanSell: 0,
-                    keysCanBuy: roundedAmountKeysCanBuy,
-                    keysCanBankMin: 0,
-                    keysCanBankMax: 0,
-                    ofKeys: currKeys
-                };
-                this.autokeysIsActive = true;
-                this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-            } else if (
-                isSellingKeys &&
-                (!isAlreadyUpdatedToSell ||
-                    roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
-                // enable Autokeys - Selling - if selling keys conditions matched
-                this.autokeysStatus = {
-                    isBuyingKeys: false,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: false,
-                    alreadyUpdatedToSell: true
-                };
-                this.oldAmount = {
-                    keysCanSell: roundedAmountKeysCanSell,
-                    keysCanBuy: 0,
-                    keysCanBankMin: 0,
-                    keysCanBankMax: 0,
-                    ofKeys: currKeys
-                };
-                this.autokeysIsActive = true;
-                this.updateAutokeysSell(setMinKeys, setMaxKeys);
-            } else if (isRemoveBankingKeys && isEnableKeyBanking) {
-                // disable keys banking - if to conditions to disable banking matched and banking is enabled
-                this.autokeysStatus = {
-                    isBuyingKeys: false,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: false,
-                    alreadyUpdatedToSell: false
-                };
-                this.autokeysIsActive = false;
-                this.updateToDisableAutokeys();
-            } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
-                // disable Autokeys when conditions to disable Autokeys matched
-                this.autokeysStatus = {
-                    isBuyingKeys: false,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: false,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: false,
-                    alreadyUpdatedToSell: false
-                };
-                this.autokeysIsActive = false;
-                this.updateToDisableAutokeys();
-            } else if (isAlertAdmins && !isAlreadyAlert) {
-                // alert admins when low pure
-                this.autokeysStatus = {
-                    isBuyingKeys: false,
-                    isBankingKeys: false,
-                    checkAlertOnLowPure: true,
-                    alreadyUpdatedToBank: false,
-                    alreadyUpdatedToBuy: false,
-                    alreadyUpdatedToSell: false
-                };
-                this.autokeysIsActive = false;
-                const msg = 'I am now low on both keys and refs.';
-                if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                    if (
-                        process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                        process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                    ) {
-                        this.discord.sendLowPureAlert(msg, time.time);
-                    } else {
-                        this.bot.messageAdmins(msg, []);
-                    }
-                }
-            }
-        } else if (!isAlreadyRunningAutokeys) {
-            // if Autokeys is not running/disabled
-            if (isKeysAlreadyExist === null) {
-                // if Mann Co. Supply Crate Key entry does not exist in the pricelist.json
-                if (isBankingKeys && isEnableKeyBanking) {
-                    //create new Key entry and enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: true,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: true,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: 0,
-                        keysCanBankMin: roundedAmountKeysCanBankMin,
-                        keysCanBankMax: roundedAmountKeysCanBankMax,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.createAutokeysBanking(setMinKeys, setMaxKeys);
-                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
-                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.autokeysStatus = {
-                        isBuyingKeys: true,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: true,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: roundedAmountKeysCanBuy,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.createAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (isBuyingKeys) {
-                    // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
-                    this.autokeysStatus = {
-                        isBuyingKeys: true,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: true,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: roundedAmountKeysCanBuy,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.createAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (isSellingKeys) {
-                    // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: true
-                    };
-                    this.oldAmount = {
-                        keysCanSell: roundedAmountKeysCanSell,
-                        keysCanBuy: 0,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.createAutokeysSell(setMinKeys, setMaxKeys);
-                } else if (isAlertAdmins && !isAlreadyAlert) {
-                    // alert admins when low pure
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: true,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.autokeysIsActive = false;
-                    const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                        if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                        ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
-                    }
-                }
-            } else {
-                // if Mann Co. Supply Crate Key entry already in the pricelist.json
-                if (
-                    isBankingKeys &&
-                    isEnableKeyBanking &&
-                    (!isAlreadyUpdatedToBank ||
-                        roundedAmountKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                        roundedAmountKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
-                    // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: true,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: true,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: 0,
-                        keysCanBankMin: roundedAmountKeysCanBankMin,
-                        keysCanBankMax: roundedAmountKeysCanBankMax,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.updateAutokeysBanking(setMinKeys, setMaxKeys);
-                } else if (
-                    isBankingBuyKeysWithEnoughRefs &&
-                    isEnableKeyBanking &&
-                    (!isAlreadyUpdatedToBuy ||
-                        roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
-                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.autokeysStatus = {
-                        isBuyingKeys: true,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: true,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: roundedAmountKeysCanBuy,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (
-                    isBuyingKeys &&
-                    (!isAlreadyUpdatedToBuy ||
-                        roundedAmountKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
-                    // enable Autokeys - Buying - if buying keys conditions matched
-                    this.autokeysStatus = {
-                        isBuyingKeys: true,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: true,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.oldAmount = {
-                        keysCanSell: 0,
-                        keysCanBuy: roundedAmountKeysCanBuy,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.updateAutokeysBuy(setMinKeys, setMaxKeys);
-                } else if (
-                    isSellingKeys &&
-                    (!isAlreadyUpdatedToSell ||
-                        roundedAmountKeysCanSell !== this.oldAmount.keysCanSell ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
-                    // enable Autokeys - Selling - if selling keys conditions matched
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: false,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: true
-                    };
-                    this.oldAmount = {
-                        keysCanSell: roundedAmountKeysCanSell,
-                        keysCanBuy: 0,
-                        keysCanBankMin: 0,
-                        keysCanBankMax: 0,
-                        ofKeys: currKeys
-                    };
-                    this.autokeysIsActive = true;
-                    this.updateAutokeysSell(setMinKeys, setMaxKeys);
-                } else if (isAlertAdmins && !isAlreadyAlert) {
-                    // alert admins when low pure
-                    this.autokeysStatus = {
-                        isBuyingKeys: false,
-                        isBankingKeys: false,
-                        checkAlertOnLowPure: true,
-                        alreadyUpdatedToBank: false,
-                        alreadyUpdatedToBuy: false,
-                        alreadyUpdatedToSell: false
-                    };
-                    this.autokeysIsActive = false;
-                    const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                        if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                        ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
-                    }
-                }
-            }
-        }
-        this.bot.listings.checkBySKU('5021;6');
-    }
-
-    private createAutokeysSell(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (!this.isEnableScrapAdjustment) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                min: minKeys,
-                max: maxKeys,
-                intent: 1
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
-                },
-                min: minKeys,
-                max: maxKeys,
-                intent: 1
-            } as any;
-        }
-        this.bot.pricelist
-            .addPrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private createAutokeysBuy(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (!this.isEnableScrapAdjustment) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                min: minKeys,
-                max: maxKeys,
-                intent: 0
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
-                },
-                min: minKeys,
-                max: maxKeys,
-                intent: 0
-            } as any;
-        }
-        this.bot.pricelist
-            .addPrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private createAutokeysBanking(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
-        this.bot.pricelist
-            .addPrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private updateToDisableAutokeys(): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: false,
-            autoprice: true,
-            min: 0,
-            max: 1,
-            intent: 1
-        } as any;
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically disabled Autokeys.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
-                this.autokeysIsActive = true;
-            });
-    }
-
-    private updateAutokeysSell(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (!this.isEnableScrapAdjustment) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                min: minKeys,
-                max: maxKeys,
-                intent: 1
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
-                },
-                min: minKeys,
-                max: maxKeys,
-                intent: 1
-            } as any;
-        }
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private updateAutokeysBuy(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (!this.isEnableScrapAdjustment) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                min: minKeys,
-                max: maxKeys,
-                intent: 0
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
-                },
-                min: minKeys,
-                max: maxKeys,
-                intent: 0
-            } as any;
-        }
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private updateAutokeysBanking(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
-            .then(data => {
-                log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
-                this.bot.listings.checkBySKU(data.sku, data);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.autokeysIsActive = false;
-            });
-    }
-
-    private removeAutoKeys(): void {
-        this.bot.pricelist
-            .removePrice('5021;6', false)
-            .then(() => {
-                log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                this.bot.listings.checkBySKU('5021;6');
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                this.autokeysIsActive = true;
-            });
-    }
-
-    refreshAutokeys(): void {
-        this.removeAutoKeys();
-        this.autokeysStatus = {
-            isBuyingKeys: false,
-            isBankingKeys: false,
-            checkAlertOnLowPure: false,
-            alreadyUpdatedToBank: false,
-            alreadyUpdatedToBuy: false,
-            alreadyUpdatedToSell: false
-        };
-        this.autokeysIsActive = false;
-        this.sleep(2 * 1000);
-        this.autokeys();
     }
 
     private keepMetalSupply(): void {
