@@ -204,7 +204,7 @@ export = class DiscordWebhook {
             .replace(/\|/g, '💫')
             .replace(/\\/g, '💫')
             .replace(/\(/g, '💫')
-            .replace(/\(/g, '💫')
+            .replace(/\)/g, '💫')
             .replace(/\[/g, '💫')
             .replace(/\]/g, '💫');
 
@@ -232,7 +232,7 @@ export = class DiscordWebhook {
                 .replace(/\|/g, '💫')
                 .replace(/\\/g, '💫')
                 .replace(/\(/g, '💫')
-                .replace(/\(/g, '💫')
+                .replace(/\)/g, '💫')
                 .replace(/\[/g, '💫')
                 .replace(/\]/g, '💫');
 
@@ -471,7 +471,7 @@ export = class DiscordWebhook {
                 .replace(/\|/g, '💫')
                 .replace(/\\/g, '💫')
                 .replace(/\(/g, '💫')
-                .replace(/\(/g, '💫')
+                .replace(/\)/g, '💫')
                 .replace(/\[/g, '💫')
                 .replace(/\]/g, '💫');
 
