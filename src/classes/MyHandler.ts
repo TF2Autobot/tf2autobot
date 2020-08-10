@@ -204,11 +204,11 @@ export = class MyHandler extends Handler {
             this.minimumKeysDupeCheck = minimumKeysDupeCheck;
         }
 
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true') {
+        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' || process.env.ENABLE_AUTOKEYS === 'true') {
             this.autokeysEnabled = true;
         }
 
-        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true') {
+        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true' || process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
             this.keyBankingEnabled = true;
         }
 

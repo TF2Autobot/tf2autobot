@@ -203,8 +203,8 @@ You can run your bot without this first, which then on the first run, it will pr
 
 #### Autokeys feature
 
--   `ENABLE_AUTO_SELL_AND_BUY_KEYS`: Default is `false`. If you set to `true`, the bot will automatically sell/buy keys based on the availability of the refined metals and keys in your bot inventory. Set it to false if you want to custom price your key.
--   `ENABLE_AUTO_KEY_BANKING`: Default is `false`. If set to `true`, it will do key banking (must also set **ENABLE_AUTO_SELL_AND_BUY_KEYS** to `true` and for banking, meaning if current ref is in between min and max and keys > min, it will do key banking).
+-   `ENABLE_AUTOKEYS`: Default is `false`. If you set to `true`, the bot will automatically sell/buy keys based on the availability of the refined metals and keys in your bot inventory. Set it to false if you want to custom price your key.
+-   `ENABLE_AUTOKEYS_BANKING`: Default is `false`. If set to `true`, it will do key banking (must also set **ENABLE_AUTO_SELL_AND_BUY_KEYS** to `true` and for banking, meaning if current ref is in between min and max and keys > min, it will do key banking).
 -   `MINIMUM_KEYS`: When current keys > minimum keys, it will start selling keys (with when current ref < minimum ref), else it will stop selling keys.
 -   `MAXIMUM_KEYS`: When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
 -   `MINIMUM_REFINED_TO_START_SELL_KEYS`: - Already explained.
