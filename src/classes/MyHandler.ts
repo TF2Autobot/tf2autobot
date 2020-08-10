@@ -1248,7 +1248,7 @@ export = class MyHandler extends Handler {
                         reason = 'Failed to accept mobile confirmation';
                     } else {
                         reason =
-                            "The offer has been active for a while. If the offer was just created,  is likely an issue on Steam's end. Please try again later";
+                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later";
                     }
 
                     this.bot.sendMessage(
