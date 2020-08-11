@@ -517,11 +517,11 @@ function listItems(invalid: string[], overstock: string[], duped: string[], dupe
             : '';
     list +=
         duped.length !== 0
-            ? (invalid.length || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
             : '';
     list +=
         dupedFailed.length !== 0
-            ? (invalid.length || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
+            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
               '🟪DUPE_CHECK_FAILED:\n- ' +
               dupedFailed.join(',\n- ')
             : '';
@@ -537,11 +537,16 @@ function quickLinks(name: string, links: { steamProfile: string; backpackTF: str
 }
 
 function replaceItemName(name: string): string {
-    return name
-        .replace(/Non-Craftable/g, 'NC')
-        .replace(/Professional Killstreak/g, 'Pro KS')
-        .replace(/Specialized Killstreak/g, 'Spec KS')
-        .replace(/Killstreak/g, 'KS');
+    if (!name) {
+        // if undefined, just return untouched.
+        return name;
+    } else {
+        return name
+            .replace(/Non-Craftable/g, 'NC')
+            .replace(/Professional Killstreak/g, 'Pro KS')
+            .replace(/Specialized Killstreak/g, 'Spec KS')
+            .replace(/Killstreak/g, 'KS');
+    }
 }
 
 function replaceSpecialChar(toChange: string): string {
