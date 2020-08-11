@@ -537,11 +537,16 @@ function quickLinks(name: string, links: { steamProfile: string; backpackTF: str
 }
 
 function replaceItemName(name: string): string {
-    return name
-        .replace(/Non-Craftable/g, 'NC')
-        .replace(/Professional Killstreak/g, 'Pro KS')
-        .replace(/Specialized Killstreak/g, 'Spec KS')
-        .replace(/Killstreak/g, 'KS');
+    if (!name) {
+        // if undefined, just return untouched.
+        return name;
+    } else {
+        return name
+            .replace(/Non-Craftable/g, 'NC')
+            .replace(/Professional Killstreak/g, 'Pro KS')
+            .replace(/Specialized Killstreak/g, 'Spec KS')
+            .replace(/Killstreak/g, 'KS');
+    }
 }
 
 function replaceSpecialChar(toChange: string): string {
