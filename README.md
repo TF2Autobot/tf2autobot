@@ -38,7 +38,8 @@ Once you have downloaded the source and installed the necessary packages, you ca
 ## Join our Discord server!
 
 Join **tf2autobot-IdiNium** Discord server [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) and go to `#🆚roles` channel and react on the first message to get yourself mentioned when an update has been released!
-![update-noti](https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG)
+
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
 \*\*There is also a giveaway that will be held on every Thursday, 8 AM - 8 PM (12 hours) Malaysia time!
 
@@ -92,19 +93,19 @@ Screenshots:
 
 -   Trade summary (or live-trades) -
 
-![trade-summary](https://user-images.githubusercontent.com/47635037/84581315-9de69480-ae12-11ea-806f-2408bfb4b5b9.PNG)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725250-1434fb00-da40-11ea-8ccc-8755b1af89c6.PNG" alt="trade-summary" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Offer review (when trade partner sent wrong value/overstocked/etc) -
 
-![Offer-review](https://user-images.githubusercontent.com/47635037/85020166-80168800-b1a2-11ea-99f2-04766677fdf7.PNG)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/85020166-80168800-b1a2-11ea-99f2-04766677fdf7.PNG" alt="Offer-review" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Messages (when trade partner send "!message" command -
 
-![Messages](https://user-images.githubusercontent.com/47635037/84581313-9cb56780-ae12-11ea-9dcf-2d660d8ae184.PNG)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581313-9cb56780-ae12-11ea-9dcf-2d660d8ae184.PNG" alt="Messages" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   Price update (Discord Only) - Show price change for every items that are on your pricelist -
 
-![price-update](https://user-images.githubusercontent.com/47635037/83712639-cc1ce500-a658-11ea-855d-5de43b39ff2f.png)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/83712639-cc1ce500-a658-11ea-855d-5de43b39ff2f.png" alt="price-update" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 You can also only set it to send only trade summary, but the others like Offer review and Messages will be sent to you via Steam Chat.
 
@@ -114,7 +115,7 @@ If you want to use this feature, you must use [ecosystem.template.json](https://
 
 ### Autokeys (auto buy or sell keys) feature
 
-This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll need to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot#your-bot-settings) starting on `ENABLE_AUTO_SELL_AND_BUY_KEYS` until `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`.
+This feature when enabled, your bot will automatically buy or sell keys based on your bot pure availability and your settings on this feature. You'll need to set your minimum/maximum keys and minimum/maximum refined metals in your ecosystem.json - more explaination can be found [here](https://github.com/idinium96/tf2autobot#autokeys-feature).
 
 ```
 .____________________________________________________________.  ._______________________________.
@@ -140,18 +141,25 @@ Some screenshots:
 
 -   When your bot have enough key to sell to get more ref (if your ref is less than minimum) OR enough ref to buy more keys (when your ref > maximum and keys < max)
 
-![autokeys1](https://user-images.githubusercontent.com/47635037/84581306-9a530d80-ae12-11ea-9bd5-3a988ac447d9.png)
-![autokeys2](https://user-images.githubusercontent.com/47635037/84581309-9b843a80-ae12-11ea-8374-0f7d3c631fa6.png)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581306-9a530d80-ae12-11ea-9bd5-3a988ac447d9.png" alt="autokeys1" style="display:block;margin-left:auto;margin-right:auto;"></div>
+
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581309-9b843a80-ae12-11ea-8374-0f7d3c631fa6.png" alt="autokeys2" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 -   When your bot don't have enough of what I've said before:
 
-![autokeys3](https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png)
+    <div align="center"><img src="https://user-images.githubusercontent.com/47635037/84581310-9c1cd100-ae12-11ea-80fa-085ad8bff73e.png" alt="autokeys3" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
-You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1636-L2304).
+You can see codes on how this feature works [here](https://github.com/idinium96/tf2autobot/blob/master/src/classes/Autokeys.ts).
 
 ### Emojis and more commands added
 
-![commands](https://user-images.githubusercontent.com/47635037/87851703-f76c4280-c92d-11ea-8bd4-60a79312929f.png)
+#### Admin
+
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725438-22841680-da42-11ea-87a2-c0749c0d451e.png" alt="newlook-command-admin" style="display:block;margin-left:auto;margin-right:auto;"></div>
+
+#### Trade partner
+
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/89725439-244dda00-da42-11ea-9ea8-f3e159c19cea.png" alt="newlook-command-partner" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 ### Offer review summary on trade partner side
 
@@ -161,9 +169,9 @@ You can see codes on how this feature works [here](https://github.com/idinium96/
 
 Let say you want to trade an unusual OR an australium, which the value as we know is huge (more than 5 keys), and then someone sent a trade offer with 0.11 ref less, your bot will skip this offer and send you notification to do review on this offer. With this exception, your bot will accept the trade as long as it's less than the exception value in ref that you've set. To use this feature, you'll need to set it on both `INVALID_VALUE_EXCEPTION_SKUS` and `INVALID_VALUE_EXCEPTION_VALUE_IN_REF`. See [here](https://github.com/idinium96/tf2autobot#manual-review-settings).
 
-![Invalid_value_exception1](https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG)
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/84966884-38adde80-b145-11ea-9aac-d28daf9a74e6.PNG" alt="Invalid_value_exception2" style="display:block;margin-left:auto;margin-right:auto;width:540px;height:450px;"></div>
 
-![Invalid_value_exception2](https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG)
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/84966887-39df0b80-b145-11ea-9d81-021d302e7cf0.PNG" alt="Invalid_value_exception2" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 ## Variables in ecosystem.json summary
 
@@ -187,62 +195,62 @@ You can run your bot without this first, which then on the first run, it will pr
 
 ### Your bot settings
 
--   `AUTOBUMP`: [true|false] Default is `true`. If you don't have backpack.tf premium, then your bot will re-list all listings every 30 minutes.
+-   `AUTOBUMP`: Default is `true`. If you don't have backpack.tf premium, then your bot will re-list all listings every 30 minutes.
 
--   `MINIMUM_SCRAP`: [Number] Default is 9 scraps. If it has less, it will smelt reclaimed metal so your bot will have more than minimum scraps.
--   `MINIMUM_RECLAIMED`: [Number] Default is 9 Reclaimed. Explained above.
--   `METAL_THRESHOLD`: [Number] Default is 9, if scraps/reclaimed metal reached minimum + threshold (max), it will combine the metal.
+-   `MINIMUM_SCRAP`: Default is 9 scraps. If it has less, it will smelt reclaimed metal so your bot will have more than minimum scraps.
+-   `MINIMUM_RECLAIMED`: Default is 9 Reclaimed. Explained above.
+-   `METAL_THRESHOLD`: Default is 9, if scraps/reclaimed metal reached minimum + threshold (max), it will combine the metal.
 
 #### Autokeys feature
 
--   `ENABLE_AUTO_SELL_AND_BUY_KEYS`: [true|false] Default is `false`. If you set to `true`, the bot will automatically sell/buy keys based on the availability of the refined metals and keys in your bot inventory. Set it to false if you want to custom price your key.
--   `ENABLE_AUTO_KEY_BANKING`: [true|false] Default is `false`. If set to `true`, it will do key banking (must also set **ENABLE_AUTO_SELL_AND_BUY_KEYS** to `true` and for banking, meaning if current ref is in between min and max and keys > min, it will do key banking).
--   `MINIMUM_KEYS`: [Number] When current keys > minimum keys, it will start selling keys (with when current ref < minimum ref), else it will stop selling keys.
--   `MAXIMUM_KEYS`: [Number] When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
--   `MINIMUM_REFINED_TO_START_SELL_KEYS`: [Number] - Already explained.
--   `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`: [Number] - Already explained.
--   `DISABLE_SCRAP_ADJUSTMENT`: [true|false] Default is `true` (disabled). Set to `false` to make an adjustment on the key price (only when sell or buy, it is not possible while banking).
--   `SCRAP_ADJUSTMENT_VALUE`: [Integer] Default is `1` (1 scrap or 0.11 ref). Please only put an integer (0, 1, 2, 3, ...).
+-   `ENABLE_AUTOKEYS`: Default is `false`. If you set to `true`, the bot will automatically sell/buy keys based on the availability of the refined metals and keys in your bot inventory. Set it to false if you want to custom price your key.
+-   `ENABLE_AUTOKEYS_BANKING`: Default is `false`. If set to `true`, it will do key banking (must also set **ENABLE_AUTO_SELL_AND_BUY_KEYS** to `true` and for banking, meaning if current ref is in between min and max and keys > min, it will do key banking).
+-   `MINIMUM_KEYS`: When current keys > minimum keys, it will start selling keys (with when current ref < minimum ref), else it will stop selling keys.
+-   `MAXIMUM_KEYS`: When current keys < maximum keys, it will start buying keys (with when current ref > maximum ref), else it will stop buying keys.
+-   `MINIMUM_REFINED_TO_START_SELL_KEYS`: - Already explained.
+-   `MAXIMUM_REFINED_TO_STOP_SELL_KEYS`: - Already explained.
+-   `DISABLE_SCRAP_ADJUSTMENT`: Default is `true` (disabled). Set to `false` to make an adjustment on the key price (only when sell or buy, it is not possible while banking).
+-   `SCRAP_ADJUSTMENT_VALUE`: Default is `1` (1 scrap or 0.11 ref). Please only put an integer (0, 1, 2, 3, ...).
 
 \*\*This feature is meant to make your bot to have enough pure in their inventory. Enabling Autokeys - Banking might cause your bot to not function as intended.
 
 #### Set to true if want to disable
 
--   `DISABLE_INVENTORY_SORT`: [true|false] Default: `false`. Sort your bot inventory.
--   `DISABLE_LISTINGS`: [true|false] Default: `false`. This is used if you want to temporarily disable trading while your bot is alive.
--   `DISABLE_CRAFTING_METAL`: [true|false] Default: `false`. **NOT RECOMMENDED** to set is as `true`, as it cause bot and trade partner to not be able to trade because of missing pure changes.
--   `DISABLE_CRAFTING_WEAPONS`: [true|false] Default: `false`. Set to **`true` if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
--   `DISABLE_MESSAGES`: [true|false] Default: `false`. When `true`, people (that are friend with your bot) will be unable send messages to you with "!message" command.
--   `DISABLE_SOMETHING_WRONG_ALERT`: [true|false] - Default: `false`. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
--   `DISABLE_CRAFTWEAPON_AS_CURRENCY`: [true|false] - Default: `false`. Set it as `true` if you don't want to set craft weapons as currency (0.05 ref).
--   `DISABLE_GIVE_PRICE_TO_INVALID_ITEMS`: [true|false] - Default: `false`. Set to `true` if you don't want `INVALID_ITEMS` (items that are not in your pricelist) to be priced using price from prices.TF.
--   `DISABLE_ADD_FRIENDS`: [true|false] - Default: `false`. Set to `true` if you don't want people to add your bot (not recommended).
--   `DISABLE_GROUPS_INVITE`: [true|false] - Default: `false`. Set to `true` if you don't want your bot to invite people to join groups **(You still need to have at least 1 group ID in the `GROUPS` array)**.
--   `DISABLE_CHECK_USES_DUELING_MINI_GAME`: [true|false] - Default: `false`. Set to `true` if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
--   `DISABLE_CHECK_USES_NOISE_MAKER`: [true|false] - Default: `false`. Set to `true` if you want your bot to accept Noise Maker that is not 25 Uses.
+-   `DISABLE_INVENTORY_SORT`: Default: `false`. Sort your bot inventory.
+-   `DISABLE_LISTINGS`: Default: `false`. This is used if you want to temporarily disable trading while your bot is alive.
+-   `DISABLE_CRAFTING_METAL`: Default: `false`. **NOT RECOMMENDED** to set is as `true`, as it cause bot and trade partner to not be able to trade because of missing pure changes.
+-   `DISABLE_CRAFTING_WEAPONS`: Default: `false`. Set to **`true` if you DO NOT** want your bot to automatically craft any duplicated craftable weapons.
+-   `DISABLE_MESSAGES`: Default: `false`. When `true`, people (that are friend with your bot) will be unable send messages to you with "!message" command.
+-   `DISABLE_SOMETHING_WRONG_ALERT`: - Default: `false`. My custom - Used to notify owner if your bot has a queue problem/full inventory/low in pure (if Autokeys is on).
+-   `DISABLE_CRAFTWEAPON_AS_CURRENCY`: - Default: `false`. Set it as `true` if you don't want to set craft weapons as currency (0.05 ref).
+-   `DISABLE_GIVE_PRICE_TO_INVALID_ITEMS`: - Default: `false`. Set to `true` if you don't want `INVALID_ITEMS` (items that are not in your pricelist) to be priced using price from prices.TF.
+-   `DISABLE_ADD_FRIENDS`: - Default: `false`. Set to `true` if you don't want people to add your bot (not recommended).
+-   `DISABLE_GROUPS_INVITE`: - Default: `false`. Set to `true` if you don't want your bot to invite people to join groups **(You still need to have at least 1 group ID in the `GROUPS` array)**.
+-   `DISABLE_CHECK_USES_DUELING_MINI_GAME`: - Default: `false`. Set to `true` if you want your bot to buy Dueling Mini-Game of regardless of how many uses left.
+-   `DISABLE_CHECK_USES_NOISE_MAKER`: - Default: `false`. Set to `true` if you want your bot to accept Noise Maker that is not 25 Uses.
 
 #### Set to true if want to enable
 
--   `NORMALIZE_FESTIVIZED_ITEMS`: [true|false] Default: `false`. Set to `true` if you want your bot to recognize `Festivized` item as a `Non-Festivized` item. For example you're listing to bank `Strange Australium Black Box`, but someone sent to your bot a Festivized version with the name `Festivized Strange Australium Black Box`, the bot by default will either decline or skip (if you enable manual review) the offer becuase it's not matched. Thus, set to `true` if you want your bot to recognize `Festivized Strange Australium Black Box` as `Strange Australium Black Box`.
+-   `NORMALIZE_FESTIVIZED_ITEMS`: Default: `false`. Set to `true` if you want your bot to recognize `Festivized` item as a `Non-Festivized` item. For example you're listing to bank `Strange Australium Black Box`, but someone sent to your bot a Festivized version with the name `Festivized Strange Australium Black Box`, the bot by default will either decline or skip (if you enable manual review) the offer becuase it's not matched. Thus, set to `true` if you want your bot to recognize `Festivized Strange Australium Black Box` as `Strange Australium Black Box`.
 
 #### Misc feature
 
--   `TRADES_MADE_STARTER_VALUE`: [Number] - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
--   `LAST_TOTAL_TRADES`: [Number] - Used if your polldata.json is getting bigger which consumed a lot of RAM, but you want to keep total successful trades that your bot has made (leave it 0 if you don't care about it).
+-   `TRADES_MADE_STARTER_VALUE`: - Used mainly for displaying your bot total trades made, found in your bot Steam Profile page (leave it 0 if you don't care about it, used for discord webhook).
+-   `LAST_TOTAL_TRADES`: - Used if your polldata.json is getting bigger which consumed a lot of RAM, but you want to keep total successful trades that your bot has made (leave it 0 if you don't care about it).
 -   `TRADING_STARTING_TIME_UNIX`: [Number - Unix format] - Also same as LAST_TOTAL_TRADES, but this one is the latest time (leave it 0 if you don't care about it). You can read more on my [Discord server post](https://discordapp.com/channels/664971400678998016/666909518604533760/707706994932449410).
 
 #### Duped unusual check feature
 
--   `ENABLE_SHOW_ONLY_METAL`: [true|false] - Default: `true`. My custom - If set to `false`, it will show [x keys, y ref].
--   `ENABLE_DUPE_CHECK`: [true|false] - Default: `true`. Used to enable/disable check on duped unusuals
--   `DECLINE_DUPES`: [true|false] - Default: `false`. Explained itself.
--   `MINIMUM_KEYS_DUPE_CHECK`: [Number] - Default: 10. Explained itself.
+-   `ENABLE_SHOW_ONLY_METAL`: - Default: `true`. My custom - If set to `false`, it will show [x keys, y ref].
+-   `ENABLE_DUPE_CHECK`: - Default: `true`. Used to enable/disable check on duped unusuals
+-   `DECLINE_DUPES`: - Default: `false`. Explained itself.
+-   `MINIMUM_KEYS_DUPE_CHECK`: - Default: 10. Explained itself.
 
 #### Set to true if want to skip
 
--   `SKIP_BPTF_TRADEOFFERURL`: [true|false] - Default: `true`. Not sure why this thing might not work. Please add trade offer URL by yourself [here](https://backpack.tf/settings##general) (login as your bot Steam account).
--   `SKIP_ACCOUNT_LIMITATIONS`: [true|false] - Default: `false`. Used to check your account limitation. It's better to set to `true` if your bot Steam account already a [premium account](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663).
--   `SKIP_UPDATE_PROFILE_SETTINGS`: [true|false] - Default: `false`. This is just set your bot profile to public, so backpack.tf can load your bot inventory and etc correctly. If you already set all to public, just set this to `true`.
+-   `SKIP_BPTF_TRADEOFFERURL`: - Default: `true`. Not sure why this thing might not work. Please add trade offer URL by yourself [here](https://backpack.tf/settings##general) (login as your bot Steam account).
+-   `SKIP_ACCOUNT_LIMITATIONS`: - Default: `false`. Used to check your account limitation. It's better to set to `true` if your bot Steam account already a [premium account](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663).
+-   `SKIP_UPDATE_PROFILE_SETTINGS`: - Default: `false`. This is just set your bot profile to public, so backpack.tf can load your bot inventory and etc correctly. If you already set all to public, just set this to `true`.
 
 #### Your time
 
@@ -254,9 +262,9 @@ Time will be use in "!time" command and
 
 #### Set to true if want to allow
 
--   `ALLOW_ESCROW`: [true|false] - Default: `false`. Escrow = trade hold
--   `ALLOW_OVERPAY`: [true|false] - Default: `true`. If people give an overpay, your bot will accept. Set it to `false` if you don't want.
--   `ALLOW_BANNED`: [true|false] - Default: `false`. I think it's better to set as `false`.
+-   `ALLOW_ESCROW`: - Default: `false`. Escrow = trade hold
+-   `ALLOW_OVERPAY`: - Default: `true`. If people give an overpay, your bot will accept. Set it to `false` if you don't want.
+-   `ALLOW_BANNED`: - Default: `false`. I think it's better to set as `false`.
 
 #### Set time for price to be updated in seconds
 
@@ -264,20 +272,20 @@ Time will be use in "!time" command and
 
 #### Compulsory variables
 
--   `ADMINS`: [Array] - Put your main SteamID64. Example - `["76561198013127982"]`, if you have multiple, `["76561198013127982", "76561198077208792"]`
--   `KEEP`: [Array] - Same as ADMINS, you must fill in BOTH.
--   `GROUPS`: [Array] - If you have Steam group, find your group ID and paste it here.
--   `ALERTS`: [Array] - If you set to `["trade"]`, your bot will send message/discord webhook every time a successful trades were made, other option is `["none"]`.
+-   `ADMINS`: - Put your main SteamID64. Example - `["76561198013127982"]`, if you have multiple, `["76561198013127982", "76561198077208792"]`
+-   `KEEP`: - Same as ADMINS, you must fill in BOTH.
+-   `GROUPS`: - If you have Steam group, find your group ID and paste it here.
+-   `ALERTS`: - If you set to `["trade"]`, your bot will send message/discord webhook every time a successful trades were made, other option is `["none"]`.
 
 #### Set to true if want to enable debugging notes in console
 
--   `DEBUG`: [true|false] - Used to debug if any problem occured.
--   `DEBUG_FILE`: [true|false] - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
+-   `DEBUG`: - Used to debug if any problem occured.
+-   `DEBUG_FILE`: - Same as above, but this will create a file which can be sent to [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 #### Backpack.tf sell or buy order listings note on all items in pricelist
 
--   `BPTF_DETAILS_BUY`: [string] - Your buy order message.
--   `BPTF_DETAILS_SELL` [string] - Your sell order message.
+-   `BPTF_DETAILS_BUY`: - Your buy order message.
+-   `BPTF_DETAILS_SELL`: - Your sell order message.
 
 **Parameters:**
 
@@ -291,11 +299,12 @@ Time will be use in "!time" command and
 -   `%dueling%` - will display `(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)` on only Dueling Mini-Game listing - prefer to only place this on `BPTF_DETAILS_BUY`, on other item will show as ✨
 
 **Usage example:**
-![listings](https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG)
+
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/85929261-f3787200-b8e5-11ea-9ba8-b1acb12a5aad.PNG" alt="listings" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
 #### Custom offer message
 
--   `OFFER_MESSAGE`: [string] - Message that will appear when bot sends offer to trade partner. If leave empty (""), it will print _Powered by tf2-automatic_ by default.
+-   `OFFER_MESSAGE`: - Message that will appear when bot sends offer to trade partner. If leave empty (""), it will print _Powered by tf2-automatic_ by default.
 
 ### Discord Webhook Configuration
 
@@ -310,62 +319,62 @@ Time will be use in "!time" command and
 
 #### Queue alert
 
--   `DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT`: [true|false] - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to `true`, it will send to your Steam Chat.
+-   `DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT`: - Same as `DISABLE_SOMETHING_WROMG_ALERT`, but if set to `true`, it will send to your Steam Chat.
 -   `DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL` - Discord Webhook URL for SOMETHING_WROMG_ALERT.
 
 #### Pricelist update
 
--   `DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE`: [true|false] - Display price updates on the items that are in your pricelist.
+-   `DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE`: - Display price updates on the items that are in your pricelist.
 -   `DISCORD_WEBHOOK_PRICE_UPDATE_URL` - Discord Webhook URL for PRICE_UPDATE.
 -   `DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE` - You can add note there, or just leave it empty.
 
 #### Successful trade summary
 
--   `DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY`: [true|false] - Display every successful trade summary on your trade summary/live-trades channel. If set to `true`, it will send to your Steam Chat.
+-   `DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY`: - Display every successful trade summary on your trade summary/live-trades channel. If set to `true`, it will send to your Steam Chat.
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_URL` - Discord Webhook URL for TRADE_SUMMARY.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: [true|false] - self explained.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: [true|false] - self explained.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY`: [true|false] - Show total current items in your bot inventory.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: - self explained.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: - self explained.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY`: - Show total current items in your bot inventory.
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE` - Notes.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` [true|false] - Set it to `true` if you want your bot to mention on every successful trades.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` [StringArray] - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER` - Set it to `true` if you want your bot to mention on every successful trades.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU` - Support multiple items sku, let say you want to be mentioned on every unusual and australium trades, just do `[";5;u", ";11;australium"]`, or if you want to mention on specific item, just fill in the full item sku like `["725;6;uncraftable"]`, then to add more, just separate it with a comma between each sku string.
 
-![trade-summary-full](https://user-images.githubusercontent.com/47635037/86468435-ffdb4f80-bd69-11ea-9ab6-a7f5be2c22f0.PNG)
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/86468435-ffdb4f80-bd69-11ea-9ab6-a7f5be2c22f0.PNG" alt="trade-summary-full" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
-![trade-summary-full2](https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG)
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/86468438-0073e600-bd6a-11ea-8bc0-040229c997d5.PNG" alt="trade-summary-full2" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
 #### Offer review summary
 
--   `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: [true|false] - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to `true`, it will send to your Steam Chat.
+-   `DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW`: - Used to alert you on the trade that needs for offer review via Discord Webhook. If set to `true`, it will send to your Steam Chat.
 -   `DISCORD_WEBHOOK_REVIEW_OFFER_URL` - Discord Webhook URL for REVIEW_OFFER.
--   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
--   `DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE`: [true|false] - Set to `true` if you want your bot to not mention on only INVALID_VALUE offer.
--   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE`: [true|false] - self explained.
--   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK`: [true|false] - self explained.
+-   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS`: - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
+-   `DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE`: - Set to `true` if you want your bot to not mention on only INVALID_VALUE offer.
+-   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE`: - self explained.
+-   `DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK`: - self explained.
 
-![only non-invalid-value2](https://user-images.githubusercontent.com/47635037/86468430-feaa2280-bd69-11ea-8f25-26a7a430b2e1.PNG)
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/86468430-feaa2280-bd69-11ea-8f25-26a7a430b2e1.PNG" alt="only non-invalid-value2" style="display:block;margin-left:auto;margin-right:auto;"></div>
 
 #### Messages
 
--   `DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER`: [true|false] - Used to alert you on any messages sent from trade partner. If set to `true`, it will send to your Steam Chat.
+-   `DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER`: - Used to alert you on any messages sent from trade partner. If set to `true`, it will send to your Steam Chat.
 -   `DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL` - Discord Webhook URL for MESSAGE_FROM_PARTNER.
--   `DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_SHOW_QUICK_LINKS`: [true|false] - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
+-   `DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_SHOW_QUICK_LINKS`: - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 
 ### Manual Review settings
 
--   `ENABLE_MANUAL_REVIEW`: [true|false] - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
--   `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: [true|false] - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
--   `DISABLE_REVIEW_OFFER_NOTE`: [true|false] - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1414-L1634)
--   `DISABLE_SHOW_CURRENT_TIME`: [true|false] - If set to `false`, it will show owner time on offer review notification that trade partner will received.
+-   `ENABLE_MANUAL_REVIEW`: - Set to `true` if you want any INVALID_VALUE/INVALID_ITEMS/OVERSTOCKED/DUPED_ITEMS/DUPE_CHECK_FAILED trades to be reviewed by you.
+-   `DISABLE_SHOW_REVIEW_OFFER_SUMMARY`: - set to `true` if you do not want your bot to show offer summary to trade partner, but it will only notify trade partner that their offer is being hold for a review.
+-   `DISABLE_REVIEW_OFFER_NOTE`: - If set to `false`, it will show note on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1345-L1565)
+-   `DISABLE_SHOW_CURRENT_TIME`: - If set to `false`, it will show owner time on offer review notification that trade partner will received.
 
--   `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: [true|false] - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
--   `DISABLE_ACCEPT_OVERSTOCKED_OVERPAY`: [true|false] - Default: `true`. Set to `false` if you want your bot to accept a trade with OVERSTOCKED but with their value more or equal to our value.
--   `DISABLE_AUTO_DECLINE_INVALID_VALUE`: [true|false] - Default: `false`. Set to `true` if you do not want to automatically decline trade with **ONLY** `INVALID_VALUE` and did not match the exception sku(s) and exception value.
--   `AUTO_DECLINE_INVALID_VALUE_NOTE`: [string] - Your custom note on why the trade got declined. Default is nothing.
+-   `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
+-   `DISABLE_ACCEPT_OVERSTOCKED_OVERPAY`: - Default: `true`. Set to `false` if you want your bot to accept a trade with OVERSTOCKED but with their value more or equal to our value.
+-   `DISABLE_AUTO_DECLINE_INVALID_VALUE`: - Default: `false`. Set to `true` if you do not want to automatically decline trade with **ONLY** `INVALID_VALUE` and did not match the exception sku(s) and exception value.
+-   `AUTO_DECLINE_INVALID_VALUE_NOTE`: - Your custom note on why the trade got declined. Default is nothing.
 
--   `INVALID_VALUE_EXCEPTION_SKUS` [StringArray] - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
--   `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` [Number] - Exception value for the sku(s) that you set above. Default is `0` (no exception).
+-   `INVALID_VALUE_EXCEPTION_SKUS` - An array of sku that will skip Invalid value if the difference between our and their value is not more than exception value in ref. Let say you want to trade an unusual, but then someone sent an offer with 0.11 ref less, but you want your bot to accept it anyway if it's less than 10 ref, so the trade will be accepted. By default, it will check only for any unusual and australium: `[";5;u", ";11;australium"]`, you can also leave it empty (`[""]`) so all with invalid value will be notified.
+-   `INVALID_VALUE_EXCEPTION_VALUE_IN_REF` - Exception value for the sku(s) that you set above. Default is `0` (no exception).
 
 -   `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 -   \*`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.

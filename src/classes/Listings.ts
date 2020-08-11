@@ -428,6 +428,7 @@ export = class Listings {
                 // Remove listings
                 this.bot.listingManager._processActions(err => {
                     if (err) {
+                        this.autoRelistRetry = true;
                         return reject(err);
                     }
 

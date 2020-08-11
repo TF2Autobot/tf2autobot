@@ -27,8 +27,8 @@
                 "MINIMUM_RECLAIMED": 9,
                 "METAL_THRESHOLD": 9,
 
-                "ENABLE_AUTO_SELL_AND_BUY_KEYS": false,
-                "ENABLE_AUTO_KEY_BANKING": false,
+                "ENABLE_AUTOKEYS": false,
+                "ENABLE_AUTOKEYS_BANKING": false,
                 "MINIMUM_KEYS": 3,
                 "MAXIMUM_KEYS": 15,
                 "MINIMUM_REFINED_TO_START_SELL_KEYS": 30,
