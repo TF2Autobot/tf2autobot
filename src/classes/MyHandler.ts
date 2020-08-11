@@ -1580,7 +1580,7 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private async craftDuplicateWeapons(): Promise<void> {
+    private craftDuplicateWeapons(): Promise<void> {
         if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
             return;
         }
@@ -1589,13 +1589,11 @@ export = class MyHandler extends Handler {
         for (const sku of this.craftweaponOnlyCraftable()) {
             const weapon = currencies[sku].length;
 
-            if (weapon >= 2 && weapon % 2 === 0 && this.bot.pricelist.getPrice(sku, true) === null) {
+            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
                 // Only craft if duplicated and not exist in pricelist
-                // add an extra check to only when weapon is and even number
-                const combineWeapon = weapon / 2;
+                const combineWeapon = Math.trunc(weapon / 2);
 
                 for (let i = 0; i < combineWeapon; i++) {
-                    await sleepasync().Promise.sleep(0.2 * 1000);
                     // give a little time between each craft job
                     this.bot.tf2gc.combineWeapon(sku);
                 }
