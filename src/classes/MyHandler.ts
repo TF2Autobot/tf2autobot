@@ -646,9 +646,7 @@ export = class MyHandler extends Handler {
                             // User is taking too many / offering too many
                             hasOverstock = true;
 
-                            if (!['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)) {
-                                this.reviewItems.overstockedItemsSKU.push(sku);
-                            }
+                            this.reviewItems.overstockedItemsSKU.push(sku);
 
                             wrongAboutOffer.push({
                                 reason: '🟦OVERSTOCKED',
@@ -679,9 +677,7 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        if (!['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)) {
-                            this.reviewItems.invalidItemsSKU.push(sku);
-                        }
+                        this.reviewItems.invalidItemsSKU.push(sku);
 
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
