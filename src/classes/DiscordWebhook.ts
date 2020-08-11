@@ -146,7 +146,7 @@ export = class DiscordWebhook {
                         text: `Partner SteamID: ${steamID} • ${time}`
                     },
                     title: '',
-                    description: `💬 ${msg}\n\n🔍 ${theirName}'s info:\n[Steam Profile](${steamProfile}) | [backpack.tf](${backpackTF}) | [steamREP](${steamREP})`,
+                    description: `💬 ${msg}\n\n${quickLinks(theirName, { steamProfile, backpackTF, steamREP })}`,
                     color: this.botEmbedColor
                 }
             ]
@@ -160,8 +160,6 @@ export = class DiscordWebhook {
         offer: TradeOffer,
         reasons: string,
         time: string,
-        tradeSummary: string,
-        offerMessage: string,
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
@@ -190,23 +188,25 @@ export = class DiscordWebhook {
                 noMentionOnInvalidValue = false;
             }
         }
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
         const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
-        const message = offerMessage
-            .replace(/_/g, '‗')
-            .replace(/\*/g, '★')
-            .replace(/~/g, '💫')
-            .replace(/`/g, '💫')
-            .replace(/>/g, '💫')
-            .replace(/\|/g, '💫')
-            .replace(/\\/g, '💫')
-            .replace(/\(/g, '💫')
-            .replace(/\)/g, '💫')
-            .replace(/\[/g, '💫')
-            .replace(/\]/g, '💫');
+
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
+
+        const message = replaceSpecialChar(offer.message);
+
+        const invalidItems = invalidItemsCombine.map(name => replaceItemName(name));
+        const overstocked = overstockedItemsName.map(name => replaceItemName(name));
+        const duped = dupedItemsName.map(name => replaceItemName(name));
+        const dupedFailed = dupedFailedItemsName.map(name => replaceItemName(name));
+
+        const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
+        const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
+        const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -223,22 +223,7 @@ export = class DiscordWebhook {
                 partnerName = them.personaName;
             }
 
-            const partnerNameNoFormat = partnerName
-                .replace(/_/g, '‗')
-                .replace(/\*/g, '★')
-                .replace(/~/g, '💫')
-                .replace(/`/g, '💫')
-                .replace(/>/g, '💫')
-                .replace(/\|/g, '💫')
-                .replace(/\\/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\)/g, '💫')
-                .replace(/\[/g, '💫')
-                .replace(/\]/g, '💫');
-
-            const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
-            const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
-            const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+            const partnerNameNoFormat = replaceSpecialChar(partnerName);
 
             /*eslint-disable */
             const webhookReview = JSON.stringify({
@@ -266,56 +251,13 @@ export = class DiscordWebhook {
                                 : reasons.includes('⬜STEAM_DOWN')
                                 ? '\n\nSteam down, please manually check if this person have escrow.'
                                 : '') +
-                            `\n\n__**Offer Summary**__\n` +
-                            tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (value.diff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : '') +
-                            (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
-                            (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n'),
+                            summary +
+                            (offer.message.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
+                            (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
                                 name: '__**Item list**__',
-                                value: `${
-                                    invalidItemsCombine.length !== 0
-                                        ? `🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
-                                        : ''
-                                }${
-                                    invalidItemsCombine.length !== 0 && overstockedItemsName.length !== 0
-                                        ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                        : overstockedItemsName.length !== 0
-                                        ? `🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                        : ''
-                                }${
-                                    (invalidItemsCombine.length !== 0 || overstockedItemsName.length !== 0) &&
-                                    dupedItemsName.length !== 0
-                                        ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                        : dupedItemsName.length !== 0
-                                        ? `🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                        : ''
-                                }${
-                                    (invalidItemsCombine.length !== 0 ||
-                                        overstockedItemsName.length !== 0 ||
-                                        dupedItemsName.length !== 0) &&
-                                    dupedFailedItemsName.length !== 0
-                                        ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                        : dupedFailedItemsName.length !== 0
-                                        ? `🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                        : ''
-                                }${
-                                    invalidItemsCombine.length !== 0 ||
-                                    overstockedItemsName.length !== 0 ||
-                                    dupedItemsName.length !== 0 ||
-                                    dupedFailedItemsName.length !== 0
-                                        ? ''
-                                        : '-'
-                                }`
+                                value: listItems(invalidItems, overstocked, duped, dupedFailed)
                             },
                             {
                                 name: '__**Status**__',
@@ -337,12 +279,7 @@ export = class DiscordWebhook {
 
     sendTradeSummary(
         offer: TradeOffer,
-        isAutoKeysEnabled: boolean,
-        autoKeysStatus: boolean,
-        isBuyingKeys: boolean,
-        isBankingKeys: boolean,
-        tradeSummary: string,
-        pureStock: string[],
+        autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
         currentItems: number,
         backpackSlots: number,
         invalidItemsCombine: string[],
@@ -373,66 +310,28 @@ export = class DiscordWebhook {
 
         const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
 
-        const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+        const invalidItemsTheirSide = this.filterInvalidItems(theirItems);
+        const isMentionInvTheirSide = this.isMentionInvalidItems(invalidItemsTheirSide);
 
-        let theirItemsSecondFiltered = theirItemsFiltered;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            theirItemsSecondFiltered = theirItemsFiltered.filter(
-                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
-            );
-        }
+        const invalidItemsOurSide = this.filterInvalidItems(ourItems);
+        const isMentionInvOurSide = this.isMentionInvalidItems(invalidItemsOurSide);
 
-        const isMentionInvalidItemsTheirSide = theirItemsSecondFiltered.some((sku: string) => {
-            if (theirItemsSecondFiltered.length > 0) {
-                return this.bot.pricelist.getPrice(sku, false) === null;
-            }
-            return false;
-        });
+        const invalidItems = invalidItemsTheirSide.concat(invalidItemsOurSide);
 
-        const OurItemsFiltered = ourItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
-
-        let ourItemsSecondFiltered = OurItemsFiltered;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            ourItemsSecondFiltered = OurItemsFiltered.filter(
-                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
-            );
-        }
-
-        const invalidItems = theirItemsSecondFiltered.concat(ourItemsSecondFiltered);
         const invalidItemsName: string[] = [];
         invalidItems.forEach(sku => {
-            invalidItemsName.push(
-                this.bot.schema
-                    .getName(SKU.fromString(sku), false)
-                    .replace(/Non-Craftable/g, 'NC')
-                    .replace(/Professional Killstreak/g, 'Pro KS')
-                    .replace(/Specialized Killstreak/g, 'Spec KS')
-                    .replace(/Killstreak/g, 'KS')
-            );
+            invalidItemsName.push(replaceItemName(this.bot.schema.getName(SKU.fromString(sku), false)));
         });
 
         const invalidItemsFromMyHandler: string[] = [];
         invalidItemsCombine.forEach(name => {
-            invalidItemsFromMyHandler.push(
-                name
-                    .replace(/Non-Craftable/g, 'NC')
-                    .replace(/Professional Killstreak/g, 'Pro KS')
-                    .replace(/Specialized Killstreak/g, 'Spec KS')
-                    .replace(/Killstreak/g, 'KS')
-            );
-        });
-
-        const isMentionInvalidItemsOurSide = ourItemsSecondFiltered.some((sku: string) => {
-            if (ourItemsSecondFiltered.length > 0) {
-                return this.bot.pricelist.getPrice(sku, false) === null;
-            }
-            return false;
+            invalidItemsFromMyHandler.push(replaceItemName(name));
         });
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : isMentionInvalidItems && (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
+                : isMentionInvalidItems && (isMentionInvOurSide || isMentionInvTheirSide)
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
                 : '';
 
@@ -446,6 +345,10 @@ export = class DiscordWebhook {
             tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
                 ? tradeNumbertoShowStarter + trades.tradesTotal
                 : trades.tradesTotal;
+
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
 
         let personaName: string;
         let avatarFull: string;
@@ -462,18 +365,7 @@ export = class DiscordWebhook {
                 avatarFull = details.avatarFull;
             }
 
-            const partnerNameNoFormat = personaName
-                .replace(/_/g, '‗')
-                .replace(/\*/g, '★')
-                .replace(/~/g, '💫')
-                .replace(/`/g, '💫')
-                .replace(/>/g, '💫')
-                .replace(/\|/g, '💫')
-                .replace(/\\/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\)/g, '💫')
-                .replace(/\[/g, '💫')
-                .replace(/\]/g, '💫');
+            const partnerNameNoFormat = replaceSpecialChar(personaName);
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
@@ -501,41 +393,28 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `__**Summary**__\n` +
-                            tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (value.diff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : '') +
+                            summary +
                             (isMentionInvalidItems
                                 ? '\n\n🟨INVALID_ITEMS:\n' +
                                   (invalidItemsCombine.length === 0
                                       ? invalidItemsName.join(',\n')
                                       : invalidItemsFromMyHandler.join(',\n'))
                                 : '') +
-                            (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n'),
+                            (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
                                 name: '__Status__',
                                 value:
-                                    (isShowQuickLinks
-                                        ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                        : '\n') +
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                                           `${
-                                              isAutoKeysEnabled
+                                              autokeys.isEnabled
                                                   ? ' | Autokeys: ' +
-                                                    (autoKeysStatus
+                                                    (autokeys.isActive
                                                         ? '✅' +
-                                                          (isBankingKeys
+                                                          (autokeys.isBanking
                                                               ? ' (banking)'
-                                                              : isBuyingKeys
+                                                              : autokeys.isBuying
                                                               ? ' (buying)'
                                                               : ' (selling)')
                                                         : '🛑')
@@ -564,6 +443,28 @@ export = class DiscordWebhook {
         });
     }
 
+    private filterInvalidItems(items: string[]): string[] {
+        const filterPure = items.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+
+        let filterItemsWeapons = filterPure;
+        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
+            filterItemsWeapons = filterPure.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
+        }
+
+        return filterItemsWeapons;
+    }
+
+    private isMentionInvalidItems(items: string[]): boolean {
+        const isMentionInvalidItems = items.some((sku: string) => {
+            if (items.length > 0) {
+                return this.bot.pricelist.getPrice(sku, false) === null;
+            }
+            return false;
+        });
+
+        return isMentionInvalidItems;
+    }
+
     private getPartnerDetails(offer: TradeOffer, callback: (err: any, details: any) => void): any {
         // check state of the offer
         if (offer.state === TradeOfferManager.ETradeOfferState.active) {
@@ -588,3 +489,72 @@ export = class DiscordWebhook {
         }
     }
 };
+
+function summarize(
+    trade: string,
+    value: { diff: number; diffRef: number; diffKey: string },
+    keyPrice: { buy: Currencies; sell: Currencies }
+): string {
+    const summary =
+        `\n\n__**Summary**__\n` +
+        trade.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
+        (value.diff > 0
+            ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : value.diff < 0
+            ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : '');
+    return summary;
+}
+
+function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
+    let list: string;
+    list += invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+    list +=
+        overstock.length !== 0
+            ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
+            : '';
+    list +=
+        duped.length !== 0
+            ? (invalid.length || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+            : '';
+    list +=
+        dupedFailed.length !== 0
+            ? (invalid.length || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
+              '🟪DUPE_CHECK_FAILED:\n- ' +
+              dupedFailed.join(',\n- ')
+            : '';
+
+    if (list.length === 0) {
+        list = '-';
+    }
+    return list;
+}
+
+function quickLinks(name: string, links: { steamProfile: string; backpackTF: string; steamREP: string }): string {
+    return `🔍 ${name}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})`;
+}
+
+function replaceItemName(name: string): string {
+    return name
+        .replace(/Non-Craftable/g, 'NC')
+        .replace(/Professional Killstreak/g, 'Pro KS')
+        .replace(/Specialized Killstreak/g, 'Spec KS')
+        .replace(/Killstreak/g, 'KS');
+}
+
+function replaceSpecialChar(toChange: string): string {
+    return toChange
+        .replace(/_/g, '‗')
+        .replace(/\*/g, '★')
+        .replace(/~/g, '💫')
+        .replace(/`/g, '💫')
+        .replace(/>/g, '💫')
+        .replace(/\|/g, '💫')
+        .replace(/\\/g, '💫')
+        .replace(/\(/g, '💫')
+        .replace(/\)/g, '💫')
+        .replace(/\[/g, '💫')
+        .replace(/\]/g, '💫');
+}
