@@ -517,11 +517,11 @@ function listItems(invalid: string[], overstock: string[], duped: string[], dupe
             : '';
     list +=
         duped.length !== 0
-            ? (invalid.length || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
             : '';
     list +=
         dupedFailed.length !== 0
-            ? (invalid.length || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
+            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
               '🟪DUPE_CHECK_FAILED:\n- ' +
               dupedFailed.join(',\n- ')
             : '';
