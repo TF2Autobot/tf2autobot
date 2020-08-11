@@ -1252,7 +1252,7 @@ export = class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarizeDiscordWebhook(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
+                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
                             (isAcceptedInvalidItemsOverpay
                                 ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
@@ -2745,24 +2745,6 @@ function summarizeSteamChat(
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : value.diff < 0
             ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : '');
-    return summary;
-}
-
-function summarizeDiscordWebhook(
-    trade: string,
-    value: { diff: number; diffRef: number; diffKey: string },
-    keyPrice: { buy: Currencies; sell: Currencies }
-): string {
-    const summary =
-        `\n\n__**Summary**__\n` +
-        trade.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-        (value.diff > 0
-            ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : value.diff < 0
-            ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : '');
     return summary;
