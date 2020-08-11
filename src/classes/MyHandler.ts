@@ -1252,7 +1252,7 @@ export = class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
+                            summarizeDiscordWebhook(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
                             (isAcceptedInvalidItemsOverpay
                                 ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
@@ -1501,7 +1501,7 @@ export = class MyHandler extends Handler {
                             : reasons.includes('⬜STEAM_DOWN')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
+                        summarizeSteamChat(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
                         `${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}` +
                         `${listItems(invalidItemsName, overstockedItemsName, dupedItemsName, dupedFailedItemsName)}` +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
@@ -2732,7 +2732,25 @@ export = class MyHandler extends Handler {
     }
 };
 
-function summarize(
+function summarizeSteamChat(
+    trade: string,
+    value: { diff: number; diffRef: number; diffKey: string },
+    keyPrice: { buy: Currencies; sell: Currencies }
+): string {
+    const summary =
+        `\n\nSummary\n` +
+        trade +
+        (value.diff > 0
+            ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : value.diff < 0
+            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : '');
+    return summary;
+}
+
+function summarizeDiscordWebhook(
     trade: string,
     value: { diff: number; diffRef: number; diffKey: string },
     keyPrice: { buy: Currencies; sell: Currencies }
