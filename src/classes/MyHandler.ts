@@ -2754,8 +2754,7 @@ function summarizeSteamChat(
 }
 
 function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list: string;
-    list += invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
     list +=
         overstock.length !== 0
             ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
