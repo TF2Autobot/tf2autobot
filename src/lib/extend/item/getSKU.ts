@@ -203,10 +203,14 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
  * @param item - Item object
  */
 function getElevatedQuality(item: EconItem): number | null {
+    const isNotNormalized = process.env.NORMALIZE_STRANGE_UNUSUAL !== 'true';
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (item.type.startsWith('Strange') && item.type.includes('Points Scored') && effects.length === 1)
+        (item.type.startsWith('Strange') &&
+            item.type.includes('Points Scored') &&
+            effects.length === 1 &&
+            isNotNormalized)
     ) {
         return 11;
     } else {

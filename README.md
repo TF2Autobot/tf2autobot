@@ -232,6 +232,7 @@ You can run your bot without this first, which then on the first run, it will pr
 #### Set to true if want to enable
 
 -   `NORMALIZE_FESTIVIZED_ITEMS`: Default: `false`. Set to `true` if you want your bot to recognize `Festivized` item as a `Non-Festivized` item. For example you're listing to bank `Strange Australium Black Box`, but someone sent to your bot a Festivized version with the name `Festivized Strange Australium Black Box`, the bot by default will either decline or skip (if you enable manual review) the offer becuase it's not matched. Thus, set to `true` if you want your bot to recognize `Festivized Strange Australium Black Box` as `Strange Australium Black Box`.
+-   `NORMALIZE_STRANGE_UNUSUAL`: Default: `false`. Set to `true` if you want Strange Unusual (with sku ends with `;strange`) to be recognized as normal Unusual (no ends with `;strange` on the sku).
 
 #### Misc feature
 

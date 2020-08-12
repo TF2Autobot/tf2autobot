@@ -50,6 +50,7 @@
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
+                "NORMALIZE_STRANGE_UNUSUAL": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
@@ -200,6 +201,7 @@
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
+                "NORMALIZE_STRANGE_UNUSUAL": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
