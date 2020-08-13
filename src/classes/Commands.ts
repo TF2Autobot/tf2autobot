@@ -2730,7 +2730,7 @@ export = class Commands {
     }
 
     private craftWeapons(): string[] {
-        const craftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyCraftable();
+        const craftWeapons = (this.bot.handler as MyHandler).weapon().craft;
 
         const items: { amount: number; name: string }[] = [];
 
@@ -2768,7 +2768,7 @@ export = class Commands {
     }
 
     private uncraftWeapons(): string[] {
-        const uncraftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyUncraftable();
+        const uncraftWeapons = (this.bot.handler as MyHandler).weapon().uncraft;
 
         const items: { amount: number; name: string }[] = [];
 
