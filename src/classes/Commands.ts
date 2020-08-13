@@ -765,10 +765,10 @@ export = class Commands {
             } else {
                 this.bot.messageAdmins(
                     `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
-                        `"${msg}".` +
-                        `Steam: ${links.steamProfile}` +
-                        `Backpack.tf: ${links.backpackTF}` +
-                        `SteamREP: ${links.steamREP}`,
+                        `"${msg}". ` +
+                        `\nSteam: ${links.steamProfile}` +
+                        `\nBackpack.tf: ${links.backpackTF}` +
+                        `\nSteamREP: ${links.steamREP}`,
                     []
                 );
             }
@@ -2105,9 +2105,9 @@ export = class Commands {
 
         // TODO: Create static class for trade offer related functions?
 
-        let reply = `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️
-        Reason: ${offerData.action.meta.uniqueReasons.join(', ')}).
-        Summary:\n\n`;
+        let reply =
+            `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️` +
+            `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
         const value: { our: Currency; their: Currency } = offerData.value;
@@ -2143,6 +2143,9 @@ export = class Commands {
                     ? `)\n📉 Loss from underpay: ${valueDiffRef} ref`
                     : ')');
         }
+
+        const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
+        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}`;
 
         this.bot.sendMessage(steamID, reply);
     }
