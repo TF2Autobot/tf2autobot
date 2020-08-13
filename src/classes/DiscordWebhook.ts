@@ -23,6 +23,8 @@ export = class DiscordWebhook {
 
     private botEmbedColor: string;
 
+    tradeSummaryLinks: string[];
+
     constructor(bot: Bot) {
         this.bot = bot;
 
@@ -53,6 +55,16 @@ export = class DiscordWebhook {
         } else {
             log.warn('You did not set items SKU to mention as an array, resetting to mention all items');
             this.skuToMention = [';'];
+        }
+
+        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
+        if (links !== null && Array.isArray(links)) {
+            links.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    links = [''];
+                }
+            });
+            this.tradeSummaryLinks = links;
         }
     }
 
@@ -289,10 +301,6 @@ export = class DiscordWebhook {
         links: { steamProfile: string; backpackTF: string; steamREP: string },
         time: string
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         const ourItems = items.our;
         const theirItems = items.their;
 
@@ -349,6 +357,8 @@ export = class DiscordWebhook {
         const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
 
         const pureStock = (this.bot.handler as MyHandler).pureStock();
+
+        const tradeLinks = this.tradeSummaryLinks;
 
         let personaName: string;
         let avatarFull: string;
@@ -437,7 +447,17 @@ export = class DiscordWebhook {
                 ]
             });
             /*eslint-enable */
-            request.send(acceptedTradeSummary);
+
+            const request = new XMLHttpRequest();
+            request.setRequestHeader('Content-type', 'application/json');
+
+            tradeLinks.forEach((link, i) => {
+                request.open('POST', link);
+                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
+                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
+            });
+
+            // reset array
             invalidItemsName.length = 0;
             invalidItemsFromMyHandler.length = 0;
         });
