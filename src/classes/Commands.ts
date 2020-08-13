@@ -765,10 +765,10 @@ export = class Commands {
             } else {
                 this.bot.messageAdmins(
                     `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
-                        `"${msg}".` +
-                        `Steam: ${links.steamProfile}` +
-                        `Backpack.tf: ${links.backpackTF}` +
-                        `SteamREP: ${links.steamREP}`,
+                        `"${msg}". ` +
+                        `\nSteam: ${links.steamProfile}` +
+                        `\nBackpack.tf: ${links.backpackTF}` +
+                        `\nSteamREP: ${links.steamREP}`,
                     []
                 );
             }
@@ -2105,9 +2105,9 @@ export = class Commands {
 
         // TODO: Create static class for trade offer related functions?
 
-        let reply = `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️
-        Reason: ${offerData.action.meta.uniqueReasons.join(', ')}).
-        Summary:\n\n`;
+        let reply =
+            `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️` +
+            `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
         const value: { our: Currency; their: Currency } = offerData.value;
@@ -2144,6 +2144,9 @@ export = class Commands {
                     : ')');
         }
 
+        const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
+        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}`;
+
         this.bot.sendMessage(steamID, reply);
     }
 
@@ -2161,20 +2164,20 @@ export = class Commands {
         const state = this.bot.manager.pollData.received[offerIdString];
 
         if (state === undefined) {
-            this.bot.sendMessage(steamID, '❌ Offer does not exist.');
+            this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
             return;
         }
 
         if (state !== TradeOfferManager.ETradeOfferState.Active) {
             // TODO: Add what the offer is now, accepted / declined and why
-            this.bot.sendMessage(steamID, '❌ Offer is not active.');
+            this.bot.sendMessage(steamID, 'Offer is not active. ❌');
             return;
         }
 
         const offerData = this.bot.manager.pollData.offerData[offerIdString];
 
         if (offerData?.action.action !== 'skip') {
-            this.bot.sendMessage(steamID, "❌ Offer can't be reviewed.");
+            this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
@@ -2226,20 +2229,20 @@ export = class Commands {
         const state = this.bot.manager.pollData.received[offerIdString];
 
         if (state === undefined) {
-            this.bot.sendMessage(steamID, '❌ Offer does not exist.');
+            this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
             return;
         }
 
         if (state !== TradeOfferManager.ETradeOfferState.Active) {
             // TODO: Add what the offer is now, accepted / declined and why
-            this.bot.sendMessage(steamID, '❌ Offer is not active.');
+            this.bot.sendMessage(steamID, 'Offer is not active. ❌');
             return;
         }
 
         const offerData = this.bot.manager.pollData.offerData[offerIdString];
 
         if (offerData?.action.action !== 'skip') {
-            this.bot.sendMessage(steamID, "❌ Offer can't be reviewed.");
+            this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
@@ -2424,7 +2427,7 @@ export = class Commands {
             amount = 1;
         }
 
-        if (!name) {
+        if (['!sell', '!buy', '!buycart', '!sellcart', '!price'].includes(name)) {
             this.bot.sendMessage(steamID, '⚠️ You forgot to add a name. Here\'s an example: "!price Team Captain"');
             return null;
         }

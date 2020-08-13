@@ -232,6 +232,7 @@ You can run your bot without this first, which then on the first run, it will pr
 #### Set to true if want to enable
 
 -   `NORMALIZE_FESTIVIZED_ITEMS`: Default: `false`. Set to `true` if you want your bot to recognize `Festivized` item as a `Non-Festivized` item. For example you're listing to bank `Strange Australium Black Box`, but someone sent to your bot a Festivized version with the name `Festivized Strange Australium Black Box`, the bot by default will either decline or skip (if you enable manual review) the offer becuase it's not matched. Thus, set to `true` if you want your bot to recognize `Festivized Strange Australium Black Box` as `Strange Australium Black Box`.
+-   `NORMALIZE_STRANGE_UNUSUAL`: Default: `false`. Set to `true` if you want Strange Unusual (with sku ends with `;strange`) to be recognized as normal Unusual (no ends with `;strange` on the sku).
 
 #### Misc feature
 
@@ -331,7 +332,8 @@ Time will be use in "!time" command and
 #### Successful trade summary
 
 -   `DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY`: - Display every successful trade summary on your trade summary/live-trades channel. If set to `true`, it will send to your Steam Chat.
--   `DISCORD_WEBHOOK_TRADE_SUMMARY_URL` - Discord Webhook URL for TRADE_SUMMARY.
+-   `DISCORD_WEBHOOK_TRADE_SUMMARY_URL` - An array of the Discord Webhook URL for TRADE_SUMMARY. You will need to put it like this: `["yourDiscordWebhookLink"]`, or if you want to add more than one, you can do it like this: `["link1", "link2"]` (separate each link with a comma, make sure `link1` is your **own** Discord Webhook URL). Want to feature your bot trades on tf2autobot Discord server? Sure I will give you the link upon request.
+
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS`: - Show trade partner quick links to their Steam profile, backpack.tf and SteamREP pages.
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE`: - self explained.
 -   `DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK`: - self explained.

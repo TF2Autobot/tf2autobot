@@ -23,6 +23,8 @@ export = class DiscordWebhook {
 
     private botEmbedColor: string;
 
+    tradeSummaryLinks: string[];
+
     constructor(bot: Bot) {
         this.bot = bot;
 
@@ -41,6 +43,19 @@ export = class DiscordWebhook {
 
         const botEmbedColor = process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX;
         this.botEmbedColor = botEmbedColor;
+
+        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
+        if (links !== null && Array.isArray(links)) {
+            links.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    links = [''];
+                }
+            });
+            this.tradeSummaryLinks = links;
+        } else {
+            log.warn('You did not set Discord Webhook URL as an array, resetting to blank');
+            this.tradeSummaryLinks = [''];
+        }
 
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
@@ -289,10 +304,6 @@ export = class DiscordWebhook {
         links: { steamProfile: string; backpackTF: string; steamREP: string },
         time: string
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         const ourItems = items.our;
         const theirItems = items.their;
 
@@ -349,6 +360,8 @@ export = class DiscordWebhook {
         const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
 
         const pureStock = (this.bot.handler as MyHandler).pureStock();
+
+        const tradeLinks = this.tradeSummaryLinks;
 
         let personaName: string;
         let avatarFull: string;
@@ -437,7 +450,16 @@ export = class DiscordWebhook {
                 ]
             });
             /*eslint-enable */
-            request.send(acceptedTradeSummary);
+
+            tradeLinks.forEach((link, i) => {
+                const request = new XMLHttpRequest();
+                request.open('POST', link);
+                request.setRequestHeader('Content-type', 'application/json');
+                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
+                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
+            });
+
+            // reset array
             invalidItemsName.length = 0;
             invalidItemsFromMyHandler.length = 0;
         });
@@ -509,8 +531,7 @@ function summarize(
 }
 
 function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list: string;
-    list += invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
     list +=
         overstock.length !== 0
             ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')

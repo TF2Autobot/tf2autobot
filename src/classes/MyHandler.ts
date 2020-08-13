@@ -80,6 +80,8 @@ export = class MyHandler extends Handler {
 
     private backpackSlots = 0;
 
+    private retryRequest;
+
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -1234,7 +1236,7 @@ export = class MyHandler extends Handler {
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                    this.discord.tradeSummaryLinks.length !== 0
                 ) {
                     this.discord.sendTradeSummary(
                         offer,
@@ -1772,7 +1774,7 @@ export = class MyHandler extends Handler {
         }
     }
 
-    requestBackpackSlots(): Promise<void> {
+    private requestBackpackSlots(): Promise<void> {
         return new Promise((resolve, reject) => {
             request(
                 {
@@ -1787,15 +1789,28 @@ export = class MyHandler extends Handler {
                 },
                 (err, response, body) => {
                     if (err) {
-                        return reject(err);
+                        // if failed, retry after 10 minutes.
+                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        clearTimeout(this.retryRequest);
+                        this.retryRequest = setTimeout(() => {
+                            this.requestBackpackSlots();
+                        }, 10 * 60 * 1000);
+                        return reject();
                     }
 
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
                         err.status = body.result.status;
-                        return reject(err);
+                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        // if failed, retry after 10 minutes.
+                        clearTimeout(this.retryRequest);
+                        this.retryRequest = setTimeout(() => {
+                            this.requestBackpackSlots();
+                        }, 10 * 60 * 1000);
+                        return reject();
                     }
 
+                    clearTimeout(this.retryRequest);
                     this.backpackSlots = body.result.num_backpack_slots;
 
                     return resolve();
@@ -2754,8 +2769,7 @@ function summarizeSteamChat(
 }
 
 function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list: string;
-    list += invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
     list +=
         overstock.length !== 0
             ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
