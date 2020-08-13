@@ -2427,7 +2427,7 @@ export = class Commands {
             amount = 1;
         }
 
-        if (!name) {
+        if (['!sell', '!buy', '!buycart', '!sellcart', '!price'].includes(name)) {
             this.bot.sendMessage(steamID, '⚠️ You forgot to add a name. Here\'s an example: "!price Team Captain"');
             return null;
         }
