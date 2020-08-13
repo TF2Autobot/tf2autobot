@@ -1988,7 +1988,11 @@ export = class Commands {
             Currencies.toRefined(currRef)
         )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
 
-        let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
+        const isAdmin = this.bot.isAdmin(steamID);
+
+        let reply =
+            (isAdmin ? 'Your ' : 'My ') +
+            `current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
@@ -2427,8 +2431,21 @@ export = class Commands {
             amount = 1;
         }
 
-        if (['!sell', '!buy', '!buycart', '!sellcart', '!price'].includes(name)) {
-            this.bot.sendMessage(steamID, '⚠️ You forgot to add a name. Here\'s an example: "!price Team Captain"');
+        if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ You forgot to add a name. Here\'s an example: "' +
+                    (name.includes('!price')
+                        ? '!price'
+                        : name.includes('!sellcart')
+                        ? '!sellcart'
+                        : name.includes('!buycart')
+                        ? '!buycart'
+                        : name.includes('!sell')
+                        ? '!sell'
+                        : '!buy') +
+                    ' Team Captain"'
+            );
             return null;
         }
 
