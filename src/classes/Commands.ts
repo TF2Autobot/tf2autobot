@@ -2431,8 +2431,21 @@ export = class Commands {
             amount = 1;
         }
 
-        if (['!sell', '!buy', '!buycart', '!sellcart', '!price'].includes(name)) {
-            this.bot.sendMessage(steamID, '⚠️ You forgot to add a name. Here\'s an example: "!price Team Captain"');
+        if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
+            this.bot.sendMessage(
+                steamID,
+                ' You forgot to add a name. Here\'s an example: "' +
+                    (name.includes('!price')
+                        ? '!price'
+                        : name.includes('!sellcart')
+                        ? '!sellcart'
+                        : name.includes('!buycart')
+                        ? '!buycart'
+                        : name.includes('!sell')
+                        ? '!sell'
+                        : '!buy') +
+                    ' Team Captain"'
+            );
             return null;
         }
 
