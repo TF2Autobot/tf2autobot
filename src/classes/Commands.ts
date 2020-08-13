@@ -2434,7 +2434,7 @@ export = class Commands {
         if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
             this.bot.sendMessage(
                 steamID,
-                ' You forgot to add a name. Here\'s an example: "' +
+                '⚠️ You forgot to add a name. Here\'s an example: "' +
                     (name.includes('!price')
                         ? '!price'
                         : name.includes('!sellcart')
