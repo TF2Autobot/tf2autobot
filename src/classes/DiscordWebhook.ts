@@ -44,6 +44,19 @@ export = class DiscordWebhook {
         const botEmbedColor = process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX;
         this.botEmbedColor = botEmbedColor;
 
+        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
+        if (links !== null && Array.isArray(links)) {
+            links.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    links = [''];
+                }
+            });
+            this.tradeSummaryLinks = links;
+        } else {
+            log.warn('You did not set Discord Webhook URL as an array, resetting to blank');
+            this.tradeSummaryLinks = [''];
+        }
+
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
             skuFromEnv.forEach(function(sku: string) {
@@ -55,16 +68,6 @@ export = class DiscordWebhook {
         } else {
             log.warn('You did not set items SKU to mention as an array, resetting to mention all items');
             this.skuToMention = [';'];
-        }
-
-        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
-        if (links !== null && Array.isArray(links)) {
-            links.forEach(function(sku: string) {
-                if (sku === '' || !sku) {
-                    links = [''];
-                }
-            });
-            this.tradeSummaryLinks = links;
         }
     }
 
