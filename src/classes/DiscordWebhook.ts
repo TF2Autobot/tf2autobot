@@ -450,8 +450,8 @@ export = class DiscordWebhook {
 
             tradeLinks.forEach((link, i) => {
                 const request = new XMLHttpRequest();
-                request.setRequestHeader('Content-type', 'application/json');
                 request.open('POST', link);
+                request.setRequestHeader('Content-type', 'application/json');
                 // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
                 request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
             });
