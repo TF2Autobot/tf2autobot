@@ -2164,20 +2164,20 @@ export = class Commands {
         const state = this.bot.manager.pollData.received[offerIdString];
 
         if (state === undefined) {
-            this.bot.sendMessage(steamID, '❌ Offer does not exist.');
+            this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
             return;
         }
 
         if (state !== TradeOfferManager.ETradeOfferState.Active) {
             // TODO: Add what the offer is now, accepted / declined and why
-            this.bot.sendMessage(steamID, '❌ Offer is not active.');
+            this.bot.sendMessage(steamID, 'Offer is not active. ❌');
             return;
         }
 
         const offerData = this.bot.manager.pollData.offerData[offerIdString];
 
         if (offerData?.action.action !== 'skip') {
-            this.bot.sendMessage(steamID, "❌ Offer can't be reviewed.");
+            this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
@@ -2229,20 +2229,20 @@ export = class Commands {
         const state = this.bot.manager.pollData.received[offerIdString];
 
         if (state === undefined) {
-            this.bot.sendMessage(steamID, '❌ Offer does not exist.');
+            this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
             return;
         }
 
         if (state !== TradeOfferManager.ETradeOfferState.Active) {
             // TODO: Add what the offer is now, accepted / declined and why
-            this.bot.sendMessage(steamID, '❌ Offer is not active.');
+            this.bot.sendMessage(steamID, 'Offer is not active. ❌');
             return;
         }
 
         const offerData = this.bot.manager.pollData.offerData[offerIdString];
 
         if (offerData?.action.action !== 'skip') {
-            this.bot.sendMessage(steamID, "❌ Offer can't be reviewed.");
+            this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
