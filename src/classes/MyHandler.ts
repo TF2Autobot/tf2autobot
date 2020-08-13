@@ -1503,7 +1503,7 @@ export = class MyHandler extends Handler {
                             : reasons.includes('⬜STEAM_DOWN')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        summarizeSteamChat(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
+                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
                         `${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}` +
                         `${listItems(invalidItemsName, overstockedItemsName, dupedItemsName, dupedFailedItemsName)}` +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
