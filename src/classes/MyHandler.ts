@@ -256,6 +256,9 @@ export = class MyHandler extends Handler {
         // Craft duplicate weapons
         this.craftDuplicateWeapons();
 
+        // Craft class weapons
+        this.craftClassWeapons();
+
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
 
@@ -1314,6 +1317,9 @@ export = class MyHandler extends Handler {
 
             // Craft duplicated weapons
             this.craftDuplicateWeapons();
+
+            // Craft class weapons
+            this.craftClassWeapons();
 
             // Sort inventory
             this.sortInventory();
