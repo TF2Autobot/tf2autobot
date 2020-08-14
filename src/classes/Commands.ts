@@ -2000,7 +2000,7 @@ export = class Commands {
             status
                 ? status.isBankingKeys
                     ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                    : status.isBankingKeys
+                    : status.isBuyingKeys
                     ? 'Buying for ' +
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +
