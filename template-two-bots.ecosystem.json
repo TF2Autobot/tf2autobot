@@ -21,7 +21,7 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
@@ -172,7 +172,7 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,

@@ -195,7 +195,7 @@ You can run your bot without this first, which then on the first run, it will pr
 
 ### Your bot settings
 
--   `AUTOBUMP`: Default is `true`. If you don't have backpack.tf premium, then your bot will re-list all listings every 30 minutes.
+-   `AUTOBUMP`: **DEPRECATED** - Default is `false`. Please consider donating to backpack.tf or buy backpack.tf Premium.
 
 -   `MINIMUM_SCRAP`: Default is 9 scraps. If it has less, it will smelt reclaimed metal so your bot will have more than minimum scraps.
 -   `MINIMUM_RECLAIMED`: Default is 9 Reclaimed. Explained above.
