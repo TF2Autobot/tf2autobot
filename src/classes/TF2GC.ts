@@ -66,7 +66,7 @@ export = class TF2GC {
             }
         });
 
-        log.debug('Enqueueing combine weapon job for ' + skus.join(', '));
+        log.debug('Enqueueing combine class weapon job for ' + skus.join(', '));
 
         this.newJob({ type: 'combineClassWeapon', skus: skus, callback: callback });
     }

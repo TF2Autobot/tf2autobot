@@ -1677,16 +1677,21 @@ export = class MyHandler extends Handler {
         let matched = false;
 
         for (let i = 0; i < scout.length; i++) {
+            // for loop for weapon1
             const sku1 = scout[i];
             const wep1 = currencies[sku1].length;
             for (let j = 1; j < scout.length; j++) {
+                // for loop for weapon2 inside for loop weapon1
                 const sku2 = scout[j];
                 const wep2 = currencies[sku2].length;
+                // check if that weapon only have 1 in inventory AND it's not in pricelist
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
+                    // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    // set matched to true, so we break the loop and only craft one match at a time for each class.
                     matched = true;
                     break;
                 }
