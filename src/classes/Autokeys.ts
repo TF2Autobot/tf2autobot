@@ -87,10 +87,6 @@ export = class Autokeys {
             return;
         }
 
-        const pure = (this.bot.handler as MyHandler).currPure();
-        const currKeys = pure.key;
-        const currRef = pure.refTotalInScrap;
-
         const userPure = this.userPure;
 
         const userMinKeys = userPure.minKeys;
@@ -98,12 +94,16 @@ export = class Autokeys {
         const userMinRef = userPure.minRefs;
         const userMaxRef = userPure.maxRefs;
 
-        if (isNaN(userMinKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
+        if (isNaN(userMinKeys) || isNaN(userMaxKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
             log.warn(
                 "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
             );
             return;
         }
+
+        const pure = (this.bot.handler as MyHandler).currPure();
+        const currKeys = pure.key;
+        const currRef = pure.refTotalInScrap;
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
