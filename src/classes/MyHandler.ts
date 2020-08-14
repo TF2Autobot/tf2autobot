@@ -1675,7 +1675,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1724,7 +1724,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1773,7 +1773,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1820,7 +1820,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1862,7 +1862,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1899,7 +1899,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1935,7 +1935,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -1976,7 +1976,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
@@ -2013,7 +2013,7 @@ export = class MyHandler extends Handler {
                 const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
-                if (isWep1 && isWep2) {
+                if (sku1 !== sku2 && isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     matched = true;
                     break;
