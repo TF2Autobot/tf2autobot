@@ -82,6 +82,12 @@ export = class MyHandler extends Handler {
 
     private retryRequest;
 
+    private autokeysStatus: {
+        isActive: boolean;
+        isBuying: boolean;
+        isBanking: boolean;
+    };
+
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -205,6 +211,10 @@ export = class MyHandler extends Handler {
         return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
+    getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
+        return this.autokeysStatus;
+    }
+
     onRun(): Promise<{
         loginAttempts?: number[];
         pricelist?: EntryData[];
@@ -248,6 +258,12 @@ export = class MyHandler extends Handler {
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
+
+        this.autokeysStatus = {
+            isActive: this.autokeys.isActive,
+            isBuying: this.autokeys.status.isBuyingKeys,
+            isBanking: this.autokeys.status.isBankingKeys
+        };
 
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
@@ -1212,6 +1228,12 @@ export = class MyHandler extends Handler {
                     isActive: this.autokeys.isActive,
                     isBuying: this.autokeys.status.isBuyingKeys,
                     isBanking: this.autokeys.status.isBankingKeys
+                };
+
+                this.autokeysStatus = {
+                    isActive: autokeys.isActive,
+                    isBuying: autokeys.isBuying,
+                    isBanking: autokeys.isBanking
                 };
 
                 const pureStock = this.pureStock();

@@ -1929,11 +1929,12 @@ export = class Commands {
     }
 
     private autoKeysCommand(steamID: SteamID): void {
-        const autokeys = this.autokeys;
-        if (autokeys.isEnabled === false) {
+        if (this.autokeys.isEnabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
+
+        const autokeys = this.autokeys;
 
         const pure = (this.bot.handler as MyHandler).currPure();
         const currKey = pure.key;
@@ -1942,7 +1943,7 @@ export = class Commands {
         const keyPrices = this.bot.pricelist.getKeyPrices();
 
         const userPure = autokeys.userPure;
-        const status = autokeys.status;
+        const status = (this.bot.handler as MyHandler).getAutokeysStatus();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -1997,10 +1998,10 @@ export = class Commands {
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n Autokeys status: ${
-            status
-                ? status.isBankingKeys
+            status.isActive
+                ? status.isBanking
                     ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                    : status.isBuyingKeys
+                    : status.isBuying
                     ? 'Buying for ' +
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +
