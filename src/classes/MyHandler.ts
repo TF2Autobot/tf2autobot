@@ -589,7 +589,9 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const weaponSku = this.craftweapon();
+            const weapons = this.weapon();
+            const craft = weapons.craft;
+            const uncraft = weapons.uncraft;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -611,7 +613,7 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    weaponSku.includes(sku) &&
+                    (craft.includes(sku) || uncraft.includes(sku)) &&
                     process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
@@ -621,7 +623,9 @@ export = class MyHandler extends Handler {
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
                     const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' ? !weaponSku.includes(sku) : true;
+                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
+                            ? !(craft.includes(sku) || uncraft.includes(sku))
+                            : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -1503,7 +1507,7 @@ export = class MyHandler extends Handler {
                             : reasons.includes('⬜STEAM_DOWN')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        summarizeSteamChat(offer.summarizeWithLink(this.bot.schema), value, keyPrice) +
+                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
                         `${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}` +
                         `${listItems(invalidItemsName, overstockedItemsName, dupedItemsName, dupedFailedItemsName)}` +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
@@ -1588,7 +1592,7 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        for (const sku of this.craftweaponOnlyCraftable()) {
+        for (const sku of this.weapon().craft) {
             const weapon = currencies[sku].length;
 
             if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
@@ -2094,583 +2098,294 @@ export = class MyHandler extends Handler {
         return skus;
     }
 
-    craftweapon(): string[] {
-        const weapons = [
-            '45;6',
-            '220;6',
-            '448;6',
-            '772;6',
-            '1103;6',
-            '46;6',
-            '163;6',
-            '222;6',
-            '449;6',
-            '773;6',
-            '812;6',
-            '44;6',
-            '221;6',
-            '317;6',
-            '325;6',
-            '349;6',
-            '355;6',
-            '450;6',
-            '648;6',
-            '127;6',
-            '228;6',
-            '237;6',
-            '414;6',
-            '441;6',
-            '513;6',
-            '730;6',
-            '1104;6',
-            '129;6',
-            '133;6',
-            '226;6',
-            '354;6',
-            '415;6',
-            '442;6',
-            '1101;6',
-            '1153;6',
-            '444;6',
-            '128;6',
-            '154;6',
-            '357;6',
-            '416;6',
-            '447;6',
-            '775;6',
-            '40;6',
-            '215;6',
-            '594;6',
-            '741;6',
-            '1178;6',
-            '39;6',
-            '351;6',
-            '595;6',
-            '740;6',
-            '1179;6',
-            '1180;6',
-            '38;6',
-            '153;6',
-            '214;6',
-            '326;6',
-            '348;6',
-            '457;6',
-            '593;6',
-            '739;6',
-            '813;6',
-            '1181;6',
-            '308;6',
-            '405;6',
-            '608;6',
-            '996;6',
-            '1151;6',
-            '130;6',
-            '131;6',
-            '265;6',
-            '406;6',
-            '1099;6',
-            '1150;6',
-            '132;6',
-            '172;6',
-            '307;6',
-            '327;6',
-            '404;6',
-            '482;6',
-            '609;6',
-            '41;6',
-            '312;6',
-            '424;6',
-            '811;6',
-            '42;6',
-            '159;6',
-            '311;6',
-            '425;6',
-            '1190;6',
-            '43;6',
-            '239;6',
-            '310;6',
-            '331;6',
-            '426;6',
-            '656;6',
-            '141;6',
-            '527;6',
-            '588;6',
-            '997;6',
-            '140;6',
-            '528;6',
-            '142;6',
-            '155;6',
-            '329;6',
-            '589;6',
-            '36;6',
-            '305;6',
-            '412;6',
-            '35;6',
-            '411;6',
-            '998;6',
-            '37;6',
-            '173;6',
-            '304;6',
-            '413;6',
-            '56;6',
-            '230;6',
-            '402;6',
-            '526;6',
-            '752;6',
-            '1092;6',
-            '1098;6',
-            '57;6',
-            '58;6',
-            '231;6',
-            '642;6',
-            '751;6',
-            '171;6',
-            '232;6',
-            '401;6',
-            '61;6',
-            '224;6',
-            '460;6',
-            '525;6',
-            '810;6',
-            '225;6',
-            '356;6',
-            '461;6',
-            '649;6',
-            '60;6',
-            '59;6',
-            '939;6',
-            '61;6;uncraftable',
-            '1101;6;uncraftable',
-            '226;6;uncraftable',
-            '46;6;uncraftable',
-            '129;6;uncraftable',
-            '311;6;uncraftable',
-            '131;6;uncraftable',
-            '751;6;uncraftable',
-            '354;6;uncraftable',
-            '642;6;uncraftable',
-            '163;6;uncraftable',
-            '159;6;uncraftable',
-            '231;6;uncraftable',
-            '351;6;uncraftable',
-            '525;6;uncraftable',
-            '460;6;uncraftable',
-            '425;6;uncraftable',
-            '39;6;uncraftable',
-            '812;6;uncraftable',
-            '133;6;uncraftable',
-            '58;6;uncraftable',
-            '35;6;uncraftable',
-            '224;6;uncraftable',
-            '222;6;uncraftable',
-            '595;6;uncraftable',
-            '444;6;uncraftable',
-            '773;6;uncraftable',
-            '411;6;uncraftable',
-            '1150;6;uncraftable',
-            '57;6;uncraftable',
-            '415;6;uncraftable',
-            '442;6;uncraftable',
-            '42;6;uncraftable',
-            '740;6;uncraftable',
-            '130;6;uncraftable',
-            '528;6;uncraftable',
-            '406;6;uncraftable',
-            '265;6;uncraftable',
-            '1099;6;uncraftable',
-            '998;6;uncraftable',
-            '449;6;uncraftable',
-            '140;6;uncraftable',
-            '1104;6;uncraftable',
-            '405;6;uncraftable',
-            '772;6;uncraftable',
-            '1103;6;uncraftable',
-            '40;6;uncraftable',
-            '402;6;uncraftable',
-            '730;6;uncraftable',
-            '228;6;uncraftable',
-            '36;6;uncraftable',
-            '608;6;uncraftable',
-            '312;6;uncraftable',
-            '1098;6;uncraftable',
-            '441;6;uncraftable',
-            '305;6;uncraftable',
-            '215;6;uncraftable',
-            '127;6;uncraftable',
-            '45;6;uncraftable',
-            '1092;6;uncraftable',
-            '141;6;uncraftable',
-            '752;6;uncraftable',
-            '56;6;uncraftable',
-            '811;6;uncraftable',
-            '1151;6;uncraftable',
-            '414;6;uncraftable',
-            '308;6;uncraftable',
-            '996;6;uncraftable',
-            '526;6;uncraftable',
-            '41;6;uncraftable',
-            '513;6;uncraftable',
-            '412;6;uncraftable',
-            '1153;6;uncraftable',
-            '594;6;uncraftable',
-            '588;6;uncraftable',
-            '741;6;uncraftable',
-            '997;6;uncraftable',
-            '237;6;uncraftable',
-            '220;6;uncraftable',
-            '448;6;uncraftable',
-            '230;6;uncraftable',
-            '424;6;uncraftable',
-            '527;6;uncraftable',
-            '60;6;uncraftable',
-            '59;6;uncraftable',
-            '304;6;uncraftable',
-            '450;6;uncraftable',
-            '38;6;uncraftable',
-            '326;6;uncraftable',
-            '939;6;uncraftable',
-            '461;6;uncraftable',
-            '325;6;uncraftable',
-            '232;6;uncraftable',
-            '317;6;uncraftable',
-            '327;6;uncraftable',
-            '356;6;uncraftable',
-            '447;6;uncraftable',
-            '128;6;uncraftable',
-            '775;6;uncraftable',
-            '589;6;uncraftable',
-            '426;6;uncraftable',
-            '132;6;uncraftable',
-            '355;6;uncraftable',
-            '331;6;uncraftable',
-            '239;6;uncraftable',
-            '142;6;uncraftable',
-            '357;6;uncraftable',
-            '656;6;uncraftable',
-            '221;6;uncraftable',
-            '153;6;uncraftable',
-            '329;6;uncraftable',
-            '43;6;uncraftable',
-            '739;6;uncraftable',
-            '416;6;uncraftable',
-            '813;6;uncraftable',
-            '482;6;uncraftable',
-            '154;6;uncraftable',
-            '404;6;uncraftable',
-            '457;6;uncraftable',
-            '214;6;uncraftable',
-            '44;6;uncraftable',
-            '172;6;uncraftable',
-            '609;6;uncraftable',
-            '401;6;uncraftable',
-            '348;6;uncraftable',
-            '413;6;uncraftable',
-            '155;6;uncraftable',
-            '649;6;uncraftable',
-            '349;6;uncraftable',
-            '593;6;uncraftable',
-            '171;6;uncraftable',
-            '37;6;uncraftable',
-            '307;6;uncraftable',
-            '173;6;uncraftable',
-            '310;6;uncraftable',
-            '648;6;uncraftable',
-            '225;6;uncraftable',
-            '810;6;uncraftable'
-        ];
-        return weapons;
-    }
-
-    craftweaponOnlyCraftable(): string[] {
-        const weapons = [
-            '45;6',
-            '220;6',
-            '448;6',
-            '772;6',
-            '1103;6',
-            '46;6',
-            '163;6',
-            '222;6',
-            '449;6',
-            '773;6',
-            '812;6',
-            '44;6',
-            '221;6',
-            '317;6',
-            '325;6',
-            '349;6',
-            '355;6',
-            '450;6',
-            '648;6',
-            '127;6',
-            '228;6',
-            '237;6',
-            '414;6',
-            '441;6',
-            '513;6',
-            '730;6',
-            '1104;6',
-            '129;6',
-            '133;6',
-            '226;6',
-            '354;6',
-            '415;6',
-            '442;6',
-            '1101;6',
-            '1153;6',
-            '444;6',
-            '128;6',
-            '154;6',
-            '357;6',
-            '416;6',
-            '447;6',
-            '775;6',
-            '40;6',
-            '215;6',
-            '594;6',
-            '741;6',
-            '1178;6',
-            '39;6',
-            '351;6',
-            '595;6',
-            '740;6',
-            '1179;6',
-            '1180;6',
-            '38;6',
-            '153;6',
-            '214;6',
-            '326;6',
-            '348;6',
-            '457;6',
-            '593;6',
-            '739;6',
-            '813;6',
-            '1181;6',
-            '308;6',
-            '405;6',
-            '608;6',
-            '996;6',
-            '1151;6',
-            '130;6',
-            '131;6',
-            '265;6',
-            '406;6',
-            '1099;6',
-            '1150;6',
-            '132;6',
-            '172;6',
-            '307;6',
-            '327;6',
-            '404;6',
-            '482;6',
-            '609;6',
-            '41;6',
-            '312;6',
-            '424;6',
-            '811;6',
-            '42;6',
-            '159;6',
-            '311;6',
-            '425;6',
-            '1190;6',
-            '43;6',
-            '239;6',
-            '310;6',
-            '331;6',
-            '426;6',
-            '656;6',
-            '141;6',
-            '527;6',
-            '588;6',
-            '997;6',
-            '140;6',
-            '528;6',
-            '142;6',
-            '155;6',
-            '329;6',
-            '589;6',
-            '36;6',
-            '305;6',
-            '412;6',
-            '35;6',
-            '411;6',
-            '998;6',
-            '37;6',
-            '173;6',
-            '304;6',
-            '413;6',
-            '56;6',
-            '230;6',
-            '402;6',
-            '526;6',
-            '752;6',
-            '1092;6',
-            '1098;6',
-            '57;6',
-            '58;6',
-            '231;6',
-            '642;6',
-            '751;6',
-            '171;6',
-            '232;6',
-            '401;6',
-            '61;6',
-            '224;6',
-            '460;6',
-            '525;6',
-            '810;6',
-            '225;6',
-            '356;6',
-            '461;6',
-            '649;6',
-            '60;6',
-            '59;6',
-            '939;6'
-        ];
-        return weapons;
-    }
-
-    craftweaponOnlyUncraftable(): string[] {
-        const weapons = [
-            '61;6;uncraftable',
-            '1101;6;uncraftable',
-            '226;6;uncraftable',
-            '46;6;uncraftable',
-            '129;6;uncraftable',
-            '311;6;uncraftable',
-            '131;6;uncraftable',
-            '751;6;uncraftable',
-            '354;6;uncraftable',
-            '642;6;uncraftable',
-            '163;6;uncraftable',
-            '159;6;uncraftable',
-            '231;6;uncraftable',
-            '351;6;uncraftable',
-            '525;6;uncraftable',
-            '460;6;uncraftable',
-            '425;6;uncraftable',
-            '39;6;uncraftable',
-            '812;6;uncraftable',
-            '133;6;uncraftable',
-            '58;6;uncraftable',
-            '35;6;uncraftable',
-            '224;6;uncraftable',
-            '222;6;uncraftable',
-            '595;6;uncraftable',
-            '444;6;uncraftable',
-            '773;6;uncraftable',
-            '411;6;uncraftable',
-            '1150;6;uncraftable',
-            '57;6;uncraftable',
-            '415;6;uncraftable',
-            '442;6;uncraftable',
-            '42;6;uncraftable',
-            '740;6;uncraftable',
-            '130;6;uncraftable',
-            '528;6;uncraftable',
-            '406;6;uncraftable',
-            '265;6;uncraftable',
-            '1099;6;uncraftable',
-            '998;6;uncraftable',
-            '449;6;uncraftable',
-            '140;6;uncraftable',
-            '1104;6;uncraftable',
-            '405;6;uncraftable',
-            '772;6;uncraftable',
-            '1103;6;uncraftable',
-            '40;6;uncraftable',
-            '402;6;uncraftable',
-            '730;6;uncraftable',
-            '228;6;uncraftable',
-            '36;6;uncraftable',
-            '608;6;uncraftable',
-            '312;6;uncraftable',
-            '1098;6;uncraftable',
-            '441;6;uncraftable',
-            '305;6;uncraftable',
-            '215;6;uncraftable',
-            '127;6;uncraftable',
-            '45;6;uncraftable',
-            '1092;6;uncraftable',
-            '141;6;uncraftable',
-            '752;6;uncraftable',
-            '56;6;uncraftable',
-            '811;6;uncraftable',
-            '1151;6;uncraftable',
-            '414;6;uncraftable',
-            '308;6;uncraftable',
-            '996;6;uncraftable',
-            '526;6;uncraftable',
-            '41;6;uncraftable',
-            '513;6;uncraftable',
-            '412;6;uncraftable',
-            '1153;6;uncraftable',
-            '594;6;uncraftable',
-            '588;6;uncraftable',
-            '741;6;uncraftable',
-            '997;6;uncraftable',
-            '237;6;uncraftable',
-            '220;6;uncraftable',
-            '448;6;uncraftable',
-            '230;6;uncraftable',
-            '424;6;uncraftable',
-            '527;6;uncraftable',
-            '60;6;uncraftable',
-            '59;6;uncraftable',
-            '304;6;uncraftable',
-            '450;6;uncraftable',
-            '38;6;uncraftable',
-            '326;6;uncraftable',
-            '939;6;uncraftable',
-            '461;6;uncraftable',
-            '325;6;uncraftable',
-            '232;6;uncraftable',
-            '317;6;uncraftable',
-            '327;6;uncraftable',
-            '356;6;uncraftable',
-            '447;6;uncraftable',
-            '128;6;uncraftable',
-            '775;6;uncraftable',
-            '589;6;uncraftable',
-            '426;6;uncraftable',
-            '132;6;uncraftable',
-            '355;6;uncraftable',
-            '331;6;uncraftable',
-            '239;6;uncraftable',
-            '142;6;uncraftable',
-            '357;6;uncraftable',
-            '656;6;uncraftable',
-            '221;6;uncraftable',
-            '153;6;uncraftable',
-            '329;6;uncraftable',
-            '43;6;uncraftable',
-            '739;6;uncraftable',
-            '416;6;uncraftable',
-            '813;6;uncraftable',
-            '482;6;uncraftable',
-            '154;6;uncraftable',
-            '404;6;uncraftable',
-            '457;6;uncraftable',
-            '214;6;uncraftable',
-            '44;6;uncraftable',
-            '172;6;uncraftable',
-            '609;6;uncraftable',
-            '401;6;uncraftable',
-            '348;6;uncraftable',
-            '413;6;uncraftable',
-            '155;6;uncraftable',
-            '649;6;uncraftable',
-            '349;6;uncraftable',
-            '593;6;uncraftable',
-            '171;6;uncraftable',
-            '37;6;uncraftable',
-            '307;6;uncraftable',
-            '173;6;uncraftable',
-            '310;6;uncraftable',
-            '648;6;uncraftable',
-            '225;6;uncraftable',
-            '810;6;uncraftable'
-        ];
+    weapon(): { craft: string[]; uncraft: string[] } {
+        const weapons = {
+            craft: [
+                '45;6', // Force-A-Nature               == Scout/Primary ==
+                '220;6', // Shortstop
+                '448;6', // Soda Popper
+                '772;6', // Baby Face's Blaster
+                '1103;6', // Back Scatter
+                '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
+                '163;6', // Crit-a-Cola
+                '222;6', // Mad Milk
+                '449;6', // Winger
+                '773;6', // Pretty Boy's Pocket Pistol
+                '812;6', // Flying Guillotine
+                '44;6', // Sandman                      == Scout/Melee ==
+                '221;6', // Holy Mackerel
+                '317;6', // Candy Cane
+                '325;6', // Boston Basher
+                '349;6', // Sun-on-a-Stick
+                '355;6', // Fan O'War
+                '450;6', // Atomizer
+                '648;6', // Wrap Assassin
+                '127;6', // Direct Hit                  == Soldier/Primary ==
+                '228;6', // Black Box
+                '237;6', // Rocket Jumper
+                '414;6', // Liberty Launcher
+                '441;6', // Cow Mangler 5000
+                '513;6', // Original
+                '730;6', // Beggar's Bazooka
+                '1104;6', // Air Strike
+                '129;6', // Buff Banner                 == Soldier/Secondary ==
+                '133;6', // Gunboats
+                '226;6', // Battalion's Backup
+                '354;6', // Concheror
+                '415;6', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '442;6', // Righteous Bison
+                '1101;6', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+                '1153;6', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '444;6', // Mantreads
+                '128;6', // Equalizer                   == Soldier/Melee ==
+                '154;6', // (Pain Train - Shared - Soldier/Demoman)
+                '357;6', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '416;6', // Market Gardener
+                '447;6', // Disciplinary Action
+                '775;6', // Escape Plan
+                '40;6', // Backburner                   == Pyro/Primary ==
+                '215;6', // Degreaser
+                '594;6', // Phlogistinator
+                '741;6', // Rainblower
+                '1178;6', // Dragon's Fury
+                '39;6', // Flare Gun                    == Pyro/Secondary ==
+                '351;6', // Detonator
+                '595;6', // Manmelter
+                '740;6', // Scorch Shot
+                '1179;6', // Thermal Thruster
+                '1180;6', // Gas Passer
+                '38;6', // Axtinguisher                 == Pyro/Melee ==
+                '153;6', // Homewrecker
+                '214;6', // Powerjack
+                '326;6', // Back Scratcher
+                '348;6', // Sharpened Volcano Fragment
+                '457;6', // Postal Pummeler
+                '593;6', // Third Degree
+                '739;6', // Lollichop
+                '813;6', // Neon Annihilator
+                '1181;6', // Hot Hand
+                '308;6', // Loch-n-Load                 == Demoman/Primary ==
+                '405;6', // Ali Baba's Wee Booties
+                '608;6', // Bootlegger
+                '996;6', // Loose Cannon
+                '1151;6', // Iron Bomber
+                '130;6', // Scottish Resistance         == Demoman/Secondary ==
+                '131;6', // Chargin' Targe
+                '265;6', // Sticky Jumper
+                '406;6', // Splendid Screen
+                '1099;6', // Tide Turner
+                '1150;6', // Quickiebomb Launcher
+                '132;6', // Eyelander                   == Demoman/Melee ==
+                '172;6', // Scotsman's Skullcutter
+                '307;6', // Ullapool Caber
+                '327;6', // Claidheamh Mòr
+                '404;6', // Persian Persuader
+                '482;6', // Nessie's Nine Iron
+                '609;6', // Scottish Handshake
+                '41;6', // Natascha                     == Heavy/Primary ==
+                '312;6', // Brass Beast
+                '424;6', // Tomislav
+                '811;6', // Huo-Long Heater
+                '42;6', // Sandvich                     == Heavy/Secondary ==
+                '159;6', // Dalokohs Bar
+                '311;6', // Buffalo Steak Sandvich
+                '425;6', // Family Business
+                '1190;6', // Second Banana
+                '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
+                '239;6', // Gloves of Running Urgently
+                '310;6', // Warrior's Spirit
+                '331;6', // Fists of Steel
+                '426;6', // Eviction Notice
+                '656;6', // Holiday Punch
+                '141;6', // Frontier Justice            == Engineer/Primary ==
+                '527;6', // Widowmaker
+                '588;6', // Pomson 6000
+                '997;6', // Rescue Ranger
+                '140;6', // Wrangler                    == Engineer/Secondary ==
+                '528;6', // Short Circuit
+                '142;6', // Gunslinger                  == Engineer/Melee ==
+                '155;6', // Southern Hospitality
+                '329;6', // Jag
+                '589;6', // Eureka Effect
+                '36;6', // Blutsauger                   == Medic/Primary ==
+                '305;6', // Crusader's Crossbow
+                '412;6', // Overdose
+                '35;6', // Kritzkrieg                   == Medic/Secondary ==
+                '411;6', // Quick-Fix
+                '998;6', // Vaccinator
+                '37;6', // Ubersaw                      == Medic/Melee ==
+                '173;6', // Vita-Saw
+                '304;6', // Amputator
+                '413;6', // Solemn Vow
+                '56;6', // Huntsman                     == Sniper/Primary ==
+                '230;6', // Sydney Sleeper
+                '402;6', // Bazaar Bargain
+                '526;6', // Machina
+                '752;6', // Hitman's Heatmaker
+                '1092;6', // Fortified Compound
+                '1098;6', // Classic
+                '57;6', // Razorback                    == Sniper/Secondary ==
+                '58;6', // Jarate
+                '231;6', // Darwin's Danger Shield
+                '642;6', // Cozy Camper
+                '751;6', // Cleaner's Carbine
+                '171;6', // Tribalman's Shiv            == Sniper/Melee ==
+                '232;6', // Bushwacka
+                '401;6', // Shahanshah
+                '61;6', // Ambassador                   == Spy/Primary ==
+                '224;6', // L'Etranger
+                '460;6', // Enforcer
+                '525;6', // Diamondback
+                '225;6', // Your Eternal Reward         == Spy/Melee ==
+                '356;6', // Conniver's Kunai
+                '461;6', // Big Earner
+                '649;6', // Spy-cicle
+                '810;6', // Red-Tape Recorder           == Spy/PDA ==
+                '60;6', // Cloak and Dagger             == Spy/PDA2 ==
+                '59;6', // Dead Ringer
+                '939;6' // Bat Outta Hell               == All class/Melee ==
+            ],
+            uncraft: [
+                '61;6;uncraftable',
+                '1101;6;uncraftable',
+                '226;6;uncraftable',
+                '46;6;uncraftable',
+                '129;6;uncraftable',
+                '311;6;uncraftable',
+                '131;6;uncraftable',
+                '751;6;uncraftable',
+                '354;6;uncraftable',
+                '642;6;uncraftable',
+                '163;6;uncraftable',
+                '159;6;uncraftable',
+                '231;6;uncraftable',
+                '351;6;uncraftable',
+                '525;6;uncraftable',
+                '460;6;uncraftable',
+                '425;6;uncraftable',
+                '39;6;uncraftable',
+                '812;6;uncraftable',
+                '133;6;uncraftable',
+                '58;6;uncraftable',
+                '35;6;uncraftable',
+                '224;6;uncraftable',
+                '222;6;uncraftable',
+                '595;6;uncraftable',
+                '444;6;uncraftable',
+                '773;6;uncraftable',
+                '411;6;uncraftable',
+                '1150;6;uncraftable',
+                '57;6;uncraftable',
+                '415;6;uncraftable',
+                '442;6;uncraftable',
+                '42;6;uncraftable',
+                '740;6;uncraftable',
+                '130;6;uncraftable',
+                '528;6;uncraftable',
+                '406;6;uncraftable',
+                '265;6;uncraftable',
+                '1099;6;uncraftable',
+                '998;6;uncraftable',
+                '449;6;uncraftable',
+                '140;6;uncraftable',
+                '1104;6;uncraftable',
+                '405;6;uncraftable',
+                '772;6;uncraftable',
+                '1103;6;uncraftable',
+                '40;6;uncraftable',
+                '402;6;uncraftable',
+                '730;6;uncraftable',
+                '228;6;uncraftable',
+                '36;6;uncraftable',
+                '608;6;uncraftable',
+                '312;6;uncraftable',
+                '1098;6;uncraftable',
+                '441;6;uncraftable',
+                '305;6;uncraftable',
+                '215;6;uncraftable',
+                '127;6;uncraftable',
+                '45;6;uncraftable',
+                '1092;6;uncraftable',
+                '141;6;uncraftable',
+                '752;6;uncraftable',
+                '56;6;uncraftable',
+                '811;6;uncraftable',
+                '1151;6;uncraftable',
+                '414;6;uncraftable',
+                '308;6;uncraftable',
+                '996;6;uncraftable',
+                '526;6;uncraftable',
+                '41;6;uncraftable',
+                '513;6;uncraftable',
+                '412;6;uncraftable',
+                '1153;6;uncraftable',
+                '594;6;uncraftable',
+                '588;6;uncraftable',
+                '741;6;uncraftable',
+                '997;6;uncraftable',
+                '237;6;uncraftable',
+                '220;6;uncraftable',
+                '448;6;uncraftable',
+                '230;6;uncraftable',
+                '424;6;uncraftable',
+                '527;6;uncraftable',
+                '60;6;uncraftable',
+                '59;6;uncraftable',
+                '304;6;uncraftable',
+                '450;6;uncraftable',
+                '38;6;uncraftable',
+                '326;6;uncraftable',
+                '939;6;uncraftable',
+                '461;6;uncraftable',
+                '325;6;uncraftable',
+                '232;6;uncraftable',
+                '317;6;uncraftable',
+                '327;6;uncraftable',
+                '356;6;uncraftable',
+                '447;6;uncraftable',
+                '128;6;uncraftable',
+                '775;6;uncraftable',
+                '589;6;uncraftable',
+                '426;6;uncraftable',
+                '132;6;uncraftable',
+                '355;6;uncraftable',
+                '331;6;uncraftable',
+                '239;6;uncraftable',
+                '142;6;uncraftable',
+                '357;6;uncraftable',
+                '656;6;uncraftable',
+                '221;6;uncraftable',
+                '153;6;uncraftable',
+                '329;6;uncraftable',
+                '43;6;uncraftable',
+                '739;6;uncraftable',
+                '416;6;uncraftable',
+                '813;6;uncraftable',
+                '482;6;uncraftable',
+                '154;6;uncraftable',
+                '404;6;uncraftable',
+                '457;6;uncraftable',
+                '214;6;uncraftable',
+                '44;6;uncraftable',
+                '172;6;uncraftable',
+                '609;6;uncraftable',
+                '401;6;uncraftable',
+                '348;6;uncraftable',
+                '413;6;uncraftable',
+                '155;6;uncraftable',
+                '649;6;uncraftable',
+                '349;6;uncraftable',
+                '593;6;uncraftable',
+                '171;6;uncraftable',
+                '37;6;uncraftable',
+                '307;6;uncraftable',
+                '173;6;uncraftable',
+                '310;6;uncraftable',
+                '648;6;uncraftable',
+                '225;6;uncraftable',
+                '810;6;uncraftable'
+            ]
+        };
         return weapons;
     }
 

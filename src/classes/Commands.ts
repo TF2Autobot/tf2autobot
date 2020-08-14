@@ -262,8 +262,8 @@ export = class Commands {
             steamID,
             process.env.CUSTOM_HOW2TRADE_MESSAGE
                 ? process.env.CUSTOM_HOW2TRADE_MESSAGE
-                : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain". Type "!help" for all the commands.' +
-                      '\nYou can also buy or sell multiple items by using "!buycart" or "!sellcart" commands.'
+                : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
+                      '\nYou can also buy or sell multiple items by using "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
         );
     }
 
@@ -1988,7 +1988,11 @@ export = class Commands {
             Currencies.toRefined(currRef)
         )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
 
-        let reply = `Your current AutoKeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
+        const isAdmin = this.bot.isAdmin(steamID);
+
+        let reply =
+            (isAdmin ? 'Your ' : 'My ') +
+            `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
@@ -1996,7 +2000,7 @@ export = class Commands {
             status
                 ? status.isBankingKeys
                     ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                    : status.isBankingKeys
+                    : status.isBuyingKeys
                     ? 'Buying for ' +
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +
@@ -2427,8 +2431,21 @@ export = class Commands {
             amount = 1;
         }
 
-        if (['!sell', '!buy', '!buycart', '!sellcart', '!price'].includes(name)) {
-            this.bot.sendMessage(steamID, '⚠️ You forgot to add a name. Here\'s an example: "!price Team Captain"');
+        if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ You forgot to add a name. Here\'s an example: "' +
+                    (name.includes('!price')
+                        ? '!price'
+                        : name.includes('!sellcart')
+                        ? '!sellcart'
+                        : name.includes('!buycart')
+                        ? '!buycart'
+                        : name.includes('!sell')
+                        ? '!sell'
+                        : '!buy') +
+                    ' Team Captain"'
+            );
             return null;
         }
 
@@ -2713,7 +2730,7 @@ export = class Commands {
     }
 
     private craftWeapons(): string[] {
-        const craftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyCraftable();
+        const craftWeapons = (this.bot.handler as MyHandler).weapon().craft;
 
         const items: { amount: number; name: string }[] = [];
 
@@ -2751,7 +2768,7 @@ export = class Commands {
     }
 
     private uncraftWeapons(): string[] {
-        const uncraftWeapons = (this.bot.handler as MyHandler).craftweaponOnlyUncraftable();
+        const uncraftWeapons = (this.bot.handler as MyHandler).weapon().uncraft;
 
         const items: { amount: number; name: string }[] = [];
 

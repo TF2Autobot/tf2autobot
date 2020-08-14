@@ -49,7 +49,7 @@ export = class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!(this.bot.handler as MyHandler).craftweaponOnlyCraftable().includes(sku)) {
+        if (!(this.bot.handler as MyHandler).weapon().craft.includes(sku)) {
             return;
         }
 

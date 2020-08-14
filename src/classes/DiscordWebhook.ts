@@ -470,7 +470,11 @@ export = class DiscordWebhook {
 
         let filterItemsWeapons = filterPure;
         if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            filterItemsWeapons = filterPure.filter(sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku));
+            filterItemsWeapons = filterPure.filter(sku => {
+                const craft = !(this.bot.handler as MyHandler).weapon().craft.includes(sku);
+                const uncraft = !(this.bot.handler as MyHandler).weapon().uncraft.includes(sku);
+                return craft || uncraft;
+            });
         }
 
         return filterItemsWeapons;
