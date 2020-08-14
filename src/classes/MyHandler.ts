@@ -401,6 +401,9 @@ export = class MyHandler extends Handler {
         // Allow sending notifications
         offer.data('notify', true);
 
+        // If crafting class weapons still waiting, cancel it.
+        clearTimeout(this.classWeaponsTimeout);
+
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID,
             offer.itemsToGive,
@@ -1323,7 +1326,6 @@ export = class MyHandler extends Handler {
             // Craft duplicated weapons
             this.craftDuplicateWeapons();
 
-            clearTimeout(this.classWeaponsTimeout);
             this.classWeaponsTimeout = setTimeout(() => {
                 // called after 2 minutes to craft metals and duplicated weapons first.
                 this.craftClassWeapons();
