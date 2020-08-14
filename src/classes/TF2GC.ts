@@ -64,10 +64,11 @@ export = class TF2GC {
             if (!(this.bot.handler as MyHandler).weapon().craft.includes(sku)) {
                 return;
             }
-            log.debug('Enqueueing combine weapon job for ' + skus);
-
-            this.newJob({ type: 'combineClassWeapon', skus: skus, callback: callback });
         });
+
+        log.debug('Enqueueing combine weapon job for ' + skus);
+
+        this.newJob({ type: 'combineClassWeapon', skus: skus, callback: callback });
     }
 
     useItem(assetid: string, callback?: (err: Error | null) => void): void {
