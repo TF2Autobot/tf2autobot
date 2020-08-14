@@ -5,9 +5,10 @@ import MyHandler from './MyHandler';
 import moment from 'moment';
 
 type Job = {
-    type: 'smelt' | 'combine' | 'combineWeapon' | 'use' | 'delete' | 'sort';
+    type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
     defindex?: number;
     sku?: string;
+    skus?: string[];
     assetid?: string;
     sortType?: number;
     callback?: (err?: Error) => void;
@@ -56,6 +57,17 @@ export = class TF2GC {
         log.debug('Enqueueing combine weapon job for ' + sku);
 
         this.newJob({ type: 'combineWeapon', sku: sku, callback: callback });
+    }
+
+    combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
+        skus.forEach(sku => {
+            if (!(this.bot.handler as MyHandler).weapon().craft.includes(sku)) {
+                return;
+            }
+            log.debug('Enqueueing combine weapon job for ' + skus);
+
+            this.newJob({ type: 'combineClassWeapon', skus: skus, callback: callback });
+        });
     }
 
     useItem(assetid: string, callback?: (err: Error | null) => void): void {
@@ -131,6 +143,8 @@ export = class TF2GC {
 
             if (job.type === 'combineWeapon') {
                 func = this.handleCraftJobWeapon.bind(this, job);
+            } else if (job.type === 'combineClassWeapon') {
+                func = this.handleCraftJobClassWeapon.bind(this, job);
             } else if (job.type === 'smelt' || job.type === 'combine') {
                 func = this.handleCraftJob.bind(this, job);
             } else if (job.type === 'use' || job.type === 'delete') {
@@ -214,6 +228,47 @@ export = class TF2GC {
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
                 ids.forEach(assetid => this.bot.inventoryManager.getInventory().removeItem(assetid));
+
+                // Add items gained
+                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
+
+                this.finishedProcessingJob();
+            },
+            err => {
+                this.finishedProcessingJob(err);
+            }
+        );
+    }
+
+    private handleCraftJobClassWeapon(job: Job): void {
+        if (!this.canProcessJobWeapon(job)) {
+            return this.finishedProcessingJob(new Error("Can't process class weapon crafting job"));
+        }
+
+        const assetids1 = this.bot.inventoryManager
+            .getInventory()
+            .findBySKU(job.skus[0], true)
+            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const assetids2 = this.bot.inventoryManager
+            .getInventory()
+            .findBySKU(job.skus[1], true)
+            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+
+        const id1 = assetids1[0];
+        const id2 = assetids2[0];
+
+        log.debug('Sending weapon craft request');
+
+        this.bot.tf2.craft([id1, id2]);
+
+        const gainSKU = '5000;6';
+
+        this.listenForEvent(
+            'craftingComplete',
+            (recipe: number, itemsGained: string[]) => {
+                // Remove items used for recipe
+                this.bot.inventoryManager.getInventory().removeItem(id1);
+                this.bot.inventoryManager.getInventory().removeItem(id2);
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
@@ -410,6 +465,17 @@ export = class TF2GC {
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
             return job.type === 'combineWeapon' && assetids.length >= 2;
+        } else if (job.type === 'combineClassWeapon') {
+            const assetids1 = this.bot.inventoryManager
+                .getInventory()
+                .findBySKU(job.skus[0], true)
+                .filter(assetid => !this.bot.trades.isInTrade(assetid));
+            const assetids2 = this.bot.inventoryManager
+                .getInventory()
+                .findBySKU(job.skus[1], true)
+                .filter(assetid => !this.bot.trades.isInTrade(assetid));
+
+            return job.type === 'combineClassWeapon' && assetids1.length >= 1 && assetids2.length >= 1;
         }
         return true;
     }

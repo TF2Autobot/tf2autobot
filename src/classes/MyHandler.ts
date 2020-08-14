@@ -1629,6 +1629,317 @@ export = class MyHandler extends Handler {
         }
     }
 
+    private async craftClassWeapons(): Promise<void> {
+        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+            return;
+        }
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        // Scout weapons
+        const scout = [
+            '45;6', // Force-A-Nature               == Scout/Primary ==
+            '220;6', // Shortstop
+            '448;6', // Soda Popper
+            '772;6', // Baby Face's Blaster
+            '1103;6', // Back Scatter
+            '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
+            '163;6', // Crit-a-Cola
+            '222;6', // Mad Milk
+            '449;6', // Winger
+            '773;6', // Pretty Boy's Pocket Pistol
+            '812;6', // Flying Guillotine
+            '44;6', // Sandman                      == Scout/Melee ==
+            '221;6', // Holy Mackerel
+            '317;6', // Candy Cane
+            '325;6', // Boston Basher
+            '349;6', // Sun-on-a-Stick
+            '355;6', // Fan O'War
+            '450;6', // Atomizer
+            '648;6' // Wrap Assassin
+        ];
+
+        for (let i = 0; i < scout.length; i++) {
+            for (let j = 1; j < scout.length; i++) {
+                const wep1 = currencies[scout[i]].length;
+                const wep2 = currencies[scout[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(scout[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(scout[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([scout[i], scout[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Soldier weapons
+        const soldier = [
+            '127;6', // Direct Hit                  == Soldier/Primary ==
+            '228;6', // Black Box
+            '237;6', // Rocket Jumper
+            '414;6', // Liberty Launcher
+            '441;6', // Cow Mangler 5000
+            '513;6', // Original
+            '730;6', // Beggar's Bazooka
+            '1104;6', // Air Strike
+            '129;6', // Buff Banner                 == Soldier/Secondary ==
+            '133;6', // Gunboats
+            '226;6', // Battalion's Backup
+            '354;6', // Concheror
+            '415;6', // (Reserve Shooter - Shared - Soldier/Pyro)
+            '442;6', // Righteous Bison
+            '1101;6', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+            '1153;6', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+            '444;6', // Mantreads
+            '128;6', // Equalizer                   == Soldier/Melee ==
+            '154;6', // (Pain Train - Shared - Soldier/Demoman)
+            '357;6', // (Half-Zatoichi - Shared - Soldier/Demoman)
+            '416;6', // Market Gardener
+            '447;6', // Disciplinary Action
+            '775;6' // Escape Plan
+        ];
+
+        for (let i = 0; i < soldier.length; i++) {
+            for (let j = 1; j < soldier.length; i++) {
+                const wep1 = currencies[soldier[i]].length;
+                const wep2 = currencies[soldier[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(soldier[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(soldier[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([soldier[i], soldier[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Pyro weapons
+        const pyro = [
+            '40;6', // Backburner                   == Pyro/Primary ==
+            '215;6', // Degreaser
+            '594;6', // Phlogistinator
+            '741;6', // Rainblower
+            '1178;6', // Dragon's Fury
+            '39;6', // Flare Gun                    == Pyro/Secondary ==
+            '351;6', // Detonator
+            '595;6', // Manmelter
+            '740;6', // Scorch Shot
+            '1179;6', // Thermal Thruster
+            '1180;6', // Gas Passer
+            '38;6', // Axtinguisher                 == Pyro/Melee ==
+            '153;6', // Homewrecker
+            '214;6', // Powerjack
+            '326;6', // Back Scratcher
+            '348;6', // Sharpened Volcano Fragment
+            '457;6', // Postal Pummeler
+            '593;6', // Third Degree
+            '739;6', // Lollichop
+            '813;6', // Neon Annihilator
+            '1181;6' // Hot Hand
+        ];
+
+        for (let i = 0; i < pyro.length; i++) {
+            for (let j = 1; j < pyro.length; i++) {
+                const wep1 = currencies[pyro[i]].length;
+                const wep2 = currencies[pyro[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(pyro[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(pyro[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([pyro[i], pyro[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Demomman weapons
+        const demoman = [
+            '308;6', // Loch-n-Load                 == Demoman/Primary ==
+            '405;6', // Ali Baba's Wee Booties
+            '608;6', // Bootlegger
+            '996;6', // Loose Cannon
+            '1151;6', // Iron Bomber
+            '130;6', // Scottish Resistance         == Demoman/Secondary ==
+            '131;6', // Chargin' Targe
+            '265;6', // Sticky Jumper
+            '406;6', // Splendid Screen
+            '1099;6', // Tide Turner
+            '1150;6', // Quickiebomb Launcher
+            '132;6', // Eyelander                   == Demoman/Melee ==
+            '172;6', // Scotsman's Skullcutter
+            '307;6', // Ullapool Caber
+            '327;6', // Claidheamh Mòr
+            '404;6', // Persian Persuader
+            '482;6', // Nessie's Nine Iron
+            '609;6' // Scottish Handshake
+        ];
+
+        for (let i = 0; i < demoman.length; i++) {
+            for (let j = 1; j < demoman.length; i++) {
+                const wep1 = currencies[demoman[i]].length;
+                const wep2 = currencies[demoman[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(demoman[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(demoman[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([demoman[i], demoman[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Heavy weapons
+        const heavy = [
+            '41;6', // Natascha                     == Heavy/Primary ==
+            '312;6', // Brass Beast
+            '424;6', // Tomislav
+            '811;6', // Huo-Long Heater
+            '42;6', // Sandvich                     == Heavy/Secondary ==
+            '159;6', // Dalokohs Bar
+            '311;6', // Buffalo Steak Sandvich
+            '425;6', // Family Business
+            '1190;6', // Second Banana
+            '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
+            '239;6', // Gloves of Running Urgently
+            '310;6', // Warrior's Spirit
+            '331;6', // Fists of Steel
+            '426;6', // Eviction Notice
+            '656;6' // Holiday Punch
+        ];
+
+        for (let i = 0; i < heavy.length; i++) {
+            for (let j = 1; j < heavy.length; i++) {
+                const wep1 = currencies[heavy[i]].length;
+                const wep2 = currencies[heavy[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(heavy[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(heavy[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([heavy[i], heavy[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Engineer weapons
+        const engineer = [
+            '141;6', // Frontier Justice            == Engineer/Primary ==
+            '527;6', // Widowmaker
+            '588;6', // Pomson 6000
+            '997;6', // Rescue Ranger
+            '140;6', // Wrangler                    == Engineer/Secondary ==
+            '528;6', // Short Circuit
+            '142;6', // Gunslinger                  == Engineer/Melee ==
+            '155;6', // Southern Hospitality
+            '329;6', // Jag
+            '589;6' // Eureka Effect
+        ];
+
+        for (let i = 0; i < engineer.length; i++) {
+            for (let j = 1; j < engineer.length; i++) {
+                const wep1 = currencies[engineer[i]].length;
+                const wep2 = currencies[engineer[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(engineer[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(engineer[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([engineer[i], engineer[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Medic weapons
+        const medic = [
+            '36;6', // Blutsauger                   == Medic/Primary ==
+            '305;6', // Crusader's Crossbow
+            '412;6', // Overdose
+            '35;6', // Kritzkrieg                   == Medic/Secondary ==
+            '411;6', // Quick-Fix
+            '998;6', // Vaccinator
+            '37;6', // Ubersaw                      == Medic/Melee ==
+            '173;6', // Vita-Saw
+            '304;6', // Amputator
+            '413;6' // Solemn Vow
+        ];
+
+        for (let i = 0; i < medic.length; i++) {
+            for (let j = 1; j < medic.length; i++) {
+                const wep1 = currencies[medic[i]].length;
+                const wep2 = currencies[medic[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(medic[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(medic[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([medic[i], medic[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Sniper weapons
+        const sniper = [
+            '56;6', // Huntsman                     == Sniper/Primary ==
+            '230;6', // Sydney Sleeper
+            '402;6', // Bazaar Bargain
+            '526;6', // Machina
+            '752;6', // Hitman's Heatmaker
+            '1092;6', // Fortified Compound
+            '1098;6', // Classic
+            '57;6', // Razorback                    == Sniper/Secondary ==
+            '58;6', // Jarate
+            '231;6', // Darwin's Danger Shield
+            '642;6', // Cozy Camper
+            '751;6', // Cleaner's Carbine
+            '171;6', // Tribalman's Shiv            == Sniper/Melee ==
+            '232;6', // Bushwacka
+            '401;6' // Shahanshah
+        ];
+
+        for (let i = 0; i < sniper.length; i++) {
+            for (let j = 1; j < sniper.length; i++) {
+                const wep1 = currencies[sniper[i]].length;
+                const wep2 = currencies[sniper[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sniper[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sniper[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sniper[i], sniper[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+
+        // Spy weapons
+        const spy = [
+            '61;6', // Ambassador                   == Spy/Primary ==
+            '224;6', // L'Etranger
+            '460;6', // Enforcer
+            '525;6', // Diamondback
+            '225;6', // Your Eternal Reward         == Spy/Melee ==
+            '356;6', // Conniver's Kunai
+            '461;6', // Big Earner
+            '649;6', // Spy-cicle
+            '810;6', // Red-Tape Recorder           == Spy/PDA ==
+            '60;6', // Cloak and Dagger             == Spy/PDA2 ==
+            '59;6' // Dead Ringer
+        ];
+
+        for (let i = 0; i < spy.length; i++) {
+            for (let j = 1; j < spy.length; i++) {
+                const wep1 = currencies[spy[i]].length;
+                const wep2 = currencies[spy[j]].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(spy[i], true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(spy[j], true) === null;
+
+                if (isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([spy[i], spy[j]]);
+                    await sleepasync().Promise.sleep(2 * 1000);
+                }
+            }
+        }
+    }
+
     private sortInventory(): void {
         if (process.env.DISABLE_INVENTORY_SORT !== 'true') {
             this.bot.tf2gc.sortInventory(3);
