@@ -446,8 +446,13 @@ export = class DiscordWebhookClass {
             tradeLinks.forEach((link, i) => {
                 const discordClient = new DiscordWebhook(link);
                 let fix;
+                let deleted = false;
+
                 if (i > 0) {
-                    delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
+                    if (!deleted) {
+                        delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
+                        deleted = true; // ensure to delete one time only
+                    }
                     fix = acceptedTradeSummary;
                 } else {
                     fix = acceptedTradeSummary;
