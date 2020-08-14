@@ -64,7 +64,7 @@ class CartQueue {
                     process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                 ) {
                     const time = (this.bot.handler as MyHandler).timeWithEmoji();
-                    this.discord.sendQueueAlert(position + 1, time.time);
+                    this.discord.sendQueueAlert(position, time.time);
                     this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
