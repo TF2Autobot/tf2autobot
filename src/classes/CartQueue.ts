@@ -57,7 +57,7 @@ class CartQueue {
         log.debug(`Checking queue position in 3 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
             const position = this.carts.length;
-            log.debug(`Current queue position: ${position + 1}`);
+            log.debug(`Current queue position: ${position}`);
             if (position >= 2) {
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
@@ -79,7 +79,7 @@ class CartQueue {
                             this.discord.sendQueueAlertFailedError(err.message, time.time);
                         });
                 } else {
-                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position + 1}`, []);
+                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
                     this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
