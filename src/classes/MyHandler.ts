@@ -1686,14 +1686,14 @@ export = class MyHandler extends Handler {
             '133;6', // Gunboats
             '226;6', // Battalion's Backup
             '354;6', // Concheror
-            '415;6', // (Reserve Shooter - Shared - Soldier/Pyro)
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
             '442;6', // Righteous Bison
-            '1101;6', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
-            '1153;6', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
             '444;6', // Mantreads
             '128;6', // Equalizer                   == Soldier/Melee ==
-            '154;6', // (Pain Train - Shared - Soldier/Demoman)
-            '357;6', // (Half-Zatoichi - Shared - Soldier/Demoman)
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
             '416;6', // Market Gardener
             '447;6', // Disciplinary Action
             '775;6' // Escape Plan
@@ -1726,6 +1726,8 @@ export = class MyHandler extends Handler {
             '740;6', // Scorch Shot
             '1179;6', // Thermal Thruster
             '1180;6', // Gas Passer
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
             '38;6', // Axtinguisher                 == Pyro/Melee ==
             '153;6', // Homewrecker
             '214;6', // Powerjack
@@ -1765,13 +1767,16 @@ export = class MyHandler extends Handler {
             '406;6', // Splendid Screen
             '1099;6', // Tide Turner
             '1150;6', // Quickiebomb Launcher
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
             '132;6', // Eyelander                   == Demoman/Melee ==
             '172;6', // Scotsman's Skullcutter
             '307;6', // Ullapool Caber
             '327;6', // Claidheamh Mòr
             '404;6', // Persian Persuader
             '482;6', // Nessie's Nine Iron
-            '609;6' // Scottish Handshake
+            '609;6', // Scottish Handshake
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
         ];
 
         for (let i = 0; i < demoman.length; i++) {
@@ -1799,6 +1804,7 @@ export = class MyHandler extends Handler {
             '311;6', // Buffalo Steak Sandvich
             '425;6', // Family Business
             '1190;6', // Second Banana
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
             '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
             '239;6', // Gloves of Running Urgently
             '310;6', // Warrior's Spirit
@@ -1829,6 +1835,7 @@ export = class MyHandler extends Handler {
             '997;6', // Rescue Ranger
             '140;6', // Wrangler                    == Engineer/Secondary ==
             '528;6', // Short Circuit
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
             '142;6', // Gunslinger                  == Engineer/Melee ==
             '155;6', // Southern Hospitality
             '329;6', // Jag
