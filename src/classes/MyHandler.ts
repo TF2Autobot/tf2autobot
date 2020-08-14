@@ -1665,14 +1665,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < scout.length; i++) {
-            for (let j = 1; j < scout.length; i++) {
-                const wep1 = currencies[scout[i]].length;
-                const wep2 = currencies[scout[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(scout[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(scout[j], true) === null;
+            const sku1 = scout[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < scout.length; j++) {
+                const sku2 = scout[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([scout[i], scout[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1706,14 +1708,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < soldier.length; i++) {
-            for (let j = 1; j < soldier.length; i++) {
-                const wep1 = currencies[soldier[i]].length;
-                const wep2 = currencies[soldier[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(soldier[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(soldier[j], true) === null;
+            const sku1 = soldier[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < soldier.length; j++) {
+                const sku2 = soldier[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([soldier[i], soldier[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1747,14 +1751,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < pyro.length; i++) {
-            for (let j = 1; j < pyro.length; i++) {
-                const wep1 = currencies[pyro[i]].length;
-                const wep2 = currencies[pyro[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(pyro[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(pyro[j], true) === null;
+            const sku1 = pyro[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < pyro.length; j++) {
+                const sku2 = pyro[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([pyro[i], pyro[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1786,14 +1792,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < demoman.length; i++) {
-            for (let j = 1; j < demoman.length; i++) {
-                const wep1 = currencies[demoman[i]].length;
-                const wep2 = currencies[demoman[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(demoman[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(demoman[j], true) === null;
+            const sku1 = demoman[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < demoman.length; j++) {
+                const sku2 = demoman[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([demoman[i], demoman[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1820,14 +1828,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < heavy.length; i++) {
-            for (let j = 1; j < heavy.length; i++) {
-                const wep1 = currencies[heavy[i]].length;
-                const wep2 = currencies[heavy[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(heavy[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(heavy[j], true) === null;
+            const sku1 = heavy[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < heavy.length; j++) {
+                const sku2 = heavy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([heavy[i], heavy[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1849,14 +1859,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < engineer.length; i++) {
-            for (let j = 1; j < engineer.length; i++) {
-                const wep1 = currencies[engineer[i]].length;
-                const wep2 = currencies[engineer[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(engineer[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(engineer[j], true) === null;
+            const sku1 = engineer[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < engineer.length; j++) {
+                const sku2 = engineer[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([engineer[i], engineer[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1877,14 +1889,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < medic.length; i++) {
-            for (let j = 1; j < medic.length; i++) {
-                const wep1 = currencies[medic[i]].length;
-                const wep2 = currencies[medic[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(medic[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(medic[j], true) === null;
+            const sku1 = medic[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < medic.length; j++) {
+                const sku2 = medic[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([medic[i], medic[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1910,14 +1924,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < sniper.length; i++) {
-            for (let j = 1; j < sniper.length; i++) {
-                const wep1 = currencies[sniper[i]].length;
-                const wep2 = currencies[sniper[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sniper[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sniper[j], true) === null;
+            const sku1 = sniper[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < sniper.length; j++) {
+                const sku2 = sniper[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sniper[i], sniper[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
@@ -1939,14 +1955,16 @@ export = class MyHandler extends Handler {
         ];
 
         for (let i = 0; i < spy.length; i++) {
-            for (let j = 1; j < spy.length; i++) {
-                const wep1 = currencies[spy[i]].length;
-                const wep2 = currencies[spy[j]].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(spy[i], true) === null;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(spy[j], true) === null;
+            const sku1 = spy[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < spy.length; j++) {
+                const sku2 = spy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([spy[i], spy[j]]);
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
                     await sleepasync().Promise.sleep(2 * 1000);
                 }
             }
