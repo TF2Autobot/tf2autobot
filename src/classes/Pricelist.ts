@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
@@ -464,10 +464,6 @@ export default class Pricelist extends EventEmitter {
     }
 
     private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
@@ -620,7 +616,7 @@ export default class Pricelist extends EventEmitter {
         const qualityColorPrint = qualityColor.color[qualityItem].toString();
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             embeds: [
@@ -649,10 +645,12 @@ export default class Pricelist extends EventEmitter {
                     color: qualityColorPrint
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
-        request.send(priceUpdate);
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        const requestBody: Webhook.input.POST = priceUpdate;
+        discordClient.execute(requestBody);
     }
 
     private getOld(): Entry[] {
