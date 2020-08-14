@@ -88,6 +88,8 @@ export = class MyHandler extends Handler {
         isBanking: boolean;
     };
 
+    private classWeaponsTimeout;
+
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -257,7 +259,10 @@ export = class MyHandler extends Handler {
         this.craftDuplicateWeapons();
 
         // Craft class weapons
-        this.craftClassWeapons();
+        this.classWeaponsTimeout = setTimeout(() => {
+            // called after 2 minutes to craft metals and duplicated weapons first.
+            this.craftClassWeapons();
+        }, 2 * 60 * 1000);
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
@@ -1318,8 +1323,11 @@ export = class MyHandler extends Handler {
             // Craft duplicated weapons
             this.craftDuplicateWeapons();
 
-            // Craft class weapons
-            this.craftClassWeapons();
+            clearTimeout(this.classWeaponsTimeout);
+            this.classWeaponsTimeout = setTimeout(() => {
+                // called after 2 minutes to craft metals and duplicated weapons first.
+                this.craftClassWeapons();
+            }, 2 * 60 * 1000);
 
             // Sort inventory
             this.sortInventory();
