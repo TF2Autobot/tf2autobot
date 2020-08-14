@@ -77,11 +77,11 @@ const ADMIN_COMMANDS: string[] = [
     "!inventory - Get your bot's current inventory spaces 🎒",
     '!version - Get the version that your bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
-    '!trade <offerID> - Get information about a trade offer',
+    '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
-    '!pricecheck <sku=> OR <item=> - Request an item to be price checked by PricesTF',
+    '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
     "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF."
 ];
 
