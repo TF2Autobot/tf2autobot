@@ -27,62 +27,62 @@ import SchemaManager from 'tf2-schema';
 import Autokeys from './Autokeys';
 
 const COMMANDS: string[] = [
-    '!help - Get list of commands',
-    '!how2trade - Guide on how to use and trade with the bot',
+    '!help - Get a list of commands',
+    '!how2trade - Guide on how to trade with the bot',
     '!price [amount] <name> - Get the price and stock of an item 💲📦\n\n✨=== Instant item trade ===✨',
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲\n\n✨=== Multiple items trade ===✨',
-    '!buycart [amount] <name> - Adds an item you want to buy to the cart 🛒',
-    '!sellcart [amount] <name> - Adds an item you want to sell to the cart 🛒',
-    '!cart - See current cart 🛒',
-    '!clearcart - Clears the current cart ❎🛒',
-    '!checkout - Make the bot send an offer the items in the cart ✅🛒\n\n✨=== Trade actions ===✨',
-    '!cancel - Cancel an already made offer, or cancel offer being made ❌',
+    '!buycart [amount] <name> - Add an item you want to buy to your cart 🛒',
+    '!sellcart [amount] <name> - Add an item you want to sell to your cart 🛒',
+    '!cart - See your cart 🛒',
+    '!clearcart - Clear your cart ❎🛒',
+    '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n✨=== Trade actions ===✨',
+    '!cancel - Cancel the trade offer ❌',
     '!queue - See your position in the queue\n',
-    '!more - Show advanced commands list'
+    '!more - Show the advanced commands list'
 ];
 
 const MORE: string[] = [
     '!message <your message> - Send a message to the owner of the bot 💬',
-    '!autokeys - Get info on my current autokeys settings 🔑',
-    '!time - Show owner current time 🕥',
-    '!pure - Get current pure stock 💰',
-    '!rate - Get current key prices 🔑',
-    '!stock - Get a list of items that the bot has',
-    '!craftweapon - get a list of craft weapon stock 🔫',
-    '!uncraftweapon - get a list of uncraft weapon stock 🔫',
-    '!sales sku=<item sku> - get sales history for an item'
+    "!autokeys - Get info on the bot's current autokeys settings 🔑",
+    "!time - Show the owner's current time 🕥",
+    "!pure - Get the bot's current pure stock 💰",
+    "!rate - Get the bot's current key rates 🔑",
+    '!stock - Get a list of items that the bot owns',
+    "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
+    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
+    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
-    '!deposit <name=>&<amount=> - Used to deposit items',
-    '!withdraw <name=>&<amount=> - Used to withdraw items\n\n✨=== Pricelist manager ===✨',
-    '!add - Add a pricelist entry ➕',
-    '!update - Update a pricelist entry',
+    '!deposit <name=>&<amount=> - Deposit items',
+    '!withdraw <name=>&<amount=> - Withdraw items\n\n✨=== Pricelist manager ===✨',
+    '!add <sku=> OR <item=> - Add a pricelist entry ➕',
+    '!update <sku=> OR <item=> - Update a pricelist entry',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
-    '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
-    '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
-    '!name <new_name> - Change name',
-    '!avatar <image_URL> - Change avatar',
-    '!message <steamid> <your message> - Send a message to a user 💬',
+    "!expand <craftable=true|false> - Use Backpack Expanders to increase your bot's inventory limit",
+    "!delete sku=<item sku> OR assetid=<item assetid> - Delete any item from your bot's inventory (use only sku) 🚮",
+    '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
-    '!unblock <steamid> - Unblock specific user',
-    '!stop - Stop the bot 🔴',
-    '!restart - Restart the bot 🔄',
+    '!unblock <steamid> - Unblock a specific user',
+    '!stop - Stop your bot 🔴',
+    '!restart - Restart your bot 🔄',
     '!refreshautokeys - Refresh your autokeys settings.',
-    '!relist - Perform relisting.',
+    "!relist - Relist of all your bot's listings.",
+    "!name <new_name> - Change your bot's name",
+    "!avatar <image_URL> - Change your bot's avatar",
     '!resetqueue - Reset queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
-    '!inventory - Get my current inventory spaces 🎒',
-    '!version - Get version that the bot is running\n\n✨=== Manual review ===✨',
-    '!trades - Get a list of offers pending for manual review 🔍',
-    '!trade <offerID> - Get info about a trade',
+    "!inventory - Get your bot's current inventory spaces 🎒",
+    '!version - Get the version that your bot is running\n\n✨=== Manual review ===✨',
+    '!trades - Get a list of trade offers pending for manual review 🔍',
+    '!trade <offerID> - Get information about a trade offer',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
-    '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
-    '!pricecheckall - Automatically request all items in your inventory to be checked by Prices.TF.',
-    '!check sku=<item sku> - Request current price for an item from Prices.TF'
+    '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
+    '!pricecheck <sku=> OR <item=> - Request an item to be price checked by PricesTF',
+    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF."
 ];
 
 export = class Commands {
@@ -2326,13 +2326,13 @@ export = class Commands {
         const anHour = 1 * 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
-            `⌛ Price check requested for ${total} items, will be done in approximately ${
+            `⌛ Price check requested for ${total} items. It will be completed in approximately ${
                 totalTime < aMin
                     ? `${Math.round(totalTime / aSecond)} seconds.`
                     : totalTime < anHour
                     ? `${Math.round(totalTime / aMin)} minutes.`
                     : `${Math.round(totalTime / anHour)} hours.`
-            } (every 2 seconds for each items).`
+            } (about 2 seconds for each item).`
         );
 
         const skus = pricelist.map(entry => entry.sku);
@@ -2365,7 +2365,7 @@ export = class Commands {
                 if (submitted === total) {
                     this.bot.sendMessage(
                         steamID,
-                        `✅ Successfully requested pricecheck for all ${total} ${pluralize('item', total)}!`
+                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
                     );
                 }
             });
@@ -2453,18 +2453,18 @@ export = class Commands {
         if (match === null) {
             this.bot.sendMessage(
                 steamID,
-                `❌ I could not find any items in my pricelist that contains "${name}", I might not be trading the item you are looking for.
+                `❌ I could not find any items in my pricelist that contains "${name}". I may not be trading the item you are looking for.
                 
-                Alternatively, please try:
-                • remove "The".
-                • remove "Unusual", just put effect and name, example: "Kill-a-Watt Vive La France".
-                • remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".
-                • some Taunt needs "The" like "Taunt: The High Five!", and some are not.
-                • check for dash (-) like "All-Father" or "Mini-Engy".
-                • check for single quote (') like "Orion's Belt" or "Chargin' Targe".
-                • check for dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".
-                • check for exclamation mark (!) like "Bonk! Atomic Punch".
-                • if you're looking for uncraftable items, do it like "Non-Craftable Crit-a-Cola".`
+                Alternatively, please try to:
+                • Remove "The".
+                • Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".
+                • Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".
+                • Some Taunts need "The" such as "Taunt: The High Five!", while others do not.
+                • Check for a dash (-) like "All-Father" or "Mini-Engy".
+                • Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".
+                • Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".
+                • Check for an exclamation mark (!) like "Bonk! Atomic Punch".
+                • If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
             );
             return null;
         } else if (Array.isArray(match)) {
