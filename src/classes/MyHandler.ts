@@ -1635,7 +1635,7 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private async craftClassWeapons(): Promise<void> {
+    private craftClassWeapons(): Promise<void> {
         if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
             return;
         }
@@ -1664,6 +1664,8 @@ export = class MyHandler extends Handler {
             '648;6' // Wrap Assassin
         ];
 
+        let matched = false;
+
         for (let i = 0; i < scout.length; i++) {
             const sku1 = scout[i];
             const wep1 = currencies[sku1].length;
@@ -1675,10 +1677,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Soldier weapons
         const soldier = [
@@ -1718,10 +1726,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Pyro weapons
         const pyro = [
@@ -1761,10 +1775,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Demomman weapons
         const demoman = [
@@ -1802,10 +1822,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Heavy weapons
         const heavy = [
@@ -1838,10 +1864,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Engineer weapons
         const engineer = [
@@ -1869,10 +1901,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Medic weapons
         const medic = [
@@ -1899,10 +1937,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Sniper weapons
         const sniper = [
@@ -1934,10 +1978,16 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
             }
+            if (matched) {
+                break;
+            }
         }
+
+        matched = false;
 
         // Spy weapons
         const spy = [
@@ -1965,8 +2015,12 @@ export = class MyHandler extends Handler {
 
                 if (isWep1 && isWep2) {
                     this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    await sleepasync().Promise.sleep(2 * 1000);
+                    matched = true;
+                    break;
                 }
+            }
+            if (matched) {
+                break;
             }
         }
     }
