@@ -82,7 +82,7 @@ const ADMIN_COMMANDS: string[] = [
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
     '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
-    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF."
+    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF"
 ];
 
 export = class Commands {
