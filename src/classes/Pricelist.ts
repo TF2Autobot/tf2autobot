@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
@@ -101,6 +101,13 @@ export default class Pricelist extends EventEmitter {
     private prices: Entry[] = [];
 
     private keyPrices: { buy: Currencies; sell: Currencies };
+
+    private priceChanges: {
+        sku: string;
+        name: string;
+        newPrice: Entry;
+        time: string;
+    }[] = [];
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
@@ -445,15 +452,29 @@ export default class Pricelist extends EventEmitter {
             match.sell = new Currencies(data.sell);
             match.time = data.time;
 
-            const itemName = this.schema.getName(SKU.fromString(match.sku), false);
-
             this.priceChanged(match.sku, match);
 
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(data.sku, itemName, match);
+                const time = moment()
+                    .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+                    .format(
+                        process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
+                    );
+
+                this.priceChanges.push({
+                    sku: data.sku,
+                    name: this.schema.getName(SKU.fromString(match.sku), false),
+                    newPrice: match,
+                    time: time
+                });
+
+                if (this.priceChanges.length > 9) {
+                    this.sendWebHookPriceUpdate(this.priceChanges);
+                    this.priceChanges.length = 0;
+                }
             }
         }
     }
@@ -463,17 +484,31 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+    private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
+        const embed: {
+            author: {
+                name: string;
+                url: string;
+                icon_url: string;
+            };
+            footer: {
+                text: string;
+            };
+            thumbnail: {
+                url: string;
+            };
+            image: {
+                url: string;
+            };
+            title: string;
+            description: string;
+            color: string;
+        }[] = [];
 
-        const parts = sku.split(';');
-        const newSku = parts[0] + ';6';
-        const item = SKU.fromString(newSku);
-        const newName = this.schema.getName(item, false);
-
-        const itemImageUrl = this.schema.getItemByItemName(newName);
+        let isMentionKeys: string;
+        let itemImageUrlPrint: string;
+        let effectsId: string;
+        let effectURL: string;
 
         const paintCan = {
             canColor: {
@@ -572,31 +607,6 @@ export default class Pricelist extends EventEmitter {
                 'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
         };
 
-        let itemImageUrlPrint: string;
-        if (!itemImageUrl) {
-            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-        } else if (Object.keys(paintCan.canColor).includes(newSku)) {
-            itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan.canColor[newSku]}.png`;
-        } else if (sku.includes(';11;australium')) {
-            const australiumSKU = parts[0] + ';11;australium';
-            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
-        } else {
-            itemImageUrlPrint = itemImageUrl.image_url_large;
-        }
-
-        let effectsId: string;
-        if (parts[2]) {
-            effectsId = parts[2].replace('u', '');
-        }
-
-        let effectURL: string;
-        if (!effectsId) {
-            effectURL = '';
-        } else {
-            effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
-        }
-
-        const qualityItem = parts[1];
         const qualityColor = {
             color: {
                 '0': '11711154', // Normal - #B2B2B2
@@ -613,45 +623,82 @@ export default class Pricelist extends EventEmitter {
                 '15': '16711422' // Decorated Weapon
             }
         };
-        const qualityColorPrint = qualityColor.color[qualityItem].toString();
+
+        data.forEach(data => {
+            const parts = data.sku.split(';');
+            const newSku = parts[0] + ';6';
+            const item = SKU.fromString(newSku);
+            const newName = this.schema.getName(item, false);
+
+            isMentionKeys = data.sku === '5021;6' ? '<@&742723818568679505> - key price updated!' : '';
+
+            const itemImageUrl = this.schema.getItemByItemName(newName);
+
+            if (!itemImageUrl) {
+                itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+            } else if (Object.keys(paintCan.canColor).includes(newSku)) {
+                itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan.canColor[newSku]}.png`;
+            } else if (data.sku.includes(';11;australium')) {
+                const australiumSKU = parts[0] + ';11;australium';
+                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+            } else {
+                itemImageUrlPrint = itemImageUrl.image_url_large;
+            }
+
+            if (parts[2]) {
+                effectsId = parts[2].replace('u', '');
+            }
+
+            if (!effectsId) {
+                effectURL = '';
+            } else {
+                effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
+            }
+
+            const qualityItem = parts[1];
+            const qualityColorPrint = qualityColor.color[qualityItem].toString();
+
+            /*eslint-disable */
+            embed.push({
+                author: {
+                    name: data.name,
+                    url: `https://www.prices.tf/items/${data.sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `Item's SKU: ${data.sku} • ${data.time}`
+                },
+                thumbnail: {
+                    url: itemImageUrlPrint
+                },
+                image: {
+                    url: effectURL
+                },
+                title: '',
+                description:
+                    `**※  Buy:** ${data.newPrice.buy.toString()}\n` +
+                    `**※ Sell:** ${data.newPrice.sell.toString()}\n` +
+                    (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        : ''),
+                color: qualityColorPrint
+            });
+            /*eslint-enable */
+        });
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            embeds: [
-                {
-                    author: {
-                        name: itemName,
-                        url: `https://www.prices.tf/items/${sku}`,
-                        icon_url:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                    },
-                    footer: {
-                        text: `Item's SKU: ${sku} • ${time}`
-                    },
-                    thumbnail: {
-                        url: itemImageUrlPrint
-                    },
-                    image: {
-                        url: effectURL
-                    },
-                    title: '',
-                    description:
-                        `**※Buying for:** ${newPrice.buy.toString()}\n**※Selling for:** ${newPrice.sell.toString()}\n` +
-                        (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                            ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                            : ''),
-                    color: qualityColorPrint
-                }
-            ]
-        });
+            content: isMentionKeys,
+            embeds: embed
+        };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        const requestBody: Webhook.input.POST = priceUpdate;
+        discordClient.execute(requestBody);
     }
 
     private getOld(): Entry[] {
