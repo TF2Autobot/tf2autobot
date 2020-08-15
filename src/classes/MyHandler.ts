@@ -60,12 +60,14 @@ export = class MyHandler extends Handler {
         invalidItemsSKU: string[];
         invalidItemsValue: string[];
         overstockedItemsSKU: string[];
+        understockedItemsSKU: string[];
         dupedItemsSKU: string[];
         dupedFailedItemsSKU: string[];
     } = {
         invalidItemsSKU: [],
         invalidItemsValue: [],
         overstockedItemsSKU: [],
+        understockedItemsSKU: [],
         dupedItemsSKU: [],
         dupedFailedItemsSKU: []
     };
@@ -570,12 +572,21 @@ export = class MyHandler extends Handler {
 
         let hasOverstock = false;
 
+        let hasUnderstock = false;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: (
             | {
                   reason: '🟦OVERSTOCKED';
                   sku: string;
                   buying: boolean;
+                  diff: number;
+                  amountCanTrade: number;
+              }
+            | {
+                  reason: '🟧UNDERSTOCKED';
+                  sku: string;
+                  selling: boolean;
                   diff: number;
                   amountCanTrade: number;
               }
@@ -672,22 +683,37 @@ export = class MyHandler extends Handler {
                         // Check stock limits (not for keys)
                         const diff = itemsDiff[sku];
 
-                        const buyingOverstockCheck = diff > 0;
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, buyingOverstockCheck);
+                        const isBuying = diff > 0;
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying);
 
                         if (diff !== 0 && amountCanTrade < diff && notIncludeCraftweapon) {
-                            // User is taking too many / offering too many
-                            hasOverstock = true;
+                            if (isBuying) {
+                                // User is offering too many
+                                hasOverstock = true;
 
-                            this.reviewItems.overstockedItemsSKU.push(sku);
+                                this.reviewItems.overstockedItemsSKU.push(sku);
 
-                            wrongAboutOffer.push({
-                                reason: '🟦OVERSTOCKED',
-                                sku: sku,
-                                buying: buyingOverstockCheck,
-                                diff: diff,
-                                amountCanTrade: amountCanTrade
-                            });
+                                wrongAboutOffer.push({
+                                    reason: '🟦OVERSTOCKED',
+                                    sku: sku,
+                                    buying: isBuying,
+                                    diff: diff,
+                                    amountCanTrade: amountCanTrade
+                                });
+                            } else {
+                                // User is taking too many
+                                hasUnderstock = true;
+
+                                this.reviewItems.understockedItemsSKU.push(sku);
+
+                                wrongAboutOffer.push({
+                                    reason: '🟧UNDERSTOCKED',
+                                    sku: sku,
+                                    selling: !isBuying,
+                                    diff: diff,
+                                    amountCanTrade: amountCanTrade
+                                });
+                            }
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
@@ -796,21 +822,37 @@ export = class MyHandler extends Handler {
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
 
-                const buying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', buying);
+                const isBuying = diff > 0;
+                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
-                    // User is taking too many / offering too many
-                    hasOverstock = true;
-                    wrongAboutOffer.push({
-                        reason: '🟦OVERSTOCKED',
-                        sku: '5021;6',
-                        buying: buying,
-                        diff: diff,
-                        amountCanTrade: amountCanTrade
-                    });
+                    if (isBuying) {
+                        // User is offering too many
+                        hasOverstock = true;
+                        wrongAboutOffer.push({
+                            reason: '🟦OVERSTOCKED',
+                            sku: '5021;6',
+                            buying: isBuying,
+                            diff: diff,
+                            amountCanTrade: amountCanTrade
+                        });
+                    } else {
+                        // User is taking too many
+                        hasUnderstock = true;
+
+                        this.reviewItems.understockedItemsSKU.push('5021;6');
+
+                        wrongAboutOffer.push({
+                            reason: '🟧UNDERSTOCKED',
+                            sku: '5021;6',
+                            selling: !isBuying,
+                            diff: diff,
+                            amountCanTrade: amountCanTrade
+                        });
+                    }
                 }
             }
+
             if (this.autokeys.isEnabled !== false) {
                 if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
                     log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
@@ -870,7 +912,7 @@ export = class MyHandler extends Handler {
 
         if (!manualReviewEnabled) {
             if (hasOverstock) {
-                offer.log('info', 'is taking / offering too many, declining...');
+                offer.log('info', 'is offering too many, declining...');
 
                 const reasons = wrongAboutOffer.map(wrong => wrong.reason);
                 const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -878,6 +920,22 @@ export = class MyHandler extends Handler {
                 return {
                     action: 'decline',
                     reason: '🟦OVERSTOCKED',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
+
+            if (hasUnderstock) {
+                offer.log('info', 'is taking too many, declining...');
+
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+                return {
+                    action: 'decline',
+                    reason: '🟧UNDERSTOCKED',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -1031,7 +1089,8 @@ export = class MyHandler extends Handler {
 
             const acceptingCondition =
                 process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false'
+                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
+                process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
                     ? exchange.our.value < exchange.their.value
                     : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
                     ? exchange.our.value <= exchange.their.value
@@ -1054,7 +1113,9 @@ export = class MyHandler extends Handler {
                 ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
                     (uniqueReasons.includes('🟦OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true') ||
+                    (uniqueReasons.includes('🟧UNDERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY !== 'true')) &&
                 !(
                     uniqueReasons.includes('🟥INVALID_VALUE') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
@@ -1076,6 +1137,7 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
                 uniqueReasons.includes('🟥INVALID_VALUE') &&
                 !(
+                    uniqueReasons.includes('🟧UNDERSTOCKED') ||
                     uniqueReasons.includes('🟨INVALID_ITEMS') ||
                     uniqueReasons.includes('🟦OVERSTOCKED') ||
                     uniqueReasons.includes('🟫DUPED_ITEMS') ||
@@ -1383,6 +1445,7 @@ export = class MyHandler extends Handler {
             const invalidItemsName: string[] = [];
             const invalidItemsCombine: string[] = [];
             const overstockedItemsName: string[] = [];
+            const understockedItemsName: string[] = [];
             const dupedItemsName: string[] = [];
             const dupedFailedItemsName: string[] = [];
             const reasons = meta.uniqueReasons;
@@ -1428,6 +1491,22 @@ export = class MyHandler extends Handler {
                           /%name%/g,
                           overstockedItemsName.join(', ')
                       );
+                reviewReasons.push(note);
+            }
+
+            if (reasons.includes('🟧UNDERSTOCKED')) {
+                this.reviewItems.understockedItemsSKU.forEach(sku => {
+                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                    understockedItemsName.push(name);
+                });
+
+                note = process.env.UNDERSTOCKED_NOTE
+                    ? `🟧UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
+                          .replace(/%name%/g, understockedItemsName.join(', '))
+                          .replace(/%isName%/, pluralize('is', understockedItemsName.length))
+                    : `🟧UNDERSTOCKED - If I sell more ${understockedItemsName.join(
+                          ', '
+                      )} then it will reached min amount I can have. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
             }
 
@@ -1519,6 +1598,15 @@ export = class MyHandler extends Handler {
                             : '')
                 );
             }
+
+            const items = {
+                invalid: invalidItemsCombine,
+                overstock: overstockedItemsName,
+                understock: understockedItemsName,
+                duped: dupedItemsName,
+                dupedFailed: dupedFailedItemsName
+            };
+
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
@@ -1530,10 +1618,7 @@ export = class MyHandler extends Handler {
                     keyPrice,
                     value,
                     links,
-                    invalidItemsCombine,
-                    overstockedItemsName,
-                    dupedItemsName,
-                    dupedFailedItemsName
+                    items
                 );
             } else {
                 const offerMessage = offer.message;
@@ -1547,7 +1632,7 @@ export = class MyHandler extends Handler {
                             : '') +
                         summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
                         `${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}` +
-                        `${listItems(invalidItemsName, overstockedItemsName, dupedItemsName, dupedFailedItemsName)}` +
+                        `${listItems(items)}` +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}`,
@@ -2916,21 +3001,42 @@ function summarizeSteamChat(
     return summary;
 }
 
-function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
-        overstock.length !== 0
-            ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
-        duped.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
+              '🟧UNDERSTOCKED:\n- ' +
+              items.understock.join(',\n- ')
             : '';
     list +=
-        dupedFailed.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟫DUPED_ITEMS:\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n'
+                  : '') +
               '🟪DUPE_CHECK_FAILED:\n- ' +
-              dupedFailed.join(',\n- ')
+              items.dupedFailed.join(',\n- ')
             : '';
 
     if (list.length === 0) {
