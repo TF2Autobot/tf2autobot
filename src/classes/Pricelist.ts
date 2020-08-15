@@ -505,146 +505,86 @@ export default class Pricelist extends EventEmitter {
             color: string;
         }[] = [];
 
-        let itemImageUrlPrint: string;
-        let effectsId: string;
-        let effectURL: string;
-
         const paintCan = {
-            canColor: {
-                '5052;6': '2f4f4f', // A Color Similar to Slate
-                '5031;6': '7d4071', // A Deep Commitment to Purple
-                '5040;6': '141414', // A Distinctive Lack of Hue
-                '5076;6': 'bcddb3', // A Mann's Mint
-                '5077;6': '2d2d24', // After Eight
-                '5038;6': '7e7e7e', // Aged Moustache Grey
-                '5063;6': '654740', // An Air of Debonair
-                '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
-                '5037;6': 'e7b53b', // Australium Gold
-                '5062;6': '3b1f23', // Balaclavas Are Forever
-                '5030;6': 'd8bed8', // Color No. 216-190-216
-                '5065;6': 'c36c2d', // Cream Spirit
-                '5056;6': 'e9967a', // Dark Salmon Injustice
-                '5053;6': '808000', // Drably Olive
-                '5027;6': '729e42', // Indubitably Green
-                '5032;6': 'cf7336', // Mann Co. Orange
-                '5033;6': 'a57545', // Muskelmannbraun
-                '5029;6': '51384a', // Noble Hatter's Violet
-                '5060;6': '483838', // Operator's Overalls
-                '5034;6': 'c5af91', // Peculiarly Drab Tincture
-                '5051;6': 'ff69b4', // Pink as Hell
-                '5035;6': '694d3a', // Radigan Conagher Brown
-                '5046;6': 'b8383b', // Team Spirit
-                '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
-                '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
-                '5064;6': '803020', // The Value of Teamwork
-                '5061;6': 'a89a8c', // Waterlogged Lab Coat
-                '5036;6': '7c6c57', // Ye Olde Rustic Colour
-                '5028;6': '424f3b' // Zepheniah's Greed
-            }
-        };
-
-        const australiumImageURL = {
-            // Australium Ambassador
-            '61;11;australium':
-                'IUwYcXxrxqzlHh9rZCv2ADN8Mmsgy4N4MgGBvxVQuY7G2ZW8zJlfDUKJYCqxp8lnuW34wvJM3DIHgr-8CcAu9qsKYZG08QCvM/',
-            // Australium Medi Gun
-            '211;11;australium':
-                'cUwoUWRLlrTZ8j8fqCc2ACfIHnpQ35pFWgGVtkFEqMuawNTQ-IwaaVfgICfRs9Vm9UXdmvpcwV4TipO4CZ0yx42dGigAL/',
-            // Australium SMG
-            '203;11;australium':
-                'IUxQcWiTltzRHt8TnH_WJRrhXmYpmvchRimI4xlMtbOfmNGdhdlTGV_VdDqBjrV-9CH43uZMzV4f457UBxvSrc7I/',
-            // Australium Stickybomb Launcher
-            '207;11;australium':
-                'cUxQFVBjpoTpMhcrZAfOZBuMInsgK4p9Z3QlnkBN8Ma2xNGBldwbGBfQHCqNj9Vy-UXJm6sVmVYS0oLlWeFm9soqSYbd_N4tEAYCODYMwr6jb/',
-            // Australium Black Box
-            '228;11;australium':
-                'IUwUdXBjpujdbt8_pAfazBOESnN97tJUAiGc6wFl4ZbvjaDU0JFbGUvUJCPc-8QvqDXc36pI6V4_go-oCexKv6tWDpsnI5Q/',
-            // Australium Blutsauger
-            '36;11;australium':
-                'IUwsUWBjqvy1Nt8_pAfazBOESnN97vZQFgGVtyQUrbeW2ZjM_IFHGA_JYC_BuoQ7qDyJlusVnUdO1orpQfRKv6tW-OVvZVQ/',
-            // Australium Flame Thrower
-            '208;11;australium':
-                'IUwEdXBbnrDBRh9_jH82LB-wEpNY095dQl2AzwlAsY7GzY242JlbHUKRdD6JtrV_pCndhvcJgDI7jpe8Afgrq54LYc-5723D3DXU/',
-            // Australium Force-A-Nature
-            '45;11;australium':
-                'IUwMeSBnuvQdBidr0CP6zD-8Mn-U55IJS3Hg4xFB_NbSzYjJkcwCRUaFaCaJopVzuWHBi65dnAILu8u9Te1--t9DCLfByZ9DzsRlF/',
-            // Australium Frontier Justice
-            '141;11;australium':
-                'IUwEDUhX2sT1Rgt31GfuPDd8HlNYx2pxUyzFu31V6YrLiZWJiIVeUV6IKDvdi9wy-UXA3upY3VtG19eMDeAzusYLOMrcycIYb30r634E/',
-            // Australium Grenade Launcher
-            '206;11;australium':
-                'cUwADWBXjvD1Pid3oDvqJGt8HlNYx2pxUyzFu31YtYObgYGFjJ12VBKYLDac78FC5WyYxvMU1DYC0pLpTcAq8sIOVNrEycIYbGbNsLhA/',
-            // Australium Minigun
-            '202;11;australium':
-                'cUwoYUxLlrTZ8j8fqCc2ACfIHnpRl48RRjjczw1N_YuLmYjVhJwaSUvILCa1r8Fm5X3cwupFnAoXvob8DZ0yx4_oW5y4u/',
-            // Australium Tomislav
-            '424;11;australium':
-                'IUxMeUBLxtDlVt8_pAfazBOESnN974chX2mQ9wQMrY-G3YGdhcwWXB_UPWKZt9wruUX9ivpFlAIWwou1VehKv6tXcWH-bzQ/',
-            // Australium Rocket Launcher
-            '205;11;australium':
-                'cUxUeXhDnrDRCncblBfeeN-cPl94K6ZFH3jMlwgcsNeaxZDYwcQWbA_BbDvZprArqXSJluJ5hUYPur-xRKlnq4daUO65sbo8Wbc6SlA/',
-            // Australium Scattergun
-            '200;11;australium':
-                'cUxQSXA_2vSpEncbZCv2ADN8Mmsgy4N4E2Gc-lQcsMuDlY2A2IQbHB6UGWK0-9V29WnY365E3BYTkpb1UewzqqsKYZAHhHABV/',
-            // Australium Sniper Rifle
-            '201;11;australium':
-                'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-            // Australium Sniper Rifle 2 - weird
-            '15072;11;australium':
-                'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-            // Australium Axtinguisher
-            '38;11;australium':
-                'IUwYJSRLsvy1Km8DjH82cEfIPpN066ZRq1Td5lgQ1MrDhZmAyKgfHU_cLX6NtrAy8W3Bnup4zVdPur-heew3otoTCZ7R_ZcYMQZeUvB7w1w/',
-            // Australium Eyelander
-            '132;11;australium':
-                'IUwQdXALvtypGt8_pAfazBOESnN974ZFWjW8ylVJ_Y-C3aWEyKwGbUvUHWaRpo1--CHE2vsRmUITh9bhWehKv6tX00uGxPA/',
-            // Australium Knife
-            '194;11;australium':
-                'cUwwfVB3nhz9MhMzZAfOeD-VOyIJs55YAjDA8wAd6NrHnMm4xcFKSU_ZcCPQ49QzoXXQ0vcUxAYDu8vUWJ1teRmVbCw/',
-            // Australium Wrench
-            '197;11;australium':
-                'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
+            '5052;6': '2f4f4f', // A Color Similar to Slate
+            '5031;6': '7d4071', // A Deep Commitment to Purple
+            '5040;6': '141414', // A Distinctive Lack of Hue
+            '5076;6': 'bcddb3', // A Mann's Mint
+            '5077;6': '2d2d24', // After Eight
+            '5038;6': '7e7e7e', // Aged Moustache Grey
+            '5063;6': '654740', // An Air of Debonair
+            '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
+            '5037;6': 'e7b53b', // Australium Gold
+            '5062;6': '3b1f23', // Balaclavas Are Forever
+            '5030;6': 'd8bed8', // Color No. 216-190-216
+            '5065;6': 'c36c2d', // Cream Spirit
+            '5056;6': 'e9967a', // Dark Salmon Injustice
+            '5053;6': '808000', // Drably Olive
+            '5027;6': '729e42', // Indubitably Green
+            '5032;6': 'cf7336', // Mann Co. Orange
+            '5033;6': 'a57545', // Muskelmannbraun
+            '5029;6': '51384a', // Noble Hatter's Violet
+            '5060;6': '483838', // Operator's Overalls
+            '5034;6': 'c5af91', // Peculiarly Drab Tincture
+            '5051;6': 'ff69b4', // Pink as Hell
+            '5035;6': '694d3a', // Radigan Conagher Brown
+            '5046;6': 'b8383b', // Team Spirit
+            '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
+            '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
+            '5064;6': '803020', // The Value of Teamwork
+            '5061;6': 'a89a8c', // Waterlogged Lab Coat
+            '5036;6': '7c6c57', // Ye Olde Rustic Colour
+            '5028;6': '424f3b' // Zepheniah's Greed
         };
 
         const qualityColor = {
-            color: {
-                '0': '11711154', // Normal - #B2B2B2
-                '1': '5076053', // Genuine - #4D7455
-                '3': '4678289', // Vintage - #476291
-                '5': '8802476', // Unusual - #8650AC
-                '6': '16766720', // Unique - #FFD700
-                '7': '7385162', // Community - #70B04A
-                '8': '10817401', // Valve - #A50F79
-                '9': '7385162', //Self-Made - #70B04A
-                '11': '13593138', //Strange - #CF6A32
-                '13': '3732395', //Haunted - #38F3AB
-                '14': '11141120', //Collector's - #AA0000
-                '15': '16711422' // Decorated Weapon
-            }
+            '0': '11711154', // Normal - #B2B2B2
+            '1': '5076053', // Genuine - #4D7455
+            '3': '4678289', // Vintage - #476291
+            '5': '8802476', // Unusual - #8650AC
+            '6': '16766720', // Unique - #FFD700
+            '7': '7385162', // Community - #70B04A
+            '8': '10817401', // Valve - #A50F79
+            '9': '7385162', //Self-Made - #70B04A
+            '11': '13593138', //Strange - #CF6A32
+            '13': '3732395', //Haunted - #38F3AB
+            '14': '11141120', //Collector's - #AA0000
+            '15': '16711422' // Decorated Weapon
         };
 
         data.forEach(data => {
             const parts = data.sku.split(';');
             const newSku = parts[0] + ';6';
-            const item = SKU.fromString(newSku);
-            const newName = this.schema.getName(item, false);
+            const newItem = SKU.fromString(newSku);
+            const newName = this.schema.getName(newItem, false);
 
             const itemImageUrl = this.schema.getItemByItemName(newName);
 
-            if (!itemImageUrl) {
+            let itemImageUrlPrint: string;
+
+            const item = SKU.fromString(data.sku);
+
+            if (!itemImageUrl || !item) {
                 itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-            } else if (Object.keys(paintCan.canColor).includes(newSku)) {
-                itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan.canColor[newSku]}.png`;
-            } else if (data.sku.includes(';11;australium')) {
-                const australiumSKU = parts[0] + ';11;australium';
-                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+            } else if (Object.keys(paintCan).includes(newSku)) {
+                itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan[newSku]}.png`;
+            } else if (item.australium === true) {
+                itemImageUrlPrint = `https://scrap.tf/img/items/440/${item.defindex}-gold.png`;
+            } else if (item.paintkit !== null) {
+                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
+                    item.paintkit
+                }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
             } else {
                 itemImageUrlPrint = itemImageUrl.image_url_large;
             }
 
+            let effectsId: string;
+
             if (parts[2]) {
                 effectsId = parts[2].replace('u', '');
             }
+
+            let effectURL: string;
 
             if (!effectsId) {
                 effectURL = '';
@@ -653,7 +593,7 @@ export default class Pricelist extends EventEmitter {
             }
 
             const qualityItem = parts[1];
-            const qualityColorPrint = qualityColor.color[qualityItem].toString();
+            const qualityColorPrint = qualityColor[qualityItem].toString();
 
             /*eslint-disable */
             embed.push({
