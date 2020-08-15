@@ -436,11 +436,8 @@ export = class DiscordWebhook {
                                     (isShowInventory
                                         ? `\n🎒 Total items: ${currentItems +
                                               (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
-                                        : '')
-                            },
-                            {
-                                name: '__Notes__',
-                                value: AdditionalNotes ? '\n' + AdditionalNotes : '-'
+                                        : '') +
+                                    (AdditionalNotes ? '\n' + AdditionalNotes : '-')
                             }
                         ],
                         color: botEmbedColor
