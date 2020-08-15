@@ -218,6 +218,8 @@ export = class DiscordWebhook {
 
         const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
 
+        const itemList = listItems(invalidItems, overstocked, duped, dupedFailed);
+
         let partnerAvatar: string;
         let partnerName: string;
         log.debug('getting partner Avatar and Name...');
@@ -236,7 +238,7 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = replaceSpecialChar(partnerName);
 
             /*eslint-disable */
-            const webhookReview = JSON.stringify({
+            const webhookReview = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -267,7 +269,7 @@ export = class DiscordWebhook {
                         fields: [
                             {
                                 name: '__**Item list**__',
-                                value: listItems(invalidItems, overstocked, duped, dupedFailed)
+                                value: itemList
                             },
                             {
                                 name: '__**Status**__',
@@ -281,12 +283,13 @@ export = class DiscordWebhook {
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
+
             /*eslint-enable */
             const request = new XMLHttpRequest();
             request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
             request.setRequestHeader('Content-type', 'application/json');
-            request.send(webhookReview);
+            request.send(JSON.stringify(webhookReview));
         });
     }
 
