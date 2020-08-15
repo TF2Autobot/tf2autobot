@@ -73,11 +73,11 @@ export = class Autokeys {
             this.isEnableScrapAdjustment = true;
         }
 
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' || process.env.ENABLE_AUTOKEYS === 'true') {
+        if (process.env.ENABLE_AUTOKEYS === 'true') {
             this.isEnabled = true;
         }
 
-        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true' || process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
+        if (process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
             this.isKeyBankingEnabled = true;
         }
     }

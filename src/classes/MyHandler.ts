@@ -293,7 +293,7 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeys.isActive === true) {
+            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
                 this.autokeys.disable();
             }
@@ -1564,7 +1564,7 @@ export = class MyHandler extends Handler {
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
+        if (process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();
