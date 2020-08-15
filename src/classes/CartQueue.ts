@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 
 import Bot from './Bot';
 import Cart from './Cart';
-import DiscordWebhook from './DiscordWebhook';
+import DiscordWebhookClass from './DiscordWebhook';
 import MyHandler from './MyHandler';
 
 import log from '../lib/logger';
@@ -12,7 +12,7 @@ export = CartQueue;
 class CartQueue {
     private readonly bot: Bot;
 
-    readonly discord: DiscordWebhook;
+    readonly discord: DiscordWebhookClass;
 
     private carts: Cart[] = [];
 
@@ -22,7 +22,7 @@ class CartQueue {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhook(bot);
+        this.discord = new DiscordWebhookClass(bot);
     }
 
     enqueue(cart: Cart): number {

@@ -1,6 +1,6 @@
 import Bot from './Bot';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
@@ -8,7 +8,7 @@ import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
 import SKU from 'tf2-sku';
 
-export = class DiscordWebhook {
+export = class DiscordWebhookClass {
     private readonly bot: Bot;
 
     private enableMentionOwner = false;
@@ -80,10 +80,9 @@ export = class DiscordWebhook {
         };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(pureAlert));
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = pureAlert;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlert(position: number, time: string): void {
@@ -95,10 +94,9 @@ export = class DiscordWebhook {
         };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(discordQueue));
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = discordQueue;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlertFailedPM2(time: string): void {
@@ -110,10 +108,9 @@ export = class DiscordWebhook {
         };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(queueAlertFailed));
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = queueAlertFailed;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlertFailedError(err: any, time: string): void {
@@ -125,10 +122,9 @@ export = class DiscordWebhook {
         };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(queueAlertError));
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = queueAlertError;
+        discordClient.execute(requestBody);
     }
 
     sendPartnerMessage(
@@ -142,7 +138,7 @@ export = class DiscordWebhook {
         time: string
     ): void {
         /*eslint-disable */
-        const discordPartnerMsg = JSON.stringify({
+        const discordPartnerMsg = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}>, new message! - ${steamID}`,
@@ -161,13 +157,12 @@ export = class DiscordWebhook {
                     color: this.botEmbedColor
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(discordPartnerMsg);
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+        const requestBody: Webhook.input.POST = discordPartnerMsg;
+        discordClient.execute(requestBody);
     }
 
     sendOfferReview(
@@ -286,10 +281,9 @@ export = class DiscordWebhook {
             };
 
             /*eslint-enable */
-            const request = new XMLHttpRequest();
-            request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(JSON.stringify(webhookReview));
+            const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+            const requestBody: Webhook.input.POST = webhookReview;
+            discordClient.execute(requestBody);
         });
     }
 
@@ -388,7 +382,7 @@ export = class DiscordWebhook {
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
-            const acceptedTradeSummary = JSON.stringify({
+            const acceptedTradeSummary = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -446,15 +440,25 @@ export = class DiscordWebhook {
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
             /*eslint-enable */
 
             tradeLinks.forEach((link, i) => {
-                const request = new XMLHttpRequest();
-                request.open('POST', link);
-                request.setRequestHeader('Content-type', 'application/json');
-                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
+                const discordClient = new DiscordWebhook(link);
+                let fix;
+                let deleted = false;
+
+                if (i > 0) {
+                    if (!deleted) {
+                        delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
+                        deleted = true; // ensure to delete one time only
+                    }
+                    fix = acceptedTradeSummary;
+                } else {
+                    fix = acceptedTradeSummary;
+                }
+                const requestBody: Webhook.input.POST = fix;
+                discordClient.execute(requestBody);
             });
 
             // reset array
