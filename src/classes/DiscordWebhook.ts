@@ -281,7 +281,7 @@ export = class DiscordWebhookClass {
             };
 
             /*eslint-enable */
-            const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+            const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
             const requestBody: Webhook.input.POST = webhookReview;
             discordClient.execute(requestBody);
         });
