@@ -686,15 +686,6 @@ export = class MyHandler extends Handler {
                         const isBuying = diff > 0; // is buying if true.
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
 
-                        log.debug(
-                            'isBuying: ' +
-                                isBuying.toString() +
-                                ' | amountCanTrade < diff: ' +
-                                amountCanTrade +
-                                ' < ' +
-                                diff
-                        );
-
                         if (diff !== 0 && amountCanTrade < diff && notIncludeCraftweapon) {
                             // User is offering too many
                             hasOverstock = true;
@@ -710,7 +701,7 @@ export = class MyHandler extends Handler {
                             });
                         }
 
-                        if (diff !== 0 && !isBuying && amountCanTrade > match.min && amountCanTrade < Math.abs(diff)) {
+                        if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
                             // User is taking too many
                             hasUnderstock = true;
 
@@ -846,7 +837,7 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                if (diff !== 0 && !isBuying && amountCanTrade > priceEntry.min && amountCanTrade < Math.abs(diff)) {
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
                     // User is taking too many
                     hasUnderstock = true;
 
