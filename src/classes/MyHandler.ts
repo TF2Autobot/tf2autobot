@@ -683,37 +683,46 @@ export = class MyHandler extends Handler {
                         // Check stock limits (not for keys)
                         const diff = itemsDiff[sku];
 
-                        const isBuying = diff > 0;
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying);
+                        const isBuying = diff > 0; // is buying if true.
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
+
+                        log.debug(
+                            'isBuying: ' +
+                                isBuying.toString() +
+                                ' | amountCanTrade < diff: ' +
+                                amountCanTrade +
+                                ' < ' +
+                                diff
+                        );
 
                         if (diff !== 0 && amountCanTrade < diff && notIncludeCraftweapon) {
-                            if (isBuying) {
-                                // User is offering too many
-                                hasOverstock = true;
+                            // User is offering too many
+                            hasOverstock = true;
 
-                                this.reviewItems.overstockedItemsSKU.push(sku);
+                            this.reviewItems.overstockedItemsSKU.push(sku);
 
-                                wrongAboutOffer.push({
-                                    reason: '🟦OVERSTOCKED',
-                                    sku: sku,
-                                    buying: isBuying,
-                                    diff: diff,
-                                    amountCanTrade: amountCanTrade
-                                });
-                            } else {
-                                // User is taking too many
-                                hasUnderstock = true;
+                            wrongAboutOffer.push({
+                                reason: '🟦OVERSTOCKED',
+                                sku: sku,
+                                buying: isBuying,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade
+                            });
+                        }
 
-                                this.reviewItems.understockedItemsSKU.push(sku);
+                        if (diff !== 0 && !isBuying && amountCanTrade > match.min && amountCanTrade < Math.abs(diff)) {
+                            // User is taking too many
+                            hasUnderstock = true;
 
-                                wrongAboutOffer.push({
-                                    reason: '🟧UNDERSTOCKED',
-                                    sku: sku,
-                                    selling: !isBuying,
-                                    diff: diff,
-                                    amountCanTrade: amountCanTrade
-                                });
-                            }
+                            this.reviewItems.understockedItemsSKU.push(sku);
+
+                            wrongAboutOffer.push({
+                                reason: '🟧UNDERSTOCKED',
+                                sku: sku,
+                                selling: !isBuying,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade
+                            });
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
@@ -826,30 +835,30 @@ export = class MyHandler extends Handler {
                 const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
-                    if (isBuying) {
-                        // User is offering too many
-                        hasOverstock = true;
-                        wrongAboutOffer.push({
-                            reason: '🟦OVERSTOCKED',
-                            sku: '5021;6',
-                            buying: isBuying,
-                            diff: diff,
-                            amountCanTrade: amountCanTrade
-                        });
-                    } else {
-                        // User is taking too many
-                        hasUnderstock = true;
+                    // User is offering too many
+                    hasOverstock = true;
+                    wrongAboutOffer.push({
+                        reason: '🟦OVERSTOCKED',
+                        sku: '5021;6',
+                        buying: isBuying,
+                        diff: diff,
+                        amountCanTrade: amountCanTrade
+                    });
+                }
 
-                        this.reviewItems.understockedItemsSKU.push('5021;6');
+                if (diff !== 0 && !isBuying && amountCanTrade > priceEntry.min && amountCanTrade < Math.abs(diff)) {
+                    // User is taking too many
+                    hasUnderstock = true;
 
-                        wrongAboutOffer.push({
-                            reason: '🟧UNDERSTOCKED',
-                            sku: '5021;6',
-                            selling: !isBuying,
-                            diff: diff,
-                            amountCanTrade: amountCanTrade
-                        });
-                    }
+                    this.reviewItems.understockedItemsSKU.push('5021;6');
+
+                    wrongAboutOffer.push({
+                        reason: '🟧UNDERSTOCKED',
+                        sku: '5021;6',
+                        selling: !isBuying,
+                        diff: diff,
+                        amountCanTrade: amountCanTrade
+                    });
                 }
             }
 
