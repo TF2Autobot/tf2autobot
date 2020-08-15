@@ -445,19 +445,13 @@ export = class DiscordWebhookClass {
 
             tradeLinks.forEach((link, i) => {
                 const discordClient = new DiscordWebhook(link);
-                let fix;
                 let deleted = false;
 
-                if (i > 0) {
-                    if (!deleted) {
-                        delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
-                        deleted = true; // ensure to delete one time only
-                    }
-                    fix = acceptedTradeSummary;
-                } else {
-                    fix = acceptedTradeSummary;
+                if (i > 0 && !deleted) {
+                    delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
+                    deleted = true; // ensure to delete one time only
                 }
-                const requestBody: Webhook.input.POST = fix;
+                const requestBody: Webhook.input.POST = acceptedTradeSummary;
                 discordClient.execute(requestBody);
             });
 
