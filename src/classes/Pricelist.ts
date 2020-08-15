@@ -505,7 +505,6 @@ export default class Pricelist extends EventEmitter {
             color: string;
         }[] = [];
 
-        let isMentionKeys: string;
         let itemImageUrlPrint: string;
         let effectsId: string;
         let effectURL: string;
@@ -630,8 +629,6 @@ export default class Pricelist extends EventEmitter {
             const item = SKU.fromString(newSku);
             const newName = this.schema.getName(item, false);
 
-            isMentionKeys = data.sku === '5021;6' ? '<@&742723818568679505> - key price updated!' : '';
-
             const itemImageUrl = this.schema.getItemByItemName(newName);
 
             if (!itemImageUrl) {
@@ -691,7 +688,7 @@ export default class Pricelist extends EventEmitter {
         const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: isMentionKeys,
+            content: '',
             embeds: embed
         };
         /*eslint-enable */
