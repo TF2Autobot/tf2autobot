@@ -24,13 +24,13 @@ import * as files from '../lib/files';
 import paths from '../resources/paths';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
-import DiscordWebhookClass from './DiscordWebhook';
+import DiscordWebhook from './DiscordWebhook';
 import Autokeys from './Autokeys';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    private readonly discord: DiscordWebhookClass;
+    private readonly discord: DiscordWebhook;
 
     private readonly autokeys: Autokeys;
 
@@ -99,7 +99,7 @@ export = class MyHandler extends Handler {
 
         this.commands = new Commands(bot);
         this.cartQueue = new CartQueue(bot);
-        this.discord = new DiscordWebhookClass(bot);
+        this.discord = new DiscordWebhook(bot);
         this.autokeys = new Autokeys(bot);
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);

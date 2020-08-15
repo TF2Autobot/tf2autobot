@@ -6,12 +6,12 @@ import Currencies from 'tf2-currencies';
 import MyHandler from './MyHandler';
 
 import log from '../lib/logger';
-import DiscordWebhookClass from './DiscordWebhook';
+import DiscordWebhook from './DiscordWebhook';
 
 export = class Autokeys {
     private readonly bot: Bot;
 
-    private readonly discord: DiscordWebhookClass;
+    private readonly discord: DiscordWebhook;
 
     isEnabled = false;
 
@@ -51,7 +51,7 @@ export = class Autokeys {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhookClass(bot);
+        this.discord = new DiscordWebhook(bot);
 
         this.userPure = {
             minKeys: parseInt(process.env.MINIMUM_KEYS),

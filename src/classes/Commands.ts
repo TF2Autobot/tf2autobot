@@ -14,7 +14,7 @@ import AdminCart from './AdminCart';
 import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
-import DiscordWebhookClass from './DiscordWebhook';
+import DiscordWebhook from './DiscordWebhook';
 import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
@@ -88,7 +88,7 @@ const ADMIN_COMMANDS: string[] = [
 export = class Commands {
     private readonly bot: Bot;
 
-    readonly discord: DiscordWebhookClass;
+    readonly discord: DiscordWebhook;
 
     readonly autokeys: Autokeys;
 
@@ -104,7 +104,7 @@ export = class Commands {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhookClass(bot);
+        this.discord = new DiscordWebhook(bot);
         this.autokeys = new Autokeys(bot);
 
         this.first30MinutesTimeout = setTimeout(() => {
