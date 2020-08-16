@@ -1409,12 +1409,11 @@ export = class MyHandler extends Handler {
 
             this.inviteToGroups(offer.partner);
 
-            this.sleep(3000);
-
             // clear/reset these in memory
             this.reviewItems.invalidItemsSKU.length = 0;
             this.reviewItems.invalidItemsValue.length = 0;
             this.reviewItems.overstockedItemsSKU.length = 0;
+            this.reviewItems.understockedItemsSKU.length = 0;
             this.reviewItems.dupedItemsSKU.length = 0;
             this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
@@ -1634,6 +1633,7 @@ export = class MyHandler extends Handler {
             this.reviewItems.invalidItemsSKU.length = 0;
             this.reviewItems.invalidItemsValue.length = 0;
             this.reviewItems.overstockedItemsSKU.length = 0;
+            this.reviewItems.understockedItemsSKU.length = 0;
             this.reviewItems.dupedItemsSKU.length = 0;
             this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
