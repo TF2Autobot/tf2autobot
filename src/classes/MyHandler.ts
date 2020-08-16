@@ -2999,15 +2999,15 @@ function listItems(items: {
     duped: string[];
     dupedFailed: string[];
 }): string {
-    let list = items.invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
+    let list = items.invalid.length !== 0 ? '🟨 INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
         items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦 OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
-              '🟩UNDERSTOCKED:\n- ' +
+              '🟩 UNDERSTOCKED:\n- ' +
               items.understock.join(',\n- ')
             : '';
     list +=
@@ -3015,7 +3015,7 @@ function listItems(items: {
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
                   ? '\n'
                   : '') +
-              '🟫DUPED_ITEMS:\n- ' +
+              '🟫 DUPED_ITEMS:\n- ' +
               items.duped.join(',\n- ')
             : '';
     list +=
@@ -3026,7 +3026,7 @@ function listItems(items: {
               items.duped.length !== 0
                   ? '\n'
                   : '') +
-              '🟪DUPE_CHECK_FAILED:\n- ' +
+              '🟪 DUPE_CHECK_FAILED:\n- ' +
               items.dupedFailed.join(',\n- ')
             : '';
 
