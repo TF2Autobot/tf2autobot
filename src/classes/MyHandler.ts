@@ -796,12 +796,12 @@ export = class MyHandler extends Handler {
                 // We are not selling keys
                 this.autoRelistNotSellingKeys++;
                 offer.log('info', 'we are not selling keys, declining...');
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not buying keys, declining...');
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'];
@@ -1194,6 +1194,12 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
                         reason =
                             'I am no longer trading keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
+                        reason =
+                            'I am no longer selling keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
+                        reason =
+                            'I am no longer buying keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'BANNED') {
                         reason =
                             "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or other community.";
