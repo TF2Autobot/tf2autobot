@@ -1164,14 +1164,6 @@ export = class MyHandler extends Handler {
         return { action: 'accept', reason: 'VALID' };
     }
 
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
-    }
-
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number): void {
