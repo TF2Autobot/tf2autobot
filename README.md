@@ -372,6 +372,8 @@ Time will be use in "!time" command and
 
 -   `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: - Default: `false`. Set to `true` if you do not want your bot to accept a trade with INVALID_ITEMS but with their value more or equal to our value.
 -   `DISABLE_ACCEPT_OVERSTOCKED_OVERPAY`: - Default: `true`. Set to `false` if you want your bot to accept a trade with OVERSTOCKED but with their value more or equal to our value.
+-   `DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY`: - Default: `true`. Set to `false` if you want your bot to accept a trade with UNDERSTOCKED but with their value more or equal to our value.
+
 -   `DISABLE_AUTO_DECLINE_INVALID_VALUE`: - Default: `false`. Set to `true` if you do not want to automatically decline trade with **ONLY** `INVALID_VALUE` and did not match the exception sku(s) and exception value.
 -   `AUTO_DECLINE_INVALID_VALUE_NOTE`: - Your custom note on why the trade got declined. Default is nothing.
 
@@ -381,6 +383,7 @@ Time will be use in "!time" command and
 -   `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 -   \*`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
 -   \*`OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.
+-   \*`UNDERSTOCKED_NOTE` - Your custom UNDERSTOCKED note.
 -   \*`DUPE_ITEMS_NOTE` - Your custom DUPE_ITEMS note.
 -   \*`DUPE_CHECK_FAILED_NOTE` - Your custom DUPE_CHECK_FAILED note.
 -   `ADDITIONAL_NOTE` - Your custom ADDITIONAL note.

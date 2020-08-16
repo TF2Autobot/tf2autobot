@@ -172,10 +172,13 @@ export = class DiscordWebhookClass {
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
-        invalidItemsCombine: string[],
-        overstockedItemsName: string[],
-        dupedItemsName: string[],
-        dupedFailedItemsName: string[]
+        items: {
+            invalid: string[];
+            overstock: string[];
+            understock: string[];
+            duped: string[];
+            dupedFailed: string[];
+        }
     ): void {
         let noMentionOnInvalidValue = false;
         if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
@@ -202,10 +205,13 @@ export = class DiscordWebhookClass {
 
         const message = replaceSpecialChar(offer.message);
 
-        const invalidItems = invalidItemsCombine.map(name => replaceItemName(name));
-        const overstocked = overstockedItemsName.map(name => replaceItemName(name));
-        const duped = dupedItemsName.map(name => replaceItemName(name));
-        const dupedFailed = dupedFailedItemsName.map(name => replaceItemName(name));
+        const itemsName = {
+            invalid: items.invalid.map(name => replaceItemName(name)),
+            overstock: items.overstock.map(name => replaceItemName(name)),
+            understock: items.understock.map(name => replaceItemName(name)),
+            duped: items.duped.map(name => replaceItemName(name)),
+            dupedFailed: items.dupedFailed.map(name => replaceItemName(name))
+        };
 
         const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
         const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
@@ -213,7 +219,7 @@ export = class DiscordWebhookClass {
 
         const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
 
-        const itemList = listItems(invalidItems, overstocked, duped, dupedFailed);
+        const itemList = listItems(itemsName);
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -530,21 +536,42 @@ function summarize(
     return summary;
 }
 
-function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
-        overstock.length !== 0
-            ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
-        duped.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
+              '🟧UNDERSTOCKED:\n- ' +
+              items.understock.join(',\n- ')
             : '';
     list +=
-        dupedFailed.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟫DUPED_ITEMS:\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n'
+                  : '') +
               '🟪DUPE_CHECK_FAILED:\n- ' +
-              dupedFailed.join(',\n- ')
+              items.dupedFailed.join(',\n- ')
             : '';
 
     if (list.length === 0) {
