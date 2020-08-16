@@ -1518,13 +1518,10 @@ export = class MyHandler extends Handler {
                     ? `🟫DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫DUPED_ITEMS - %name% ${pluralize(
+                    : `🟫DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
                           'is',
                           dupedItemsName.length
-                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`.replace(
-                          /%name%/g,
-                          dupedItemsName.join(', ')
-                      );
+                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`;
                 reviewReasons.push(note);
             }
 
@@ -1538,13 +1535,9 @@ export = class MyHandler extends Handler {
                     ? `🟪DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize %name% Original ${pluralize(
-                          'ID',
-                          dupedFailedItemsName.length
-                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`.replace(
-                          /%name%/g,
-                          dupedFailedItemsName.join(', ')
-                      );
+                    : `🟪DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(
+                          ', '
+                      )}, please wait for my owner response.`;
                 reviewReasons.push(note);
             }
 
