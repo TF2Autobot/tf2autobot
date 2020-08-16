@@ -183,12 +183,12 @@ export = class DiscordWebhookClass {
         let noMentionOnInvalidValue = false;
         if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
             if (
-                reasons.includes('🟥INVALID_VALUE') &&
+                reasons.includes('🟥 INVALID_VALUE') &&
                 !(
-                    reasons.includes('🟨INVALID_ITEMS') ||
-                    reasons.includes('🟦OVERSTOCKED') ||
-                    reasons.includes('🟫DUPED_ITEMS') ||
-                    reasons.includes('🟪DUPE_CHECK_FAILED')
+                    reasons.includes('🟨 INVALID_ITEMS') ||
+                    reasons.includes('🟦 OVERSTOCKED') ||
+                    reasons.includes('🟫 DUPED_ITEMS') ||
+                    reasons.includes('🟪 DUPE_CHECK_FAILED')
                 )
             ) {
                 noMentionOnInvalidValue = true;
@@ -259,9 +259,9 @@ export = class DiscordWebhookClass {
                         title: '',
                         description:
                             `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reasons}` +
-                            (reasons.includes('⬜BACKPACKTF_DOWN')
+                            (reasons.includes('⬜ BACKPACKTF_DOWN')
                                 ? '\n\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                                : reasons.includes('⬜STEAM_DOWN')
+                                : reasons.includes('⬜ STEAM_DOWN')
                                 ? '\n\nSteam down, please manually check if this person have escrow.'
                                 : '') +
                             summary +
@@ -409,7 +409,7 @@ export = class DiscordWebhookClass {
                         description:
                             summary +
                             (isMentionInvalidItems
-                                ? '\n\n🟨INVALID_ITEMS:\n' +
+                                ? '\n\n🟨 INVALID_ITEMS:\n' +
                                   (invalidItemsCombine.length === 0
                                       ? invalidItemsName.join(',\n')
                                       : invalidItemsFromMyHandler.join(',\n'))
@@ -543,15 +543,15 @@ function listItems(items: {
     duped: string[];
     dupedFailed: string[];
 }): string {
-    let list = items.invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
+    let list = items.invalid.length !== 0 ? '🟨 INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
         items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦 OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
-              '🟧UNDERSTOCKED:\n- ' +
+              '🟧 UNDERSTOCKED:\n- ' +
               items.understock.join(',\n- ')
             : '';
     list +=
@@ -559,7 +559,7 @@ function listItems(items: {
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
                   ? '\n'
                   : '') +
-              '🟫DUPED_ITEMS:\n- ' +
+              '🟫 DUPED_ITEMS:\n- ' +
               items.duped.join(',\n- ')
             : '';
     list +=
@@ -570,7 +570,7 @@ function listItems(items: {
               items.duped.length !== 0
                   ? '\n'
                   : '') +
-              '🟪DUPE_CHECK_FAILED:\n- ' +
+              '🟪 DUPE_CHECK_FAILED:\n- ' +
               items.dupedFailed.join(',\n- ')
             : '';
 
