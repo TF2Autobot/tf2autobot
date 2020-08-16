@@ -551,7 +551,7 @@ function listItems(items: {
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
-              '🟧 UNDERSTOCKED:\n- ' +
+              '🟩 UNDERSTOCKED:\n- ' +
               items.understock.join(',\n- ')
             : '';
     list +=

@@ -584,7 +584,7 @@ export = class MyHandler extends Handler {
                   amountCanTrade: number;
               }
             | {
-                  reason: '🟧 UNDERSTOCKED';
+                  reason: '🟩 UNDERSTOCKED';
                   sku: string;
                   selling: boolean;
                   diff: number;
@@ -708,7 +708,7 @@ export = class MyHandler extends Handler {
                             this.reviewItems.understockedItemsSKU.push(sku);
 
                             wrongAboutOffer.push({
-                                reason: '🟧 UNDERSTOCKED',
+                                reason: '🟩 UNDERSTOCKED',
                                 sku: sku,
                                 selling: !isBuying,
                                 diff: diff,
@@ -844,7 +844,7 @@ export = class MyHandler extends Handler {
                     this.reviewItems.understockedItemsSKU.push('5021;6');
 
                     wrongAboutOffer.push({
-                        reason: '🟧 UNDERSTOCKED',
+                        reason: '🟩 UNDERSTOCKED',
                         sku: '5021;6',
                         selling: !isBuying,
                         diff: diff,
@@ -935,7 +935,7 @@ export = class MyHandler extends Handler {
 
                 return {
                     action: 'decline',
-                    reason: '🟧 UNDERSTOCKED',
+                    reason: '🟩 UNDERSTOCKED',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -1114,7 +1114,7 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
                     (uniqueReasons.includes('🟦 OVERSTOCKED') &&
                         process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟧 UNDERSTOCKED') &&
+                    (uniqueReasons.includes('🟩 UNDERSTOCKED') &&
                         process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY !== 'true')) &&
                 !(
                     uniqueReasons.includes('🟥 INVALID_VALUE') ||
@@ -1137,7 +1137,7 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
                 uniqueReasons.includes('🟥 INVALID_VALUE') &&
                 !(
-                    uniqueReasons.includes('🟧 UNDERSTOCKED') ||
+                    uniqueReasons.includes('🟩 UNDERSTOCKED') ||
                     uniqueReasons.includes('🟨 INVALID_ITEMS') ||
                     uniqueReasons.includes('🟦 OVERSTOCKED') ||
                     uniqueReasons.includes('🟫 DUPED_ITEMS') ||
@@ -1491,7 +1491,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟧 UNDERSTOCKED')) {
+            if (reasons.includes('🟩 UNDERSTOCKED')) {
                 this.reviewItems.understockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
                     const amount = this.bot.inventoryManager.amountCanTrade(sku, false).toString();
@@ -1499,10 +1499,10 @@ export = class MyHandler extends Handler {
                 });
 
                 note = process.env.UNDERSTOCKED_NOTE
-                    ? `🟧 UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
+                    ? `🟩 UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
                           .replace(/%name%/g, understockedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', understockedItemsName.length))
-                    : `🟧 UNDERSTOCKED - I can only sell ${understockedItemsName.join(
+                    : `🟩 UNDERSTOCKED - I can only sell ${understockedItemsName.join(
                           ', '
                       )} right now. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
@@ -3007,7 +3007,7 @@ function listItems(items: {
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
-              '🟧UNDERSTOCKED:\n- ' +
+              '🟩UNDERSTOCKED:\n- ' +
               items.understock.join(',\n- ')
             : '';
     list +=
