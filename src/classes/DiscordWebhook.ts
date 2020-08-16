@@ -260,10 +260,10 @@ export = class DiscordWebhookClass {
                         title: '',
                         description:
                             `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
-                            (reasons.includes('⬜`_BACKPACKTF_DOWN`')
-                                ? '\n\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                                : reasons.includes('⬜`_STEAM_DOWN`')
-                                ? '\n\nSteam down, please manually check if this person have escrow.'
+                            (reasons.includes('⬜_BACKPACKTF_DOWN')
+                                ? '\n\n`Backpack.tf down, please manually check if this person is banned before accepting the offer.`'
+                                : reasons.includes('⬜_STEAM_DOWN')
+                                ? '\n\n`Steam down, please manually check if this person have escrow.`'
                                 : '') +
                             summary +
                             (offer.message.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
