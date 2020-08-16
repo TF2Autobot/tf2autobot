@@ -1497,16 +1497,17 @@ export = class MyHandler extends Handler {
             if (reasons.includes('🟧UNDERSTOCKED')) {
                 this.reviewItems.understockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    understockedItemsName.push(name);
+                    const amount = this.bot.inventoryManager.amountCanTrade(sku, false).toString();
+                    understockedItemsName.push(amount + ' - ' + name);
                 });
 
                 note = process.env.UNDERSTOCKED_NOTE
                     ? `🟧UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
                           .replace(/%name%/g, understockedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', understockedItemsName.length))
-                    : `🟧UNDERSTOCKED - If I sell more ${understockedItemsName.join(
+                    : `🟧UNDERSTOCKED - I can only sell ${understockedItemsName.join(
                           ', '
-                      )} then it will reached min amount I can have. Please wait for the response from my owner.`;
+                      )} right now. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
             }
 
