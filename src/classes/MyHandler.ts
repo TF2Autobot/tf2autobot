@@ -1477,20 +1477,17 @@ export = class MyHandler extends Handler {
             if (reasons.includes('🟦OVERSTOCKED')) {
                 this.reviewItems.overstockedItemsSKU.forEach(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    overstockedItemsName.push(name);
+                    const amount = this.bot.inventoryManager.amountCanTrade(sku, false).toString();
+                    overstockedItemsName.push(amount + ' - ' + name);
                 });
 
                 note = process.env.OVERSTOCKED_NOTE
                     ? `🟦OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
                           .replace(/%name%/g, overstockedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', overstockedItemsName.length))
-                    : `🟦OVERSTOCKED - %name% ${pluralize(
-                          'is',
-                          overstockedItemsName.length
-                      )} already reached max amount I can have. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          overstockedItemsName.join(', ')
-                      );
+                    : `🟦OVERSTOCKED - I can only buy ${overstockedItemsName.join(
+                          ', '
+                      )} right now. Please wait for the response from my owner.`;
                 reviewReasons.push(note);
             }
 
