@@ -618,7 +618,7 @@ export default class Pricelist extends EventEmitter {
         data.forEach(data => {
             const parts = data.sku.split(';');
             const newSku = parts[0] + ';6';
-            const newItem = SKU.fromString(newSku);
+            const newItem = SKU.fromString(data.sku.includes('266;5') ? '266;5' : newSku);
             const newName = this.schema.getName(newItem, false);
 
             const itemImageUrl = this.schema.getItemByItemName(newName);
