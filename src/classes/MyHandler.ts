@@ -688,7 +688,7 @@ export = class MyHandler extends Handler {
                             });
                         }
 
-                        if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
+                        if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && notIncludeCraftweapon) {
                             // User is taking too many
                             hasUnderstock = true;
 
