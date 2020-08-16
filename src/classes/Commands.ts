@@ -568,7 +568,7 @@ export = class Commands {
             } else if (cart.isCanceled()) {
                 this.bot.sendMessage(
                     steamID,
-                    '⌛ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
+                    '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
                 );
                 return;
             }
@@ -631,12 +631,12 @@ export = class Commands {
             if (currentPosition === 0) {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⌛ You are already in the queue! Please wait while I process your offer.'
+                    '⚠️ You are already in the queue! Please wait while I process your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⌛ You are already in the queue! Please wait your turn, there ' +
+                    '⚠️ You are already in the queue! Please wait your turn, there ' +
                         (currentPosition !== 1 ? 'are' : 'is') +
                         ` ${currentPosition} infront of you.`
                 );
@@ -649,7 +649,7 @@ export = class Commands {
         if (position !== 0) {
             this.bot.sendMessage(
                 cart.partner,
-                '⌛ You have been added to the queue! Please wait your turn, there ' +
+                '✅ You have been added to the queue! Please wait your turn, there ' +
                     (position !== 1 ? 'are' : 'is') +
                     ` ${position} infront of you.`
             );
@@ -788,7 +788,7 @@ export = class Commands {
     private pureCommand(steamID: SteamID): void {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
 
-        this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
+        this.bot.sendMessage(steamID, `💰 I have ${pureStock.join(' and ')} in my inventory.`);
     }
 
     private rateCommand(steamID: SteamID): void {
