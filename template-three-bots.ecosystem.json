@@ -21,7 +21,7 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
@@ -126,6 +126,8 @@
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
+                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
+
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
@@ -135,6 +137,7 @@
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",
+                "UNDERSTOCKED_NOTE": "",
                 "DUPE_ITEMS_NOTE": "",
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
@@ -172,7 +175,7 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
@@ -277,6 +280,8 @@
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
+                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
+
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
@@ -286,6 +291,7 @@
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",
+                "UNDERSTOCKED_NOTE": "",
                 "DUPE_ITEMS_NOTE": "",
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
@@ -323,7 +329,7 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
@@ -428,6 +434,8 @@
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
+                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
+
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
@@ -437,6 +445,7 @@
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",
+                "UNDERSTOCKED_NOTE": "",
                 "DUPE_ITEMS_NOTE": "",
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
