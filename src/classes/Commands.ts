@@ -14,7 +14,7 @@ import AdminCart from './AdminCart';
 import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
-import DiscordWebhook from './DiscordWebhook';
+import DiscordWebhookClass from './DiscordWebhook';
 import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
@@ -88,7 +88,7 @@ const ADMIN_COMMANDS: string[] = [
 export = class Commands {
     private readonly bot: Bot;
 
-    readonly discord: DiscordWebhook;
+    readonly discord: DiscordWebhookClass;
 
     readonly autokeys: Autokeys;
 
@@ -104,7 +104,7 @@ export = class Commands {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhook(bot);
+        this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
 
         this.first30MinutesTimeout = setTimeout(() => {
@@ -568,7 +568,7 @@ export = class Commands {
             } else if (cart.isCanceled()) {
                 this.bot.sendMessage(
                     steamID,
-                    '⌛ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
+                    '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
                 );
                 return;
             }
@@ -631,12 +631,12 @@ export = class Commands {
             if (currentPosition === 0) {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⌛ You are already in the queue! Please wait while I process your offer.'
+                    '⚠️ You are already in the queue! Please wait while I process your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⌛ You are already in the queue! Please wait your turn, there ' +
+                    '⚠️ You are already in the queue! Please wait your turn, there ' +
                         (currentPosition !== 1 ? 'are' : 'is') +
                         ` ${currentPosition} infront of you.`
                 );
@@ -649,7 +649,7 @@ export = class Commands {
         if (position !== 0) {
             this.bot.sendMessage(
                 cart.partner,
-                '⌛ You have been added to the queue! Please wait your turn, there ' +
+                '✅ You have been added to the queue! Please wait your turn, there ' +
                     (position !== 1 ? 'are' : 'is') +
                     ` ${position} infront of you.`
             );
@@ -788,7 +788,7 @@ export = class Commands {
     private pureCommand(steamID: SteamID): void {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
 
-        this.bot.sendMessage(steamID, `💰 I have currently ${pureStock.join(' and ')} in my inventory.`);
+        this.bot.sendMessage(steamID, `💰 I have ${pureStock.join(' and ')} in my inventory.`);
     }
 
     private rateCommand(steamID: SteamID): void {
@@ -1929,11 +1929,12 @@ export = class Commands {
     }
 
     private autoKeysCommand(steamID: SteamID): void {
-        const autokeys = this.autokeys;
-        if (autokeys.isEnabled === false) {
+        if (this.autokeys.isEnabled === false) {
             this.bot.sendMessage(steamID, `This feature is disabled.`);
             return;
         }
+
+        const autokeys = this.autokeys;
 
         const pure = (this.bot.handler as MyHandler).currPure();
         const currKey = pure.key;
@@ -1942,7 +1943,7 @@ export = class Commands {
         const keyPrices = this.bot.pricelist.getKeyPrices();
 
         const userPure = autokeys.userPure;
-        const status = autokeys.status;
+        const status = (this.bot.handler as MyHandler).getAutokeysStatus();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;
@@ -1997,10 +1998,10 @@ export = class Commands {
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n Autokeys status: ${
-            status
-                ? status.isBankingKeys
+            status.isActive
+                ? status.isBanking
                     ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                    : status.isBuyingKeys
+                    : status.isBuying
                     ? 'Buying for ' +
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +

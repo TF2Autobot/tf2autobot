@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
@@ -101,6 +101,13 @@ export default class Pricelist extends EventEmitter {
     private prices: Entry[] = [];
 
     private keyPrices: { buy: Currencies; sell: Currencies };
+
+    private priceChanges: {
+        sku: string;
+        name: string;
+        newPrice: Entry;
+        time: string;
+    }[] = [];
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
@@ -445,15 +452,29 @@ export default class Pricelist extends EventEmitter {
             match.sell = new Currencies(data.sell);
             match.time = data.time;
 
-            const itemName = this.schema.getName(SKU.fromString(match.sku), false);
-
             this.priceChanged(match.sku, match);
 
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(data.sku, itemName, match);
+                const time = moment()
+                    .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+                    .format(
+                        process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
+                    );
+
+                this.priceChanges.push({
+                    sku: data.sku,
+                    name: this.schema.getName(SKU.fromString(match.sku), false),
+                    newPrice: match,
+                    time: time
+                });
+
+                if (this.priceChanges.length > 9) {
+                    this.sendWebHookPriceUpdate(this.priceChanges);
+                    this.priceChanges.length = 0;
+                }
             }
         }
     }
@@ -463,55 +484,26 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
-
-        const parts = sku.split(';');
-        const newSku = parts[0] + ';6';
-        const item = SKU.fromString(newSku);
-        const newName = this.schema.getName(item, false);
-
-        const itemImageUrl = this.schema.getItemByItemName(newName);
-
-        const paintCan = {
-            canColor: {
-                '5052;6': '2f4f4f', // A Color Similar to Slate
-                '5031;6': '7d4071', // A Deep Commitment to Purple
-                '5040;6': '141414', // A Distinctive Lack of Hue
-                '5076;6': 'bcddb3', // A Mann's Mint
-                '5077;6': '2d2d24', // After Eight
-                '5038;6': '7e7e7e', // Aged Moustache Grey
-                '5063;6': '654740', // An Air of Debonair
-                '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
-                '5037;6': 'e7b53b', // Australium Gold
-                '5062;6': '3b1f23', // Balaclavas Are Forever
-                '5030;6': 'd8bed8', // Color No. 216-190-216
-                '5065;6': 'c36c2d', // Cream Spirit
-                '5056;6': 'e9967a', // Dark Salmon Injustice
-                '5053;6': '808000', // Drably Olive
-                '5027;6': '729e42', // Indubitably Green
-                '5032;6': 'cf7336', // Mann Co. Orange
-                '5033;6': 'a57545', // Muskelmannbraun
-                '5029;6': '51384a', // Noble Hatter's Violet
-                '5060;6': '483838', // Operator's Overalls
-                '5034;6': 'c5af91', // Peculiarly Drab Tincture
-                '5051;6': 'ff69b4', // Pink as Hell
-                '5035;6': '694d3a', // Radigan Conagher Brown
-                '5046;6': 'b8383b', // Team Spirit
-                '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
-                '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
-                '5064;6': '803020', // The Value of Teamwork
-                '5061;6': 'a89a8c', // Waterlogged Lab Coat
-                '5036;6': '7c6c57', // Ye Olde Rustic Colour
-                '5028;6': '424f3b' // Zepheniah's Greed
-            }
-        };
+    private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
+        const embed: {
+            author: {
+                name: string;
+                url: string;
+                icon_url: string;
+            };
+            footer: {
+                text: string;
+            };
+            thumbnail: {
+                url: string;
+            };
+            image: {
+                url: string;
+            };
+            title: string;
+            description: string;
+            color: string;
+        }[] = [];
 
         const australiumImageURL = {
             // Australium Ambassador
@@ -576,83 +568,138 @@ export default class Pricelist extends EventEmitter {
                 'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
         };
 
-        let itemImageUrlPrint: string;
-        if (!itemImageUrl) {
-            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-        } else if (Object.keys(paintCan.canColor).includes(newSku)) {
-            itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan.canColor[newSku]}.png`;
-        } else if (sku.includes(';11;australium')) {
-            const australiumSKU = parts[0] + ';11;australium';
-            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
-        } else {
-            itemImageUrlPrint = itemImageUrl.image_url_large;
-        }
-
-        let effectsId: string;
-        if (parts[2]) {
-            effectsId = parts[2].replace('u', '');
-        }
-
-        let effectURL: string;
-        if (!effectsId) {
-            effectURL = '';
-        } else {
-            effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
-        }
-
-        const qualityItem = parts[1];
-        const qualityColor = {
-            color: {
-                '0': '11711154', // Normal - #B2B2B2
-                '1': '5076053', // Genuine - #4D7455
-                '3': '4678289', // Vintage - #476291
-                '5': '8802476', // Unusual - #8650AC
-                '6': '16766720', // Unique - #FFD700
-                '7': '7385162', // Community - #70B04A
-                '8': '10817401', // Valve - #A50F79
-                '9': '7385162', //Self-Made - #70B04A
-                '11': '13593138', //Strange - #CF6A32
-                '13': '3732395', //Haunted - #38F3AB
-                '14': '11141120', //Collector's - #AA0000
-                '15': '16711422' // Decorated Weapon
-            }
+        const paintCan = {
+            '5052;6': '2f4f4f', // A Color Similar to Slate
+            '5031;6': '7d4071', // A Deep Commitment to Purple
+            '5040;6': '141414', // A Distinctive Lack of Hue
+            '5076;6': 'bcddb3', // A Mann's Mint
+            '5077;6': '2d2d24', // After Eight
+            '5038;6': '7e7e7e', // Aged Moustache Grey
+            '5063;6': '654740', // An Air of Debonair
+            '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
+            '5037;6': 'e7b53b', // Australium Gold
+            '5062;6': '3b1f23', // Balaclavas Are Forever
+            '5030;6': 'd8bed8', // Color No. 216-190-216
+            '5065;6': 'c36c2d', // Cream Spirit
+            '5056;6': 'e9967a', // Dark Salmon Injustice
+            '5053;6': '808000', // Drably Olive
+            '5027;6': '729e42', // Indubitably Green
+            '5032;6': 'cf7336', // Mann Co. Orange
+            '5033;6': 'a57545', // Muskelmannbraun
+            '5029;6': '51384a', // Noble Hatter's Violet
+            '5060;6': '483838', // Operator's Overalls
+            '5034;6': 'c5af91', // Peculiarly Drab Tincture
+            '5051;6': 'ff69b4', // Pink as Hell
+            '5035;6': '694d3a', // Radigan Conagher Brown
+            '5046;6': 'b8383b', // Team Spirit
+            '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
+            '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
+            '5064;6': '803020', // The Value of Teamwork
+            '5061;6': 'a89a8c', // Waterlogged Lab Coat
+            '5036;6': '7c6c57', // Ye Olde Rustic Colour
+            '5028;6': '424f3b' // Zepheniah's Greed
         };
-        const qualityColorPrint = qualityColor.color[qualityItem].toString();
+
+        const qualityColor = {
+            '0': '11711154', // Normal - #B2B2B2
+            '1': '5076053', // Genuine - #4D7455
+            '3': '4678289', // Vintage - #476291
+            '5': '8802476', // Unusual - #8650AC
+            '6': '16766720', // Unique - #FFD700
+            '7': '7385162', // Community - #70B04A
+            '8': '10817401', // Valve - #A50F79
+            '9': '7385162', //Self-Made - #70B04A
+            '11': '13593138', //Strange - #CF6A32
+            '13': '3732395', //Haunted - #38F3AB
+            '14': '11141120', //Collector's - #AA0000
+            '15': '16711422' // Decorated Weapon
+        };
+
+        data.forEach(data => {
+            const parts = data.sku.split(';');
+            const newSku = parts[0] + ';6';
+            const newItem = SKU.fromString(data.sku.includes('266;5') ? '266;5' : newSku);
+            const newName = this.schema.getName(newItem, false);
+
+            const itemImageUrl = this.schema.getItemByItemName(newName);
+
+            let itemImageUrlPrint: string;
+
+            const item = SKU.fromString(data.sku);
+
+            if (!itemImageUrl || !item) {
+                itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+            } else if (Object.keys(paintCan).includes(newSku)) {
+                itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan[newSku]}.png`;
+            } else if (item.australium === true) {
+                const australiumSKU = parts[0] + ';11;australium';
+                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+            } else if (item.paintkit !== null) {
+                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
+                    item.paintkit
+                }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+            } else {
+                itemImageUrlPrint = itemImageUrl.image_url_large;
+            }
+
+            let effectsId: string;
+
+            if (parts[2]) {
+                effectsId = parts[2].replace('u', '');
+            }
+
+            let effectURL: string;
+
+            if (!effectsId) {
+                effectURL = '';
+            } else {
+                effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
+            }
+
+            const qualityItem = parts[1];
+            const qualityColorPrint = qualityColor[qualityItem].toString();
+
+            /*eslint-disable */
+            embed.push({
+                author: {
+                    name: data.name,
+                    url: `https://www.prices.tf/items/${data.sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `Item's SKU: ${data.sku} • ${data.time}`
+                },
+                thumbnail: {
+                    url: itemImageUrlPrint
+                },
+                image: {
+                    url: effectURL
+                },
+                title: '',
+                description:
+                    `**※  Buy:** ${data.newPrice.buy.toString()}\n` +
+                    `**※ Sell:** ${data.newPrice.sell.toString()}\n` +
+                    (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        : ''),
+                color: qualityColorPrint
+            });
+            /*eslint-enable */
+        });
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            embeds: [
-                {
-                    author: {
-                        name: itemName,
-                        url: `https://www.prices.tf/items/${sku}`,
-                        icon_url:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                    },
-                    footer: {
-                        text: `Item's SKU: ${sku} • ${time}`
-                    },
-                    thumbnail: {
-                        url: itemImageUrlPrint
-                    },
-                    image: {
-                        url: effectURL
-                    },
-                    title: '',
-                    description:
-                        `**※Buying for:** ${newPrice.buy.toString()}\n**※Selling for:** ${newPrice.sell.toString()}\n` +
-                        (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                            ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                            : ''),
-                    color: qualityColorPrint
-                }
-            ]
-        });
+            content: '',
+            embeds: embed
+        };
         /*eslint-enable */
 
-        request.send(priceUpdate);
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        const requestBody: Webhook.input.POST = priceUpdate;
+        discordClient.execute(requestBody);
     }
 
     private getOld(): Entry[] {

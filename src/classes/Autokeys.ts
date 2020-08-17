@@ -6,12 +6,12 @@ import Currencies from 'tf2-currencies';
 import MyHandler from './MyHandler';
 
 import log from '../lib/logger';
-import DiscordWebhook from './DiscordWebhook';
+import DiscordWebhookClass from './DiscordWebhook';
 
 export = class Autokeys {
     private readonly bot: Bot;
 
-    private readonly discord: DiscordWebhook;
+    private readonly discord: DiscordWebhookClass;
 
     isEnabled = false;
 
@@ -51,7 +51,7 @@ export = class Autokeys {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhook(bot);
+        this.discord = new DiscordWebhookClass(bot);
 
         this.userPure = {
             minKeys: parseInt(process.env.MINIMUM_KEYS),
@@ -73,11 +73,11 @@ export = class Autokeys {
             this.isEnableScrapAdjustment = true;
         }
 
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' || process.env.ENABLE_AUTOKEYS === 'true') {
+        if (process.env.ENABLE_AUTOKEYS === 'true') {
             this.isEnabled = true;
         }
 
-        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true' || process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
+        if (process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
             this.isKeyBankingEnabled = true;
         }
     }
@@ -87,10 +87,6 @@ export = class Autokeys {
             return;
         }
 
-        const pure = (this.bot.handler as MyHandler).currPure();
-        const currKeys = pure.key;
-        const currRef = pure.refTotalInScrap;
-
         const userPure = this.userPure;
 
         const userMinKeys = userPure.minKeys;
@@ -98,12 +94,16 @@ export = class Autokeys {
         const userMinRef = userPure.minRefs;
         const userMaxRef = userPure.maxRefs;
 
-        if (isNaN(userMinKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
+        if (isNaN(userMinKeys) || isNaN(userMaxKeys) || isNaN(userMinRef) || isNaN(userMaxRef)) {
             log.warn(
                 "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
             );
             return;
         }
+
+        const pure = (this.bot.handler as MyHandler).currPure();
+        const currKeys = pure.key;
+        const currRef = pure.refTotalInScrap;
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 

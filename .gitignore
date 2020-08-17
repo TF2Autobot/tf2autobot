@@ -69,6 +69,7 @@ nodemon.json
 # ecosystem file
 ecosystem.json
 ecosystem-test.json
+ecosystem-test-multi.json
 
 # file folder
 files/

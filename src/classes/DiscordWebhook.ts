@@ -1,6 +1,6 @@
 import Bot from './Bot';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
@@ -8,7 +8,7 @@ import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
 import SKU from 'tf2-sku';
 
-export = class DiscordWebhook {
+export = class DiscordWebhookClass {
     private readonly bot: Bot;
 
     private enableMentionOwner = false;
@@ -72,25 +72,20 @@ export = class DiscordWebhook {
     }
 
     sendLowPureAlert(msg: string, time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
-        const discordQueue = {
+        const pureAlert = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
         };
         /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = pureAlert;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlert(position: number, time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
         const discordQueue = {
             username: this.botName,
@@ -98,37 +93,38 @@ export = class DiscordWebhook {
             content: `<@!${this.ownerID}> [Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
         };
         /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = discordQueue;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlertFailedPM2(time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
-        const discordQueue = {
+        const queueAlertFailed = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> ❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
         };
         /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = queueAlertFailed;
+        discordClient.execute(requestBody);
     }
 
     sendQueueAlertFailedError(err: any, time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
-        const discordQueue = {
+        const queueAlertError = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> ❌ An error occurred while trying to restart: ${err.message} - ${time}`
         };
         /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = queueAlertError;
+        discordClient.execute(requestBody);
     }
 
     sendPartnerMessage(
@@ -141,12 +137,8 @@ export = class DiscordWebhook {
         steamREP: string,
         time: string
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
-        const discordPartnerMsg = JSON.stringify({
+        const discordPartnerMsg = {
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}>, new message! - ${steamID}`,
@@ -165,10 +157,12 @@ export = class DiscordWebhook {
                     color: this.botEmbedColor
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
-        request.send(discordPartnerMsg);
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+        const requestBody: Webhook.input.POST = discordPartnerMsg;
+        discordClient.execute(requestBody);
     }
 
     sendOfferReview(
@@ -178,24 +172,24 @@ export = class DiscordWebhook {
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
-        invalidItemsCombine: string[],
-        overstockedItemsName: string[],
-        dupedItemsName: string[],
-        dupedFailedItemsName: string[]
+        items: {
+            invalid: string[];
+            overstock: string[];
+            understock: string[];
+            duped: string[];
+            dupedFailed: string[];
+        }
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         let noMentionOnInvalidValue = false;
         if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
             if (
-                reasons.includes('🟥INVALID_VALUE') &&
+                reasons.includes('🟥_INVALID_VALUE') &&
                 !(
-                    reasons.includes('🟨INVALID_ITEMS') ||
-                    reasons.includes('🟦OVERSTOCKED') ||
-                    reasons.includes('🟫DUPED_ITEMS') ||
-                    reasons.includes('🟪DUPE_CHECK_FAILED')
+                    reasons.includes('🟩_UNDERSTOCKED') ||
+                    reasons.includes('🟨_INVALID_ITEMS') ||
+                    reasons.includes('🟦_OVERSTOCKED') ||
+                    reasons.includes('🟫_DUPED_ITEMS') ||
+                    reasons.includes('🟪_DUPE_CHECK_FAILED')
                 )
             ) {
                 noMentionOnInvalidValue = true;
@@ -212,16 +206,21 @@ export = class DiscordWebhook {
 
         const message = replaceSpecialChar(offer.message);
 
-        const invalidItems = invalidItemsCombine.map(name => replaceItemName(name));
-        const overstocked = overstockedItemsName.map(name => replaceItemName(name));
-        const duped = dupedItemsName.map(name => replaceItemName(name));
-        const dupedFailed = dupedFailedItemsName.map(name => replaceItemName(name));
+        const itemsName = {
+            invalid: items.invalid.map(name => replaceItemName(name)),
+            overstock: items.overstock.map(name => replaceItemName(name)),
+            understock: items.understock.map(name => replaceItemName(name)),
+            duped: items.duped.map(name => replaceItemName(name)),
+            dupedFailed: items.dupedFailed.map(name => replaceItemName(name))
+        };
 
         const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
         const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
         const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
 
         const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+
+        const itemList = listItems(itemsName);
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -241,7 +240,7 @@ export = class DiscordWebhook {
             const partnerNameNoFormat = replaceSpecialChar(partnerName);
 
             /*eslint-disable */
-            const webhookReview = JSON.stringify({
+            const webhookReview = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -260,11 +259,11 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reasons}` +
-                            (reasons.includes('⬜BACKPACKTF_DOWN')
-                                ? '\n\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                                : reasons.includes('⬜STEAM_DOWN')
-                                ? '\n\nSteam down, please manually check if this person have escrow.'
+                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
+                            (reasons.includes('⬜_BACKPACKTF_DOWN')
+                                ? '\n\n`Backpack.tf down, please manually check if this person is banned before accepting the offer.`'
+                                : reasons.includes('⬜_STEAM_DOWN')
+                                ? '\n\n`Steam down, please manually check if this person have escrow.`'
                                 : '') +
                             summary +
                             (offer.message.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
@@ -272,7 +271,7 @@ export = class DiscordWebhook {
                         fields: [
                             {
                                 name: '__**Item list**__',
-                                value: listItems(invalidItems, overstocked, duped, dupedFailed)
+                                value: itemList
                             },
                             {
                                 name: '__**Status**__',
@@ -286,9 +285,17 @@ export = class DiscordWebhook {
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
+
+            if (itemList === '-') {
+                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_STEAM_DOWN/⬜_BACKPACKTF_DOWN)
+                webhookReview.embeds[0].fields.shift();
+            }
+
             /*eslint-enable */
-            request.send(webhookReview);
+            const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
+            const requestBody: Webhook.input.POST = webhookReview;
+            discordClient.execute(requestBody);
         });
     }
 
@@ -307,6 +314,24 @@ export = class DiscordWebhook {
         const ourItems = items.our;
         const theirItems = items.their;
 
+        // Filter items sku with INVALID_ITEMS reason
+        const invalidItemsTheirSide = this.filterInvalidItems(theirItems);
+        const invalidItemsOurSide = this.filterInvalidItems(ourItems);
+        const invalidItems = invalidItemsTheirSide.concat(invalidItemsOurSide);
+
+        // Give filtered items their name for each sku
+        const invalidItemsName: string[] = [];
+        invalidItems.forEach(sku => {
+            invalidItemsName.push(replaceItemName(this.bot.schema.getName(SKU.fromString(sku), false)));
+        });
+
+        // Give INVALID_ITEMS imported from MyHandler
+        const invalidItemsFromMyHandler: string[] = [];
+        invalidItemsCombine.forEach(name => {
+            invalidItemsFromMyHandler.push(replaceItemName(name));
+        });
+
+        // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
         const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
             return ourItems.some((ourItemSKU: string) => {
                 return ourItemSKU.includes(fromEnv);
@@ -319,25 +344,10 @@ export = class DiscordWebhook {
             });
         });
 
+        // Mention owner on for accepted INVALID_ITEMS with overpay
         const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
-
-        const invalidItemsTheirSide = this.filterInvalidItems(theirItems);
         const isMentionInvTheirSide = this.isMentionInvalidItems(invalidItemsTheirSide);
-
-        const invalidItemsOurSide = this.filterInvalidItems(ourItems);
         const isMentionInvOurSide = this.isMentionInvalidItems(invalidItemsOurSide);
-
-        const invalidItems = invalidItemsTheirSide.concat(invalidItemsOurSide);
-
-        const invalidItemsName: string[] = [];
-        invalidItems.forEach(sku => {
-            invalidItemsName.push(replaceItemName(this.bot.schema.getName(SKU.fromString(sku), false)));
-        });
-
-        const invalidItemsFromMyHandler: string[] = [];
-        invalidItemsCombine.forEach(name => {
-            invalidItemsFromMyHandler.push(replaceItemName(name));
-        });
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
@@ -387,7 +397,7 @@ export = class DiscordWebhook {
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
-            const acceptedTradeSummary = JSON.stringify({
+            const acceptedTradeSummary = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -408,7 +418,7 @@ export = class DiscordWebhook {
                         description:
                             summary +
                             (isMentionInvalidItems
-                                ? '\n\n🟨INVALID_ITEMS:\n' +
+                                ? '\n\n🟨`_INVALID_ITEMS:`\n' +
                                   (invalidItemsCombine.length === 0
                                       ? invalidItemsName.join(',\n')
                                       : invalidItemsFromMyHandler.join(',\n'))
@@ -438,25 +448,26 @@ export = class DiscordWebhook {
                                     (isShowInventory
                                         ? `\n🎒 Total items: ${currentItems +
                                               (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
-                                        : '')
-                            },
-                            {
-                                name: '__Notes__',
-                                value: AdditionalNotes ? '\n' + AdditionalNotes : '-'
+                                        : '') +
+                                    (AdditionalNotes ? '\n' + AdditionalNotes : '')
                             }
                         ],
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
             /*eslint-enable */
 
             tradeLinks.forEach((link, i) => {
-                const request = new XMLHttpRequest();
-                request.open('POST', link);
-                request.setRequestHeader('Content-type', 'application/json');
-                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
+                const discordClient = new DiscordWebhook(link);
+                let deleted = false;
+
+                if (i > 0 && !deleted) {
+                    delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
+                    deleted = true; // ensure to delete one time only
+                }
+                const requestBody: Webhook.input.POST = acceptedTradeSummary;
+                discordClient.execute(requestBody);
             });
 
             // reset array
@@ -534,21 +545,42 @@ function summarize(
     return summary;
 }
 
-function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
     list +=
-        overstock.length !== 0
-            ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
-        duped.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
+              '🟩`_UNDERSTOCKED:`\n- ' +
+              items.understock.join(',\n- ')
             : '';
     list +=
-        dupedFailed.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
-              '🟪DUPE_CHECK_FAILED:\n- ' +
-              dupedFailed.join(',\n- ')
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟫`_DUPED_ITEMS:`\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟪`_DUPE_CHECK_FAILED:`\n- ' +
+              items.dupedFailed.join(',\n- ')
             : '';
 
     if (list.length === 0) {

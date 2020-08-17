@@ -3,7 +3,7 @@ import moment from 'moment';
 import SKU from 'tf2-sku';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 
 import Bot from './Bot';
 import { UnknownDictionary } from '../types/common';
@@ -404,7 +404,7 @@ abstract class Cart {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.sendWebhookSomethingWrongAlert(msg);
+                            this.sendWebhookFullAlert(msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -424,22 +424,22 @@ abstract class Cart {
             });
     }
 
-    private sendWebhookSomethingWrongAlert(msg: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
+    private sendWebhookFullAlert(msg: string): void {
         const ownerID = process.env.DISCORD_OWNER_ID;
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format('MMMM Do YYYY, HH:mm:ss ZZ');
         /*eslint-disable */
-        const discordQueue = {
+        const fullBackpack = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: `<@!${ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
         };
         /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+
+        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        const requestBody: Webhook.input.POST = fullBackpack;
+        discordClient.execute(requestBody);
     }
 
     toString(): string {

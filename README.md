@@ -195,8 +195,7 @@ You can run your bot without this initially. On the first run, your bot will pri
 
 ### Your bot settings
 
--   `AUTOBUMP`: Default is `true`. If you enable this, your bot will re-list all listings every 30 minutes.
-
+-   `AUTOBUMP`: **DEPRECATED** - Default is `false`. Please consider donating to backpack.tf or buy backpack.tf Premium. If you enable this, your bot will re-list all listings every 30 minutes.
 -   `MINIMUM_SCRAP`: Default is 9 scrap. If your bot has less, it will smelt reclaimed metal to maintain ample scrap metal supply.
 -   `MINIMUM_RECLAIMED`: Default is 9 reclaimed. If your bot has less, it will smelt refined metal to maintain ample reclaimed metal supply.
 -   `METAL_THRESHOLD`: Default is 9. If scrap/reclaimed metal has reached the minimum + threshold (max), it will combine the metal.
@@ -370,8 +369,11 @@ Time will be use in "!time" command and
 -   `DISABLE_REVIEW_OFFER_NOTE`: - If set to `false`, it will show notes on [each error](https://github.com/idinium96/tf2autobot/blob/master/src/classes/MyHandler.ts#L1355-L1575)
 -   `DISABLE_SHOW_CURRENT_TIME`: - If set to `false`, it will show the owner's time on offer review notification that the trade partner will receive.
 
+
 -   `DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY`: - Default: `false`. Set this to `true` if you do not want your bot to accept trades with INVALID_ITEMS but the value of their side is greater than or equal to the value of your bot's side.
 -   `DISABLE_ACCEPT_OVERSTOCKED_OVERPAY`: - Default: `true`. Set this to `false` if you want your bot to accept trades with OVERSTOCKED but the value of their side is greater than or equal to the value of your bot's side.
+-   `DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY`: - Default: `true`. Set to `false` if you want your bot to accept a trade with UNDERSTOCKED but with their value more or equal to our value.
+
 -   `DISABLE_AUTO_DECLINE_INVALID_VALUE`: - Default: `false`. Set this to `true` if you do not want your bot to automatically decline trades with **ONLY** `INVALID_VALUE` (which did not match the exception sku(s) and exception value).
 -   `AUTO_DECLINE_INVALID_VALUE_NOTE`: - Your custom note on why the trade got declined. Default is nothing.
 
@@ -381,6 +383,7 @@ Time will be use in "!time" command and
 -   `INVALID_VALUE_NOTE` - Your custom INVALID_VALUE note.
 -   \*`INVALID_ITEMS_NOTE` - Your custom INVALID_ITEMS note.
 -   \*`OVERSTOCKED_NOTE` - Your custom OVERSTOCKED note.
+-   \*`UNDERSTOCKED_NOTE` - Your custom UNDERSTOCKED note.
 -   \*`DUPE_ITEMS_NOTE` - Your custom DUPE_ITEMS note.
 -   \*`DUPE_CHECK_FAILED_NOTE` - Your custom DUPE_CHECK_FAILED note.
 -   `ADDITIONAL_NOTE` - Your custom ADDITIONAL note.

@@ -24,13 +24,13 @@ import * as files from '../lib/files';
 import paths from '../resources/paths';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
-import DiscordWebhook from './DiscordWebhook';
+import DiscordWebhookClass from './DiscordWebhook';
 import Autokeys from './Autokeys';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    private readonly discord: DiscordWebhook;
+    private readonly discord: DiscordWebhookClass;
 
     private readonly autokeys: Autokeys;
 
@@ -56,19 +56,9 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private reviewItems: {
-        invalidItemsSKU: string[];
-        invalidItemsValue: string[];
-        overstockedItemsSKU: string[];
-        dupedItemsSKU: string[];
-        dupedFailedItemsSKU: string[];
-    } = {
-        invalidItemsSKU: [],
-        invalidItemsValue: [],
-        overstockedItemsSKU: [],
-        dupedItemsSKU: [],
-        dupedFailedItemsSKU: []
-    };
+    private invalidItemsSKU: string[] = [];
+
+    private invalidItemsValue: string[] = [];
 
     private isTradingKeys = false;
 
@@ -82,6 +72,14 @@ export = class MyHandler extends Handler {
 
     private retryRequest;
 
+    private autokeysStatus: {
+        isActive: boolean;
+        isBuying: boolean;
+        isBanking: boolean;
+    };
+
+    private classWeaponsTimeout;
+
     private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -91,7 +89,7 @@ export = class MyHandler extends Handler {
 
         this.commands = new Commands(bot);
         this.cartQueue = new CartQueue(bot);
-        this.discord = new DiscordWebhook(bot);
+        this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
@@ -205,6 +203,10 @@ export = class MyHandler extends Handler {
         return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
+    getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
+        return this.autokeysStatus;
+    }
+
     onRun(): Promise<{
         loginAttempts?: number[];
         pricelist?: EntryData[];
@@ -246,8 +248,20 @@ export = class MyHandler extends Handler {
         // Craft duplicate weapons
         this.craftDuplicateWeapons();
 
+        // Craft class weapons
+        this.classWeaponsTimeout = setTimeout(() => {
+            // called after 2 minutes to craft metals and duplicated weapons first.
+            this.craftClassWeapons();
+        }, 2 * 60 * 1000);
+
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
+
+        this.autokeysStatus = {
+            isActive: this.autokeys.isActive,
+            isBuying: this.autokeys.status.isBuyingKeys,
+            isBanking: this.autokeys.status.isBankingKeys
+        };
 
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
@@ -269,7 +283,7 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.autokeys.isActive === true) {
+            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
                 this.autokeys.disable();
             }
@@ -377,6 +391,9 @@ export = class MyHandler extends Handler {
         // Allow sending notifications
         offer.data('notify', true);
 
+        // If crafting class weapons still waiting, cancel it.
+        clearTimeout(this.classWeaponsTimeout);
+
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID,
             offer.itemsToGive,
@@ -451,7 +468,7 @@ export = class MyHandler extends Handler {
         if (hasInvalidItems) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
-            return { action: 'decline', reason: '🟨INVALID_ITEMS_CONTAINS_NON_TF2' };
+            return { action: 'decline', reason: '🟨_INVALID_ITEMS_CONTAINS_NON_TF2' };
         }
 
         const itemsDiff = offer.getDiff();
@@ -543,41 +560,51 @@ export = class MyHandler extends Handler {
 
         let hasOverstock = false;
 
+        let hasUnderstock = false;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: (
             | {
-                  reason: '🟦OVERSTOCKED';
+                  reason: '🟦_OVERSTOCKED';
                   sku: string;
                   buying: boolean;
                   diff: number;
                   amountCanTrade: number;
               }
             | {
-                  reason: '🟨INVALID_ITEMS';
+                  reason: '🟩_UNDERSTOCKED';
+                  sku: string;
+                  selling: boolean;
+                  diff: number;
+                  amountCanTrade: number;
+              }
+            | {
+                  reason: '🟨_INVALID_ITEMS';
                   sku: string;
                   buying: boolean;
                   amount: number;
+                  price: string;
               }
             | {
-                  reason: '🟥INVALID_VALUE';
+                  reason: '🟥_INVALID_VALUE';
                   our: number;
                   their: number;
               }
             | {
-                  reason: '🟪DUPE_CHECK_FAILED';
+                  reason: '🟪_DUPE_CHECK_FAILED';
                   assetid?: string;
                   error?: string;
               }
             | {
-                  reason: '🟫DUPED_ITEMS';
+                  reason: '🟫_DUPED_ITEMS';
                   assetid: string;
               }
             | {
-                  reason: '⬜STEAM_DOWN';
+                  reason: '⬜_STEAM_DOWN';
                   error?: string;
               }
             | {
-                  reason: '⬜BACKPACKTF_DOWN';
+                  reason: '⬜_BACKPACKTF_DOWN';
                   error?: string;
               }
         )[] = [];
@@ -629,8 +656,8 @@ export = class MyHandler extends Handler {
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
-                    if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
-                        // If we found a matching price and the item is not a key, or the we are not trading items (meaning that we are trading keys) then add the price of the item
+                    if (match !== null && sku !== '5021;6') {
+                        // If we found a matching price and the item is not a key, then add the price of the item
 
                         // Add value of items
                         exchange[which].value += match[intentString].toValue(keyPrice.metal) * amount;
@@ -645,19 +672,30 @@ export = class MyHandler extends Handler {
                         // Check stock limits (not for keys)
                         const diff = itemsDiff[sku];
 
-                        const buyingOverstockCheck = diff > 0;
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, buyingOverstockCheck);
+                        const isBuying = diff > 0; // is buying if true.
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
 
                         if (diff !== 0 && amountCanTrade < diff && notIncludeCraftweapon) {
-                            // User is taking too many / offering too many
+                            // User is offering too many
                             hasOverstock = true;
 
-                            this.reviewItems.overstockedItemsSKU.push(sku);
+                            wrongAboutOffer.push({
+                                reason: '🟦_OVERSTOCKED',
+                                sku: sku,
+                                buying: isBuying,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade
+                            });
+                        }
+
+                        if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && notIncludeCraftweapon) {
+                            // User is taking too many
+                            hasUnderstock = true;
 
                             wrongAboutOffer.push({
-                                reason: '🟦OVERSTOCKED',
+                                reason: '🟩_UNDERSTOCKED',
                                 sku: sku,
-                                buying: buyingOverstockCheck,
+                                selling: !isBuying,
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
@@ -683,13 +721,15 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.reviewItems.invalidItemsSKU.push(sku);
+                        this.invalidItemsSKU.push(sku);
 
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
+                        let itemSuggestedValue;
+
                         if (price === null) {
-                            this.reviewItems.invalidItemsValue.push('No price');
+                            itemSuggestedValue = 'No price';
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
@@ -699,17 +739,16 @@ export = class MyHandler extends Handler {
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            const itemSuggestedValue = Currencies.toCurrencies(
-                                price[intentString].toValue(keyPrice.metal)
-                            );
-                            this.reviewItems.invalidItemsValue.push(itemSuggestedValue.toString());
+                            itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
+                            this.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
 
                         wrongAboutOffer.push({
-                            reason: '🟨INVALID_ITEMS',
+                            reason: '🟨_INVALID_ITEMS',
                             sku: sku,
                             buying: buying,
-                            amount: amount
+                            amount: amount,
+                            price: itemSuggestedValue.toString()
                         });
                     }
                 }
@@ -757,33 +796,47 @@ export = class MyHandler extends Handler {
                 // We are not selling keys
                 this.autoRelistNotSellingKeys++;
                 offer.log('info', 'we are not selling keys, declining...');
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not buying keys, declining...');
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'];
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
 
-                const buying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', buying);
+                const isBuying = diff > 0;
+                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
-                    // User is taking too many / offering too many
+                    // User is offering too many
                     hasOverstock = true;
                     wrongAboutOffer.push({
-                        reason: '🟦OVERSTOCKED',
+                        reason: '🟦_OVERSTOCKED',
                         sku: '5021;6',
-                        buying: buying,
+                        buying: isBuying,
+                        diff: diff,
+                        amountCanTrade: amountCanTrade
+                    });
+                }
+
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
+                    // User is taking too many
+                    hasUnderstock = true;
+
+                    wrongAboutOffer.push({
+                        reason: '🟩_UNDERSTOCKED',
+                        sku: '5021;6',
+                        selling: !isBuying,
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
                 }
             }
+
             if (this.autokeys.isEnabled !== false) {
                 if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
                     log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
@@ -825,7 +878,7 @@ export = class MyHandler extends Handler {
                 hasInvalidValue = true;
                 this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
-                    reason: '🟥INVALID_VALUE',
+                    reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
                     their: exchange.their.value
                 });
@@ -843,14 +896,30 @@ export = class MyHandler extends Handler {
 
         if (!manualReviewEnabled) {
             if (hasOverstock) {
-                offer.log('info', 'is taking / offering too many, declining...');
+                offer.log('info', 'is offering too many, declining...');
 
                 const reasons = wrongAboutOffer.map(wrong => wrong.reason);
                 const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
                 return {
                     action: 'decline',
-                    reason: '🟦OVERSTOCKED',
+                    reason: '🟦_OVERSTOCKED',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
+
+            if (hasUnderstock) {
+                offer.log('info', 'is taking too many, declining...');
+
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+                return {
+                    action: 'decline',
+                    reason: '🟩_UNDERSTOCKED',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -867,7 +936,7 @@ export = class MyHandler extends Handler {
 
                 return {
                     action: 'decline',
-                    reason: '🟥INVALID_VALUE',
+                    reason: '🟥_INVALID_VALUE',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -895,14 +964,14 @@ export = class MyHandler extends Handler {
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
             wrongAboutOffer.push({
-                reason: '⬜STEAM_DOWN'
+                reason: '⬜_STEAM_DOWN'
             });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜STEAM_DOWN',
+                reason: '⬜_STEAM_DOWN',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -922,14 +991,14 @@ export = class MyHandler extends Handler {
         } catch (err) {
             log.warn('Failed to check banned: ', err);
             wrongAboutOffer.push({
-                reason: '⬜BACKPACKTF_DOWN'
+                reason: '⬜_BACKPACKTF_DOWN'
             });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜BACKPACKTF_DOWN',
+                reason: '⬜_BACKPACKTF_DOWN',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -968,22 +1037,20 @@ export = class MyHandler extends Handler {
                             // Offer contains duped items, decline it
                             return {
                                 action: 'decline',
-                                reason: '🟫DUPED_ITEMS',
+                                reason: '🟫_DUPED_ITEMS',
                                 meta: { assetids: assetidsToCheck, result: result }
                             };
                         } else {
                             // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
-                            this.reviewItems.dupedItemsSKU = skuToCheck;
                             wrongAboutOffer.push({
-                                reason: '🟫DUPED_ITEMS',
+                                reason: '🟫_DUPED_ITEMS',
                                 assetid: assetidsToCheck[i]
                             });
                         }
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
-                        this.reviewItems.dupedFailedItemsSKU = skuToCheck;
                         wrongAboutOffer.push({
-                            reason: '🟪DUPE_CHECK_FAILED',
+                            reason: '🟪_DUPE_CHECK_FAILED',
                             assetid: assetidsToCheck[i]
                         });
                     }
@@ -991,7 +1058,7 @@ export = class MyHandler extends Handler {
             } catch (err) {
                 log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + err.message);
                 wrongAboutOffer.push({
-                    reason: '🟪DUPE_CHECK_FAILED',
+                    reason: '🟪_DUPE_CHECK_FAILED',
                     error: err.message
                 });
             }
@@ -1004,7 +1071,8 @@ export = class MyHandler extends Handler {
 
             const acceptingCondition =
                 process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false'
+                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
+                process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
                     ? exchange.our.value < exchange.their.value
                     : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
                     ? exchange.our.value <= exchange.their.value
@@ -1013,25 +1081,27 @@ export = class MyHandler extends Handler {
             // TO DO: Counter offer?
             //
             // if (
-            //     uniqueReasons.includes('🟥INVALID_VALUE') &&
+            //     uniqueReasons.includes('🟥_INVALID_VALUE') &&
             //     !(
-            //         uniqueReasons.includes('🟨INVALID_ITEMS') ||
-            //         uniqueReasons.includes('🟦OVERSTOCKED') ||
-            //         uniqueReasons.includes('🟫DUPED_ITEMS') ||
-            //         uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+            //         uniqueReasons.includes('🟨_INVALID_ITEMS') ||
+            //         uniqueReasons.includes('🟦_OVERSTOCKED') ||
+            //         uniqueReasons.includes('🟫_DUPED_ITEMS') ||
+            //         uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
             //     )
             // ) {
             //     const counteroffer = offer.counter();
             // }
             if (
-                ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
+                ((uniqueReasons.includes('🟨_INVALID_ITEMS') &&
                     process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟦OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
+                    (uniqueReasons.includes('🟦_OVERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true') ||
+                    (uniqueReasons.includes('🟩_UNDERSTOCKED') &&
+                        process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY !== 'true')) &&
                 !(
-                    uniqueReasons.includes('🟥INVALID_VALUE') ||
-                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                    uniqueReasons.includes('🟥_INVALID_VALUE') ||
+                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
                 ) &&
                 acceptingCondition &&
                 exchange.our.value !== 0
@@ -1047,12 +1117,13 @@ export = class MyHandler extends Handler {
             } else if (
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥INVALID_VALUE') &&
+                uniqueReasons.includes('🟥_INVALID_VALUE') &&
                 !(
-                    uniqueReasons.includes('🟨INVALID_ITEMS') ||
-                    uniqueReasons.includes('🟦OVERSTOCKED') ||
-                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
+                    uniqueReasons.includes('🟩_UNDERSTOCKED') ||
+                    uniqueReasons.includes('🟨_INVALID_ITEMS') ||
+                    uniqueReasons.includes('🟦_OVERSTOCKED') ||
+                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
+                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
                 ) &&
                 this.hasInvalidValueException === false
             ) {
@@ -1073,14 +1144,6 @@ export = class MyHandler extends Handler {
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
 
         return { action: 'accept', reason: 'VALID' };
-    }
-
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
@@ -1110,7 +1173,7 @@ export = class MyHandler extends Handler {
                             ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                            '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
@@ -1131,6 +1194,12 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
                         reason =
                             'I am no longer trading keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
+                        reason =
+                            'I am no longer selling keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
+                        reason =
+                            'I am no longer buying keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'BANNED') {
                         reason =
                             "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or other community.";
@@ -1139,7 +1208,7 @@ export = class MyHandler extends Handler {
                             'I do not accept trade hold (Escrow). Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
+                            '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
                     } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
                         reasonForInvalidValue = true;
                         reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
@@ -1214,6 +1283,12 @@ export = class MyHandler extends Handler {
                     isBanking: this.autokeys.status.isBankingKeys
                 };
 
+                this.autokeysStatus = {
+                    isActive: autokeys.isActive,
+                    isBuying: autokeys.isBuying,
+                    isBanking: autokeys.isBanking
+                };
+
                 const pureStock = this.pureStock();
                 const timeWithEmojis = this.timeWithEmoji();
                 const links = this.tradePartnerLinks(offer.partner.toString());
@@ -1225,13 +1300,13 @@ export = class MyHandler extends Handler {
                 const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
                 if (isAcceptedInvalidItemsOverpay) {
-                    this.reviewItems.invalidItemsSKU.forEach(sku => {
+                    this.invalidItemsSKU.forEach(sku => {
                         const name = this.bot.schema.getName(SKU.fromString(sku), false);
                         invalidItemsName.push(name);
                     });
 
                     for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.reviewItems.invalidItemsValue[i]);
+                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
                     }
                 }
 
@@ -1260,7 +1335,7 @@ export = class MyHandler extends Handler {
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                             summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
                             (isAcceptedInvalidItemsOverpay
-                                ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                                ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${
@@ -1293,6 +1368,11 @@ export = class MyHandler extends Handler {
             // Craft duplicated weapons
             this.craftDuplicateWeapons();
 
+            this.classWeaponsTimeout = setTimeout(() => {
+                // called after 2 minutes to craft metals and duplicated weapons first.
+                this.craftClassWeapons();
+            }, 2 * 60 * 1000);
+
             // Sort inventory
             this.sortInventory();
 
@@ -1309,14 +1389,9 @@ export = class MyHandler extends Handler {
 
             this.inviteToGroups(offer.partner);
 
-            this.sleep(3000);
-
             // clear/reset these in memory
-            this.reviewItems.invalidItemsSKU.length = 0;
-            this.reviewItems.invalidItemsValue.length = 0;
-            this.reviewItems.overstockedItemsSKU.length = 0;
-            this.reviewItems.dupedItemsSKU.length = 0;
-            this.reviewItems.dupedFailedItemsSKU.length = 0;
+            this.invalidItemsSKU.length = 0;
+            this.invalidItemsValue.length = 0;
         }
     }
 
@@ -1339,133 +1414,176 @@ export = class MyHandler extends Handler {
         const itemsList = this.itemList(offer);
 
         if (action === 'skip') {
-            const reviewReasons: string[] = [];
+            // Offer review note
             let note: string;
-            let missingPureNote: string;
-            const invalidItemsName: string[] = [];
-            const invalidItemsCombine: string[] = [];
-            const overstockedItemsName: string[] = [];
-            const dupedItemsName: string[] = [];
-            const dupedFailedItemsName: string[] = [];
-            const reasons = meta.uniqueReasons;
+            const reviewReasons: string[] = [];
 
-            if (reasons.includes('🟨INVALID_ITEMS')) {
-                this.reviewItems.invalidItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    invalidItemsName.push(name);
+            // for INVALID_VALUE
+            let missingPureNote: string;
+
+            const reasons = meta.uniqueReasons;
+            const wrong = meta.reasons;
+
+            // for 🟨_INVALID_ITEMS
+            const invalidForTheir: string[] = []; // Display for trade partner
+            const invalidForOur: string[] = []; // Display for owner
+
+            if (reasons.includes('🟨_INVALID_ITEMS')) {
+                const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+
+                invalid.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    invalidForTheir.push(name); // only show to trade partner the item name
+                    invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
                 });
 
-                for (let i = 0; i < invalidItemsName.length; i++) {
-                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.reviewItems.invalidItemsValue[i]);
-                }
-
                 note = process.env.INVALID_ITEMS_NOTE
-                    ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
-                          .replace(/%name%/g, invalidItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', invalidItemsName.length))
-                    : `🟨INVALID_ITEMS - %name% ${pluralize(
+                    ? `🟨_INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
+                          .replace(/%name%/g, invalidForTheir.join(', '))
+                          .replace(/%isName%/, pluralize('is', invalidForTheir.length))
+                    : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
                           'is',
-                          invalidItemsName.length
-                      )} not in my pricelist. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          invalidItemsName.join(', ')
-                      );
+                          invalidForTheir.length
+                      )} not in my pricelist.`;
+                // Default note: %name% is|are not in my pricelist.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟦OVERSTOCKED')) {
-                this.reviewItems.overstockedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    overstockedItemsName.push(name);
+            // for 🟦_OVERSTOCKED
+            const overstocked: string[] = [];
+
+            if (reasons.includes('🟦_OVERSTOCKED')) {
+                const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
+
+                overstock.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    overstocked.push(name);
                 });
 
                 note = process.env.OVERSTOCKED_NOTE
-                    ? `🟦OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
-                          .replace(/%name%/g, overstockedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', overstockedItemsName.length))
-                    : `🟦OVERSTOCKED - %name% ${pluralize(
-                          'is',
-                          overstockedItemsName.length
-                      )} already reached max amount I can have. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          overstockedItemsName.join(', ')
-                      );
+                    ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
+                          .replace(/%name%/g, overstocked.join(', ')) // %name% here will include amountCanTrade value
+                          .replace(/%isName%/, pluralize('is', overstocked.length))
+                    : `🟦_OVERSTOCKED - I can't buy any more ${overstocked.join(', ')} right now.`;
+                // Default note: I can't buy any more %name% right now.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟫DUPED_ITEMS')) {
-                this.reviewItems.dupedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+            // for 🟩_UNDERSTOCKED
+            const understockedForTheir: string[] = [];
+            const understockedForOur: string[] = [];
+
+            if (reasons.includes('🟩_UNDERSTOCKED')) {
+                const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
+
+                understocked.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    understockedForTheir.push(el.amountCanTrade + ' - ' + name);
+                    understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
+                });
+
+                note = process.env.UNDERSTOCKED_NOTE
+                    ? `🟩_UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
+                          .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                          .replace(/%isName%/, pluralize('is', understockedForTheir.length))
+                    : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
+                // Default note: I can only sell %amountCanTrade% - %name% right now.
+
+                reviewReasons.push(note);
+            }
+
+            // for 🟫_DUPED_ITEMS
+            const dupedItemsName: string[] = [];
+
+            if (reasons.includes('🟫_DUPED_ITEMS')) {
+                const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+
+                duped.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedItemsName.push(name);
                 });
 
                 note = process.env.DUPE_ITEMS_NOTE
-                    ? `🟫DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
+                    ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫DUPED_ITEMS - %name% ${pluralize(
+                    : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
                           'is',
                           dupedItemsName.length
-                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`.replace(
-                          /%name%/g,
-                          dupedItemsName.join(', ')
-                      );
+                      )} appeared to be duped.`;
+                // Default note: %name% is|are appeared to be duped.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟪DUPE_CHECK_FAILED')) {
-                this.reviewItems.dupedFailedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+            // for 🟪_DUPE_CHECK_FAILED
+            const dupedFailedItemsName: string[] = [];
+
+            if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
+                const dupedFailed = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+
+                dupedFailed.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedFailedItemsName.push(name);
                 });
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
-                    ? `🟪DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
+                    ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize %name% Original ${pluralize(
-                          'ID',
-                          dupedFailedItemsName.length
-                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`.replace(
-                          /%name%/g,
-                          dupedFailedItemsName.join(', ')
-                      );
+                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
+                // Default note: I failed to check for duped on %name%.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')) {
+            if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
                 note = process.env.INVALID_VALUE_NOTE
-                    ? `🟥INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
-                    : '🟥INVALID_VALUE - Your offer will be ignored. Please cancel it and make another offer with correct value.';
+                    ? `🟥_INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
+                    : "🟥_INVALID_VALUE - You're taking too much in value.";
+
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
+
+            const hasCustomNote =
+                process.env.INVALID_ITEMS_NOTE ||
+                process.env.OVERSTOCKED_NOTE ||
+                process.env.UNDERSTOCKED_NOTE ||
+                process.env.DUPE_ITEMS_NOTE ||
+                process.env.DUPE_CHECK_FAILED_NOTE
+                    ? true
+                    : false;
+
             // Notify partner and admin that the offer is waiting for manual review
-            if (reasons.includes('⬜BACKPACKTF_DOWN') || reasons.includes('⬜STEAM_DOWN')) {
+            if (reasons.includes('⬜_BACKPACKTF_DOWN') || reasons.includes('⬜_STEAM_DOWN')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reasons.includes('⬜BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜_BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reasons.includes('⬜BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜_BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     offer.partner,
-                    `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
+                    `⚠️ Your offer is waiting for review.\nReasons: ${reasons.join(', ')}` +
                         (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
                             ? '\n\nYour offer summary:\n' +
                               offer
                                   .summarize(this.bot.schema)
                                   .replace('Asked', '  My side')
                                   .replace('Offered', 'Your side') +
-                              (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
+                              (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                                   ? missingPureNote
                                   : '') +
                               (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                                  ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                                  ? `\n\nNote:\n${reviewReasons.join('\n') +
+                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
                                   : '')
                             : '') +
                         (process.env.ADDITIONAL_NOTE
@@ -1481,6 +1599,17 @@ export = class MyHandler extends Handler {
                             : '')
                 );
             }
+
+            const items = {
+                invalid: invalidForOur,
+                overstock: overstocked,
+                understock: understockedForOur,
+                duped: dupedItemsName,
+                dupedFailed: dupedFailedItemsName
+            };
+
+            const list = listItems(items);
+
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
@@ -1492,41 +1621,33 @@ export = class MyHandler extends Handler {
                     keyPrice,
                     value,
                     links,
-                    invalidItemsCombine,
-                    overstockedItemsName,
-                    dupedItemsName,
-                    dupedFailedItemsName
+                    items
                 );
             } else {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReason: ${meta.uniqueReasons.join(', ')}` +
-                        (reasons.includes('⬜BACKPACKTF_DOWN')
+                        `\nReasons: ${meta.uniqueReasons.join(', ')}` +
+                        (reasons.includes('⬜_BACKPACKTF_DOWN')
                             ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                            : reasons.includes('⬜STEAM_DOWN')
+                            : reasons.includes('⬜_STEAM_DOWN')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
                         summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                        `${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}` +
-                        `${listItems(invalidItemsName, overstockedItemsName, dupedItemsName, dupedFailedItemsName)}` +
+                        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
+                        (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}`,
+                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
                 );
             }
-            // clear/reset these in memory
-            this.reviewItems.invalidItemsSKU.length = 0;
-            this.reviewItems.invalidItemsValue.length = 0;
-            this.reviewItems.overstockedItemsSKU.length = 0;
-            this.reviewItems.dupedItemsSKU.length = 0;
-            this.reviewItems.dupedFailedItemsSKU.length = 0;
         }
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
+        if (process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();
@@ -1603,6 +1724,401 @@ export = class MyHandler extends Handler {
                     // give a little time between each craft job
                     this.bot.tf2gc.combineWeapon(sku);
                 }
+            }
+        }
+    }
+
+    private craftClassWeapons(): Promise<void> {
+        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+            return;
+        }
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        // Scout weapons
+        const scout = [
+            '45;6', // Force-A-Nature               == Scout/Primary ==
+            '220;6', // Shortstop
+            '448;6', // Soda Popper
+            '772;6', // Baby Face's Blaster
+            '1103;6', // Back Scatter
+            '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
+            '163;6', // Crit-a-Cola
+            '222;6', // Mad Milk
+            '449;6', // Winger
+            '773;6', // Pretty Boy's Pocket Pistol
+            '812;6', // Flying Guillotine
+            '44;6', // Sandman                      == Scout/Melee ==
+            '221;6', // Holy Mackerel
+            '317;6', // Candy Cane
+            '325;6', // Boston Basher
+            '349;6', // Sun-on-a-Stick
+            '355;6', // Fan O'War
+            '450;6', // Atomizer
+            '648;6' // Wrap Assassin
+        ];
+
+        let matched = false;
+
+        for (let i = 0; i < scout.length; i++) {
+            // for loop for weapon1
+            const sku1 = scout[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < scout.length; j++) {
+                // for loop for weapon2 inside for loop weapon1
+                const sku2 = scout[j];
+                const wep2 = currencies[sku2].length;
+                // check if that weapon only have 1 in inventory AND it's not in pricelist
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    // set matched to true, so we break the loop and only craft one match at a time for each class.
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Soldier weapons
+        const soldier = [
+            '127;6', // Direct Hit                  == Soldier/Primary ==
+            '228;6', // Black Box
+            '237;6', // Rocket Jumper
+            '414;6', // Liberty Launcher
+            '441;6', // Cow Mangler 5000
+            '513;6', // Original
+            '730;6', // Beggar's Bazooka
+            '1104;6', // Air Strike
+            '129;6', // Buff Banner                 == Soldier/Secondary ==
+            '133;6', // Gunboats
+            '226;6', // Battalion's Backup
+            '354;6', // Concheror
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+            '442;6', // Righteous Bison
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '444;6', // Mantreads
+            '128;6', // Equalizer                   == Soldier/Melee ==
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
+            '416;6', // Market Gardener
+            '447;6', // Disciplinary Action
+            '775;6' // Escape Plan
+        ];
+
+        for (let i = 0; i < soldier.length; i++) {
+            const sku1 = soldier[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < soldier.length; j++) {
+                const sku2 = soldier[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Pyro weapons
+        const pyro = [
+            '40;6', // Backburner                   == Pyro/Primary ==
+            '215;6', // Degreaser
+            '594;6', // Phlogistinator
+            '741;6', // Rainblower
+            '1178;6', // Dragon's Fury
+            '39;6', // Flare Gun                    == Pyro/Secondary ==
+            '351;6', // Detonator
+            '595;6', // Manmelter
+            '740;6', // Scorch Shot
+            '1179;6', // Thermal Thruster
+            '1180;6', // Gas Passer
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '38;6', // Axtinguisher                 == Pyro/Melee ==
+            '153;6', // Homewrecker
+            '214;6', // Powerjack
+            '326;6', // Back Scratcher
+            '348;6', // Sharpened Volcano Fragment
+            '457;6', // Postal Pummeler
+            '593;6', // Third Degree
+            '739;6', // Lollichop
+            '813;6', // Neon Annihilator
+            '1181;6' // Hot Hand
+        ];
+
+        for (let i = 0; i < pyro.length; i++) {
+            const sku1 = pyro[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < pyro.length; j++) {
+                const sku2 = pyro[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Demomman weapons
+        const demoman = [
+            '308;6', // Loch-n-Load                 == Demoman/Primary ==
+            '405;6', // Ali Baba's Wee Booties
+            '608;6', // Bootlegger
+            '996;6', // Loose Cannon
+            '1151;6', // Iron Bomber
+            '130;6', // Scottish Resistance         == Demoman/Secondary ==
+            '131;6', // Chargin' Targe
+            '265;6', // Sticky Jumper
+            '406;6', // Splendid Screen
+            '1099;6', // Tide Turner
+            '1150;6', // Quickiebomb Launcher
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+            '132;6', // Eyelander                   == Demoman/Melee ==
+            '172;6', // Scotsman's Skullcutter
+            '307;6', // Ullapool Caber
+            '327;6', // Claidheamh Mòr
+            '404;6', // Persian Persuader
+            '482;6', // Nessie's Nine Iron
+            '609;6', // Scottish Handshake
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
+        ];
+
+        for (let i = 0; i < demoman.length; i++) {
+            const sku1 = demoman[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < demoman.length; j++) {
+                const sku2 = demoman[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Heavy weapons
+        const heavy = [
+            '41;6', // Natascha                     == Heavy/Primary ==
+            '312;6', // Brass Beast
+            '424;6', // Tomislav
+            '811;6', // Huo-Long Heater
+            '42;6', // Sandvich                     == Heavy/Secondary ==
+            '159;6', // Dalokohs Bar
+            '311;6', // Buffalo Steak Sandvich
+            '425;6', // Family Business
+            '1190;6', // Second Banana
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
+            '239;6', // Gloves of Running Urgently
+            '310;6', // Warrior's Spirit
+            '331;6', // Fists of Steel
+            '426;6', // Eviction Notice
+            '656;6' // Holiday Punch
+        ];
+
+        for (let i = 0; i < heavy.length; i++) {
+            const sku1 = heavy[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < heavy.length; j++) {
+                const sku2 = heavy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Engineer weapons
+        const engineer = [
+            '141;6', // Frontier Justice            == Engineer/Primary ==
+            '527;6', // Widowmaker
+            '588;6', // Pomson 6000
+            '997;6', // Rescue Ranger
+            '140;6', // Wrangler                    == Engineer/Secondary ==
+            '528;6', // Short Circuit
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '142;6', // Gunslinger                  == Engineer/Melee ==
+            '155;6', // Southern Hospitality
+            '329;6', // Jag
+            '589;6' // Eureka Effect
+        ];
+
+        for (let i = 0; i < engineer.length; i++) {
+            const sku1 = engineer[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < engineer.length; j++) {
+                const sku2 = engineer[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Medic weapons
+        const medic = [
+            '36;6', // Blutsauger                   == Medic/Primary ==
+            '305;6', // Crusader's Crossbow
+            '412;6', // Overdose
+            '35;6', // Kritzkrieg                   == Medic/Secondary ==
+            '411;6', // Quick-Fix
+            '998;6', // Vaccinator
+            '37;6', // Ubersaw                      == Medic/Melee ==
+            '173;6', // Vita-Saw
+            '304;6', // Amputator
+            '413;6' // Solemn Vow
+        ];
+
+        for (let i = 0; i < medic.length; i++) {
+            const sku1 = medic[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < medic.length; j++) {
+                const sku2 = medic[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Sniper weapons
+        const sniper = [
+            '56;6', // Huntsman                     == Sniper/Primary ==
+            '230;6', // Sydney Sleeper
+            '402;6', // Bazaar Bargain
+            '526;6', // Machina
+            '752;6', // Hitman's Heatmaker
+            '1092;6', // Fortified Compound
+            '1098;6', // Classic
+            '57;6', // Razorback                    == Sniper/Secondary ==
+            '58;6', // Jarate
+            '231;6', // Darwin's Danger Shield
+            '642;6', // Cozy Camper
+            '751;6', // Cleaner's Carbine
+            '171;6', // Tribalman's Shiv            == Sniper/Melee ==
+            '232;6', // Bushwacka
+            '401;6' // Shahanshah
+        ];
+
+        for (let i = 0; i < sniper.length; i++) {
+            const sku1 = sniper[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < sniper.length; j++) {
+                const sku2 = sniper[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Spy weapons
+        const spy = [
+            '61;6', // Ambassador                   == Spy/Primary ==
+            '224;6', // L'Etranger
+            '460;6', // Enforcer
+            '525;6', // Diamondback
+            '225;6', // Your Eternal Reward         == Spy/Melee ==
+            '356;6', // Conniver's Kunai
+            '461;6', // Big Earner
+            '649;6', // Spy-cicle
+            '810;6', // Red-Tape Recorder           == Spy/PDA ==
+            '60;6', // Cloak and Dagger             == Spy/PDA2 ==
+            '59;6' // Dead Ringer
+        ];
+
+        for (let i = 0; i < spy.length; i++) {
+            const sku1 = spy[i];
+            const wep1 = currencies[sku1].length;
+            for (let j = 1; j < spy.length; j++) {
+                const sku2 = spy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
             }
         }
     }
@@ -2472,7 +2988,7 @@ function summarizeSteamChat(
 ): string {
     const summary =
         `\n\nSummary\n` +
-        trade +
+        trade.replace('Asked:', '• Asked:').replace('Offered:', '• Offered:') +
         (value.diff > 0
             ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
@@ -2483,21 +2999,42 @@ function summarizeSteamChat(
     return summary;
 }
 
-function listItems(invalid: string[], overstock: string[], duped: string[], dupedFailed: string[]): string {
-    let list = invalid.length !== 0 ? '🟨INVALID_ITEMS:\n- ' + invalid.join(',\n- ') : '';
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
-        overstock.length !== 0
-            ? (invalid.length !== 0 ? '\n' : '') + '🟦OVERSTOCKED:\n- ' + overstock.join(',\n- ')
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
-        duped.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 ? '\n' : '') + '🟫DUPED_ITEMS:\n- ' + duped.join(',\n- ')
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
+              '🟩_UNDERSTOCKED:\n- ' +
+              items.understock.join(',\n- ')
             : '';
     list +=
-        dupedFailed.length !== 0
-            ? (invalid.length !== 0 || overstock.length !== 0 || duped.length !== 0 ? '\n' : '') +
-              '🟪DUPE_CHECK_FAILED:\n- ' +
-              dupedFailed.join(',\n- ')
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟫_DUPED_ITEMS:\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n'
+                  : '') +
+              '🟪_DUPE_CHECK_FAILED:\n- ' +
+              items.dupedFailed.join(',\n- ')
             : '';
 
     if (list.length === 0) {
