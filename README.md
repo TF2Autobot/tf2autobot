@@ -21,9 +21,9 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 
 Before you install the bot, there are a few things you will need:
 
-|You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate the generation of 2FA codes and managment of mobile confirmations.
-|NodeJS version 8 or above
-|Typescript 3.7 or above
+-   You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate the generation of 2FA codes and managment of mobile confirmations.
+-   NodeJS version 8 or above
+-   Typescript 3.7 or above
 
 Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the tf2autobot-IdiNium [Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
@@ -257,12 +257,12 @@ You can run your bot without this initially. On the first run, your bot will pri
 
 #### Duped unusual check feature
 
-|          Variable          |   Type    | Default | Description                                                                                             |
-| :------------------------: | :-------: | :-----: | ------------------------------------------------------------------------------------------------------- |
-| `ENABLE_SHOW_ ONLY_METAL`  | `boolean` | `true`  | If set to `false`, it will show `[x keys, y ref]` instead of `[x ref]` (5 keys, 10 ref **OR** 260 ref). |
-|    `ENABLE_DUPE_CHECK`     | `boolean` | `true`  | Enable/disable dupe check on unusuals.                                                                  |
-|      `DECLINE_DUPES`       | `boolean` | `false` | Explains itself.                                                                                        |
-| `MINIMUM_KEYS_ DUPE_CHECK` | `number`  |  `10`   | Explains itself.                                                                                        |
+|          Variable          |   Type    | Default | Description                                                                                                                 |
+| :------------------------: | :-------: | :-----: | --------------------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_SHOW_ ONLY_METAL`  | `boolean` | `true`  | If set to `false`, it will show `[x keys, y ref]`, example: `(5 keys, 10 ref)`, instead of `[x ref]`, example: `(260 ref)`. |
+|    `ENABLE_DUPE_CHECK`     | `boolean` | `true`  | Enable/disable dupe check on unusuals.                                                                                      |
+|      `DECLINE_DUPES`       | `boolean` | `false` | Explains itself.                                                                                                            |
+| `MINIMUM_KEYS_ DUPE_CHECK` | `number`  |  `10`   | Explains itself.                                                                                                            |
 
 #### Set to true if want to skip
 
@@ -278,7 +278,7 @@ Time will be use in "!time" command and
 
 |         Variable         |   Type   | Default | Description                                                                                                                              |
 | :----------------------: | :------: | :-----: | ---------------------------------------------------------------------------------------------------------------------------------------- |
-|        `TIMEZONE`        | `string` |  `UTC`  | Please only use these [Timezone Format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). For example, "Asia/Kuala_Lumpur". |
+|        `TIMEZONE`        | `string` |  `UTC`  | Please only use these [Timezone Format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). For example, `Asia/Kuala_Lumpur`. |
 |  `CUSTOM_TIME_ FORMAT`   | `string` |    →    | `MMMM Do YYYY, HH:mm:ss ZZ` - Please refer to [this article](https://www.tutorialspoint.com/momentjs/momentjs_format.htm)                |
 | `TIME_ADDITIONAL_ NOTES` | `string` |  `""`   | Optional additional notes when the bot shows your current time - your active hours, etc.                                                 |
 
@@ -301,7 +301,7 @@ Time will be use in "!time" command and
 | Variable |    Type    |                                        Default                                         | Description                                                                                                                                                                                                                               |
 | :------: | :--------: | :------------------------------------------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ADMINS` | `string[]` |                                         `[""]`                                         | Put your main SteamID64. Example - `["76561198013127982"]`. If you have multiple - `["76561198013127982", "76561198077208792"]`                                                                                                           |
-|  `KEEP`  | `string[]` |                                         `[""]`                                         | Same as `ADMINS`, you must fill in BOTH.                                                                                                                                                                                                  |
+|  `KEEP`  | `string[]` |                                         `[""]`                                         | Same as `ADMINS`, you must fill in **BOTH**.                                                                                                                                                                                              |
 | `GROUPS` | `string[]` | [see](https://github.com/idinium96/tf2autobot/blob/master/template.ecosystem.json#L79) | Default groups are [tf2-automatic](https://steamcommunity.com/groups/tf2automatic) and [IdiNium's Trading Bot](https://steamcommunity.com/groups/IdiNiumNetwork) groups. If you have a Steam group, find your group ID and paste it here. |
 | `ALERTS` | `string[]` |                                      `["trade"]`                                       | By default your bot will send a message/discord webhook every time a successful trade is made. Other option is `["none"]`.                                                                                                                |
 
@@ -410,7 +410,7 @@ See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your r
 | :--------------------------------: | :-------: | :-----: | ------------------------------------------------------------------------------------------------------------------------------ |
 |            `DISABLE_X`             | `boolean` | `false` | Used to alert you on the trade that needs offer review via Discord Webhook. If set to `true`, it will send to your Steam Chat. |
 |              `X_URL`               | `string`  |  `""`   | Discord Webhook URL for `REVIEW_OFFER`.                                                                                        |
-| `X_DISABLE_MENTION_ INVALID_VALUE` | `boolean` | `false` | Set to`true`if you want your bot to not mention you on only INVALID_VALUE offers.                                              |
+| `X_DISABLE_MENTION_ INVALID_VALUE` | `boolean` | `false` | Set to`true`if you want your bot to not mention you on only `INVALID_VALUE` offers.                                            |
 |        `X_SHOW_QUICK_LINKS`        | `boolean` | `true`  | Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.                                  |
 |         `X_SHOW_KEY_RATE`          | `boolean` | `true`  | Refer example below.                                                                                                           |
 |        `X_SHOW_PURE_STOCK`         | `boolean` | `true`  | Refer example below.                                                                                                           |
@@ -448,7 +448,7 @@ See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your r
 |          \*`UNDERSTOCKED_NOTE`           |  `string`  |  `""`   | Your custom `UNDERSTOCKED` note.                                                                                                                                                                                                                                                                                                                                                                                                                        |
 |           \*`DUPE_ITEMS_NOTE`            |  `string`  |  `""`   | Your custom `DUPE_ITEMS` note.                                                                                                                                                                                                                                                                                                                                                                                                                          |
 |        \*`DUPE_CHECK_FAILED_NOTE`        |  `string`  |  `""`   | Your custom `DUPE_CHECK_FAILED` note.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|            `ADDITIONAL_NOTE`             |  `string`  |  `""`   | Your custom ADDITIONAL note.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|            `ADDITIONAL_NOTE`             |  `string`  |  `""`   | Your custom `ADDITIONAL` note.                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -477,7 +477,7 @@ What the trade partner will receive: "Dueling Mini-Game, Secret Saxton are not i
 |              Variable               |   Type   | Default | Description                                                                                                                                                                                                         |
 | :---------------------------------: | :------: | :-----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 |     `CUSTOM_PLAYING_ GAME_NAME`     | `string` |  `""`   | Custom name of the game your bot is playing. Limited to only 45 characters. Example: https://gyazo.com/308e4e05bf4c49929520df4e0064864c (you do not need to include `- tf2-automatic`, just your custom game name.) |
-|      `CUSTOM_WELCOME_ MESSAGE`      | `string` |  `""`   | Your custom WELCOME_MESSAGE note. Two parameters: `%name%` (display trade partner's name) and `%admin%` (if admin, it will use "!help", else "!how2trade").                                                         |
+|      `CUSTOM_WELCOME_ MESSAGE`      | `string` |  `""`   | Your custom `WELCOME_MESSAGE` note. Two parameters: `%name%` (display trade partner's name) and `%admin%` (if admin, it will use "!help", else "!how2trade").                                                       |
 | `CUSTOM_I_DONT_KNOW_ WHAT_YOU_MEAN` | `string` |  `""`   | Your custom note when people send the wrong command.                                                                                                                                                                |
 |     `CUSTOM_HOW2TRADE_ MESSAGE`     | `string` |  `""`   | Your custom `HOW2TRADE` note.                                                                                                                                                                                       |
 |      `CUSTOM_SUCCESS_ MESSAGE`      | `string` |  `""`   | Your custom `SUCCESS` note.                                                                                                                                                                                         |
