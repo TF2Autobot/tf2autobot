@@ -1464,15 +1464,15 @@ export = class MyHandler extends Handler {
 
                 overstock.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    overstocked.push(name);
+                    overstocked.push(el.amountCanTrade + ' - ' + name);
                 });
 
                 note = process.env.OVERSTOCKED_NOTE
                     ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
                           .replace(/%name%/g, overstocked.join(', ')) // %name% here will include amountCanTrade value
                           .replace(/%isName%/, pluralize('is', overstocked.length))
-                    : `🟦_OVERSTOCKED - I can't buy any more ${overstocked.join(', ')} right now.`;
-                // Default note: I can't buy any more %name% right now.
+                    : `🟦_OVERSTOCKED - I can only buy ${overstocked.join(', ')} right now.`;
+                // Default note: I can only buy %amountCanTrade% - %name% right now.
 
                 reviewReasons.push(note);
             }

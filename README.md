@@ -458,14 +458,16 @@ On each reason **except** `INVALID_VALUE`, you can put `%name%` to list all the 
 Example:
 Let say the trade contains items with `INVALID_ITEMS`. The items are: Dueling Mini-Game, Secret Saxton.
 
-You use custom `INVALID_ITEMS` note as: "%name% %isName% not in my pricelist. Please wait for my owner to check it."
+You use custom `INVALID_ITEMS` note as: `"%name% %isName% not in my pricelist. Please wait for my owner to check it."`
+For `OVERSTOCKED` and `UNDERSTOCKED`, parameter `%name%` will print out a list of `amountCanTrade - item_name` (example, `1 - Secret Saxton, 0 - Jag`).
+
 What the trade partner will receive: "Dueling Mini-Game, Secret Saxton are not in my pricelist. Please wait for my owner to check it."
 
 **Default Notes:**
 
 -   `INVALID_VALUE`: `You're taking too much in value.`
 -   `INVALID_ITEMS`: `%name% is|are not in my pricelist.`
--   `OVERSTOCKED`: `I can't buy any more %name% right now.`
+-   `OVERSTOCKED`: `I can only buy %name% right now.`
 -   `UNDERSTOCKED`: `I can only sell %amountCanTrade% - %name% right now.`
 -   `DUPED_ITEMS`: `%name% is|are appeared to be duped.`
 -   `DUPE_CHECK_FAILED`: `I failed to check for duped on %name%.`
