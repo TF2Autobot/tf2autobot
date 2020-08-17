@@ -82,7 +82,15 @@ const ADMIN_COMMANDS: string[] = [
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
     '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
-    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF"
+    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
+    "!autokeys - Get info on the bot's current autokeys settings 🔑",
+    "!time - Show the owner's current time 🕥",
+    "!pure - Get the bot's current pure stock 💰",
+    "!rate - Get the bot's current key rates 🔑",
+    '!stock - Get a list of items that the bot owns',
+    "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
+    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
+    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
 ];
 
 export = class Commands {
@@ -218,9 +226,9 @@ export = class Commands {
             this.tradesCommand(steamID);
         } else if (command === 'trade' && isAdmin) {
             this.tradeCommand(steamID, message);
-        } else if ((command === 'accepttrade' || command === 'accept') && isAdmin) {
+        } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
             this.accepttradeCommand(steamID, message);
-        } else if ((command === 'declinetrade' || command === 'decline') && isAdmin) {
+        } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
             this.declinetradeCommand(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
@@ -242,15 +250,10 @@ export = class Commands {
 
     private helpCommand(steamID: SteamID): void {
         const isAdmin = this.bot.isAdmin(steamID);
-        const forAdmin = COMMANDS.filter(command => !command.includes('!more - Show advanced commands list'));
-
-        let reply = `📜 Here's a list of my commands:\n- ${isAdmin ? forAdmin.join('\n- ') : COMMANDS.join('\n- ')}`;
-
-        if (isAdmin) {
-            reply += `\n- ${MORE.join('\n- ')}\n\nAdmin commands:\n- ${ADMIN_COMMANDS.join('\n- ')}`;
-        }
-
-        this.bot.sendMessage(steamID, reply);
+        this.bot.sendMessage(
+            steamID,
+            `📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
+        );
     }
 
     private moreCommand(steamID: SteamID): void {
