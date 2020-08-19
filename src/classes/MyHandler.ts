@@ -1457,21 +1457,23 @@ export = class MyHandler extends Handler {
             }
 
             // for 🟦_OVERSTOCKED
-            const overstocked: string[] = [];
+            const overstockedForTheir: string[] = [];
+            const overstockedForOur: string[] = [];
 
             if (reasons.includes('🟦_OVERSTOCKED')) {
                 const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
 
                 overstock.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    overstocked.push(el.amountCanTrade + ' - ' + name);
+                    overstockedForTheir.push(el.amountCanTrade + ' - ' + name);
+                    overstockedForOur.push(name + ' (can only buy ' + el.amountCanTrade + ')');
                 });
 
                 note = process.env.OVERSTOCKED_NOTE
                     ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
-                          .replace(/%name%/g, overstocked.join(', ')) // %name% here will include amountCanTrade value
-                          .replace(/%isName%/, pluralize('is', overstocked.length))
-                    : `🟦_OVERSTOCKED - I can only buy ${overstocked.join(', ')} right now.`;
+                          .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                          .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
+                    : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
                 // Default note: I can only buy %amountCanTrade% - %name% right now.
 
                 reviewReasons.push(note);
@@ -1608,7 +1610,7 @@ export = class MyHandler extends Handler {
 
             const items = {
                 invalid: invalidForOur,
-                overstock: overstocked,
+                overstock: overstockedForOur,
                 understock: understockedForOur,
                 duped: dupedItemsName,
                 dupedFailed: dupedFailedItemsName
