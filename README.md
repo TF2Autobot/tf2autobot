@@ -66,7 +66,7 @@ tf2autobot adds advantageous features on top of the original features in the tf2
 -   send the trade partner a summary of their offer if it needs to be reviewed ([jump](https://github.com/idinium96/tf2autobot#offer-review-summary-on-trade-partner-side)).
 -   automatically accept trades that underpay by a certain amount of refined with `INVALID_VALUE exception` (you decide/set the amount of refined and can be enabled only for certain item qualites).
 -   automatically decline (skip manual review) **ONLY** `INVALID_VALUE` trade (if it does not meet the set requirements for `INVALID_VALUE exception`).
-    |automatically accept (skip manual review) `INVALID_ITEMS` or `OVERSTOCKED` trades if the trade partner offers overpay.
+-   automatically accept (skip manual review) `INVALID_ITEMS` or `OVERSTOCKED` trades if the trade partner offers overpay.
 -   request for `INVALID_ITEMS` to be priced by Prices.TF.
 -   disable mention (Discord Webhook) on pending trade offers with `INVALID_VALUE`.
 -   Dueling Mini-Game check - only accept 5 Uses!
