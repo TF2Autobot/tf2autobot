@@ -1771,12 +1771,14 @@ export = class MyHandler extends Handler {
             // for loop for weapon1
             const sku1 = scout[i];
             const wep1 = currencies[sku1].length;
+            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < scout.length; j++) {
                 // for loop for weapon2 inside for loop weapon1
                 const sku2 = scout[j];
                 const wep2 = currencies[sku2].length;
-                // check if that weapon only have 1 in inventory AND it's not in pricelist
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+                // check if that weapon2 only have 1 in inventory AND it's not in pricelist
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -1824,10 +1826,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < soldier.length; i++) {
             const sku1 = soldier[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < soldier.length; j++) {
                 const sku2 = soldier[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -1873,10 +1876,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < pyro.length; i++) {
             const sku1 = pyro[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < pyro.length; j++) {
                 const sku2 = pyro[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -1920,10 +1924,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < demoman.length; i++) {
             const sku1 = demoman[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < demoman.length; j++) {
                 const sku2 = demoman[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -1962,10 +1967,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < heavy.length; i++) {
             const sku1 = heavy[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < heavy.length; j++) {
                 const sku2 = heavy[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -1999,10 +2005,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < engineer.length; i++) {
             const sku1 = engineer[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < engineer.length; j++) {
                 const sku2 = engineer[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -2035,10 +2042,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < medic.length; i++) {
             const sku1 = medic[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < medic.length; j++) {
                 const sku2 = medic[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -2076,10 +2084,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < sniper.length; i++) {
             const sku1 = sniper[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < sniper.length; j++) {
                 const sku2 = sniper[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
@@ -2113,10 +2122,11 @@ export = class MyHandler extends Handler {
         for (let i = 0; i < spy.length; i++) {
             const sku1 = spy[i];
             const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
             for (let j = 1; j < spy.length; j++) {
                 const sku2 = spy[j];
                 const wep2 = currencies[sku2].length;
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
                 const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
 
                 if (sku1 !== sku2 && isWep1 && isWep2) {
