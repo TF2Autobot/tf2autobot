@@ -750,18 +750,18 @@ export default class Pricelist extends EventEmitter {
         });
 
         /*eslint-disable */
-        const priceUpdate = {
+        const priceUpdate = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: '',
             embeds: embed
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(priceUpdate));
+        request.send(priceUpdate);
     }
 
     private getOld(): Entry[] {

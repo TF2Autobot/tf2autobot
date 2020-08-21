@@ -73,62 +73,62 @@ export = class DiscordWebhookClass {
 
     sendLowPureAlert(msg: string, time: string): void {
         /*eslint-disable */
-        const pureAlert = {
+        const pureAlert = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(pureAlert));
+        request.send(pureAlert);
     }
 
     sendQueueAlert(position: number, time: string): void {
         /*eslint-disable */
-        const discordQueue = {
+        const discordQueue = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> [Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(discordQueue));
+        request.send(discordQueue);
     }
 
     sendQueueAlertFailedPM2(time: string): void {
         /*eslint-disable */
-        const queueAlertFailed = {
+        const queueAlertFailed = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> ❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(queueAlertFailed));
+        request.send(queueAlertFailed);
     }
 
     sendQueueAlertFailedError(err: any, time: string): void {
         /*eslint-disable */
-        const queueAlertError = {
+        const queueAlertError = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}> ❌ An error occurred while trying to restart: ${err.message} - ${time}`
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(queueAlertError));
+        request.send(queueAlertError);
     }
 
     sendPartnerMessage(
@@ -142,7 +142,7 @@ export = class DiscordWebhookClass {
         time: string
     ): void {
         /*eslint-disable */
-        const discordPartnerMsg = {
+        const discordPartnerMsg = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
             content: `<@!${this.ownerID}>, new message! - ${steamID}`,
@@ -161,13 +161,13 @@ export = class DiscordWebhookClass {
                     color: this.botEmbedColor
                 }
             ]
-        };
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(discordPartnerMsg));
+        request.send(discordPartnerMsg);
     }
 
     sendOfferReview(
@@ -404,7 +404,7 @@ export = class DiscordWebhookClass {
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
-            const acceptedTradeSummary = {
+            const acceptedTradeSummary = JSON.stringify({
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -462,7 +462,7 @@ export = class DiscordWebhookClass {
                         color: botEmbedColor
                     }
                 ]
-            };
+            });
             /*eslint-enable */
 
             tradeLinks.forEach((link, i) => {
@@ -470,11 +470,7 @@ export = class DiscordWebhookClass {
                 request.open('POST', link);
                 request.setRequestHeader('Content-type', 'application/json');
                 // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-                request.send(
-                    i > 0
-                        ? JSON.stringify(acceptedTradeSummary).replace(/<@!\d+>/g, '')
-                        : JSON.stringify(acceptedTradeSummary)
-                );
+                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
             });
 
             // reset array
