@@ -3,7 +3,7 @@ import moment from 'moment';
 import SKU from 'tf2-sku';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import Bot from './Bot';
 import { UnknownDictionary } from '../types/common';
@@ -437,9 +437,10 @@ abstract class Cart {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        const requestBody: Webhook.input.POST = fullBackpack;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(fullBackpack));
     }
 
     toString(): string {
