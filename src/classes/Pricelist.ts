@@ -569,35 +569,93 @@ export default class Pricelist extends EventEmitter {
         };
 
         const paintCan = {
-            '5052;6': '2f4f4f', // A Color Similar to Slate
-            '5031;6': '7d4071', // A Deep Commitment to Purple
-            '5040;6': '141414', // A Distinctive Lack of Hue
-            '5076;6': 'bcddb3', // A Mann's Mint
-            '5077;6': '2d2d24', // After Eight
-            '5038;6': '7e7e7e', // Aged Moustache Grey
-            '5063;6': '654740', // An Air of Debonair
-            '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
-            '5037;6': 'e7b53b', // Australium Gold
-            '5062;6': '3b1f23', // Balaclavas Are Forever
-            '5030;6': 'd8bed8', // Color No. 216-190-216
-            '5065;6': 'c36c2d', // Cream Spirit
-            '5056;6': 'e9967a', // Dark Salmon Injustice
-            '5053;6': '808000', // Drably Olive
-            '5027;6': '729e42', // Indubitably Green
-            '5032;6': 'cf7336', // Mann Co. Orange
-            '5033;6': 'a57545', // Muskelmannbraun
-            '5029;6': '51384a', // Noble Hatter's Violet
-            '5060;6': '483838', // Operator's Overalls
-            '5034;6': 'c5af91', // Peculiarly Drab Tincture
-            '5051;6': 'ff69b4', // Pink as Hell
-            '5035;6': '694d3a', // Radigan Conagher Brown
-            '5046;6': 'b8383b', // Team Spirit
-            '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
-            '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
-            '5064;6': '803020', // The Value of Teamwork
-            '5061;6': 'a89a8c', // Waterlogged Lab Coat
-            '5036;6': '7c6c57', // Ye Olde Rustic Colour
-            '5028;6': '424f3b' // Zepheniah's Greed
+            // A Color Similar to Slate
+            '5052;6':
+                'TbL_ROFcpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvOvr1MdQ/360fx360f',
+            // A Deep Commitment to Purple
+            '5031;6':
+                'TeLfQYFp1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvVs13Vys/360fx360f',
+            // A Distinctive Lack of Hue
+            '5040;6':
+                'TYffEcEJhnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvXrHVMg0/360fx360f',
+            // A Mann's Mint
+            '5076;6':
+                'SLKqRMQ59nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvU8z3W20/360fx360f',
+            // After Eight
+            '5077;6':
+                'TbLfJME5hnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvWdo-dtk/360fx360f',
+            // Aged Moustache Grey
+            '5038;6':
+                'TeLPdNFslnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvFkHADQU/360fx360f',
+            // An Air of Debonair
+            '5063;6':
+                'TffPQfFZxnqWSMU5OD2NsHx3oIzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V0p8gFQg/360fx360f',
+            // An Extraordinary Abundance of Tinge
+            '5039;6':
+                'SMf6UeRJpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv64ewDK8/360fx360f',
+            // Australium Gold
+            '5037;6':
+                'SMfqIdEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvsjysS5w/360fx360f',
+            // Balaclavas Are Forever
+            '5062;6':
+                'TaK_FOE59nqWSMU5OD2NgHxnAPzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V3lcfHzA/360fx360f',
+            // Color No. 216-190-216
+            '5030;6':
+                'SNcaJNRZRnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvFOcRWGY/360fx360f',
+            // Cream Spirit
+            '5065;6':
+                'SKevZLE8hnqWSMU5OD2IsHzHMPnShGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VQmu5hdU/360fx360f',
+            // Dark Salmon Injustice
+            '5056;6':
+                'SMcPkeFs1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvy3dkty0/360fx360f',
+            // Drably Olive
+            '5053;6':
+                'TRefgYEZxnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvMuQVCSQ/360fx360f',
+            // Indubitably Green
+            '5027;6':
+                'Tee_lNFZ5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvm153-6I/360fx360f',
+            // Mann Co. Orange
+            '5032;6':
+                'SKL_cbEppnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvTFGBHn4/360fx360f',
+            // Muskelmannbraun
+            '5033;6':
+                'SIfPcdFZlnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvcmoesjg/360fx360f',
+            // Noble Hatter's Violet
+            '5029;6':
+                'TcePMQFc1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvgXmHfsU/360fx360f',
+            // Operator's Overalls
+            '5060;6':
+                'TdcfMQEpRnqWSMU5OD2NoHwHEIkChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V-hQN5Nc/360fx360f',
+            // Peculiarly Drab Tincture
+            '5034;6':
+                'SKfKFOGJ1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvG7gZwMo/360fx360f',
+            // Pink as Hell
+            '5051;6':
+                'SPL_YRQ5hnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv9O7ytVg/360fx360f',
+            // Radigan Conagher Brown
+            '5035;6':
+                'TfcPRMEs1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv4OlkQfA/360fx360f',
+            // Team Spirit
+            '5046;6':
+                'SLcfMQEs5nqWSMU5OD2NwHzHZdmihGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VWwsKTpY/360fx360f',
+            // The Bitter Taste of Defeat and Lime
+            '5054;6':
+                'Tae6NMEp5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvvmRKa6k/360fx360f',
+            // The Color of a Gentlemann's Business Pants
+            '5055;6':
+                'SPeaUeGc9nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvoDEBbxU/360fx360f',
+            // The Value of Teamwork
+            '5064;6':
+                'TRefMYE5xnqWSMU5OD2NsKwicEzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8Vs4Ux0YY/360fx360f',
+            // Waterlogged Lab Coat
+            '5061;6':
+                'SIcflJGc9nqWSMU5OD2NEMzSVdmyhGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VT2CQ46M/360fx360f',
+            // Ye Olde Rustic Colour
+            '5036;6':
+                'TeKvZLFJtnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvmeRW1Z8/360fx360f',
+            // Zepheniah's Greed
+            '5028;6':
+                'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/360fx360f'
         };
 
         const qualityColor = {
@@ -630,7 +688,7 @@ export default class Pricelist extends EventEmitter {
             if (!itemImageUrl || !item) {
                 itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
             } else if (Object.keys(paintCan).includes(newSku)) {
-                itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan[newSku]}.png`;
+                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}`;
             } else if (item.australium === true) {
                 const australiumSKU = parts[0] + ';11;australium';
                 itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
