@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
@@ -700,9 +700,10 @@ export default class Pricelist extends EventEmitter {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        const requestBody: Webhook.input.POST = priceUpdate;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(priceUpdate);
     }
 
     private getOld(): Entry[] {

@@ -1,6 +1,6 @@
 import Bot from './Bot';
 
-import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
@@ -80,9 +80,10 @@ export = class DiscordWebhookClass {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        const requestBody: Webhook.input.POST = pureAlert;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(pureAlert));
     }
 
     sendQueueAlert(position: number, time: string): void {
@@ -94,9 +95,10 @@ export = class DiscordWebhookClass {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        const requestBody: Webhook.input.POST = discordQueue;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(discordQueue));
     }
 
     sendQueueAlertFailedPM2(time: string): void {
@@ -108,9 +110,10 @@ export = class DiscordWebhookClass {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        const requestBody: Webhook.input.POST = queueAlertFailed;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(queueAlertFailed));
     }
 
     sendQueueAlertFailedError(err: any, time: string): void {
@@ -122,9 +125,10 @@ export = class DiscordWebhookClass {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        const requestBody: Webhook.input.POST = queueAlertError;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(queueAlertError));
     }
 
     sendPartnerMessage(
@@ -160,9 +164,10 @@ export = class DiscordWebhookClass {
         };
         /*eslint-enable */
 
-        const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
-        const requestBody: Webhook.input.POST = discordPartnerMsg;
-        discordClient.execute(requestBody);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(JSON.stringify(discordPartnerMsg));
     }
 
     sendOfferReview(
@@ -287,15 +292,17 @@ export = class DiscordWebhookClass {
                 ]
             };
 
+            /*eslint-enable */
+
             if (itemList === '-') {
                 // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_STEAM_DOWN/⬜_BACKPACKTF_DOWN)
                 webhookReview.embeds[0].fields.shift();
             }
 
-            /*eslint-enable */
-            const discordClient = new DiscordWebhook(process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
-            const requestBody: Webhook.input.POST = webhookReview;
-            discordClient.execute(requestBody);
+            const request = new XMLHttpRequest();
+            request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(JSON.stringify(webhookReview));
         });
     }
 
@@ -459,15 +466,15 @@ export = class DiscordWebhookClass {
             /*eslint-enable */
 
             tradeLinks.forEach((link, i) => {
-                const discordClient = new DiscordWebhook(link);
-                let deleted = false;
-
-                if (i > 0 && !deleted) {
-                    delete acceptedTradeSummary.content; // remove mentioned to second or more Discord Webhook URL.
-                    deleted = true; // ensure to delete one time only
-                }
-                const requestBody: Webhook.input.POST = acceptedTradeSummary;
-                discordClient.execute(requestBody);
+                const request = new XMLHttpRequest();
+                request.open('POST', link);
+                request.setRequestHeader('Content-type', 'application/json');
+                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
+                request.send(
+                    i > 0
+                        ? JSON.stringify(acceptedTradeSummary).replace(/<@!\d+>/g, '')
+                        : JSON.stringify(acceptedTradeSummary)
+                );
             });
 
             // reset array
