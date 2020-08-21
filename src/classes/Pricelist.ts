@@ -714,7 +714,7 @@ export default class Pricelist extends EventEmitter {
             if (!effectsId) {
                 effectURL = '';
             } else {
-                effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
+                effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
             }
 
             const qualityItem = parts[1];
