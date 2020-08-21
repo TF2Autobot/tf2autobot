@@ -761,7 +761,7 @@ export default class Pricelist extends EventEmitter {
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
+        request.send(JSON.stringify(priceUpdate));
     }
 
     private getOld(): Entry[] {
