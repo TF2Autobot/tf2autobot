@@ -224,6 +224,7 @@ You can run your bot without this initially. On the first run, your bot will pri
 | `MAXIMUM_REFINED_TO_ STOP_SELL_KEYS`  | `number`  |  `150`  | Already explained in `MAXIMUM_KEYS`.                                                                                                                                       |
 |      `DISABLE_SCRAP_ ADJUSTMENT`      | `boolean` | `true`  | Set to `false` to make an adjustment on the key price when selling or buying. It is not possible to do for key banking.                                                    |
 |       `SCRAP_ADJUSTMENT_ VALUE`       | `integer` |   `1`   | 1 scrap = 0.11 ref, 9 scrap = 1 ref                                                                                                                                        |
+|    `AUTOKEYS_ACCEPT_UNDERSTOCKED`     | `boolean` | `false` | Set to `true` if you want your bot to accept trades that will lead to key become understocked.                                                                             |
 
 \*\*This feature is meant to have your bot maintain enough pure in their inventory. Enabling "Autokeys - Banking" might cause this feature to not perform as intended.
 

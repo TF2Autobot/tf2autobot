@@ -829,7 +829,9 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
+                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
+
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
                     hasUnderstock = true;
 
