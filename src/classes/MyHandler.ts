@@ -600,11 +600,11 @@ export = class MyHandler extends Handler {
                   assetid: string;
               }
             | {
-                  reason: '⬜_STEAM_DOWN';
+                  reason: '⬜_ESCROW_CHECK_FAILED';
                   error?: string;
               }
             | {
-                  reason: '⬜_BACKPACKTF_DOWN';
+                  reason: '⬜_BANNED_CHECK_FAILED';
                   error?: string;
               }
         )[] = [];
@@ -970,14 +970,14 @@ export = class MyHandler extends Handler {
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
             wrongAboutOffer.push({
-                reason: '⬜_STEAM_DOWN'
+                reason: '⬜_ESCROW_CHECK_FAILED'
             });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜_STEAM_DOWN',
+                reason: '⬜_ESCROW_CHECK_FAILED',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -997,14 +997,14 @@ export = class MyHandler extends Handler {
         } catch (err) {
             log.warn('Failed to check banned: ', err);
             wrongAboutOffer.push({
-                reason: '⬜_BACKPACKTF_DOWN'
+                reason: '⬜_BANNED_CHECK_FAILED'
             });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜_BACKPACKTF_DOWN',
+                reason: '⬜_BANNED_CHECK_FAILED',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -1568,12 +1568,12 @@ export = class MyHandler extends Handler {
                     : false;
 
             // Notify partner and admin that the offer is waiting for manual review
-            if (reasons.includes('⬜_BACKPACKTF_DOWN') || reasons.includes('⬜_STEAM_DOWN')) {
+            if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reasons.includes('⬜_BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reasons.includes('⬜_BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf' : 'Escrow') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
@@ -1636,9 +1636,9 @@ export = class MyHandler extends Handler {
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
                         `\nReasons: ${meta.uniqueReasons.join(', ')}` +
-                        (reasons.includes('⬜_BACKPACKTF_DOWN')
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED')
                             ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                            : reasons.includes('⬜_STEAM_DOWN')
+                            : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
                         summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
