@@ -265,9 +265,9 @@ export = class DiscordWebhookClass {
                         title: '',
                         description:
                             `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
-                            (reasons.includes('⬜_BACKPACKTF_DOWN')
+                            (reasons.includes('⬜_BANNED_CHECK_FAILED')
                                 ? '\n\n`Backpack.tf down, please manually check if this person is banned before accepting the offer.`'
-                                : reasons.includes('⬜_STEAM_DOWN')
+                                : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                                 ? '\n\n`Steam down, please manually check if this person have escrow.`'
                                 : '') +
                             summary +
@@ -295,7 +295,7 @@ export = class DiscordWebhookClass {
             /*eslint-enable */
 
             if (itemList === '-') {
-                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_STEAM_DOWN/⬜_BACKPACKTF_DOWN)
+                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_ESCROW_CHECK_FAILED/⬜_BANNED_CHECK_FAILED)
                 webhookReview.embeds[0].fields.shift();
             }
 
