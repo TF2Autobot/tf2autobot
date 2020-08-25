@@ -829,7 +829,9 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff)) {
+                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
+
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
                     hasUnderstock = true;
 
@@ -1194,56 +1196,59 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
-                        reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                        reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
-                        reason = 'your offer contains Noise Maker that are not 25 uses.';
+                        reason = 'your offer contains a Noise Maker that does not have 25 uses.';
                     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
                         reason =
-                            'I am no longer trading keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                            'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
                         reason =
-                            'I am no longer selling keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                            'I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
                         reason =
-                            'I am no longer buying keys. You can confirm it by adding me and send "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                            'I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'BANNED') {
                         reason =
-                            "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or other community.";
+                            "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or another community.";
                     } else if (offerReason.reason === 'ESCROW') {
                         reason =
-                            'I do not accept trade hold (Escrow). Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                            'I do not accept escrow (trade hold). Please use Steam Guard Mobile Authenticator so you will be able to trade instantly in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
+                            '\n• Steam Guard: How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
                     } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
                         reasonForInvalidValue = true;
-                        reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
+                        reason =
+                            "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
                     } else {
                         reason = '';
                     }
+
+                    const invalidValueSummary =
+                        '\n\nSummary:\n' +
+                        offer
+                            .summarize(this.bot.schema)
+                            .replace('Asked', '  My side')
+                            .replace('Offered', 'Your side') +
+                        "\n[You're missing: " +
+                        (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        `${
+                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                : ''
+                        }`;
+
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
-                            ? process.env.CUSTOM_DECLINED_MESSAGE
+                            ? process.env.CUSTOM_DECLINED_MESSAGE.replace(/%reason%/g, reason).replace(
+                                  /%invalid_value_summary%/g,
+                                  invalidValueSummary
+                              )
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }` +
-                                  (reasonForInvalidValue
-                                      ? '\n\nSummary:\n' +
-                                        offer
-                                            .summarize(this.bot.schema)
-                                            .replace('Asked', '  My side')
-                                            .replace('Offered', 'Your side') +
-                                        "\n[You're missing: " +
-                                        (itemsList.their.includes('5021;6')
-                                            ? `${value.diffKey}]`
-                                            : `${value.diffRef} ref]`) +
-                                        `${
-                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                : ''
-                                        }`
-                                      : '')
+                              }` + (reasonForInvalidValue ? invalidValueSummary : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -2301,9 +2306,10 @@ export = class MyHandler extends Handler {
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
 
             friendsToRemove.forEach(element => {
+                const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
                         ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
                         : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
                 );

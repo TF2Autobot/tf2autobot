@@ -35,6 +35,7 @@
                 "MAXIMUM_REFINED_TO_STOP_SELL_KEYS": 150,
                 "DISABLE_SCRAP_ADJUSTMENT": true,
                 "SCRAP_ADJUSTMENT_VALUE": 1,
+                "AUTOKEYS_ACCEPT_UNDERSTOCKED": false,
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
