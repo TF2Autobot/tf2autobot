@@ -1223,29 +1223,31 @@ export = class MyHandler extends Handler {
                     } else {
                         reason = '';
                     }
+
+                    const invalidValueSummary =
+                        '\n\nSummary:\n' +
+                        offer
+                            .summarize(this.bot.schema)
+                            .replace('Asked', '  My side')
+                            .replace('Offered', 'Your side') +
+                        "\n[You're missing: " +
+                        (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        `${
+                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                : ''
+                        }`;
+
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
-                            ? process.env.CUSTOM_DECLINED_MESSAGE
+                            ? process.env.CUSTOM_DECLINED_MESSAGE.replace(/%reason%/g, reason).replace(
+                                  /%invalid_value_summary%/g,
+                                  invalidValueSummary
+                              )
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }` +
-                                  (reasonForInvalidValue
-                                      ? '\n\nSummary:\n' +
-                                        offer
-                                            .summarize(this.bot.schema)
-                                            .replace('Asked', '  My side')
-                                            .replace('Offered', 'Your side') +
-                                        "\n[You're missing: " +
-                                        (itemsList.their.includes('5021;6')
-                                            ? `${value.diffKey}]`
-                                            : `${value.diffRef} ref]`) +
-                                        `${
-                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                : ''
-                                        }`
-                                      : '')
+                              }` + (reasonForInvalidValue ? invalidValueSummary : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -2303,9 +2305,10 @@ export = class MyHandler extends Handler {
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
 
             friendsToRemove.forEach(element => {
+                const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
                         ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
                         : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
                 );
