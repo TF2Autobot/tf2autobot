@@ -327,6 +327,10 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         // Professional Killstreak Kit
         return schema.getItemByItemName(item.market_hash_name.substring(23, item.market_hash_name.length - 3).trim())
             .defindex;
+    } else if (defindex === 9258) {
+        // Unusualifier
+        return schema.getItemByItemName(item.market_hash_name.substring(7, item.market_hash_name.length - 12).trim())
+            .defindex;
     }
 
     return null;
