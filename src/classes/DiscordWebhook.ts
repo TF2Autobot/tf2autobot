@@ -76,7 +76,7 @@ export = class DiscordWebhookClass {
         const pureAlert = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
+            content: `[Something Wrong alert]: "${msg}" - ${time}`
         });
         /*eslint-enable */
 
@@ -145,7 +145,7 @@ export = class DiscordWebhookClass {
         const discordPartnerMsg = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}>, new message! - ${steamID}`,
+            content: `${steamID}`,
             embeds: [
                 {
                     author: {
@@ -202,7 +202,7 @@ export = class DiscordWebhookClass {
                 noMentionOnInvalidValue = false;
             }
         }
-        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
+        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
