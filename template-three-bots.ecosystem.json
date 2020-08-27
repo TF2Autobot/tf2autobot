@@ -130,6 +130,8 @@
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "DISABLE_AUTO_DECLINE_OVERSTOCKED_WITH_INVALID_VALUE": true,
+                "DISABLE_AUTO_DECLINE_UNDERSTOCKED_WITH_INVALID_VALUE": true,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
@@ -285,6 +287,8 @@
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "DISABLE_AUTO_DECLINE_OVERSTOCKED_WITH_INVALID_VALUE": true,
+                "DISABLE_AUTO_DECLINE_UNDERSTOCKED_WITH_INVALID_VALUE": true,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
@@ -440,6 +444,8 @@
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "DISABLE_AUTO_DECLINE_OVERSTOCKED_WITH_INVALID_VALUE": true,
+                "DISABLE_AUTO_DECLINE_UNDERSTOCKED_WITH_INVALID_VALUE": true,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
