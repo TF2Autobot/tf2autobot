@@ -343,9 +343,7 @@ abstract class Cart {
 
         this.offer.data('handleTimestamp', moment().valueOf());
 
-        this.offer.setMessage(
-            'Powered by TF2 Automatic' + (process.env.OFFER_MESSAGE ? '. ' + process.env.OFFER_MESSAGE : '')
-        );
+        this.offer.setMessage(process.env.OFFER_MESSAGE || 'Have a nice day');
 
         if (this.notify === true) {
             this.offer.data('notify', true);
