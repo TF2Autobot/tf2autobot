@@ -1149,11 +1149,11 @@ export = class MyHandler extends Handler {
             ) {
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
-                // If only INVALID_VALUE and Auto-decline OVERSTOCKED, will just decline the trade.
-                process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED_WITH_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥_INVALID_VALUE') &&
+                // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+                process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED !== 'true' &&
                 uniqueReasons.includes('🟦_OVERSTOCKED') &&
                 !(
+                    uniqueReasons.includes('🟥_INVALID_VALUE') ||
                     uniqueReasons.includes('🟩_UNDERSTOCKED') ||
                     uniqueReasons.includes('🟨_INVALID_ITEMS') ||
                     uniqueReasons.includes('🟫_DUPED_ITEMS') ||
@@ -1161,13 +1161,13 @@ export = class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
-                return { action: 'decline', reason: 'ONLY_OVERSTOCKED_WITH_INVALID_VALUE' };
+                return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
-                // If only INVALID_VALUE and Auto-decline UNDERSTOCKED, will just decline the trade.
-                process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED_WITH_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥_INVALID_VALUE') &&
+                // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+                process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED !== 'true' &&
                 uniqueReasons.includes('🟩_UNDERSTOCKED') &&
                 !(
+                    uniqueReasons.includes('🟥_INVALID_VALUE') ||
                     uniqueReasons.includes('🟦_OVERSTOCKED') ||
                     uniqueReasons.includes('🟨_INVALID_ITEMS') ||
                     uniqueReasons.includes('🟫_DUPED_ITEMS') ||
@@ -1175,7 +1175,7 @@ export = class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
-                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED_WITH_INVALID_VALUE' };
+                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
                 return {
@@ -1271,14 +1271,14 @@ export = class MyHandler extends Handler {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
-                    } else if (offerReason.reason === 'ONLY_OVERSTOCKED_WITH_INVALID_VALUE') {
+                    } else if (offerReason.reason === 'ONLY_OVERSTOCKED') {
                         reasonForInvalidValue = true;
                         reason =
-                            "you've sent a trade with an invalid value (your side and my side do not hold equal value) and overstocked item(s) (which I can't buy more than I could).";
-                    } else if (offerReason.reason === 'ONLY_UNDERSTOCKED_WITH_INVALID_VALUE') {
+                            "you've sent a trade with an overstocked item(s) (which I can't buy more than I could).";
+                    } else if (offerReason.reason === 'ONLY_UNDERSTOCKED') {
                         reasonForInvalidValue = true;
                         reason =
-                            "you've sent a trade with an invalid value (your side and my side do not hold equal value) and understocked item(s) (which I can't sell more than I could).";
+                            "you've sent a trade with an understocked item(s) (which I can't sell more than I could).";
                     } else {
                         reason = '';
                     }
