@@ -493,7 +493,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -503,7 +503,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '✨');
+                .replace(/%dueling%/g, '');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -513,7 +513,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
-                .replace(/%dueling%/g, '✨');
+                .replace(/%dueling%/g, '');
         }
 
         return details;
