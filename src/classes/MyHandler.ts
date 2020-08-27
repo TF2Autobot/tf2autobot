@@ -977,14 +977,20 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_ESCROW_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (manualReviewEnabled) {
+                // if Manual review enabled, skip the trade
+                return {
+                    action: 'skip',
+                    reason: '⬜_ESCROW_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // else just ignore processing the trade
+                return;
+            }
         }
 
         offer.log('info', 'checking bans...');
@@ -1004,14 +1010,20 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_BANNED_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (manualReviewEnabled) {
+                // if Manual review enabled, skip the trade
+                return {
+                    action: 'skip',
+                    reason: '⬜_BANNED_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // else just ignore processing the trade
+                return;
+            }
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
@@ -1216,6 +1228,7 @@ export = class MyHandler extends Handler {
                     const keyPrice = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrice);
                     const itemsList = this.itemList(offer);
+                    const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW !== 'true';
 
                     let reasonForInvalidValue = false;
                     let reason: string;
@@ -1239,13 +1252,22 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'BANNED') {
                         reason =
                             "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or another community.";
+                    } else if (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled) {
+                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                    } else if (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled) {
+                        reason = "you're taking some item(s) that I can't sell more than I could.";
+                    } else if (offerReason.reason === '🟫_DUPED_ITEMS' && manualReviewDisabled) {
+                        reason = "I don't accept duped item.";
                     } else if (offerReason.reason === 'ESCROW') {
                         reason =
                             'I do not accept escrow (trade hold). Please use Steam Guard Mobile Authenticator so you will be able to trade instantly in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
                             '\n• Steam Guard: How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
-                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                    } else if (
+                        offerReason.reason === 'ONLY_INVALID_VALUE' ||
+                        (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
+                    ) {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
