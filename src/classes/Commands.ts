@@ -142,11 +142,11 @@ export = class Commands {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
-        } else if (command === 'price') {
+        } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
-        } else if (command === 'buy') {
+        } else if (['buy', 'b'].includes(command)) {
             this.buyCommand(steamID, message);
-        } else if (command === 'sell') {
+        } else if (['sell', 's'].includes(command)) {
             this.sellCommand(steamID, message);
         } else if (command === 'buycart') {
             this.buyCartCommand(steamID, message);
@@ -166,7 +166,7 @@ export = class Commands {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
             this.autoKeysCommand(steamID);
-        } else if (command === 'message') {
+        } else if (['message', 'msg'].includes(command)) {
             this.messageCommand(steamID, message);
         } else if (command === 'time') {
             this.timeCommand(steamID);
@@ -182,9 +182,9 @@ export = class Commands {
             this.uncraftweaponCommand(steamID);
         } else if (command === 'sales') {
             this.getSalesCommand(steamID, message);
-        } else if (command === 'deposit' && isAdmin) {
+        } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
-        } else if (command === 'withdraw' && isAdmin) {
+        } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             this.addCommand(steamID, message);
@@ -2429,7 +2429,7 @@ export = class Commands {
             amount = 1;
         }
 
-        if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
+        if (['!price', '!sellcart', '!buycart', '!sell', '!buy', '!pc', '!s', '!b'].includes(name)) {
             this.bot.sendMessage(
                 steamID,
                 '⚠️ You forgot to add a name. Here\'s an example: "' +
@@ -2441,7 +2441,13 @@ export = class Commands {
                         ? '!buycart'
                         : name.includes('!sell')
                         ? '!sell'
-                        : '!buy') +
+                        : name.includes('!buy')
+                        ? '!buy'
+                        : name.includes('!pc')
+                        ? '!pc'
+                        : name.includes('!s')
+                        ? '!s'
+                        : '!b') +
                     ' Team Captain"'
             );
             return null;
