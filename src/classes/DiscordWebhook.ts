@@ -612,14 +612,14 @@ function replaceItemName(name: string): string {
 function replaceSpecialChar(toChange: string): string {
     return toChange
         .replace(/_/g, '‗')
-        .replace(/\*/g, '★')
-        .replace(/~/g, '💫')
-        .replace(/`/g, '💫')
-        .replace(/>/g, '💫')
-        .replace(/\|/g, '💫')
-        .replace(/\\/g, '💫')
-        .replace(/\(/g, '💫')
-        .replace(/\)/g, '💫')
-        .replace(/\[/g, '💫')
-        .replace(/\]/g, '💫');
+        .replace(/\*/g, '^')
+        .replace(/~/g, '-')
+        .replace(/`/g, "'")
+        .replace(/>/g, '<')
+        .replace(/\|/g, 'l')
+        .replace(/\\/g, '/')
+        .replace(/\(/g, '/')
+        .replace(/\)/g, '/')
+        .replace(/\[/g, '/')
+        .replace(/\]/g, '/');
 }
