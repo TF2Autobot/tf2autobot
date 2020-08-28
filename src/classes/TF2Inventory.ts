@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import request from '@nicklason/request-retry';
 import cheerio from 'cheerio';
-import { uid, suid } from 'rand-token';
+import { uid } from 'rand-token';
 
 type TF2Attribute = {
     defindex: number;
@@ -144,7 +144,7 @@ export = class TF2Inventory {
                     url: 'https://backpack.tf/item/' + assetid,
                     method: 'GET',
                     headers: {
-                        'Cookie': 'user-id=' + uid(12)
+                        Cookie: 'user-id=' + uid(12)
                     }
                 },
                 function(err, response, body) {
