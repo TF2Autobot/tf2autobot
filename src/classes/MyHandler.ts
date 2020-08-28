@@ -101,7 +101,7 @@ export = class MyHandler extends Handler {
 
         let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
         if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
-            invalidValueExceptionSKU.forEach(function(sku: string) {
+            invalidValueExceptionSKU.forEach(function (sku: string) {
                 if (sku === '' || !sku) {
                     invalidValueExceptionSKU = ['Not Set'];
                 }
@@ -155,7 +155,7 @@ export = class MyHandler extends Handler {
 
         const groups = parseJSON(process.env.GROUPS);
         if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(function(groupID64) {
+            groups.forEach(function (groupID64) {
                 if (!new SteamID(groupID64).isValid()) {
                     throw new Error(`Invalid group SteamID64 "${groupID64}"`);
                 }
@@ -166,7 +166,7 @@ export = class MyHandler extends Handler {
 
         const friendsToKeep = parseJSON(process.env.KEEP).concat(this.bot.getAdmins());
         if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(function(steamID64) {
+            friendsToKeep.forEach(function (steamID64) {
                 if (!new SteamID(steamID64).isValid()) {
                     throw new Error(`Invalid SteamID64 "${steamID64}"`);
                 }
@@ -219,7 +219,7 @@ export = class MyHandler extends Handler {
             files.readFile(paths.files.pricelist, true),
             files.readFile(paths.files.loginAttempts, true),
             files.readFile(paths.files.pollData, true)
-        ]).then(function([loginKey, pricelist, loginAttempts, pollData]) {
+        ]).then(function ([loginKey, pricelist, loginAttempts, pollData]) {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -227,14 +227,14 @@ export = class MyHandler extends Handler {
     onReady(): void {
         log.info(
             'tf2autobot v' +
-                process.env.BOT_VERSION +
-                ' is ready! ' +
-                pluralize('item', this.bot.pricelist.getLength(), true) +
-                ' in pricelist, ' +
-                pluralize('listing', this.bot.listingManager.listings.length, true) +
-                ' on www.backpack.tf (cap: ' +
-                this.bot.listingManager.cap +
-                ')'
+            process.env.BOT_VERSION +
+            ' is ready! ' +
+            pluralize('item', this.bot.pricelist.getLength(), true) +
+            ' in pricelist, ' +
+            pluralize('listing', this.bot.listingManager.listings.length, true) +
+            ' on www.backpack.tf (cap: ' +
+            this.bot.listingManager.cap +
+            ')'
         );
 
         this.bot.client.gamesPlayed([this.customGameName, 440]);
@@ -289,7 +289,7 @@ export = class MyHandler extends Handler {
                 this.autokeys.disable();
             }
 
-            this.bot.listings.removeAll().asCallback(function(err) {
+            this.bot.listings.removeAll().asCallback(function (err) {
                 if (err) {
                     log.warn('Failed to remove all listings: ', err);
                 }
@@ -333,7 +333,7 @@ export = class MyHandler extends Handler {
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
-        files.writeFile(paths.files.loginKey, loginKey, false).catch(function(err) {
+        files.writeFile(paths.files.loginKey, loginKey, false).catch(function (err) {
             log.warn('Failed to save login key: ', err);
         });
     }
@@ -348,7 +348,7 @@ export = class MyHandler extends Handler {
     }
 
     onLoginAttempts(attempts: number[]): void {
-        files.writeFile(paths.files.loginAttempts, attempts, true).catch(function(err) {
+        files.writeFile(paths.files.loginAttempts, attempts, true).catch(function (err) {
             log.warn('Failed to save login attempts: ', err);
         });
     }
@@ -566,48 +566,48 @@ export = class MyHandler extends Handler {
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: (
             | {
-                  reason: '🟦_OVERSTOCKED';
-                  sku: string;
-                  buying: boolean;
-                  diff: number;
-                  amountCanTrade: number;
-              }
+                reason: '🟦_OVERSTOCKED';
+                sku: string;
+                buying: boolean;
+                diff: number;
+                amountCanTrade: number;
+            }
             | {
-                  reason: '🟩_UNDERSTOCKED';
-                  sku: string;
-                  selling: boolean;
-                  diff: number;
-                  amountCanTrade: number;
-              }
+                reason: '🟩_UNDERSTOCKED';
+                sku: string;
+                selling: boolean;
+                diff: number;
+                amountCanTrade: number;
+            }
             | {
-                  reason: '🟨_INVALID_ITEMS';
-                  sku: string;
-                  buying: boolean;
-                  amount: number;
-                  price: string;
-              }
+                reason: '🟨_INVALID_ITEMS';
+                sku: string;
+                buying: boolean;
+                amount: number;
+                price: string;
+            }
             | {
-                  reason: '🟥_INVALID_VALUE';
-                  our: number;
-                  their: number;
-              }
+                reason: '🟥_INVALID_VALUE';
+                our: number;
+                their: number;
+            }
             | {
-                  reason: '🟪_DUPE_CHECK_FAILED';
-                  assetid?: string;
-                  error?: string;
-              }
+                reason: '🟪_DUPE_CHECK_FAILED';
+                assetid?: string;
+                error?: string;
+            }
             | {
-                  reason: '🟫_DUPED_ITEMS';
-                  assetid: string;
-              }
+                reason: '🟫_DUPED_ITEMS';
+                assetid: string;
+            }
             | {
-                  reason: '⬜_ESCROW_CHECK_FAILED';
-                  error?: string;
-              }
+                reason: '⬜_ESCROW_CHECK_FAILED';
+                error?: string;
+            }
             | {
-                  reason: '⬜_BANNED_CHECK_FAILED';
-                  error?: string;
-              }
+                reason: '⬜_BANNED_CHECK_FAILED';
+                error?: string;
+            }
         )[] = [];
 
         let assetidsToCheck = [];
@@ -1036,7 +1036,7 @@ export = class MyHandler extends Handler {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function(err, result) {
+                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function (err, result) {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -1044,7 +1044,7 @@ export = class MyHandler extends Handler {
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(function(callback) {
+                const result: (boolean | null)[] = await Promise.fromCallback(function (callback) {
                     async.series(requests, callback);
                 });
 
@@ -1094,12 +1094,12 @@ export = class MyHandler extends Handler {
 
             const acceptingCondition =
                 process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
-                process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+                    process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
+                    process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
                     ? exchange.our.value < exchange.their.value
                     : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
-                    ? exchange.our.value <= exchange.their.value
-                    : false;
+                        ? exchange.our.value <= exchange.their.value
+                        : false;
 
             // TO DO: Counter offer?
             //
@@ -1161,8 +1161,7 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟨_INVALID_ITEMS') ||
                     uniqueReasons.includes('🟫_DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
-                this.hasInvalidValueException === false
+                )
             ) {
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
@@ -1175,8 +1174,7 @@ export = class MyHandler extends Handler {
                     uniqueReasons.includes('🟨_INVALID_ITEMS') ||
                     uniqueReasons.includes('🟫_DUPED_ITEMS') ||
                     uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
-                this.hasInvalidValueException === false
+                )
             ) {
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
@@ -1221,10 +1219,10 @@ export = class MyHandler extends Handler {
                     this.bot.sendMessage(
                         offer.partner,
                         '✅ Success! The offer went through successfully, but you will receive your items after ~15 days.' +
-                            ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
-                            '\nRead:\n' +
-                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                        ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                        '\nRead:\n' +
+                        '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                        '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string } = offer.data('action');
@@ -1295,21 +1293,21 @@ export = class MyHandler extends Handler {
                         "\n[You're missing: " +
                         (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
-                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                : ''
+                        process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                            ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                            : ''
                         }`;
 
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
                             ? process.env.CUSTOM_DECLINED_MESSAGE.replace(/%reason%/g, reason).replace(
-                                  /%invalid_value_summary%/g,
-                                  invalidValueSummary
-                              )
+                                /%invalid_value_summary%/g,
+                                invalidValueSummary
+                            )
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
-                                  reason ? ` because ${reason}` : '.'
-                              }` + (reasonForInvalidValue ? invalidValueSummary : '')
+                            reason ? ` because ${reason}` : '.'
+                            }` + (reasonForInvalidValue ? invalidValueSummary : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1400,26 +1398,26 @@ export = class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                            (isAcceptedInvalidItemsOverpay
-                                ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
-                                : '') +
-                            `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                            `${
-                                autokeys.isEnabled
-                                    ? ' | Autokeys: ' +
-                                      (autokeys.isActive
-                                          ? '✅' +
-                                            (autokeys.isBanking
-                                                ? ' (banking)'
-                                                : autokeys.isBuying
-                                                ? ' (buying)'
-                                                : ' (selling)')
-                                          : '🛑')
-                                    : ''
-                            }` +
-                            `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                            `\n🎒 Total items: ${currentItems}`,
+                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
+                        (isAcceptedInvalidItemsOverpay
+                            ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                            : '') +
+                        `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                        `${
+                        autokeys.isEnabled
+                            ? ' | Autokeys: ' +
+                            (autokeys.isActive
+                                ? '✅' +
+                                (autokeys.isBanking
+                                    ? ' (banking)'
+                                    : autokeys.isBuying
+                                        ? ' (buying)'
+                                        : ' (selling)')
+                                : '🛑')
+                            : ''
+                        }` +
+                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                        `\n🎒 Total items: ${currentItems}`,
                         []
                     );
                 }
@@ -1505,12 +1503,12 @@ export = class MyHandler extends Handler {
 
                 note = process.env.INVALID_ITEMS_NOTE
                     ? `🟨_INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
-                          .replace(/%name%/g, invalidForTheir.join(', '))
-                          .replace(/%isName%/, pluralize('is', invalidForTheir.length))
+                        .replace(/%name%/g, invalidForTheir.join(', '))
+                        .replace(/%isName%/, pluralize('is', invalidForTheir.length))
                     : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
-                          'is',
-                          invalidForTheir.length
-                      )} not in my pricelist.`;
+                        'is',
+                        invalidForTheir.length
+                    )} not in my pricelist.`;
                 // Default note: %name% is|are not in my pricelist.
 
                 reviewReasons.push(note);
@@ -1531,8 +1529,8 @@ export = class MyHandler extends Handler {
 
                 note = process.env.OVERSTOCKED_NOTE
                     ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
-                          .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
-                          .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
+                        .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                        .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
                     : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
                 // Default note: I can only buy %amountCanTrade% - %name% right now.
 
@@ -1554,8 +1552,8 @@ export = class MyHandler extends Handler {
 
                 note = process.env.UNDERSTOCKED_NOTE
                     ? `🟩_UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
-                          .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
-                          .replace(/%isName%/, pluralize('is', understockedForTheir.length))
+                        .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                        .replace(/%isName%/, pluralize('is', understockedForTheir.length))
                     : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
                 // Default note: I can only sell %amountCanTrade% - %name% right now.
 
@@ -1575,12 +1573,12 @@ export = class MyHandler extends Handler {
 
                 note = process.env.DUPE_ITEMS_NOTE
                     ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
-                          .replace(/%name%/g, dupedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedItemsName.length))
+                        .replace(/%name%/g, dupedItemsName.join(', '))
+                        .replace(/%isName%/, pluralize('is', dupedItemsName.length))
                     : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
-                          'is',
-                          dupedItemsName.length
-                      )} appeared to be duped.`;
+                        'is',
+                        dupedItemsName.length
+                    )} appeared to be duped.`;
                 // Default note: %name% is|are appeared to be duped.
 
                 reviewReasons.push(note);
@@ -1599,8 +1597,8 @@ export = class MyHandler extends Handler {
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
                     ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
-                          .replace(/%name%/g, dupedFailedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
+                        .replace(/%name%/g, dupedFailedItemsName.join(', '))
+                        .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
                     : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
                 // Default note: I failed to check for duped on %name%.
 
@@ -1620,10 +1618,10 @@ export = class MyHandler extends Handler {
 
             const hasCustomNote =
                 process.env.INVALID_ITEMS_NOTE ||
-                process.env.OVERSTOCKED_NOTE ||
-                process.env.UNDERSTOCKED_NOTE ||
-                process.env.DUPE_ITEMS_NOTE ||
-                process.env.DUPE_CHECK_FAILED_NOTE
+                    process.env.OVERSTOCKED_NOTE ||
+                    process.env.UNDERSTOCKED_NOTE ||
+                    process.env.DUPE_ITEMS_NOTE ||
+                    process.env.DUPE_CHECK_FAILED_NOTE
                     ? true
                     : false;
 
@@ -1632,39 +1630,39 @@ export = class MyHandler extends Handler {
                 this.bot.sendMessage(
                     offer.partner,
                     (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf' : 'Steam') +
-                        ' is down and I failed to check your ' +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf' : 'Escrow') +
-                        ' status, please wait for my owner to manually accept/decline your offer.'
+                    ' is down and I failed to check your ' +
+                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf' : 'Escrow') +
+                    ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     offer.partner,
                     `⚠️ Your offer is waiting for review.\nReasons: ${reasons.join(', ')}` +
-                        (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
-                            ? '\n\nYour offer summary:\n' +
-                              offer
-                                  .summarize(this.bot.schema)
-                                  .replace('Asked', '  My side')
-                                  .replace('Offered', 'Your side') +
-                              (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
-                                  ? missingPureNote
-                                  : '') +
-                              (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                                  ? `\n\nNote:\n${reviewReasons.join('\n') +
-                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
-                                  : '')
+                    (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                        ? '\n\nYour offer summary:\n' +
+                        offer
+                            .summarize(this.bot.schema)
+                            .replace('Asked', '  My side')
+                            .replace('Offered', 'Your side') +
+                        (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
+                            ? missingPureNote
                             : '') +
-                        (process.env.ADDITIONAL_NOTE
-                            ? '\n\n' +
-                              process.env.ADDITIONAL_NOTE.replace(
-                                  /%keyRate%/g,
-                                  `${keyPrice.sell.metal.toString()} ref`
-                              ).replace(/%pureStock%/g, pureStock.join(', ').toString())
-                            : '') +
-                        (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
-                                  (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
+                        (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                            ? `\n\nNote:\n${reviewReasons.join('\n') +
+                            (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
                             : '')
+                        : '') +
+                    (process.env.ADDITIONAL_NOTE
+                        ? '\n\n' +
+                        process.env.ADDITIONAL_NOTE.replace(
+                            /%keyRate%/g,
+                            `${keyPrice.sell.metal.toString()} ref`
+                        ).replace(/%pureStock%/g, pureStock.join(', ').toString())
+                        : '') +
+                    (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
+                        ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                        (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
+                        : '')
                 );
             }
 
@@ -1695,19 +1693,19 @@ export = class MyHandler extends Handler {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReasons: ${meta.uniqueReasons.join(', ')}` +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                            : reasons.includes('⬜_ESCROW_CHECK_FAILED')
+                    `\nReasons: ${meta.uniqueReasons.join(', ')}` +
+                    (reasons.includes('⬜_BANNED_CHECK_FAILED')
+                        ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
+                        : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
-                        (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
-                        `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
-                        `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
+                    summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
+                    (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
+                    (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
+                    `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+                    `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                    `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                    `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
                 );
             }
@@ -2236,7 +2234,7 @@ export = class MyHandler extends Handler {
         this.bot.getAdmins().forEach(steamID => {
             if (!this.bot.friends.isFriend(steamID)) {
                 log.info(`Not friends with admin ${steamID}, sending friend request...`);
-                this.bot.client.addFriend(steamID, function(err) {
+                this.bot.client.addFriend(steamID, function (err) {
                     if (err) {
                         log.warn('Failed to send friend request: ', err);
                     }
@@ -2250,7 +2248,7 @@ export = class MyHandler extends Handler {
 
         log.debug(`Sending friend request to ${steamID64}...`);
 
-        this.bot.client.addFriend(steamID, function(err) {
+        this.bot.client.addFriend(steamID, function (err) {
             if (err) {
                 log.warn(`Failed to send friend request to ${steamID64}: `, err);
                 return;
@@ -2284,12 +2282,12 @@ export = class MyHandler extends Handler {
                         steamID,
                         process.env.CUSTOM_WELCOME_MESSAGE
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
-                                  /%admin%/g,
-                                  isAdmin ? '!help' : '!how2trade'
-                              )
+                                /%admin%/g,
+                                isAdmin ? '!help' : '!how2trade'
+                            )
                             : `Hi! If you don't know how things work, please type "!` +
-                                  (isAdmin ? 'help' : 'how2trade') +
-                                  '"'
+                            (isAdmin ? 'help' : 'how2trade') +
+                            '"'
                     );
                     return;
                 }
@@ -2309,12 +2307,12 @@ export = class MyHandler extends Handler {
                 steamID,
                 process.env.CUSTOM_WELCOME_MESSAGE
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
-                          /%admin%/g,
-                          isAdmin ? '!help' : '!how2trade'
-                      )
+                        /%admin%/g,
+                        isAdmin ? '!help' : '!how2trade'
+                    )
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade') +
-                          '"'
+                    (isAdmin ? 'help' : 'how2trade') +
+                    '"'
             );
         });
     }
@@ -2334,7 +2332,7 @@ export = class MyHandler extends Handler {
             const friendsWithTrades = this.bot.trades.getTradesWithPeople(friends);
 
             // Ignore friends to keep
-            this.friendsToKeep.forEach(function(steamID) {
+            this.friendsToKeep.forEach(function (steamID) {
                 delete friendsWithTrades[steamID];
             });
 
@@ -2494,28 +2492,28 @@ export = class MyHandler extends Handler {
             timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
                 ? '🕛'
                 : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
-                ? '🕐'
-                : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
-                ? '🕑'
-                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
-                ? '🕒'
-                : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
-                ? '🕓'
-                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
-                ? '🕔'
-                : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
-                ? '🕕'
-                : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
-                ? '🕖'
-                : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
-                ? '🕗'
-                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
-                ? '🕘'
-                : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
-                ? '🕙'
-                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
-                ? '🕚'
-                : '';
+                    ? '🕐'
+                    : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
+                        ? '🕑'
+                        : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
+                            ? '🕒'
+                            : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
+                                ? '🕓'
+                                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
+                                    ? '🕔'
+                                    : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
+                                        ? '🕕'
+                                        : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
+                                            ? '🕖'
+                                            : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
+                                                ? '🕗'
+                                                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
+                                                    ? '🕘'
+                                                    : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
+                                                        ? '🕙'
+                                                        : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
+                                                            ? '🕚'
+                                                            : '';
 
         const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
 
@@ -3004,14 +3002,14 @@ export = class MyHandler extends Handler {
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Member &&
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Blocked
             ) {
-                this.bot.community.getSteamGroup(new SteamID(steamID), function(err, group) {
+                this.bot.community.getSteamGroup(new SteamID(steamID), function (err, group) {
                     if (err) {
                         log.warn('Failed to get group: ', err);
                         return;
                     }
 
                     log.info(`Not member of group ${group.name} ("${steamID}"), joining...`);
-                    group.join(function(err) {
+                    group.join(function (err) {
                         if (err) {
                             log.warn('Failed to join group: ', err);
                         }
@@ -3022,7 +3020,7 @@ export = class MyHandler extends Handler {
     }
 
     onPollData(pollData: PollData): void {
-        files.writeFile(paths.files.pollData, pollData, true).catch(function(err) {
+        files.writeFile(paths.files.pollData, pollData, true).catch(function (err) {
             log.warn('Failed to save polldata: ', err);
         });
     }
@@ -3041,7 +3039,7 @@ export = class MyHandler extends Handler {
                 pricelist.map(entry => entry.getJSON()),
                 true
             )
-            .catch(function(err) {
+            .catch(function (err) {
                 log.warn('Failed to save pricelist: ', err);
             });
     }
@@ -3070,11 +3068,11 @@ function summarizeSteamChat(
         trade.replace('Asked:', '• Asked:').replace('Offered:', '• Offered:') +
         (value.diff > 0
             ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : value.diff < 0
-            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : '');
+                ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
+                (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                : '');
     return summary;
 }
 
@@ -3093,27 +3091,27 @@ function listItems(items: {
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
-              '🟩_UNDERSTOCKED:\n- ' +
-              items.understock.join(',\n- ')
+            '🟩_UNDERSTOCKED:\n- ' +
+            items.understock.join(',\n- ')
             : '';
     list +=
         items.duped.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
-                  ? '\n'
-                  : '') +
-              '🟫_DUPED_ITEMS:\n- ' +
-              items.duped.join(',\n- ')
+                ? '\n'
+                : '') +
+            '🟫_DUPED_ITEMS:\n- ' +
+            items.duped.join(',\n- ')
             : '';
     list +=
         items.dupedFailed.length !== 0
             ? (items.invalid.length !== 0 ||
-              items.overstock.length !== 0 ||
-              items.understock.length !== 0 ||
-              items.duped.length !== 0
-                  ? '\n'
-                  : '') +
-              '🟪_DUPE_CHECK_FAILED:\n- ' +
-              items.dupedFailed.join(',\n- ')
+                items.overstock.length !== 0 ||
+                items.understock.length !== 0 ||
+                items.duped.length !== 0
+                ? '\n'
+                : '') +
+            '🟪_DUPE_CHECK_FAILED:\n- ' +
+            items.dupedFailed.join(',\n- ')
             : '';
 
     if (list.length === 0) {
