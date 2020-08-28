@@ -56,9 +56,10 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private invalidItemsSKU: string[] = [];
-
-    private invalidItemsValue: string[] = [];
+    private invalidItems: {
+        sku: string;
+        value: string;
+    }[] = [];
 
     private isTradingKeys = false;
 
@@ -727,8 +728,6 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.invalidItemsSKU.push(sku);
-
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
@@ -746,8 +745,12 @@ export = class MyHandler extends Handler {
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
                             itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
-                            this.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
+
+                        this.invalidItems.push({
+                            sku: sku,
+                            value: itemSuggestedValue.toString()
+                        });
 
                         wrongAboutOffer.push({
                             reason: '🟨_INVALID_ITEMS',
@@ -1364,19 +1367,14 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const invalidItemsName: string[] = [];
                 const invalidItemsCombine: string[] = [];
                 const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
                 if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItemsSKU.forEach(sku => {
-                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                        invalidItemsName.push(name);
+                    this.invalidItems.forEach(el => {
+                        const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                        invalidItemsCombine.push(name + ' - ' + el.value);
                     });
-
-                    for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
-                    }
                 }
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
@@ -1459,8 +1457,7 @@ export = class MyHandler extends Handler {
             this.inviteToGroups(offer.partner);
 
             // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
+            this.invalidItems.length = 0;
         }
     }
 
