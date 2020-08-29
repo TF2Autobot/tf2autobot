@@ -471,7 +471,7 @@ export default class Pricelist extends EventEmitter {
                     time: time
                 });
 
-                if (this.priceChanges.length > 9) {
+                if (this.priceChanges.length > 4) {
                     this.sendWebHookPriceUpdate(this.priceChanges);
                     this.priceChanges.length = 0;
                 }
