@@ -407,10 +407,7 @@ export = class DiscordWebhookClass {
                         title: '',
                         description:
                             summary +
-                            (invalidItems.length !== 0
-                                ? '\n\n🟨`_INVALID_ITEMS:`\n' +
-                                  invalidItems.join(',\n')
-                                : '') +
+                            (invalidItems.length !== 0 ? '\n\n🟨`_INVALID_ITEMS:`\n' + invalidItems.join(',\n') : '') +
                             (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
