@@ -1169,15 +1169,15 @@ export = class MyHandler extends Handler {
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
                 env.autoDecline.overstocked &&
-                isOverstocked &&
-                !(isInvalidValue || isUnderstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+                (isOverstocked || (isOverstocked && isInvalidValue)) &&
+                !(isUnderstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
                 env.autoDecline.understocked &&
-                isUnderstocked &&
-                !(isInvalidValue || isOverstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+                (isUnderstocked || (isInvalidValue && isUnderstocked)) &&
+                !(isOverstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
@@ -1277,11 +1277,11 @@ export = class MyHandler extends Handler {
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
                     } else if (offerReason.reason === 'ONLY_OVERSTOCKED') {
-                        reasonForInvalidValue = true;
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
                         reason =
                             "you've sent a trade with an overstocked item(s) (which I can't buy more than I could).";
                     } else if (offerReason.reason === 'ONLY_UNDERSTOCKED') {
-                        reasonForInvalidValue = true;
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
                         reason =
                             "you've sent a trade with an understocked item(s) (which I can't sell more than I could).";
                     } else {
