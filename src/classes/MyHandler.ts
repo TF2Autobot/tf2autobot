@@ -56,11 +56,6 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private invalidItems: {
-        sku: string;
-        value: string;
-    }[] = [];
-
     private isTradingKeys = false;
 
     private autoRelistNotSellingKeys = 0;
@@ -97,8 +92,6 @@ export = class MyHandler extends Handler {
     };
 
     private classWeaponsTimeout;
-
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -232,10 +225,6 @@ export = class MyHandler extends Handler {
 
     getBackpackSlots(): number {
         return this.backpackSlots;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
@@ -780,11 +769,6 @@ export = class MyHandler extends Handler {
                             itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
                         }
 
-                        this.invalidItems.push({
-                            sku: sku,
-                            value: itemSuggestedValue.toString()
-                        });
-
                         wrongAboutOffer.push({
                             reason: '🟨_INVALID_ITEMS',
                             sku: sku,
@@ -1122,7 +1106,6 @@ export = class MyHandler extends Handler {
 
         // TO DO: Counter offer?
 
-        this.isAcceptedWithInvalidItemsOrOverstocked = false;
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
@@ -1151,7 +1134,6 @@ export = class MyHandler extends Handler {
                 acceptingCondition &&
                 exchange.our.value !== 0
             ) {
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
@@ -1370,13 +1352,23 @@ export = class MyHandler extends Handler {
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
                 const invalidItemsCombine: string[] = [];
-                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
-                if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItems.forEach(el => {
-                        const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                        invalidItemsCombine.push(name + ' - ' + el.value);
-                    });
+                const offerMeta: { meta: UnknownDictionary<any> } = offer.data('action');
+
+                if (offerMeta) {
+                    // doing this because if an offer is being made by bot (from command), then this is undefined
+                    if (offerMeta.meta.uniqueReasons) {
+                        // doing this because if an offer don't have any meta, then this is undefined
+                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                invalidItemsCombine.push(name + ' - ' + el.price);
+                            });
+                        }
+                    }
                 }
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
@@ -1403,7 +1395,7 @@ export = class MyHandler extends Handler {
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                             summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                            (isAcceptedInvalidItemsOverpay
+                            (invalidItemsCombine.length !== 0
                                 ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
@@ -1457,9 +1449,6 @@ export = class MyHandler extends Handler {
             }
 
             this.inviteToGroups(offer.partner);
-
-            // clear/reset these in memory
-            this.invalidItems.length = 0;
         }
     }
 
