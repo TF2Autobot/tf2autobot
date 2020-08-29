@@ -739,7 +739,7 @@ export default class Pricelist extends EventEmitter {
                 },
                 title: '',
                 description:
-                    `**※  Buy:** ${data.newPrice.buy.toString()}\n` +
+                    `**※ Buy:** ${data.newPrice.buy.toString()}\n` +
                     `**※ Sell:** ${data.newPrice.sell.toString()}\n` +
                     (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                         ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
