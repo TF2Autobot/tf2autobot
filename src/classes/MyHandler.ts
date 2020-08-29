@@ -56,9 +56,22 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private invalidItemsSKU: string[] = [];
-
-    private invalidItemsValue: string[] = [];
+    private fromEnv: {
+        autoAcceptOverpay: {
+            invalidItem: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        autoDecline: {
+            invalidValue: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        givePrice: boolean;
+        craftWeaponAsCurrency: boolean;
+        showMetal: boolean;
+        autokeysNotAcceptUnderstocked: boolean;
+    };
 
     private isTradingKeys = false;
 
@@ -80,8 +93,6 @@ export = class MyHandler extends Handler {
 
     private classWeaponsTimeout;
 
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
-
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -95,6 +106,23 @@ export = class MyHandler extends Handler {
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+
+        this.fromEnv = {
+            autoAcceptOverpay: {
+                invalidItem: process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true',
+                overstocked: process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false',
+                understocked: process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+            },
+            autoDecline: {
+                invalidValue: process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true',
+                overstocked: process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false',
+                understocked: process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false'
+            },
+            givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
+            craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
+            showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
+            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true'
+        };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
@@ -197,10 +225,6 @@ export = class MyHandler extends Handler {
 
     getBackpackSlots(): number {
         return this.backpackSlots;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
@@ -641,7 +665,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craft.includes(sku) || uncraft.includes(sku)) &&
-                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    this.fromEnv.craftWeaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -649,10 +673,9 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !(craft.includes(sku) || uncraft.includes(sku))
-                            : true;
+                    const notIncludeCraftweapon = this.fromEnv.craftWeaponAsCurrency
+                        ? !(craft.includes(sku) || uncraft.includes(sku))
+                        : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -727,8 +750,6 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.invalidItemsSKU.push(sku);
-
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
@@ -740,13 +761,12 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS !== 'true') {
+                            if (this.fromEnv.givePrice) {
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
                             itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
-                            this.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
 
                         wrongAboutOffer.push({
@@ -762,7 +782,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL !== 'false') {
+        if (this.fromEnv.showMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -829,7 +849,7 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
+                const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
@@ -1072,49 +1092,36 @@ export = class MyHandler extends Handler {
             }
         }
 
-        this.isAcceptedWithInvalidItemsOrOverstocked = false;
+        // TO DO: Counter offer?
+
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
+            const env = this.fromEnv;
+
             const acceptingCondition =
-                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
-                process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+                env.givePrice || env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked
                     ? exchange.our.value < exchange.their.value
-                    : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
+                    : !env.givePrice
                     ? exchange.our.value <= exchange.their.value
                     : false;
 
-            // TO DO: Counter offer?
-            //
-            // if (
-            //     uniqueReasons.includes('🟥_INVALID_VALUE') &&
-            //     !(
-            //         uniqueReasons.includes('🟨_INVALID_ITEMS') ||
-            //         uniqueReasons.includes('🟦_OVERSTOCKED') ||
-            //         uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-            //         uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-            //     )
-            // ) {
-            //     const counteroffer = offer.counter();
-            // }
+            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
+            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
+            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
+            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
+            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
+
             if (
-                ((uniqueReasons.includes('🟨_INVALID_ITEMS') &&
-                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟦_OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟩_UNDERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY !== 'true')) &&
-                !(
-                    uniqueReasons.includes('🟥_INVALID_VALUE') ||
-                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
+                ((isInvalidItem && env.autoAcceptOverpay.invalidItem) ||
+                    (isOverstocked && env.autoAcceptOverpay.overstocked) ||
+                    (isUnderstocked && env.autoAcceptOverpay.understocked)) &&
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed) &&
                 acceptingCondition &&
                 exchange.our.value !== 0
             ) {
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
@@ -1123,19 +1130,27 @@ export = class MyHandler extends Handler {
                 );
                 return { action: 'accept', reason: 'VALID' };
             } else if (
-                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
-                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥_INVALID_VALUE') &&
-                !(
-                    uniqueReasons.includes('🟩_UNDERSTOCKED') ||
-                    uniqueReasons.includes('🟨_INVALID_ITEMS') ||
-                    uniqueReasons.includes('🟦_OVERSTOCKED') ||
-                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
+                env.autoDecline.invalidValue &&
+                isInvalidValue &&
+                !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
             ) {
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+            } else if (
+                env.autoDecline.overstocked &&
+                (isOverstocked || (isOverstocked && isInvalidValue)) &&
+                !(isInvalidValue || isUnderstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
+            } else if (
+                env.autoDecline.understocked &&
+                (isUnderstocked || (isInvalidValue && isUnderstocked)) &&
+                !(isInvalidValue || isOverstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
                 return {
@@ -1221,6 +1236,14 @@ export = class MyHandler extends Handler {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
+                    } else if (offerReason.reason === 'ONLY_OVERSTOCKED') {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason =
+                            "you've sent a trade with an overstocked item(s) (which I can't buy more than I could).";
+                    } else if (offerReason.reason === 'ONLY_UNDERSTOCKED') {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason =
+                            "you've sent a trade with an understocked item(s) (which I can't sell more than I could).";
                     } else {
                         reason = '';
                     }
@@ -1306,18 +1329,23 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const invalidItemsName: string[] = [];
                 const invalidItemsCombine: string[] = [];
-                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
-                if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItemsSKU.forEach(sku => {
-                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                        invalidItemsName.push(name);
-                    });
+                const offerMeta: { meta: UnknownDictionary<any> } = offer.data('action');
 
-                    for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                if (offerMeta) {
+                    // doing this because if an offer is being made by bot (from command), then this is undefined
+                    if (offerMeta.meta.uniqueReasons) {
+                        // doing this because if an offer don't have any meta, then this is undefined
+                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                invalidItemsCombine.push(name + ' - ' + el.price);
+                            });
+                        }
                     }
                 }
 
@@ -1345,7 +1373,7 @@ export = class MyHandler extends Handler {
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                             summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                            (isAcceptedInvalidItemsOverpay
+                            (invalidItemsCombine.length !== 0
                                 ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
@@ -1399,10 +1427,6 @@ export = class MyHandler extends Handler {
             }
 
             this.inviteToGroups(offer.partner);
-
-            // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
         }
     }
 

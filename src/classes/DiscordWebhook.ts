@@ -6,7 +6,6 @@ import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
 import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
-import SKU from 'tf2-sku';
 
 export = class DiscordWebhookClass {
     private readonly bot: Bot;
@@ -321,21 +320,10 @@ export = class DiscordWebhookClass {
         const ourItems = items.our;
         const theirItems = items.their;
 
-        // Filter items sku with INVALID_ITEMS reason
-        const invalidItemsTheirSide = this.filterInvalidItems(theirItems);
-        const invalidItemsOurSide = this.filterInvalidItems(ourItems);
-        const invalidItems = invalidItemsTheirSide.concat(invalidItemsOurSide);
-
-        // Give filtered items their name for each sku
-        const invalidItemsName: string[] = [];
-        invalidItems.forEach(sku => {
-            invalidItemsName.push(replaceItemName(this.bot.schema.getName(SKU.fromString(sku), false)));
-        });
-
         // Give INVALID_ITEMS imported from MyHandler
-        const invalidItemsFromMyHandler: string[] = [];
+        const invalidItems: string[] = [];
         invalidItemsCombine.forEach(name => {
-            invalidItemsFromMyHandler.push(replaceItemName(name));
+            invalidItems.push(replaceItemName(name));
         });
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
@@ -351,16 +339,11 @@ export = class DiscordWebhookClass {
             });
         });
 
-        // Mention owner on for accepted INVALID_ITEMS with overpay
-        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
-        const isMentionInvTheirSide = this.isMentionInvalidItems(invalidItemsTheirSide);
-        const isMentionInvOurSide = this.isMentionInvalidItems(invalidItemsOurSide);
-
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : isMentionInvalidItems && (isMentionInvOurSide || isMentionInvTheirSide)
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
+                : invalidItems.length !== 0
+                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS trade here!`
                 : '';
 
         const botName = this.botName;
@@ -424,12 +407,7 @@ export = class DiscordWebhookClass {
                         title: '',
                         description:
                             summary +
-                            (isMentionInvalidItems
-                                ? '\n\n🟨`_INVALID_ITEMS:`\n' +
-                                  (invalidItemsCombine.length === 0
-                                      ? invalidItemsName.join(',\n')
-                                      : invalidItemsFromMyHandler.join(',\n'))
-                                : '') +
+                            (invalidItems.length !== 0 ? '\n\n🟨`_INVALID_ITEMS:`\n' + invalidItems.join(',\n') : '') +
                             (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
@@ -472,37 +450,7 @@ export = class DiscordWebhookClass {
                 // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
                 request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
             });
-
-            // reset array
-            invalidItemsName.length = 0;
-            invalidItemsFromMyHandler.length = 0;
         });
-    }
-
-    private filterInvalidItems(items: string[]): string[] {
-        const filterPure = items.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
-
-        let filterItemsWeapons = filterPure;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            filterItemsWeapons = filterPure.filter(sku => {
-                const craft = !(this.bot.handler as MyHandler).weapon().craft.includes(sku);
-                const uncraft = !(this.bot.handler as MyHandler).weapon().uncraft.includes(sku);
-                return craft || uncraft;
-            });
-        }
-
-        return filterItemsWeapons;
-    }
-
-    private isMentionInvalidItems(items: string[]): boolean {
-        const isMentionInvalidItems = items.some((sku: string) => {
-            if (items.length > 0) {
-                return this.bot.pricelist.getPrice(sku, false) === null;
-            }
-            return false;
-        });
-
-        return isMentionInvalidItems;
     }
 
     private getPartnerDetails(offer: TradeOffer, callback: (err: any, details: any) => void): any {
