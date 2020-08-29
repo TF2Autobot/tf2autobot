@@ -60,13 +60,13 @@ export = class DiscordWebhookClass {
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
             skuFromEnv.forEach(function(sku: string) {
                 if (sku === '' || !sku) {
-                    skuFromEnv = [';'];
+                    skuFromEnv = ['Not set'];
                 }
             });
             this.skuToMention = skuFromEnv;
         } else {
-            log.warn('You did not set items SKU to mention as an array, resetting to mention all items');
-            this.skuToMention = [';'];
+            log.warn('You did not set items SKU to mention as an array, mention on specific items disabled.');
+            this.skuToMention = ['Not set'];
         }
     }
 
