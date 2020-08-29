@@ -1220,19 +1220,20 @@ export = class MyHandler extends Handler {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
-                    } else if (offerReason.reason === 'ONLY_OVERSTOCKED') {
+                    } else if (
+                        offerReason.reason === 'ONLY_OVERSTOCKED' ||
+                        (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
+                    ) {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason = "you've sent a trade with an overstocked item(s) that I can't buy more than I could.";
-                    } else if (offerReason.reason === 'ONLY_UNDERSTOCKED') {
-                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason =
-                            "you've sent a trade with an understocked item(s) that I can't sell more than I could.";
-                    } else if (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled) {
                         reason = "you're offering some item(s) that I can't buy more than I could.";
-                    } else if (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled) {
+                    } else if (
+                        offerReason.reason === 'ONLY_UNDERSTOCKED' ||
+                        (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
+                    ) {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
                         reason = "you're taking some item(s) that I can't sell more than I could.";
-                    } else if (offerReason.reason === '🟫_DUPED_ITEMS' && manualReviewDisabled) {
-                        reason = "I don't accept duped item.";
+                    } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
+                        reason = "I don't accept duped items.";
                     } else {
                         reason = '';
                     }
