@@ -1119,15 +1119,15 @@ export = class MyHandler extends Handler {
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
                 env.autoDecline.overstocked &&
-                (isOverstocked || (isOverstocked && isInvalidValue)) &&
-                !(isInvalidValue || isUnderstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+                isOverstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
                 env.autoDecline.understocked &&
-                (isUnderstocked || (isInvalidValue && isUnderstocked)) &&
-                !(isInvalidValue || isOverstocked || isInvalidItem || isDupedItem || isDupedCheckFailed)
+                isUnderstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
