@@ -1183,6 +1183,7 @@ export = class MyHandler extends Handler {
                     const keyPrice = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrice);
                     const itemsList = this.itemList(offer);
+                    const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
                     let reason: string;
@@ -1212,18 +1213,26 @@ export = class MyHandler extends Handler {
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
                             '\n• Steam Guard: How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
-                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                    } else if (
+                        offerReason.reason === 'ONLY_INVALID_VALUE' ||
+                        (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
+                    ) {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
                     } else if (offerReason.reason === 'ONLY_OVERSTOCKED') {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason =
-                            "you've sent a trade with an overstocked item(s) (which I can't buy more than I could).";
+                        reason = "you've sent a trade with an overstocked item(s) that I can't buy more than I could.";
                     } else if (offerReason.reason === 'ONLY_UNDERSTOCKED') {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
                         reason =
-                            "you've sent a trade with an understocked item(s) (which I can't sell more than I could).";
+                            "you've sent a trade with an understocked item(s) that I can't sell more than I could.";
+                    } else if (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled) {
+                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                    } else if (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled) {
+                        reason = "you're taking some item(s) that I can't sell more than I could.";
+                    } else if (offerReason.reason === '🟫_DUPED_ITEMS' && manualReviewDisabled) {
+                        reason = "I don't accept duped item.";
                     } else {
                         reason = '';
                     }
