@@ -1,5 +1,5 @@
 // TODO: Update version for each release
-process.env.BOT_VERSION = '1.3.1';
+process.env.BOT_VERSION = '1.4.4';
 
 import fs from 'fs';
 import path from 'path';
@@ -38,13 +38,13 @@ import { getSchema } from './lib/ptf-api';
 // Make the schema manager request the schema from PricesTF
 
 /* eslint-disable-next-line @typescript-eslint/unbound-method */
-SchemaManager.prototype.getSchema = function(callback): void {
+SchemaManager.prototype.getSchema = function (callback): void {
     getSchema()
-        .then(schema => {
+        .then((schema) => {
             this.setSchema(schema, true);
             callback(null, this.schema);
         })
-        .catch(function(err) {
+        .catch(function (err) {
             callback(err);
         });
 };
@@ -59,7 +59,7 @@ import ON_DEATH from 'death';
 // This error is a false positive.
 // The signal and err are being created dynamically.
 // Treat them as any for now.
-ON_DEATH({ uncaughtException: true })(function(signal, err) {
+ON_DEATH({ uncaughtException: true })(function (signal, err) {
     const crashed = typeof err !== 'string';
 
     if (crashed) {
@@ -95,7 +95,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
     botManager.stop(crashed ? err : null, true, signal === 'SIGKILL');
 });
 
-process.on('message', function(message) {
+process.on('message', function (message) {
     if (message === 'shutdown') {
         log.warn('Process received shutdown message, stopping...');
 
@@ -108,18 +108,18 @@ process.on('message', function(message) {
 import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 
-['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(function(v) {
+['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(function (v) {
     EconItem.prototype[v] = require('./lib/extend/item/' + v);
     CEconItem.prototype[v] = require('./lib/extend/item/' + v);
 });
 
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
 
-['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(function(v) {
+['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(function (v) {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
-botManager.start().asCallback(function(err) {
+botManager.start().asCallback(function (err) {
     if (err) {
         throw err;
     }
