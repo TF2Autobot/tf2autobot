@@ -82,7 +82,7 @@
         "eslint-plugin-tsdoc": "^0.2.6",
         "nodemon": "^2.0.4",
         "prettier": "^1.19.1",
-        "typescript": "^3.9.7"
+        "typescript": "^4.0.2"
     },
     "private": true
 }
