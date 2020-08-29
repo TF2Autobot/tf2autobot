@@ -40,7 +40,7 @@ import { getSchema } from './lib/ptf-api';
 /* eslint-disable-next-line @typescript-eslint/unbound-method */
 SchemaManager.prototype.getSchema = function(callback): void {
     getSchema()
-        .then((schema) => {
+        .then(schema => {
             this.setSchema(schema, true);
             callback(null, this.schema);
         })
