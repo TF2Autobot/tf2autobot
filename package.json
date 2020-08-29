@@ -25,8 +25,6 @@
     "dependencies": {
         "@nicklason/request-retry": "^1.1.2",
         "@types/cheerio": "^0.22.21",
-        "@typescript-eslint/eslint-plugin": "^3.10.1",
-        "@typescript-eslint/parser": "^3.10.1",
         "async": "^3.2.0",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
@@ -38,7 +36,6 @@
         "discord-webhook-ts": "^3.0.3",
         "dot-prop": "^5.2.0",
         "dotenv": "^8.2.0",
-        "eslint": "^7.7.0",
         "graceful-fs": "^4.2.4",
         "isobject": "^4.0.0",
         "jsonschema": "^1.2.6",
@@ -47,7 +44,6 @@
         "pjson": "^1.0.9",
         "pluralize": "^8.0.0",
         "pm2": "^4.4.1",
-        "prettier": "^2.1.1",
         "rand-token": "^1.0.1",
         "retry": "^0.12.0",
         "sleep-async": "^1.0.5",
@@ -61,7 +57,6 @@
         "tf2-currencies": "^1.2.4",
         "tf2-schema": "^1.3.1",
         "tf2-sku": "^1.1.3",
-        "typescript": "^4.0.2",
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
         "websocket-extensions": "^0.1.4",
@@ -80,10 +75,15 @@
         "@types/semver": "^7.3.3",
         "@types/socket.io-client": "^1.4.33",
         "@types/valid-url": "^1.0.3",
+        "@typescript-eslint/eslint-plugin": "^3.10.1",
+        "@typescript-eslint/parser": "^3.10.1",
+        "eslint": "^7.7.0",
         "eslint-config-prettier": "^6.11.0",
         "eslint-plugin-prettier": "^3.1.4",
         "eslint-plugin-tsdoc": "^0.2.6",
-        "nodemon": "^2.0.4"
+        "nodemon": "^2.0.4",
+        "prettier": "^2.1.1",
+        "typescript": "^4.0.2"
     },
     "private": true
 }
