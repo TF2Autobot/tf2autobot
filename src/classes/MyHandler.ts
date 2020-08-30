@@ -1590,9 +1590,9 @@ export = class MyHandler extends Handler {
             if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
@@ -1656,7 +1656,7 @@ export = class MyHandler extends Handler {
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
                         `\nReasons: ${meta.uniqueReasons.join(', ')}` +
                         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
+                            ? '\nBackpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\nSteam down, please manually check if this person have escrow.'
                             : '') +
