@@ -39,8 +39,16 @@ const COMMANDS: string[] = [
     '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n📌=== Trade actions ===📌',
     '!cancel - Cancel the trade offer ❌',
     '!queue - See your position in the queue\n\n📌=== Contact Owner ===📌',
-    '!message <your message> - Send a message to the owner of the bot 💬\n\n',
+    '!message <your message> - Send a message to the owner of the bot 💬\n\n📌=== Other Commands ===📌',
+    '!short - Show list of shorter commands',
     '!more - Show the advanced commands list'
+];
+
+const SHORT: string[] = [
+    '!pc [amount] <name> - Get the price and stock of an item 💲📦',
+    '!b [amount] <name> - Instantly buy an item 💲',
+    '!s [amount] <name> - Instantly sell an item 💲',
+    '!msg <your message> - Send a message to the owner of the bot 💬'
 ];
 
 const MORE: string[] = [
@@ -162,6 +170,8 @@ export = class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
+        } else if (command === 'short') {
+            this.shortCommand(steamID);
         } else if (command === 'more') {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
@@ -254,6 +264,10 @@ export = class Commands {
             steamID,
             `📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
         );
+    }
+
+    private shortCommand(steamID: SteamID): void {
+        this.bot.sendMessage(steamID, `Shorter commands list:\n- ${SHORT.join('\n- ')}`);
     }
 
     private moreCommand(steamID: SteamID): void {
