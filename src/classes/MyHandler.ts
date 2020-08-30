@@ -56,15 +56,24 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private invalidItemsSKU: string[] = [];
-
-    private invalidItemsValue: string[] = [];
+    private fromEnv: {
+        autoAcceptOverpay: {
+            invalidItem: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        autoDecline: {
+            invalidValue: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        givePrice: boolean;
+        craftWeaponAsCurrency: boolean;
+        showMetal: boolean;
+        autokeysNotAcceptUnderstocked: boolean;
+    };
 
     private isTradingKeys = false;
-
-    private autoRelistNotSellingKeys = 0;
-
-    private autoRelistNotBuyingKeys = 0;
 
     private customGameName: string;
 
@@ -80,8 +89,6 @@ export = class MyHandler extends Handler {
 
     private classWeaponsTimeout;
 
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
-
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -95,6 +102,23 @@ export = class MyHandler extends Handler {
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+
+        this.fromEnv = {
+            autoAcceptOverpay: {
+                invalidItem: process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true',
+                overstocked: process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false',
+                understocked: process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+            },
+            autoDecline: {
+                invalidValue: process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true',
+                overstocked: process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false',
+                understocked: process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false'
+            },
+            givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
+            craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
+            showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
+            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true'
+        };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
@@ -197,10 +221,6 @@ export = class MyHandler extends Handler {
 
     getBackpackSlots(): number {
         return this.backpackSlots;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
     }
 
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
@@ -641,7 +661,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craft.includes(sku) || uncraft.includes(sku)) &&
-                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    this.fromEnv.craftWeaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -649,10 +669,9 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !(craft.includes(sku) || uncraft.includes(sku))
-                            : true;
+                    const notIncludeCraftweapon = this.fromEnv.craftWeaponAsCurrency
+                        ? !(craft.includes(sku) || uncraft.includes(sku))
+                        : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -727,8 +746,6 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.invalidItemsSKU.push(sku);
-
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
@@ -740,13 +757,12 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS !== 'true') {
+                            if (this.fromEnv.givePrice) {
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
                             itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
-                            this.invalidItemsValue.push(itemSuggestedValue.toString());
                         }
 
                         wrongAboutOffer.push({
@@ -762,7 +778,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL !== 'false') {
+        if (this.fromEnv.showMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -794,18 +810,14 @@ export = class MyHandler extends Handler {
             const priceEntry = this.bot.pricelist.getPrice('5021;6', true);
             if (priceEntry === null) {
                 // We are not trading keys
-                this.autoRelistNotSellingKeys++;
-                this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not trading keys, declining...');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
-                this.autoRelistNotSellingKeys++;
                 offer.log('info', 'we are not selling keys, declining...');
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
-                this.autoRelistNotBuyingKeys++;
                 offer.log('info', 'we are not buying keys, declining...');
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
@@ -829,7 +841,7 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
+                const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
@@ -843,18 +855,6 @@ export = class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
                 }
-            }
-
-            if (this.autokeys.isEnabled !== false) {
-                if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
-                    log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
-                    this.bot.listings.checkAllWithDelay();
-                    this.autoRelistNotSellingKeys = 0;
-                    this.autoRelistNotBuyingKeys = 0;
-                }
-            } else {
-                this.autoRelistNotSellingKeys = 0;
-                this.autoRelistNotBuyingKeys = 0;
             }
         }
 
@@ -1072,49 +1072,36 @@ export = class MyHandler extends Handler {
             }
         }
 
-        this.isAcceptedWithInvalidItemsOrOverstocked = false;
+        // TO DO: Counter offer?
+
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
+            const env = this.fromEnv;
+
             const acceptingCondition =
-                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false' ||
-                process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+                env.givePrice || env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked
                     ? exchange.our.value < exchange.their.value
-                    : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
+                    : !env.givePrice
                     ? exchange.our.value <= exchange.their.value
                     : false;
 
-            // TO DO: Counter offer?
-            //
-            // if (
-            //     uniqueReasons.includes('🟥_INVALID_VALUE') &&
-            //     !(
-            //         uniqueReasons.includes('🟨_INVALID_ITEMS') ||
-            //         uniqueReasons.includes('🟦_OVERSTOCKED') ||
-            //         uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-            //         uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-            //     )
-            // ) {
-            //     const counteroffer = offer.counter();
-            // }
+            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
+            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
+            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
+            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
+            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
+
             if (
-                ((uniqueReasons.includes('🟨_INVALID_ITEMS') &&
-                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟦_OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟩_UNDERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY !== 'true')) &&
-                !(
-                    uniqueReasons.includes('🟥_INVALID_VALUE') ||
-                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
+                ((isInvalidItem && env.autoAcceptOverpay.invalidItem) ||
+                    (isOverstocked && env.autoAcceptOverpay.overstocked) ||
+                    (isUnderstocked && env.autoAcceptOverpay.understocked)) &&
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed) &&
                 acceptingCondition &&
                 exchange.our.value !== 0
             ) {
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
@@ -1123,19 +1110,27 @@ export = class MyHandler extends Handler {
                 );
                 return { action: 'accept', reason: 'VALID' };
             } else if (
-                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
-                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥_INVALID_VALUE') &&
-                !(
-                    uniqueReasons.includes('🟩_UNDERSTOCKED') ||
-                    uniqueReasons.includes('🟨_INVALID_ITEMS') ||
-                    uniqueReasons.includes('🟦_OVERSTOCKED') ||
-                    uniqueReasons.includes('🟫_DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪_DUPE_CHECK_FAILED')
-                ) &&
+                env.autoDecline.invalidValue &&
+                isInvalidValue &&
+                !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
             ) {
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+            } else if (
+                env.autoDecline.overstocked &&
+                isOverstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
+            } else if (
+                env.autoDecline.understocked &&
+                isUnderstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
                 return {
@@ -1188,6 +1183,7 @@ export = class MyHandler extends Handler {
                     const keyPrice = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrice);
                     const itemsList = this.itemList(offer);
+                    const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
                     let reason: string;
@@ -1217,10 +1213,27 @@ export = class MyHandler extends Handler {
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
                             '\n• Steam Guard: How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
-                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                    } else if (
+                        offerReason.reason === 'ONLY_INVALID_VALUE' ||
+                        (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
+                    ) {
                         reasonForInvalidValue = true;
                         reason =
                             "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
+                    } else if (
+                        offerReason.reason === 'ONLY_OVERSTOCKED' ||
+                        (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
+                    ) {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                    } else if (
+                        offerReason.reason === 'ONLY_UNDERSTOCKED' ||
+                        (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
+                    ) {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason = "you're taking some item(s) that I can't sell more than I could.";
+                    } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
+                        reason = "I don't accept duped items.";
                     } else {
                         reason = '';
                     }
@@ -1306,18 +1319,23 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const invalidItemsName: string[] = [];
                 const invalidItemsCombine: string[] = [];
-                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
 
-                if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItemsSKU.forEach(sku => {
-                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                        invalidItemsName.push(name);
-                    });
+                const offerMeta: { meta: UnknownDictionary<any> } = offer.data('action');
 
-                    for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                if (offerMeta) {
+                    // doing this because if an offer is being made by bot (from command), then this is undefined
+                    if (offerMeta.meta.uniqueReasons) {
+                        // doing this because if an offer don't have any meta, then this is undefined
+                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                invalidItemsCombine.push(name + ' - ' + el.price);
+                            });
+                        }
                     }
                 }
 
@@ -1345,7 +1363,7 @@ export = class MyHandler extends Handler {
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                             summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                            (isAcceptedInvalidItemsOverpay
+                            (invalidItemsCombine.length !== 0
                                 ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
@@ -1399,10 +1417,6 @@ export = class MyHandler extends Handler {
             }
 
             this.inviteToGroups(offer.partner);
-
-            // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
         }
     }
 
@@ -2786,144 +2800,144 @@ export = class MyHandler extends Handler {
                 '939;6' // Bat Outta Hell               == All class/Melee ==
             ],
             uncraft: [
-                '61;6;uncraftable',
-                '1101;6;uncraftable',
-                '226;6;uncraftable',
-                '46;6;uncraftable',
-                '129;6;uncraftable',
-                '311;6;uncraftable',
-                '131;6;uncraftable',
-                '751;6;uncraftable',
-                '354;6;uncraftable',
-                '642;6;uncraftable',
-                '163;6;uncraftable',
-                '159;6;uncraftable',
-                '231;6;uncraftable',
-                '351;6;uncraftable',
-                '525;6;uncraftable',
-                '460;6;uncraftable',
-                '425;6;uncraftable',
-                '39;6;uncraftable',
-                '812;6;uncraftable',
-                '133;6;uncraftable',
-                '58;6;uncraftable',
-                '35;6;uncraftable',
-                '224;6;uncraftable',
-                '222;6;uncraftable',
-                '595;6;uncraftable',
-                '444;6;uncraftable',
-                '773;6;uncraftable',
-                '411;6;uncraftable',
-                '1150;6;uncraftable',
-                '57;6;uncraftable',
-                '415;6;uncraftable',
-                '442;6;uncraftable',
-                '42;6;uncraftable',
-                '740;6;uncraftable',
-                '130;6;uncraftable',
-                '528;6;uncraftable',
-                '406;6;uncraftable',
-                '265;6;uncraftable',
-                '1099;6;uncraftable',
-                '998;6;uncraftable',
-                '449;6;uncraftable',
-                '140;6;uncraftable',
-                '1104;6;uncraftable',
-                '405;6;uncraftable',
-                '772;6;uncraftable',
-                '1103;6;uncraftable',
-                '40;6;uncraftable',
-                '402;6;uncraftable',
-                '730;6;uncraftable',
-                '228;6;uncraftable',
-                '36;6;uncraftable',
-                '608;6;uncraftable',
-                '312;6;uncraftable',
-                '1098;6;uncraftable',
-                '441;6;uncraftable',
-                '305;6;uncraftable',
-                '215;6;uncraftable',
-                '127;6;uncraftable',
-                '45;6;uncraftable',
-                '1092;6;uncraftable',
-                '141;6;uncraftable',
-                '752;6;uncraftable',
-                '56;6;uncraftable',
-                '811;6;uncraftable',
-                '1151;6;uncraftable',
-                '414;6;uncraftable',
-                '308;6;uncraftable',
-                '996;6;uncraftable',
-                '526;6;uncraftable',
-                '41;6;uncraftable',
-                '513;6;uncraftable',
-                '412;6;uncraftable',
-                '1153;6;uncraftable',
-                '594;6;uncraftable',
-                '588;6;uncraftable',
-                '741;6;uncraftable',
-                '997;6;uncraftable',
-                '237;6;uncraftable',
-                '220;6;uncraftable',
-                '448;6;uncraftable',
-                '230;6;uncraftable',
-                '424;6;uncraftable',
-                '527;6;uncraftable',
-                '60;6;uncraftable',
-                '59;6;uncraftable',
-                '304;6;uncraftable',
-                '450;6;uncraftable',
-                '38;6;uncraftable',
-                '326;6;uncraftable',
-                '939;6;uncraftable',
-                '461;6;uncraftable',
-                '325;6;uncraftable',
-                '232;6;uncraftable',
-                '317;6;uncraftable',
-                '327;6;uncraftable',
-                '356;6;uncraftable',
-                '447;6;uncraftable',
-                '128;6;uncraftable',
-                '775;6;uncraftable',
-                '589;6;uncraftable',
-                '426;6;uncraftable',
-                '132;6;uncraftable',
-                '355;6;uncraftable',
-                '331;6;uncraftable',
-                '239;6;uncraftable',
-                '142;6;uncraftable',
-                '357;6;uncraftable',
-                '656;6;uncraftable',
-                '221;6;uncraftable',
-                '153;6;uncraftable',
-                '329;6;uncraftable',
-                '43;6;uncraftable',
-                '739;6;uncraftable',
-                '416;6;uncraftable',
-                '813;6;uncraftable',
-                '482;6;uncraftable',
-                '154;6;uncraftable',
-                '404;6;uncraftable',
-                '457;6;uncraftable',
-                '214;6;uncraftable',
-                '44;6;uncraftable',
-                '172;6;uncraftable',
-                '609;6;uncraftable',
-                '401;6;uncraftable',
-                '348;6;uncraftable',
-                '413;6;uncraftable',
-                '155;6;uncraftable',
-                '649;6;uncraftable',
-                '349;6;uncraftable',
-                '593;6;uncraftable',
-                '171;6;uncraftable',
-                '37;6;uncraftable',
-                '307;6;uncraftable',
-                '173;6;uncraftable',
-                '310;6;uncraftable',
-                '648;6;uncraftable',
-                '225;6;uncraftable',
-                '810;6;uncraftable'
+                '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
+                '220;6;uncraftable', // Shortstop
+                '448;6;uncraftable', // Soda Popper
+                '772;6;uncraftable', // Baby Face's Blaster
+                '1103;6;uncraftable', // Back Scatter
+                '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
+                '163;6;uncraftable', // Crit-a-Cola
+                '222;6;uncraftable', // Mad Milk
+                '449;6;uncraftable', // Winger
+                '773;6;uncraftable', // Pretty Boy's Pocket Pistol
+                '812;6;uncraftable', // Flying Guillotine
+                '44;6;uncraftable', // Sandman                      == Scout/Melee ==
+                '221;6;uncraftable', // Holy Mackerel
+                '317;6;uncraftable', // Candy Cane
+                '325;6;uncraftable', // Boston Basher
+                '349;6;uncraftable', // Sun-on-a-Stick
+                '355;6;uncraftable', // Fan O'War
+                '450;6;uncraftable', // Atomizer
+                '648;6;uncraftable', // Wrap Assassin
+                '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
+                '228;6;uncraftable', // Black Box
+                '237;6;uncraftable', // Rocket Jumper
+                '414;6;uncraftable', // Liberty Launcher
+                '441;6;uncraftable', // Cow Mangler 5000
+                '513;6;uncraftable', // Original
+                '730;6;uncraftable', // Beggar's Bazooka
+                '1104;6;uncraftable', // Air Strike
+                '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
+                '133;6;uncraftable', // Gunboats
+                '226;6;uncraftable', // Battalion's Backup
+                '354;6;uncraftable', // Concheror
+                '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '442;6;uncraftable', // Righteous Bison
+                '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+                '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '444;6;uncraftable', // Mantreads
+                '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
+                '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
+                '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '416;6;uncraftable', // Market Gardener
+                '447;6;uncraftable', // Disciplinary Action
+                '775;6;uncraftable', // Escape Plan
+                '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
+                '215;6;uncraftable', // Degreaser
+                '594;6;uncraftable', // Phlogistinator
+                '741;6;uncraftable', // Rainblower
+                '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
+                '351;6;uncraftable', // Detonator
+                '595;6;uncraftable', // Manmelter
+                '740;6;uncraftable', // Scorch Shot
+                '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
+                '153;6;uncraftable', // Homewrecker
+                '214;6;uncraftable', // Powerjack
+                '326;6;uncraftable', // Back Scratcher
+                '348;6;uncraftable', // Sharpened Volcano Fragment
+                '457;6;uncraftable', // Postal Pummeler
+                '593;6;uncraftable', // Third Degree
+                '739;6;uncraftable', // Lollichop
+                '813;6;uncraftable', // Neon Annihilator
+                '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
+                '405;6;uncraftable', // Ali Baba's Wee Booties
+                '608;6;uncraftable', // Bootlegger
+                '996;6;uncraftable', // Loose Cannon
+                '1151;6;uncraftable', // Iron Bomber
+                '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
+                '131;6;uncraftable', // Chargin' Targe
+                '265;6;uncraftable', // Sticky Jumper
+                '406;6;uncraftable', // Splendid Screen
+                '1099;6;uncraftable', // Tide Turner
+                '1150;6;uncraftable', // Quickiebomb Launcher
+                '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
+                '172;6;uncraftable', // Scotsman's Skullcutter
+                '307;6;uncraftable', // Ullapool Caber
+                '327;6;uncraftable', // Claidheamh Mòr
+                '404;6;uncraftable', // Persian Persuader
+                '482;6;uncraftable', // Nessie's Nine Iron
+                '609;6;uncraftable', // Scottish Handshake
+                '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
+                '312;6;uncraftable', // Brass Beast
+                '424;6;uncraftable', // Tomislav
+                '811;6;uncraftable', // Huo-Long Heater
+                '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
+                '159;6;uncraftable', // Dalokohs Bar
+                '311;6;uncraftable', // Buffalo Steak Sandvich
+                '425;6;uncraftable', // Family Business
+                '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
+                '239;6;uncraftable', // Gloves of Running Urgently
+                '310;6;uncraftable', // Warrior's Spirit
+                '331;6;uncraftable', // Fists of Steel
+                '426;6;uncraftable', // Eviction Notice
+                '656;6;uncraftable', // Holiday Punch
+                '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
+                '527;6;uncraftable', // Widowmaker
+                '588;6;uncraftable', // Pomson 6000
+                '997;6;uncraftable', // Rescue Ranger
+                '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
+                '528;6;uncraftable', // Short Circuit
+                '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
+                '155;6;uncraftable', // Southern Hospitality
+                '329;6;uncraftable', // Jag
+                '589;6;uncraftable', // Eureka Effect
+                '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
+                '305;6;uncraftable', // Crusader's Crossbow
+                '412;6;uncraftable', // Overdose
+                '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
+                '411;6;uncraftable', // Quick-Fix
+                '998;6;uncraftable', // Vaccinator
+                '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
+                '173;6;uncraftable', // Vita-Saw
+                '304;6;uncraftable', // Amputator
+                '413;6;uncraftable', // Solemn Vow
+                '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
+                '230;6;uncraftable', // Sydney Sleeper
+                '402;6;uncraftable', // Bazaar Bargain
+                '526;6;uncraftable', // Machina
+                '752;6;uncraftable', // Hitman's Heatmaker
+                '1092;6;uncraftable', // Fortified Compound
+                '1098;6;uncraftable', // Classic
+                '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
+                '58;6;uncraftable', // Jarate
+                '231;6;uncraftable', // Darwin's Danger Shield
+                '642;6;uncraftable', // Cozy Camper
+                '751;6;uncraftable', // Cleaner's Carbine
+                '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
+                '232;6;uncraftable', // Bushwacka
+                '401;6;uncraftable', // Shahanshah
+                '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
+                '224;6;uncraftable', // L'Etranger
+                '460;6;uncraftable', // Enforcer
+                '525;6;uncraftable', // Diamondback
+                '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
+                '356;6;uncraftable', // Conniver's Kunai
+                '461;6;uncraftable', // Big Earner
+                '649;6;uncraftable', // Spy-cicle
+                '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
+                '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
+                '59;6;uncraftable', // Dead Ringer
+                '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
             ]
         };
         return weapons;
