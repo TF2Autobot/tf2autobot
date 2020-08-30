@@ -2800,144 +2800,144 @@ export = class MyHandler extends Handler {
                 '939;6' // Bat Outta Hell               == All class/Melee ==
             ],
             uncraft: [
-                '61;6;uncraftable',
-                '1101;6;uncraftable',
-                '226;6;uncraftable',
-                '46;6;uncraftable',
-                '129;6;uncraftable',
-                '311;6;uncraftable',
-                '131;6;uncraftable',
-                '751;6;uncraftable',
-                '354;6;uncraftable',
-                '642;6;uncraftable',
-                '163;6;uncraftable',
-                '159;6;uncraftable',
-                '231;6;uncraftable',
-                '351;6;uncraftable',
-                '525;6;uncraftable',
-                '460;6;uncraftable',
-                '425;6;uncraftable',
-                '39;6;uncraftable',
-                '812;6;uncraftable',
-                '133;6;uncraftable',
-                '58;6;uncraftable',
-                '35;6;uncraftable',
-                '224;6;uncraftable',
-                '222;6;uncraftable',
-                '595;6;uncraftable',
-                '444;6;uncraftable',
-                '773;6;uncraftable',
-                '411;6;uncraftable',
-                '1150;6;uncraftable',
-                '57;6;uncraftable',
-                '415;6;uncraftable',
-                '442;6;uncraftable',
-                '42;6;uncraftable',
-                '740;6;uncraftable',
-                '130;6;uncraftable',
-                '528;6;uncraftable',
-                '406;6;uncraftable',
-                '265;6;uncraftable',
-                '1099;6;uncraftable',
-                '998;6;uncraftable',
-                '449;6;uncraftable',
-                '140;6;uncraftable',
-                '1104;6;uncraftable',
-                '405;6;uncraftable',
-                '772;6;uncraftable',
-                '1103;6;uncraftable',
-                '40;6;uncraftable',
-                '402;6;uncraftable',
-                '730;6;uncraftable',
-                '228;6;uncraftable',
-                '36;6;uncraftable',
-                '608;6;uncraftable',
-                '312;6;uncraftable',
-                '1098;6;uncraftable',
-                '441;6;uncraftable',
-                '305;6;uncraftable',
-                '215;6;uncraftable',
-                '127;6;uncraftable',
-                '45;6;uncraftable',
-                '1092;6;uncraftable',
-                '141;6;uncraftable',
-                '752;6;uncraftable',
-                '56;6;uncraftable',
-                '811;6;uncraftable',
-                '1151;6;uncraftable',
-                '414;6;uncraftable',
-                '308;6;uncraftable',
-                '996;6;uncraftable',
-                '526;6;uncraftable',
-                '41;6;uncraftable',
-                '513;6;uncraftable',
-                '412;6;uncraftable',
-                '1153;6;uncraftable',
-                '594;6;uncraftable',
-                '588;6;uncraftable',
-                '741;6;uncraftable',
-                '997;6;uncraftable',
-                '237;6;uncraftable',
-                '220;6;uncraftable',
-                '448;6;uncraftable',
-                '230;6;uncraftable',
-                '424;6;uncraftable',
-                '527;6;uncraftable',
-                '60;6;uncraftable',
-                '59;6;uncraftable',
-                '304;6;uncraftable',
-                '450;6;uncraftable',
-                '38;6;uncraftable',
-                '326;6;uncraftable',
-                '939;6;uncraftable',
-                '461;6;uncraftable',
-                '325;6;uncraftable',
-                '232;6;uncraftable',
-                '317;6;uncraftable',
-                '327;6;uncraftable',
-                '356;6;uncraftable',
-                '447;6;uncraftable',
-                '128;6;uncraftable',
-                '775;6;uncraftable',
-                '589;6;uncraftable',
-                '426;6;uncraftable',
-                '132;6;uncraftable',
-                '355;6;uncraftable',
-                '331;6;uncraftable',
-                '239;6;uncraftable',
-                '142;6;uncraftable',
-                '357;6;uncraftable',
-                '656;6;uncraftable',
-                '221;6;uncraftable',
-                '153;6;uncraftable',
-                '329;6;uncraftable',
-                '43;6;uncraftable',
-                '739;6;uncraftable',
-                '416;6;uncraftable',
-                '813;6;uncraftable',
-                '482;6;uncraftable',
-                '154;6;uncraftable',
-                '404;6;uncraftable',
-                '457;6;uncraftable',
-                '214;6;uncraftable',
-                '44;6;uncraftable',
-                '172;6;uncraftable',
-                '609;6;uncraftable',
-                '401;6;uncraftable',
-                '348;6;uncraftable',
-                '413;6;uncraftable',
-                '155;6;uncraftable',
-                '649;6;uncraftable',
-                '349;6;uncraftable',
-                '593;6;uncraftable',
-                '171;6;uncraftable',
-                '37;6;uncraftable',
-                '307;6;uncraftable',
-                '173;6;uncraftable',
-                '310;6;uncraftable',
-                '648;6;uncraftable',
-                '225;6;uncraftable',
-                '810;6;uncraftable'
+                '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
+                '220;6;uncraftable', // Shortstop
+                '448;6;uncraftable', // Soda Popper
+                '772;6;uncraftable', // Baby Face's Blaster
+                '1103;6;uncraftable', // Back Scatter
+                '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
+                '163;6;uncraftable', // Crit-a-Cola
+                '222;6;uncraftable', // Mad Milk
+                '449;6;uncraftable', // Winger
+                '773;6;uncraftable', // Pretty Boy's Pocket Pistol
+                '812;6;uncraftable', // Flying Guillotine
+                '44;6;uncraftable', // Sandman                      == Scout/Melee ==
+                '221;6;uncraftable', // Holy Mackerel
+                '317;6;uncraftable', // Candy Cane
+                '325;6;uncraftable', // Boston Basher
+                '349;6;uncraftable', // Sun-on-a-Stick
+                '355;6;uncraftable', // Fan O'War
+                '450;6;uncraftable', // Atomizer
+                '648;6;uncraftable', // Wrap Assassin
+                '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
+                '228;6;uncraftable', // Black Box
+                '237;6;uncraftable', // Rocket Jumper
+                '414;6;uncraftable', // Liberty Launcher
+                '441;6;uncraftable', // Cow Mangler 5000
+                '513;6;uncraftable', // Original
+                '730;6;uncraftable', // Beggar's Bazooka
+                '1104;6;uncraftable', // Air Strike
+                '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
+                '133;6;uncraftable', // Gunboats
+                '226;6;uncraftable', // Battalion's Backup
+                '354;6;uncraftable', // Concheror
+                '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '442;6;uncraftable', // Righteous Bison
+                '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+                '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '444;6;uncraftable', // Mantreads
+                '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
+                '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
+                '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '416;6;uncraftable', // Market Gardener
+                '447;6;uncraftable', // Disciplinary Action
+                '775;6;uncraftable', // Escape Plan
+                '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
+                '215;6;uncraftable', // Degreaser
+                '594;6;uncraftable', // Phlogistinator
+                '741;6;uncraftable', // Rainblower
+                '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
+                '351;6;uncraftable', // Detonator
+                '595;6;uncraftable', // Manmelter
+                '740;6;uncraftable', // Scorch Shot
+                '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
+                '153;6;uncraftable', // Homewrecker
+                '214;6;uncraftable', // Powerjack
+                '326;6;uncraftable', // Back Scratcher
+                '348;6;uncraftable', // Sharpened Volcano Fragment
+                '457;6;uncraftable', // Postal Pummeler
+                '593;6;uncraftable', // Third Degree
+                '739;6;uncraftable', // Lollichop
+                '813;6;uncraftable', // Neon Annihilator
+                '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
+                '405;6;uncraftable', // Ali Baba's Wee Booties
+                '608;6;uncraftable', // Bootlegger
+                '996;6;uncraftable', // Loose Cannon
+                '1151;6;uncraftable', // Iron Bomber
+                '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
+                '131;6;uncraftable', // Chargin' Targe
+                '265;6;uncraftable', // Sticky Jumper
+                '406;6;uncraftable', // Splendid Screen
+                '1099;6;uncraftable', // Tide Turner
+                '1150;6;uncraftable', // Quickiebomb Launcher
+                '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
+                '172;6;uncraftable', // Scotsman's Skullcutter
+                '307;6;uncraftable', // Ullapool Caber
+                '327;6;uncraftable', // Claidheamh Mòr
+                '404;6;uncraftable', // Persian Persuader
+                '482;6;uncraftable', // Nessie's Nine Iron
+                '609;6;uncraftable', // Scottish Handshake
+                '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
+                '312;6;uncraftable', // Brass Beast
+                '424;6;uncraftable', // Tomislav
+                '811;6;uncraftable', // Huo-Long Heater
+                '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
+                '159;6;uncraftable', // Dalokohs Bar
+                '311;6;uncraftable', // Buffalo Steak Sandvich
+                '425;6;uncraftable', // Family Business
+                '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
+                '239;6;uncraftable', // Gloves of Running Urgently
+                '310;6;uncraftable', // Warrior's Spirit
+                '331;6;uncraftable', // Fists of Steel
+                '426;6;uncraftable', // Eviction Notice
+                '656;6;uncraftable', // Holiday Punch
+                '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
+                '527;6;uncraftable', // Widowmaker
+                '588;6;uncraftable', // Pomson 6000
+                '997;6;uncraftable', // Rescue Ranger
+                '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
+                '528;6;uncraftable', // Short Circuit
+                '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
+                '155;6;uncraftable', // Southern Hospitality
+                '329;6;uncraftable', // Jag
+                '589;6;uncraftable', // Eureka Effect
+                '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
+                '305;6;uncraftable', // Crusader's Crossbow
+                '412;6;uncraftable', // Overdose
+                '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
+                '411;6;uncraftable', // Quick-Fix
+                '998;6;uncraftable', // Vaccinator
+                '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
+                '173;6;uncraftable', // Vita-Saw
+                '304;6;uncraftable', // Amputator
+                '413;6;uncraftable', // Solemn Vow
+                '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
+                '230;6;uncraftable', // Sydney Sleeper
+                '402;6;uncraftable', // Bazaar Bargain
+                '526;6;uncraftable', // Machina
+                '752;6;uncraftable', // Hitman's Heatmaker
+                '1092;6;uncraftable', // Fortified Compound
+                '1098;6;uncraftable', // Classic
+                '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
+                '58;6;uncraftable', // Jarate
+                '231;6;uncraftable', // Darwin's Danger Shield
+                '642;6;uncraftable', // Cozy Camper
+                '751;6;uncraftable', // Cleaner's Carbine
+                '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
+                '232;6;uncraftable', // Bushwacka
+                '401;6;uncraftable', // Shahanshah
+                '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
+                '224;6;uncraftable', // L'Etranger
+                '460;6;uncraftable', // Enforcer
+                '525;6;uncraftable', // Diamondback
+                '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
+                '356;6;uncraftable', // Conniver's Kunai
+                '461;6;uncraftable', // Big Earner
+                '649;6;uncraftable', // Spy-cicle
+                '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
+                '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
+                '59;6;uncraftable', // Dead Ringer
+                '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
             ]
         };
         return weapons;
