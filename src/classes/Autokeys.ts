@@ -231,10 +231,15 @@ export = class Autokeys {
         const fixedKeysCanBankMax = roundedKeysCanBankMax === 0 ? 1 : roundedKeysCanBankMax;
 
         // Check and set new min and max
-        if ((isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) || isBuyingKeys) {
+        if (isBuyingKeys) {
             // If buying - we need to set min = currKeys and max = currKeys + CanBuy
             setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
             setMaxKeys = currKeys + fixedKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + fixedKeysCanBuy;
+        } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
+            // If buying - we need to set min = currKeys and max = currKeys + CanBuy
+            setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
+            setMaxKeys =
+                currKeys + roundedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + roundedKeysCanBankMax;
         } else if (isSellingKeys) {
             // If selling - we need to set min = currKeys - CanSell and max = currKeys
             setMinKeys = currKeys - fixedKeysCanSell <= userMinKeys ? userMinKeys : currKeys - fixedKeysCanSell;
@@ -297,7 +302,7 @@ export = class Autokeys {
                 isBankingBuyKeysWithEnoughRefs &&
                 isEnableKeyBanking &&
                 (!isAlreadyUpdatedToBuy ||
-                    roundedKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    roundedKeysCanBankMax !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -311,7 +316,7 @@ export = class Autokeys {
                 };
                 this.oldAmount = {
                     keysCanSell: 0,
-                    keysCanBuy: roundedKeysCanBuy,
+                    keysCanBuy: roundedKeysCanBankMax,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
                     ofKeys: currKeys
@@ -448,7 +453,7 @@ export = class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBuy,
+                        keysCanBuy: roundedKeysCanBankMax,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -548,7 +553,7 @@ export = class Autokeys {
                     isBankingBuyKeysWithEnoughRefs &&
                     isEnableKeyBanking &&
                     (!isAlreadyUpdatedToBuy ||
-                        roundedKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        roundedKeysCanBankMax !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -562,7 +567,7 @@ export = class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBuy,
+                        keysCanBuy: roundedKeysCanBankMax,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
