@@ -47,13 +47,13 @@ export = class DiscordWebhookClass {
         if (links !== null && Array.isArray(links)) {
             links.forEach(function(sku: string) {
                 if (sku === '' || !sku) {
-                    links = [''];
+                    links = [];
                 }
             });
             this.tradeSummaryLinks = links;
         } else {
-            log.warn('You did not set Discord Webhook URL as an array, resetting to blank');
-            this.tradeSummaryLinks = [''];
+            log.warn('You did not set Discord Webhook URL as an array, resetting to an empty array.');
+            this.tradeSummaryLinks = [];
         }
 
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
