@@ -130,6 +130,21 @@ export = class DiscordWebhookClass {
         request.send(queueAlertError);
     }
 
+    sendAlertHighValuedItems(items: string[]): void {
+        /*eslint-disable */
+        const highValuedItems = JSON.stringify({
+            username: this.botName,
+            avatar_url: this.botAvatarURL,
+            content: `<@!${this.ownerID}> Someone is trying to take your ${items.join(', ')} (not in your pricelist).`
+        });
+        /*eslint-enable */
+
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(highValuedItems);
+    }
+
     sendPartnerMessage(
         steamID: string,
         msg: string,

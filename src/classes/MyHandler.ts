@@ -614,6 +614,19 @@ export = class MyHandler extends Handler {
 
         if (hasHighValue && isInPricelist === false) {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
+
+            if (
+                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+            ) {
+                this.discord.sendAlertHighValuedItems(highValued.nameWithSpell);
+            } else {
+                this.bot.messageAdmins(
+                    `Someone is about to take your ${highValued.nameWithSpell.join(', ')} (not in pricelist)`,
+                    []
+                );
+            }
+
             return {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
