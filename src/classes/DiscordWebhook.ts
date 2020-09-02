@@ -532,18 +532,18 @@ function listItems(items: {
     let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
     list +=
         items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',\n- ')
+            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',\n- ')
             : '';
     list +=
         items.understock.length !== 0
-            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n' : '') +
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
               '🟩`_UNDERSTOCKED:`\n- ' +
               items.understock.join(',\n- ')
             : '';
     list +=
         items.duped.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
-                  ? '\n'
+                  ? '\n\n'
                   : '') +
               '🟫`_DUPED_ITEMS:`\n- ' +
               items.duped.join(',\n- ')
@@ -554,7 +554,7 @@ function listItems(items: {
               items.overstock.length !== 0 ||
               items.understock.length !== 0 ||
               items.duped.length !== 0
-                  ? '\n'
+                  ? '\n\n'
                   : '') +
               '🟪`_DUPE_CHECK_FAILED:`\n- ' +
               items.dupedFailed.join(',\n- ')
