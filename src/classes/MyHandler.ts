@@ -521,7 +521,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                            descriptionColor === '00a000'
+                            descriptionColor.toLowerCase() === '00a000'
                         ) {
                             hasNot5Uses = true;
                             log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
@@ -553,7 +553,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                            descriptionColor === '00a000'
+                            descriptionColor.toLowerCase() === '00a000'
                         ) {
                             hasNot25Uses = true;
                             log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
@@ -570,6 +570,57 @@ export = class MyHandler extends Handler {
                 offer.log('info', 'contains Noice Maker that are not 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
             }
+        }
+
+        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
+
+        let hasHighValue = false;
+        const highValued: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToGive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor.toLowerCase() === '7ea9d1'
+                ) {
+                    hasHighValue = true;
+                    const spellName = item.market_hash_name.substring(10, item.market_hash_name.length - 32).trim();
+
+                    highValued.skus.push(item.getSKU(this.bot.schema));
+                    highValued.nameWithSpell.push(`${item.name} - ${spellName}`);
+
+                    log.debug('info', `${item.name} - ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
+
+        const isInPricelist =
+            highValued.skus.length > 0 // Only check if this not empty
+                ? highValued.skus.some(sku => {
+                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
+                  })
+                : null;
+
+        if (hasHighValue && isInPricelist === false) {
+            offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
+            return {
+                action: 'decline',
+                reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
+                meta: {
+                    highValueName: highValued.nameWithSpell
+                }
+            };
         }
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
@@ -1186,7 +1237,7 @@ export = class MyHandler extends Handler {
                             '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
-                    const offerReason: { reason: string } = offer.data('action');
+                    const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrice = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrice);
                     const itemsList = this.itemList(offer);
@@ -1202,6 +1253,10 @@ export = class MyHandler extends Handler {
                         reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains a Noise Maker that does not have 25 uses.';
+                    } else if (offerReason.reason === 'HIGH_VALUE_ITEMS_NOT_SELLING') {
+                        reason = `you're taking ${offerReason.meta.highValueName.join(
+                            ', '
+                        )}, and I am not selling it right now.`;
                     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
                         reason =
                             'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
