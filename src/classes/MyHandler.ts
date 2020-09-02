@@ -1108,7 +1108,14 @@ export = class MyHandler extends Handler {
                         this.bot.schema
                     )}`
                 );
-                return { action: 'accept', reason: 'VALID' };
+                return {
+                    action: 'accept',
+                    reason: 'VALID_WITH_OVERPAY',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
             } else if (
                 env.autoDecline.invalidValue &&
                 isInvalidValue &&
@@ -1321,12 +1328,12 @@ export = class MyHandler extends Handler {
 
                 const invalidItemsCombine: string[] = [];
 
-                const offerMeta: { meta: UnknownDictionary<any> } = offer.data('action');
+                const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (offerMeta.meta.uniqueReasons) {
-                        // doing this because if an offer don't have any meta, then this is undefined
+                    if (offerMeta.reason === 'VALID_WITH_OVERPAY') {
+                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
                         if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
                             // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
