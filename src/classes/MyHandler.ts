@@ -67,6 +67,10 @@ export = class MyHandler extends Handler {
             overstocked: boolean;
             understocked: boolean;
         };
+        somethingWrong: {
+            enabled: boolean;
+            url: string;
+        };
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
@@ -113,6 +117,10 @@ export = class MyHandler extends Handler {
                 invalidValue: process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true',
                 overstocked: process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false',
                 understocked: process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false'
+            },
+            somethingWrong: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false',
+                url: process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             },
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
@@ -613,12 +621,11 @@ export = class MyHandler extends Handler {
                 : null;
 
         if (hasHighValue && isInPricelist === false) {
+            // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
-            if (
-                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-            ) {
+            // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
+            if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
                 this.discord.sendAlertHighValuedItems(highValued.nameWithSpell);
             } else {
                 this.bot.messageAdmins(
