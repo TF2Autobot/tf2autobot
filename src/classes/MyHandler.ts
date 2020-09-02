@@ -594,12 +594,12 @@ export = class MyHandler extends Handler {
                     descriptionColor.toLowerCase() === '7ea9d1'
                 ) {
                     hasHighValue = true;
-                    const spellName = item.market_hash_name.substring(10, item.market_hash_name.length - 32).trim();
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                     highValued.skus.push(item.getSKU(this.bot.schema));
-                    highValued.nameWithSpell.push(`${item.name} - ${spellName}`);
+                    highValued.nameWithSpell.push(`${item.name} with ${spellName}`);
 
-                    log.debug('info', `${item.name} - ${spellName} (${item.assetid}) is a high value item.`);
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
                 }
             }
