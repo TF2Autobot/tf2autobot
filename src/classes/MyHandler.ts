@@ -1639,7 +1639,7 @@ export = class MyHandler extends Handler {
                     offer.partner,
                     (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow') +
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow (Trade holds)') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
