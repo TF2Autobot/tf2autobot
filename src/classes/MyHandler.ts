@@ -1326,7 +1326,15 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const invalidItemsCombine: string[] = [];
+                const accepted: {
+                    invalidItems: string[];
+                    overstocked: string[];
+                    understocked: string[];
+                } = {
+                    invalidItems: [],
+                    overstocked: [],
+                    understocked: []
+                };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
 
@@ -1340,7 +1348,27 @@ export = class MyHandler extends Handler {
                             const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                invalidItemsCombine.push(name + ' - ' + el.price);
+                                accepted.invalidItems.push(name + ' - ' + el.price);
+                            });
+                        }
+
+                        if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+                            // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                accepted.overstocked.push(name + ' - ' + el.price);
+                            });
+                        }
+
+                        if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+                            // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                accepted.understocked.push(name + ' - ' + el.price);
                             });
                         }
                     }
@@ -1358,7 +1386,7 @@ export = class MyHandler extends Handler {
                         autokeys,
                         currentItems,
                         this.backpackSlots,
-                        invalidItemsCombine,
+                        accepted,
                         keyPrice,
                         value,
                         itemsList,
@@ -1370,8 +1398,20 @@ export = class MyHandler extends Handler {
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                             summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
-                            (invalidItemsCombine.length !== 0
-                                ? '\n\n🟨_INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                            (accepted.invalidItems.length !== 0
+                                ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
+                                : '') +
+                            (accepted.overstocked.length !== 0
+                                ? (accepted.invalidItems.length !== 0 ? '\n\n' : '') +
+                                  '🟦_OVERSTOCKED:\n- ' +
+                                  accepted.overstocked.join(',\n- ')
+                                : '') +
+                            (accepted.understocked.length !== 0
+                                ? (accepted.overstocked.length !== 0 || accepted.invalidItems.length !== 0
+                                      ? '\n\n'
+                                      : '') +
+                                  '🟩_UNDERSTOCKED:\n- ' +
+                                  accepted.understocked.join(',\n- ')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${

@@ -310,7 +310,11 @@ export = class DiscordWebhookClass {
         autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
         currentItems: number,
         backpackSlots: number,
-        invalidItemsCombine: string[],
+        accepted: {
+            invalidItems: string[];
+            overstocked: string[];
+            understocked: string[];
+        },
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
@@ -320,10 +324,22 @@ export = class DiscordWebhookClass {
         const ourItems = items.our;
         const theirItems = items.their;
 
-        // Give INVALID_ITEMS imported from MyHandler
+        // Get 🟨_INVALID_ITEMS imported from MyHandler
         const invalidItems: string[] = [];
-        invalidItemsCombine.forEach(name => {
+        accepted.invalidItems.forEach(name => {
             invalidItems.push(replaceItemName(name));
+        });
+
+        // Get 🟦_OVERSTOCKED imported from MyHandler
+        const overstocked: string[] = [];
+        accepted.overstocked.forEach(name => {
+            overstocked.push(replaceItemName(name));
+        });
+
+        // Get 🟩_UNDERSTOCKED imported from MyHandler
+        const understocked: string[] = [];
+        accepted.understocked.forEach(name => {
+            understocked.push(replaceItemName(name));
         });
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
@@ -342,7 +358,7 @@ export = class DiscordWebhookClass {
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : invalidItems.length !== 0
+                : invalidItems.length !== 0 // Only mention on accepted 🟨_INVALID_ITEMS, not mention on 🟦_OVERSTOCKED or 🟩_UNDERSTOCKED
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS trade here!`
                 : '';
 
@@ -408,6 +424,16 @@ export = class DiscordWebhookClass {
                         description:
                             summary +
                             (invalidItems.length !== 0 ? '\n\n🟨`_INVALID_ITEMS:`\n' + invalidItems.join(',\n') : '') +
+                            (overstocked.length !== 0
+                                ? (invalidItems.length !== 0 ? '\n\n' : '') +
+                                  '🟦_OVERSTOCKED:\n- ' +
+                                  overstocked.join(',\n- ')
+                                : '') +
+                            (understocked.length !== 0
+                                ? (overstocked.length !== 0 || invalidItems.length !== 0 ? '\n\n' : '') +
+                                  '🟩_UNDERSTOCKED:\n- ' +
+                                  understocked.join(',\n- ')
+                                : '') +
                             (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
