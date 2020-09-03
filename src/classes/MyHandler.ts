@@ -582,8 +582,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
 
-        let hasHighValue = false;
-        const highValued: {
+        let hasHighValueOur = false;
+        const highValuedOur: {
             skus: string[];
             nameWithSpell: string[];
         } = {
@@ -601,11 +601,11 @@ export = class MyHandler extends Handler {
                     descriptionValue.endsWith('(spell only active during event)') &&
                     descriptionColor.toLowerCase() === '7ea9d1'
                 ) {
-                    hasHighValue = true;
+                    hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
-                    highValued.skus.push(item.getSKU(this.bot.schema));
-                    highValued.nameWithSpell.push(`${item.name} with ${spellName}`);
+                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
+                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
 
                     log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
@@ -614,22 +614,22 @@ export = class MyHandler extends Handler {
         });
 
         const isInPricelist =
-            highValued.skus.length > 0 // Only check if this not empty
-                ? highValued.skus.some(sku => {
+            highValuedOur.skus.length > 0 // Only check if this not empty
+                ? highValuedOur.skus.some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
-        if (hasHighValue && isInPricelist === false) {
+        if (hasHighValueOur && isInPricelist === false) {
             // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
-                this.discord.sendAlertHighValuedItems(highValued.nameWithSpell);
+                this.discord.sendAlertHighValuedItems(highValuedOur.nameWithSpell);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is about to take your ${highValued.nameWithSpell.join(', ')} (not in pricelist)`,
+                    `Someone is about to take your ${highValuedOur.nameWithSpell.join(', ')} (not in pricelist)`,
                     []
                 );
             }
@@ -638,10 +638,43 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValued.nameWithSpell
+                    highValueName: highValuedOur.nameWithSpell
                 }
             };
         }
+
+        // Also check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
+
+        let hasHighValueTheir = false;
+        const highValuedTheir: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToReceive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor.toLowerCase() === '7ea9d1'
+                ) {
+                    hasHighValueTheir = true;
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
 
@@ -1184,7 +1217,15 @@ export = class MyHandler extends Handler {
                     reason: 'VALID_WITH_OVERPAY',
                     meta: {
                         uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer
+                        reasons: wrongAboutOffer,
+                        hasHighValueItems: {
+                            our: hasHighValueOur,
+                            their: hasHighValueTheir
+                        },
+                        highValueItems: {
+                            our: highValuedOur,
+                            their: highValuedTheir
+                        }
                     }
                 };
             } else if (
@@ -1216,7 +1257,15 @@ export = class MyHandler extends Handler {
                     reason: 'REVIEW',
                     meta: {
                         uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer
+                        reasons: wrongAboutOffer,
+                        hasHighValueItems: {
+                            our: hasHighValueOur,
+                            their: hasHighValueTheir
+                        },
+                        highValueItems: {
+                            our: highValuedOur,
+                            their: highValuedTheir
+                        }
                     }
                 };
             }
@@ -1224,7 +1273,20 @@ export = class MyHandler extends Handler {
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
 
-        return { action: 'accept', reason: 'VALID' };
+        return {
+            action: 'accept',
+            reason: 'VALID',
+            meta: {
+                hasHighValueItems: {
+                    our: hasHighValueOur,
+                    their: hasHighValueTheir
+                },
+                highValueItems: {
+                    our: highValuedOur,
+                    their: highValuedTheir
+                }
+            }
+        };
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
@@ -1405,10 +1467,12 @@ export = class MyHandler extends Handler {
                     invalidItems: string[];
                     overstocked: string[];
                     understocked: string[];
+                    highValue: string[];
                 } = {
                     invalidItems: [],
                     overstocked: [],
-                    understocked: []
+                    understocked: [],
+                    highValue: []
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
@@ -1444,6 +1508,16 @@ export = class MyHandler extends Handler {
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                                 accepted.understocked.push(name + ' - ' + el.price);
+                            });
+                        }
+                    }
+
+                    if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
+                        // doing this because if an offer is from ADMIN, then this is undefined.
+                        if (offerMeta.meta.hasHighValueItems.their) {
+                            // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
+                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
+                                accepted.highValue.push(name);
                             });
                         }
                     }
@@ -1487,6 +1561,15 @@ export = class MyHandler extends Handler {
                                       : '') +
                                   '🟩_UNDERSTOCKED:\n- ' +
                                   accepted.understocked.join(',\n- ')
+                                : '') +
+                            (accepted.highValue.length !== 0
+                                ? (accepted.overstocked.length !== 0 ||
+                                  accepted.invalidItems.length !== 0 ||
+                                  accepted.understocked.length !== 0
+                                      ? '\n\n'
+                                      : '') +
+                                  '🔶_HIGH_VALUE_ITEMS:\n- ' +
+                                  accepted.highValue.join(',\n- ')
                                 : '') +
                             `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
                             `${
@@ -1699,6 +1782,15 @@ export = class MyHandler extends Handler {
                     (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
+            const hasHighValue = meta.hasHighValueItems.their;
+            const highValueItems: string[] = [];
+
+            if (hasHighValue) {
+                meta.highValueItems.their.nameWithSpell.forEach(name => {
+                    highValueItems.push(name);
+                });
+            }
+
             const hasCustomNote =
                 process.env.INVALID_ITEMS_NOTE ||
                 process.env.OVERSTOCKED_NOTE ||
@@ -1754,7 +1846,8 @@ export = class MyHandler extends Handler {
                 overstock: overstockedForOur,
                 understock: understockedForOur,
                 duped: dupedItemsName,
-                dupedFailed: dupedFailedItemsName
+                dupedFailed: dupedFailedItemsName,
+                highValue: highValueItems
             };
 
             const list = listItems(items);
@@ -3165,6 +3258,7 @@ function listItems(items: {
     understock: string[];
     duped: string[];
     dupedFailed: string[];
+    highValue: string[];
 }): string {
     let list = items.invalid.length !== 0 ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
     list +=
@@ -3195,6 +3289,18 @@ function listItems(items: {
                   : '') +
               '🟪_DUPE_CHECK_FAILED:\n- ' +
               items.dupedFailed.join(',\n- ')
+            : '';
+    list +=
+        items.highValue.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0 ||
+              items.dupedFailed.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🔶_HIGH_VALUE_ITEMS:\n- ' +
+              items.highValue.join(',\n- ')
             : '';
 
     if (list.length === 0) {

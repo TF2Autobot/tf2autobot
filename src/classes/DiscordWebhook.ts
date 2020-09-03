@@ -6,6 +6,7 @@ import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
 import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
+import pluralize from 'pluralize';
 
 export = class DiscordWebhookClass {
     private readonly bot: Bot;
@@ -197,6 +198,7 @@ export = class DiscordWebhookClass {
             understock: string[];
             duped: string[];
             dupedFailed: string[];
+            highValue: string[];
         }
     ): void {
         let noMentionOnInvalidValue = false;
@@ -230,7 +232,8 @@ export = class DiscordWebhookClass {
             overstock: items.overstock.map(name => replaceItemName(name)),
             understock: items.understock.map(name => replaceItemName(name)),
             duped: items.duped.map(name => replaceItemName(name)),
-            dupedFailed: items.dupedFailed.map(name => replaceItemName(name))
+            dupedFailed: items.dupedFailed.map(name => replaceItemName(name)),
+            highValue: items.highValue.map(name => replaceItemName(name))
         };
 
         const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
@@ -329,6 +332,7 @@ export = class DiscordWebhookClass {
             invalidItems: string[];
             overstocked: string[];
             understocked: string[];
+            highValue: string[];
         },
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
@@ -339,22 +343,28 @@ export = class DiscordWebhookClass {
         const ourItems = items.our;
         const theirItems = items.their;
 
-        // Get 🟨_INVALID_ITEMS imported from MyHandler
+        // Get accepted 🟨_INVALID_ITEMS name and shorten the name if needed
         const invalidItems: string[] = [];
         accepted.invalidItems.forEach(name => {
             invalidItems.push(replaceItemName(name));
         });
 
-        // Get 🟦_OVERSTOCKED imported from MyHandler
+        // Get accepted 🟦_OVERSTOCKED name and shorten the name if needed
         const overstocked: string[] = [];
         accepted.overstocked.forEach(name => {
             overstocked.push(replaceItemName(name));
         });
 
-        // Get 🟩_UNDERSTOCKED imported from MyHandler
+        // Get accepted 🟩_UNDERSTOCKED name and shorten the name if needed
         const understocked: string[] = [];
         accepted.understocked.forEach(name => {
             understocked.push(replaceItemName(name));
+        });
+
+        // Get accepted 🔶_HIGH_VALUE_ITEMS name and shorten the name if needed
+        const highValue: string[] = [];
+        accepted.highValue.forEach(name => {
+            highValue.push(replaceItemName(name));
         });
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
@@ -375,6 +385,8 @@ export = class DiscordWebhookClass {
                 ? `<@!${this.ownerID}>`
                 : invalidItems.length !== 0 // Only mention on accepted 🟨_INVALID_ITEMS, not mention on 🟦_OVERSTOCKED or 🟩_UNDERSTOCKED
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS trade here!`
+                : highValue.length !== 0
+                ? `<@!${this.ownerID}> - Accepted high value ${pluralize('item', highValue.length)} trade here!`
                 : '';
 
         const botName = this.botName;
@@ -441,13 +453,20 @@ export = class DiscordWebhookClass {
                             (invalidItems.length !== 0 ? '\n\n🟨`_INVALID_ITEMS:`\n' + invalidItems.join(',\n') : '') +
                             (overstocked.length !== 0
                                 ? (invalidItems.length !== 0 ? '\n\n' : '') +
-                                  '🟦_OVERSTOCKED:\n- ' +
+                                  '🟦`_OVERSTOCKED:`\n- ' +
                                   overstocked.join(',\n- ')
                                 : '') +
                             (understocked.length !== 0
                                 ? (overstocked.length !== 0 || invalidItems.length !== 0 ? '\n\n' : '') +
-                                  '🟩_UNDERSTOCKED:\n- ' +
+                                  '🟩`_UNDERSTOCKED:`\n- ' +
                                   understocked.join(',\n- ')
+                                : '') +
+                            (highValue.length !== 0
+                                ? (overstocked.length !== 0 || invalidItems.length !== 0 || understocked.length !== 0
+                                      ? '\n\n'
+                                      : '') +
+                                  '🔶`_HIGH_VALUE_ITEMS:`\n- ' +
+                                  highValue.join(',\n- ')
                                 : '') +
                             (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
@@ -543,6 +562,7 @@ function listItems(items: {
     understock: string[];
     duped: string[];
     dupedFailed: string[];
+    highValue: string[];
 }): string {
     let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
     list +=
@@ -573,6 +593,18 @@ function listItems(items: {
                   : '') +
               '🟪`_DUPE_CHECK_FAILED:`\n- ' +
               items.dupedFailed.join(',\n- ')
+            : '';
+    list +=
+        items.highValue.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0 ||
+              items.dupedFailed.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🔶`_HIGH_VALUE_ITEMS`\n- ' +
+              items.highValue.join(',\n- ')
             : '';
 
     if (list.length === 0) {
