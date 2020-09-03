@@ -1212,6 +1212,7 @@ export = class MyHandler extends Handler {
                         this.bot.schema
                     )}`
                 );
+
                 return {
                     action: 'accept',
                     reason: 'VALID_WITH_OVERPAY',
@@ -1512,7 +1513,7 @@ export = class MyHandler extends Handler {
                         }
                     }
 
-                    if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
+                    if (offerMeta.meta && !(offerMeta.reason === 'ADMIN' || offerMeta.reason === 'MANUAL')) {
                         // doing this because if an offer is from ADMIN, then this is undefined.
                         if (offerMeta.meta.hasHighValueItems.their) {
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
