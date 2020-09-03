@@ -47,8 +47,7 @@ const COMMANDS: string[] = [
 const SHORT: string[] = [
     '!pc [amount] <name> - Get the price and stock of an item 💲📦',
     '!b [amount] <name> - Instantly buy an item 💲',
-    '!s [amount] <name> - Instantly sell an item 💲',
-    '!msg <your message> - Send a message to the owner of the bot 💬'
+    '!s [amount] <name> - Instantly sell an item 💲'
 ];
 
 const MORE: string[] = [
@@ -176,7 +175,7 @@ export = class Commands {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
             this.autoKeysCommand(steamID);
-        } else if (['message', 'msg'].includes(command)) {
+        } else if (command === 'message') {
             this.messageCommand(steamID, message);
         } else if (command === 'time') {
             this.timeCommand(steamID);
