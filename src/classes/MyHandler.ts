@@ -1213,6 +1213,20 @@ export = class MyHandler extends Handler {
                     )}`
                 );
 
+                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                if (isManyItems) {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                    );
+                } else {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'I have accepted your offer and the trade will be completed in seconds.'
+                    );
+                }
+
                 return {
                     action: 'accept',
                     reason: 'VALID_WITH_OVERPAY',
@@ -1273,6 +1287,20 @@ export = class MyHandler extends Handler {
         }
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
+
+        const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+        if (isManyItems) {
+            this.bot.sendMessage(
+                offer.partner,
+                'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+            );
+        } else {
+            this.bot.sendMessage(
+                offer.partner,
+                'I have accepted your offer and the trade will be completed in seconds.'
+            );
+        }
 
         return {
             action: 'accept',
