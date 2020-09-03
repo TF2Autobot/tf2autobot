@@ -1312,8 +1312,8 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
-                        '✅ Success! The offer went through successfully, but you will receive your items after ~15 days.' +
-                            ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                        '✅ Success! The offer went through successfully, but you will receive your items after several days.' +
+                            'Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
                             '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
