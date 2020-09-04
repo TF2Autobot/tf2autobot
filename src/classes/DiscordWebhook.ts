@@ -292,11 +292,11 @@ export = class DiscordWebhookClass {
                             (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
                             {
-                                name: '__**Item list**__',
+                                name: '__Item list__',
                                 value: itemList
                             },
                             {
-                                name: '__**Status**__',
+                                name: '__Status__',
                                 value:
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
@@ -343,29 +343,14 @@ export = class DiscordWebhookClass {
         const ourItems = items.our;
         const theirItems = items.their;
 
-        // Get accepted 🟨_INVALID_ITEMS name and shorten the name if needed
-        const invalidItems: string[] = [];
-        accepted.invalidItems.forEach(name => {
-            invalidItems.push(replaceItemName(name));
-        });
+        const itemsName = {
+            invalid: accepted.invalidItems.map(name => replaceItemName(name)), // 🟨_INVALID_ITEMS
+            overstock: accepted.overstocked.map(name => replaceItemName(name)), // 🟦_OVERSTOCKED
+            understock: accepted.understocked.map(name => replaceItemName(name)), // 🟩_UNDERSTOCKED
+            highValue: accepted.highValue.map(name => replaceItemName(name)) // 🔶_HIGH_VALUE_ITEMS
+        };
 
-        // Get accepted 🟦_OVERSTOCKED name and shorten the name if needed
-        const overstocked: string[] = [];
-        accepted.overstocked.forEach(name => {
-            overstocked.push(replaceItemName(name));
-        });
-
-        // Get accepted 🟩_UNDERSTOCKED name and shorten the name if needed
-        const understocked: string[] = [];
-        accepted.understocked.forEach(name => {
-            understocked.push(replaceItemName(name));
-        });
-
-        // Get accepted 🔶_HIGH_VALUE_ITEMS name and shorten the name if needed
-        const highValue: string[] = [];
-        accepted.highValue.forEach(name => {
-            highValue.push(replaceItemName(name));
-        });
+        const itemList = listItems(itemsName);
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
         const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
@@ -383,10 +368,13 @@ export = class DiscordWebhookClass {
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : invalidItems.length !== 0 // Only mention on accepted 🟨_INVALID_ITEMS, not mention on 🟦_OVERSTOCKED or 🟩_UNDERSTOCKED
+                : itemsName.invalid.length !== 0 // Only mention on accepted 🟨_INVALID_ITEMS, not mention on 🟦_OVERSTOCKED or 🟩_UNDERSTOCKED
                 ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS trade here!`
-                : highValue.length !== 0
-                ? `<@!${this.ownerID}> - Accepted high value ${pluralize('item', highValue.length)} trade here!`
+                : itemsName.highValue.length !== 0 // Mention on accepted 🔶_HIGH_VALUE_ITEMS
+                ? `<@!${this.ownerID}> - Accepted high value ${pluralize(
+                      'item',
+                      itemsName.highValue.length
+                  )} trade here!`
                 : '';
 
         const botName = this.botName;
@@ -449,27 +437,12 @@ export = class DiscordWebhookClass {
                         },
                         title: '',
                         description:
-                            summary +
-                            (invalidItems.length !== 0 ? '\n\n🟨`_INVALID_ITEMS:`\n' + invalidItems.join(',\n') : '') +
-                            (overstocked.length !== 0
-                                ? (invalidItems.length !== 0 ? '\n\n' : '') +
-                                  '🟦`_OVERSTOCKED:`\n- ' +
-                                  overstocked.join(',\n- ')
-                                : '') +
-                            (understocked.length !== 0
-                                ? (overstocked.length !== 0 || invalidItems.length !== 0 ? '\n\n' : '') +
-                                  '🟩`_UNDERSTOCKED:`\n- ' +
-                                  understocked.join(',\n- ')
-                                : '') +
-                            (highValue.length !== 0
-                                ? (overstocked.length !== 0 || invalidItems.length !== 0 || understocked.length !== 0
-                                      ? '\n\n'
-                                      : '') +
-                                  '🔶`_HIGH_VALUE_ITEMS:`\n- ' +
-                                  highValue.join(',\n- ')
-                                : '') +
-                            (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                            summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                         fields: [
+                            {
+                                name: '__Item list__',
+                                value: itemList
+                            },
                             {
                                 name: '__Status__',
                                 value:
@@ -560,8 +533,8 @@ function listItems(items: {
     invalid: string[];
     overstock: string[];
     understock: string[];
-    duped: string[];
-    dupedFailed: string[];
+    duped?: string[];
+    dupedFailed?: string[];
     highValue: string[];
 }): string {
     let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
