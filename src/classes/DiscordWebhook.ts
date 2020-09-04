@@ -346,16 +346,22 @@ export = class DiscordWebhookClass {
             });
         });
 
+        const invalidA = itemsName.invalid.length;
+        const highValueA = itemsName.highValue.length;
+
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : itemsName.invalid.length !== 0 // Only mention on accepted 🟨_INVALID_ITEMS, not mention on 🟦_OVERSTOCKED or 🟩_UNDERSTOCKED
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS trade here!`
-                : itemsName.highValue.length !== 0 // Mention on accepted 🔶_HIGH_VALUE_ITEMS
-                ? `<@!${this.ownerID}> - Accepted high value ${pluralize(
-                      'item',
-                      itemsName.highValue.length
-                  )} trade here!`
+                : invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+                ? `<@!${this.ownerID}> - Accepted ${
+                      invalidA > 0 && highValueA > 0
+                          ? `INVALID_ITEMS and High value ${pluralize('item', invalidA + highValueA)}`
+                          : invalidA > 0 && highValueA === 0
+                          ? `INVALID_ITEMS ${pluralize('item', invalidA)}`
+                          : invalidA === 0 && highValueA > 0
+                          ? `High Value ${pluralize('item', highValueA)}`
+                          : ''
+                  } trade here!`
                 : '';
 
         const botName = this.botName;
@@ -458,7 +464,7 @@ export = class DiscordWebhookClass {
             /*eslint-enable */
 
             if (itemList === '-') {
-                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_ESCROW_CHECK_FAILED/⬜_BANNED_CHECK_FAILED)
+                // if Item list field is empty, remove it
                 acceptedTradeSummary.embeds[0].fields.shift();
             }
 
