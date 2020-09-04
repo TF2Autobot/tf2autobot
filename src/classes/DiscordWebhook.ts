@@ -399,7 +399,7 @@ export = class DiscordWebhookClass {
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
-            const acceptedTradeSummary = JSON.stringify({
+            const acceptedTradeSummary = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -454,15 +454,24 @@ export = class DiscordWebhookClass {
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
             /*eslint-enable */
+
+            if (itemList === '-') {
+                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_ESCROW_CHECK_FAILED/⬜_BANNED_CHECK_FAILED)
+                acceptedTradeSummary.embeds[0].fields.shift();
+            }
 
             tradeLinks.forEach((link, i) => {
                 const request = new XMLHttpRequest();
                 request.open('POST', link);
                 request.setRequestHeader('Content-type', 'application/json');
                 // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-                request.send(i > 0 ? acceptedTradeSummary.replace(/<@!\d+>/g, '') : acceptedTradeSummary);
+                request.send(
+                    i > 0
+                        ? JSON.stringify(acceptedTradeSummary).replace(/<@!\d+>/g, '')
+                        : JSON.stringify(acceptedTradeSummary)
+                );
             });
         });
     }
