@@ -71,79 +71,58 @@ export = class DiscordWebhookClass {
         }
     }
 
-    sendLowPureAlert(msg: string, time: string): void {
-        /*eslint-disable */
-        const pureAlert = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
-        });
-        /*eslint-enable */
+    sendAlert(type: string, msg?: string, position?: number, err?: any, items?: string[]): void {
+        const time = (this.bot.handler as MyHandler).timeWithEmoji();
 
+        let webhook;
+
+        if (type === 'lowPure') {
+            /*eslint-disable */
+            webhook = JSON.stringify({
+                username: this.botName,
+                avatar_url: this.botAvatarURL,
+                content: `${msg} - ${time}`
+            });
+            /*eslint-enable */
+        } else if (type === 'queue') {
+            /*eslint-disable */
+            webhook = JSON.stringify({
+                username: this.botName,
+                avatar_url: this.botAvatarURL,
+                content: `[Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
+            });
+            /*eslint-enable */
+        } else if (type === 'failedPM2') {
+            /*eslint-disable */
+            webhook = JSON.stringify({
+                username: this.botName,
+                avatar_url: this.botAvatarURL,
+                content: `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
+            });
+            /*eslint-enable */
+        } else if (type === 'failedError') {
+            /*eslint-disable */
+            webhook = JSON.stringify({
+                username: this.botName,
+                avatar_url: this.botAvatarURL,
+                content: `❌ An error occurred while trying to restart: ${err.message} - ${time}`
+            });
+            /*eslint-enable */
+        } else if (type === 'highValue') {
+            /*eslint-disable */
+            webhook = JSON.stringify({
+                username: this.botName,
+                avatar_url: this.botAvatarURL,
+                content: `<@!${this.ownerID}> Someone is trying to take your ${items.join(
+                    ', '
+                )} (not in your pricelist).`
+            });
+            /*eslint-enable */
+        }
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(pureAlert);
-    }
-
-    sendQueueAlert(position: number, time: string): void {
-        /*eslint-disable */
-        const discordQueue = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(discordQueue);
-    }
-
-    sendQueueAlertFailedPM2(time: string): void {
-        /*eslint-disable */
-        const queueAlertFailed = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> ❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(queueAlertFailed);
-    }
-
-    sendQueueAlertFailedError(err: any, time: string): void {
-        /*eslint-disable */
-        const queueAlertError = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> ❌ An error occurred while trying to restart: ${err.message} - ${time}`
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(queueAlertError);
-    }
-
-    sendAlertHighValuedItems(items: string[]): void {
-        /*eslint-disable */
-        const highValuedItems = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> Someone is trying to take your ${items.join(', ')} (not in your pricelist).`
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(highValuedItems);
+        request.send(webhook);
     }
 
     sendPartnerMessage(
