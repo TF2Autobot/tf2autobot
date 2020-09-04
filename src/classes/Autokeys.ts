@@ -177,7 +177,7 @@ export = class Autokeys {
         */
 
         /**
-         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
+         * enable Autokeys - Banking - true if currRef \> minRef AND keys \< minKeys
          * Will buy keys.
          */
         const isBankingBuyKeysWithEnoughRefs = currRef > userMinRef && currKeys <= userMinKeys;
