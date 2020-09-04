@@ -326,6 +326,8 @@ export = class DiscordWebhookClass {
             invalid: accepted.invalidItems.map(name => replaceItemName(name)), // 🟨_INVALID_ITEMS
             overstock: accepted.overstocked.map(name => replaceItemName(name)), // 🟦_OVERSTOCKED
             understock: accepted.understocked.map(name => replaceItemName(name)), // 🟩_UNDERSTOCKED
+            duped: [],
+            dupedFailed: [],
             highValue: accepted.highValue.map(name => replaceItemName(name)) // 🔶_HIGH_VALUE_ITEMS
         };
 
@@ -512,8 +514,8 @@ function listItems(items: {
     invalid: string[];
     overstock: string[];
     understock: string[];
-    duped?: string[];
-    dupedFailed?: string[];
+    duped: string[];
+    dupedFailed: string[];
     highValue: string[];
 }): string {
     let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
