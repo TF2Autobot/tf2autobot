@@ -1977,7 +1977,7 @@ class UserCart extends Cart {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
-                    " don't have enough pure for this trade." +
+                    " don't have enough pure for this trade" +
                     (isBuyer ? '\n💰 Current pure stock: ' + pureStock.join(', ').toString() : '')
             );
         }
