@@ -2472,15 +2472,15 @@ export = class Commands {
             this.bot.sendMessage(
                 steamID,
                 `❌ I could not find any items in my pricelist that contains "${name}". I may not be trading the item you are looking for.` +
-                    `\n\nAlternatively, please try to:` +
-                    `\n• Remove "The".` +
-                    `\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".` +
-                    `\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".` +
-                    `\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.` +
-                    `\n• Check for a dash (-) like "All-Father" or "Mini-Engy".` +
+                    '\n\nAlternatively, please try to:' +
+                    '\n• Remove "The".' +
+                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
+                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
+                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
+                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
                     `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                    `\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".` +
-                    `\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".` +
+                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
+                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
                     `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
             );
             return null;
