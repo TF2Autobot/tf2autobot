@@ -16,6 +16,7 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
+import { requestCheck } from '../lib/ptf-api';
 
 import moment from 'moment-timezone';
 
@@ -1647,7 +1648,31 @@ export = class MyHandler extends Handler {
                     continue;
                 }
 
+                // Update listings
                 this.bot.listings.checkBySKU(sku);
+
+                // Request priceheck on each sku involved in the trade, except craft weapons,
+                // pure and items that are not in our pricelist.
+                if (
+                    !(
+                        this.weapon().craft.includes(sku) ||
+                        this.weapon().uncraft.includes(sku) ||
+                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                    ) &&
+                    this.bot.pricelist.getPrice(sku, true) !== null
+                ) {
+                    requestCheck(sku, 'bptf').asCallback((err, body) => {
+                        if (err) {
+                            log.warn(
+                                'Failed to request pricecheck for ' + body.name + ': ' + err.body && err.body.message
+                                    ? err.body.message
+                                    : err.message
+                            );
+                        } else {
+                            log.debug('Requested pricecheck for ' + body.name + '.');
+                        }
+                    });
+                }
             }
 
             this.inviteToGroups(offer.partner);
