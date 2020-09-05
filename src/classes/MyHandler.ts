@@ -1352,7 +1352,6 @@ export = class MyHandler extends Handler {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrice = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrice);
-                    const itemsList = this.itemList(offer);
                     const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
@@ -1419,7 +1418,7 @@ export = class MyHandler extends Handler {
                             .replace('Asked', '  My side')
                             .replace('Offered', 'Your side') +
                         "\n[You're missing: " +
-                        (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
                             process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
                                 ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
@@ -1695,7 +1694,6 @@ export = class MyHandler extends Handler {
         const value = this.valueDiff(offer, keyPrice);
         const timeWithEmojis = this.timeWithEmoji();
         const links = this.tradePartnerLinks(offer.partner.toString());
-        const itemsList = this.itemList(offer);
 
         if (action === 'skip') {
             // Offer review note
@@ -1833,7 +1831,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
+                    (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
             const hasHighValue = meta.hasHighValueItems.their;
