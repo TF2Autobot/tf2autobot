@@ -175,9 +175,25 @@ export = class Listings {
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
                 // We are not trading the item, remove the listing
                 listing.remove();
-            } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
-                // We are not buying / selling more, remove the listing
+            } else if (listing.intent === 0 && amountCanBuy <= 0) {
+                // We are not buying, remove the listing
                 listing.remove();
+            } else if (listing.intent === 1 && amountCanSell <= 0) {
+                if (match.intent === 2) {
+                    // We are not selling more and we are still banking, just remove the listing
+                    listing.remove();
+                } else {
+                    // We are not selling more and we only selling, remove the listing and item from pricelist
+                    listing.remove();
+                    this.bot.pricelist
+                        .removePrice(sku, false)
+                        .then(() => {
+                            log.debug(`✅ Automatically removed ${sku} from pricelist.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
+                        });
+                }
             } else {
                 const newDetails = this.getDetails(listing.intent, match);
 
@@ -194,7 +210,9 @@ export = class Listings {
             }
         });
 
-        if (match !== null && match.enabled === true) {
+        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true);
+
+        if (matchNew !== null && matchNew.enabled === true) {
             const assetids = this.bot.inventoryManager.getInventory().findBySKU(sku, true);
 
             // TODO: Check if we are already making a listing for same type of item + intent
@@ -202,22 +220,22 @@ export = class Listings {
             if (!hasBuyListing && amountCanBuy > 0) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
-                    time: match.time || moment().unix(),
+                    time: matchNew.time || moment().unix(),
                     sku: sku,
                     intent: 0,
-                    details: this.getDetails(0, match),
-                    currencies: match.buy
+                    details: this.getDetails(0, matchNew),
+                    currencies: matchNew.buy
                 });
             }
 
             if (!hasSellListing && amountCanSell > 0) {
                 // We have no sell order and we can sell items, create sell listing
                 this.bot.listingManager.createListing({
-                    time: match.time || moment().unix(),
+                    time: matchNew.time || moment().unix(),
                     id: assetids[assetids.length - 1],
                     intent: 1,
-                    details: this.getDetails(1, match),
-                    currencies: match.sell
+                    details: this.getDetails(1, matchNew),
+                    currencies: matchNew.sell
                 });
             }
         }
