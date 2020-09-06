@@ -188,12 +188,12 @@ export = class Listings {
                     listing.remove();
                     if (currentStock < 1) {
                         this.bot.pricelist
-                            .removePrice(match.sku, false)
+                            .removePrice(sku, false)
                             .then(() => {
-                                log.debug(`✅ Automatically removed ${match.sku} from pricelist.`);
+                                log.debug(`✅ Automatically removed ${sku} from pricelist.`);
                             })
                             .catch(err => {
-                                log.warn(`❌ Failed to remove ${match.sku} from pricelist: ${err.message}`);
+                                log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
                             });
                     }
                 }
