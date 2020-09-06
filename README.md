@@ -77,7 +77,7 @@ tf2autobot adds advantageous features on top of the original features in the tf2
 -   option to automatically decline `OVERSTOCKED` or `UNDERSTOCKED` reason.
 -   option to recognize Strange Unusual as usual Unusual and vice versa.
 -   notify owner if someone traded high valued items (spelled).
--   request pricecheck after every successful trade on each item involved in the trade (except craft weapons, pure and items that are not in the pricelist).
+-   request pricecheck after every successful trade on each item involved in the trade (except craft weapons and pure).
 
 **Others:**
 

@@ -1651,14 +1651,13 @@ export = class MyHandler extends Handler {
                 this.bot.listings.checkBySKU(sku);
 
                 // Request priceheck on each sku involved in the trade, except craft weapons,
-                // pure and items that are not in our pricelist.
+                // and pure.
                 if (
                     !(
                         this.weapon().craft.includes(sku) ||
                         this.weapon().uncraft.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    ) &&
-                    this.bot.pricelist.getPrice(sku, true) !== null
+                    )
                 ) {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
