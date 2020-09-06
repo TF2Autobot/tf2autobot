@@ -1642,6 +1642,8 @@ export = class MyHandler extends Handler {
             // Update listings
             const diff = offer.getDiff() || {};
 
+            const offerMeta: { reason: string } = offer.data('action');
+
             for (const sku in diff) {
                 if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
                     continue;
@@ -1681,24 +1683,30 @@ export = class MyHandler extends Handler {
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     )
                 ) {
-                    const entry = {
-                        sku: sku,
-                        enabled: true,
-                        autoprice: true,
-                        min: 0,
-                        max: 1,
-                        intent: 1
-                    } as any;
+                    if (
+                        offerMeta.reason !== 'ADMIN' ||
+                        (offerMeta.reason === 'ADMIN' && offer.itemsToReceive.length > 0)
+                    ) {
+                        // Only add if the offer is not from ADMIN, OR if from ADMIN must only have something to receive.
+                        const entry = {
+                            sku: sku,
+                            enabled: true,
+                            autoprice: true,
+                            min: 0,
+                            max: 1,
+                            intent: 1
+                        } as any;
 
-                    this.bot.pricelist
-                        .addPrice(entry as EntryData, false)
-                        .then(data => {
-                            log.debug(`✅ Automatically added ${sku} to sell.`);
-                            this.bot.listings.checkBySKU(data.sku, data);
-                        })
-                        .catch(err => {
-                            log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
-                        });
+                        this.bot.pricelist
+                            .addPrice(entry as EntryData, false)
+                            .then(data => {
+                                log.debug(`✅ Automatically added ${sku} to sell.`);
+                                this.bot.listings.checkBySKU(data.sku, data);
+                            })
+                            .catch(err => {
+                                log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
+                            });
+                    }
                 }
             }
 
