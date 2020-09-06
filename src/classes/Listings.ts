@@ -158,6 +158,7 @@ export = class Listings {
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false);
+        const currentStock = this.bot.inventoryManager.getInventory().getAmount(match.sku);
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -185,14 +186,16 @@ export = class Listings {
                 } else {
                     // We are not selling more and we only selling, remove the listing and item from pricelist
                     listing.remove();
-                    this.bot.pricelist
-                        .removePrice(sku, false)
-                        .then(() => {
-                            log.debug(`✅ Automatically removed ${sku} from pricelist.`);
-                        })
-                        .catch(err => {
-                            log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
-                        });
+                    if (currentStock < 1) {
+                        this.bot.pricelist
+                            .removePrice(sku, false)
+                            .then(() => {
+                                log.debug(`✅ Automatically removed ${sku} from pricelist.`);
+                            })
+                            .catch(err => {
+                                log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
+                            });
+                    }
                 }
             } else {
                 const newDetails = this.getDetails(listing.intent, match);
