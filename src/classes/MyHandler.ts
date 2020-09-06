@@ -1662,14 +1662,43 @@ export = class MyHandler extends Handler {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
                             log.warn(
-                                'Failed to request pricecheck for ' + sku + ': ' + err.body && err.body.message
+                                '❌ Failed to request pricecheck for ' + sku + ': ' + err.body && err.body.message
                                     ? err.body.message
                                     : err.message
                             );
                         } else {
-                            log.debug('Requested pricecheck for ' + body.name + '.');
+                            log.debug('✅ Requested pricecheck for ' + body.name + '.');
                         }
                     });
+                }
+
+                // Automatically add any INVALID_ITEMS to sell
+                if (
+                    this.bot.pricelist.getPrice(sku, false) === null &&
+                    !(
+                        this.weapon().craft.includes(sku) ||
+                        this.weapon().uncraft.includes(sku) ||
+                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                    )
+                ) {
+                    const entry = {
+                        sku: sku,
+                        enabled: true,
+                        autoprice: true,
+                        min: 0,
+                        max: 1,
+                        intent: 1
+                    } as any;
+
+                    this.bot.pricelist
+                        .addPrice(entry as EntryData, false)
+                        .then(data => {
+                            log.debug(`✅ Automatically added ${sku} to sell.`);
+                            this.bot.listings.checkBySKU(data.sku, data);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
+                        });
                 }
             }
 
