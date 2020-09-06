@@ -1642,8 +1642,6 @@ export = class MyHandler extends Handler {
             // Update listings
             const diff = offer.getDiff() || {};
 
-            const offerMeta: { reason: string } = offer.data('action');
-
             for (const sku in diff) {
                 if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
                     continue;
@@ -1688,10 +1686,11 @@ export = class MyHandler extends Handler {
                     !name.includes('War Paint')
                 ) {
                     if (
-                        offerMeta.reason !== 'ADMIN' ||
-                        (offerMeta.reason === 'ADMIN' && offer.itemsToReceive.length > 0)
+                        !this.bot.getAdmins().includes(offer.partner) ||
+                        (this.bot.getAdmins().includes(offer.partner) && offer.itemsToReceive.length > 0)
                     ) {
-                        // Only add if the offer is not from ADMIN, OR if from ADMIN must only have something to receive.
+                        // if an offer is not from ADMIN or if it's from ADMIN and receiving something
+                        // that's not in pricelist, then add to sell
                         const entry = {
                             sku: sku,
                             enabled: true,
