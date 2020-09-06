@@ -158,7 +158,7 @@ export = class Listings {
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false);
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(match.sku);
+        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
