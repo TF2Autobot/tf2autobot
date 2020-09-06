@@ -1671,14 +1671,20 @@ export = class MyHandler extends Handler {
                     });
                 }
 
-                // Automatically add any INVALID_ITEMS to sell
+                // Automatically add any INVALID_ITEMS to sell, excluding any item name
+                // that have War Paint (could be skins)
+
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item);
+
                 if (
                     this.bot.pricelist.getPrice(sku, false) === null &&
                     !(
                         this.weapon().craft.includes(sku) ||
                         this.weapon().uncraft.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    )
+                    ) &&
+                    !name.includes('War Paint')
                 ) {
                     if (
                         offerMeta.reason !== 'ADMIN' ||
