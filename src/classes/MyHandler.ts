@@ -1661,9 +1661,10 @@ export = class MyHandler extends Handler {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
                             log.warn(
-                                '❌ Failed to request pricecheck for ' + sku + ': ' + err.body && err.body.message
-                                    ? err.body.message
-                                    : err.message
+                                '❌ Failed to request pricecheck for ' +
+                                    sku +
+                                    ': ' +
+                                    (err.body && err.body.message ? err.body.message : err.message)
                             );
                         } else {
                             log.debug('✅ Requested pricecheck for ' + body.name + '.');
