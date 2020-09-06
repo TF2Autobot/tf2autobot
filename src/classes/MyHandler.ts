@@ -1686,8 +1686,8 @@ export = class MyHandler extends Handler {
                     !name.includes('War Paint')
                 ) {
                     if (
-                        !this.bot.getAdmins().includes(offer.partner) ||
-                        (this.bot.getAdmins().includes(offer.partner) && offer.itemsToReceive.length > 0)
+                        !this.bot.isAdmin(offer.partner) ||
+                        (this.bot.isAdmin(offer.partner) && offer.itemsToReceive.length > 0)
                     ) {
                         // if an offer is not from ADMIN or if it's from ADMIN and receiving something
                         // that's not in pricelist, then add to sell
