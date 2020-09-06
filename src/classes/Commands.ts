@@ -90,7 +90,8 @@ const ADMIN_COMMANDS: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
+    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item',
+    '!find <parameters> - Get the list of filtered items detail based on the parameters'
 ];
 
 export = class Commands {
@@ -236,6 +237,8 @@ export = class Commands {
             this.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
+        } else if (command === 'find' && isAdmin) {
+            this.findCommand(steamID, message);
         } else if (isNoReply) {
             return null;
         } else {
@@ -1874,6 +1877,130 @@ export = class Commands {
     private resetQueueCommand(steamID: SteamID): void {
         this.cartQueue.resetQueue();
         this.bot.sendMessage(steamID, '✅ Sucessfully reset queue!');
+    }
+
+    private findCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (
+            !(
+                params.enabled !== undefined ||
+                params.max !== undefined ||
+                params.min !== undefined ||
+                params.intent !== undefined ||
+                params.autoprice !== undefined
+            )
+        ) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ Only parameters: enabled, max, min, intent, autoprice\nExample: !find intent=sell'
+            );
+            return;
+        }
+
+        const pricelist = this.bot.pricelist.getPrices();
+        let filter = pricelist;
+
+        if (params.enabled !== undefined && typeof params.enabled === 'boolean') {
+            filter = filter.filter(entry => entry.enabled === params.enabled);
+        } else if (params.enabled !== undefined && typeof params.enabled !== 'boolean') {
+            this.bot.sendMessage(steamID, '⚠️ enabled parameter must be either true or false only');
+            return;
+        }
+
+        if (params.max !== undefined && typeof params.max === 'number') {
+            filter = filter.filter(entry => entry.max === params.max);
+        } else if (params.max !== undefined && typeof params.max !== 'number') {
+            this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer only');
+            return;
+        }
+
+        if (params.min !== undefined && typeof params.min === 'number') {
+            filter = filter.filter(entry => entry.min === params.min);
+        } else if (params.min !== undefined && typeof params.min !== 'number') {
+            this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer only');
+            return;
+        }
+
+        if (params.intent !== undefined && typeof params.intent === 'number') {
+            filter = filter.filter(entry => entry.intent === params.intent);
+        } else if (typeof params.intent === 'string') {
+            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
+            if (intent !== -1) {
+                params.intent = intent;
+                filter = filter.filter(entry => entry.intent === params.intent);
+            }
+        } else if (
+            params.intent !== undefined &&
+            (typeof params.intent !== 'number' || typeof params.intent !== 'string')
+        ) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ intent parameter must be a word of "buy", "sell", or "bank" OR an integer of "0", "1" or "2" only'
+            );
+            return;
+        }
+
+        if (params.autoprice !== undefined && typeof params.autoprice === 'boolean') {
+            filter = filter.filter(entry => entry.autoprice === params.autoprice);
+        } else if (params.autoprice !== undefined && typeof params.autoprice !== 'boolean') {
+            this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be either true or false only');
+            return;
+        }
+
+        const parametersUsed = {
+            enabled: params.enabled !== undefined ? 'enabled=' + params.enabled.toString() : '',
+            autoprice: params.autoprice !== undefined ? 'autoprice=' + params.autoprice.toString() : '',
+            max: params.max !== undefined ? 'max=' + params.max.toString() : '',
+            min: params.min !== undefined ? 'min=' + params.min.toString() : '',
+            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : ''
+        };
+
+        const parameters = Object.values(parametersUsed);
+        log.debug(JSON.stringify(parameters));
+        const display = parameters.filter(param => param !== '');
+
+        const length = filter.length;
+
+        if (length === 0) {
+            this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
+        } else if (length > 20) {
+            this.bot.sendMessage(
+                steamID,
+                `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only max 100 items`
+            );
+            this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(0, 20), null, 4)}`);
+            if (length <= 40) {
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(20, length > 40 ? 40 : length), null, 4)}`
+                );
+            } else if (length <= 60) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(40, length > 60 ? 60 : length), null, 4)}`
+                );
+            } else if (length <= 80) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(60, length > 80 ? 80 : length), null, 4)}`
+                );
+            } else if (length > 80) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(60, 80), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(80, length > 100 ? 100 : length), null, 4)}`
+                );
+            }
+        } else {
+            this.bot.sendMessage(steamID, `Found ${pluralize('item', filter.length, true)} with ${display.join('&')}`);
+            this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter, null, 4)}`);
+        }
     }
 
     // Bot status
