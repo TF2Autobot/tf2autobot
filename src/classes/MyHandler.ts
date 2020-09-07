@@ -530,7 +530,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                            descriptionColor.toLowerCase() === '00a000'
+                            descriptionColor === '00a000'
                         ) {
                             hasNot5Uses = true;
                             log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
@@ -562,7 +562,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                            descriptionColor.toLowerCase() === '00a000'
+                            descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
                             log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
@@ -600,7 +600,7 @@ export = class MyHandler extends Handler {
                 if (
                     descriptionValue.startsWith('Halloween:') &&
                     descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor.toLowerCase() === '7ea9d1'
+                    descriptionColor === '7ea9d1'
                 ) {
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
@@ -663,7 +663,7 @@ export = class MyHandler extends Handler {
                 if (
                     descriptionValue.startsWith('Halloween:') &&
                     descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor.toLowerCase() === '7ea9d1'
+                    descriptionColor === '7ea9d1'
                 ) {
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
