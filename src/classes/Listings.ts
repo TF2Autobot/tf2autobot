@@ -340,7 +340,7 @@ export = class Listings {
         });
     }
 
-    private recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
+    recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
