@@ -2331,36 +2331,38 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta'), offer).asCallback(err => {
-                if (err) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-                    );
-                    return;
-                }
+            this.bot.trades
+                .applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta') || {}, offer)
+                .asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        );
+                        return;
+                    }
 
-                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
-                if (isManyItems) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.'
-                    );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will be completed in seconds.'
-                    );
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    this.bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            });
+                    if (isManyItems) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will be completed in seconds.'
+                        );
+                    }
+                    // Send message to recipient if includes some messages
+                    if (reply) {
+                        this.bot.sendMessage(
+                            partnerId,
+                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        );
+                    }
+                });
         });
     }
 
