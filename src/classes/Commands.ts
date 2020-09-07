@@ -76,7 +76,7 @@ const ADMIN_COMMANDS: string[] = [
     '!stop - Stop your bot 🔴',
     '!restart - Restart your bot 🔄',
     '!refreshautokeys - Refresh your autokeys settings.',
-    "!relist - Relist of all your bot's listings.",
+    '!refreshlist - Refresh sell listings 🔄',
     "!name <new_name> - Change your bot's name",
     "!avatar <image_URL> - Change your bot's avatar",
     '!resetqueue - Reset queue position to 0\n\n📌=== Bot status ===📌',
@@ -97,8 +97,8 @@ const ADMIN_COMMANDS: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item',
-    '!find <parameters> - Get the list of filtered items detail based on the parameters'
+    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item 🔍',
+    '!find <parameters> - Get the list of filtered items detail based on the parameters 🔍'
 ];
 
 export = class Commands {
@@ -222,8 +222,8 @@ export = class Commands {
             this.restartCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.refreshAutokeysCommand(steamID);
-        } else if (command === 'relist' && isAdmin) {
-            this.relistCommand(steamID);
+        } else if (command === 'refreshlist' && isAdmin) {
+            this.refreshListingsCommand(steamID);
         } else if (command === 'resetqueue') {
             this.resetQueueCommand(steamID);
         } else if (command === 'stats' && isAdmin) {
@@ -2010,6 +2010,28 @@ export = class Commands {
         }
     }
 
+    private refreshListingsCommand(steamID: SteamID): void {
+        const inventory = this.bot.inventoryManager.getInventory();
+        const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+            // Filter our pricelist to only the items that the bot currently have.
+            return inventory.findBySKU(entry.sku).length > 0;
+        });
+
+        if (pricelist.length > 0) {
+            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+            this.bot.sendMessage(
+                steamID,
+                'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
+            );
+            this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+                this.bot.sendMessage(steamID, '✅ Done refresh ' + pluralize('item', pricelist.length, true));
+            });
+        } else {
+            this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
+        }
+    }
+
     // Bot status
 
     private statsCommand(steamID: SteamID): void {
@@ -2338,36 +2360,38 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', {}, offer).asCallback(err => {
-                if (err) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-                    );
-                    return;
-                }
+            this.bot.trades
+                .applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta') || {}, offer)
+                .asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        );
+                        return;
+                    }
 
-                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
-                if (isManyItems) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.'
-                    );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will be completed in seconds.'
-                    );
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    this.bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            });
+                    if (isManyItems) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will be completed in seconds.'
+                        );
+                    }
+                    // Send message to recipient if includes some messages
+                    if (reply) {
+                        this.bot.sendMessage(
+                            partnerId,
+                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        );
+                    }
+                });
         });
     }
 

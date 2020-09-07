@@ -240,9 +240,15 @@ class CartQueue {
                         log.warn('Failed to make offer');
                         log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                            cart.sendNotification(
+                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                            );
+                        } else {
+                            cart.sendNotification(
+                                '❌ Something went wrong while trying to make the offer, try again later!'
+                            );
+                        }
                     }
                 })
                 .finally(() => {

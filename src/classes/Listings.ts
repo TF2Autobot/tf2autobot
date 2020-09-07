@@ -158,7 +158,6 @@ export = class Listings {
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false);
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -176,27 +175,9 @@ export = class Listings {
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
                 // We are not trading the item, remove the listing
                 listing.remove();
-            } else if (listing.intent === 0 && amountCanBuy <= 0) {
-                // We are not buying, remove the listing
+            } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
+                // We are not buying / selling more, remove the listing
                 listing.remove();
-            } else if (listing.intent === 1 && amountCanSell <= 0) {
-                if (match.intent === 2) {
-                    // We are not selling more and we are still banking, just remove the listing
-                    listing.remove();
-                } else {
-                    // We are not selling more and we only selling, remove the listing and item from pricelist
-                    listing.remove();
-                    if (currentStock < 1) {
-                        this.bot.pricelist
-                            .removePrice(sku, false)
-                            .then(() => {
-                                log.debug(`✅ Automatically removed ${sku} from pricelist.`);
-                            })
-                            .catch(err => {
-                                log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
-                            });
-                    }
-                }
             } else {
                 const newDetails = this.getDetails(listing.intent, match);
 
@@ -359,7 +340,7 @@ export = class Listings {
         });
     }
 
-    private recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
+    recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 

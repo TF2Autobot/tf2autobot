@@ -530,7 +530,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                            descriptionColor.toLowerCase() === '00a000'
+                            descriptionColor === '00a000'
                         ) {
                             hasNot5Uses = true;
                             log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
@@ -562,7 +562,7 @@ export = class MyHandler extends Handler {
 
                         if (
                             !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                            descriptionColor.toLowerCase() === '00a000'
+                            descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
                             log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
@@ -600,7 +600,7 @@ export = class MyHandler extends Handler {
                 if (
                     descriptionValue.startsWith('Halloween:') &&
                     descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor.toLowerCase() === '7ea9d1'
+                    descriptionColor === '7ea9d1'
                 ) {
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
@@ -663,7 +663,7 @@ export = class MyHandler extends Handler {
                 if (
                     descriptionValue.startsWith('Halloween:') &&
                     descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor.toLowerCase() === '7ea9d1'
+                    descriptionColor === '7ea9d1'
                 ) {
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
@@ -1268,21 +1268,25 @@ export = class MyHandler extends Handler {
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                const reviewMeta = {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer,
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                };
+
+                offer.data('reviewMeta', reviewMeta);
+
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        hasHighValueItems: {
-                            our: hasHighValueOur,
-                            their: hasHighValueTheir
-                        },
-                        highValueItems: {
-                            our: highValuedOur,
-                            their: highValuedTheir
-                        }
-                    }
+                    meta: reviewMeta
                 };
             }
         }
@@ -1505,10 +1509,11 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
+                const offerMade: { nameWithSpell: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (offerMeta.reason === 'VALID_WITH_OVERPAY') {
+                    if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
                         if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
                             // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
@@ -1541,7 +1546,7 @@ export = class MyHandler extends Handler {
                         }
                     }
 
-                    if (offerMeta.meta && !(offerMeta.reason === 'ADMIN' || offerMeta.reason === 'MANUAL')) {
+                    if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
                         // doing this because if an offer is from ADMIN, then this is undefined.
                         if (offerMeta.meta.hasHighValueItems.their) {
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
@@ -1549,6 +1554,13 @@ export = class MyHandler extends Handler {
                                 accepted.highValue.push(name);
                             });
                         }
+                    }
+                } else if (offerMade) {
+                    // This is for offer that bot created from commands
+                    if (offerMade.nameWithSpell.length > 0) {
+                        offerMade.nameWithSpell.forEach(name => {
+                            accepted.highValue.push(name);
+                        });
                     }
                 }
 
@@ -1647,6 +1659,9 @@ export = class MyHandler extends Handler {
                     continue;
                 }
 
+                // Update listings
+                this.bot.listings.checkBySKU(sku);
+
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
                 if (
@@ -1675,9 +1690,11 @@ export = class MyHandler extends Handler {
 
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item);
+                const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
+                const inPrice = this.bot.pricelist.getPrice(sku, false);
 
                 if (
-                    this.bot.pricelist.getPrice(sku, false) === null &&
+                    inPrice === null &&
                     !(
                         this.weapon().craft.includes(sku) ||
                         this.weapon().uncraft.includes(sku) ||
@@ -1710,10 +1727,16 @@ export = class MyHandler extends Handler {
                                 log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
                             });
                     }
+                } else if (inPrice !== null && inPrice.intent === 1 && currentStock < 1) {
+                    this.bot.pricelist
+                        .removePrice(sku, false)
+                        .then(() => {
+                            log.debug(`✅ Automatically removed ${sku} from pricelist.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
+                        });
                 }
-
-                // Update listings
-                this.bot.listings.checkBySKU(sku);
             }
 
             this.inviteToGroups(offer.partner);
