@@ -2331,7 +2331,7 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', {}, offer).asCallback(err => {
+            this.bot.trades.applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta'), offer).asCallback(err => {
                 if (err) {
                     this.bot.sendMessage(
                         steamID,

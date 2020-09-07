@@ -1268,6 +1268,21 @@ export = class MyHandler extends Handler {
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                const reviewMeta = {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer,
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                };
+
+                offer.data('reviewMeta', reviewMeta);
+
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
@@ -1542,7 +1557,7 @@ export = class MyHandler extends Handler {
                         }
                     }
 
-                    if (offerMeta.meta && !(offerMeta.reason === 'ADMIN' || offerMeta.reason === 'MANUAL')) {
+                    if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
                         // doing this because if an offer is from ADMIN, then this is undefined.
                         if (offerMeta.meta.hasHighValueItems.their) {
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
