@@ -1670,6 +1670,9 @@ export = class MyHandler extends Handler {
                     continue;
                 }
 
+                // Update listings
+                this.bot.listings.checkBySKU(sku);
+
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
                 if (
@@ -1745,9 +1748,6 @@ export = class MyHandler extends Handler {
                             log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
                         });
                 }
-
-                // Update listings
-                this.bot.listings.checkBySKU(sku);
             }
 
             this.inviteToGroups(offer.partner);
