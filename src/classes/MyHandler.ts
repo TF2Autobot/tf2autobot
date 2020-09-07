@@ -1286,18 +1286,7 @@ export = class MyHandler extends Handler {
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        hasHighValueItems: {
-                            our: hasHighValueOur,
-                            their: hasHighValueTheir
-                        },
-                        highValueItems: {
-                            our: highValuedOur,
-                            their: highValuedTheir
-                        }
-                    }
+                    meta: reviewMeta
                 };
             }
         }
@@ -1524,7 +1513,7 @@ export = class MyHandler extends Handler {
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (offerMeta.reason === 'VALID_WITH_OVERPAY') {
+                    if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
                         if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
                             // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
