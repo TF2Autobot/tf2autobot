@@ -1698,9 +1698,11 @@ export = class MyHandler extends Handler {
 
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item);
+                const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
+                const inPrice = this.bot.pricelist.getPrice(sku, false);
 
                 if (
-                    this.bot.pricelist.getPrice(sku, false) === null &&
+                    inPrice === null &&
                     !(
                         this.weapon().craft.includes(sku) ||
                         this.weapon().uncraft.includes(sku) ||
@@ -1733,6 +1735,15 @@ export = class MyHandler extends Handler {
                                 log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
                             });
                     }
+                } else if (inPrice !== null && inPrice.intent === 1 && currentStock < 1) {
+                    this.bot.pricelist
+                        .removePrice(sku, false)
+                        .then(() => {
+                            log.debug(`✅ Automatically removed ${sku} from pricelist.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
+                        });
                 }
 
                 // Update listings
