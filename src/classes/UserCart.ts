@@ -523,6 +523,37 @@ class UserCart extends Cart {
                 }
             }
 
+            const highValuedTheir: {
+                skus: string[];
+                nameWithSpell: string[];
+            } = {
+                skus: [],
+                nameWithSpell: []
+            };
+
+            offer.itemsToReceive.forEach(item => {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        descriptionValue.startsWith('Halloween:') &&
+                        descriptionValue.endsWith('(spell only active during event)') &&
+                        descriptionColor === '7ea9d1'
+                    ) {
+                        const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                        highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                        log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        break;
+                    }
+                }
+            });
+
+            offer.data('highValue', highValuedTheir);
+
             let alteredMessage: string;
 
             let amount = this.getTheirCount(sku);
@@ -1938,6 +1969,37 @@ class UserCart extends Cart {
                     );
                 }
             }
+
+            const highValuedTheir: {
+                skus: string[];
+                nameWithSpell: string[];
+            } = {
+                skus: [],
+                nameWithSpell: []
+            };
+
+            offer.itemsToReceive.forEach(item => {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        descriptionValue.startsWith('Halloween:') &&
+                        descriptionValue.endsWith('(spell only active during event)') &&
+                        descriptionColor === '7ea9d1'
+                    ) {
+                        const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                        highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                        log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        break;
+                    }
+                }
+            });
+
+            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 

@@ -1505,6 +1505,7 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
+                const offerMade: { nameWithSpell: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
@@ -1549,6 +1550,13 @@ export = class MyHandler extends Handler {
                                 accepted.highValue.push(name);
                             });
                         }
+                    }
+                } else if (offerMade) {
+                    // This is for offer that bot created from commands
+                    if (offerMade.nameWithSpell.length > 0) {
+                        offerMade.nameWithSpell.forEach(name => {
+                            accepted.highValue.push(name);
+                        });
                     }
                 }
 
