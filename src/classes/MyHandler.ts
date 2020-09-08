@@ -916,14 +916,17 @@ export = class MyHandler extends Handler {
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -2741,37 +2744,43 @@ export = class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
 
-        const newValue = {
-            our: {
-                keys: value.our.keys,
-                metal: value.our.metal
-            },
-            their: {
-                keys: value.their.keys,
-                metal: value.our.metal
-            }
-        };
-
-        if (!this.fromEnv.showMetal) {
-            // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-            newValue.our.metal = Currencies.toRefined(
-                Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
-            );
-            newValue.our.keys = 0;
-            newValue.their.metal = Currencies.toRefined(
-                Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
-            );
-            newValue.their.keys = 0;
-        }
-
         let diff: number;
         let diffRef: number;
         let diffKey: string;
-        if (!newValue) {
+        if (!value) {
             diff = 0;
             diffRef = 0;
             diffKey = '';
         } else {
+            let newValue: { our: Currency; their: Currency } = {
+                our: {
+                    keys: value.our.keys,
+                    metal: value.our.metal
+                },
+                their: {
+                    keys: value.their.keys,
+                    metal: value.our.metal
+                }
+            };
+
+            if (!this.fromEnv.showMetal) {
+                // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
+                newValue = {
+                    our: {
+                        keys: 0,
+                        metal: Currencies.toRefined(
+                            Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
+                        )
+                    },
+                    their: {
+                        keys: 0,
+                        metal: Currencies.toRefined(
+                            Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
+                        )
+                    }
+                };
+            }
+
             if (this.isTradingKeys === true) {
                 diff =
                     new Currencies(newValue.their).toValue(keyPrice.buy.metal) -
