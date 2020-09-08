@@ -282,8 +282,8 @@ export = class Commands {
 
         this.bot.sendMessage(
             steamID,
-            `• Steam: https://steamcommunity.com/profiles/ + ${firstAdmin.toString()}` +
-                `\n• Backpack.tf: https://backpack.tf/profiles/ + ${firstAdmin.toString()}`
+            `• Steam: https://steamcommunity.com/profiles/${firstAdmin.toString()}` +
+                `\n• Backpack.tf: https://backpack.tf/profiles/${firstAdmin.toString()}`
         );
     }
 
