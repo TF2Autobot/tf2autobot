@@ -1605,57 +1605,54 @@ export = class Commands {
         if (params.name !== undefined || params.item !== undefined) {
             this.bot.sendMessage(
                 steamID,
-                `⚠️ Please only use sku property.
-
-                Below are some common items to delete:
-                • Smissamas Sweater: 16391;15;untradable;w1;pk391
-                • Soul Gargoyle: 5826;6;uncraftable;untradable
-                • Noice Maker - TF Birthday: 536;6;untradable
-                • Bronze Dueling Badge: 242;6;untradable
-                • Silver Dueling Badge: 243;6;untradable
-                • Gold Dueling Badge: 244;6;untradable
-                • Platinum Dueling Badge: 245;6;untradable
-                • Mercenary: 166;6;untradable
-                • Soldier of Fortune: 165;6;untradable
-                • Grizzled Veteran: 164;6;untradable
-                • Primeval Warrior: 170;6;untradable
-                • Professor Speks: 343;6;untradable
-                • Mann Co. Cap: 261;6;untradable
-                • Mann Co. Online Cap: 994;6;untradable
-                • Proof of Purchase: 471;6;untradable
-                • Mildly Disturbing Halloween Mask: 115;6;untradable
-                • Seal Mask: 582;6;untradable
-                • Pyrovision Goggles: 743;6;untradable
-                • Giftapult: 5083;6;untradable
-                • Spirit Of Giving: 655;11;untradable
-                • Party Hat: 537;6;untradable
-                • Name Tag: 5020;6;untradable
-                • Description Tag: 5044;6;untradable
-                • Ghastly Gibus: 584;6;untradable
-                • Ghastlier Gibus: 279;6;untradable
-                • Power Up Canteen: 489;6;untradable
-                • Bombinomicon: 583;6;untradable
-                • Skull Island Topper: 941;6;untradable
-                • Spellbook Page: 8935;6;untradable
-                • Gun Mettle Campaign Coin: 5809;6;untradable
-                • MONOCULUS!: 581;6;untradable
-                
-                Or other items, please refer here: https://bit.ly/3gZQxFQ (defindex)`
+                '⚠️ Please only use sku property.' +
+                    '\n\nBelow are some common items to delete:' +
+                    '\n• Smissamas Sweater: 16391;15;untradable;w1;pk391' +
+                    '\n• Soul Gargoyle: 5826;6;uncraftable;untradable' +
+                    '\n• Noice Maker - TF Birthday: 536;6;untradable' +
+                    '\n• Bronze Dueling Badge: 242;6;untradable' +
+                    '\n• Silver Dueling Badge: 243;6;untradable' +
+                    '\n• Gold Dueling Badge: 244;6;untradable' +
+                    '\n• Platinum Dueling Badge: 245;6;untradable' +
+                    '\n• Mercenary: 166;6;untradable' +
+                    '\n• Soldier of Fortune: 165;6;untradable' +
+                    '\n• Grizzled Veteran: 164;6;untradable' +
+                    '\n• Primeval Warrior: 170;6;untradable' +
+                    '\n• Professor Speks: 343;6;untradable' +
+                    '\n• Mann Co. Cap: 261;6;untradable' +
+                    '\n• Mann Co. Online Cap: 994;6;untradable' +
+                    '\n• Proof of Purchase: 471;6;untradable' +
+                    '\n• Mildly Disturbing Halloween Mask: 115;6;untradable' +
+                    '\n• Seal Mask: 582;6;untradable' +
+                    '\n• Pyrovision Goggles: 743;6;untradable' +
+                    '\n• Giftapult: 5083;6;untradable' +
+                    '\n• Spirit Of Giving: 655;11;untradable' +
+                    '\n• Party Hat: 537;6;untradable' +
+                    '\n• Name Tag: 5020;6;untradable' +
+                    '\n• Description Tag: 5044;6;untradable' +
+                    '\n• Ghastly Gibus: 584;6;untradable' +
+                    '\n• Ghastlier Gibus: 279;6;untradable' +
+                    '\n• Power Up Canteen: 489;6;untradable' +
+                    '\n• Bombinomicon: 583;6;untradable' +
+                    '\n• Skull Island Topper: 941;6;untradable' +
+                    '\n• Spellbook Page: 8935;6;untradable' +
+                    '\n• Gun Mettle Campaign Coin: 5809;6;untradable' +
+                    '\n• MONOCULUS!: 581;6;untradable' +
+                    '\n\nOr other items, please refer here: https://bit.ly/3gZQxFQ (defindex)'
             );
             return;
         }
 
         if (params.sku === undefined) {
-            this.bot.sendMessage(steamID, '⚠️ Missing item sku');
+            this.bot.sendMessage(steamID, '⚠️ Missing sku property. Example: "!delete sku=536;6;untradable"');
             return;
         }
 
         const uncraft = params.sku.includes(';uncraftable');
-        params.sku = params.sku.replace(';uncraftable', '');
-
         const untrade = params.sku.includes(';untradable');
-        params.sku = params.sku.replace(';untradable', '');
 
+        params.sku = params.sku.replace(';uncraftable', '');
+        params.sku = params.sku.replace(';untradable', '');
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
@@ -1705,7 +1702,7 @@ export = class Commands {
     private nameCommand(steamID: SteamID, message: string): void {
         const newName = CommandParser.removeCommand(message);
 
-        if (!newName || newName === '') {
+        if (!newName || newName === '!name') {
             this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
@@ -1729,7 +1726,7 @@ export = class Commands {
     private avatarCommand(steamID: SteamID, message: string): void {
         const imageUrl = CommandParser.removeCommand(message);
 
-        if (!imageUrl || imageUrl === '') {
+        if (!imageUrl || imageUrl === '!avatar') {
             this.bot.sendMessage(
                 steamID,
                 '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
@@ -1759,7 +1756,7 @@ export = class Commands {
     private blockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (!steamid || steamid === '') {
+        if (!steamid || steamid === '!block') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1786,7 +1783,7 @@ export = class Commands {
     private unblockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (!steamid || steamid === '') {
+        if (!steamid || steamid === '!unblock') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }

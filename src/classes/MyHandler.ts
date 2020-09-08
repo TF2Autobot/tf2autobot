@@ -1355,7 +1355,7 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrice = this.bot.pricelist.getKeyPrices();
-                    const value = this.valueDiff(offer, keyPrice);
+                    const value = this.valueDiff(offer);
                     const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
@@ -1531,7 +1531,7 @@ export = class MyHandler extends Handler {
                             const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.overstocked.push(name + ' - ' + el.price);
+                                accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
                             });
                         }
 
@@ -1541,7 +1541,7 @@ export = class MyHandler extends Handler {
                             const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.understocked.push(name + ' - ' + el.price);
+                                accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
                             });
                         }
                     }
@@ -1565,7 +1565,7 @@ export = class MyHandler extends Handler {
                 }
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
-                const value = this.valueDiff(offer, keyPrice);
+                const value = this.valueDiff(offer);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
@@ -1756,7 +1756,7 @@ export = class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
         const pureStock = this.pureStock();
-        const value = this.valueDiff(offer, keyPrice);
+        const value = this.valueDiff(offer);
         const timeWithEmojis = this.timeWithEmoji();
         const links = this.tradePartnerLinks(offer.partner.toString());
 
@@ -2731,11 +2731,18 @@ export = class MyHandler extends Handler {
         return { their, our };
     }
 
-    private valueDiff(
-        offer: TradeOffer,
-        keyPrice: { buy: Currencies; sell: Currencies }
-    ): { diff: number; diffRef: number; diffKey: string } {
+    private valueDiff(offer: TradeOffer): { diff: number; diffRef: number; diffKey: string } {
         const value: { our: Currency; their: Currency } = offer.data('value');
+
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+
+        if (!this.fromEnv.showMetal) {
+            // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
+            value.our.metal = Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue();
+            value.our.keys = 0;
+            value.their.metal = Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue();
+            value.their.keys = 0;
+        }
 
         let diff: number;
         let diffRef: number;
