@@ -2738,9 +2738,13 @@ export = class MyHandler extends Handler {
 
         if (!this.fromEnv.showMetal) {
             // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-            value.our.metal = Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue();
+            value.our.metal = Currencies.toRefined(
+                Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
+            );
             value.our.keys = 0;
-            value.their.metal = Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue();
+            value.their.metal = Currencies.toRefined(
+                Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
+            );
             value.their.keys = 0;
         }
 
