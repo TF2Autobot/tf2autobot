@@ -29,6 +29,7 @@ import Autokeys from './Autokeys';
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
     '!how2trade - Guide on how to trade with the bot',
+    '!owner - Get the owner Steam profile and Backpack.tf links',
     '!price [amount] <name> - Get the price and stock of an item 💲📦\n\n✨=== Instant item trade ===✨',
     '!buy [amount] <name> - Instantly buy an item 💲',
     '!sell [amount] <name> - Instantly sell an item 💲\n\n✨=== Multiple items trade ===✨',
@@ -143,6 +144,8 @@ export = class Commands {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
+        } else if (command === 'owner') {
+            this.ownerCommand(steamID);
         } else if (command === 'price') {
             this.priceCommand(steamID, message);
         } else if (command === 'buy') {
@@ -270,6 +273,17 @@ export = class Commands {
                 ? process.env.CUSTOM_HOW2TRADE_MESSAGE
                 : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
                       '\nYou can also buy or sell multiple items by using "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
+        );
+    }
+
+    private ownerCommand(steamID: SteamID): void {
+        const admins = this.bot.getAdmins();
+        const firstAdmin = admins.splice(1, admins.length);
+
+        this.bot.sendMessage(
+            steamID,
+            `Steam: https://steamcommunity.com/profiles/ + ${firstAdmin.toString()}` +
+                `Backpack.tf: https://backpack.tf/profiles/ + ${firstAdmin.toString()}`
         );
     }
 
