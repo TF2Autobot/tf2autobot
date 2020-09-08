@@ -1308,12 +1308,14 @@ export = class MyHandler extends Handler {
         if (isManyItems) {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                    'If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer and the trade will be completed in seconds.'
+                'I have accepted your offer and the trade will be completed in seconds.' +
+                    'If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
             );
         }
 
