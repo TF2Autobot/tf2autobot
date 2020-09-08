@@ -2736,35 +2736,46 @@ export = class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
 
+        const newValue = {
+            our: {
+                keys: value.our.keys,
+                metal: value.our.metal
+            },
+            their: {
+                keys: value.their.keys,
+                metal: value.our.metal
+            }
+        };
+
         if (!this.fromEnv.showMetal) {
             // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-            value.our.metal = Currencies.toRefined(
+            newValue.our.metal = Currencies.toRefined(
                 Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
             );
-            value.our.keys = 0;
-            value.their.metal = Currencies.toRefined(
+            newValue.our.keys = 0;
+            newValue.their.metal = Currencies.toRefined(
                 Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
             );
-            value.their.keys = 0;
+            newValue.their.keys = 0;
         }
 
         let diff: number;
         let diffRef: number;
         let diffKey: string;
-        if (!value) {
+        if (!newValue) {
             diff = 0;
             diffRef = 0;
             diffKey = '';
         } else {
             if (this.isTradingKeys === true) {
                 diff =
-                    new Currencies(value.their).toValue(keyPrice.buy.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                    new Currencies(newValue.their).toValue(keyPrice.buy.metal) -
+                    new Currencies(newValue.our).toValue(keyPrice.sell.metal);
                 this.isTradingKeys = false; // reset
             } else {
                 diff =
-                    new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                    new Currencies(newValue.their).toValue(keyPrice.sell.metal) -
+                    new Currencies(newValue.our).toValue(keyPrice.sell.metal);
             }
             diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
             diffKey = Currencies.toCurrencies(
