@@ -1637,7 +1637,7 @@ export = class Commands {
         }
 
         if (params.sku === undefined) {
-            this.bot.sendMessage(steamID, '⚠️ Missing item sku');
+            this.bot.sendMessage(steamID, '⚠️ Missing sku property. Example: "!delete sku=536;6;untradable"');
             return;
         }
 
