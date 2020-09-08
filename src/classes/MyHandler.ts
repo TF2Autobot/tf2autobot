@@ -857,6 +857,8 @@ export = class MyHandler extends Handler {
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
+                        const item = SKU.fromString(sku);
+
                         let itemSuggestedValue;
 
                         if (price === null) {
@@ -865,7 +867,9 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (this.fromEnv.givePrice) {
+                            if (this.fromEnv.givePrice && item.wear === null) {
+                                // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                                // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
