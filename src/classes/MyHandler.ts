@@ -916,14 +916,17 @@ export = class MyHandler extends Handler {
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
