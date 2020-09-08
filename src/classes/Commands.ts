@@ -1642,11 +1642,10 @@ export = class Commands {
         }
 
         const uncraft = params.sku.includes(';uncraftable');
-        params.sku = params.sku.replace(';uncraftable', '');
-
         const untrade = params.sku.includes(';untradable');
-        params.sku = params.sku.replace(';untradable', '');
 
+        params.sku = params.sku.replace(';uncraftable', '');
+        params.sku = params.sku.replace(';untradable', '');
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
