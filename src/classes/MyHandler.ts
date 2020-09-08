@@ -857,6 +857,8 @@ export = class MyHandler extends Handler {
                         await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
+                        const item = SKU.fromString(sku);
+
                         let itemSuggestedValue;
 
                         if (price === null) {
@@ -865,7 +867,9 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (this.fromEnv.givePrice) {
+                            if (this.fromEnv.givePrice && item.wear === null) {
+                                // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                                // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
@@ -1701,7 +1705,6 @@ export = class MyHandler extends Handler {
                 // that have War Paint (could be skins)
 
                 const item = SKU.fromString(sku);
-                const name = this.bot.schema.getName(item);
                 const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
                 const inPrice = this.bot.pricelist.getPrice(sku, false);
 
@@ -1712,9 +1715,11 @@ export = class MyHandler extends Handler {
                         this.weapon().uncraft.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
-                    !name.includes('War Paint') &&
+                    item.wear === null &&
                     !hasHighValue
                 ) {
+                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, then add
+                    // INVALID_ITEMS to the pricelist.
                     if (
                         !this.bot.isAdmin(offer.partner) ||
                         (this.bot.isAdmin(offer.partner) && offer.itemsToReceive.length > 0)
