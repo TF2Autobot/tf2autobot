@@ -511,9 +511,12 @@ export = class MyHandler extends Handler {
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
             return { action: 'accept', reason: 'GIFT' };
-        } else if (offer.itemsToReceive.length === 0 || offer.itemsToGive.length === 0) {
-            offer.log('info', 'is a gift offer, declining...');
+        } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
+            offer.log('info', 'is a gift offer without any offer message, declining...');
             return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+        } else if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length === 0) {
+            offer.log('info', 'is taking our items for free, declining...');
+            return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
 
         // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
@@ -1369,6 +1372,8 @@ export = class MyHandler extends Handler {
                         reason = '';
                     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
+                    } else if (offerReason.reason === 'CRIME_ATTEMPT') {
+                        reason = "you're taking free items. No.";
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
                         reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
