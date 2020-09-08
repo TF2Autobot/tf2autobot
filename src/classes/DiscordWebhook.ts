@@ -290,9 +290,24 @@ export = class DiscordWebhookClass {
 
             /*eslint-enable */
 
+            let removeStatus = false;
+
+            if (!(isShowKeyRate || isShowPureStock)) {
+                // If both here are false, then it will be true and the last element (__Status__) of the
+                // fields array will be removed
+                webhookReview.embeds[0].fields.pop();
+                removeStatus = true;
+            }
+
             if (itemList === '-') {
-                // if Item list field is empty, remove it (for 🟥_INVALID_VALUE/⬜_ESCROW_CHECK_FAILED/⬜_BANNED_CHECK_FAILED)
-                webhookReview.embeds[0].fields.shift();
+                // if __Item list__ field is empty, remove it
+                if (removeStatus) {
+                    // if __Status__ fields was removed, then delete the entire fields properties
+                    delete webhookReview.embeds[0].fields;
+                } else {
+                    // else just remove the first element of the fields array (__Item list__)
+                    webhookReview.embeds[0].fields.shift();
+                }
             }
 
             const request = new XMLHttpRequest();
@@ -454,7 +469,10 @@ export = class DiscordWebhookClass {
                                         ? `\n🎒 Total items: ${currentItems +
                                               (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
                                         : '') +
-                                    (AdditionalNotes ? '\n' + AdditionalNotes : '')
+                                    (AdditionalNotes
+                                        ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
+                                          AdditionalNotes
+                                        : '')
                             }
                         ],
                         color: botEmbedColor
@@ -463,9 +481,24 @@ export = class DiscordWebhookClass {
             };
             /*eslint-enable */
 
+            let removeStatus = false;
+
+            if (!(isShowKeyRate || isShowPureStock || isShowInventory || AdditionalNotes)) {
+                // If everything here is false, then it will be true and the last element (__Status__) of the
+                // fields array will be removed
+                acceptedTradeSummary.embeds[0].fields.pop();
+                removeStatus = true;
+            }
+
             if (itemList === '-') {
-                // if Item list field is empty, remove it
-                acceptedTradeSummary.embeds[0].fields.shift();
+                // if __Item list__ field is empty, remove it
+                if (removeStatus) {
+                    // if __Status__ fields was removed, then delete the entire fields properties
+                    delete acceptedTradeSummary.embeds[0].fields;
+                } else {
+                    // else just remove the __Item list__
+                    acceptedTradeSummary.embeds[0].fields.shift();
+                }
             }
 
             tradeLinks.forEach((link, i) => {
