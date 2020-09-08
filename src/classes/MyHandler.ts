@@ -1907,13 +1907,17 @@ export = class MyHandler extends Handler {
                     (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
-            const hasHighValue = meta.hasHighValueItems.their;
             const highValueItems: string[] = [];
+            if (meta) {
+                if (meta.hasHighValueItems) {
+                    const hasHighValue = meta.hasHighValueItems.their;
 
-            if (hasHighValue) {
-                meta.highValueItems.their.nameWithSpell.forEach(name => {
-                    highValueItems.push(name);
-                });
+                    if (hasHighValue) {
+                        meta.highValueItems.their.nameWithSpell.forEach(name => {
+                            highValueItems.push(name);
+                        });
+                    }
+                }
             }
 
             const hasCustomNote =
@@ -2752,33 +2756,18 @@ export = class MyHandler extends Handler {
             diffRef = 0;
             diffKey = '';
         } else {
-            let newValue: { our: Currency; their: Currency } = {
-                our: {
-                    keys: value.our.keys,
-                    metal: value.our.metal
-                },
-                their: {
-                    keys: value.their.keys,
-                    metal: value.our.metal
-                }
-            };
+            const newValue: { our: Currency; their: Currency } = value;
 
             if (!this.fromEnv.showMetal) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-                newValue = {
-                    our: {
-                        keys: 0,
-                        metal: Currencies.toRefined(
-                            Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
-                        )
-                    },
-                    their: {
-                        keys: 0,
-                        metal: Currencies.toRefined(
-                            Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
-                        )
-                    }
-                };
+                newValue.our.keys = 0;
+                newValue.our.metal = Currencies.toRefined(
+                    Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
+                );
+                newValue.their.keys = 0;
+                newValue.their.metal = Currencies.toRefined(
+                    Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
+                );
             }
 
             if (this.isTradingKeys === true) {
