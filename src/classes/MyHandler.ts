@@ -1331,6 +1331,8 @@ export = class MyHandler extends Handler {
             offer.data('switchedState', oldState);
         }
 
+        let hasHighValue = false;
+
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
 
@@ -1549,6 +1551,7 @@ export = class MyHandler extends Handler {
                     if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
                         // doing this because if an offer is from ADMIN, then this is undefined.
                         if (offerMeta.meta.hasHighValueItems.their) {
+                            hasHighValue = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1558,6 +1561,7 @@ export = class MyHandler extends Handler {
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
                     if (offerMade.nameWithSpell.length > 0) {
+                        hasHighValue = true;
                         offerMade.nameWithSpell.forEach(name => {
                             accepted.highValue.push(name);
                         });
@@ -1700,7 +1704,8 @@ export = class MyHandler extends Handler {
                         this.weapon().uncraft.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
-                    !name.includes('War Paint')
+                    !name.includes('War Paint') &&
+                    !hasHighValue
                 ) {
                     if (
                         !this.bot.isAdmin(offer.partner) ||
