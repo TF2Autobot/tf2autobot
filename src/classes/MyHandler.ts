@@ -1355,7 +1355,7 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrice = this.bot.pricelist.getKeyPrices();
-                    const value = this.valueDiff(offer, keyPrice);
+                    const value = this.valueDiff(offer);
                     const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
@@ -1565,7 +1565,7 @@ export = class MyHandler extends Handler {
                 }
 
                 const keyPrice = this.bot.pricelist.getKeyPrices();
-                const value = this.valueDiff(offer, keyPrice);
+                const value = this.valueDiff(offer);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
@@ -1756,7 +1756,7 @@ export = class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
         const pureStock = this.pureStock();
-        const value = this.valueDiff(offer, keyPrice);
+        const value = this.valueDiff(offer);
         const timeWithEmojis = this.timeWithEmoji();
         const links = this.tradePartnerLinks(offer.partner.toString());
 
@@ -2731,29 +2731,53 @@ export = class MyHandler extends Handler {
         return { their, our };
     }
 
-    private valueDiff(
-        offer: TradeOffer,
-        keyPrice: { buy: Currencies; sell: Currencies }
-    ): { diff: number; diffRef: number; diffKey: string } {
+    private valueDiff(offer: TradeOffer): { diff: number; diffRef: number; diffKey: string } {
         const value: { our: Currency; their: Currency } = offer.data('value');
+
+        const keyPrice = this.bot.pricelist.getKeyPrices();
+
+        let valueNew = {
+            our: {
+                keys: value.our.keys,
+                metal: value.our.metal
+            },
+            their: {
+                keys: value.their.keys,
+                metal: value.our.metal
+            }
+        };
+
+        if (!this.fromEnv.showMetal) {
+            // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
+            valueNew = {
+                our: {
+                    keys: 0,
+                    metal: Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
+                },
+                their: {
+                    keys: 0,
+                    metal: Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
+                }
+            };
+        }
 
         let diff: number;
         let diffRef: number;
         let diffKey: string;
-        if (!value) {
+        if (!valueNew) {
             diff = 0;
             diffRef = 0;
             diffKey = '';
         } else {
             if (this.isTradingKeys === true) {
                 diff =
-                    new Currencies(value.their).toValue(keyPrice.buy.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                    new Currencies(valueNew.their).toValue(keyPrice.buy.metal) -
+                    new Currencies(valueNew.our).toValue(keyPrice.sell.metal);
                 this.isTradingKeys = false; // reset
             } else {
                 diff =
-                    new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+                    new Currencies(valueNew.their).toValue(keyPrice.sell.metal) -
+                    new Currencies(valueNew.our).toValue(keyPrice.sell.metal);
             }
             diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
             diffKey = Currencies.toCurrencies(
