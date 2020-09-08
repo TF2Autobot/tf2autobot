@@ -1907,13 +1907,17 @@ export = class MyHandler extends Handler {
                     (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
-            const hasHighValue = meta.hasHighValueItems.their;
             const highValueItems: string[] = [];
+            if (meta) {
+                if (meta.hasHighValueItems) {
+                    const hasHighValue = meta.hasHighValueItems.their;
 
-            if (hasHighValue) {
-                meta.highValueItems.their.nameWithSpell.forEach(name => {
-                    highValueItems.push(name);
-                });
+                    if (hasHighValue) {
+                        meta.highValueItems.their.nameWithSpell.forEach(name => {
+                            highValueItems.push(name);
+                        });
+                    }
+                }
             }
 
             const hasCustomNote =
