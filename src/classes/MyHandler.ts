@@ -1531,7 +1531,7 @@ export = class MyHandler extends Handler {
                             const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.overstocked.push(name + ' - ' + el.price);
+                                accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
                             });
                         }
 
@@ -1541,7 +1541,7 @@ export = class MyHandler extends Handler {
                             const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
                             invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.understocked.push(name + ' - ' + el.price);
+                                accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
                             });
                         }
                     }
