@@ -98,7 +98,7 @@ The body of the commit message should be one or more paragraphs, explaining
 things in more detail. Please word-wrap to keep columns to 72 characters or
 less.
 
-Fixes: https://github.com/Nicklason/tf2-automatic/issues/1337
+Fixes: https://github.com/Nicklason/tf2autobot/issues/1337
 Refs: https://eslint.org/docs/rules/space-in-parens.html
 ```
 
