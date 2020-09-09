@@ -628,7 +628,7 @@ export = class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
-                this.discord.sendAlert('highValue', '', null, null, highValuedOur.nameWithSpell);
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpell);
             } else {
                 this.bot.messageAdmins(
                     `Someone is about to take your ${highValuedOur.nameWithSpell.join(', ')} (not in pricelist)`,

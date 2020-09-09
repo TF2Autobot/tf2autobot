@@ -411,7 +411,7 @@ export = class Autokeys {
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                     ) {
-                        this.discord.sendAlert('lowPure', msg);
+                        this.discord.sendAlert('lowPure', msg, null, null, null);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -514,7 +514,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendAlert('lowPure', msg);
+                            this.discord.sendAlert('lowPure', msg, null, null, null);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -638,7 +638,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendAlert('lowPure', msg);
+                            this.discord.sendAlert('lowPure', msg, null, null, null);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }

@@ -62,19 +62,19 @@ class CartQueue {
                     process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                     process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                 ) {
-                    this.discord.sendAlert('queue', '', position);
+                    this.discord.sendAlert('queue', null, position, null, null);
                     this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
                             if (!restarting) {
-                                this.discord.sendAlert('failedPM2');
+                                this.discord.sendAlert('failedPM2', null, null, null, null);
                             } else {
                                 this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                             }
                         })
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
-                            this.discord.sendAlert('failedError', '', null, err.message);
+                            this.discord.sendAlert('failedError', null, null, err.message, null);
                         });
                 } else {
                     this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);

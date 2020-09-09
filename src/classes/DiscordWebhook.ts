@@ -71,41 +71,46 @@ export = class DiscordWebhookClass {
         }
     }
 
-    sendAlert(type: string, msg?: string, position?: number, err?: any, items?: string[]): void {
+    sendAlert(
+        type: string,
+        msg: string | null,
+        position: number | null,
+        err: any | null,
+        items: string[] | null
+    ): void {
         const time = (this.bot.handler as MyHandler).timeWithEmoji();
 
-        const content = type === 'highValue' ? `<@!${this.ownerID}>` : '';
+        let title;
+        let description;
+        let color;
 
-        const title =
-            type === 'lowPure'
-                ? 'Low Pure Alert'
-                : type === 'queue'
-                ? 'Queue Alert'
-                : type === 'failedPM2'
-                ? 'Automatic restart failed - no PM2'
-                : type === 'failedError'
-                ? 'Automatic restart failed - Error'
-                : `High Valued Items`;
-
-        const description =
-            type === 'lowPure'
-                ? msg
-                : type === 'queue'
-                ? `[Queue alert] Current position: ${position}, automatic restart initialized...`
-                : type === 'failedPM2'
-                ? `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
-                : type === 'failedError'
-                ? `❌ An error occurred while trying to restart: ${err.message}`
-                : `Someone is trying to take your ${items.join(', ')} (not in your pricelist).`;
-
-        const color = type === 'lowPure' ? '16776960' : type === 'highValue' ? '8323327' : '16711680';
-        //                                   yellow                             purple         red
+        if (type === 'lowPure') {
+            title = 'Low Pure Alert';
+            description = msg;
+            color = '16776960'; // yellow
+        } else if (type === 'queue') {
+            title = 'Queue Alert';
+            description = `[Queue alert] Current position: ${position}, automatic restart initialized...`;
+            color = '16711680'; // red
+        } else if (type === 'failedPM2') {
+            title = 'Automatic restart failed - no PM2';
+            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2`;
+            color = '16711680'; // red
+        } else if (type === 'failedError') {
+            title = 'Automatic restart failed - Error';
+            description = `❌ An error occurred while trying to restart: ${err.message}`;
+            color = '16711680'; // red
+        } else {
+            title = 'High Valued Items';
+            description = `Someone is trying to take your ${items.join(', ')} (not in your pricelist).`;
+            color = '8323327'; // purple
+        }
 
         /*eslint-disable */
         const webhook = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: content,
+            content: type === 'highValue' ? `<@!${this.ownerID}>` : '',
             embeds: [
                 {
                     footer: {
