@@ -1698,6 +1698,9 @@ export = class MyHandler extends Handler {
                 // Update listings
                 this.bot.listings.checkBySKU(sku);
 
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item, false);
+
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
                 if (
@@ -1711,12 +1714,12 @@ export = class MyHandler extends Handler {
                         if (err) {
                             log.warn(
                                 '❌ Failed to request pricecheck for ' +
-                                    sku +
+                                    `${name} (${sku})` +
                                     ': ' +
                                     (err.body && err.body.message ? err.body.message : err.message)
                             );
                         } else {
-                            log.debug('✅ Requested pricecheck for ' + body.name + '.');
+                            log.debug(`'✅ Requested pricecheck for ${body.name} (${sku}).`);
                         }
                     });
                 }
@@ -1724,7 +1727,6 @@ export = class MyHandler extends Handler {
                 // Automatically add any INVALID_ITEMS to sell, excluding any item name
                 // that have War Paint (could be skins)
 
-                const item = SKU.fromString(sku);
                 const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
                 const inPrice = this.bot.pricelist.getPrice(sku, false);
 
@@ -1758,21 +1760,21 @@ export = class MyHandler extends Handler {
                         this.bot.pricelist
                             .addPrice(entry as EntryData, false)
                             .then(data => {
-                                log.debug(`✅ Automatically added ${sku} to sell.`);
+                                log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                                 this.bot.listings.checkBySKU(data.sku, data);
                             })
                             .catch(err => {
-                                log.warn(`❌ Failed to add ${sku} sell automatically: ${err.message}`);
+                                log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                             });
                     }
                 } else if (inPrice !== null && inPrice.intent === 1 && currentStock < 1) {
                     this.bot.pricelist
                         .removePrice(sku, false)
                         .then(() => {
-                            log.debug(`✅ Automatically removed ${sku} from pricelist.`);
+                            log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                         })
                         .catch(err => {
-                            log.warn(`❌ Failed to remove ${sku} from pricelist: ${err.message}`);
+                            log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
                         });
                 }
             }
