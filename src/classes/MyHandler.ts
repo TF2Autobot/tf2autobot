@@ -2801,27 +2801,31 @@ export = class MyHandler extends Handler {
 
             if (!this.fromEnv.showMetal) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-                newValue.our.keys = 0;
-                newValue.our.metal += Currencies.toRefined(
-                    Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
-                );
-                newValue.their.keys = 0;
-                newValue.their.metal += Currencies.toRefined(
-                    Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.sell.toValue()
-                );
+                if (this.isTradingKeys) {
+                    // If trading keys, then their side need to use buying key price.
+                    newValue.our.keys = 0;
+                    newValue.our.metal += Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
+                    );
+                    newValue.their.keys = 0;
+                    newValue.their.metal += Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.buy.toValue()
+                    );
+                    this.isTradingKeys = false; // Reset
+                } else {
+                    // Else both use selling key price.
+                    newValue.our.keys = 0;
+                    newValue.our.metal += Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
+                    );
+                    newValue.their.keys = 0;
+                    newValue.their.metal += Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.sell.toValue()
+                    );
+                }
             }
-
-            if (this.isTradingKeys === true) {
-                diff =
-                    new Currencies(newValue.their).toValue(keyPrice.buy.metal) -
-                    new Currencies(newValue.our).toValue(keyPrice.sell.metal);
-                this.isTradingKeys = false; // reset
-            } else {
-                diff =
-                    new Currencies(newValue.their).toValue(keyPrice.sell.metal) -
-                    new Currencies(newValue.our).toValue(keyPrice.sell.metal);
-            }
-            diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
+            diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
+            diffRef = Currencies.toRefined(Math.abs(diff));
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
                 Math.abs(diff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
