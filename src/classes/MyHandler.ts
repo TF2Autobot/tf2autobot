@@ -486,10 +486,89 @@ export = class MyHandler extends Handler {
 
         offer.data('dict', itemsDict);
 
+        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
+
+        let hasHighValueOur = false;
+        const highValuedOur: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToGive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor === '7ea9d1'
+                ) {
+                    hasHighValueOur = true;
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
+                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
+
+        // Check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
+
+        let hasHighValueTheir = false;
+        const highValuedTheir: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToReceive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor === '7ea9d1'
+                ) {
+                    hasHighValueTheir = true;
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
+
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
             offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
-            return { action: 'accept', reason: 'ADMIN' };
+            return {
+                action: 'accept',
+                reason: 'ADMIN',
+                meta: {
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                }
+            };
         }
 
         if (hasInvalidItems) {
@@ -582,39 +661,6 @@ export = class MyHandler extends Handler {
             }
         }
 
-        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
-
-        let hasHighValueOur = false;
-        const highValuedOur: {
-            skus: string[];
-            nameWithSpell: string[];
-        } = {
-            skus: [],
-            nameWithSpell: []
-        };
-
-        offer.itemsToGive.forEach(item => {
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
-
-                if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
-                ) {
-                    hasHighValueOur = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
-
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
-                    break;
-                }
-            }
-        });
-
         const isInPricelist =
             highValuedOur.skus.length > 0 // Only check if this not empty
                 ? highValuedOur.skus.some(sku => {
@@ -644,39 +690,6 @@ export = class MyHandler extends Handler {
                 }
             };
         }
-
-        // Also check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
-
-        let hasHighValueTheir = false;
-        const highValuedTheir: {
-            skus: string[];
-            nameWithSpell: string[];
-        } = {
-            skus: [],
-            nameWithSpell: []
-        };
-
-        offer.itemsToReceive.forEach(item => {
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
-
-                if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
-                ) {
-                    hasHighValueTheir = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
-
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
-                    break;
-                }
-            }
-        });
 
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
 
@@ -1560,8 +1573,7 @@ export = class MyHandler extends Handler {
                         }
                     }
 
-                    if (offerMeta.meta && offerMeta.reason !== 'ADMIN') {
-                        // doing this because if an offer is from ADMIN, then this is undefined.
+                    if (offerMeta.meta && offerMeta.meta.hasHighValueItems) {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValue = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
