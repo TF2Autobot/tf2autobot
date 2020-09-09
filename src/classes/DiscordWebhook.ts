@@ -102,7 +102,7 @@ export = class DiscordWebhookClass {
             color = '16711680'; // red
         } else {
             title = 'High Valued Items';
-            description = `Someone is trying to take your ${items.join(', ')} (not in your pricelist).`;
+            description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
             color = '8323327'; // purple
         }
 
