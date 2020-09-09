@@ -1581,6 +1581,14 @@ export = class MyHandler extends Handler {
                                 accepted.highValue.push(name);
                             });
                         }
+
+                        if (offerMeta.meta.hasHighValueItems.our) {
+                            hasHighValue = true;
+                            // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
+                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
+                                accepted.highValue.push(name);
+                            });
+                        }
                     }
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
