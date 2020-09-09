@@ -1371,11 +1371,11 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
-                        '✅ Success! The offer went through successfully, but you will receive your items after several days.' +
+                        '✅ Success! The offer went through successfully, but you will receive your items after several days. ' +
                             'Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                            '\n• How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
@@ -1416,7 +1416,7 @@ export = class MyHandler extends Handler {
                             'I do not accept escrow (trade hold). Please use Steam Guard Mobile Authenticator so you will be able to trade instantly in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• Steam Guard: How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
+                            '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
                     } else if (
                         offerReason.reason === 'ONLY_INVALID_VALUE' ||
                         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
