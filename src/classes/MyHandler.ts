@@ -2786,7 +2786,16 @@ export = class MyHandler extends Handler {
             diffRef = 0;
             diffKey = '';
         } else {
-            const newValue: { our: Currency; their: Currency } = value;
+            const newValue: { our: Currency; their: Currency } = {
+                our: {
+                    keys: value.our.keys,
+                    metal: value.our.metal
+                },
+                their: {
+                    keys: value.their.keys,
+                    metal: value.their.metal
+                }
+            };
 
             if (!this.fromEnv.showMetal) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
