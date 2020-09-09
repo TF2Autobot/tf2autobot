@@ -343,7 +343,9 @@ abstract class Cart {
 
         this.offer.data('handleTimestamp', moment().valueOf());
 
-        this.offer.setMessage(process.env.OFFER_MESSAGE || 'Have a nice day');
+        this.offer.setMessage(
+            'Powered by tf2autobot' + (process.env.OFFER_MESSAGE ? '. ' + process.env.OFFER_MESSAGE : '')
+        );
 
         if (this.notify === true) {
             this.offer.data('notify', true);

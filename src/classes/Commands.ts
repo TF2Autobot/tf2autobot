@@ -29,26 +29,19 @@ import Autokeys from './Autokeys';
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
     '!how2trade - Guide on how to trade with the bot',
-    '!owner - Get the owner Steam profile and Backpack.tf links',
-    '!price [amount] <name> - Get the price and stock of an item 💲📦\n\n📌=== Instant item trade ===📌',
+    '!price [amount] <name> - Get the price and stock of an item 💲📦\n\n✨=== Instant item trade ===✨',
     '!buy [amount] <name> - Instantly buy an item 💲',
-    '!sell [amount] <name> - Instantly sell an item 💲\n\n📌=== Multiple items trade ===📌',
+    '!sell [amount] <name> - Instantly sell an item 💲\n\n✨=== Multiple items trade ===✨',
     '!buycart [amount] <name> - Add an item you want to buy to your cart 🛒',
     '!sellcart [amount] <name> - Add an item you want to sell to your cart 🛒',
     '!cart - See your cart 🛒',
     '!clearcart - Clear your cart ❎🛒',
-    '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n📌=== Trade actions ===📌',
+    '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n✨=== Trade actions ===✨',
     '!cancel - Cancel the trade offer ❌',
-    '!queue - See your position in the queue\n\n📌=== Contact Owner ===📌',
-    '!message <your message> - Send a message to the owner of the bot 💬\n\n📌=== Other Commands ===📌',
-    '!short - Show list of shorter commands',
+    '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
+    '!owner - Get the owner Steam profile and Backpack.tf links',
+    '!message <your message> - Send a message to the owner of the bot 💬\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
-];
-
-const SHORT: string[] = [
-    '!pc [amount] <name> - Get the price and stock of an item 💲📦',
-    '!b [amount] <name> - Instantly buy an item 💲',
-    '!s [amount] <name> - Instantly sell an item 💲'
 ];
 
 const MORE: string[] = [
@@ -64,11 +57,11 @@ const MORE: string[] = [
 
 const ADMIN_COMMANDS: string[] = [
     '!deposit <name=>&<amount=> - Deposit items',
-    '!withdraw <name=>&<amount=> - Withdraw items\n\n📌=== Pricelist manager ===📌',
+    '!withdraw <name=>&<amount=> - Withdraw items\n\n✨=== Pricelist manager ===✨',
     '!add <sku=> OR <item=> - Add a pricelist entry ➕',
     '!update <sku=> OR <item=> - Update a pricelist entry',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
-    '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n📌=== Bot manager ===📌',
+    '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
     "!expand <craftable=true|false> - Use Backpack Expanders to increase your bot's inventory limit",
     "!delete sku=<item sku> OR assetid=<item assetid> - Delete any item from your bot's inventory (use only sku) 🚮",
     '!message <steamid> <your message> - Send a message to a specific user 💬',
@@ -80,17 +73,17 @@ const ADMIN_COMMANDS: string[] = [
     '!refreshlist - Refresh sell listings 🔄',
     "!name <new_name> - Change your bot's name",
     "!avatar <image_URL> - Change your bot's avatar",
-    '!resetqueue - Reset queue position to 0\n\n📌=== Bot status ===📌',
+    '!resetqueue - Reset queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
     "!inventory - Get your bot's current inventory spaces 🎒",
-    '!version - Get the version that your bot is running\n\n📌=== Manual review ===📌',
+    '!version - Get the version that your bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
-    '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n📌=== Request ===📌',
+    '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
     '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
-    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n📌=== Misc ===📌",
+    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
     "!pure - Get the bot's current pure stock 💰",
@@ -173,8 +166,6 @@ export = class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
-        } else if (command === 'short') {
-            this.shortCommand(steamID);
         } else if (command === 'more') {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
@@ -269,10 +260,6 @@ export = class Commands {
             steamID,
             `📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
         );
-    }
-
-    private shortCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, `Shorter commands list:\n- ${SHORT.join('\n- ')}`);
     }
 
     private moreCommand(steamID: SteamID): void {

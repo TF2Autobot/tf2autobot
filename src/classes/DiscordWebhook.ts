@@ -144,7 +144,7 @@ export = class DiscordWebhookClass {
         const discordPartnerMsg = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: `${steamID}`,
+            content: `<@!${this.ownerID}>, new message! - ${steamID}`,
             embeds: [
                 {
                     author: {
@@ -202,7 +202,7 @@ export = class DiscordWebhookClass {
                 noMentionOnInvalidValue = false;
             }
         }
-        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `${offer.id}`;
+        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
