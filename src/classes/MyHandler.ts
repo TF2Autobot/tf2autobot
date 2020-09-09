@@ -2801,11 +2801,11 @@ export = class MyHandler extends Handler {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
                 newValue.our.keys = 0;
                 newValue.our.metal += Currencies.toRefined(
-                    Currencies.toScrap(value.our.metal) + value.our.keys * keyPrice.sell.toValue()
+                    Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
                 );
                 newValue.their.keys = 0;
                 newValue.their.metal += Currencies.toRefined(
-                    Currencies.toScrap(value.their.metal) + value.their.keys * keyPrice.sell.toValue()
+                    Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.sell.toValue()
                 );
             }
 
