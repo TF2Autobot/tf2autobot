@@ -1719,7 +1719,7 @@ export = class MyHandler extends Handler {
                                     (err.body && err.body.message ? err.body.message : err.message)
                             );
                         } else {
-                            log.debug(`'✅ Requested pricecheck for ${body.name} (${sku}).`);
+                            log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
                         }
                     });
                 }
