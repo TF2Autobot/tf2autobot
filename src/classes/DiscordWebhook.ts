@@ -113,12 +113,12 @@ export = class DiscordWebhookClass {
             content: type === 'highValue' ? `<@!${this.ownerID}>` : '',
             embeds: [
                 {
-                    footer: {
-                        text: time
-                    },
                     title: title,
                     description: description,
-                    color: color
+                    color: color,
+                    footer: {
+                        text: time.time
+                    }
                 }
             ]
         });
