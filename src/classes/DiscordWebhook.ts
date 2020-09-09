@@ -144,7 +144,7 @@ export = class DiscordWebhookClass {
         const discordPartnerMsg = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}>, new message! - ${steamID}`,
+            content: `${steamID}`,
             embeds: [
                 {
                     author: {
@@ -202,7 +202,7 @@ export = class DiscordWebhookClass {
                 noMentionOnInvalidValue = false;
             }
         }
-        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
+        const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `${offer.id}`;
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
@@ -640,14 +640,14 @@ function replaceItemName(name: string): string {
 function replaceSpecialChar(toChange: string): string {
     return toChange
         .replace(/_/g, '‗')
-        .replace(/\*/g, '★')
-        .replace(/~/g, '💫')
-        .replace(/`/g, '💫')
-        .replace(/>/g, '💫')
-        .replace(/\|/g, '💫')
-        .replace(/\\/g, '💫')
-        .replace(/\(/g, '💫')
-        .replace(/\)/g, '💫')
-        .replace(/\[/g, '💫')
-        .replace(/\]/g, '💫');
+        .replace(/\*/g, '^')
+        .replace(/~/g, '-')
+        .replace(/`/g, "'")
+        .replace(/>/g, '<')
+        .replace(/\|/g, 'l')
+        .replace(/\\/g, '/')
+        .replace(/\(/g, '/')
+        .replace(/\)/g, '/')
+        .replace(/\[/g, '/')
+        .replace(/\]/g, '/');
 }
