@@ -2807,16 +2807,24 @@ export = class MyHandler extends Handler {
                 if (this.isTradingKeys) {
                     // If trading keys, then their side need to use buying key price.
                     newValue.our.keys = 0;
-                    newValue.our.metal += Currencies.toRefined(newValue.our.keys * keyPrices.sell.toValue());
+                    newValue.our.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
+                    );
                     newValue.their.keys = 0;
-                    newValue.their.metal += Currencies.toRefined(newValue.their.keys * keyPrices.buy.toValue());
+                    newValue.their.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
+                    );
                     this.isTradingKeys = false; // Reset
                 } else {
                     // Else both use selling key price.
                     newValue.our.keys = 0;
-                    newValue.our.metal += Currencies.toRefined(newValue.our.keys * keyPrices.sell.toValue());
+                    newValue.our.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
+                    );
                     newValue.their.keys = 0;
-                    newValue.their.metal += Currencies.toRefined(newValue.their.keys * keyPrices.sell.toValue());
+                    newValue.their.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.sell.toValue()
+                    );
                 }
             }
 
