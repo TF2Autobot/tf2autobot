@@ -2800,6 +2800,10 @@ export = class MyHandler extends Handler {
                 }
             };
 
+            log.debug('keyPrices', keyPrices);
+            log.debug('keyPrices.sell.toValue()', keyPrices.sell.toValue());
+            log.debug('keyPrices.buy.toValue()', keyPrices.buy.toValue());
+
             log.debug('valueBefore', newValue);
 
             if (!this.fromEnv.showMetal) {
