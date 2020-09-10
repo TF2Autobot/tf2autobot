@@ -177,7 +177,7 @@ export = class Autokeys {
         */
 
         /**
-         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
+         * enable Autokeys - Banking - true if currRef \> minRef AND keys \< minKeys
          * Will buy keys.
          */
         const isBankingBuyKeysWithEnoughRefs = currRef > userMinRef && currKeys <= userMinKeys;
@@ -268,7 +268,6 @@ export = class Autokeys {
 
         const isAlreadyRunningAutokeys = this.isActive;
         const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
-        const time = (this.bot.handler as MyHandler).timeWithEmoji();
 
         if (isAlreadyRunningAutokeys) {
             // if Autokeys already running
@@ -412,7 +411,7 @@ export = class Autokeys {
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                     ) {
-                        this.discord.sendLowPureAlert(msg, time.time);
+                        this.discord.sendAlert('lowPure', msg, null, null, null);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -515,7 +514,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
+                            this.discord.sendAlert('lowPure', msg, null, null, null);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -639,7 +638,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
+                            this.discord.sendAlert('lowPure', msg, null, null, null);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }

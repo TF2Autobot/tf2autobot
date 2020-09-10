@@ -194,7 +194,9 @@ export = class Listings {
             }
         });
 
-        if (match !== null && match.enabled === true) {
+        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true);
+
+        if (matchNew !== null && matchNew.enabled === true) {
             const assetids = this.bot.inventoryManager.getInventory().findBySKU(sku, true);
 
             // TODO: Check if we are already making a listing for same type of item + intent
@@ -202,22 +204,22 @@ export = class Listings {
             if (!hasBuyListing && amountCanBuy > 0) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
-                    time: match.time || moment().unix(),
+                    time: matchNew.time || moment().unix(),
                     sku: sku,
                     intent: 0,
-                    details: this.getDetails(0, match),
-                    currencies: match.buy
+                    details: this.getDetails(0, matchNew),
+                    currencies: matchNew.buy
                 });
             }
 
             if (!hasSellListing && amountCanSell > 0) {
                 // We have no sell order and we can sell items, create sell listing
                 this.bot.listingManager.createListing({
-                    time: match.time || moment().unix(),
+                    time: matchNew.time || moment().unix(),
                     id: assetids[assetids.length - 1],
                     intent: 1,
-                    details: this.getDetails(1, match),
-                    currencies: match.sell
+                    details: this.getDetails(1, matchNew),
+                    currencies: matchNew.sell
                 });
             }
         }
@@ -338,7 +340,7 @@ export = class Listings {
         });
     }
 
-    private recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
+    recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
@@ -493,7 +495,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -503,7 +505,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '✨');
+                .replace(/%dueling%/g, '');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -513,7 +515,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
-                .replace(/%dueling%/g, '✨');
+                .replace(/%dueling%/g, '');
         }
 
         return details;

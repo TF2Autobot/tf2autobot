@@ -3,7 +3,6 @@ import SteamID from 'steamid';
 import Bot from './Bot';
 import Cart from './Cart';
 import DiscordWebhookClass from './DiscordWebhook';
-import MyHandler from './MyHandler';
 
 import log from '../lib/logger';
 
@@ -63,20 +62,19 @@ class CartQueue {
                     process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                     process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                 ) {
-                    const time = (this.bot.handler as MyHandler).timeWithEmoji();
-                    this.discord.sendQueueAlert(position, time.time);
+                    this.discord.sendAlert('queue', null, position, null, null);
                     this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
                             if (!restarting) {
-                                this.discord.sendQueueAlertFailedPM2(time.time);
+                                this.discord.sendAlert('failedPM2', null, null, null, null);
                             } else {
                                 this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                             }
                         })
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
-                            this.discord.sendQueueAlertFailedError(err.message, time.time);
+                            this.discord.sendAlert('failedError', null, null, err.message, null);
                         });
                 } else {
                     this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
@@ -186,9 +184,15 @@ class CartQueue {
                         log.warn('Failed to make offer');
                         log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                            cart.sendNotification(
+                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                            );
+                        } else {
+                            cart.sendNotification(
+                                '❌ Something went wrong while trying to make the offer, try again later!'
+                            );
+                        }
                     }
                 })
                 .finally(() => {
@@ -236,9 +240,15 @@ class CartQueue {
                         log.warn('Failed to make offer');
                         log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                            cart.sendNotification(
+                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                            );
+                        } else {
+                            cart.sendNotification(
+                                '❌ Something went wrong while trying to make the offer, try again later!'
+                            );
+                        }
                     }
                 })
                 .finally(() => {

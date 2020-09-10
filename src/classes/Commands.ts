@@ -38,12 +38,13 @@ const COMMANDS: string[] = [
     '!clearcart - Clear your cart ❎🛒',
     '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n✨=== Trade actions ===✨',
     '!cancel - Cancel the trade offer ❌',
-    '!queue - See your position in the queue\n',
+    '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
+    '!owner - Get the owner Steam profile and Backpack.tf links',
+    '!message <your message> - Send a message to the owner of the bot 💬\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
 ];
 
 const MORE: string[] = [
-    '!message <your message> - Send a message to the owner of the bot 💬',
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
     "!pure - Get the bot's current pure stock 💰",
@@ -69,7 +70,7 @@ const ADMIN_COMMANDS: string[] = [
     '!stop - Stop your bot 🔴',
     '!restart - Restart your bot 🔄',
     '!refreshautokeys - Refresh your autokeys settings.',
-    "!relist - Relist of all your bot's listings.",
+    '!refreshlist - Refresh sell listings 🔄',
     "!name <new_name> - Change your bot's name",
     "!avatar <image_URL> - Change your bot's avatar",
     '!resetqueue - Reset queue position to 0\n\n✨=== Bot status ===✨',
@@ -90,7 +91,8 @@ const ADMIN_COMMANDS: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
+    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item 🔍',
+    '!find <parameters> - Get the list of filtered items detail based on the parameters 🔍'
 ];
 
 export = class Commands {
@@ -142,11 +144,13 @@ export = class Commands {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
-        } else if (command === 'price') {
+        } else if (command === 'owner') {
+            this.ownerCommand(steamID);
+        } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
-        } else if (command === 'buy') {
+        } else if (['buy', 'b'].includes(command)) {
             this.buyCommand(steamID, message);
-        } else if (command === 'sell') {
+        } else if (['sell', 's'].includes(command)) {
             this.sellCommand(steamID, message);
         } else if (command === 'buycart') {
             this.buyCartCommand(steamID, message);
@@ -182,9 +186,9 @@ export = class Commands {
             this.uncraftweaponCommand(steamID);
         } else if (command === 'sales') {
             this.getSalesCommand(steamID, message);
-        } else if (command === 'deposit' && isAdmin) {
+        } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
-        } else if (command === 'withdraw' && isAdmin) {
+        } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             this.addCommand(steamID, message);
@@ -212,8 +216,8 @@ export = class Commands {
             this.restartCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.refreshAutokeysCommand(steamID);
-        } else if (command === 'relist' && isAdmin) {
-            this.relistCommand(steamID);
+        } else if (command === 'refreshlist' && isAdmin) {
+            this.refreshListingsCommand(steamID);
         } else if (command === 'resetqueue') {
             this.resetQueueCommand(steamID);
         } else if (command === 'stats' && isAdmin) {
@@ -236,6 +240,8 @@ export = class Commands {
             this.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
+        } else if (command === 'find' && isAdmin) {
+            this.findCommand(steamID, message);
         } else if (isNoReply) {
             return null;
         } else {
@@ -267,6 +273,17 @@ export = class Commands {
                 ? process.env.CUSTOM_HOW2TRADE_MESSAGE
                 : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
                       '\nYou can also buy or sell multiple items by using "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
+        );
+    }
+
+    private ownerCommand(steamID: SteamID): void {
+        const admins = this.bot.getAdmins();
+        const firstAdmin = admins.splice(0, 1);
+
+        this.bot.sendMessage(
+            steamID,
+            `• Steam: https://steamcommunity.com/profiles/${firstAdmin.toString()}` +
+                `\n• Backpack.tf: https://backpack.tf/profiles/${firstAdmin.toString()}`
         );
     }
 
@@ -707,9 +724,6 @@ export = class Commands {
             if (!recipientSteamID.isValid()) {
                 this.bot.sendMessage(steamID, `❌ "${recipient}" is not a valid steamid.`);
                 return;
-            } else if (!this.bot.friends.isFriend(recipientSteamID)) {
-                this.bot.sendMessage(steamID, '❌ I am not friends with the user.');
-                return;
             }
 
             const recipentDetails = this.bot.friends.getFriend(recipientSteamID);
@@ -717,10 +731,7 @@ export = class Commands {
             const reply = message.substr(message.toLowerCase().indexOf(recipient) + 18);
 
             // Send message to recipient
-            this.bot.sendMessage(
-                recipient,
-                `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-            );
+            this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
 
             // Send confirmation message to admin
             this.bot.sendMessage(steamID, '✅ Your message has been sent.');
@@ -1595,57 +1606,54 @@ export = class Commands {
         if (params.name !== undefined || params.item !== undefined) {
             this.bot.sendMessage(
                 steamID,
-                `⚠️ Please only use sku property.
-
-                Below are some common items to delete:
-                • Smissamas Sweater: 16391;15;untradable;w1;pk391
-                • Soul Gargoyle: 5826;6;uncraftable;untradable
-                • Noice Maker - TF Birthday: 536;6;untradable
-                • Bronze Dueling Badge: 242;6;untradable
-                • Silver Dueling Badge: 243;6;untradable
-                • Gold Dueling Badge: 244;6;untradable
-                • Platinum Dueling Badge: 245;6;untradable
-                • Mercenary: 166;6;untradable
-                • Soldier of Fortune: 165;6;untradable
-                • Grizzled Veteran: 164;6;untradable
-                • Primeval Warrior: 170;6;untradable
-                • Professor Speks: 343;6;untradable
-                • Mann Co. Cap: 261;6;untradable
-                • Mann Co. Online Cap: 994;6;untradable
-                • Proof of Purchase: 471;6;untradable
-                • Mildly Disturbing Halloween Mask: 115;6;untradable
-                • Seal Mask: 582;6;untradable
-                • Pyrovision Goggles: 743;6;untradable
-                • Giftapult: 5083;6;untradable
-                • Spirit Of Giving: 655;11;untradable
-                • Party Hat: 537;6;untradable
-                • Name Tag: 5020;6;untradable
-                • Description Tag: 5044;6;untradable
-                • Ghastly Gibus: 584;6;untradable
-                • Ghastlier Gibus: 279;6;untradable
-                • Power Up Canteen: 489;6;untradable
-                • Bombinomicon: 583;6;untradable
-                • Skull Island Topper: 941;6;untradable
-                • Spellbook Page: 8935;6;untradable
-                • Gun Mettle Campaign Coin: 5809;6;untradable
-                • MONOCULUS!: 581;6;untradable
-                
-                Or other items, please refer here: https://bit.ly/3gZQxFQ (defindex)`
+                '⚠️ Please only use sku property.' +
+                    '\n\nBelow are some common items to delete:' +
+                    '\n• Smissamas Sweater: 16391;15;untradable;w1;pk391' +
+                    '\n• Soul Gargoyle: 5826;6;uncraftable;untradable' +
+                    '\n• Noice Maker - TF Birthday: 536;6;untradable' +
+                    '\n• Bronze Dueling Badge: 242;6;untradable' +
+                    '\n• Silver Dueling Badge: 243;6;untradable' +
+                    '\n• Gold Dueling Badge: 244;6;untradable' +
+                    '\n• Platinum Dueling Badge: 245;6;untradable' +
+                    '\n• Mercenary: 166;6;untradable' +
+                    '\n• Soldier of Fortune: 165;6;untradable' +
+                    '\n• Grizzled Veteran: 164;6;untradable' +
+                    '\n• Primeval Warrior: 170;6;untradable' +
+                    '\n• Professor Speks: 343;6;untradable' +
+                    '\n• Mann Co. Cap: 261;6;untradable' +
+                    '\n• Mann Co. Online Cap: 994;6;untradable' +
+                    '\n• Proof of Purchase: 471;6;untradable' +
+                    '\n• Mildly Disturbing Halloween Mask: 115;6;untradable' +
+                    '\n• Seal Mask: 582;6;untradable' +
+                    '\n• Pyrovision Goggles: 743;6;untradable' +
+                    '\n• Giftapult: 5083;6;untradable' +
+                    '\n• Spirit Of Giving: 655;11;untradable' +
+                    '\n• Party Hat: 537;6;untradable' +
+                    '\n• Name Tag: 5020;6;untradable' +
+                    '\n• Description Tag: 5044;6;untradable' +
+                    '\n• Ghastly Gibus: 584;6;untradable' +
+                    '\n• Ghastlier Gibus: 279;6;untradable' +
+                    '\n• Power Up Canteen: 489;6;untradable' +
+                    '\n• Bombinomicon: 583;6;untradable' +
+                    '\n• Skull Island Topper: 941;6;untradable' +
+                    '\n• Spellbook Page: 8935;6;untradable' +
+                    '\n• Gun Mettle Campaign Coin: 5809;6;untradable' +
+                    '\n• MONOCULUS!: 581;6;untradable' +
+                    '\n\nOr other items, please refer here: https://bit.ly/3gZQxFQ (defindex)'
             );
             return;
         }
 
         if (params.sku === undefined) {
-            this.bot.sendMessage(steamID, '⚠️ Missing item sku');
+            this.bot.sendMessage(steamID, '⚠️ Missing sku property. Example: "!delete sku=536;6;untradable"');
             return;
         }
 
         const uncraft = params.sku.includes(';uncraftable');
-        params.sku = params.sku.replace(';uncraftable', '');
-
         const untrade = params.sku.includes(';untradable');
-        params.sku = params.sku.replace(';untradable', '');
 
+        params.sku = params.sku.replace(';uncraftable', '');
+        params.sku = params.sku.replace(';untradable', '');
         const item = SKU.fromString(params.sku);
 
         if (uncraft) {
@@ -1695,7 +1703,7 @@ export = class Commands {
     private nameCommand(steamID: SteamID, message: string): void {
         const newName = CommandParser.removeCommand(message);
 
-        if (!newName || newName === '') {
+        if (!newName || newName === '!name') {
             this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
             return;
         }
@@ -1719,7 +1727,7 @@ export = class Commands {
     private avatarCommand(steamID: SteamID, message: string): void {
         const imageUrl = CommandParser.removeCommand(message);
 
-        if (!imageUrl || imageUrl === '') {
+        if (!imageUrl || imageUrl === '!avatar') {
             this.bot.sendMessage(
                 steamID,
                 '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
@@ -1749,7 +1757,7 @@ export = class Commands {
     private blockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (!steamid || steamid === '') {
+        if (!steamid || steamid === '!block') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1776,7 +1784,7 @@ export = class Commands {
     private unblockCommand(steamID: SteamID, message: string): void {
         const steamid = CommandParser.removeCommand(message);
 
-        if (!steamid || steamid === '') {
+        if (!steamid || steamid === '!unblock') {
             this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
             return;
         }
@@ -1874,6 +1882,152 @@ export = class Commands {
     private resetQueueCommand(steamID: SteamID): void {
         this.cartQueue.resetQueue();
         this.bot.sendMessage(steamID, '✅ Sucessfully reset queue!');
+    }
+
+    private findCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (
+            !(
+                params.enabled !== undefined ||
+                params.max !== undefined ||
+                params.min !== undefined ||
+                params.intent !== undefined ||
+                params.autoprice !== undefined
+            )
+        ) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ Only parameters: enabled, max, min, intent, autoprice\nExample: !find intent=sell'
+            );
+            return;
+        }
+
+        const pricelist = this.bot.pricelist.getPrices();
+        let filter = pricelist;
+
+        if (params.enabled !== undefined && typeof params.enabled === 'boolean') {
+            filter = filter.filter(entry => entry.enabled === params.enabled);
+        } else if (params.enabled !== undefined && typeof params.enabled !== 'boolean') {
+            this.bot.sendMessage(steamID, '⚠️ enabled parameter must be either true or false only');
+            return;
+        }
+
+        if (params.max !== undefined && typeof params.max === 'number') {
+            filter = filter.filter(entry => entry.max === params.max);
+        } else if (params.max !== undefined && typeof params.max !== 'number') {
+            this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer only');
+            return;
+        }
+
+        if (params.min !== undefined && typeof params.min === 'number') {
+            filter = filter.filter(entry => entry.min === params.min);
+        } else if (params.min !== undefined && typeof params.min !== 'number') {
+            this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer only');
+            return;
+        }
+
+        if (params.intent !== undefined && typeof params.intent === 'number') {
+            filter = filter.filter(entry => entry.intent === params.intent);
+        } else if (typeof params.intent === 'string') {
+            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
+            if (intent !== -1) {
+                params.intent = intent;
+                filter = filter.filter(entry => entry.intent === params.intent);
+            }
+        } else if (
+            params.intent !== undefined &&
+            (typeof params.intent !== 'number' || typeof params.intent !== 'string')
+        ) {
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ intent parameter must be a word of "buy", "sell", or "bank" OR an integer of "0", "1" or "2" only'
+            );
+            return;
+        }
+
+        if (params.autoprice !== undefined && typeof params.autoprice === 'boolean') {
+            filter = filter.filter(entry => entry.autoprice === params.autoprice);
+        } else if (params.autoprice !== undefined && typeof params.autoprice !== 'boolean') {
+            this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be either true or false only');
+            return;
+        }
+
+        const parametersUsed = {
+            enabled: params.enabled !== undefined ? 'enabled=' + params.enabled.toString() : '',
+            autoprice: params.autoprice !== undefined ? 'autoprice=' + params.autoprice.toString() : '',
+            max: params.max !== undefined ? 'max=' + params.max.toString() : '',
+            min: params.min !== undefined ? 'min=' + params.min.toString() : '',
+            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : ''
+        };
+
+        const parameters = Object.values(parametersUsed);
+        log.debug(JSON.stringify(parameters));
+        const display = parameters.filter(param => param !== '');
+
+        const length = filter.length;
+
+        if (length === 0) {
+            this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
+        } else if (length > 20) {
+            this.bot.sendMessage(
+                steamID,
+                `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only max 100 items`
+            );
+            this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(0, 20), null, 4)}`);
+            if (length <= 40) {
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(20, length > 40 ? 40 : length), null, 4)}`
+                );
+            } else if (length <= 60) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(40, length > 60 ? 60 : length), null, 4)}`
+                );
+            } else if (length <= 80) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(60, length > 80 ? 80 : length), null, 4)}`
+                );
+            } else if (length > 80) {
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
+                this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(60, 80), null, 4)}`);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(filter.slice(80, length > 100 ? 100 : length), null, 4)}`
+                );
+            }
+        } else {
+            this.bot.sendMessage(steamID, `Found ${pluralize('item', filter.length, true)} with ${display.join('&')}`);
+            this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter, null, 4)}`);
+        }
+    }
+
+    private refreshListingsCommand(steamID: SteamID): void {
+        const inventory = this.bot.inventoryManager.getInventory();
+        const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+            // Filter our pricelist to only the items that the bot currently have.
+            return inventory.findBySKU(entry.sku).length > 0;
+        });
+
+        if (pricelist.length > 0) {
+            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+            this.bot.sendMessage(
+                steamID,
+                'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
+            );
+            this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+                this.bot.sendMessage(steamID, '✅ Done refresh ' + pluralize('item', pricelist.length, true));
+            });
+        } else {
+            this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
+        }
     }
 
     // Bot status
@@ -2204,22 +2358,40 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', {}, offer).asCallback(err => {
-                if (err) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-                    );
-                    return;
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    this.bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            });
+            this.bot.trades
+                .applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta') || {}, offer)
+                .asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        );
+                        return;
+                    }
+
+                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                    if (isManyItems) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                                ' If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
+                                ' If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                        );
+                    }
+                    // Send message to recipient if includes some messages
+                    if (reply) {
+                        this.bot.sendMessage(
+                            partnerId,
+                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        );
+                    }
+                });
         });
     }
 
@@ -2435,7 +2607,7 @@ export = class Commands {
             amount = 1;
         }
 
-        if (['!price', '!sellcart', '!buycart', '!sell', '!buy'].includes(name)) {
+        if (['!price', '!sellcart', '!buycart', '!sell', '!buy', '!pc', '!s', '!b'].includes(name)) {
             this.bot.sendMessage(
                 steamID,
                 '⚠️ You forgot to add a name. Here\'s an example: "' +
@@ -2447,7 +2619,13 @@ export = class Commands {
                         ? '!buycart'
                         : name.includes('!sell')
                         ? '!sell'
-                        : '!buy') +
+                        : name.includes('!buy')
+                        ? '!buy'
+                        : name.includes('!pc')
+                        ? '!pc'
+                        : name.includes('!s')
+                        ? '!s'
+                        : '!b') +
                     ' Team Captain"'
             );
             return null;
@@ -2457,18 +2635,17 @@ export = class Commands {
         if (match === null) {
             this.bot.sendMessage(
                 steamID,
-                `❌ I could not find any items in my pricelist that contains "${name}". I may not be trading the item you are looking for.
-                
-                Alternatively, please try to:
-                • Remove "The".
-                • Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".
-                • Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".
-                • Some Taunts need "The" such as "Taunt: The High Five!", while others do not.
-                • Check for a dash (-) like "All-Father" or "Mini-Engy".
-                • Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".
-                • Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".
-                • Check for an exclamation mark (!) like "Bonk! Atomic Punch".
-                • If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                `❌ I could not find any items in my pricelist that contains "${name}". I may not be trading the item you are looking for.` +
+                    '\n\nAlternatively, please try to:' +
+                    '\n• Remove "The".' +
+                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
+                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
+                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
+                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
+                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
+                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
+                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
+                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
             );
             return null;
         } else if (Array.isArray(match)) {
@@ -2556,7 +2733,10 @@ export = class Commands {
         }
 
         if (!foundSomething) {
-            this.bot.sendMessage(steamID, '⚠️ Missing item properties.');
+            this.bot.sendMessage(
+                steamID,
+                '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/h.-Usage'
+            );
             return null;
         }
 
@@ -2858,7 +3038,8 @@ export = class Commands {
             'Selling',
             '📥',
             'Stock',
-            'Thank'
+            'Thank',
+            'Unknown'
         ];
         return words;
     }
