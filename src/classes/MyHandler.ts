@@ -1379,8 +1379,8 @@ export = class MyHandler extends Handler {
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                    const keyPrice = this.bot.pricelist.getKeyPrices();
-                    const value = this.valueDiff(offer);
+                    const keyPrices = this.bot.pricelist.getKeyPrices();
+                    const value = this.valueDiff(offer, keyPrices);
                     const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
@@ -1449,7 +1449,7 @@ export = class MyHandler extends Handler {
                             .replace('Asked', '  My side')
                             .replace('Offered', 'Your side') +
                         "\n[You're missing: " +
-                        (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
                             process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
                                 ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
@@ -1600,8 +1600,8 @@ export = class MyHandler extends Handler {
                     }
                 }
 
-                const keyPrice = this.bot.pricelist.getKeyPrices();
-                const value = this.valueDiff(offer);
+                const keyPrices = this.bot.pricelist.getKeyPrices();
+                const value = this.valueDiff(offer, keyPrices);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
@@ -1613,7 +1613,7 @@ export = class MyHandler extends Handler {
                         currentItems,
                         this.backpackSlots,
                         accepted,
-                        keyPrice,
+                        keyPrices,
                         value,
                         itemsList,
                         links,
@@ -1623,7 +1623,7 @@ export = class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
+                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
                             (accepted.invalidItems.length !== 0
                                 ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
                                 : '') +
@@ -1648,7 +1648,7 @@ export = class MyHandler extends Handler {
                                   '🔶_HIGH_VALUE_ITEMS:\n- ' +
                                   accepted.highValue.join(',\n- ')
                                 : '') +
-                            `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                            `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -1794,9 +1794,9 @@ export = class MyHandler extends Handler {
             return;
         }
 
-        const keyPrice = this.bot.pricelist.getKeyPrices();
+        const keyPrices = this.bot.pricelist.getKeyPrices();
         const pureStock = this.pureStock();
-        const value = this.valueDiff(offer);
+        const value = this.valueDiff(offer, keyPrices);
         const timeWithEmojis = this.timeWithEmoji();
         const links = this.tradePartnerLinks(offer.partner.toString());
 
@@ -1936,7 +1936,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (value.diffRef > keyPrice.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
+                    (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
             const highValueItems: string[] = [];
@@ -1992,7 +1992,7 @@ export = class MyHandler extends Handler {
                             ? '\n\n' +
                               process.env.ADDITIONAL_NOTE.replace(
                                   /%keyRate%/g,
-                                  `${keyPrice.sell.metal.toString()} ref`
+                                  `${keyPrices.sell.metal.toString()} ref`
                               ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
                         (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
@@ -2021,7 +2021,7 @@ export = class MyHandler extends Handler {
                     offer,
                     reasons.join(', '),
                     timeWithEmojis.time,
-                    keyPrice,
+                    keyPrices,
                     value,
                     links,
                     items
@@ -2036,11 +2036,11 @@ export = class MyHandler extends Handler {
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\n\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrice) +
+                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
                         (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
-                        `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                        `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                         `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
@@ -2775,10 +2775,11 @@ export = class MyHandler extends Handler {
         return { their, our };
     }
 
-    private valueDiff(offer: TradeOffer): { diff: number; diffRef: number; diffKey: string } {
+    private valueDiff(
+        offer: TradeOffer,
+        keyPrices: { buy: Currencies; sell: Currencies }
+    ): { diff: number; diffRef: number; diffKey: string } {
         const value: { our: Currency; their: Currency } = offer.data('value');
-
-        const keyPrice = this.bot.pricelist.getKeyPrices();
 
         let diff: number;
         let diffRef: number;
@@ -2805,22 +2806,22 @@ export = class MyHandler extends Handler {
                     // If trading keys, then their side need to use buying key price.
                     newValue.our.keys = 0;
                     newValue.our.metal += Currencies.toRefined(
-                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
                     );
                     newValue.their.keys = 0;
                     newValue.their.metal += Currencies.toRefined(
-                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.buy.toValue()
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
                     );
                     this.isTradingKeys = false; // Reset
                 } else {
                     // Else both use selling key price.
                     newValue.our.keys = 0;
                     newValue.our.metal += Currencies.toRefined(
-                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrice.sell.toValue()
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
                     );
                     newValue.their.keys = 0;
                     newValue.their.metal += Currencies.toRefined(
-                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrice.sell.toValue()
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.sell.toValue()
                     );
                 }
             }
@@ -2828,7 +2829,7 @@ export = class MyHandler extends Handler {
             diffRef = Currencies.toRefined(Math.abs(diff));
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
-                Math.abs(diff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
+                Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
             ).toString();
         }
         return { diff, diffRef, diffKey };
