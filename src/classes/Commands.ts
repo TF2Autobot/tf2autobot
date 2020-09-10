@@ -3038,7 +3038,8 @@ export = class Commands {
             'Selling',
             '📥',
             'Stock',
-            'Thank'
+            'Thank',
+            'Unknown'
         ];
         return words;
     }
