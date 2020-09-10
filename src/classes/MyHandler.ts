@@ -2800,6 +2800,8 @@ export = class MyHandler extends Handler {
                 }
             };
 
+            log.debug('valueBefore', newValue);
+
             if (!this.fromEnv.showMetal) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
                 if (this.isTradingKeys) {
@@ -2825,12 +2827,23 @@ export = class MyHandler extends Handler {
                     );
                 }
             }
+
+            log.debug('valueAfter', newValue);
+
             diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
+
+            log.debug('diff', diff);
+
             diffRef = Currencies.toRefined(Math.abs(diff));
+
+            log.debug('diffRef', diffRef);
+
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
                 Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
             ).toString();
+
+            log.debug('diffKey', diffKey);
         }
         return { diff, diffRef, diffKey };
     }
