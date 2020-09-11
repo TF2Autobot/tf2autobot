@@ -277,6 +277,10 @@ export = class Commands {
     }
 
     private ownerCommand(steamID: SteamID): void {
+        if (process.env.DISABLE_OWNER_COMMAND) {
+            this.bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
+            return;
+        }
         const admins = this.bot.getAdmins();
         const firstAdmin = admins[0];
 
