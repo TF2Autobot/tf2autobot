@@ -278,7 +278,7 @@ export = class Commands {
 
     private ownerCommand(steamID: SteamID): void {
         const admins = this.bot.getAdmins();
-        const firstAdmin = admins.splice(0, 1);
+        const firstAdmin = admins[0];
 
         this.bot.sendMessage(
             steamID,
