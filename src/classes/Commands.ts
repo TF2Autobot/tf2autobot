@@ -277,7 +277,7 @@ export = class Commands {
     }
 
     private ownerCommand(steamID: SteamID): void {
-        if (process.env.DISABLE_OWNER_COMMAND) {
+        if (process.env.DISABLE_OWNER_COMMAND === 'true') {
             this.bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
             return;
         }
