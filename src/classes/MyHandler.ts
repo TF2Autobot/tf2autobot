@@ -1768,7 +1768,7 @@ export = class MyHandler extends Handler {
                             });
                     }
                 } else if (
-                    process.env.DISABLE_AUTO_REMOVE_FROM_PRICE_LIST === 'false' &&
+                    process.env.DISABLE_AUTO_REMOVE_FROM_PRICE_LIST !== 'true' &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
