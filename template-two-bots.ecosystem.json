@@ -51,6 +51,7 @@
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
                 "DISABLE_OWNER_COMMAND": false,
+                "DISABLE_AUTO_REMOVE_FROM_PRICE_LIST": false,
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
@@ -211,6 +212,7 @@
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
                 "DISABLE_OWNER_COMMAND": false,
+                "DISABLE_AUTO_REMOVE_FROM_PRICE_LIST": false,
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
