@@ -133,7 +133,7 @@ export = class MyHandler extends Handler {
 
         let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
         if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
-            invalidValueExceptionSKU.forEach(function (sku: string) {
+            invalidValueExceptionSKU.forEach(function(sku: string) {
                 if (sku === '' || !sku) {
                     invalidValueExceptionSKU = ['Not Set'];
                 }
@@ -185,7 +185,7 @@ export = class MyHandler extends Handler {
 
         const groups = parseJSON(process.env.GROUPS);
         if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(function (groupID64) {
+            groups.forEach(function(groupID64) {
                 if (!new SteamID(groupID64).isValid()) {
                     throw new Error(`Invalid group SteamID64 "${groupID64}"`);
                 }
@@ -196,7 +196,7 @@ export = class MyHandler extends Handler {
 
         const friendsToKeep = parseJSON(process.env.KEEP).concat(this.bot.getAdmins());
         if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(function (steamID64) {
+            friendsToKeep.forEach(function(steamID64) {
                 if (!new SteamID(steamID64).isValid()) {
                     throw new Error(`Invalid SteamID64 "${steamID64}"`);
                 }
@@ -245,7 +245,7 @@ export = class MyHandler extends Handler {
             files.readFile(paths.files.pricelist, true),
             files.readFile(paths.files.loginAttempts, true),
             files.readFile(paths.files.pollData, true)
-        ]).then(function ([loginKey, pricelist, loginAttempts, pollData]) {
+        ]).then(function([loginKey, pricelist, loginAttempts, pollData]) {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -304,7 +304,7 @@ export = class MyHandler extends Handler {
     }
 
     onShutdown(): Promise<void> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             if (this.bot.listingManager.ready !== true) {
                 // We have not set up the listing manager, don't try and remove listings
                 return resolve();
@@ -315,7 +315,7 @@ export = class MyHandler extends Handler {
                 this.autokeys.disable();
             }
 
-            this.bot.listings.removeAll().asCallback(function (err) {
+            this.bot.listings.removeAll().asCallback(function(err) {
                 if (err) {
                     log.warn('Failed to remove all listings: ', err);
                 }
@@ -359,7 +359,7 @@ export = class MyHandler extends Handler {
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
-        files.writeFile(paths.files.loginKey, loginKey, false).catch(function (err) {
+        files.writeFile(paths.files.loginKey, loginKey, false).catch(function(err) {
             log.warn('Failed to save login key: ', err);
         });
     }
@@ -367,14 +367,14 @@ export = class MyHandler extends Handler {
     onLoginError(err: Error): void {
         // @ts-ignore
         if (err.eresult === SteamUser.EResult.InvalidPassword) {
-            files.deleteFile(paths.files.loginKey).catch((err) => {
+            files.deleteFile(paths.files.loginKey).catch(err => {
                 log.warn('Failed to delete login key: ', err);
             });
         }
     }
 
     onLoginAttempts(attempts: number[]): void {
-        files.writeFile(paths.files.loginAttempts, attempts, true).catch(function (err) {
+        files.writeFile(paths.files.loginAttempts, attempts, true).catch(function(err) {
             log.warn('Failed to save login attempts: ', err);
         });
     }
@@ -497,7 +497,7 @@ export = class MyHandler extends Handler {
             nameWithSpell: []
         };
 
-        offer.itemsToGive.forEach((item) => {
+        offer.itemsToGive.forEach(item => {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -530,7 +530,7 @@ export = class MyHandler extends Handler {
             nameWithSpell: []
         };
 
-        offer.itemsToReceive.forEach((item) => {
+        offer.itemsToReceive.forEach(item => {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -581,7 +581,7 @@ export = class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        const isGift = this.giftWords().some((word) => {
+        const isGift = this.giftWords().some(word => {
             return offerMessage.includes(word);
         });
 
@@ -602,7 +602,7 @@ export = class MyHandler extends Handler {
 
         if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
             let hasNot5Uses = false;
-            offer.itemsToReceive.forEach((item) => {
+            offer.itemsToReceive.forEach(item => {
                 if (item.name === 'Dueling Mini-Game') {
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
@@ -631,8 +631,8 @@ export = class MyHandler extends Handler {
 
         if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
             let hasNot25Uses = false;
-            offer.itemsToReceive.forEach((item) => {
-                const isNoiseMaker = this.noiseMakerNames().some((name) => {
+            offer.itemsToReceive.forEach(item => {
+                const isNoiseMaker = this.noiseMakerNames().some(name => {
                     return item.name.includes(name);
                 });
                 if (isNoiseMaker) {
@@ -652,7 +652,7 @@ export = class MyHandler extends Handler {
                 }
             });
 
-            const isNoiseMaker = this.noiseMakerSKUs().some((sku) => {
+            const isNoiseMaker = this.noiseMakerSKUs().some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
             if (hasNot25Uses && isNoiseMaker) {
@@ -663,7 +663,7 @@ export = class MyHandler extends Handler {
 
         const isInPricelist =
             highValuedOur.skus.length > 0 // Only check if this not empty
-                ? highValuedOur.skus.some((sku) => {
+                ? highValuedOur.skus.some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
@@ -1032,8 +1032,8 @@ export = class MyHandler extends Handler {
             if (hasOverstock) {
                 offer.log('info', 'is offering too many, declining...');
 
-                const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-                const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
                 return {
                     action: 'decline',
@@ -1048,8 +1048,8 @@ export = class MyHandler extends Handler {
             if (hasUnderstock) {
                 offer.log('info', 'is taking too many, declining...');
 
-                const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-                const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
                 return {
                     action: 'decline',
@@ -1065,8 +1065,8 @@ export = class MyHandler extends Handler {
                 // We are offering more than them, decline the offer
                 offer.log('info', 'is not offering enough, declining...');
 
-                const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-                const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
                 return {
                     action: 'decline',
@@ -1100,8 +1100,8 @@ export = class MyHandler extends Handler {
             wrongAboutOffer.push({
                 reason: '⬜_ESCROW_CHECK_FAILED'
             });
-            const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-            const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
@@ -1127,8 +1127,8 @@ export = class MyHandler extends Handler {
             wrongAboutOffer.push({
                 reason: '⬜_BANNED_CHECK_FAILED'
             });
-            const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-            const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
@@ -1144,10 +1144,10 @@ export = class MyHandler extends Handler {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheck.length, true) + ' for dupes...');
             const inventory = new TF2Inventory(offer.partner, this.bot.manager);
 
-            const requests = assetidsToCheck.map((assetid) => {
+            const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function (err, result) {
+                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function(err, result) {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -1155,7 +1155,7 @@ export = class MyHandler extends Handler {
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(function (callback) {
+                const result: (boolean | null)[] = await Promise.fromCallback(function(callback) {
                     async.series(requests, callback);
                 });
 
@@ -1201,8 +1201,8 @@ export = class MyHandler extends Handler {
         // TO DO: Counter offer?
 
         if (wrongAboutOffer.length !== 0) {
-            const reasons = wrongAboutOffer.map((wrong) => wrong.reason);
-            const uniqueReasons = reasons.filter((reason) => reasons.includes(reason));
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             const env = this.fromEnv;
 
@@ -1444,7 +1444,10 @@ export = class MyHandler extends Handler {
 
                     const invalidValueSummary =
                         '\n\nSummary:\n' +
-                        offer.summarize(this.bot.schema).replace('Asked', '  My side').replace('Offered', 'Your side') +
+                        offer
+                            .summarize(this.bot.schema)
+                            .replace('Asked', '  My side')
+                            .replace('Offered', 'Your side') +
                         "\n[You're missing: " +
                         (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
@@ -1542,10 +1545,8 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
                             // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                            const invalid = offerMeta.meta.reasons.filter((el) =>
-                                el.reason.includes('🟨_INVALID_ITEMS')
-                            );
-                            invalid.forEach((el) => {
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+                            invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                                 accepted.invalidItems.push(name + ' - ' + el.price);
                             });
@@ -1554,8 +1555,8 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
                             // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter((el) => el.reason.includes('🟦_OVERSTOCKED'));
-                            invalid.forEach((el) => {
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
+                            invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                                 accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
                             });
@@ -1564,10 +1565,8 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
                             // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter((el) =>
-                                el.reason.includes('🟩_UNDERSTOCKED')
-                            );
-                            invalid.forEach((el) => {
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
+                            invalid.forEach(el => {
                                 const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                                 accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
                             });
@@ -1578,7 +1577,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValue = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach((name) => {
+                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
@@ -1586,7 +1585,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.our) {
                             hasHighValue = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach((name) => {
+                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
@@ -1595,7 +1594,7 @@ export = class MyHandler extends Handler {
                     // This is for offer that bot created from commands
                     if (offerMade.nameWithSpell.length > 0) {
                         hasHighValue = true;
-                        offerMade.nameWithSpell.forEach((name) => {
+                        offerMade.nameWithSpell.forEach(name => {
                             accepted.highValue.push(name);
                         });
                     }
@@ -1760,16 +1759,16 @@ export = class MyHandler extends Handler {
 
                         this.bot.pricelist
                             .addPrice(entry as EntryData, false)
-                            .then((data) => {
+                            .then(data => {
                                 log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                                 this.bot.listings.checkBySKU(data.sku, data);
                             })
-                            .catch((err) => {
+                            .catch(err => {
                                 log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                             });
                     }
                 } else if (
-                    process.env.DISABLE_AUTO_REMOVE_FROM_PRICE_LIST === false &&
+                    process.env.DISABLE_AUTO_REMOVE_FROM_PRICE_LIST === 'false' &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
@@ -1779,7 +1778,7 @@ export = class MyHandler extends Handler {
                         .then(() => {
                             log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                         })
-                        .catch((err) => {
+                        .catch(err => {
                             log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
                         });
                 }
@@ -1822,9 +1821,9 @@ export = class MyHandler extends Handler {
             const invalidForOur: string[] = []; // Display for owner
 
             if (reasons.includes('🟨_INVALID_ITEMS')) {
-                const invalid = wrong.filter((el) => el.reason.includes('🟨_INVALID_ITEMS'));
+                const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
 
-                invalid.forEach((el) => {
+                invalid.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     invalidForTheir.push(name); // only show to trade partner the item name
                     invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
@@ -1848,9 +1847,9 @@ export = class MyHandler extends Handler {
             const overstockedForOur: string[] = [];
 
             if (reasons.includes('🟦_OVERSTOCKED')) {
-                const overstock = wrong.filter((el) => el.reason.includes('🟦_OVERSTOCKED'));
+                const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
 
-                overstock.forEach((el) => {
+                overstock.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     overstockedForTheir.push(el.amountCanTrade + ' - ' + name);
                     overstockedForOur.push(name + ' (can only buy ' + el.amountCanTrade + ')');
@@ -1871,9 +1870,9 @@ export = class MyHandler extends Handler {
             const understockedForOur: string[] = [];
 
             if (reasons.includes('🟩_UNDERSTOCKED')) {
-                const understocked = wrong.filter((el) => el.reason.includes('🟩_UNDERSTOCKED'));
+                const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
 
-                understocked.forEach((el) => {
+                understocked.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     understockedForTheir.push(el.amountCanTrade + ' - ' + name);
                     understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
@@ -1893,9 +1892,9 @@ export = class MyHandler extends Handler {
             const dupedItemsName: string[] = [];
 
             if (reasons.includes('🟫_DUPED_ITEMS')) {
-                const duped = wrong.filter((el) => el.reason.includes('🟫_DUPED_ITEMS'));
+                const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
 
-                duped.forEach((el) => {
+                duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedItemsName.push(name);
                 });
@@ -1917,9 +1916,9 @@ export = class MyHandler extends Handler {
             const dupedFailedItemsName: string[] = [];
 
             if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-                const dupedFailed = wrong.filter((el) => el.reason.includes('🟫_DUPED_ITEMS'));
+                const dupedFailed = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
 
-                dupedFailed.forEach((el) => {
+                dupedFailed.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedFailedItemsName.push(name);
                 });
@@ -1951,7 +1950,7 @@ export = class MyHandler extends Handler {
                     const hasHighValue = meta.hasHighValueItems.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.nameWithSpell.forEach((name) => {
+                        meta.highValueItems.their.nameWithSpell.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
@@ -1990,10 +1989,8 @@ export = class MyHandler extends Handler {
                                   ? missingPureNote
                                   : '') +
                               (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                                  ? `\n\nNote:\n${
-                                        reviewReasons.join('\n') +
-                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')
-                                    }`
+                                  ? `\n\nNote:\n${reviewReasons.join('\n') +
+                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
                                   : '')
                             : '') +
                         (process.env.ADDITIONAL_NOTE
@@ -2004,9 +2001,8 @@ export = class MyHandler extends Handler {
                               ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
                         (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${
-                                  timeWithEmojis.time + (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')
-                              }`
+                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                                  (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
                             : '')
                 );
             }
@@ -2577,10 +2573,10 @@ export = class MyHandler extends Handler {
             }
         }
 
-        this.bot.getAdmins().forEach((steamID) => {
+        this.bot.getAdmins().forEach(steamID => {
             if (!this.bot.friends.isFriend(steamID)) {
                 log.info(`Not friends with admin ${steamID}, sending friend request...`);
-                this.bot.client.addFriend(steamID, function (err) {
+                this.bot.client.addFriend(steamID, function(err) {
                     if (err) {
                         log.warn('Failed to send friend request: ', err);
                     }
@@ -2594,7 +2590,7 @@ export = class MyHandler extends Handler {
 
         log.debug(`Sending friend request to ${steamID64}...`);
 
-        this.bot.client.addFriend(steamID, function (err) {
+        this.bot.client.addFriend(steamID, function(err) {
             if (err) {
                 log.warn(`Failed to send friend request to ${steamID64}: `, err);
                 return;
@@ -2678,7 +2674,7 @@ export = class MyHandler extends Handler {
             const friendsWithTrades = this.bot.trades.getTradesWithPeople(friends);
 
             // Ignore friends to keep
-            this.friendsToKeep.forEach(function (steamID) {
+            this.friendsToKeep.forEach(function(steamID) {
                 delete friendsWithTrades[steamID];
             });
 
@@ -2704,7 +2700,7 @@ export = class MyHandler extends Handler {
 
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
 
-            friendsToRemove.forEach((element) => {
+            friendsToRemove.forEach(element => {
                 const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
@@ -3372,19 +3368,19 @@ export = class MyHandler extends Handler {
             }
         }
 
-        this.groups.forEach((steamID) => {
+        this.groups.forEach(steamID => {
             if (
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Member &&
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Blocked
             ) {
-                this.bot.community.getSteamGroup(new SteamID(steamID), function (err, group) {
+                this.bot.community.getSteamGroup(new SteamID(steamID), function(err, group) {
                     if (err) {
                         log.warn('Failed to get group: ', err);
                         return;
                     }
 
                     log.info(`Not member of group ${group.name} ("${steamID}"), joining...`);
-                    group.join(function (err) {
+                    group.join(function(err) {
                         if (err) {
                             log.warn('Failed to join group: ', err);
                         }
@@ -3395,7 +3391,7 @@ export = class MyHandler extends Handler {
     }
 
     onPollData(pollData: PollData): void {
-        files.writeFile(paths.files.pollData, pollData, true).catch(function (err) {
+        files.writeFile(paths.files.pollData, pollData, true).catch(function(err) {
             log.warn('Failed to save polldata: ', err);
         });
     }
@@ -3411,10 +3407,10 @@ export = class MyHandler extends Handler {
         files
             .writeFile(
                 paths.files.pricelist,
-                pricelist.map((entry) => entry.getJSON()),
+                pricelist.map(entry => entry.getJSON()),
                 true
             )
-            .catch(function (err) {
+            .catch(function(err) {
                 log.warn('Failed to save pricelist: ', err);
             });
     }
