@@ -1249,7 +1249,7 @@ export = class MyHandler extends Handler {
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer and the trade will be completed in seconds.'
+                        'I have accepted your offer and the trade will be completed in bit.'
                     );
                 }
 
@@ -1324,13 +1324,13 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                    ' If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                    ' If the trade deos not go through in 10-15 min, please add me and use commands.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer and the trade will be completed in seconds.' +
-                    ' If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                    ' If the trade does not go through in 1-5 min, please add me and use commands.'
             );
         }
 
@@ -1427,13 +1427,13 @@ export = class MyHandler extends Handler {
                     ) {
                         reasonForInvalidValue = true;
                         reason =
-                            "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
+                            "you've sent a trade with an invalid value, Check the listing and send the offer again.";
                     } else if (
                         offerReason.reason === 'ONLY_OVERSTOCKED' ||
                         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
                     ) {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                        reason = "Overstocked.";
                     } else if (
                         offerReason.reason === 'ONLY_UNDERSTOCKED' ||
                         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
@@ -1467,7 +1467,7 @@ export = class MyHandler extends Handler {
                                   /%invalid_value_summary%/g,
                                   invalidValueSummary
                               )
-                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
+                            : `/pre ❌The offer was declined ❌${
                                   reason ? ` because ${reason}` : '.'
                               }` + (reasonForInvalidValue ? invalidValueSummary : '')
                     );
@@ -1475,17 +1475,17 @@ export = class MyHandler extends Handler {
                     let reason: string;
 
                     if (offer.data('canceledByUser') === true) {
-                        reason = 'Offer was canceled by user';
+                        reason = 'by user';
                     } else if (oldState === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation) {
-                        reason = 'Failed to accept mobile confirmation';
+                        reason = 'Because I Failed to accept mobile confirmation. Please try again..';
                     } else {
                         reason =
-                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later";
+                            "due to your input or a steam bug";
                     }
 
                     this.bot.sendMessage(
                         offer.partner,
-                        '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: ' + reason + '.'
+                        '❌Sorry your offer was cancelled ' + reason + '.'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InvalidItems) {
                     this.bot.sendMessage(
