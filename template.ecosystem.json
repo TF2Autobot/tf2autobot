@@ -4,9 +4,10 @@
             "name": "tf2autobot",
             "script": "dist/app.js",
             "exec_mode": "fork",
-            "exp_backoff_restart_delay": 1000,
             "shutdown_with_message": false,
-            "kill_timeout": 30000,
+            "max_memory_restart": "1500M",
+            "kill_retry_time": 30000,
+            "kill_timeout": 60000,
             "out_file": "NULL",
             "error_file": "NULL",
             "env": {
@@ -21,20 +22,21 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
-                "AUTOBUMP": true,
+                "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
                 "METAL_THRESHOLD": 9,
 
-                "ENABLE_AUTO_SELL_AND_BUY_KEYS": false,
-                "ENABLE_AUTO_KEY_BANKING": false,
+                "ENABLE_AUTOKEYS": false,
+                "ENABLE_AUTOKEYS_BANKING": false,
                 "MINIMUM_KEYS": 3,
                 "MAXIMUM_KEYS": 15,
                 "MINIMUM_REFINED_TO_START_SELL_KEYS": 30,
                 "MAXIMUM_REFINED_TO_STOP_SELL_KEYS": 150,
                 "DISABLE_SCRAP_ADJUSTMENT": true,
                 "SCRAP_ADJUSTMENT_VALUE": 1,
+                "AUTOKEYS_ACCEPT_UNDERSTOCKED": false,
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
@@ -48,8 +50,10 @@
                 "DISABLE_GROUPS_INVITE": false,
                 "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
+                "DISABLE_OWNER_COMMAND": false,
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
+                "NORMALIZE_STRANGE_UNUSUAL": false,
 
                 "TRADES_MADE_STARTER_VALUE": 0,
                 "LAST_TOTAL_TRADES": 0,
@@ -98,7 +102,7 @@
                 "DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE": "",
 
                 "DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY": false,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_URL": "",
+                "DISCORD_WEBHOOK_TRADE_SUMMARY_URL": [""],
                 "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS": true,
                 "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE": true,
                 "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK": true,
@@ -125,8 +129,13 @@
 
                 "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
+                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
+
                 "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
                 "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
+
+                "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
+                "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -134,6 +143,7 @@
                 "INVALID_VALUE_NOTE": "",
                 "INVALID_ITEMS_NOTE": "",
                 "OVERSTOCKED_NOTE": "",
+                "UNDERSTOCKED_NOTE": "",
                 "DUPE_ITEMS_NOTE": "",
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",

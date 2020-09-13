@@ -52,7 +52,12 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         }
 
         const amount = dict[sku];
-        const name = schema.getName(SKU.fromString(sku), false);
+        const name = schema
+            .getName(SKU.fromString(sku), false)
+            .replace(/Non-Craftable/g, 'NC')
+            .replace(/Professional Killstreak/g, 'Pro KS')
+            .replace(/Specialized Killstreak/g, 'Spec KS')
+            .replace(/Killstreak/g, 'KS');
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ' x' + amount : ''));
     }
@@ -61,5 +66,12 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         return 'nothing';
     }
 
-    return summary.join(', ');
+    let left = 0;
+
+    if (summary.length > 15) {
+        left = summary.length - 15;
+        summary.splice(15);
+    }
+
+    return summary.join(', ') + (left !== 0 ? ' and ' + left + ' more items.' : '');
 }

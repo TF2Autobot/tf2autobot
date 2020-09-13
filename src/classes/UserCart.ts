@@ -523,6 +523,37 @@ class UserCart extends Cart {
                 }
             }
 
+            const highValuedTheir: {
+                skus: string[];
+                nameWithSpell: string[];
+            } = {
+                skus: [],
+                nameWithSpell: []
+            };
+
+            offer.itemsToReceive.forEach(item => {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        descriptionValue.startsWith('Halloween:') &&
+                        descriptionValue.endsWith('(spell only active during event)') &&
+                        descriptionColor === '7ea9d1'
+                    ) {
+                        const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                        highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                        log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        break;
+                    }
+                }
+            });
+
+            offer.data('highValue', highValuedTheir);
+
             let alteredMessage: string;
 
             let amount = this.getTheirCount(sku);
@@ -1712,7 +1743,9 @@ class UserCart extends Cart {
         const summary = super.summarizeOurWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const craftweapons = (this.bot.handler as MyHandler).craftweapon();
+        const weapons = (this.bot.handler as MyHandler).weapon();
+        const craft = weapons.craft;
+        const uncraft = weapons.uncraft;
 
         let addWeapons = 0;
 
@@ -1720,7 +1753,10 @@ class UserCart extends Cart {
         const scrap = ourDict['5000;6'] || 0;
         const reclaimed = ourDict['5001;6'] || 0;
         const refined = ourDict['5002;6'] || 0;
-        craftweapons.forEach(sku => {
+        craft.forEach(sku => {
+            addWeapons += ourDict[sku] || 0;
+        });
+        uncraft.forEach(sku => {
             addWeapons += ourDict[sku] || 0;
         });
 
@@ -1749,7 +1785,9 @@ class UserCart extends Cart {
         const summary = super.summarizeTheirWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const craftweapons = (this.bot.handler as MyHandler).craftweapon();
+        const weapons = (this.bot.handler as MyHandler).weapon();
+        const craft = weapons.craft;
+        const uncraft = weapons.uncraft;
 
         let addWeapons = 0;
 
@@ -1757,7 +1795,10 @@ class UserCart extends Cart {
         const scrap = theirDict['5000;6'] || 0;
         const reclaimed = theirDict['5001;6'] || 0;
         const refined = theirDict['5002;6'] || 0;
-        craftweapons.forEach(sku => {
+        craft.forEach(sku => {
+            addWeapons += theirDict[sku] || 0;
+        });
+        uncraft.forEach(sku => {
             addWeapons += theirDict[sku] || 0;
         });
 
@@ -1865,33 +1906,100 @@ class UserCart extends Cart {
                 continue;
             }
 
-            let hasNot5Uses = false;
+            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+                let hasNot5Uses = false;
 
-            if (sku === '241;6') {
-                fetched.forEach(item => {
-                    if (item.name === 'Dueling Mini-Game') {
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
+                if (sku === '241;6') {
+                    fetched.forEach(item => {
+                        if (item.name === 'Dueling Mini-Game') {
+                            for (let i = 0; i < item.descriptions.length; i++) {
+                                const descriptionValue = item.descriptions[i].value;
+                                const descriptionColor = item.descriptions[i].color;
 
-                            if (
-                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                hasNot5Uses = true;
-                                offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                                break;
+                                if (
+                                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                                    descriptionColor === '00a000'
+                                ) {
+                                    hasNot5Uses = true;
+                                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
+                                    break;
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
+
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
+                }
             }
 
-            if (hasNot5Uses) {
-                return Promise.reject(
-                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                );
+            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
+
+                if (noiseMakerSKU.includes(sku)) {
+                    fetched.forEach(item => {
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.name.includes(name);
+                        });
+                        if (isNoiseMaker) {
+                            for (let i = 0; i < item.descriptions.length; i++) {
+                                const descriptionValue = item.descriptions[i].value;
+                                const descriptionColor = item.descriptions[i].color;
+
+                                if (
+                                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                                    descriptionColor === '00a000'
+                                ) {
+                                    hasNot25Uses = true;
+                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (hasNot25Uses) {
+                    return Promise.reject(
+                        'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                    );
+                }
             }
+
+            const highValuedTheir: {
+                skus: string[];
+                nameWithSpell: string[];
+            } = {
+                skus: [],
+                nameWithSpell: []
+            };
+
+            offer.itemsToReceive.forEach(item => {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        descriptionValue.startsWith('Halloween:') &&
+                        descriptionValue.endsWith('(spell only active during event)') &&
+                        descriptionColor === '7ea9d1'
+                    ) {
+                        const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                        highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                        log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        break;
+                    }
+                }
+            });
+
+            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 
@@ -1967,7 +2075,7 @@ class UserCart extends Cart {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
-                    " don't have enough pure for this trade." +
+                    " don't have enough pure for this trade" +
                     (isBuyer ? '\n💰 Current pure stock: ' + pureStock.join(', ').toString() : '')
             );
         }
@@ -2276,10 +2384,15 @@ class UserCart extends Cart {
         };
 
         const required = this.getRequiredWithWeapons(buyerCurrenciesCount, currencies, this.canUseKeysWithWeapons());
-        const weapons = (this.bot.handler as MyHandler).craftweapon();
+        const weapons = (this.bot.handler as MyHandler).weapon();
+        const craft = weapons.craft;
+        const uncraft = weapons.uncraft;
 
         let addWeapons = 0;
-        weapons.forEach(sku => {
+        craft.forEach(sku => {
+            addWeapons += required.currencies[sku] * 0.5;
+        });
+        uncraft.forEach(sku => {
             addWeapons += required.currencies[sku] * 0.5;
         });
 
@@ -2387,7 +2500,9 @@ class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = sellerInventory.getCurrencies();
-            const weapons = (this.bot.handler as MyHandler).craftweapon();
+            const weapons = (this.bot.handler as MyHandler).weapon();
+            const craft = weapons.craft;
+            const uncraft = weapons.uncraft;
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -2404,7 +2519,10 @@ class UserCart extends Cart {
                     value = 3;
                 } else if (sku === '5000;6') {
                     value = 1;
-                } else if (weapons.includes(sku) && this.bot.pricelist.getPrice(sku, true) === null) {
+                } else if (
+                    (craft.includes(sku) || uncraft.includes(sku)) &&
+                    this.bot.pricelist.getPrice(sku, true) === null
+                ) {
                     value = 0.5;
                 }
 

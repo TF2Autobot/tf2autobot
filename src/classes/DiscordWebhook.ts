@@ -6,8 +6,9 @@ import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
 import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
+import pluralize from 'pluralize';
 
-export = class DiscordWebhook {
+export = class DiscordWebhookClass {
     private readonly bot: Bot;
 
     private enableMentionOwner = false;
@@ -21,6 +22,8 @@ export = class DiscordWebhook {
     private botAvatarURL: string;
 
     private botEmbedColor: string;
+
+    tradeSummaryLinks: string[];
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -41,78 +44,90 @@ export = class DiscordWebhook {
         const botEmbedColor = process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX;
         this.botEmbedColor = botEmbedColor;
 
+        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
+        if (links !== null && Array.isArray(links)) {
+            links.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    links = [];
+                }
+            });
+            this.tradeSummaryLinks = links;
+        } else {
+            log.warn('You did not set Discord Webhook URL as an array, resetting to an empty array.');
+            this.tradeSummaryLinks = [];
+        }
+
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
             skuFromEnv.forEach(function(sku: string) {
                 if (sku === '' || !sku) {
-                    skuFromEnv = [';'];
+                    skuFromEnv = ['Not set'];
                 }
             });
             this.skuToMention = skuFromEnv;
         } else {
-            log.warn('You did not set items SKU to mention as an array, resetting to mention all items');
-            this.skuToMention = [';'];
+            log.warn('You did not set items SKU to mention as an array, mention on specific items disabled.');
+            this.skuToMention = ['Not set'];
         }
     }
 
-    sendLowPureAlert(msg: string, time: string): void {
+    sendAlert(
+        type: string,
+        msg: string | null,
+        position: number | null,
+        err: any | null,
+        items: string[] | null
+    ): void {
+        const time = (this.bot.handler as MyHandler).timeWithEmoji();
+
+        let title;
+        let description;
+        let color;
+
+        if (type === 'lowPure') {
+            title = 'Low Pure Alert';
+            description = msg;
+            color = '16776960'; // yellow
+        } else if (type === 'queue') {
+            title = 'Queue Alert';
+            description = `[Queue alert] Current position: ${position}, automatic restart initialized...`;
+            color = '16711680'; // red
+        } else if (type === 'failedPM2') {
+            title = 'Automatic restart failed - no PM2';
+            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2`;
+            color = '16711680'; // red
+        } else if (type === 'failedError') {
+            title = 'Automatic restart failed - Error';
+            description = `❌ An error occurred while trying to restart: ${err.message}`;
+            color = '16711680'; // red
+        } else {
+            title = 'High Valued Items';
+            description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
+            color = '8323327'; // purple
+        }
+
+        /*eslint-disable */
+        const webhook = JSON.stringify({
+            username: this.botName,
+            avatar_url: this.botAvatarURL,
+            content: type === 'highValue' ? `<@!${this.ownerID}>` : '',
+            embeds: [
+                {
+                    title: title,
+                    description: description,
+                    color: color,
+                    footer: {
+                        text: time.time
+                    }
+                }
+            ]
+        });
+        /*eslint-enable */
+
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-
-        /*eslint-disable */
-        const discordQueue = {
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
-        };
-        /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
-    }
-
-    sendQueueAlert(position: number, time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        /*eslint-disable */
-        const discordQueue = {
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> [Queue alert] Current position: ${position}, automatic restart initialized... - ${time}`
-        };
-        /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
-    }
-
-    sendQueueAlertFailedPM2(time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        /*eslint-disable */
-        const discordQueue = {
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> ❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2 - ${time}`
-        };
-        /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
-    }
-
-    sendQueueAlertFailedError(err: any, time: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        /*eslint-disable */
-        const discordQueue = {
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: `<@!${this.ownerID}> ❌ An error occurred while trying to restart: ${err.message} - ${time}`
-        };
-        /*eslint-enable */
-        request.send(JSON.stringify(discordQueue));
+        request.send(webhook);
     }
 
     sendPartnerMessage(
@@ -125,10 +140,6 @@ export = class DiscordWebhook {
         steamREP: string,
         time: string
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         /*eslint-disable */
         const discordPartnerMsg = JSON.stringify({
             username: this.botName,
@@ -145,44 +156,45 @@ export = class DiscordWebhook {
                         text: `Partner SteamID: ${steamID} • ${time}`
                     },
                     title: '',
-                    description: `💬 ${msg}\n\n🔍 ${theirName}'s info:\n[Steam Profile](${steamProfile}) | [backpack.tf](${backpackTF}) | [steamREP](${steamREP})`,
+                    description: `💬 ${msg}\n\n${quickLinks(theirName, { steamProfile, backpackTF, steamREP })}`,
                     color: this.botEmbedColor
                 }
             ]
         });
         /*eslint-enable */
 
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+        request.setRequestHeader('Content-type', 'application/json');
         request.send(discordPartnerMsg);
     }
 
     sendOfferReview(
         offer: TradeOffer,
         reasons: string,
-        pureStock: string[],
         time: string,
-        tradeSummary: string,
-        offerMessage: string,
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
-        invalidItemsCombine: string[],
-        overstockedItemsName: string[],
-        dupedItemsName: string[],
-        dupedFailedItemsName: string[]
+        items: {
+            invalid: string[];
+            overstock: string[];
+            understock: string[];
+            duped: string[];
+            dupedFailed: string[];
+            highValue: string[];
+        }
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         let noMentionOnInvalidValue = false;
         if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
             if (
-                reasons.includes('🟥INVALID_VALUE') &&
+                reasons.includes('🟥_INVALID_VALUE') &&
                 !(
-                    reasons.includes('🟨INVALID_ITEMS') ||
-                    reasons.includes('🟦OVERSTOCKED') ||
-                    reasons.includes('🟫DUPED_ITEMS') ||
-                    reasons.includes('🟪DUPE_CHECK_FAILED')
+                    reasons.includes('🟩_UNDERSTOCKED') ||
+                    reasons.includes('🟨_INVALID_ITEMS') ||
+                    reasons.includes('🟦_OVERSTOCKED') ||
+                    reasons.includes('🟫_DUPED_ITEMS') ||
+                    reasons.includes('🟪_DUPE_CHECK_FAILED')
                 )
             ) {
                 noMentionOnInvalidValue = true;
@@ -194,18 +206,27 @@ export = class DiscordWebhook {
         const botName = this.botName;
         const botAvatarURL = this.botAvatarURL;
         const botEmbedColor = this.botEmbedColor;
-        const message = offerMessage
-            .replace(/_/g, '‗')
-            .replace(/\*/g, '★')
-            .replace(/~/g, '💫')
-            .replace(/`/g, '💫')
-            .replace(/>/g, '💫')
-            .replace(/\|/g, '💫')
-            .replace(/\\/g, '💫')
-            .replace(/\(/g, '💫')
-            .replace(/\(/g, '💫')
-            .replace(/\[/g, '💫')
-            .replace(/\]/g, '💫');
+
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
+
+        const message = replaceSpecialChar(offer.message);
+
+        const itemsName = {
+            invalid: items.invalid.map(name => replaceItemName(name)),
+            overstock: items.overstock.map(name => replaceItemName(name)),
+            understock: items.understock.map(name => replaceItemName(name)),
+            duped: items.duped.map(name => replaceItemName(name)),
+            dupedFailed: items.dupedFailed.map(name => replaceItemName(name)),
+            highValue: items.highValue.map(name => replaceItemName(name))
+        };
+
+        const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
+        const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
+        const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+
+        const itemList = listItems(itemsName);
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -222,25 +243,10 @@ export = class DiscordWebhook {
                 partnerName = them.personaName;
             }
 
-            const partnerNameNoFormat = partnerName
-                .replace(/_/g, '‗')
-                .replace(/\*/g, '★')
-                .replace(/~/g, '💫')
-                .replace(/`/g, '💫')
-                .replace(/>/g, '💫')
-                .replace(/\|/g, '💫')
-                .replace(/\\/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\[/g, '💫')
-                .replace(/\]/g, '💫');
-
-            const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
-            const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
-            const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+            const partnerNameNoFormat = replaceSpecialChar(partnerName);
 
             /*eslint-disable */
-            const webhookReview = JSON.stringify({
+            const webhookReview = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -259,89 +265,95 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReason: ${reasons}` +
-                            (reasons.includes('⬜BACKPACKTF_DOWN')
-                                ? '\n\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                                : reasons.includes('⬜STEAM_DOWN')
-                                ? '\n\nSteam down, please manually check if this person have escrow.'
+                            `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
+                            (reasons.includes('⬜_BANNED_CHECK_FAILED')
+                                ? '\n\n`Backpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.`'
+                                : reasons.includes('⬜_ESCROW_CHECK_FAILED')
+                                ? '\n\n`Steam down, please manually check if this person have escrow.`'
                                 : '') +
-                            `\n\n__Offer Summary__:\n` +
-                            tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (value.diff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : '') +
-                            (offerMessage.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
-                            `${
-                                invalidItemsCombine.length !== 0
-                                    ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
-                                    : ''
-                            }${
-                                invalidItemsCombine.length !== 0 && overstockedItemsName.length !== 0
-                                    ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                    : overstockedItemsName.length !== 0
-                                    ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                    : ''
-                            }${
-                                (invalidItemsCombine.length !== 0 || overstockedItemsName.length !== 0) &&
-                                dupedItemsName.length !== 0
-                                    ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                    : dupedItemsName.length !== 0
-                                    ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                    : ''
-                            }${
-                                (invalidItemsCombine.length !== 0 ||
-                                    overstockedItemsName.length !== 0 ||
-                                    dupedItemsName.length !== 0) &&
-                                dupedFailedItemsName.length !== 0
-                                    ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                    : dupedFailedItemsName.length !== 0
-                                    ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                    : ''
-                            }` +
-                            (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n') +
-                            (isShowKeyRate
-                                ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
-                                : '') +
-                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : ''),
+                            summary +
+                            (offer.message.length !== 0 ? `\n\n💬 Offer message: _${message}_` : '') +
+                            (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                        fields: [
+                            {
+                                name: '__Item list__',
+                                value: itemList
+                            },
+                            {
+                                name: '__Status__',
+                                value:
+                                    (isShowKeyRate
+                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref`
+                                        : '') +
+                                    (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
+                            }
+                        ],
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
+
             /*eslint-enable */
-            request.send(webhookReview);
+
+            let removeStatus = false;
+
+            if (!(isShowKeyRate || isShowPureStock)) {
+                // If both here are false, then it will be true and the last element (__Status__) of the
+                // fields array will be removed
+                webhookReview.embeds[0].fields.pop();
+                removeStatus = true;
+            }
+
+            if (itemList === '-') {
+                // if __Item list__ field is empty, remove it
+                if (removeStatus) {
+                    // if __Status__ fields was removed, then delete the entire fields properties
+                    delete webhookReview.embeds[0].fields;
+                } else {
+                    // else just remove the first element of the fields array (__Item list__)
+                    webhookReview.embeds[0].fields.shift();
+                }
+            }
+
+            const request = new XMLHttpRequest();
+            request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(JSON.stringify(webhookReview));
         });
     }
 
     sendTradeSummary(
         offer: TradeOffer,
-        isAutoKeysEnabled: boolean,
-        autoKeysStatus: boolean,
-        isBuyingKeys: boolean,
-        isBankingKeys: boolean,
-        tradeSummary: string,
-        pureStock: string[],
+        autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
         currentItems: number,
         backpackSlots: number,
-        invalidItemsCombine: string[],
+        accepted: {
+            invalidItems: string[];
+            overstocked: string[];
+            understocked: string[];
+            highValue: string[];
+        },
         keyPrice: { buy: Currencies; sell: Currencies },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
         time: string
     ): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         const ourItems = items.our;
         const theirItems = items.their;
 
+        const itemsName = {
+            invalid: accepted.invalidItems.map(name => replaceItemName(name)), // 🟨_INVALID_ITEMS
+            overstock: accepted.overstocked.map(name => replaceItemName(name)), // 🟦_OVERSTOCKED
+            understock: accepted.understocked.map(name => replaceItemName(name)), // 🟩_UNDERSTOCKED
+            duped: [],
+            dupedFailed: [],
+            highValue: accepted.highValue.map(name => replaceItemName(name)) // 🔶_HIGH_VALUE_ITEMS
+        };
+
+        const itemList = listItems(itemsName);
+
+        // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
         const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
             return ourItems.some((ourItemSKU: string) => {
                 return ourItemSKU.includes(fromEnv);
@@ -354,45 +366,22 @@ export = class DiscordWebhook {
             });
         });
 
-        const isMentionInvalidItems = (this.bot.handler as MyHandler).getAcceptedWithInvalidItemsOrOverstockedStatus();
-
-        const theirItemsFiltered = theirItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
-
-        let theirItemsSecondFiltered = theirItemsFiltered;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            theirItemsSecondFiltered = theirItemsFiltered.filter(
-                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
-            );
-        }
-
-        const isMentionInvalidItemsTheirSide = theirItemsSecondFiltered.some((sku: string) => {
-            if (theirItemsSecondFiltered.length > 0) {
-                return this.bot.pricelist.getPrice(sku, false) === null;
-            }
-            return false;
-        });
-
-        const OurItemsFiltered = ourItems.filter(sku => !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
-
-        let ourItemsSecondFiltered = OurItemsFiltered;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY === 'false') {
-            ourItemsSecondFiltered = OurItemsFiltered.filter(
-                sku => !(this.bot.handler as MyHandler).craftweapon().includes(sku)
-            );
-        }
-
-        const isMentionInvalidItemsOurSide = ourItemsSecondFiltered.some((sku: string) => {
-            if (ourItemsSecondFiltered.length > 0) {
-                return this.bot.pricelist.getPrice(sku, false) === null;
-            }
-            return false;
-        });
+        const invalidA = itemsName.invalid.length;
+        const highValueA = itemsName.highValue.length;
 
         const mentionOwner =
             this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
                 ? `<@!${this.ownerID}>`
-                : isMentionInvalidItems && (isMentionInvalidItemsTheirSide || isMentionInvalidItemsOurSide)
-                ? `<@!${this.ownerID}> - Accepted INVALID_ITEMS with overpay trade here!`
+                : invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+                ? `<@!${this.ownerID}> - Accepted ${
+                      invalidA > 0 && highValueA > 0
+                          ? `INVALID_ITEMS and High value ${pluralize('item', invalidA + highValueA)}`
+                          : invalidA > 0 && highValueA === 0
+                          ? `INVALID_ITEMS ${pluralize('item', invalidA)}`
+                          : invalidA === 0 && highValueA > 0
+                          ? `High Value ${pluralize('item', highValueA)}`
+                          : ''
+                  } trade here!`
                 : '';
 
         const botName = this.botName;
@@ -405,6 +394,12 @@ export = class DiscordWebhook {
             tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
                 ? tradeNumbertoShowStarter + trades.tradesTotal
                 : trades.tradesTotal;
+
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+
+        const pureStock = (this.bot.handler as MyHandler).pureStock();
+
+        const tradeLinks = this.tradeSummaryLinks;
 
         let personaName: string;
         let avatarFull: string;
@@ -421,18 +416,7 @@ export = class DiscordWebhook {
                 avatarFull = details.avatarFull;
             }
 
-            const partnerNameNoFormat = personaName
-                .replace(/_/g, '‗')
-                .replace(/\*/g, '★')
-                .replace(/~/g, '💫')
-                .replace(/`/g, '💫')
-                .replace(/>/g, '💫')
-                .replace(/\|/g, '💫')
-                .replace(/\\/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\(/g, '💫')
-                .replace(/\[/g, '💫')
-                .replace(/\]/g, '💫');
+            const partnerNameNoFormat = replaceSpecialChar(personaName);
 
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
@@ -441,7 +425,7 @@ export = class DiscordWebhook {
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
             /*eslint-disable */
-            const acceptedTradeSummary = JSON.stringify({
+            const acceptedTradeSummary = {
                 username: botName,
                 avatar_url: botAvatarURL,
                 content: mentionOwner,
@@ -460,46 +444,79 @@ export = class DiscordWebhook {
                         },
                         title: '',
                         description:
-                            `A trade with ${partnerNameNoFormat} has been marked as accepted.\n__Summary__:\n` +
-                            tradeSummary.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-                            (value.diff > 0
-                                ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : '') +
-                            (isShowQuickLinks
-                                ? `\n\n🔍 ${partnerNameNoFormat}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})\n`
-                                : '\n') +
-                            (isMentionInvalidItems ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n') : '') +
-                            (isShowKeyRate
-                                ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                                  `${
-                                      isAutoKeysEnabled
-                                          ? ' | Autokeys: ' +
-                                            (autoKeysStatus
-                                                ? '✅' +
-                                                  (isBankingKeys
-                                                      ? ' (banking)'
-                                                      : isBuyingKeys
-                                                      ? ' (buying)'
-                                                      : ' (selling)')
-                                                : '🛑')
-                                          : ''
-                                  }`
-                                : '') +
-                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                            (isShowInventory
-                                ? `\n🎒 Total items: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
-                                : '') +
-                            (AdditionalNotes ? '\n' + AdditionalNotes : ''),
+                            summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                        fields: [
+                            {
+                                name: '__Item list__',
+                                value: itemList
+                            },
+                            {
+                                name: '__Status__',
+                                value:
+                                    (isShowKeyRate
+                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                                          `${
+                                              autokeys.isEnabled
+                                                  ? ' | Autokeys: ' +
+                                                    (autokeys.isActive
+                                                        ? '✅' +
+                                                          (autokeys.isBanking
+                                                              ? ' (banking)'
+                                                              : autokeys.isBuying
+                                                              ? ' (buying)'
+                                                              : ' (selling)')
+                                                        : '🛑')
+                                                  : ''
+                                          }`
+                                        : '') +
+                                    (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                                    (isShowInventory
+                                        ? `\n🎒 Total items: ${currentItems +
+                                              (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+                                        : '') +
+                                    (AdditionalNotes
+                                        ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
+                                          AdditionalNotes
+                                        : '')
+                            }
+                        ],
                         color: botEmbedColor
                     }
                 ]
-            });
+            };
             /*eslint-enable */
-            request.send(acceptedTradeSummary);
+
+            let removeStatus = false;
+
+            if (!(isShowKeyRate || isShowPureStock || isShowInventory || AdditionalNotes)) {
+                // If everything here is false, then it will be true and the last element (__Status__) of the
+                // fields array will be removed
+                acceptedTradeSummary.embeds[0].fields.pop();
+                removeStatus = true;
+            }
+
+            if (itemList === '-') {
+                // if __Item list__ field is empty, remove it
+                if (removeStatus) {
+                    // if __Status__ fields was removed, then delete the entire fields properties
+                    delete acceptedTradeSummary.embeds[0].fields;
+                } else {
+                    // else just remove the __Item list__
+                    acceptedTradeSummary.embeds[0].fields.shift();
+                }
+            }
+
+            tradeLinks.forEach((link, i) => {
+                const request = new XMLHttpRequest();
+                request.open('POST', link);
+                request.setRequestHeader('Content-type', 'application/json');
+                // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
+                request.send(
+                    i > 0
+                        ? JSON.stringify(acceptedTradeSummary).replace(/<@!\d+>/g, '')
+                        : JSON.stringify(acceptedTradeSummary)
+                );
+            });
         });
     }
 
@@ -527,3 +544,110 @@ export = class DiscordWebhook {
         }
     }
 };
+
+function summarize(
+    trade: string,
+    value: { diff: number; diffRef: number; diffKey: string },
+    keyPrice: { buy: Currencies; sell: Currencies }
+): string {
+    const summary =
+        `\n\n__**Summary**__\n` +
+        trade.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
+        (value.diff > 0
+            ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : value.diff < 0
+            ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : '');
+    return summary;
+}
+
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+    highValue: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
+    list +=
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',\n- ')
+            : '';
+    list +=
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
+              '🟩`_UNDERSTOCKED:`\n- ' +
+              items.understock.join(',\n- ')
+            : '';
+    list +=
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🟫`_DUPED_ITEMS:`\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🟪`_DUPE_CHECK_FAILED:`\n- ' +
+              items.dupedFailed.join(',\n- ')
+            : '';
+    list +=
+        items.highValue.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0 ||
+              items.dupedFailed.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🔶`_HIGH_VALUE_ITEMS`\n- ' +
+              items.highValue.join(',\n- ')
+            : '';
+
+    if (list.length === 0) {
+        list = '-';
+    }
+    return list;
+}
+
+function quickLinks(name: string, links: { steamProfile: string; backpackTF: string; steamREP: string }): string {
+    return `🔍 ${name}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})`;
+}
+
+function replaceItemName(name: string): string {
+    if (!name) {
+        // if undefined, just return untouched.
+        return name;
+    } else {
+        return name
+            .replace(/Non-Craftable/g, 'NC')
+            .replace(/Professional Killstreak/g, 'Pro KS')
+            .replace(/Specialized Killstreak/g, 'Spec KS')
+            .replace(/Killstreak/g, 'KS');
+    }
+}
+
+function replaceSpecialChar(toChange: string): string {
+    return toChange
+        .replace(/_/g, '‗')
+        .replace(/\*/g, '^')
+        .replace(/~/g, '-')
+        .replace(/`/g, "'")
+        .replace(/>/g, '<')
+        .replace(/\|/g, 'l')
+        .replace(/\\/g, '/')
+        .replace(/\(/g, '/')
+        .replace(/\)/g, '/')
+        .replace(/\[/g, '/')
+        .replace(/\]/g, '/');
+}

@@ -2,6 +2,7 @@ import SteamID from 'steamid';
 
 import Bot from './Bot';
 import Cart from './Cart';
+import DiscordWebhookClass from './DiscordWebhook';
 
 import log from '../lib/logger';
 
@@ -10,12 +11,17 @@ export = CartQueue;
 class CartQueue {
     private readonly bot: Bot;
 
+    readonly discord: DiscordWebhookClass;
+
     private carts: Cart[] = [];
 
     private busy = false;
 
+    private queuePositionCheck;
+
     constructor(bot: Bot) {
         this.bot = bot;
+        this.discord = new DiscordWebhookClass(bot);
     }
 
     enqueue(cart: Cart): number {
@@ -40,7 +46,57 @@ class CartQueue {
             this.handleQueue();
         });
 
+        clearTimeout(this.queuePositionCheck);
+        this.queueCheck(cart.partner);
+
         return position;
+    }
+
+    private queueCheck(steamID: SteamID | string): void {
+        log.debug(`Checking queue position in 3 minutes...`);
+        this.queuePositionCheck = setTimeout(() => {
+            const position = this.carts.length;
+            log.debug(`Current queue position: ${position}`);
+            if (position >= 2) {
+                if (
+                    process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                    process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                ) {
+                    this.discord.sendAlert('queue', null, position, null, null);
+                    this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                this.discord.sendAlert('failedPM2', null, null, null, null);
+                            } else {
+                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
+                            }
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.discord.sendAlert('failedError', null, null, err.message, null);
+                        });
+                } else {
+                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
+                    this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                this.bot.messageAdmins(
+                                    '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
+                                    []
+                                );
+                            } else {
+                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
+                            }
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.bot.messageAdmins(`❌ An error occurred while trying to restart: ${err.message}`, []);
+                        });
+                }
+            }
+        }, 3 * 60 * 1000);
     }
 
     dequeue(steamID: SteamID | string): boolean {
@@ -57,6 +113,11 @@ class CartQueue {
         log.debug('Removed cart from the queue');
 
         return true;
+    }
+
+    resetQueue(): void {
+        log.debug('Queue reset initialized.');
+        this.carts.splice(0);
     }
 
     getPosition(steamID: SteamID | string): number {
@@ -123,9 +184,15 @@ class CartQueue {
                         log.warn('Failed to make offer');
                         log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                            cart.sendNotification(
+                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                            );
+                        } else {
+                            cart.sendNotification(
+                                '❌ Something went wrong while trying to make the offer, try again later!'
+                            );
+                        }
                     }
                 })
                 .finally(() => {
@@ -173,9 +240,15 @@ class CartQueue {
                         log.warn('Failed to make offer');
                         log.error(require('util').inspect(err));
 
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                            cart.sendNotification(
+                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                            );
+                        } else {
+                            cart.sendNotification(
+                                '❌ Something went wrong while trying to make the offer, try again later!'
+                            );
+                        }
                     }
                 })
                 .finally(() => {

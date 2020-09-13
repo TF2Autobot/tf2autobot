@@ -42,7 +42,8 @@ export function writeFile(p: string, data: any, json: boolean): Promise<void> {
         let write;
 
         if (json === true) {
-            write = process.env.DEBUG === 'true' ? JSON.stringify(data, undefined, 4) : JSON.stringify(data);
+            write = JSON.stringify(data);
+            // was - write = process.env.DEBUG === 'true' ? JSON.stringify(data, undefined, 4) : JSON.stringify(data);
         } else {
             write = data;
         }

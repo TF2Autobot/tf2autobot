@@ -100,6 +100,7 @@ export = class Bot {
             pollInterval: -1,
             cancelTime: 15 * 60 * 2000,
             pendingCancelTime: 90 * 1000
+
         });
 
         this.listingManager = new ListingManager({

@@ -8,6 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku';
 import request from '@nicklason/request-retry';
+import sleepasync from 'sleep-async';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -15,6 +16,7 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
+import { requestCheck } from '../lib/ptf-api';
 
 import moment from 'moment-timezone';
 
@@ -23,12 +25,15 @@ import * as files from '../lib/files';
 import paths from '../resources/paths';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
-import DiscordWebhook from './DiscordWebhook';
+import DiscordWebhookClass from './DiscordWebhook';
+import Autokeys from './Autokeys';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    readonly discord: DiscordWebhook;
+    private readonly discord: DiscordWebhookClass;
+
+    private readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
 
@@ -46,63 +51,48 @@ export = class MyHandler extends Handler {
 
     private minimumKeysDupeCheck = 0;
 
-    private autokeysEnabled = false;
-
-    private keyBankingEnabled = false;
-
-    private checkAutokeysStatus = false;
-
-    private isBuyingKeys = false;
-
-    private isBankingKeys = false;
-
-    private checkAlertOnLowPure = false;
-
-    private alreadyUpdatedToBank = false;
-
-    private alreadyUpdatedToBuy = false;
-
-    private alreadyUpdatedToSell = false;
-
     private invalidValueException: number;
 
     private invalidValueExceptionSKU: string[] = [];
 
-    private invalidItemsSKU: string[] = [];
+    private hasInvalidValueException = false;
 
-    private invalidItemsValue: string[] = [];
-
-    private overstockedItemsSKU: string[] = [];
-
-    private dupedItemsSKU: string[] = [];
-
-    private dupedFailedItemsSKU: string[] = [];
-
-    private userMinKeys: number;
-
-    private userMaxKeys: number;
-
-    private userMinReftoScrap: number;
-
-    private userMaxReftoScrap: number;
+    private fromEnv: {
+        autoAcceptOverpay: {
+            invalidItem: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        autoDecline: {
+            invalidValue: boolean;
+            overstocked: boolean;
+            understocked: boolean;
+        };
+        somethingWrong: {
+            enabled: boolean;
+            url: string;
+        };
+        givePrice: boolean;
+        craftWeaponAsCurrency: boolean;
+        showMetal: boolean;
+        autokeysNotAcceptUnderstocked: boolean;
+    };
 
     private isTradingKeys = false;
 
-    private autoRelistNotSellingKeys = 0;
-
-    private autoRelistNotBuyingKeys = 0;
-
-    private hasInvalidValueException = false;
-
     private customGameName: string;
-
-    private isUsingAutoPrice = true;
-
-    private scrapAdjustmentValue = 0;
 
     private backpackSlots = 0;
 
-    private isAcceptedWithInvalidItemsOrOverstocked = false;
+    private retryRequest;
+
+    private autokeysStatus: {
+        isActive: boolean;
+        isBuying: boolean;
+        isBanking: boolean;
+    };
+
+    private classWeaponsTimeout;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -111,16 +101,33 @@ export = class MyHandler extends Handler {
 
         this.commands = new Commands(bot);
         this.cartQueue = new CartQueue(bot);
-        this.discord = new DiscordWebhook(bot);
+        this.discord = new DiscordWebhookClass(bot);
+        this.autokeys = new Autokeys(bot);
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
 
-        this.userMinKeys = parseInt(process.env.MINIMUM_KEYS);
-        this.userMaxKeys = parseInt(process.env.MAXIMUM_KEYS);
-        this.userMinReftoScrap = Currencies.toScrap(parseInt(process.env.MINIMUM_REFINED_TO_START_SELL_KEYS));
-        this.userMaxReftoScrap = Currencies.toScrap(parseInt(process.env.MAXIMUM_REFINED_TO_STOP_SELL_KEYS));
+        this.fromEnv = {
+            autoAcceptOverpay: {
+                invalidItem: process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true',
+                overstocked: process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false',
+                understocked: process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
+            },
+            autoDecline: {
+                invalidValue: process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true',
+                overstocked: process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false',
+                understocked: process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false'
+            },
+            somethingWrong: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false',
+                url: process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+            },
+            givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
+            craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
+            showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
+            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true'
+        };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
@@ -141,34 +148,19 @@ export = class MyHandler extends Handler {
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
 
-        if (!customGameName || customGameName === 'tf2-automatic') {
+        if (!customGameName || customGameName === 'tf2autobot') {
             this.customGameName = customGameName;
         } else {
             if (customGameName.length <= 45) {
-                this.customGameName = customGameName + ' - tf2-automatic';
+                this.customGameName = customGameName + ' - tf2autobot';
             } else {
-                log.warn(
-                    'Your custom game playing name is more than 45 characters, resetting to only "tf2-automatic"...'
-                );
-                this.customGameName = 'tf2-automatic';
+                log.warn('Your custom game playing name is more than 45 characters, resetting to only "tf2autobot"...');
+                this.customGameName = 'tf2autobot';
             }
         }
 
         const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
         this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
-
-        const scrapValue = parseInt(process.env.SCRAP_ADJUSTMENT_VALUE);
-
-        if (!scrapValue || isNaN(scrapValue)) {
-            log.warn('Scrap adjustment not set or not a number, resetting to 0.');
-            this.scrapAdjustmentValue = 0;
-        } else {
-            this.scrapAdjustmentValue = scrapValue;
-        }
-
-        if (process.env.DISABLE_SCRAP_ADJUSTMENT !== 'true') {
-            this.isUsingAutoPrice = false;
-        }
 
         if (!isNaN(minimumScrap)) {
             this.minimumScrap = minimumScrap;
@@ -189,14 +181,6 @@ export = class MyHandler extends Handler {
         const minimumKeysDupeCheck = parseInt(process.env.MINIMUM_KEYS_DUPE_CHECK);
         if (!isNaN(minimumKeysDupeCheck)) {
             this.minimumKeysDupeCheck = minimumKeysDupeCheck;
-        }
-
-        if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true') {
-            this.autokeysEnabled = true;
-        }
-
-        if (process.env.ENABLE_AUTO_KEY_BANKING === 'true') {
-            this.keyBankingEnabled = true;
         }
 
         const groups = parseJSON(process.env.GROUPS);
@@ -246,37 +230,8 @@ export = class MyHandler extends Handler {
         return this.backpackSlots;
     }
 
-    getUserAutokeys(): {
-        enabled: boolean;
-        status: boolean;
-        minKeys: number;
-        maxKeys: number;
-        minRef: number;
-        maxRef: number;
-        isBuying: boolean;
-        bankingEnabled: boolean;
-        isBanking: boolean;
-        scrapAdjustmentEnabled: boolean;
-        scrapAdjustmentValue: number;
-    } {
-        const settings = {
-            enabled: this.autokeysEnabled,
-            status: this.checkAutokeysStatus,
-            minKeys: this.userMinKeys,
-            maxKeys: this.userMaxKeys,
-            minRef: this.userMinReftoScrap,
-            maxRef: this.userMaxReftoScrap,
-            isBuying: this.isBuyingKeys,
-            bankingEnabled: this.keyBankingEnabled,
-            isBanking: this.isBankingKeys,
-            scrapAdjustmentEnabled: !this.isUsingAutoPrice,
-            scrapAdjustmentValue: this.scrapAdjustmentValue
-        };
-        return settings;
-    }
-
-    getAcceptedWithInvalidItemsOrOverstockedStatus(): boolean {
-        return this.isAcceptedWithInvalidItemsOrOverstocked;
+    getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
+        return this.autokeysStatus;
     }
 
     onRun(): Promise<{
@@ -320,8 +275,20 @@ export = class MyHandler extends Handler {
         // Craft duplicate weapons
         this.craftDuplicateWeapons();
 
+        // Craft class weapons
+        this.classWeaponsTimeout = setTimeout(() => {
+            // called after 2 minutes to craft metals and duplicated weapons first.
+            this.craftClassWeapons();
+        }, 2 * 60 * 1000);
+
         // Auto sell and buy keys if ref < minimum
-        this.autokeys();
+        this.autokeys.check();
+
+        this.autokeysStatus = {
+            isActive: this.autokeys.isActive,
+            isBuying: this.autokeys.status.isBuyingKeys,
+            isBanking: this.autokeys.status.isBankingKeys
+        };
 
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
@@ -343,9 +310,9 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            if (process.env.ENABLE_AUTO_SELL_AND_BUY_KEYS === 'true' && this.checkAutokeysStatus === true) {
+            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
                 log.debug('Disabling Autokeys and removing key from pricelist...');
-                this.removeAutoKeys();
+                this.autokeys.disable();
             }
 
             this.bot.listings.removeAll().asCallback(function(err) {
@@ -451,6 +418,9 @@ export = class MyHandler extends Handler {
         // Allow sending notifications
         offer.data('notify', true);
 
+        // If crafting class weapons still waiting, cancel it.
+        clearTimeout(this.classWeaponsTimeout);
+
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID,
             offer.itemsToGive,
@@ -516,16 +486,95 @@ export = class MyHandler extends Handler {
 
         offer.data('dict', itemsDict);
 
+        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
+
+        let hasHighValueOur = false;
+        const highValuedOur: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToGive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor === '7ea9d1'
+                ) {
+                    hasHighValueOur = true;
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
+                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
+
+        // Check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
+
+        let hasHighValueTheir = false;
+        const highValuedTheir: {
+            skus: string[];
+            nameWithSpell: string[];
+        } = {
+            skus: [],
+            nameWithSpell: []
+        };
+
+        offer.itemsToReceive.forEach(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                if (
+                    descriptionValue.startsWith('Halloween:') &&
+                    descriptionValue.endsWith('(spell only active during event)') &&
+                    descriptionColor === '7ea9d1'
+                ) {
+                    hasHighValueTheir = true;
+                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+
+                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+
+                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    break;
+                }
+            }
+        });
+
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
             offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
-            return { action: 'accept', reason: 'ADMIN' };
+            return {
+                action: 'accept',
+                reason: 'ADMIN',
+                meta: {
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                }
+            };
         }
 
         if (hasInvalidItems) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
-            return { action: 'decline', reason: '🟨INVALID_ITEMS_CONTAINS_NON_TF2' };
+            return { action: 'decline', reason: '🟨_INVALID_ITEMS_CONTAINS_NON_TF2' };
         }
 
         const itemsDiff = offer.getDiff();
@@ -539,6 +588,7 @@ export = class MyHandler extends Handler {
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
             return { action: 'accept', reason: 'GIFT' };
+
         }
 	else if (offer.itemsToGive.length === 0) {
 	        offer.log('info', 'is a gift offer free stuff no note tho so if they ask for it back send it back could be a mistake...');
@@ -547,6 +597,7 @@ export = class MyHandler extends Handler {
         else if (offer.itemsToReceive.length === 0 || offer.itemsToGive.length === 0) {
             offer.log('info', 'is a gift offer, taking out items...');
             return { action: 'decline', reason: 'taking our stuff kill em' };
+
         }
 
         // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
@@ -614,6 +665,36 @@ export = class MyHandler extends Handler {
             }
         }
 
+        const isInPricelist =
+            highValuedOur.skus.length > 0 // Only check if this not empty
+                ? highValuedOur.skus.some(sku => {
+                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
+                  })
+                : null;
+
+        if (hasHighValueOur && isInPricelist === false) {
+            // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
+            offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
+
+            // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
+            if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpell);
+            } else {
+                this.bot.messageAdmins(
+                    `Someone is about to take your ${highValuedOur.nameWithSpell.join(', ')} (not in pricelist)`,
+                    []
+                );
+            }
+
+            return {
+                action: 'decline',
+                reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
+                meta: {
+                    highValueName: highValuedOur.nameWithSpell
+                }
+            };
+        }
+
         const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
 
         const itemPrices = {};
@@ -622,41 +703,51 @@ export = class MyHandler extends Handler {
 
         let hasOverstock = false;
 
+        let hasUnderstock = false;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: (
             | {
-                  reason: '🟦OVERSTOCKED';
+                  reason: '🟦_OVERSTOCKED';
                   sku: string;
                   buying: boolean;
                   diff: number;
                   amountCanTrade: number;
               }
             | {
-                  reason: '🟨INVALID_ITEMS';
+                  reason: '🟩_UNDERSTOCKED';
+                  sku: string;
+                  selling: boolean;
+                  diff: number;
+                  amountCanTrade: number;
+              }
+            | {
+                  reason: '🟨_INVALID_ITEMS';
                   sku: string;
                   buying: boolean;
                   amount: number;
+                  price: string;
               }
             | {
-                  reason: '🟥INVALID_VALUE';
+                  reason: '🟥_INVALID_VALUE';
                   our: number;
                   their: number;
               }
             | {
-                  reason: '🟪DUPE_CHECK_FAILED';
+                  reason: '🟪_DUPE_CHECK_FAILED';
                   assetid?: string;
                   error?: string;
               }
             | {
-                  reason: '🟫DUPED_ITEMS';
+                  reason: '🟫_DUPED_ITEMS';
                   assetid: string;
               }
             | {
-                  reason: '⬜STEAM_DOWN';
+                  reason: '⬜_ESCROW_CHECK_FAILED';
                   error?: string;
               }
             | {
-                  reason: '⬜BACKPACKTF_DOWN';
+                  reason: '⬜_BANNED_CHECK_FAILED';
                   error?: string;
               }
         )[] = [];
@@ -668,7 +759,9 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const weaponSku = this.craftweapon();
+            const weapons = this.weapon();
+            const craft = weapons.craft;
+            const uncraft = weapons.uncraft;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -690,8 +783,8 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    weaponSku.includes(sku) &&
-                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    (craft.includes(sku) || uncraft.includes(sku)) &&
+                    this.fromEnv.craftWeaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -699,8 +792,9 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' ? !weaponSku.includes(sku) : true;
+                    const notIncludeCraftweapon = this.fromEnv.craftWeaponAsCurrency
+                        ? !(craft.includes(sku) || uncraft.includes(sku))
+                        : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -720,19 +814,36 @@ export = class MyHandler extends Handler {
                         // Check stock limits (not for keys)
                         const diff = itemsDiff[sku];
 
-                        const buyingOverstockCheck = diff > 0;
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, buyingOverstockCheck);
+                        const isBuying = diff > 0; // is buying if true.
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
 
-                        if (diff !== 0 && amountCanTrade < diff && notIncludeCraftweapon) {
-                            // User is taking too many / offering too many
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
+                            // User is offering too many
                             hasOverstock = true;
 
-                            this.overstockedItemsSKU.push(sku);
+                            wrongAboutOffer.push({
+                                reason: '🟦_OVERSTOCKED',
+                                sku: sku,
+                                buying: isBuying,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade
+                            });
+                        }
+
+                        if (
+                            diff !== 0 &&
+                            !isBuying &&
+                            sku !== '5021;6' &&
+                            amountCanTrade < Math.abs(diff) &&
+                            notIncludeCraftweapon
+                        ) {
+                            // User is taking too many
+                            hasUnderstock = true;
 
                             wrongAboutOffer.push({
-                                reason: '🟦OVERSTOCKED',
+                                reason: '🟩_UNDERSTOCKED',
                                 sku: sku,
-                                buying: buyingOverstockCheck,
+                                selling: !isBuying,
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
@@ -758,33 +869,35 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        this.invalidItemsSKU.push(sku);
-
-                        this.sleep(1000);
+                        await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
+                        const item = SKU.fromString(sku);
+
+                        let itemSuggestedValue;
+
                         if (price === null) {
-                            this.invalidItemsValue.push('No price');
+                            itemSuggestedValue = 'No price';
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS !== 'true') {
+                            if (this.fromEnv.givePrice && item.wear === null) {
+                                // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                                // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            const itemSuggestedValue = Currencies.toCurrencies(
-                                price[intentString].toValue(keyPrice.metal)
-                            );
-                            this.invalidItemsValue.push(itemSuggestedValue.toString());
+                            itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
                         }
 
                         wrongAboutOffer.push({
-                            reason: '🟨INVALID_ITEMS',
+                            reason: '🟨_INVALID_ITEMS',
                             sku: sku,
                             buying: buying,
-                            amount: amount
+                            amount: amount,
+                            price: itemSuggestedValue.toString()
                         });
                     }
                 }
@@ -792,7 +905,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL !== 'false') {
+        if (this.fromEnv.showMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -825,48 +938,53 @@ export = class MyHandler extends Handler {
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
+                this.bot.listings.checkBySKU('5021;6');
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
-                this.autoRelistNotSellingKeys++;
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                this.bot.listings.checkBySKU('5021;6');
+                return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
-                this.autoRelistNotBuyingKeys++;
-                return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
+                this.bot.listings.checkBySKU('5021;6');
+                return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'];
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
 
-                const buying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', buying);
+                const isBuying = diff > 0;
+                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
-                    // User is taking too many / offering too many
+                    // User is offering too many
                     hasOverstock = true;
                     wrongAboutOffer.push({
-                        reason: '🟦OVERSTOCKED',
+                        reason: '🟦_OVERSTOCKED',
                         sku: '5021;6',
-                        buying: buying,
+                        buying: isBuying,
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
                 }
-            }
-            if (this.autokeysEnabled !== false) {
-                if (this.autoRelistNotSellingKeys > 2 || this.autoRelistNotBuyingKeys > 2) {
-                    log.debug('Our key listings do not synced with Backpack.tf detected, auto-relist initialized.');
-                    this.bot.listings.checkAllWithDelay();
-                    this.autoRelistNotSellingKeys = 0;
-                    this.autoRelistNotBuyingKeys = 0;
+
+                const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
+
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
+                    // User is taking too many
+                    hasUnderstock = true;
+
+                    wrongAboutOffer.push({
+                        reason: '🟩_UNDERSTOCKED',
+                        sku: '5021;6',
+                        selling: !isBuying,
+                        diff: diff,
+                        amountCanTrade: amountCanTrade
+                    });
                 }
-            } else {
-                this.autoRelistNotSellingKeys = 0;
-                this.autoRelistNotBuyingKeys = 0;
             }
         }
 
@@ -898,7 +1016,7 @@ export = class MyHandler extends Handler {
                 hasInvalidValue = true;
                 this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
-                    reason: '🟥INVALID_VALUE',
+                    reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
                     their: exchange.their.value
                 });
@@ -916,14 +1034,30 @@ export = class MyHandler extends Handler {
 
         if (!manualReviewEnabled) {
             if (hasOverstock) {
-                offer.log('info', 'is taking / offering too many, declining...');
+                offer.log('info', 'is offering too many, declining...');
 
                 const reasons = wrongAboutOffer.map(wrong => wrong.reason);
                 const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
                 return {
                     action: 'decline',
-                    reason: '🟦OVERSTOCKED',
+                    reason: '🟦_OVERSTOCKED',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+            }
+
+            if (hasUnderstock) {
+                offer.log('info', 'is taking too many, declining...');
+
+                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+                return {
+                    action: 'decline',
+                    reason: '🟩_UNDERSTOCKED',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -940,7 +1074,7 @@ export = class MyHandler extends Handler {
 
                 return {
                     action: 'decline',
-                    reason: '🟥INVALID_VALUE',
+                    reason: '🟥_INVALID_VALUE',
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer
@@ -967,12 +1101,15 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜_ESCROW_CHECK_FAILED'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜STEAM_DOWN',
+                reason: '⬜_ESCROW_CHECK_FAILED',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -991,12 +1128,15 @@ export = class MyHandler extends Handler {
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
+            wrongAboutOffer.push({
+                reason: '⬜_BANNED_CHECK_FAILED'
+            });
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             return {
                 action: 'skip',
-                reason: '⬜BACKPACKTF_DOWN',
+                reason: '⬜_BANNED_CHECK_FAILED',
                 meta: {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer
@@ -1035,22 +1175,20 @@ export = class MyHandler extends Handler {
                             // Offer contains duped items, decline it
                             return {
                                 action: 'decline',
-                                reason: '🟫DUPED_ITEMS',
+                                reason: '🟫_DUPED_ITEMS',
                                 meta: { assetids: assetidsToCheck, result: result }
                             };
                         } else {
                             // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
-                            this.dupedItemsSKU = skuToCheck;
                             wrongAboutOffer.push({
-                                reason: '🟫DUPED_ITEMS',
+                                reason: '🟫_DUPED_ITEMS',
                                 assetid: assetidsToCheck[i]
                             });
                         }
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
-                        this.dupedFailedItemsSKU = skuToCheck;
                         wrongAboutOffer.push({
-                            reason: '🟪DUPE_CHECK_FAILED',
+                            reason: '🟪_DUPE_CHECK_FAILED',
                             assetid: assetidsToCheck[i]
                         });
                     }
@@ -1058,96 +1196,158 @@ export = class MyHandler extends Handler {
             } catch (err) {
                 log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + err.message);
                 wrongAboutOffer.push({
-                    reason: '🟪DUPE_CHECK_FAILED',
+                    reason: '🟪_DUPE_CHECK_FAILED',
                     error: err.message
                 });
             }
         }
 
-        this.isAcceptedWithInvalidItemsOrOverstocked = false;
+        // TO DO: Counter offer?
+
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
+            const env = this.fromEnv;
+
             const acceptingCondition =
-                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' ||
-                process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false'
+                env.givePrice || env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked
                     ? exchange.our.value < exchange.their.value
-                    : process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'true'
+                    : !env.givePrice
                     ? exchange.our.value <= exchange.their.value
                     : false;
 
-            // TO DO: Counter offer?
-            //
-            // if (
-            //     uniqueReasons.includes('🟥INVALID_VALUE') &&
-            //     !(
-            //         uniqueReasons.includes('🟨INVALID_ITEMS') ||
-            //         uniqueReasons.includes('🟦OVERSTOCKED') ||
-            //         uniqueReasons.includes('🟫DUPED_ITEMS') ||
-            //         uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
-            //     )
-            // ) {
-            //     const counteroffer = offer.counter();
-            // }
+            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
+            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
+            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
+            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
+            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
+
             if (
-                ((uniqueReasons.includes('🟨INVALID_ITEMS') &&
-                    process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true') ||
-                    (uniqueReasons.includes('🟦OVERSTOCKED') &&
-                        process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY !== 'true')) &&
-                !(
-                    uniqueReasons.includes('🟥INVALID_VALUE') ||
-                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
-                ) &&
+                ((isInvalidItem && env.autoAcceptOverpay.invalidItem) ||
+                    (isOverstocked && env.autoAcceptOverpay.overstocked) ||
+                    (isUnderstocked && env.autoAcceptOverpay.understocked)) &&
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed) &&
                 acceptingCondition &&
                 exchange.our.value !== 0
             ) {
-                this.isAcceptedWithInvalidItemsOrOverstocked = true;
                 offer.log(
                     'trade',
                     `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
                         this.bot.schema
                     )}`
                 );
-                return { action: 'accept', reason: 'VALID' };
+
+                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                if (isManyItems) {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                    );
+                } else {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'I have accepted your offer and the trade will be completed in seconds.'
+                    );
+                }
+
+                return {
+                    action: 'accept',
+                    reason: 'VALID_WITH_OVERPAY',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer,
+                        hasHighValueItems: {
+                            our: hasHighValueOur,
+                            their: hasHighValueTheir
+                        },
+                        highValueItems: {
+                            our: highValuedOur,
+                            their: highValuedTheir
+                        }
+                    }
+                };
             } else if (
-                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
-                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
-                uniqueReasons.includes('🟥INVALID_VALUE') &&
-                !(
-                    uniqueReasons.includes('🟨INVALID_ITEMS') ||
-                    uniqueReasons.includes('🟦OVERSTOCKED') ||
-                    uniqueReasons.includes('🟫DUPED_ITEMS') ||
-                    uniqueReasons.includes('🟪DUPE_CHECK_FAILED')
-                ) &&
+                env.autoDecline.invalidValue &&
+                isInvalidValue &&
+                !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
             ) {
+                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+            } else if (
+                env.autoDecline.overstocked &&
+                isOverstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
+            } else if (
+                env.autoDecline.understocked &&
+                isUnderstocked &&
+                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                const reviewMeta = {
+                    uniqueReasons: uniqueReasons,
+                    reasons: wrongAboutOffer,
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                };
+
+                offer.data('reviewMeta', reviewMeta);
+
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer
-                    }
+                    meta: reviewMeta
                 };
             }
         }
 
         offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
 
-        return { action: 'accept', reason: 'VALID' };
-    }
+        const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
+        if (isManyItems) {
+            this.bot.sendMessage(
+                offer.partner,
+                'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                    ' If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+            );
+        } else {
+            this.bot.sendMessage(
+                offer.partner,
+                'I have accepted your offer and the trade will be completed in seconds.' +
+                    ' If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+            );
+        }
+
+        return {
+            action: 'accept',
+            reason: 'VALID',
+            meta: {
+                hasHighValueItems: {
+                    our: hasHighValueOur,
+                    their: hasHighValueTheir
+                },
+                highValueItems: {
+                    our: highValuedOur,
+                    their: highValuedTheir
+                }
+            }
+        };
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
@@ -1157,6 +1357,8 @@ export = class MyHandler extends Handler {
         if (oldState === TradeOfferManager.ETradeOfferState.Accepted) {
             offer.data('switchedState', oldState);
         }
+
+        let hasHighValue = false;
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1173,17 +1375,17 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
-                        '✅ Success! The offer went through successfully, but you will receive your items after ~15 days.' +
-                            ' Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                        '✅ Success! The offer went through successfully, but you will receive your items after several days. ' +
+                            'Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '• Steam Guard: How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                            '\n• How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
-                    const offerReason: { reason: string } = offer.data('action');
-                    const keyPrice = this.bot.pricelist.getKeyPrices();
-                    const value = this.valueDiff(offer, keyPrice);
-                    const itemsList = this.itemList(offer);
+                    const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
+                    const keyPrices = this.bot.pricelist.getKeyPrices();
+                    const value = this.valueDiff(offer, keyPrices);
+                    const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
                     let reason: string;
@@ -1191,39 +1393,83 @@ export = class MyHandler extends Handler {
                         reason = '';
                     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
                         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
+                    } else if (offerReason.reason === 'CRIME_ATTEMPT') {
+                        reason = "you're taking free items. No.";
                     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
-                        reason = 'your offer contains Dueling Mini-Game that are not 5 uses.';
+                        reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
-                        reason = 'your offer contains Noise Maker that are not 25 uses.';
-                    } else if (offerReason.reason === 'ONLY_INVALID_VALUE') {
+                        reason = 'your offer contains a Noise Maker that does not have 25 uses.';
+                    } else if (offerReason.reason === 'HIGH_VALUE_ITEMS_NOT_SELLING') {
+                        reason = `you're taking ${offerReason.meta.highValueName.join(
+                            ', '
+                        )}, and I am not selling it right now.`;
+                    } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
+                        reason =
+                            'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
+                        reason =
+                            'I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
+                        reason =
+                            'I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+                    } else if (offerReason.reason === 'BANNED') {
+                        reason =
+                            "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or another community.";
+                    } else if (offerReason.reason === 'ESCROW') {
+                        reason =
+                            'I do not accept escrow (trade hold). Please use Steam Guard Mobile Authenticator so you will be able to trade instantly in the future.' +
+                            '\nRead:\n' +
+                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                            '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
+                    } else if (
+                        offerReason.reason === 'ONLY_INVALID_VALUE' ||
+                        (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
+                    ) {
                         reasonForInvalidValue = true;
-                        reason = "you've sent a trade with an invalid value (your side and my side did not matched).";
+                        reason =
+                            "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
+                    } else if (
+                        offerReason.reason === 'ONLY_OVERSTOCKED' ||
+                        (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
+                    ) {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                    } else if (
+                        offerReason.reason === 'ONLY_UNDERSTOCKED' ||
+                        (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
+                    ) {
+                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reason = "you're taking some item(s) that I can't sell more than I could.";
+                    } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
+                        reason = "I don't accept duped items.";
                     } else {
                         reason = '';
                     }
+
+                    const invalidValueSummary =
+                        '\n\nSummary:\n' +
+                        offer
+                            .summarize(this.bot.schema)
+                            .replace('Asked', '  My side')
+                            .replace('Offered', 'Your side') +
+                        "\n[You're missing: " +
+                        (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        `${
+                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                                : ''
+                        }`;
+
                     this.bot.sendMessage(
                         offer.partner,
                         process.env.CUSTOM_DECLINED_MESSAGE
-                            ? process.env.CUSTOM_DECLINED_MESSAGE
+                            ? process.env.CUSTOM_DECLINED_MESSAGE.replace(/%reason%/g, reason).replace(
+                                  /%invalid_value_summary%/g,
+                                  invalidValueSummary
+                              )
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
-                              }` +
-                                  (reasonForInvalidValue
-                                      ? '\n\nSummary:\n' +
-                                        offer
-                                            .summarize(this.bot.schema)
-                                            .replace('Asked', '  My side')
-                                            .replace('Offered', 'Your side') +
-                                        "\n[You're missing: " +
-                                        (itemsList.their.includes('5021;6')
-                                            ? `${value.diffKey}]`
-                                            : `${value.diffRef} ref]`) +
-                                        `${
-                                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                                : ''
-                                        }`
-                                      : '')
+                              }` + (reasonForInvalidValue ? invalidValueSummary : '')
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
                     let reason: string;
@@ -1233,7 +1479,8 @@ export = class MyHandler extends Handler {
                     } else if (oldState === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation) {
                         reason = 'Failed to accept mobile confirmation';
                     } else {
-                        reason = 'The offer has been active for a while';
+                        reason =
+                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later";
                     }
 
                     this.bot.sendMessage(
@@ -1258,12 +1505,21 @@ export = class MyHandler extends Handler {
                 offer.log('trade', 'has been accepted.');
 
                 // Auto sell and buy keys if ref < minimum
-                this.autokeys();
 
-                const isAutoKeysEnabled = this.autokeysEnabled;
-                const autoKeysStatus = this.checkAutokeysStatus;
-                const isBuyingKeys = this.isBuyingKeys;
-                const isBankingKeys = this.isBankingKeys;
+                this.autokeys.check();
+
+                const autokeys = {
+                    isEnabled: this.autokeys.isEnabled,
+                    isActive: this.autokeys.isActive,
+                    isBuying: this.autokeys.status.isBuyingKeys,
+                    isBanking: this.autokeys.status.isBankingKeys
+                };
+
+                this.autokeysStatus = {
+                    isActive: autokeys.isActive,
+                    isBuying: autokeys.isBuying,
+                    isBanking: autokeys.isBanking
+                };
 
                 const pureStock = this.pureStock();
                 const timeWithEmojis = this.timeWithEmoji();
@@ -1271,40 +1527,97 @@ export = class MyHandler extends Handler {
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const invalidItemsName: string[] = [];
-                const invalidItemsCombine: string[] = [];
-                const isAcceptedInvalidItemsOverpay = this.isAcceptedWithInvalidItemsOrOverstocked;
+                const accepted: {
+                    invalidItems: string[];
+                    overstocked: string[];
+                    understocked: string[];
+                    highValue: string[];
+                } = {
+                    invalidItems: [],
+                    overstocked: [],
+                    understocked: [],
+                    highValue: []
+                };
 
-                if (isAcceptedInvalidItemsOverpay) {
-                    this.invalidItemsSKU.forEach(sku => {
-                        const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                        invalidItemsName.push(name);
-                    });
+                const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
+                const offerMade: { nameWithSpell: string[] } = offer.data('highValue');
 
-                    for (let i = 0; i < invalidItemsName.length; i++) {
-                        invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
+                if (offerMeta) {
+                    // doing this because if an offer is being made by bot (from command), then this is undefined
+                    if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
+                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
+                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                accepted.invalidItems.push(name + ' - ' + el.price);
+                            });
+                        }
+
+                        if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+                            // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
+                            });
+                        }
+
+                        if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+                            // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
+
+                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
+                            invalid.forEach(el => {
+                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
+                            });
+                        }
+                    }
+
+                    if (offerMeta.meta && offerMeta.meta.hasHighValueItems) {
+                        if (offerMeta.meta.hasHighValueItems.their) {
+                            hasHighValue = true;
+                            // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
+                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
+                                accepted.highValue.push(name);
+                            });
+                        }
+
+                        if (offerMeta.meta.hasHighValueItems.our) {
+                            hasHighValue = true;
+                            // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
+                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
+                                accepted.highValue.push(name);
+                            });
+                        }
+                    }
+                } else if (offerMade) {
+                    // This is for offer that bot created from commands
+                    if (offerMade.nameWithSpell.length > 0) {
+                        hasHighValue = true;
+                        offerMade.nameWithSpell.forEach(name => {
+                            accepted.highValue.push(name);
+                        });
                     }
                 }
 
-                const keyPrice = this.bot.pricelist.getKeyPrices();
-                const value = this.valueDiff(offer, keyPrice);
+                const keyPrices = this.bot.pricelist.getKeyPrices();
+                const value = this.valueDiff(offer, keyPrices);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                    this.discord.tradeSummaryLinks.length !== 0
                 ) {
                     this.discord.sendTradeSummary(
                         offer,
-                        isAutoKeysEnabled,
-                        autoKeysStatus,
-                        isBuyingKeys,
-                        isBankingKeys,
-                        offer.summarizeWithLink(this.bot.schema),
-                        pureStock,
+                        autokeys,
                         currentItems,
                         this.backpackSlots,
-                        invalidItemsCombine,
-                        keyPrice,
+                        accepted,
+                        keyPrices,
                         value,
                         itemsList,
                         links,
@@ -1313,25 +1626,43 @@ export = class MyHandler extends Handler {
                 } else {
                     this.bot.messageAdmins(
                         'trade',
-                        `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅\n\nSummary:\n` +
-                            offer.summarize(this.bot.schema) +
-                            (value.diff > 0
-                                ? `\n\n📈 Profit from overpay: ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n\n📉 Loss from underpay: ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                        `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
+                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
+                            (accepted.invalidItems.length !== 0
+                                ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
                                 : '') +
-                            (isAcceptedInvalidItemsOverpay
-                                ? '\n\n🟨INVALID_ITEMS:\n' + invalidItemsCombine.join(',\n')
+                            (accepted.overstocked.length !== 0
+                                ? (accepted.invalidItems.length !== 0 ? '\n\n' : '') +
+                                  '🟦_OVERSTOCKED:\n- ' +
+                                  accepted.overstocked.join(',\n- ')
                                 : '') +
-                            `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                            (accepted.understocked.length !== 0
+                                ? (accepted.overstocked.length !== 0 || accepted.invalidItems.length !== 0
+                                      ? '\n\n'
+                                      : '') +
+                                  '🟩_UNDERSTOCKED:\n- ' +
+                                  accepted.understocked.join(',\n- ')
+                                : '') +
+                            (accepted.highValue.length !== 0
+                                ? (accepted.overstocked.length !== 0 ||
+                                  accepted.invalidItems.length !== 0 ||
+                                  accepted.understocked.length !== 0
+                                      ? '\n\n'
+                                      : '') +
+                                  '🔶_HIGH_VALUE_ITEMS:\n- ' +
+                                  accepted.highValue.join(',\n- ')
+                                : '') +
+                            `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                             `${
-                                isAutoKeysEnabled
+                                autokeys.isEnabled
                                     ? ' | Autokeys: ' +
-                                      (autoKeysStatus
+                                      (autokeys.isActive
                                           ? '✅' +
-                                            (isBankingKeys ? ' (banking)' : isBuyingKeys ? ' (buying)' : ' (selling)')
+                                            (autokeys.isBanking
+                                                ? ' (banking)'
+                                                : autokeys.isBuying
+                                                ? ' (buying)'
+                                                : ' (selling)')
                                           : '🛑')
                                     : ''
                             }` +
@@ -1352,6 +1683,11 @@ export = class MyHandler extends Handler {
             // Craft duplicated weapons
             this.craftDuplicateWeapons();
 
+            this.classWeaponsTimeout = setTimeout(() => {
+                // called after 2 minutes to craft metals and duplicated weapons first.
+                this.craftClassWeapons();
+            }, 2 * 60 * 1000);
+
             // Sort inventory
             this.sortInventory();
 
@@ -1363,19 +1699,91 @@ export = class MyHandler extends Handler {
                     continue;
                 }
 
+                // Update listings
                 this.bot.listings.checkBySKU(sku);
+
+                const item = SKU.fromString(sku);
+                const name = this.bot.schema.getName(item, false);
+
+                // Request priceheck on each sku involved in the trade, except craft weapons,
+                // and pure.
+                if (
+                    !(
+                        this.weapon().craft.includes(sku) ||
+                        this.weapon().uncraft.includes(sku) ||
+                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                    )
+                ) {
+                    requestCheck(sku, 'bptf').asCallback((err, body) => {
+                        if (err) {
+                            log.warn(
+                                '❌ Failed to request pricecheck for ' +
+                                    `${name} (${sku})` +
+                                    ': ' +
+                                    (err.body && err.body.message ? err.body.message : err.message)
+                            );
+                        } else {
+                            log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
+                        }
+                    });
+                }
+
+                // Automatically add any INVALID_ITEMS to sell, excluding any item name
+                // that have War Paint (could be skins)
+
+                const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
+                const inPrice = this.bot.pricelist.getPrice(sku, false);
+
+                if (
+                    inPrice === null &&
+                    !(
+                        this.weapon().craft.includes(sku) ||
+                        this.weapon().uncraft.includes(sku) ||
+                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                    ) &&
+                    item.wear === null &&
+                    !hasHighValue
+                ) {
+                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, then add
+                    // INVALID_ITEMS to the pricelist.
+                    if (
+                        !this.bot.isAdmin(offer.partner) ||
+                        (this.bot.isAdmin(offer.partner) && offer.itemsToReceive.length > 0)
+                    ) {
+                        // if an offer is not from ADMIN or if it's from ADMIN and receiving something
+                        // that's not in pricelist, then add to sell
+                        const entry = {
+                            sku: sku,
+                            enabled: true,
+                            autoprice: true,
+                            min: 0,
+                            max: 1,
+                            intent: 1
+                        } as any;
+
+                        this.bot.pricelist
+                            .addPrice(entry as EntryData, false)
+                            .then(data => {
+                                log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
+                                this.bot.listings.checkBySKU(data.sku, data);
+                            })
+                            .catch(err => {
+                                log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
+                            });
+                    }
+                } else if (inPrice !== null && inPrice.intent === 1 && currentStock < 1) {
+                    this.bot.pricelist
+                        .removePrice(sku, false)
+                        .then(() => {
+                            log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
+                        });
+                }
             }
 
             this.inviteToGroups(offer.partner);
-
-            this.sleep(3000);
-
-            // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
-            this.overstockedItemsSKU.length = 0;
-            this.dupedItemsSKU.length = 0;
-            this.dupedFailedItemsSKU.length = 0;
         }
     }
 
@@ -1390,148 +1798,205 @@ export = class MyHandler extends Handler {
             return;
         }
 
-        const keyPrice = this.bot.pricelist.getKeyPrices();
+        const keyPrices = this.bot.pricelist.getKeyPrices();
         const pureStock = this.pureStock();
-        const value = this.valueDiff(offer, keyPrice);
+        const value = this.valueDiff(offer, keyPrices);
         const timeWithEmojis = this.timeWithEmoji();
         const links = this.tradePartnerLinks(offer.partner.toString());
-        const itemsList = this.itemList(offer);
 
         if (action === 'skip') {
-            const reviewReasons: string[] = [];
+            // Offer review note
             let note: string;
-            let missingPureNote: string;
-            const invalidItemsName: string[] = [];
-            const invalidItemsCombine: string[] = [];
-            const overstockedItemsName: string[] = [];
-            const dupedItemsName: string[] = [];
-            const dupedFailedItemsName: string[] = [];
-            const reasons = meta.uniqueReasons;
+            const reviewReasons: string[] = [];
 
-            if (reasons.includes('🟨INVALID_ITEMS')) {
-                this.invalidItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    invalidItemsName.push(name);
+            // for INVALID_VALUE
+            let missingPureNote: string;
+
+            const reasons = meta.uniqueReasons;
+            const wrong = meta.reasons;
+
+            // for 🟨_INVALID_ITEMS
+            const invalidForTheir: string[] = []; // Display for trade partner
+            const invalidForOur: string[] = []; // Display for owner
+
+            if (reasons.includes('🟨_INVALID_ITEMS')) {
+                const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
+
+                invalid.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    invalidForTheir.push(name); // only show to trade partner the item name
+                    invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
                 });
 
-                for (let i = 0; i < invalidItemsName.length; i++) {
-                    invalidItemsCombine.push(invalidItemsName[i] + ' - ' + this.invalidItemsValue[i]);
-                }
-
                 note = process.env.INVALID_ITEMS_NOTE
-                    ? `🟨INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
-                          .replace(/%name%/g, invalidItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', invalidItemsName.length))
-                    : `🟨INVALID_ITEMS - %name% ${pluralize(
+                    ? `🟨_INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
+                          .replace(/%name%/g, invalidForTheir.join(', '))
+                          .replace(/%isName%/, pluralize('is', invalidForTheir.length))
+                    : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
                           'is',
-                          invalidItemsName.length
-                      )} not in my pricelist. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          invalidItemsName.join(', ')
-                      );
+                          invalidForTheir.length
+                      )} not in my pricelist.`;
+                // Default note: %name% is|are not in my pricelist.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟦OVERSTOCKED')) {
-                this.overstockedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                    overstockedItemsName.push(name);
+            // for 🟦_OVERSTOCKED
+            const overstockedForTheir: string[] = [];
+            const overstockedForOur: string[] = [];
+
+            if (reasons.includes('🟦_OVERSTOCKED')) {
+                const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
+
+                overstock.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    overstockedForTheir.push(el.amountCanTrade + ' - ' + name);
+                    overstockedForOur.push(name + ' (can only buy ' + el.amountCanTrade + ')');
                 });
 
                 note = process.env.OVERSTOCKED_NOTE
-                    ? `🟦OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
-                          .replace(/%name%/g, overstockedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', overstockedItemsName.length))
-                    : `🟦OVERSTOCKED - %name% ${pluralize(
-                          'is',
-                          overstockedItemsName.length
-                      )} already reached max amount I can have. Please wait for the response from my owner.`.replace(
-                          /%name%/g,
-                          overstockedItemsName.join(', ')
-                      );
+                    ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
+                          .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                          .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
+                    : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
+                // Default note: I can only buy %amountCanTrade% - %name% right now.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟫DUPED_ITEMS')) {
-                this.dupedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+            // for 🟩_UNDERSTOCKED
+            const understockedForTheir: string[] = [];
+            const understockedForOur: string[] = [];
+
+            if (reasons.includes('🟩_UNDERSTOCKED')) {
+                const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
+
+                understocked.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                    understockedForTheir.push(el.amountCanTrade + ' - ' + name);
+                    understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
+                });
+
+                note = process.env.UNDERSTOCKED_NOTE
+                    ? `🟩_UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
+                          .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
+                          .replace(/%isName%/, pluralize('is', understockedForTheir.length))
+                    : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
+                // Default note: I can only sell %amountCanTrade% - %name% right now.
+
+                reviewReasons.push(note);
+            }
+
+            // for 🟫_DUPED_ITEMS
+            const dupedItemsName: string[] = [];
+
+            if (reasons.includes('🟫_DUPED_ITEMS')) {
+                const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+
+                duped.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedItemsName.push(name);
                 });
 
                 note = process.env.DUPE_ITEMS_NOTE
-                    ? `🟫DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
+                    ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫DUPED_ITEMS - %name% ${pluralize(
+                    : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
                           'is',
                           dupedItemsName.length
-                      )} appeared to be duped. Please wait for my owner to review it. Thank you.`.replace(
-                          /%name%/g,
-                          dupedItemsName.join(', ')
-                      );
+                      )} appeared to be duped.`;
+                // Default note: %name% is|are appeared to be duped.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟪DUPE_CHECK_FAILED')) {
-                this.dupedFailedItemsSKU.forEach(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+            // for 🟪_DUPE_CHECK_FAILED
+            const dupedFailedItemsName: string[] = [];
+
+            if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
+                const dupedFailed = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+
+                dupedFailed.forEach(el => {
+                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     dupedFailedItemsName.push(name);
                 });
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
-                    ? `🟪DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
+                    ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪DUPE_CHECK_FAILED - Backpack.tf still does not recognize %name% Original ${pluralize(
-                          'ID',
-                          dupedFailedItemsName.length
-                      )} to check for the duped item. You can try again later. Check it yourself by going to your item history page. Thank you.`.replace(
-                          /%name%/g,
-                          dupedFailedItemsName.join(', ')
-                      );
+                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
+                // Default note: I failed to check for duped on %name%.
+
                 reviewReasons.push(note);
             }
 
-            if (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')) {
+            if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
                 note = process.env.INVALID_VALUE_NOTE
-                    ? `🟥INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
-                    : '🟥INVALID_VALUE - Your offer will be ignored. Please cancel it and make another offer with correct value.';
+                    ? `🟥_INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
+                    : "🟥_INVALID_VALUE - You're taking too much in value.";
+
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (itemsList.their.includes('5021;6') ? `${value.diffKey}]` : `${value.diffRef} ref]`);
+                    (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
+
+            const highValueItems: string[] = [];
+            if (meta) {
+                if (meta.hasHighValueItems) {
+                    const hasHighValue = meta.hasHighValueItems.their;
+
+                    if (hasHighValue) {
+                        meta.highValueItems.their.nameWithSpell.forEach(name => {
+                            highValueItems.push(name);
+                        });
+                    }
+                }
+            }
+
+            const hasCustomNote =
+                process.env.INVALID_ITEMS_NOTE ||
+                process.env.OVERSTOCKED_NOTE ||
+                process.env.UNDERSTOCKED_NOTE ||
+                process.env.DUPE_ITEMS_NOTE ||
+                process.env.DUPE_CHECK_FAILED_NOTE
+                    ? true
+                    : false;
+
             // Notify partner and admin that the offer is waiting for manual review
-            if (reasons.includes('⬜BACKPACKTF_DOWN') || reasons.includes('⬜STEAM_DOWN')) {
+            if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
                 this.bot.sendMessage(
                     offer.partner,
-                    (reasons.includes('⬜BACKPACKTF_DOWN') ? 'Backpack.tf' : 'Steam') +
+                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
                         ' is down and I failed to check your ' +
-                        (reasons.includes('⬜BACKPACKTF_DOWN') ? 'backpack.tf' : 'Escrow') +
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow (Trade holds)') +
                         ' status, please wait for my owner to manually accept/decline your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     offer.partner,
-                    `⚠️ Your offer is waiting for review.\nReason: ${reasons.join(', ')}` +
+                    `⚠️ Your offer is waiting for review.\nReasons: ${reasons.join(', ')}` +
                         (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
                             ? '\n\nYour offer summary:\n' +
                               offer
                                   .summarize(this.bot.schema)
                                   .replace('Asked', '  My side')
                                   .replace('Offered', 'Your side') +
-                              (reasons.includes('🟥INVALID_VALUE') && !reasons.includes('🟨INVALID_ITEMS')
+                              (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                                   ? missingPureNote
                                   : '') +
                               (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
-                                  ? `\n\nNote:\n${reviewReasons.join('\n')}`
+                                  ? `\n\nNote:\n${reviewReasons.join('\n') +
+                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
                                   : '')
                             : '') +
                         (process.env.ADDITIONAL_NOTE
                             ? '\n\n' +
                               process.env.ADDITIONAL_NOTE.replace(
                                   /%keyRate%/g,
-                                  `${keyPrice.sell.metal.toString()} ref`
+                                  `${keyPrices.sell.metal.toString()} ref`
                               ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
                         (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
@@ -1540,6 +2005,18 @@ export = class MyHandler extends Handler {
                             : '')
                 );
             }
+
+            const items = {
+                invalid: invalidForOur,
+                overstock: overstockedForOur,
+                understock: understockedForOur,
+                duped: dupedItemsName,
+                dupedFailed: dupedFailedItemsName,
+                highValue: highValueItems
+            };
+
+            const list = listItems(items);
+
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
@@ -1547,689 +2024,37 @@ export = class MyHandler extends Handler {
                 this.discord.sendOfferReview(
                     offer,
                     reasons.join(', '),
-                    pureStock,
                     timeWithEmojis.time,
-                    offer.summarizeWithLink(this.bot.schema),
-                    offer.message,
-                    keyPrice,
+                    keyPrices,
                     value,
                     links,
-                    invalidItemsCombine,
-                    overstockedItemsName,
-                    dupedItemsName,
-                    dupedFailedItemsName
+                    items
                 );
             } else {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
                     `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
-                        `\nReason: ${meta.uniqueReasons.join(', ')}` +
-                        (reasons.includes('⬜BACKPACKTF_DOWN')
-                            ? '\nBackpack.tf down, please manually check if this person is banned before accepting the offer.'
-                            : reasons.includes('⬜STEAM_DOWN')
-                            ? '\nSteam down, please manually check if this person have escrow.'
+                        `\nReasons: ${meta.uniqueReasons.join(', ')}` +
+                        (reasons.includes('⬜_BANNED_CHECK_FAILED')
+                            ? '\n\nBackpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.'
+                            : reasons.includes('⬜_ESCROW_CHECK_FAILED')
+                            ? '\n\nSteam down, please manually check if this person have escrow.'
                             : '') +
-                        `\n\nOffer Summary:\n${offer.summarize(this.bot.schema)}${
-                            value.diff > 0
-                                ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : value.diff < 0
-                                ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
-                                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-                                : ''
-                        }${offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : ''}${
-                            invalidItemsName.length !== 0
-                                ? `\n\n🟨INVALID_ITEMS - ${invalidItemsCombine.join(',\n ')}`
-                                : ''
-                        }${
-                            invalidItemsName.length !== 0 && overstockedItemsName.length !== 0
-                                ? `\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                : overstockedItemsName.length !== 0
-                                ? `\n\n🟦OVERSTOCKED - ${overstockedItemsName.join(', ')}`
-                                : ''
-                        }${
-                            (invalidItemsName.length !== 0 || overstockedItemsName.length !== 0) &&
-                            dupedItemsName.length !== 0
-                                ? `\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                : dupedItemsName.length !== 0
-                                ? `\n\n🟫DUPED_ITEMS - ${dupedItemsName.join(', ')}`
-                                : ''
-                        }${
-                            (invalidItemsName.length !== 0 ||
-                                overstockedItemsName.length !== 0 ||
-                                dupedItemsName.length !== 0) &&
-                            dupedFailedItemsName.length !== 0
-                                ? `\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                : dupedFailedItemsName.length !== 0
-                                ? `\n\n🟪DUPE_CHECK_FAILED - ${dupedFailedItemsName.join(', ')}`
-                                : ''
-                        }` +
+                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
+                        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
+                        (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
-                        `\n\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}`,
+                        `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
                 );
             }
-            // clear/reset these in memory
-            this.invalidItemsSKU.length = 0;
-            this.invalidItemsValue.length = 0;
-            this.overstockedItemsSKU.length = 0;
-            this.dupedItemsSKU.length = 0;
-            this.dupedFailedItemsSKU.length = 0;
         }
-    }
-
-    private autokeys(): void {
-        if (this.autokeysEnabled === false) {
-            return;
-        }
-        const pure = this.currPure();
-        const currKeys = pure.key;
-        const currReftoScrap = pure.refTotalInScrap;
-
-        const userMinKeys = this.userMinKeys;
-        const userMaxKeys = this.userMaxKeys;
-        const userMinReftoScrap = this.userMinReftoScrap;
-        const userMaxReftoScrap = this.userMaxReftoScrap;
-
-        if (isNaN(userMinKeys) || isNaN(userMinReftoScrap) || isNaN(userMaxReftoScrap)) {
-            log.warn(
-                "You've entered a non-number on either your MINIMUM_KEYS/MINIMUM_REFINED/MAXIMUM_REFINED variables, please correct it. Autokeys is disabled until you correct it."
-            );
-            return;
-        }
-
-        /**
-         * enable Autokeys - Buying - true if currRef \> maxRef AND currKeys \< maxKeys
-         */
-        const isBuyingKeys = (currReftoScrap > userMaxReftoScrap && currKeys < userMaxKeys) !== false;
-        /*
-        //        <——————————————————————————————————○            \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //                                           ○——————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Selling - true if currRef \< minRef AND currKeys \> minKeys
-         */
-        const isSellingKeys = (currReftoScrap < userMinReftoScrap && currKeys > userMinKeys) !== false;
-        /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————○                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * disable Autokeys - true if currRef \>= maxRef AND currKeys \>= maxKeys OR
-         * (minRef \<= currRef \<= maxRef AND currKeys \<= maxKeys)
-         */
-        const isRemoveAutoKeys =
-            (currReftoScrap >= userMaxReftoScrap && currKeys >= userMaxKeys) ||
-            (currReftoScrap >= userMinReftoScrap && currReftoScrap <= userMaxReftoScrap && currKeys <= userMaxKeys) !==
-                false;
-        /*
-        //        <——————————————————————————————————●·····>      \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ●————————————————————————————●·····>      /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Banking - true if user set ENABLE_AUTO_KEY_BANKING to true
-         */
-        const isEnableKeyBanking = this.keyBankingEnabled;
-
-        /**
-         * enable Autokeys - Banking - true if minRef \< currRef \< maxRef AND currKeys \> minKeys
-         */
-        const isBankingKeys =
-            (currReftoScrap > userMinReftoScrap && currReftoScrap < userMaxReftoScrap && currKeys > userMinKeys) !==
-            false;
-        /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○————————————————————————————○            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * enable Autokeys - Banking - true if minRef \> currRef \< maxRef AND keys \< minKeys
-         * Will buy keys.
-         */
-        const isBankingBuyKeysWithEnoughRefs = currReftoScrap > userMinReftoScrap && currKeys <= userMinKeys !== false;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○———————————————————————————————————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        /**
-         * disable Autokeys - Banking - true if currRef \< minRef AND currKeys \< minKeys
-         */
-        const isRemoveBankingKeys = currReftoScrap <= userMaxReftoScrap && currKeys <= userMinKeys !== false;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <——————————————————————————————————●            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        const isAlreadyAlert = this.checkAlertOnLowPure;
-
-        /**
-         * send alert to admins when both keys and refs below minimum
-         */
-        const isAlertAdmins = currReftoScrap <= userMinReftoScrap && currKeys <= userMinKeys !== false;
-        /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————●                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
-        */
-
-        const isAlreadyUpdatedToBank = this.alreadyUpdatedToBank;
-        const isAlreadyUpdatedToBuy = this.alreadyUpdatedToBuy;
-        const isAlreadyUpdatedToSell = this.alreadyUpdatedToSell;
-
-        log.debug(
-            `
-Autokeys status:-
-    Ref: MinRef(${Currencies.toRefined(userMinReftoScrap)}) < CurrRef(${Currencies.toRefined(
-                currReftoScrap
-            )}) < MaxRef(${Currencies.toRefined(userMaxReftoScrap)})
-    Key: MinKeys(${userMinKeys}) ≤ CurrKeys(${currKeys}) ≤ MaxKeys(${userMaxKeys})
- Status: ${
-     isBuyingKeys
-         ? 'Buying'
-         : isSellingKeys
-         ? 'Selling'
-         : isBankingKeys && isEnableKeyBanking
-         ? 'Banking'
-         : 'Not active'
- }`
-        );
-
-        const isAlreadyRunningAutokeys = this.checkAutokeysStatus !== false;
-        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
-        const time = this.timeWithEmoji();
-
-        if (isAlreadyRunningAutokeys) {
-            // if Autokeys already running
-            if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
-                // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                this.isBuyingKeys = false;
-                this.isBankingKeys = true;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = true;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
-                this.updateAutokeysBanking(userMinKeys, userMaxKeys);
-            } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
-                // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                this.isBuyingKeys = true;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = true;
-                this.alreadyUpdatedToSell = false;
-                this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-            } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
-                // enable Autokeys - Buying - if buying keys conditions matched
-                this.isBuyingKeys = true;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = true;
-                this.alreadyUpdatedToSell = false;
-                this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-            } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
-                // enable Autokeys - Selling - if selling keys conditions matched
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = true;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = true;
-                this.updateAutokeysSell(userMinKeys, userMaxKeys);
-            } else if (isRemoveBankingKeys && isEnableKeyBanking) {
-                // disable keys banking - if to conditions to disable banking matched and banking is enabled
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
-                this.removeAutoKeys();
-            } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
-                // disable Autokeys when conditions to disable Autokeys matched
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = false;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
-                this.removeAutoKeys();
-            } else if (isAlertAdmins && isAlreadyAlert !== true) {
-                // alert admins when low pure
-                this.isBuyingKeys = false;
-                this.isBankingKeys = false;
-                this.checkAutokeysStatus = false;
-                this.checkAlertOnLowPure = true;
-                this.alreadyUpdatedToBank = false;
-                this.alreadyUpdatedToBuy = false;
-                this.alreadyUpdatedToSell = false;
-                const msg = 'I am now low on both keys and refs.';
-                if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                    if (
-                        process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                        process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                    ) {
-                        this.discord.sendLowPureAlert(msg, time.time);
-                    } else {
-                        this.bot.messageAdmins(msg, []);
-                    }
-                }
-            }
-        } else if (!isAlreadyRunningAutokeys) {
-            // if Autokeys is not running/disabled
-            if (isKeysAlreadyExist === null) {
-                // if Mann Co. Supply Crate Key entry does not exist in the pricelist.json
-                if (isBankingKeys && isEnableKeyBanking) {
-                    //create new Key entry and enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = true;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.createAutokeysBanking(userMinKeys, userMaxKeys);
-                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
-                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.createAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isBuyingKeys) {
-                    // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.createAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isSellingKeys) {
-                    // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.createAutokeysSell(userMinKeys, userMaxKeys);
-                } else if (isAlertAdmins && isAlreadyAlert !== true) {
-                    // alert admins when low pure
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = true;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                        if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                        ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
-                    }
-                }
-            } else {
-                // if Mann Co. Supply Crate Key entry already in the pricelist.json
-                if (isBankingKeys && isEnableKeyBanking && isAlreadyUpdatedToBank !== true) {
-                    // enable keys banking - if banking conditions to enable banking matched and banking is enabled
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = true;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = true;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    this.updateAutokeysBanking(userMinKeys, userMaxKeys);
-                } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking && isAlreadyUpdatedToBuy !== true) {
-                    // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = true;
-                    this.alreadyUpdatedToSell = false;
-                    this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isBuyingKeys && isAlreadyUpdatedToBuy !== true) {
-                    // enable Autokeys - Buying - if buying keys conditions matched
-                    this.isBuyingKeys = true;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = true;
-                    this.alreadyUpdatedToSell = false;
-                    this.updateAutokeysBuy(userMinKeys, userMaxKeys);
-                } else if (isSellingKeys && isAlreadyUpdatedToSell !== true) {
-                    // enable Autokeys - Selling - if selling keys conditions matched
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = true;
-                    this.checkAlertOnLowPure = false;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = true;
-                    this.updateAutokeysSell(userMinKeys, userMaxKeys);
-                } else if (isAlertAdmins && isAlreadyAlert !== true) {
-                    // alert admins when low pure
-                    this.isBuyingKeys = false;
-                    this.isBankingKeys = false;
-                    this.checkAutokeysStatus = false;
-                    this.checkAlertOnLowPure = true;
-                    this.alreadyUpdatedToBank = false;
-                    this.alreadyUpdatedToBuy = false;
-                    this.alreadyUpdatedToSell = false;
-                    const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
-                        if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                        ) {
-                            this.discord.sendLowPureAlert(msg, time.time);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private createAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (this.isUsingAutoPrice) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 1
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
-                },
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 1
-            } as any;
-        }
-        this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private createAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (this.isUsingAutoPrice) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 1
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
-                },
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 0
-            } as any;
-        }
-        this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private createAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 2
-        } as any;
-        this.bot.pricelist
-            .addPrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private updateToDisableAutokeys(): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: false,
-            autoprice: true,
-            max: 1,
-            min: 0,
-            intent: 1
-        } as any;
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically disabled Autokeys.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
-                this.checkAutokeysStatus = true;
-            });
-    }
-
-    private updateAutokeysSell(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (this.isUsingAutoPrice) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 1
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
-                },
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 1
-            } as any;
-        }
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private updateAutokeysBuy(userMinKeys: number, userMaxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        let entry;
-        if (this.isUsingAutoPrice) {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: true,
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 0
-            } as any;
-        } else {
-            entry = {
-                sku: '5021;6',
-                enabled: true,
-                autoprice: false,
-                sell: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
-                },
-                buy: {
-                    keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
-                },
-                max: userMaxKeys,
-                min: userMinKeys,
-                intent: 0
-            } as any;
-        }
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private updateAutokeysBanking(userMinKeys: number, userMaxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            max: userMaxKeys,
-            min: userMinKeys,
-            intent: 2
-        } as any;
-        this.bot.pricelist
-            .updatePrice(entry as EntryData, true)
-            .then(() => {
-                log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-                this.checkAutokeysStatus = false;
-            });
-    }
-
-    private removeAutoKeys(): void {
-        this.bot.pricelist
-            .removePrice('5021;6', true)
-            .then(() => {
-                log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                this.checkAutokeysStatus = false;
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                this.checkAutokeysStatus = true;
-            });
-    }
-
-    refreshAutokeys(): void {
-        this.removeAutoKeys();
-        this.isBuyingKeys = false;
-        this.isBankingKeys = false;
-        this.checkAutokeysStatus = false;
-        this.checkAlertOnLowPure = false;
-        this.alreadyUpdatedToBank = false;
-        this.alreadyUpdatedToBuy = false;
-        this.alreadyUpdatedToSell = false;
-        this.sleep(2000);
-        this.autokeys();
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING === 'true' || process.env.DISABLE_CRAFTING_METAL === 'true') {
+        if (process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
         const pure = this.currPure();
@@ -2289,22 +2114,430 @@ Autokeys status:-
         }
     }
 
-    private craftDuplicateWeapons(): void {
+    private craftDuplicateWeapons(): Promise<void> {
         if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        this.craftweaponOnlyCraftable().forEach(sku => {
+        for (const sku of this.weapon().craft) {
             const weapon = currencies[sku].length;
-            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) !== null) {
+
+            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
                 // Only craft if duplicated and not exist in pricelist
-                const combineWeapon = Math.ceil(weapon / 2);
+                const combineWeapon = Math.trunc(weapon / 2);
+
                 for (let i = 0; i < combineWeapon; i++) {
+                    // give a little time between each craft job
                     this.bot.tf2gc.combineWeapon(sku);
                 }
             }
-        });
+        }
+    }
+
+    private craftClassWeapons(): Promise<void> {
+        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+            return;
+        }
+        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
+
+        // Scout weapons
+        const scout = [
+            '45;6', // Force-A-Nature               == Scout/Primary ==
+            '220;6', // Shortstop
+            '448;6', // Soda Popper
+            '772;6', // Baby Face's Blaster
+            '1103;6', // Back Scatter
+            '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
+            '163;6', // Crit-a-Cola
+            '222;6', // Mad Milk
+            '449;6', // Winger
+            '773;6', // Pretty Boy's Pocket Pistol
+            '812;6', // Flying Guillotine
+            '44;6', // Sandman                      == Scout/Melee ==
+            '221;6', // Holy Mackerel
+            '317;6', // Candy Cane
+            '325;6', // Boston Basher
+            '349;6', // Sun-on-a-Stick
+            '355;6', // Fan O'War
+            '450;6', // Atomizer
+            '648;6' // Wrap Assassin
+        ];
+
+        let matched = false;
+
+        for (let i = 0; i < scout.length; i++) {
+            // for loop for weapon1
+            const sku1 = scout[i];
+            const wep1 = currencies[sku1].length;
+            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < scout.length; j++) {
+                // for loop for weapon2 inside for loop weapon1
+                const sku2 = scout[j];
+                const wep2 = currencies[sku2].length;
+                // check if that weapon2 only have 1 in inventory AND it's not in pricelist
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    // set matched to true, so we break the loop and only craft one match at a time for each class.
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Soldier weapons
+        const soldier = [
+            '127;6', // Direct Hit                  == Soldier/Primary ==
+            '228;6', // Black Box
+            '237;6', // Rocket Jumper
+            '414;6', // Liberty Launcher
+            '441;6', // Cow Mangler 5000
+            '513;6', // Original
+            '730;6', // Beggar's Bazooka
+            '1104;6', // Air Strike
+            '129;6', // Buff Banner                 == Soldier/Secondary ==
+            '133;6', // Gunboats
+            '226;6', // Battalion's Backup
+            '354;6', // Concheror
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+            '442;6', // Righteous Bison
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '444;6', // Mantreads
+            '128;6', // Equalizer                   == Soldier/Melee ==
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
+            '416;6', // Market Gardener
+            '447;6', // Disciplinary Action
+            '775;6' // Escape Plan
+        ];
+
+        for (let i = 0; i < soldier.length; i++) {
+            const sku1 = soldier[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < soldier.length; j++) {
+                const sku2 = soldier[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Pyro weapons
+        const pyro = [
+            '40;6', // Backburner                   == Pyro/Primary ==
+            '215;6', // Degreaser
+            '594;6', // Phlogistinator
+            '741;6', // Rainblower
+            '1178;6', // Dragon's Fury
+            '39;6', // Flare Gun                    == Pyro/Secondary ==
+            '351;6', // Detonator
+            '595;6', // Manmelter
+            '740;6', // Scorch Shot
+            '1179;6', // Thermal Thruster
+            '1180;6', // Gas Passer
+            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '38;6', // Axtinguisher                 == Pyro/Melee ==
+            '153;6', // Homewrecker
+            '214;6', // Powerjack
+            '326;6', // Back Scratcher
+            '348;6', // Sharpened Volcano Fragment
+            '457;6', // Postal Pummeler
+            '593;6', // Third Degree
+            '739;6', // Lollichop
+            '813;6', // Neon Annihilator
+            '1181;6' // Hot Hand
+        ];
+
+        for (let i = 0; i < pyro.length; i++) {
+            const sku1 = pyro[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < pyro.length; j++) {
+                const sku2 = pyro[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Demomman weapons
+        const demoman = [
+            '308;6', // Loch-n-Load                 == Demoman/Primary ==
+            '405;6', // Ali Baba's Wee Booties
+            '608;6', // Bootlegger
+            '996;6', // Loose Cannon
+            '1151;6', // Iron Bomber
+            '130;6', // Scottish Resistance         == Demoman/Secondary ==
+            '131;6', // Chargin' Targe
+            '265;6', // Sticky Jumper
+            '406;6', // Splendid Screen
+            '1099;6', // Tide Turner
+            '1150;6', // Quickiebomb Launcher
+            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+            '132;6', // Eyelander                   == Demoman/Melee ==
+            '172;6', // Scotsman's Skullcutter
+            '307;6', // Ullapool Caber
+            '327;6', // Claidheamh Mòr
+            '404;6', // Persian Persuader
+            '482;6', // Nessie's Nine Iron
+            '609;6', // Scottish Handshake
+            '154;6', // Pain Train - Shared - Soldier/Demoman
+            '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
+        ];
+
+        for (let i = 0; i < demoman.length; i++) {
+            const sku1 = demoman[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < demoman.length; j++) {
+                const sku2 = demoman[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Heavy weapons
+        const heavy = [
+            '41;6', // Natascha                     == Heavy/Primary ==
+            '312;6', // Brass Beast
+            '424;6', // Tomislav
+            '811;6', // Huo-Long Heater
+            '42;6', // Sandvich                     == Heavy/Secondary ==
+            '159;6', // Dalokohs Bar
+            '311;6', // Buffalo Steak Sandvich
+            '425;6', // Family Business
+            '1190;6', // Second Banana
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
+            '239;6', // Gloves of Running Urgently
+            '310;6', // Warrior's Spirit
+            '331;6', // Fists of Steel
+            '426;6', // Eviction Notice
+            '656;6' // Holiday Punch
+        ];
+
+        for (let i = 0; i < heavy.length; i++) {
+            const sku1 = heavy[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < heavy.length; j++) {
+                const sku2 = heavy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Engineer weapons
+        const engineer = [
+            '141;6', // Frontier Justice            == Engineer/Primary ==
+            '527;6', // Widowmaker
+            '588;6', // Pomson 6000
+            '997;6', // Rescue Ranger
+            '140;6', // Wrangler                    == Engineer/Secondary ==
+            '528;6', // Short Circuit
+            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
+            '142;6', // Gunslinger                  == Engineer/Melee ==
+            '155;6', // Southern Hospitality
+            '329;6', // Jag
+            '589;6' // Eureka Effect
+        ];
+
+        for (let i = 0; i < engineer.length; i++) {
+            const sku1 = engineer[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < engineer.length; j++) {
+                const sku2 = engineer[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Medic weapons
+        const medic = [
+            '36;6', // Blutsauger                   == Medic/Primary ==
+            '305;6', // Crusader's Crossbow
+            '412;6', // Overdose
+            '35;6', // Kritzkrieg                   == Medic/Secondary ==
+            '411;6', // Quick-Fix
+            '998;6', // Vaccinator
+            '37;6', // Ubersaw                      == Medic/Melee ==
+            '173;6', // Vita-Saw
+            '304;6', // Amputator
+            '413;6' // Solemn Vow
+        ];
+
+        for (let i = 0; i < medic.length; i++) {
+            const sku1 = medic[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < medic.length; j++) {
+                const sku2 = medic[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Sniper weapons
+        const sniper = [
+            '56;6', // Huntsman                     == Sniper/Primary ==
+            '230;6', // Sydney Sleeper
+            '402;6', // Bazaar Bargain
+            '526;6', // Machina
+            '752;6', // Hitman's Heatmaker
+            '1092;6', // Fortified Compound
+            '1098;6', // Classic
+            '57;6', // Razorback                    == Sniper/Secondary ==
+            '58;6', // Jarate
+            '231;6', // Darwin's Danger Shield
+            '642;6', // Cozy Camper
+            '751;6', // Cleaner's Carbine
+            '171;6', // Tribalman's Shiv            == Sniper/Melee ==
+            '232;6', // Bushwacka
+            '401;6' // Shahanshah
+        ];
+
+        for (let i = 0; i < sniper.length; i++) {
+            const sku1 = sniper[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < sniper.length; j++) {
+                const sku2 = sniper[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
+
+        matched = false;
+
+        // Spy weapons
+        const spy = [
+            '61;6', // Ambassador                   == Spy/Primary ==
+            '224;6', // L'Etranger
+            '460;6', // Enforcer
+            '525;6', // Diamondback
+            '225;6', // Your Eternal Reward         == Spy/Melee ==
+            '356;6', // Conniver's Kunai
+            '461;6', // Big Earner
+            '649;6', // Spy-cicle
+            '810;6', // Red-Tape Recorder           == Spy/PDA ==
+            '60;6', // Cloak and Dagger             == Spy/PDA2 ==
+            '59;6' // Dead Ringer
+        ];
+
+        for (let i = 0; i < spy.length; i++) {
+            const sku1 = spy[i];
+            const wep1 = currencies[sku1].length;
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            for (let j = 1; j < spy.length; j++) {
+                const sku2 = spy[j];
+                const wep2 = currencies[sku2].length;
+                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+
+                if (sku1 !== sku2 && isWep1 && isWep2) {
+                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
+            }
+        }
     }
 
     private sortInventory(): void {
@@ -2467,9 +2700,10 @@ Autokeys status:-
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
 
             friendsToRemove.forEach(element => {
+                const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
                         ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
                         : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
                 );
@@ -2478,7 +2712,7 @@ Autokeys status:-
         }
     }
 
-    requestBackpackSlots(): Promise<void> {
+    private requestBackpackSlots(): Promise<void> {
         return new Promise((resolve, reject) => {
             request(
                 {
@@ -2493,15 +2727,28 @@ Autokeys status:-
                 },
                 (err, response, body) => {
                     if (err) {
-                        return reject(err);
+                        // if failed, retry after 10 minutes.
+                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        clearTimeout(this.retryRequest);
+                        this.retryRequest = setTimeout(() => {
+                            this.requestBackpackSlots();
+                        }, 10 * 60 * 1000);
+                        return reject();
                     }
 
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
                         err.status = body.result.status;
-                        return reject(err);
+                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        // if failed, retry after 10 minutes.
+                        clearTimeout(this.retryRequest);
+                        this.retryRequest = setTimeout(() => {
+                            this.requestBackpackSlots();
+                        }, 10 * 60 * 1000);
+                        return reject();
                     }
 
+                    clearTimeout(this.retryRequest);
                     this.backpackSlots = body.result.num_backpack_slots;
 
                     return resolve();
@@ -2534,7 +2781,7 @@ Autokeys status:-
 
     private valueDiff(
         offer: TradeOffer,
-        keyPrice: { buy: Currencies; sell: Currencies }
+        keyPrices: { buy: Currencies; sell: Currencies }
     ): { diff: number; diffRef: number; diffKey: string } {
         const value: { our: Currency; their: Currency } = offer.data('value');
 
@@ -2546,20 +2793,49 @@ Autokeys status:-
             diffRef = 0;
             diffKey = '';
         } else {
-            if (this.isTradingKeys === true) {
-                diff =
-                    new Currencies(value.their).toValue(keyPrice.buy.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
-                this.isTradingKeys = false; // reset
-            } else {
-                diff =
-                    new Currencies(value.their).toValue(keyPrice.sell.metal) -
-                    new Currencies(value.our).toValue(keyPrice.sell.metal);
+            const newValue: { our: Currency; their: Currency } = {
+                our: {
+                    keys: value.our.keys,
+                    metal: value.our.metal
+                },
+                their: {
+                    keys: value.their.keys,
+                    metal: value.their.metal
+                }
+            };
+
+            if (!this.fromEnv.showMetal) {
+                // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
+                if (this.isTradingKeys) {
+                    // If trading keys, then their side need to use buying key price.
+                    newValue.our.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
+                    );
+                    newValue.our.keys = 0;
+                    newValue.their.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
+                    );
+                    newValue.their.keys = 0;
+
+                    this.isTradingKeys = false; // Reset
+                } else {
+                    // Else both use selling key price.
+                    newValue.our.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
+                    );
+                    newValue.our.keys = 0;
+                    newValue.their.metal = Currencies.toRefined(
+                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.sell.toValue()
+                    );
+                    newValue.their.keys = 0;
+                }
             }
-            diffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(diff * (1 / 9))));
+
+            diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
+            diffRef = Currencies.toRefined(Math.abs(diff));
             diffKey = Currencies.toCurrencies(
                 Math.abs(diff),
-                Math.abs(diff) >= keyPrice.sell.metal ? keyPrice.sell.metal : undefined
+                Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
             ).toString();
         }
         return { diff, diffRef, diffKey };
@@ -2785,583 +3061,294 @@ Autokeys status:-
         return skus;
     }
 
-    craftweapon(): string[] {
-        const weapons = [
-            '45;6',
-            '220;6',
-            '448;6',
-            '772;6',
-            '1103;6',
-            '46;6',
-            '163;6',
-            '222;6',
-            '449;6',
-            '773;6',
-            '812;6',
-            '44;6',
-            '221;6',
-            '317;6',
-            '325;6',
-            '349;6',
-            '355;6',
-            '450;6',
-            '648;6',
-            '127;6',
-            '228;6',
-            '237;6',
-            '414;6',
-            '441;6',
-            '513;6',
-            '730;6',
-            '1104;6',
-            '129;6',
-            '133;6',
-            '226;6',
-            '354;6',
-            '415;6',
-            '442;6',
-            '1101;6',
-            '1153;6',
-            '444;6',
-            '128;6',
-            '154;6',
-            '357;6',
-            '416;6',
-            '447;6',
-            '775;6',
-            '40;6',
-            '215;6',
-            '594;6',
-            '741;6',
-            '1178;6',
-            '39;6',
-            '351;6',
-            '595;6',
-            '740;6',
-            '1179;6',
-            '1180;6',
-            '38;6',
-            '153;6',
-            '214;6',
-            '326;6',
-            '348;6',
-            '457;6',
-            '593;6',
-            '739;6',
-            '813;6',
-            '1181;6',
-            '308;6',
-            '405;6',
-            '608;6',
-            '996;6',
-            '1151;6',
-            '130;6',
-            '131;6',
-            '265;6',
-            '406;6',
-            '1099;6',
-            '1150;6',
-            '132;6',
-            '172;6',
-            '307;6',
-            '327;6',
-            '404;6',
-            '482;6',
-            '609;6',
-            '41;6',
-            '312;6',
-            '424;6',
-            '811;6',
-            '42;6',
-            '159;6',
-            '311;6',
-            '425;6',
-            '1190;6',
-            '43;6',
-            '239;6',
-            '310;6',
-            '331;6',
-            '426;6',
-            '656;6',
-            '141;6',
-            '527;6',
-            '588;6',
-            '997;6',
-            '140;6',
-            '528;6',
-            '142;6',
-            '155;6',
-            '329;6',
-            '589;6',
-            '36;6',
-            '305;6',
-            '412;6',
-            '35;6',
-            '411;6',
-            '998;6',
-            '37;6',
-            '173;6',
-            '304;6',
-            '413;6',
-            '56;6',
-            '230;6',
-            '402;6',
-            '526;6',
-            '752;6',
-            '1092;6',
-            '1098;6',
-            '57;6',
-            '58;6',
-            '231;6',
-            '642;6',
-            '751;6',
-            '171;6',
-            '232;6',
-            '401;6',
-            '61;6',
-            '224;6',
-            '460;6',
-            '525;6',
-            '810;6',
-            '225;6',
-            '356;6',
-            '461;6',
-            '649;6',
-            '60;6',
-            '59;6',
-            '939;6',
-            '61;6;uncraftable',
-            '1101;6;uncraftable',
-            '226;6;uncraftable',
-            '46;6;uncraftable',
-            '129;6;uncraftable',
-            '311;6;uncraftable',
-            '131;6;uncraftable',
-            '751;6;uncraftable',
-            '354;6;uncraftable',
-            '642;6;uncraftable',
-            '163;6;uncraftable',
-            '159;6;uncraftable',
-            '231;6;uncraftable',
-            '351;6;uncraftable',
-            '525;6;uncraftable',
-            '460;6;uncraftable',
-            '425;6;uncraftable',
-            '39;6;uncraftable',
-            '812;6;uncraftable',
-            '133;6;uncraftable',
-            '58;6;uncraftable',
-            '35;6;uncraftable',
-            '224;6;uncraftable',
-            '222;6;uncraftable',
-            '595;6;uncraftable',
-            '444;6;uncraftable',
-            '773;6;uncraftable',
-            '411;6;uncraftable',
-            '1150;6;uncraftable',
-            '57;6;uncraftable',
-            '415;6;uncraftable',
-            '442;6;uncraftable',
-            '42;6;uncraftable',
-            '740;6;uncraftable',
-            '130;6;uncraftable',
-            '528;6;uncraftable',
-            '406;6;uncraftable',
-            '265;6;uncraftable',
-            '1099;6;uncraftable',
-            '998;6;uncraftable',
-            '449;6;uncraftable',
-            '140;6;uncraftable',
-            '1104;6;uncraftable',
-            '405;6;uncraftable',
-            '772;6;uncraftable',
-            '1103;6;uncraftable',
-            '40;6;uncraftable',
-            '402;6;uncraftable',
-            '730;6;uncraftable',
-            '228;6;uncraftable',
-            '36;6;uncraftable',
-            '608;6;uncraftable',
-            '312;6;uncraftable',
-            '1098;6;uncraftable',
-            '441;6;uncraftable',
-            '305;6;uncraftable',
-            '215;6;uncraftable',
-            '127;6;uncraftable',
-            '45;6;uncraftable',
-            '1092;6;uncraftable',
-            '141;6;uncraftable',
-            '752;6;uncraftable',
-            '56;6;uncraftable',
-            '811;6;uncraftable',
-            '1151;6;uncraftable',
-            '414;6;uncraftable',
-            '308;6;uncraftable',
-            '996;6;uncraftable',
-            '526;6;uncraftable',
-            '41;6;uncraftable',
-            '513;6;uncraftable',
-            '412;6;uncraftable',
-            '1153;6;uncraftable',
-            '594;6;uncraftable',
-            '588;6;uncraftable',
-            '741;6;uncraftable',
-            '997;6;uncraftable',
-            '237;6;uncraftable',
-            '220;6;uncraftable',
-            '448;6;uncraftable',
-            '230;6;uncraftable',
-            '424;6;uncraftable',
-            '527;6;uncraftable',
-            '60;6;uncraftable',
-            '59;6;uncraftable',
-            '304;6;uncraftable',
-            '450;6;uncraftable',
-            '38;6;uncraftable',
-            '326;6;uncraftable',
-            '939;6;uncraftable',
-            '461;6;uncraftable',
-            '325;6;uncraftable',
-            '232;6;uncraftable',
-            '317;6;uncraftable',
-            '327;6;uncraftable',
-            '356;6;uncraftable',
-            '447;6;uncraftable',
-            '128;6;uncraftable',
-            '775;6;uncraftable',
-            '589;6;uncraftable',
-            '426;6;uncraftable',
-            '132;6;uncraftable',
-            '355;6;uncraftable',
-            '331;6;uncraftable',
-            '239;6;uncraftable',
-            '142;6;uncraftable',
-            '357;6;uncraftable',
-            '656;6;uncraftable',
-            '221;6;uncraftable',
-            '153;6;uncraftable',
-            '329;6;uncraftable',
-            '43;6;uncraftable',
-            '739;6;uncraftable',
-            '416;6;uncraftable',
-            '813;6;uncraftable',
-            '482;6;uncraftable',
-            '154;6;uncraftable',
-            '404;6;uncraftable',
-            '457;6;uncraftable',
-            '214;6;uncraftable',
-            '44;6;uncraftable',
-            '172;6;uncraftable',
-            '609;6;uncraftable',
-            '401;6;uncraftable',
-            '348;6;uncraftable',
-            '413;6;uncraftable',
-            '155;6;uncraftable',
-            '649;6;uncraftable',
-            '349;6;uncraftable',
-            '593;6;uncraftable',
-            '171;6;uncraftable',
-            '37;6;uncraftable',
-            '307;6;uncraftable',
-            '173;6;uncraftable',
-            '310;6;uncraftable',
-            '648;6;uncraftable',
-            '225;6;uncraftable',
-            '810;6;uncraftable'
-        ];
-        return weapons;
-    }
-
-    craftweaponOnlyCraftable(): string[] {
-        const weapons = [
-            '45;6',
-            '220;6',
-            '448;6',
-            '772;6',
-            '1103;6',
-            '46;6',
-            '163;6',
-            '222;6',
-            '449;6',
-            '773;6',
-            '812;6',
-            '44;6',
-            '221;6',
-            '317;6',
-            '325;6',
-            '349;6',
-            '355;6',
-            '450;6',
-            '648;6',
-            '127;6',
-            '228;6',
-            '237;6',
-            '414;6',
-            '441;6',
-            '513;6',
-            '730;6',
-            '1104;6',
-            '129;6',
-            '133;6',
-            '226;6',
-            '354;6',
-            '415;6',
-            '442;6',
-            '1101;6',
-            '1153;6',
-            '444;6',
-            '128;6',
-            '154;6',
-            '357;6',
-            '416;6',
-            '447;6',
-            '775;6',
-            '40;6',
-            '215;6',
-            '594;6',
-            '741;6',
-            '1178;6',
-            '39;6',
-            '351;6',
-            '595;6',
-            '740;6',
-            '1179;6',
-            '1180;6',
-            '38;6',
-            '153;6',
-            '214;6',
-            '326;6',
-            '348;6',
-            '457;6',
-            '593;6',
-            '739;6',
-            '813;6',
-            '1181;6',
-            '308;6',
-            '405;6',
-            '608;6',
-            '996;6',
-            '1151;6',
-            '130;6',
-            '131;6',
-            '265;6',
-            '406;6',
-            '1099;6',
-            '1150;6',
-            '132;6',
-            '172;6',
-            '307;6',
-            '327;6',
-            '404;6',
-            '482;6',
-            '609;6',
-            '41;6',
-            '312;6',
-            '424;6',
-            '811;6',
-            '42;6',
-            '159;6',
-            '311;6',
-            '425;6',
-            '1190;6',
-            '43;6',
-            '239;6',
-            '310;6',
-            '331;6',
-            '426;6',
-            '656;6',
-            '141;6',
-            '527;6',
-            '588;6',
-            '997;6',
-            '140;6',
-            '528;6',
-            '142;6',
-            '155;6',
-            '329;6',
-            '589;6',
-            '36;6',
-            '305;6',
-            '412;6',
-            '35;6',
-            '411;6',
-            '998;6',
-            '37;6',
-            '173;6',
-            '304;6',
-            '413;6',
-            '56;6',
-            '230;6',
-            '402;6',
-            '526;6',
-            '752;6',
-            '1092;6',
-            '1098;6',
-            '57;6',
-            '58;6',
-            '231;6',
-            '642;6',
-            '751;6',
-            '171;6',
-            '232;6',
-            '401;6',
-            '61;6',
-            '224;6',
-            '460;6',
-            '525;6',
-            '810;6',
-            '225;6',
-            '356;6',
-            '461;6',
-            '649;6',
-            '60;6',
-            '59;6',
-            '939;6'
-        ];
-        return weapons;
-    }
-
-    craftweaponOnlyUncraftable(): string[] {
-        const weapons = [
-            '61;6;uncraftable',
-            '1101;6;uncraftable',
-            '226;6;uncraftable',
-            '46;6;uncraftable',
-            '129;6;uncraftable',
-            '311;6;uncraftable',
-            '131;6;uncraftable',
-            '751;6;uncraftable',
-            '354;6;uncraftable',
-            '642;6;uncraftable',
-            '163;6;uncraftable',
-            '159;6;uncraftable',
-            '231;6;uncraftable',
-            '351;6;uncraftable',
-            '525;6;uncraftable',
-            '460;6;uncraftable',
-            '425;6;uncraftable',
-            '39;6;uncraftable',
-            '812;6;uncraftable',
-            '133;6;uncraftable',
-            '58;6;uncraftable',
-            '35;6;uncraftable',
-            '224;6;uncraftable',
-            '222;6;uncraftable',
-            '595;6;uncraftable',
-            '444;6;uncraftable',
-            '773;6;uncraftable',
-            '411;6;uncraftable',
-            '1150;6;uncraftable',
-            '57;6;uncraftable',
-            '415;6;uncraftable',
-            '442;6;uncraftable',
-            '42;6;uncraftable',
-            '740;6;uncraftable',
-            '130;6;uncraftable',
-            '528;6;uncraftable',
-            '406;6;uncraftable',
-            '265;6;uncraftable',
-            '1099;6;uncraftable',
-            '998;6;uncraftable',
-            '449;6;uncraftable',
-            '140;6;uncraftable',
-            '1104;6;uncraftable',
-            '405;6;uncraftable',
-            '772;6;uncraftable',
-            '1103;6;uncraftable',
-            '40;6;uncraftable',
-            '402;6;uncraftable',
-            '730;6;uncraftable',
-            '228;6;uncraftable',
-            '36;6;uncraftable',
-            '608;6;uncraftable',
-            '312;6;uncraftable',
-            '1098;6;uncraftable',
-            '441;6;uncraftable',
-            '305;6;uncraftable',
-            '215;6;uncraftable',
-            '127;6;uncraftable',
-            '45;6;uncraftable',
-            '1092;6;uncraftable',
-            '141;6;uncraftable',
-            '752;6;uncraftable',
-            '56;6;uncraftable',
-            '811;6;uncraftable',
-            '1151;6;uncraftable',
-            '414;6;uncraftable',
-            '308;6;uncraftable',
-            '996;6;uncraftable',
-            '526;6;uncraftable',
-            '41;6;uncraftable',
-            '513;6;uncraftable',
-            '412;6;uncraftable',
-            '1153;6;uncraftable',
-            '594;6;uncraftable',
-            '588;6;uncraftable',
-            '741;6;uncraftable',
-            '997;6;uncraftable',
-            '237;6;uncraftable',
-            '220;6;uncraftable',
-            '448;6;uncraftable',
-            '230;6;uncraftable',
-            '424;6;uncraftable',
-            '527;6;uncraftable',
-            '60;6;uncraftable',
-            '59;6;uncraftable',
-            '304;6;uncraftable',
-            '450;6;uncraftable',
-            '38;6;uncraftable',
-            '326;6;uncraftable',
-            '939;6;uncraftable',
-            '461;6;uncraftable',
-            '325;6;uncraftable',
-            '232;6;uncraftable',
-            '317;6;uncraftable',
-            '327;6;uncraftable',
-            '356;6;uncraftable',
-            '447;6;uncraftable',
-            '128;6;uncraftable',
-            '775;6;uncraftable',
-            '589;6;uncraftable',
-            '426;6;uncraftable',
-            '132;6;uncraftable',
-            '355;6;uncraftable',
-            '331;6;uncraftable',
-            '239;6;uncraftable',
-            '142;6;uncraftable',
-            '357;6;uncraftable',
-            '656;6;uncraftable',
-            '221;6;uncraftable',
-            '153;6;uncraftable',
-            '329;6;uncraftable',
-            '43;6;uncraftable',
-            '739;6;uncraftable',
-            '416;6;uncraftable',
-            '813;6;uncraftable',
-            '482;6;uncraftable',
-            '154;6;uncraftable',
-            '404;6;uncraftable',
-            '457;6;uncraftable',
-            '214;6;uncraftable',
-            '44;6;uncraftable',
-            '172;6;uncraftable',
-            '609;6;uncraftable',
-            '401;6;uncraftable',
-            '348;6;uncraftable',
-            '413;6;uncraftable',
-            '155;6;uncraftable',
-            '649;6;uncraftable',
-            '349;6;uncraftable',
-            '593;6;uncraftable',
-            '171;6;uncraftable',
-            '37;6;uncraftable',
-            '307;6;uncraftable',
-            '173;6;uncraftable',
-            '310;6;uncraftable',
-            '648;6;uncraftable',
-            '225;6;uncraftable',
-            '810;6;uncraftable'
-        ];
+    weapon(): { craft: string[]; uncraft: string[] } {
+        const weapons = {
+            craft: [
+                '45;6', // Force-A-Nature               == Scout/Primary ==
+                '220;6', // Shortstop
+                '448;6', // Soda Popper
+                '772;6', // Baby Face's Blaster
+                '1103;6', // Back Scatter
+                '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
+                '163;6', // Crit-a-Cola
+                '222;6', // Mad Milk
+                '449;6', // Winger
+                '773;6', // Pretty Boy's Pocket Pistol
+                '812;6', // Flying Guillotine
+                '44;6', // Sandman                      == Scout/Melee ==
+                '221;6', // Holy Mackerel
+                '317;6', // Candy Cane
+                '325;6', // Boston Basher
+                '349;6', // Sun-on-a-Stick
+                '355;6', // Fan O'War
+                '450;6', // Atomizer
+                '648;6', // Wrap Assassin
+                '127;6', // Direct Hit                  == Soldier/Primary ==
+                '228;6', // Black Box
+                '237;6', // Rocket Jumper
+                '414;6', // Liberty Launcher
+                '441;6', // Cow Mangler 5000
+                '513;6', // Original
+                '730;6', // Beggar's Bazooka
+                '1104;6', // Air Strike
+                '129;6', // Buff Banner                 == Soldier/Secondary ==
+                '133;6', // Gunboats
+                '226;6', // Battalion's Backup
+                '354;6', // Concheror
+                '415;6', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '442;6', // Righteous Bison
+                '1101;6', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+                '1153;6', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '444;6', // Mantreads
+                '128;6', // Equalizer                   == Soldier/Melee ==
+                '154;6', // (Pain Train - Shared - Soldier/Demoman)
+                '357;6', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '416;6', // Market Gardener
+                '447;6', // Disciplinary Action
+                '775;6', // Escape Plan
+                '40;6', // Backburner                   == Pyro/Primary ==
+                '215;6', // Degreaser
+                '594;6', // Phlogistinator
+                '741;6', // Rainblower
+                '1178;6', // Dragon's Fury
+                '39;6', // Flare Gun                    == Pyro/Secondary ==
+                '351;6', // Detonator
+                '595;6', // Manmelter
+                '740;6', // Scorch Shot
+                '1179;6', // Thermal Thruster
+                '1180;6', // Gas Passer
+                '38;6', // Axtinguisher                 == Pyro/Melee ==
+                '153;6', // Homewrecker
+                '214;6', // Powerjack
+                '326;6', // Back Scratcher
+                '348;6', // Sharpened Volcano Fragment
+                '457;6', // Postal Pummeler
+                '593;6', // Third Degree
+                '739;6', // Lollichop
+                '813;6', // Neon Annihilator
+                '1181;6', // Hot Hand
+                '308;6', // Loch-n-Load                 == Demoman/Primary ==
+                '405;6', // Ali Baba's Wee Booties
+                '608;6', // Bootlegger
+                '996;6', // Loose Cannon
+                '1151;6', // Iron Bomber
+                '130;6', // Scottish Resistance         == Demoman/Secondary ==
+                '131;6', // Chargin' Targe
+                '265;6', // Sticky Jumper
+                '406;6', // Splendid Screen
+                '1099;6', // Tide Turner
+                '1150;6', // Quickiebomb Launcher
+                '132;6', // Eyelander                   == Demoman/Melee ==
+                '172;6', // Scotsman's Skullcutter
+                '307;6', // Ullapool Caber
+                '327;6', // Claidheamh Mòr
+                '404;6', // Persian Persuader
+                '482;6', // Nessie's Nine Iron
+                '609;6', // Scottish Handshake
+                '41;6', // Natascha                     == Heavy/Primary ==
+                '312;6', // Brass Beast
+                '424;6', // Tomislav
+                '811;6', // Huo-Long Heater
+                '42;6', // Sandvich                     == Heavy/Secondary ==
+                '159;6', // Dalokohs Bar
+                '311;6', // Buffalo Steak Sandvich
+                '425;6', // Family Business
+                '1190;6', // Second Banana
+                '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
+                '239;6', // Gloves of Running Urgently
+                '310;6', // Warrior's Spirit
+                '331;6', // Fists of Steel
+                '426;6', // Eviction Notice
+                '656;6', // Holiday Punch
+                '141;6', // Frontier Justice            == Engineer/Primary ==
+                '527;6', // Widowmaker
+                '588;6', // Pomson 6000
+                '997;6', // Rescue Ranger
+                '140;6', // Wrangler                    == Engineer/Secondary ==
+                '528;6', // Short Circuit
+                '142;6', // Gunslinger                  == Engineer/Melee ==
+                '155;6', // Southern Hospitality
+                '329;6', // Jag
+                '589;6', // Eureka Effect
+                '36;6', // Blutsauger                   == Medic/Primary ==
+                '305;6', // Crusader's Crossbow
+                '412;6', // Overdose
+                '35;6', // Kritzkrieg                   == Medic/Secondary ==
+                '411;6', // Quick-Fix
+                '998;6', // Vaccinator
+                '37;6', // Ubersaw                      == Medic/Melee ==
+                '173;6', // Vita-Saw
+                '304;6', // Amputator
+                '413;6', // Solemn Vow
+                '56;6', // Huntsman                     == Sniper/Primary ==
+                '230;6', // Sydney Sleeper
+                '402;6', // Bazaar Bargain
+                '526;6', // Machina
+                '752;6', // Hitman's Heatmaker
+                '1092;6', // Fortified Compound
+                '1098;6', // Classic
+                '57;6', // Razorback                    == Sniper/Secondary ==
+                '58;6', // Jarate
+                '231;6', // Darwin's Danger Shield
+                '642;6', // Cozy Camper
+                '751;6', // Cleaner's Carbine
+                '171;6', // Tribalman's Shiv            == Sniper/Melee ==
+                '232;6', // Bushwacka
+                '401;6', // Shahanshah
+                '61;6', // Ambassador                   == Spy/Primary ==
+                '224;6', // L'Etranger
+                '460;6', // Enforcer
+                '525;6', // Diamondback
+                '225;6', // Your Eternal Reward         == Spy/Melee ==
+                '356;6', // Conniver's Kunai
+                '461;6', // Big Earner
+                '649;6', // Spy-cicle
+                '810;6', // Red-Tape Recorder           == Spy/PDA ==
+                '60;6', // Cloak and Dagger             == Spy/PDA2 ==
+                '59;6', // Dead Ringer
+                '939;6' // Bat Outta Hell               == All class/Melee ==
+            ],
+            uncraft: [
+                '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
+                '220;6;uncraftable', // Shortstop
+                '448;6;uncraftable', // Soda Popper
+                '772;6;uncraftable', // Baby Face's Blaster
+                '1103;6;uncraftable', // Back Scatter
+                '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
+                '163;6;uncraftable', // Crit-a-Cola
+                '222;6;uncraftable', // Mad Milk
+                '449;6;uncraftable', // Winger
+                '773;6;uncraftable', // Pretty Boy's Pocket Pistol
+                '812;6;uncraftable', // Flying Guillotine
+                '44;6;uncraftable', // Sandman                      == Scout/Melee ==
+                '221;6;uncraftable', // Holy Mackerel
+                '317;6;uncraftable', // Candy Cane
+                '325;6;uncraftable', // Boston Basher
+                '349;6;uncraftable', // Sun-on-a-Stick
+                '355;6;uncraftable', // Fan O'War
+                '450;6;uncraftable', // Atomizer
+                '648;6;uncraftable', // Wrap Assassin
+                '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
+                '228;6;uncraftable', // Black Box
+                '237;6;uncraftable', // Rocket Jumper
+                '414;6;uncraftable', // Liberty Launcher
+                '441;6;uncraftable', // Cow Mangler 5000
+                '513;6;uncraftable', // Original
+                '730;6;uncraftable', // Beggar's Bazooka
+                '1104;6;uncraftable', // Air Strike
+                '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
+                '133;6;uncraftable', // Gunboats
+                '226;6;uncraftable', // Battalion's Backup
+                '354;6;uncraftable', // Concheror
+                '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '442;6;uncraftable', // Righteous Bison
+                '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+                '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '444;6;uncraftable', // Mantreads
+                '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
+                '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
+                '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '416;6;uncraftable', // Market Gardener
+                '447;6;uncraftable', // Disciplinary Action
+                '775;6;uncraftable', // Escape Plan
+                '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
+                '215;6;uncraftable', // Degreaser
+                '594;6;uncraftable', // Phlogistinator
+                '741;6;uncraftable', // Rainblower
+                '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
+                '351;6;uncraftable', // Detonator
+                '595;6;uncraftable', // Manmelter
+                '740;6;uncraftable', // Scorch Shot
+                '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
+                '153;6;uncraftable', // Homewrecker
+                '214;6;uncraftable', // Powerjack
+                '326;6;uncraftable', // Back Scratcher
+                '348;6;uncraftable', // Sharpened Volcano Fragment
+                '457;6;uncraftable', // Postal Pummeler
+                '593;6;uncraftable', // Third Degree
+                '739;6;uncraftable', // Lollichop
+                '813;6;uncraftable', // Neon Annihilator
+                '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
+                '405;6;uncraftable', // Ali Baba's Wee Booties
+                '608;6;uncraftable', // Bootlegger
+                '996;6;uncraftable', // Loose Cannon
+                '1151;6;uncraftable', // Iron Bomber
+                '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
+                '131;6;uncraftable', // Chargin' Targe
+                '265;6;uncraftable', // Sticky Jumper
+                '406;6;uncraftable', // Splendid Screen
+                '1099;6;uncraftable', // Tide Turner
+                '1150;6;uncraftable', // Quickiebomb Launcher
+                '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
+                '172;6;uncraftable', // Scotsman's Skullcutter
+                '307;6;uncraftable', // Ullapool Caber
+                '327;6;uncraftable', // Claidheamh Mòr
+                '404;6;uncraftable', // Persian Persuader
+                '482;6;uncraftable', // Nessie's Nine Iron
+                '609;6;uncraftable', // Scottish Handshake
+                '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
+                '312;6;uncraftable', // Brass Beast
+                '424;6;uncraftable', // Tomislav
+                '811;6;uncraftable', // Huo-Long Heater
+                '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
+                '159;6;uncraftable', // Dalokohs Bar
+                '311;6;uncraftable', // Buffalo Steak Sandvich
+                '425;6;uncraftable', // Family Business
+                '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
+                '239;6;uncraftable', // Gloves of Running Urgently
+                '310;6;uncraftable', // Warrior's Spirit
+                '331;6;uncraftable', // Fists of Steel
+                '426;6;uncraftable', // Eviction Notice
+                '656;6;uncraftable', // Holiday Punch
+                '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
+                '527;6;uncraftable', // Widowmaker
+                '588;6;uncraftable', // Pomson 6000
+                '997;6;uncraftable', // Rescue Ranger
+                '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
+                '528;6;uncraftable', // Short Circuit
+                '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
+                '155;6;uncraftable', // Southern Hospitality
+                '329;6;uncraftable', // Jag
+                '589;6;uncraftable', // Eureka Effect
+                '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
+                '305;6;uncraftable', // Crusader's Crossbow
+                '412;6;uncraftable', // Overdose
+                '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
+                '411;6;uncraftable', // Quick-Fix
+                '998;6;uncraftable', // Vaccinator
+                '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
+                '173;6;uncraftable', // Vita-Saw
+                '304;6;uncraftable', // Amputator
+                '413;6;uncraftable', // Solemn Vow
+                '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
+                '230;6;uncraftable', // Sydney Sleeper
+                '402;6;uncraftable', // Bazaar Bargain
+                '526;6;uncraftable', // Machina
+                '752;6;uncraftable', // Hitman's Heatmaker
+                '1092;6;uncraftable', // Fortified Compound
+                '1098;6;uncraftable', // Classic
+                '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
+                '58;6;uncraftable', // Jarate
+                '231;6;uncraftable', // Darwin's Danger Shield
+                '642;6;uncraftable', // Cozy Camper
+                '751;6;uncraftable', // Cleaner's Carbine
+                '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
+                '232;6;uncraftable', // Bushwacka
+                '401;6;uncraftable', // Shahanshah
+                '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
+                '224;6;uncraftable', // L'Etranger
+                '460;6;uncraftable', // Enforcer
+                '525;6;uncraftable', // Diamondback
+                '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
+                '356;6;uncraftable', // Conniver's Kunai
+                '461;6;uncraftable', // Big Earner
+                '649;6;uncraftable', // Spy-cicle
+                '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
+                '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
+                '59;6;uncraftable', // Dead Ringer
+                '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
+            ]
+        };
         return weapons;
     }
 
@@ -3440,3 +3427,78 @@ Autokeys status:-
         this.bot.client.gamesPlayed([this.customGameName, 440]);
     }
 };
+
+function summarizeSteamChat(
+    trade: string,
+    value: { diff: number; diffRef: number; diffKey: string },
+    keyPrice: { buy: Currencies; sell: Currencies }
+): string {
+    const summary =
+        `\n\nSummary\n` +
+        trade.replace('Asked:', '• Asked:').replace('Offered:', '• Offered:') +
+        (value.diff > 0
+            ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : value.diff < 0
+            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
+              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+            : '');
+    return summary;
+}
+
+function listItems(items: {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+    highValue: string[];
+}): string {
+    let list = items.invalid.length !== 0 ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
+    list +=
+        items.overstock.length !== 0
+            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
+            : '';
+    list +=
+        items.understock.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
+              '🟩_UNDERSTOCKED:\n- ' +
+              items.understock.join(',\n- ')
+            : '';
+    list +=
+        items.duped.length !== 0
+            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🟫_DUPED_ITEMS:\n- ' +
+              items.duped.join(',\n- ')
+            : '';
+    list +=
+        items.dupedFailed.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🟪_DUPE_CHECK_FAILED:\n- ' +
+              items.dupedFailed.join(',\n- ')
+            : '';
+    list +=
+        items.highValue.length !== 0
+            ? (items.invalid.length !== 0 ||
+              items.overstock.length !== 0 ||
+              items.understock.length !== 0 ||
+              items.duped.length !== 0 ||
+              items.dupedFailed.length !== 0
+                  ? '\n\n'
+                  : '') +
+              '🔶_HIGH_VALUE_ITEMS:\n- ' +
+              items.highValue.join(',\n- ')
+            : '';
+
+    if (list.length === 0) {
+        list = '-';
+    }
+    return list;
+}

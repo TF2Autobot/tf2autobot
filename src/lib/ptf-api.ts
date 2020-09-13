@@ -15,6 +15,10 @@ export function getPrice(sku: string, source: string): Promise<UnknownDictionary
     return apiRequest('GET', `/items/${sku}`, { src: source });
 }
 
+export function getPriceHistory(sku: string, source: string): Promise<UnknownDictionary<any>> {
+    return apiRequest('GET', `/items/${sku}/history`, { src: source });
+}
+
 export function getSales(sku: string, source: string): Promise<UnknownDictionary<any>> {
     return apiRequest('GET', `/items/${sku}/sales`, { src: source });
 }
