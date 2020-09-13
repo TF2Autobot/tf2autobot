@@ -120,7 +120,7 @@ export = class Commands {
         this.first30MinutesTimeout = setTimeout(() => {
             this.first30Minutes = false;
             clearTimeout(this.first30MinutesTimeout);
-        }, 30 * 60 * 1000);
+        }, 3 * 60 * 1000);
     }
 
     get cartQueue(): CartQueue {
@@ -1852,7 +1852,7 @@ export = class Commands {
 
     private relistCommand(steamID: SteamID): void {
         if (this.first30Minutes) {
-            this.bot.sendMessage(steamID, `❌ I am just started... Please wait until the first 30 minutes has ended.`);
+            this.bot.sendMessage(steamID, `❌ I have just started. Please wait 30 minutes.`);
             return;
         }
 
@@ -1863,7 +1863,7 @@ export = class Commands {
             this.bot.sendMessage(
                 steamID,
                 '⚠️ You need to wait ' +
-                    Math.trunc((30 * 60 * 1000 - timeDiff) / (1000 * 60)) +
+                    Math.trunc((3 * 60 * 1000 - timeDiff) / (1000 * 60)) +
                     ' minutes before you can relist again.'
             );
             return;
@@ -1879,7 +1879,7 @@ export = class Commands {
                 this.lastExecutedTime = null;
                 this.executed = false;
                 clearTimeout(this.executeTimeout);
-            }, 30 * 60 * 1000);
+            }, 3 * 60 * 1000);
         }
     }
 
