@@ -98,8 +98,8 @@ export = class Bot {
             community: this.community,
             language: 'en',
             pollInterval: -1,
-            cancelTime: 15 * 60 * 2000,
-            pendingCancelTime: 90 * 1000
+            cancelTime: 90 * 60 * 2000,
+            pendingCancelTime: 120 * 1000
 
         });
 
