@@ -264,7 +264,7 @@ export = class MyHandler extends Handler {
         );
 
         this.bot.client.gamesPlayed([this.customGameName, 440]);
-        this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+        this.bot.client.setPersona(SteamUser.EPersonaState.Away);
 
         // GetBackpackSlots
         this.requestBackpackSlots();
@@ -327,7 +327,7 @@ export = class MyHandler extends Handler {
 
     onLoggedOn(): void {
         if (this.bot.isReady()) {
-            this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+            this.bot.client.setPersona(SteamUser.EPersonaState.Away);
             this.bot.client.gamesPlayed([this.customGameName, 440]);
         }
     }
