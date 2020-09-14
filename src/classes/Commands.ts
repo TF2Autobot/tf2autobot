@@ -735,7 +735,7 @@ export = class Commands {
             const reply = message.substr(message.toLowerCase().indexOf(recipient) + 18);
 
             // Send message to recipient
-            this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
+            this.bot.sendMessage(recipient, `${reply}`);
 
             // Send confirmation message to admin
             this.bot.sendMessage(steamID, '✅ Your message has been sent.');
@@ -753,7 +753,7 @@ export = class Commands {
             const admins = this.bot.getAdmins();
             if (!admins || admins.length === 0) {
                 // Just default to same message as if it was disabled
-                this.bot.sendMessage(steamID, '❌ The owner has disabled messages.');
+                this.bot.sendMessage(steamID, 'Wdym !message?.');
                 return;
             }
 
@@ -2351,7 +2351,7 @@ export = class Commands {
             if (err) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                    `Something went wrong while trying to accept the offer: ${err.message}`
                 );
                 return;
             }
@@ -2368,31 +2368,15 @@ export = class Commands {
                     if (err) {
                         this.bot.sendMessage(
                             steamID,
-                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                            `Something went wrong while trying to accept the offer: ${err.message}`
                         );
                         return;
-                    }
-
-                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
-
-                    if (isManyItems) {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                                ' If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
-                        );
-                    } else {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                                ' If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
-                        );
                     }
                     // Send message to recipient if includes some messages
                     if (reply) {
                         this.bot.sendMessage(
                             partnerId,
-                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                            `${reply}`
                         );
                     }
                 });
@@ -2457,7 +2441,7 @@ export = class Commands {
                 if (reply) {
                     this.bot.sendMessage(
                         partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        `${reply}`
                     );
                 }
             });
@@ -2492,7 +2476,7 @@ export = class Commands {
                 return;
             }
 
-            this.bot.sendMessage(steamID, `⌛ Price check requested for ${body.name}, the item will be checked.`);
+            this.bot.sendMessage(steamID, `⌛ ${body.name} will be checked.`);
         });
     }
 
@@ -2545,7 +2529,7 @@ export = class Commands {
                 if (submitted === total) {
                     this.bot.sendMessage(
                         steamID,
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
+                        `✅ Pricechecked all ${total} ${pluralize('items', total)}!`
                     );
                 }
             });
