@@ -72,6 +72,10 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        tradeSummaryWebhook: {
+            enabled: boolean;
+            url: string;
+        };
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
@@ -122,6 +126,10 @@ export = class MyHandler extends Handler {
             somethingWrong: {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false',
                 url: process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+            },
+            tradeSummaryWebhook: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
+                url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
             },
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
@@ -488,6 +496,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
 
+        const webhook = this.fromEnv.tradeSummaryWebhook;
+
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
@@ -511,7 +521,15 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                     highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
+                    highValuedOur.nameWithSpell.push(
+                        `${item.name} with ${
+                            webhook.enabled && webhook.url
+                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                      .replace(' ', '_')
+                                      .replace("'", '%27')}_(halloween_spell))`
+                                : spellName
+                        }`
+                    );
 
                     log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
@@ -544,7 +562,15 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                     highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                    highValuedTheir.nameWithSpell.push(
+                        `${item.name} with ${
+                            webhook.enabled && webhook.url
+                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                      .replace(' ', '_')
+                                      .replace("'", '%27')}_(halloween_spell))`
+                                : spellName
+                        }`
+                    );
 
                     log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
