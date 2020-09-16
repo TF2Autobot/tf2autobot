@@ -248,6 +248,7 @@ You can run your bot without this initially. On the first run, your bot will pri
 |        `DISABLE_GROUPS_ INVITE`         | `boolean` | `false` | Set to `true` if you don't want your bot to invite people to join Steam groups **(You still need to have at least 1 group ID in the `GROUPS` array)**. |
 | `DISABLE_CHECK_USES_ DUELING_MINI_GAME` | `boolean` | `false` | (must have 5 uses left). Set to `true` if you want your bot to buy Dueling Mini-Games regardless of how many uses are left.                            |
 |    `DISABLE_CHECK_USES_ NOISE_MAKER`    | `boolean` | `false` | (must have 25 uses left). Set to `true` if you want your bot to buy Noise Makers regardless of how many uses are left.                                 |
+|   `DISABLE_AUTO_REMOVE_ INTENT_SELL`    | `boolean` | `false` | By default, any pricelist entry with intent=sell will be automatically removed when the particular item is sold and no longer in the bot inventory.    |
 
 #### Set to true if want to enable
 

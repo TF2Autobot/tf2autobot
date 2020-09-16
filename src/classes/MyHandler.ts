@@ -76,6 +76,7 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
@@ -131,6 +132,7 @@ export = class MyHandler extends Handler {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
                 url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
             },
+            autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
             showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
@@ -1794,7 +1796,7 @@ export = class MyHandler extends Handler {
                             });
                     }
                 } else if (
-                    process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
+                    this.fromEnv.autoRemoveIntentSell &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
