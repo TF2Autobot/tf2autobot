@@ -1766,35 +1766,29 @@ export = class MyHandler extends Handler {
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
-                    !hasHighValue
+                    !hasHighValue &&
+                    !this.bot.isAdmin(offer.partner)
                 ) {
-                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, then add
-                    // INVALID_ITEMS to the pricelist.
-                    if (
-                        !this.bot.isAdmin(offer.partner) ||
-                        (this.bot.isAdmin(offer.partner) && offer.itemsToReceive.length > 0)
-                    ) {
-                        // if an offer is not from ADMIN or if it's from ADMIN and receiving something
-                        // that's not in pricelist, then add to sell
-                        const entry = {
-                            sku: sku,
-                            enabled: true,
-                            autoprice: true,
-                            min: 0,
-                            max: 1,
-                            intent: 1
-                        } as any;
+                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
+                    // from ADMINS, then add INVALID_ITEMS to the pricelist.
+                    const entry = {
+                        sku: sku,
+                        enabled: true,
+                        autoprice: true,
+                        min: 0,
+                        max: 1,
+                        intent: 1
+                    } as any;
 
-                        this.bot.pricelist
-                            .addPrice(entry as EntryData, false)
-                            .then(data => {
-                                log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                                this.bot.listings.checkBySKU(data.sku, data);
-                            })
-                            .catch(err => {
-                                log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
-                            });
-                    }
+                    this.bot.pricelist
+                        .addPrice(entry as EntryData, false)
+                        .then(data => {
+                            log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
+                            this.bot.listings.checkBySKU(data.sku, data);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
+                        });
                 } else if (
                     this.fromEnv.autoRemoveIntentSell &&
                     inPrice !== null &&
