@@ -78,6 +78,7 @@ tf2autobot adds advantageous features on top of the original features in the tf2
 -   option to recognize Strange Unusual as usual Unusual and vice versa.
 -   notify owner if someone traded high valued items (spelled).
 -   request pricecheck after every successful trade on each item involved in the trade (except craft weapons and pure).
+-   automatically add any accepted `INVALID_ITEMS` (except skins) to sell (if and only if it's priced at prices.tf and not from ADMINS).
 
 **Others:**
 
