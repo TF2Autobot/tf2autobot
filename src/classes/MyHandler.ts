@@ -1767,7 +1767,12 @@ export = class MyHandler extends Handler {
                                 log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                             });
                     }
-                } else if (inPrice !== null && inPrice.intent === 1 && currentStock < 1) {
+                } else if (
+                    process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
+                    inPrice !== null &&
+                    inPrice.intent === 1 &&
+                    currentStock < 1
+                ) {
                     this.bot.pricelist
                         .removePrice(sku, false)
                         .then(() => {
