@@ -913,7 +913,11 @@ export = class MyHandler extends Handler {
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
+                            const valueInRef = Currencies.toRefined(price[intentString].toValue(keyPrice.metal));
+                            itemSuggestedValue =
+                                valueInRef >= keyPrice.metal
+                                    ? `${valueInRef.toString()} (${price[intentString].toString()})`
+                                    : price[intentString].toString();
                         }
 
                         wrongAboutOffer.push({
@@ -921,7 +925,7 @@ export = class MyHandler extends Handler {
                             sku: sku,
                             buying: buying,
                             amount: amount,
-                            price: itemSuggestedValue.toString()
+                            price: itemSuggestedValue
                         });
                     }
                 }
