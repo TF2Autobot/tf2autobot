@@ -72,6 +72,11 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        tradeSummaryWebhook: {
+            enabled: boolean;
+            url: string;
+        };
+        autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
@@ -123,6 +128,11 @@ export = class MyHandler extends Handler {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false',
                 url: process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             },
+            tradeSummaryWebhook: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
+                url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+            },
+            autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
             showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
@@ -488,6 +498,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
 
+        const webhook = this.fromEnv.tradeSummaryWebhook;
+
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
@@ -511,7 +523,15 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                     highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                    highValuedOur.nameWithSpell.push(`${item.name} with ${spellName}`);
+                    highValuedOur.nameWithSpell.push(
+                        `${item.name} with ${
+                            webhook.enabled && webhook.url
+                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                      .replace(/\s/g, '_')
+                                      .replace(/'/g, '%27')}_(halloween_spell))`
+                                : spellName
+                        }`
+                    );
 
                     log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
@@ -544,7 +564,15 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                     highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                    highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                    highValuedTheir.nameWithSpell.push(
+                        `${item.name} with ${
+                            webhook.enabled && webhook.url
+                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                      .replace(' ', '_')
+                                      .replace("'", '%27')}_(halloween_spell))`
+                                : spellName
+                        }`
+                    );
 
                     log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
                     break;
@@ -885,7 +913,11 @@ export = class MyHandler extends Handler {
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            itemSuggestedValue = Currencies.toCurrencies(price[intentString].toValue(keyPrice.metal));
+                            const valueInRef = Currencies.toRefined(price[intentString].toValue(keyPrice.metal));
+                            itemSuggestedValue =
+                                valueInRef >= keyPrice.metal
+                                    ? `${valueInRef.toString()} (${price[intentString].toString()})`
+                                    : price[intentString].toString();
                         }
 
                         wrongAboutOffer.push({
@@ -893,7 +925,7 @@ export = class MyHandler extends Handler {
                             sku: sku,
                             buying: buying,
                             amount: amount,
-                            price: itemSuggestedValue.toString()
+                            price: itemSuggestedValue
                         });
                     }
                 }
@@ -1240,12 +1272,14 @@ export = class MyHandler extends Handler {
                 if (isManyItems) {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.'
+                        'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer and the trade will be completed in seconds.'
+                        'I have accepted your offer and the trade will be completed in seconds.' +
+                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
 
@@ -1320,13 +1354,13 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                    ' If the trade did not complete after 5-10 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                    ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer and the trade will be completed in seconds.' +
-                    ' If the trade did not complete after 1-2 minutes had passed, please add me and send "!message help accept trade" (without the double quotes).'
+                    ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
             );
         }
 
@@ -1738,41 +1772,37 @@ export = class MyHandler extends Handler {
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
-                    !hasHighValue
+                    !hasHighValue &&
+                    !this.bot.isAdmin(offer.partner)
                 ) {
-                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, then add
-                    // INVALID_ITEMS to the pricelist.
-                    if (
-                        !this.bot.isAdmin(offer.partner) ||
-                        (this.bot.isAdmin(offer.partner) && offer.itemsToReceive.length > 0)
-                    ) {
-                        // if an offer is not from ADMIN or if it's from ADMIN and receiving something
-                        // that's not in pricelist, then add to sell
-                        const entry = {
-                            sku: sku,
-                            enabled: true,
-                            autoprice: true,
-                            min: 0,
-                            max: 1,
-                            intent: 1
-                        } as any;
+                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
+                    // from ADMINS, then add INVALID_ITEMS to the pricelist.
+                    const entry = {
+                        sku: sku,
+                        enabled: true,
+                        autoprice: true,
+                        min: 0,
+                        max: 1,
+                        intent: 1
+                    } as any;
 
-                        this.bot.pricelist
-                            .addPrice(entry as EntryData, false)
-                            .then(data => {
-                                log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                                this.bot.listings.checkBySKU(data.sku, data);
-                            })
-                            .catch(err => {
-                                log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
-                            });
-                    }
+                    this.bot.pricelist
+                        .addPrice(entry as EntryData, false)
+                        .then(data => {
+                            log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
+                            this.bot.listings.checkBySKU(data.sku, data);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
+                        });
                 } else if (
-                    process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
+                    this.fromEnv.autoRemoveIntentSell &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
                 ) {
+                    // If automatic remove items with intent=sell enabled and it's in the pricelist and no more stock,
+                    // then remove the item entry from pricelist.
                     this.bot.pricelist
                         .removePrice(sku, false)
                         .then(() => {
