@@ -568,8 +568,8 @@ export = class MyHandler extends Handler {
                         `${item.name} with ${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                      .replace(' ', '_')
-                                      .replace("'", '%27')}_(halloween_spell))`
+                                    .replace(/\s/g, '_')
+                                    .replace(/'/g, '%27')}_(halloween_spell))`
                                 : spellName
                         }`
                     );
