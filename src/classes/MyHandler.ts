@@ -2742,8 +2742,8 @@ export = class MyHandler extends Handler {
                 const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
-                        ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                        ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
                         : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
                 );
                 this.bot.client.removeFriend(element.steamID);
