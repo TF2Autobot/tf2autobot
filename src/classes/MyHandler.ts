@@ -852,6 +852,8 @@ export = class MyHandler extends Handler {
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
+
+                            this.bot.listings.checkBySKU(match.sku);
                         }
 
                         if (
@@ -871,6 +873,8 @@ export = class MyHandler extends Handler {
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
+
+                            this.bot.listings.checkBySKU(match.sku);
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
@@ -997,6 +1001,8 @@ export = class MyHandler extends Handler {
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
+
+                    this.bot.listings.checkBySKU('5021;6');
                 }
 
                 const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
@@ -1012,6 +1018,8 @@ export = class MyHandler extends Handler {
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
+
+                    this.bot.listings.checkBySKU('5021;6');
                 }
             }
         }
