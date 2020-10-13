@@ -2362,40 +2362,51 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades
-                .applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta') || {}, offer)
-                .asCallback(err => {
-                    if (err) {
-                        this.bot.sendMessage(
-                            steamID,
-                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-                        );
-                        return;
-                    }
+            const reviewMeta: {
+                uniqueReasons: string[];
+                reasons: any;
+                hasHighValueItems: {
+                    our: boolean;
+                    their: boolean;
+                };
+                highValueItems: {
+                    our: { skus: string[]; nameWithSpell: string[] };
+                    their: { skus: string[]; nameWithSpell: string[] };
+                };
+            } = offer.data('reviewMeta');
 
-                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+            this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
+                if (err) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                    );
+                    return;
+                }
 
-                    if (isManyItems) {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    } else {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    }
-                    // Send message to recipient if includes some messages
-                    if (reply) {
-                        this.bot.sendMessage(
-                            partnerId,
-                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                        );
-                    }
-                });
+                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                if (isManyItems) {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                    );
+                } else {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'My owner have manually accepted your offer and the trade will be completed in seconds.' +
+                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                    );
+                }
+                // Send message to recipient if includes some messages
+                if (reply) {
+                    this.bot.sendMessage(
+                        partnerId,
+                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                    );
+                }
+            });
         });
     }
 
