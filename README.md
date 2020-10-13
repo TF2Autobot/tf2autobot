@@ -370,7 +370,7 @@ Time will be use in "!time" command and
 
 `X = SOMETHING_WRONG_ALERT | PRICE_UPDATE | TRADE_SUMMARY | OFFER_REVIEW | MESSAGE_FROM_PARTNER`
 
-See this: https://gyazo.com/539739f0bab50636e20a0fb76e9f1720 (settings in your respective channels)
+See this: https://gyazo.com/90e9b16d7c54f1b4a96f95b9fae93187 (settings in your respective channels)
 
 ---
 
