@@ -501,6 +501,18 @@ export default class Pricelist extends EventEmitter {
                 url: string;
             };
             title: string;
+            fields: [
+                {
+                    name: string;
+                    value: string;
+                    inline: boolean;
+                },
+                {
+                    name: string;
+                    value: string;
+                    inline: boolean;
+                }
+            ];
             description: string;
             color: string;
         }[] = [];
@@ -738,12 +750,21 @@ export default class Pricelist extends EventEmitter {
                     url: effectURL
                 },
                 title: '',
-                description:
-                    `**※ Buy:** ${data.newPrice.buy.toString()}\n` +
-                    `**※ Sell:** ${data.newPrice.sell.toString()}\n` +
-                    (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        : ''),
+                fields: [
+                    {
+                        name: 'Buying for',
+                        value: data.newPrice.buy.toString(),
+                        inline: true
+                    },
+                    {
+                        name: 'Selling for',
+                        value: data.newPrice.sell.toString(),
+                        inline: true
+                    }
+                ],
+                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    : '',
                 color: qualityColorPrint
             });
             /*eslint-enable */
