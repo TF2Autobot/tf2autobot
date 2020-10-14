@@ -1584,34 +1584,46 @@ export = class MyHandler extends Handler {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
                     if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
-                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
-                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+                        if (offerMeta.meta) {
+                            // doing this because if an offer needs a manual review because of the failed for checking
+                            // for banned and escrow, then this is undefined.
+                            if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                                // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.invalidItems.push(name + ' - ' + el.price);
-                            });
-                        }
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟨_INVALID_ITEMS')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.invalidItems.push(name + ' - ' + el.price);
+                                });
+                            }
 
-                        if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
-                            // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
+                            if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+                                // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
-                            });
-                        }
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟦_OVERSTOCKED')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
+                                });
+                            }
 
-                        if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
-                            // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
+                            if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+                                // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
-                            });
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟩_UNDERSTOCKED')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.understocked.push(
+                                        name + ' (amount can sell was ' + el.amountCanTrade + ')'
+                                    );
+                                });
+                            }
                         }
                     }
 
