@@ -40,7 +40,8 @@ const COMMANDS: string[] = [
     '!cancel - Cancel the trade offer ❌',
     '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
     '!owner - Get the owner Steam profile and Backpack.tf links',
-    '!message <your message> - Send a message to the owner of the bot 💬\n\n✨=== Other Commands ===✨',
+    '!message <your message> - Send a message to the owner of the bot 💬',
+    '!discord - Get a link to join tf2autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
 ];
 
@@ -144,8 +145,6 @@ export = class Commands {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
-        } else if (command === 'owner') {
-            this.ownerCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
         } else if (['buy', 'b'].includes(command)) {
@@ -166,6 +165,10 @@ export = class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
+        } else if (command === 'owner') {
+            this.ownerCommand(steamID);
+        } else if (command === 'discord') {
+            this.discordCommand(steamID);
         } else if (command === 'more') {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
@@ -289,6 +292,17 @@ export = class Commands {
             `• Steam: https://steamcommunity.com/profiles/${firstAdmin.toString()}` +
                 `\n• Backpack.tf: https://backpack.tf/profiles/${firstAdmin.toString()}`
         );
+    }
+
+    private discordCommand(steamID: SteamID): void {
+        let reply = '';
+        if (process.env.DISCORD_SERVER_INVITE_LINK) {
+            reply += `tf2autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+        } else {
+            reply += 'tf2autobot Discord Server: https://discord.gg/ZrVT7mc';
+        }
+
+        this.bot.sendMessage(steamID, reply);
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
@@ -2362,40 +2376,51 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
-            this.bot.trades
-                .applyActionToOffer('accept', 'MANUAL', offer.data('reviewMeta') || {}, offer)
-                .asCallback(err => {
-                    if (err) {
-                        this.bot.sendMessage(
-                            steamID,
-                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-                        );
-                        return;
-                    }
+            const reviewMeta: {
+                uniqueReasons: string[];
+                reasons: any;
+                hasHighValueItems: {
+                    our: boolean;
+                    their: boolean;
+                };
+                highValueItems: {
+                    our: { skus: string[]; nameWithSpell: string[] };
+                    their: { skus: string[]; nameWithSpell: string[] };
+                };
+            } = offer.data('reviewMeta');
 
-                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+            this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
+                if (err) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                    );
+                    return;
+                }
 
-                    if (isManyItems) {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    } else {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    }
-                    // Send message to recipient if includes some messages
-                    if (reply) {
-                        this.bot.sendMessage(
-                            partnerId,
-                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                        );
-                    }
-                });
+                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                if (isManyItems) {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                    );
+                } else {
+                    this.bot.sendMessage(
+                        offer.partner,
+                        'My owner have manually accepted your offer and the trade will be completed in seconds.' +
+                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                    );
+                }
+                // Send message to recipient if includes some messages
+                if (reply) {
+                    this.bot.sendMessage(
+                        partnerId,
+                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                    );
+                }
+            });
         });
     }
 

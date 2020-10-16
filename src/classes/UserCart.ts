@@ -531,7 +531,7 @@ class UserCart extends Cart {
                 nameWithSpell: []
             };
 
-            offer.itemsToReceive.forEach(item => {
+            fetched.forEach(item => {
                 for (let i = 0; i < item.descriptions.length; i++) {
                     const descriptionValue = item.descriptions[i].value;
                     const descriptionColor = item.descriptions[i].color;
@@ -1978,7 +1978,7 @@ class UserCart extends Cart {
                 nameWithSpell: []
             };
 
-            offer.itemsToReceive.forEach(item => {
+            fetched.forEach(item => {
                 for (let i = 0; i < item.descriptions.length; i++) {
                     const descriptionValue = item.descriptions[i].value;
                     const descriptionColor = item.descriptions[i].color;

@@ -852,6 +852,8 @@ export = class MyHandler extends Handler {
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
+
+                            this.bot.listings.checkBySKU(match.sku);
                         }
 
                         if (
@@ -871,6 +873,8 @@ export = class MyHandler extends Handler {
                                 diff: diff,
                                 amountCanTrade: amountCanTrade
                             });
+
+                            this.bot.listings.checkBySKU(match.sku);
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
@@ -997,6 +1001,8 @@ export = class MyHandler extends Handler {
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
+
+                    this.bot.listings.checkBySKU('5021;6');
                 }
 
                 const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
@@ -1012,6 +1018,8 @@ export = class MyHandler extends Handler {
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
+
+                    this.bot.listings.checkBySKU('5021;6');
                 }
             }
         }
@@ -1388,7 +1396,8 @@ export = class MyHandler extends Handler {
             offer.data('switchedState', oldState);
         }
 
-        let hasHighValue = false;
+        let hasHighValueOur = false;
+        let hasHighValueTheir = false;
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1576,40 +1585,52 @@ export = class MyHandler extends Handler {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
                     if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
-                        if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
-                            // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+                        if (offerMeta.meta) {
+                            // doing this because if an offer needs a manual review because of the failed for checking
+                            // for banned and escrow, then this is undefined.
+                            if (offerMeta.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                                // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.invalidItems.push(name + ' - ' + el.price);
-                            });
-                        }
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟨_INVALID_ITEMS')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.invalidItems.push(name + ' - ' + el.price);
+                                });
+                            }
 
-                        if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
-                            // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
+                            if (offerMeta.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+                                // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
-                            });
-                        }
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟦_OVERSTOCKED')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
+                                });
+                            }
 
-                        if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
-                            // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
+                            if (offerMeta.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+                                // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
-                            const invalid = offerMeta.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
-                            invalid.forEach(el => {
-                                const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
-                            });
+                                const invalid = offerMeta.meta.reasons.filter(el =>
+                                    el.reason.includes('🟩_UNDERSTOCKED')
+                                );
+                                invalid.forEach(el => {
+                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                                    accepted.understocked.push(
+                                        name + ' (amount can sell was ' + el.amountCanTrade + ')'
+                                    );
+                                });
+                            }
                         }
                     }
 
                     if (offerMeta.meta && offerMeta.meta.hasHighValueItems) {
                         if (offerMeta.meta.hasHighValueItems.their) {
-                            hasHighValue = true;
+                            hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1617,7 +1638,7 @@ export = class MyHandler extends Handler {
                         }
 
                         if (offerMeta.meta.hasHighValueItems.our) {
-                            hasHighValue = true;
+                            hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1627,7 +1648,7 @@ export = class MyHandler extends Handler {
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
                     if (offerMade.nameWithSpell.length > 0) {
-                        hasHighValue = true;
+                        hasHighValueTheir = true;
                         offerMade.nameWithSpell.forEach(name => {
                             accepted.highValue.push(name);
                         });
@@ -1772,7 +1793,7 @@ export = class MyHandler extends Handler {
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
-                    !hasHighValue &&
+                    !(hasHighValueTheir || hasHighValueOur) &&
                     !this.bot.isAdmin(offer.partner)
                 ) {
                     // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
@@ -1795,13 +1816,32 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
+                } else if (inPrice !== null && hasHighValueTheir) {
+                    // If item received is high value, temporarily disable that item so it will not be sellable.
+                    const entry = {
+                        sku: sku,
+                        enabled: false,
+                        autoprice: inPrice.autoprice,
+                        min: inPrice.min,
+                        max: inPrice.max,
+                        intent: inPrice.intent
+                    } as any;
+
+                    this.bot.pricelist
+                        .updatePrice(entry as EntryData, true)
+                        .then(() => {
+                            log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
+                        });
                 } else if (
                     this.fromEnv.autoRemoveIntentSell &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
                 ) {
-                    // If automatic remove items with intent=sell enabled and it's in the pricelist and no more stock,
+                    // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
                     // then remove the item entry from pricelist.
                     this.bot.pricelist
                         .removePrice(sku, false)
@@ -2734,8 +2774,8 @@ export = class MyHandler extends Handler {
                 const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
-                        ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
+                        ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
                         : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
                 );
                 this.bot.client.removeFriend(element.steamID);

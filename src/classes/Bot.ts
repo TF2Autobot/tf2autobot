@@ -661,10 +661,9 @@ export = class Bot {
     }
 
     login(loginKey?: string): Promise<void> {
-        log.debug('Starting login attempt', {
-            loginKey: loginKey,
-            private: true
-        });
+        log.debug('Starting login attempt');
+        // loginKey: loginKey,
+        // private: true
 
         const wait = this.loginWait();
 

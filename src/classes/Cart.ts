@@ -337,6 +337,14 @@ abstract class Cart {
             return Promise.reject(new Error('❌ Offer has not yet been constructed'));
         }
 
+        if (
+            this.offer.itemsToGive.length > 0 &&
+            this.offer.itemsToReceive.length === 0 &&
+            !this.bot.isAdmin(this.offer.partner)
+        ) {
+            return Promise.reject('Offer was mistakenly created to give free items to trade partner');
+        }
+
         if (this.offer.data('dict') === undefined) {
             throw new Error('dict not saved on offer');
         }
@@ -363,6 +371,14 @@ abstract class Cart {
             .then(() => {
                 if (this.isCanceled()) {
                     return Promise.reject('Offer was canceled');
+                }
+
+                if (
+                    this.offer.itemsToGive.length > 0 &&
+                    this.offer.itemsToReceive.length === 0 &&
+                    !this.bot.isAdmin(this.offer.partner)
+                ) {
+                    return Promise.reject('Offer was mistakenly created to give free items to trade partner');
                 }
 
                 return this.bot.trades.sendOffer(this.offer);
