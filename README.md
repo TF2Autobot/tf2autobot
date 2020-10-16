@@ -27,11 +27,11 @@ Before you install the bot, there are a few things you will need:
 
 ## Wiki
 
-Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the tf2autobot-IdiNium [Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
+Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the [tf2autobot Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 ## Join our Discord server!
 
-Join the **tf2autobot** Discord server! [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) Head over to `#🆚roles` channel and react to the first message to get notified whenever an update has been released!
+Join the [tf2autobot Discord server](https://discord.gg/ZrVT7mc) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/721533052890644511) channel and react to the first message to get notified whenever an update has been released!
 
 <div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
