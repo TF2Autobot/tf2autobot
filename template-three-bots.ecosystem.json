@@ -90,6 +90,8 @@
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
                 "OFFER_MESSAGE": "",
 
+                "DISCORD_SERVER_INVITE_LINK": "",
+
                 "DISCORD_OWNER_ID": "",
                 "DISCORD_WEBHOOK_USERNAME": "",
                 "DISCORD_WEBHOOK_AVATAR_URL": "",
@@ -251,6 +253,8 @@
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
                 "OFFER_MESSAGE": "",
 
+                "DISCORD_SERVER_INVITE_LINK": "",
+
                 "DISCORD_OWNER_ID": "",
                 "DISCORD_WEBHOOK_USERNAME": "",
                 "DISCORD_WEBHOOK_AVATAR_URL": "",
@@ -411,6 +415,8 @@
                 "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
                 "OFFER_MESSAGE": "",
+
+                "DISCORD_SERVER_INVITE_LINK": "",
 
                 "DISCORD_OWNER_ID": "",
                 "DISCORD_WEBHOOK_USERNAME": "",

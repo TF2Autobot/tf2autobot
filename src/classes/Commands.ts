@@ -40,7 +40,8 @@ const COMMANDS: string[] = [
     '!cancel - Cancel the trade offer ❌',
     '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
     '!owner - Get the owner Steam profile and Backpack.tf links',
-    '!message <your message> - Send a message to the owner of the bot 💬\n\n✨=== Other Commands ===✨',
+    '!message <your message> - Send a message to the owner of the bot 💬',
+    '!discord - Get a link to join tf2autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
 ];
 
@@ -144,8 +145,6 @@ export = class Commands {
             this.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.howToTradeCommand(steamID);
-        } else if (command === 'owner') {
-            this.ownerCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
         } else if (['buy', 'b'].includes(command)) {
@@ -166,6 +165,10 @@ export = class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
+        } else if (command === 'owner') {
+            this.ownerCommand(steamID);
+        } else if (command === 'discord') {
+            this.discordCommand(steamID);
         } else if (command === 'more') {
             this.moreCommand(steamID);
         } else if (command === 'autokeys') {
@@ -289,6 +292,17 @@ export = class Commands {
             `• Steam: https://steamcommunity.com/profiles/${firstAdmin.toString()}` +
                 `\n• Backpack.tf: https://backpack.tf/profiles/${firstAdmin.toString()}`
         );
+    }
+
+    private discordCommand(steamID: SteamID): void {
+        let reply = '';
+        if (process.env.DISCORD_SERVER_INVITE_LINK) {
+            reply += `tf2autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+        } else {
+            reply += 'tf2autobot Discord Server: https://discord.gg/ZrVT7mc';
+        }
+
+        this.bot.sendMessage(steamID, reply);
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
