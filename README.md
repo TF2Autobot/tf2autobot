@@ -10,13 +10,8 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
-[![IdiNium-paypal](https://img.shields.io/badge/IdiNium-Paypal-blue)](https://www.paypal.me/idinium)
-[![IdiNium-Steam](<https://img.shields.io/badge/IdiNium(donate)-Steam-lightgrey>)](https://bit.ly/3gbldTM)
-[![Nicklason-Steam](<https://img.shields.io/badge/Nicklason(donate)-Steam-lightgrey>)](https://steamcommunity.com/tradeoffer/new/?partner=159805178&token=_Eq1Y3An)
 
 **tf2autobot made by IdiNium**
-[![profile-Steam](https://img.shields.io/badge/Steam-profile-blue)](https://steamcommunity.com/profiles/76561198013127982/)
-[![profile-bptf](https://img.shields.io/badge/Backpack.tf-profile-blue)](https://backpack.tf/profiles/76561198013127982)
 [![profile](https://user-images.githubusercontent.com/47635037/88795331-708f5380-d1d2-11ea-8adf-92d94be581e9.PNG)](https://backpack.tf/profiles/76561198013127982)
 
 Before you install the bot, there are a few things you will need:
