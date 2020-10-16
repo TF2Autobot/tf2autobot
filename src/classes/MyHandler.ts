@@ -1396,7 +1396,8 @@ export = class MyHandler extends Handler {
             offer.data('switchedState', oldState);
         }
 
-        let hasHighValue = false;
+        let hasHighValueOur = false;
+        let hasHighValueTheir = false;
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1629,7 +1630,7 @@ export = class MyHandler extends Handler {
 
                     if (offerMeta.meta && offerMeta.meta.hasHighValueItems) {
                         if (offerMeta.meta.hasHighValueItems.their) {
-                            hasHighValue = true;
+                            hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1637,7 +1638,7 @@ export = class MyHandler extends Handler {
                         }
 
                         if (offerMeta.meta.hasHighValueItems.our) {
-                            hasHighValue = true;
+                            hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1647,7 +1648,7 @@ export = class MyHandler extends Handler {
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
                     if (offerMade.nameWithSpell.length > 0) {
-                        hasHighValue = true;
+                        hasHighValueTheir = true;
                         offerMade.nameWithSpell.forEach(name => {
                             accepted.highValue.push(name);
                         });
@@ -1792,7 +1793,7 @@ export = class MyHandler extends Handler {
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
-                    !hasHighValue &&
+                    !(hasHighValueTheir || hasHighValueOur) &&
                     !this.bot.isAdmin(offer.partner)
                 ) {
                     // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
@@ -1815,13 +1816,32 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
+                } else if (inPrice !== null && hasHighValueTheir) {
+                    // If item received is high value, temporarily disable that item so it will not be sellable.
+                    const entry = {
+                        sku: sku,
+                        enabled: false,
+                        autoprice: inPrice.autoprice,
+                        min: inPrice.min,
+                        max: inPrice.max,
+                        intent: inPrice.intent
+                    } as any;
+
+                    this.bot.pricelist
+                        .updatePrice(entry as EntryData, true)
+                        .then(() => {
+                            log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
+                        })
+                        .catch(err => {
+                            log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
+                        });
                 } else if (
                     this.fromEnv.autoRemoveIntentSell &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
                 ) {
-                    // If automatic remove items with intent=sell enabled and it's in the pricelist and no more stock,
+                    // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
                     // then remove the item entry from pricelist.
                     this.bot.pricelist
                         .removePrice(sku, false)
