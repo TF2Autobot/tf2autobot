@@ -31,7 +31,7 @@ Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for gui
 
 ## Join our Discord server!
 
-Join the **tf2autobot-IdiNium** Discord server! [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) Head over to `#🆚roles` channel and react to the first message to get notified whenever an update has been released!
+Join the **tf2autobot** Discord server! [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc) Head over to `#🆚roles` channel and react to the first message to get notified whenever an update has been released!
 
 <div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
