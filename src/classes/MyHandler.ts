@@ -311,6 +311,9 @@ export = class MyHandler extends Handler {
 
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
+
+        // Check for missing sell listings every 5 minutes.
+        this.autoRefreshListings();
     }
 
     onShutdown(): Promise<void> {
@@ -414,6 +417,27 @@ export = class MyHandler extends Handler {
         const details = Object.assign({ private: true }, auth);
 
         log.warn('Please add the backpack.tf API key and access token to the environment variables!', details);
+    }
+
+    private autoRefreshListings(): void {
+        // Automatically check for missing sell listings every 5 minutes
+        setInterval(() => {
+            log.debug('Running automatic checking for sell missing listings...');
+            const inventory = this.bot.inventoryManager.getInventory();
+            const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+                // Filter our pricelist to only the items that the bot currently have.
+                return inventory.findBySKU(entry.sku).length > 0;
+            });
+
+            if (pricelist.length > 0) {
+                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                    log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
+                });
+            } else {
+                log.debug('❌ Nothing to refresh.');
+            }
+        }, 5 * 60 * 1000);
     }
 
     async onNewTradeOffer(
