@@ -424,7 +424,7 @@ export = class MyHandler extends Handler {
     }
 
     private autoRefreshListings(): void {
-        // Automatically check for missing sell listings every 5 minutes
+        // Automatically check for missing sell listings every 15 minutes
         setInterval(() => {
             log.debug('Running automatic checking for sell missing listings...');
             const inventory = this.bot.inventoryManager.getInventory();
@@ -441,7 +441,7 @@ export = class MyHandler extends Handler {
             } else {
                 log.debug('❌ Nothing to refresh.');
             }
-        }, 5 * 60 * 1000);
+        }, 15 * 60 * 1000);
     }
 
     async onNewTradeOffer(
