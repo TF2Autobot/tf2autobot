@@ -312,8 +312,10 @@ export = class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
-        // Check for missing sell listings every 5 minutes.
-        this.autoRefreshListings();
+        // Check for missing sell listings every 5 minutes, 30 minutes after start
+        setTimeout(() => {
+            this.autoRefreshListings();
+        }, 30 * 6 * 1000);
     }
 
     onShutdown(): Promise<void> {
