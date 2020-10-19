@@ -1711,7 +1711,7 @@ export = class MyHandler extends Handler {
                                   '🔶_HIGH_VALUE_ITEMS:\n- ' +
                                   accepted.highValue.join(',\n- ')
                                 : '') +
-                            `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                            `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
