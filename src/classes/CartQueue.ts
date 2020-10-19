@@ -2,7 +2,6 @@ import SteamID from 'steamid';
 
 import Bot from './Bot';
 import Cart from './Cart';
-import DiscordWebhookClass from './DiscordWebhook';
 
 import log from '../lib/logger';
 
@@ -10,8 +9,6 @@ export = CartQueue;
 
 class CartQueue {
     private readonly bot: Bot;
-
-    readonly discord: DiscordWebhookClass;
 
     private carts: Cart[] = [];
 
@@ -21,7 +18,6 @@ class CartQueue {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhookClass(bot);
     }
 
     enqueue(cart: Cart): number {
@@ -58,43 +54,8 @@ class CartQueue {
             const position = this.carts.length;
             log.debug(`Current queue position: ${position}`);
             if (position >= 2) {
-                if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                    process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-                ) {
-                    this.discord.sendAlert('queue', null, position, null, null);
-                    this.bot.botManager
-                        .restartProcess()
-                        .then(restarting => {
-                            if (!restarting) {
-                                this.discord.sendAlert('failedPM2', null, null, null, null);
-                            } else {
-                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
-                            }
-                        })
-                        .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
-                            this.discord.sendAlert('failedError', null, null, err.message, null);
-                        });
-                } else {
-                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
-                    this.bot.botManager
-                        .restartProcess()
-                        .then(restarting => {
-                            if (!restarting) {
-                                this.bot.messageAdmins(
-                                    '❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2',
-                                    []
-                                );
-                            } else {
-                                this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
-                            }
-                        })
-                        .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
-                            this.bot.messageAdmins(`❌ An error occurred while trying to restart: ${err.message}`, []);
-                        });
-                }
+                this.resetQueue();
+                this.bot.sendMessage(steamID, 'Sorry! Something went wrong. You can try again now...');
             }
         }, 3 * 60 * 1000);
     }
