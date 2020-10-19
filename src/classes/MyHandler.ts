@@ -81,6 +81,7 @@ export = class MyHandler extends Handler {
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
         autokeysNotAcceptUnderstocked: boolean;
+        onlyTF2: boolean;
     };
 
     private isTradingKeys = false;
@@ -136,7 +137,8 @@ export = class MyHandler extends Handler {
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
             showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
-            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true'
+            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true',
+            onlyTF2: process.env.ENABLE_ONLY_PLAY_TF2 === 'true'
         };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
@@ -273,7 +275,7 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed([this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
         // GetBackpackSlots
@@ -343,7 +345,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed([this.customGameName, 440]);
+            this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
 
@@ -3415,7 +3417,7 @@ export = class MyHandler extends Handler {
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed([this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
     }
 };
 
