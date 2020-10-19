@@ -1749,9 +1749,9 @@ class UserCart extends Cart {
         const summary = super.summarizeOurWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -1791,9 +1791,9 @@ class UserCart extends Cart {
         const summary = super.summarizeTheirWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -2395,9 +2395,9 @@ class UserCart extends Cart {
         };
 
         const required = this.getRequiredWithWeapons(buyerCurrenciesCount, currencies, this.canUseKeysWithWeapons());
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
         craft.forEach(sku => {
@@ -2511,9 +2511,9 @@ class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = sellerInventory.getCurrencies();
-            const weapons = (this.bot.handler as MyHandler).weapon();
-            const craft = weapons.craft;
-            const uncraft = weapons.uncraft;
+            const weapons = (this.bot.handler as MyHandler).weapons();
+            const craft = weapons.craftAll;
+            const uncraft = weapons.uncraftAll;
             // We won't use keys when giving change
             delete currencies['5021;6'];
 

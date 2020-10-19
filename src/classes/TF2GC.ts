@@ -50,7 +50,7 @@ export = class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!(this.bot.handler as MyHandler).weapon().craft.includes(sku)) {
+        if (!(this.bot.handler as MyHandler).weapons().craftAll.includes(sku)) {
             return;
         }
 
@@ -61,7 +61,7 @@ export = class TF2GC {
 
     combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
         skus.forEach(sku => {
-            if (!(this.bot.handler as MyHandler).weapon().craft.includes(sku)) {
+            if (!(this.bot.handler as MyHandler).weapons().craftAll.includes(sku)) {
                 return;
             }
         });
