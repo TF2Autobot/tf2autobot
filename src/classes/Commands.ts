@@ -41,7 +41,7 @@ const COMMANDS: string[] = [
     '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
     '!owner - Get the owner Steam profile and Backpack.tf links',
     '!message <your message> - Send a message to the owner of the bot 💬',
-    '!discord - Get a link to join tf2autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
+    '!discord - Get a link to join TF2Autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
 ];
 
@@ -297,9 +297,9 @@ export = class Commands {
     private discordCommand(steamID: SteamID): void {
         let reply = '';
         if (process.env.DISCORD_SERVER_INVITE_LINK) {
-            reply += `tf2autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+            reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
         } else {
-            reply += 'tf2autobot Discord Server: https://discord.gg/ZrVT7mc';
+            reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -2080,14 +2080,14 @@ export = class Commands {
     private versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            `Currently running tf2autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
+            `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
         this.bot
             .checkForUpdates()
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2autobot!');
+                    this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,

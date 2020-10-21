@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report an issue with TF2 Automatic/tf2autobot
+about: Report an issue with TF2Autobot
 title: ''
 labels: bug
 assignees: ''

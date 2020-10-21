@@ -160,14 +160,14 @@ export = class MyHandler extends Handler {
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
 
-        if (!customGameName || customGameName === 'tf2autobot') {
+        if (!customGameName || customGameName === 'TF2Autobot') {
             this.customGameName = customGameName;
         } else {
             if (customGameName.length <= 45) {
-                this.customGameName = customGameName + ' - tf2autobot';
+                this.customGameName = customGameName + ' - TF2Autobot';
             } else {
-                log.warn('Your custom game playing name is more than 45 characters, resetting to only "tf2autobot"...');
-                this.customGameName = 'tf2autobot';
+                log.warn('Your custom game playing name is more than 45 characters, resetting to only "TF2Autobot"...');
+                this.customGameName = 'TF2Autobot';
             }
         }
 
@@ -264,7 +264,7 @@ export = class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            'tf2autobot v' +
+            'TF2Autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
                 pluralize('item', this.bot.pricelist.getLength(), true) +
