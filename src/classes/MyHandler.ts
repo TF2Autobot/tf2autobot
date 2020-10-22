@@ -808,6 +808,7 @@ export = class MyHandler extends Handler {
 
         let assetidsToCheck = [];
         let skuToCheck = [];
+        let hasNoPrice = false;
 
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
@@ -935,6 +936,7 @@ export = class MyHandler extends Handler {
 
                         if (price === null) {
                             itemSuggestedValue = 'No price';
+                            hasNoPrice = true;
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
@@ -1286,10 +1288,12 @@ export = class MyHandler extends Handler {
             if (
                 ((env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked) &&
                     exchange.our.value < exchange.their.value) ||
-                (isInvalidItem && exchange.our.value <= exchange.their.value)
+                (isInvalidItem &&
+                    (exchange.our.value < exchange.their.value ||
+                        (exchange.our.value === exchange.their.value && hasNoPrice)))
             ) {
                 // if accept over/underpay is enabled and their items value is more than our, OR
-                // if an offer contains INVALID_ITEMS but their items value is more than or equal to our,
+                // if an offer contains INVALID_ITEMS and their items value is more than or our OR equal but have some others with no price,
                 // accept the trade.
                 acceptTradeCondition = true;
             }
