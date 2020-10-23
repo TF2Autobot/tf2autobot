@@ -26,7 +26,7 @@ Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for gui
 
 ## Common Errors and Frequently Asked Questions (FAQ)
 
-If you run into trouble when running the bot, make sure to head to [Common Errors] (https://github.com/idinium96/tf2autobot/wiki/Common-Errors) wiki page to find the possible solutions. If you have any doubts, you can refer to [FAQ](https://github.com/idinium96/tf2autobot/wiki/FAQ) wiki page, which we will be adding more content from time to time!
+If you run into trouble when running the bot, make sure to head to [Common Errors](https://github.com/idinium96/tf2autobot/wiki/Common-Errors) wiki page to find the possible solutions. If you have any doubts, you can refer to [FAQ](https://github.com/idinium96/tf2autobot/wiki/FAQ) wiki page, which we will be adding more content from time to time!
 
 ## Join our Discord server!
 
