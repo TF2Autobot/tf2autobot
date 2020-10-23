@@ -24,6 +24,10 @@ Before you install the bot, there are a few things you will need:
 
 Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
+## Common Errors and Frequently Asked Questions (FAQ)
+
+If you run into trouble when running the bot, make sure to head to [Common Errors] (https://github.com/idinium96/tf2autobot/wiki/Common-Errors) wiki page to find the possible solutions. If you have any doubts, you can refer to [FAQ](https://github.com/idinium96/tf2autobot/wiki/FAQ) wiki page, which we will be adding more content from time to time!
+
 ## Join our Discord server!
 
 Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/721533052890644511) channel and react to the first message to get notified whenever an update has been released!
