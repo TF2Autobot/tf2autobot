@@ -554,7 +554,7 @@ export = class MyHandler extends Handler {
 
                     highValuedOur.skus.push(item.getSKU(this.bot.schema));
                     highValuedOur.nameWithSpell.push(
-                        `${item.name} with ${
+                        `${item.market_hash_name} with ${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                       .replace(/\s/g, '_')
@@ -563,7 +563,10 @@ export = class MyHandler extends Handler {
                         }`
                     );
 
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    log.debug(
+                        'info',
+                        `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                    );
                     break;
                 }
             }
@@ -595,7 +598,7 @@ export = class MyHandler extends Handler {
 
                     highValuedTheir.skus.push(item.getSKU(this.bot.schema));
                     highValuedTheir.nameWithSpell.push(
-                        `${item.name} with ${
+                        `${item.market_hash_name} with ${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                       .replace(/\s/g, '_')
@@ -604,7 +607,10 @@ export = class MyHandler extends Handler {
                         }`
                     );
 
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                    log.debug(
+                        'info',
+                        `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                    );
                     break;
                 }
             }
