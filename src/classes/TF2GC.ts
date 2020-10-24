@@ -2,7 +2,6 @@ import Bot from './Bot';
 
 import log from '../lib/logger';
 import MyHandler from './MyHandler';
-import moment from 'moment';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
@@ -129,9 +128,13 @@ export = class TF2GC {
         this.iterate++;
 
         if (this.iterate > 1) {
-            const gameName = (this.bot.handler as MyHandler).getCustomGame();
-            this.bot.client.gamesPlayed(gameName, true);
-            this.sleep(3000);
+            // if "Ensuring TF2 GC connection..." got repeated more than 1 times, then kick playing session.
+            this.bot.client.kickPlayingSession(err => {
+                if (err) {
+                    log.debug('Failed to kick playing session', err);
+                    this.bot.client.gamesPlayed([]);
+                }
+            });
             this.iterate = 0;
         }
 
@@ -160,14 +163,6 @@ export = class TF2GC {
                 this.finishedProcessingJob(new Error('Unknown job type'));
             }
         });
-    }
-
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
     }
 
     private handleCraftJob(job: Job): void {

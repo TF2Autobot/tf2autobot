@@ -75,6 +75,8 @@ declare module 'steam-user' {
 
         gamesPlayed(apps: any[] | object | string | number, force?: boolean): void;
 
+        kickPlayingSession(callback: (err: Error | null) => void): void;
+
         chatMessage(recipient: SteamID | string, message: string): void;
 
         addFriend(steamID: SteamID | string, callback?: (err: Error | null, personaName?: string) => void): void;
