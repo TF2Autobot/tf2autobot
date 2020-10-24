@@ -485,6 +485,7 @@ export = class TF2GC {
 
             if (this.bot.tf2.haveGCSession) {
                 log.debug('Already connected to TF2 GC');
+                this.iterate = 0;
                 return resolve();
             }
 
