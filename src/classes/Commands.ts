@@ -2245,10 +2245,10 @@ export = class Commands {
         for (let i = 0; i < offers.length; i++) {
             const offer = offers[i];
 
-            reply += `\n- Offer #${offer.id} from ${
-                offer.data.partner
-            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})
-            ⚠️ Send "!trade ${offer.id}" for more details.\n `;
+            reply +=
+                `\n- Offer #${offer.id} from ${offer.data.partner} (reason: ${offer.data.action.meta.uniqueReasons.join(
+                    ', '
+                )})` + `\n⚠️ Send "!trade ${offer.id}" for more details.\n`;
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -2326,8 +2326,9 @@ export = class Commands {
         }
 
         const links = (this.bot.handler as MyHandler).tradePartnerLinks(offerData.partner.toString());
-        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP} 
-        \n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
+        reply +=
+            `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+            `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
 
         this.bot.sendMessage(steamID, reply);
     }
