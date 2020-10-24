@@ -2764,7 +2764,7 @@ export = class Commands {
         if (!foundSomething) {
             this.bot.sendMessage(
                 steamID,
-                '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/h.-Usage'
+                '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F'
             );
             return null;
         }
