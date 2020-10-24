@@ -1814,7 +1814,7 @@ export = class MyHandler extends Handler {
                 ) {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
-                            log.warn(
+                            log.debug(
                                 '❌ Failed to request pricecheck for ' +
                                     `${name} (${sku})` +
                                     ': ' +
@@ -2686,7 +2686,7 @@ export = class MyHandler extends Handler {
                 (err, response, body) => {
                     if (err) {
                         // if failed, retry after 10 minutes.
-                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
                             this.requestBackpackSlots();
@@ -2697,7 +2697,7 @@ export = class MyHandler extends Handler {
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
                         err.status = body.result.status;
-                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         // if failed, retry after 10 minutes.
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
