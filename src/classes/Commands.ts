@@ -1844,7 +1844,7 @@ export = class Commands {
                 if (!restarting) {
                     this.bot.sendMessage(
                         steamID,
-                        '❌ You are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2'
+                        '❌ You are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS'
                     );
                 }
             })

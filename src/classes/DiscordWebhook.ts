@@ -94,7 +94,7 @@ export = class DiscordWebhookClass {
             color = '16711680'; // red
         } else if (type === 'failedPM2') {
             title = 'Automatic restart failed - no PM2';
-            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2`;
+            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
             color = '16711680'; // red
         } else if (type === 'failedError') {
             title = 'Automatic restart failed - Error';
