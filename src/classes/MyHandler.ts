@@ -428,7 +428,7 @@ export = class MyHandler extends Handler {
     private autoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
         setInterval(() => {
-            log.debug('Running automatic checking for sell missing listings...');
+            log.debug('Running automatic checking for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                 // Filter our pricelist to only the items that the bot currently have.
