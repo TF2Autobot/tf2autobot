@@ -2247,7 +2247,8 @@ export = class Commands {
 
             reply += `\n- Offer #${offer.id} from ${
                 offer.data.partner
-            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})`;
+            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})
+            ⚠️ Send "!trade ${offer.id}" for more details.\n `;
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -2286,7 +2287,7 @@ export = class Commands {
         // TODO: Create static class for trade offer related functions?
 
         let reply =
-            `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️` +
+            `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
             `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
@@ -2324,8 +2325,9 @@ export = class Commands {
                     : ')');
         }
 
-        const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
-        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}`;
+        const links = (this.bot.handler as MyHandler).tradePartnerLinks(offerData.partner.toString());
+        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP} 
+        \n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
 
         this.bot.sendMessage(steamID, reply);
     }
