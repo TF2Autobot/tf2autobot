@@ -20,8 +20,6 @@ export = class TF2GC {
 
     private startedProcessing = false;
 
-    private iterate = 0;
-
     private jobs: Job[] = [];
 
     constructor(bot: Bot) {
@@ -107,7 +105,6 @@ export = class TF2GC {
 
                 this.startedProcessing = false;
 
-                this.iterate = 0;
                 this.bot.handler.onTF2QueueCompleted();
             }
             return;
@@ -124,19 +121,6 @@ export = class TF2GC {
         this.startedProcessing = true;
 
         log.debug('Ensuring TF2 GC connection...');
-
-        this.iterate++;
-
-        if (this.iterate > 1) {
-            // if "Ensuring TF2 GC connection..." got repeated more than 1 times, then kick playing session.
-            this.bot.client.kickPlayingSession(err => {
-                if (err) {
-                    log.debug('Failed to kick playing session', err);
-                    this.bot.client.gamesPlayed([]);
-                }
-            });
-            this.iterate = 0;
-        }
 
         this.connectToGC().asCallback(err => {
             if (err) {
@@ -433,7 +417,6 @@ export = class TF2GC {
         }
 
         this.processingQueue = false;
-        this.iterate = 0;
 
         this.handleJobQueue();
     }
@@ -485,20 +468,31 @@ export = class TF2GC {
 
             if (this.bot.tf2.haveGCSession) {
                 log.debug('Already connected to TF2 GC');
-                this.iterate = 0;
                 return resolve();
             }
+
+            const bot = this.bot;
 
             this.listenForEvent(
                 'connectedToGC',
                 function() {
+                    log.debug('running connectToGC iterator...');
                     return { success: true };
                 },
                 function() {
+                    log.debug('onSuccess connectToGC.');
                     resolve();
                 },
                 function() {
-                    reject(new Error('Could not connect to TF2 GC'));
+                    log.debug('onFail connectToGC.');
+                    bot.client.kickPlayingSession(err => {
+                        if (err) {
+                            log.debug('Failed to kick playing session', err);
+                            bot.client.gamesPlayed([]);
+                        }
+
+                        reject(new Error('Could not connect to TF2 GC, restarting TF2..'));
+                    });
                 }
             );
         });
