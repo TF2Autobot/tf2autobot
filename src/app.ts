@@ -85,7 +85,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
 
         if (botReady) {
             log.error(
-                'Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
+                'Refer to Wiki here: https://github.com/idinium96/tf2autobot/wiki/Common-Errors OR Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
             );
         }
     } else {
