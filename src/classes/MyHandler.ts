@@ -100,6 +100,8 @@ export = class MyHandler extends Handler {
 
     private classWeaponsTimeout;
 
+    private uptime: number;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -109,6 +111,8 @@ export = class MyHandler extends Handler {
         this.cartQueue = new CartQueue(bot);
         this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
+
+        this.uptime = moment().valueOf();
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
@@ -246,6 +250,10 @@ export = class MyHandler extends Handler {
 
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
         return this.autokeysStatus;
+    }
+
+    getUptime(): number {
+        return this.uptime;
     }
 
     onRun(): Promise<{
@@ -1791,6 +1799,8 @@ export = class MyHandler extends Handler {
 
             // Update listings
             const diff = offer.getDiff() || {};
+
+            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true)}.`);
 
             for (const sku in diff) {
                 if (!Object.prototype.hasOwnProperty.call(diff, sku)) {

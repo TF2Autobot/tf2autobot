@@ -48,6 +48,7 @@ const COMMANDS: string[] = [
 const MORE: string[] = [
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
+    '!uptime - Show the bot uptime 🔌',
     "!pure - Get the bot's current pure stock 💰",
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
@@ -87,6 +88,7 @@ const ADMIN_COMMANDS: string[] = [
     "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
+    '!uptime - Show the bot uptime 🔌',
     "!pure - Get the bot's current pure stock 💰",
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
@@ -177,6 +179,8 @@ export = class Commands {
             this.messageCommand(steamID, message);
         } else if (command === 'time') {
             this.timeCommand(steamID);
+        } else if (command === 'uptime') {
+            this.uptimeCommand(steamID);
         } else if (command === 'pure') {
             this.pureCommand(steamID);
         } else if (command === 'rate') {
@@ -815,6 +819,11 @@ export = class Commands {
             `My owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
                 (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
         );
+    }
+
+    private uptimeCommand(steamID: SteamID): void {
+        const uptime = (this.bot.handler as MyHandler).getUptime();
+        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true)}.`);
     }
 
     private pureCommand(steamID: SteamID): void {
