@@ -485,14 +485,8 @@ export = class TF2GC {
                 },
                 function() {
                     log.debug('onFail connectToGC.');
-                    bot.client.kickPlayingSession(err => {
-                        if (err) {
-                            log.debug('Failed to kick playing session', err);
-                            bot.client.gamesPlayed([]);
-                        }
-
-                        reject(new Error('Could not connect to TF2 GC, restarting TF2..'));
-                    });
+                    bot.client.gamesPlayed([]);
+                    reject(new Error('Could not connect to TF2 GC, restarting TF2..'));
                 }
             );
         });
