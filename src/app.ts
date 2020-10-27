@@ -28,7 +28,7 @@ import log from './lib/logger';
 
 if (process.env.pm_id === undefined) {
     log.warn(
-        "You are not running the bot with PM2! If the bot crashes it won't start again, see the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2"
+        "You are not running the bot with PM2! If the bot crashes it won't start again. Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS"
     );
 }
 
