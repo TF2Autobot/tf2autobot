@@ -6,7 +6,7 @@ import path from 'path';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
-    console.error('Missing dependencies! Install them using `npm install`');
+    console.error('Missing dependencies! Install them by running `npm install`');
     process.exit(1);
 }
 
@@ -14,7 +14,7 @@ import pjson from 'pjson';
 
 if (process.env.BOT_VERSION !== pjson.version) {
     /* eslint-disable-next-line no-console */
-    console.error('You have a newer version on disk! Compile the code using `tsc`');
+    console.error('You have a newer version on disk! Compile the code by running `npm run build`');
     process.exit(1);
 }
 
