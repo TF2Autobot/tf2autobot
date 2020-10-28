@@ -683,7 +683,7 @@ export = class MyHandler extends Handler {
         if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
             let hasNot5Uses = false;
             offer.itemsToReceive.forEach(item => {
-                if (item.name === 'Dueling Mini-Game') {
+                if (item.market_hash_name === 'Dueling Mini-Game') {
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -713,7 +713,7 @@ export = class MyHandler extends Handler {
             let hasNot25Uses = false;
             offer.itemsToReceive.forEach(item => {
                 const isNoiseMaker = this.noiseMakerNames().some(name => {
-                    return item.name.includes(name);
+                    return item.market_hash_name.includes(name);
                 });
                 if (isNoiseMaker) {
                     for (let i = 0; i < item.descriptions.length; i++) {
