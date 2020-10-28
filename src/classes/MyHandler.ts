@@ -84,6 +84,9 @@ export = class MyHandler extends Handler {
             duelEnabled: boolean;
             noiseEnabled: boolean;
         };
+        acceptGiftNoNotes: {
+            enabled: boolean;
+        };
         autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
@@ -152,6 +155,9 @@ export = class MyHandler extends Handler {
             checkUses: {
                 duelEnabled: process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false',
                 noiseEnabled: process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            },
+            acceptGiftNoNotes: {
+                enabled: process.env.ALLOW_GIFT_WITHOUT_NOTE === 'false'
             },
             autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
@@ -675,10 +681,44 @@ export = class MyHandler extends Handler {
 
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
-            return { action: 'accept', reason: 'GIFT' };
+            return {
+                action: 'accept',
+                reason: 'GIFT',
+                meta: {
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                }
+            };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            offer.log('info', 'is a gift offer without any offer message, declining...');
-            return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+            if (this.fromEnv.acceptGiftNoNotes.enabled) {
+                offer.log(
+                    'info',
+                    'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                );
+                return {
+                    action: 'accept',
+                    reason: 'GIFT',
+                    meta: {
+                        hasHighValueItems: {
+                            our: hasHighValueOur,
+                            their: hasHighValueTheir
+                        },
+                        highValueItems: {
+                            our: highValuedOur,
+                            their: highValuedTheir
+                        }
+                    }
+                };
+            } else {
+                offer.log('info', 'is a gift offer without any offer message, declining...');
+                return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+            }
         } else if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length === 0) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
@@ -1663,7 +1703,11 @@ export = class MyHandler extends Handler {
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
+                    if (
+                        offerMeta.reason === 'VALID_WITH_OVERPAY' ||
+                        offerMeta.reason === 'MANUAL' ||
+                        offerMeta.reason === 'GIFT'
+                    ) {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
                         if (offerMeta.meta) {
                             // doing this because if an offer needs a manual review because of the failed for checking

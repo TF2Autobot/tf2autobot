@@ -75,6 +75,7 @@
 
                 "ALLOW_ESCROW": false,
                 "ALLOW_OVERPAY": true,
+                "ALLOW_GIFT_WITHOUT_NOTE": false,
                 "ALLOW_BANNED": false,
                 "MAX_PRICE_AGE": 28800,
 
