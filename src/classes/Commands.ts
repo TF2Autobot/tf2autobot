@@ -2388,6 +2388,75 @@ export = class Commands {
             const reply = offerIdAndMessage.substr(offerIdString.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
+            let declineTrade = false;
+            let hasNot5Uses = false;
+            let hasNot25Uses = false;
+
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true'
+            ) {
+                // Re-check for Dueling Mini-Game and/or Noise Maker for 5x/25x Uses only when enabled and exist in pricelist
+                log.debug('Running re-check on Dueling Mini-Game and/or Noise maker...');
+
+                const checkExist = this.bot.pricelist;
+
+                offer.itemsToReceive.forEach(item => {
+                    const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                    const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                        return item.market_hash_name.includes(name);
+                    });
+                    if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+                        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+                        for (let i = 0; i < item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                // Contains non-5x uses.
+                                hasNot5Uses = true;
+                                log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses (re-checked).`);
+                                break;
+                            }
+                        }
+                    } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+                        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+                        for (let i = 0; i < item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                // Contains non-25x uses.
+                                hasNot25Uses = true;
+                                log.debug('info', `${item.name} (${item.assetid}) is not 25 uses (re-checked).`);
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                    // Only decline if exist in pricelist
+                    offer.log('info', 'contains Dueling Mini-Game that are not 5 uses (re-checked).');
+                    declineTrade = true;
+                }
+
+                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerSKUs().some(sku => {
+                    return checkExist.getPrice(sku, true) !== null;
+                });
+
+                if (hasNot25Uses && isNoiseMaker) {
+                    offer.log('info', 'contains Noice Maker that are not 25 uses (re-checked).');
+                    declineTrade = true;
+                }
+            }
+
             const reviewMeta: {
                 uniqueReasons: string[];
                 reasons: any;
@@ -2401,38 +2470,72 @@ export = class Commands {
                 };
             } = offer.data('reviewMeta');
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
-                if (err) {
+            if (declineTrade === false) {
+                this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        );
+                        return;
+                    }
+
+                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                    if (isManyItems) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
+                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    }
+                    // Send message to recipient if includes some messages
+                    if (reply) {
+                        this.bot.sendMessage(
+                            partnerId,
+                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        );
+                    }
+                });
+            } else {
+                this.bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
+                        );
+                        return;
+                    }
+
                     this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        `❌ Offer #${offer.id} has been automatically decline: contain${
+                            hasNot5Uses && hasNot25Uses
+                                ? 'Dueling Mini-Game and/or Noise Maker'
+                                : hasNot5Uses
+                                ? 'Dueling Mini-Game'
+                                : 'Noise Maker'
+                        } that are not full after re-check...`
                     );
-                    return;
-                }
 
-                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
-
-                if (isManyItems) {
                     this.bot.sendMessage(
                         offer.partner,
-                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        `Looks like you've used your ${
+                            hasNot5Uses && hasNot25Uses
+                                ? 'Dueling Mini-Game and/or Noise Maker'
+                                : hasNot5Uses
+                                ? 'Dueling Mini-Game'
+                                : 'Noise Maker'
+                        }, thus your offer has been declined.`
                     );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                    );
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    this.bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            });
+                });
+            }
         });
     }
 
