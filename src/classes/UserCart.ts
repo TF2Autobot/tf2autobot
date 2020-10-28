@@ -529,6 +529,8 @@ class UserCart extends Cart {
             };
 
             fetched.forEach(item => {
+                let hasHighValued = false;
+                const spellNames: string[] = [];
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
@@ -541,18 +543,30 @@ class UserCart extends Cart {
                             descriptionValue.endsWith('(spell only active during event)') &&
                             descriptionColor === '7ea9d1'
                         ) {
+                            hasHighValued = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                            highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellName}`);
-
-                            log.debug(
-                                'info',
-                                `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                            spellNames.push(
+                                `${item.market_hash_name} with ${
+                                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                                        ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                              .replace(/\s/g, '_')
+                                              .replace(/'/g, '%27')}_(halloween_spell))`
+                                        : spellName
+                                }`
                             );
-
                             break;
                         }
+                    }
+                    if (hasHighValued) {
+                        highValuedTheir.skus.push(itemSKU);
+                        highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellNames.join(' and ')}`);
+                        log.debug(
+                            'info',
+                            `${item.market_hash_name} with ${spellNames.join(' and ')} (${
+                                item.assetid
+                            }) is a high value item.`
+                        );
                     }
                 }
             });
@@ -1980,6 +1994,8 @@ class UserCart extends Cart {
             };
 
             fetched.forEach(item => {
+                let hasHighValued = false;
+                const spellNames: string[] = [];
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
@@ -1992,18 +2008,30 @@ class UserCart extends Cart {
                             descriptionValue.endsWith('(spell only active during event)') &&
                             descriptionColor === '7ea9d1'
                         ) {
+                            hasHighValued = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                            highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellName}`);
-
-                            log.debug(
-                                'info',
-                                `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                            spellNames.push(
+                                `${item.market_hash_name} with ${
+                                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                                        ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
+                                              .replace(/\s/g, '_')
+                                              .replace(/'/g, '%27')}_(halloween_spell))`
+                                        : spellName
+                                }`
                             );
-
                             break;
                         }
+                    }
+                    if (hasHighValued) {
+                        highValuedTheir.skus.push(itemSKU);
+                        highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellNames.join(' and ')}`);
+                        log.debug(
+                            'info',
+                            `${item.market_hash_name} with ${spellNames.join(' and ')} (${
+                                item.assetid
+                            }) is a high value item.`
+                        );
                     }
                 }
             });

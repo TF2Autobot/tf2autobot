@@ -570,6 +570,8 @@ export = class MyHandler extends Handler {
         };
 
         offer.itemsToGive.forEach(item => {
+            const spellNames: string[] = [];
+
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -581,9 +583,7 @@ export = class MyHandler extends Handler {
                 ) {
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                    highValuedOur.nameWithSpell.push(
+                    spellNames.push(
                         `${item.market_hash_name} with ${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
@@ -592,13 +592,17 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
-
-                    log.debug(
-                        'info',
-                        `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
-                    );
                     break;
                 }
+            }
+
+            if (hasHighValueOur) {
+                highValuedOur.skus.push(item.getSKU(this.bot.schema));
+                highValuedOur.nameWithSpell.push(spellNames.join(' and '));
+                log.debug(
+                    'info',
+                    `${item.market_hash_name} with ${spellNames.join(' and ')} (${item.assetid}) is a high valued item.`
+                );
             }
         });
 
@@ -614,6 +618,8 @@ export = class MyHandler extends Handler {
         };
 
         offer.itemsToReceive.forEach(item => {
+            const spellNames: string[] = [];
+
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -625,9 +631,7 @@ export = class MyHandler extends Handler {
                 ) {
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-
-                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                    highValuedTheir.nameWithSpell.push(
+                    spellNames.push(
                         `${item.market_hash_name} with ${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
@@ -636,13 +640,17 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
-
-                    log.debug(
-                        'info',
-                        `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
-                    );
                     break;
                 }
+            }
+
+            if (hasHighValueTheir) {
+                highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                highValuedTheir.nameWithSpell.push(spellNames.join(' and '));
+                log.debug(
+                    'info',
+                    `${item.market_hash_name} with ${spellNames.join(' and ')} (${item.assetid}) is a high valued item.`
+                );
             }
         });
 
