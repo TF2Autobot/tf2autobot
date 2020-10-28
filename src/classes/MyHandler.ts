@@ -2034,30 +2034,28 @@ export = class MyHandler extends Handler {
 
             // for 🟫_DUPED_ITEMS
             const dupedItemsName: string[] = [];
-            const dupedItemsJustName: string[] = [];
 
             if (reasons.includes('🟫_DUPED_ITEMS')) {
                 const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
 
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    dupedItemsJustName.push(name);
                     if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
                         // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                        dupedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                        dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
                     } else {
                         // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                        dupedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                        dupedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
                     }
                 });
 
                 note = process.env.DUPE_ITEMS_NOTE
                     ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
-                          .replace(/%name%/g, dupedItemsJustName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedItemsJustName.length))
-                    : `🟫_DUPED_ITEMS - ${dupedItemsJustName.join(', ')} ${pluralize(
+                          .replace(/%name%/g, dupedItemsName.join(', '))
+                          .replace(/%isName%/, pluralize('is', dupedItemsName.length))
+                    : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
                           'is',
-                          dupedItemsJustName.length
+                          dupedItemsName.length
                       )} appeared to be duped.`;
                 // Default note: %name% is|are appeared to be duped.
 
@@ -2066,7 +2064,6 @@ export = class MyHandler extends Handler {
 
             // for 🟪_DUPE_CHECK_FAILED
             const dupedFailedItemsName: string[] = [];
-            const dupedFailedJustItemsName: string[] = [];
 
             if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
                 const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED'));
@@ -2075,27 +2072,31 @@ export = class MyHandler extends Handler {
                     if (el.withError === false) {
                         // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
                         const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                        dupedFailedJustItemsName.push(name);
 
                         if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
                             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                            dupedFailedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                            dupedFailedItemsName.push(
+                                `${name} - [history page](https://backpack.tf/item/${el.assetid})`
+                            );
                         } else {
                             // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                            dupedFailedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                            dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
                         }
                     } else {
                         // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
                         for (let i = 0; i < el.sku.length; i++) {
                             const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
-                            dupedFailedJustItemsName.push(name);
 
                             if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
                                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                                dupedFailedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                                dupedFailedItemsName.push(
+                                    `${name} - [history page](https://backpack.tf/item/${el.assetid})`
+                                );
                             } else {
                                 // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                                dupedFailedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                                dupedFailedItemsName.push(
+                                    `${name}, history page: https://backpack.tf/item/${el.assetid}`
+                                );
                             }
                         }
                     }
@@ -2103,9 +2104,9 @@ export = class MyHandler extends Handler {
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
                     ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
-                          .replace(/%name%/g, dupedFailedJustItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedFailedJustItemsName.length))
-                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedJustItemsName.join(', ')}.`;
+                          .replace(/%name%/g, dupedFailedItemsName.join(', '))
+                          .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
+                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
                 // Default note: I failed to check for duped on %name%.
 
                 reviewReasons.push(note);
