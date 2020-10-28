@@ -556,21 +556,25 @@ export = class MyHandler extends Handler {
 
         offer.data('dict', itemsDict);
 
-        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
+        // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
         const webhook = this.fromEnv.tradeSummaryWebhook;
 
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
-            nameWithSpell: string[];
+            nameWithSpellsOrParts: string[];
         } = {
             skus: [],
-            nameWithSpell: []
+            nameWithSpellsOrParts: []
         };
 
         offer.itemsToGive.forEach(item => {
+            let hasSpelled = false;
             const spellNames: string[] = [];
+
+            let hasStrangeParts = false;
+            const strangeParts: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
@@ -581,6 +585,7 @@ export = class MyHandler extends Handler {
                     descriptionValue.endsWith('(spell only active during event)') &&
                     descriptionColor === '7ea9d1'
                 ) {
+                    hasSpelled = true;
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(
@@ -592,16 +597,46 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
+                } else if (
+                    descriptionValue.startsWith('(') &&
+                    this.strangeParts().high.includes(descriptionValue) &&
+                    descriptionColor === '756b5e'
+                ) {
+                    hasStrangeParts = true;
+                    hasHighValueOur = true;
+                    const strangePartName = descriptionValue
+                        .replace('(', '')
+                        .replace(/: \d+\)/g, '')
+                        .trim();
+
+                    strangeParts.push(strangePartName);
                 }
             }
 
-            if (hasHighValueOur) {
+            if (hasSpelled || hasStrangeParts) {
                 highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                highValuedOur.nameWithSpell.push(spellNames.join(' and '));
-                log.debug(
-                    'info',
-                    `${item.market_hash_name} with ${spellNames.join(' and ')} (${item.assetid}) is a high valued item.`
-                );
+
+                let spellOrParts = '';
+
+                if (hasSpelled) {
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                }
+
+                if (hasStrangeParts) {
+                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                }
+
+                log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+
+                if (webhook.enabled && webhook.url) {
+                    highValuedOur.nameWithSpellsOrParts.push(
+                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                    );
+                } else {
+                    highValuedOur.nameWithSpellsOrParts.push(
+                        `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                    );
+                }
             }
         });
 
@@ -610,14 +645,18 @@ export = class MyHandler extends Handler {
         let hasHighValueTheir = false;
         const highValuedTheir: {
             skus: string[];
-            nameWithSpell: string[];
+            nameWithSpellsOrParts: string[];
         } = {
             skus: [],
-            nameWithSpell: []
+            nameWithSpellsOrParts: []
         };
 
         offer.itemsToReceive.forEach(item => {
+            let hasSpelled = false;
             const spellNames: string[] = [];
+
+            let hasStrangeParts = false;
+            const strangeParts: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
@@ -628,6 +667,7 @@ export = class MyHandler extends Handler {
                     descriptionValue.endsWith('(spell only active during event)') &&
                     descriptionColor === '7ea9d1'
                 ) {
+                    hasSpelled = true;
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(
@@ -639,16 +679,46 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
+                } else if (
+                    descriptionValue.startsWith('(') &&
+                    this.strangeParts().high.includes(descriptionValue) &&
+                    descriptionColor === '756b5e'
+                ) {
+                    hasStrangeParts = true;
+                    hasHighValueTheir = true;
+                    const strangePartName = descriptionValue
+                        .replace('(', '')
+                        .replace(/: \d+\)/g, '')
+                        .trim();
+
+                    strangeParts.push(strangePartName);
                 }
             }
 
-            if (hasHighValueTheir) {
+            if (hasSpelled || hasStrangeParts) {
                 highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                highValuedTheir.nameWithSpell.push(spellNames.join(' and '));
-                log.debug(
-                    'info',
-                    `${item.market_hash_name} with ${spellNames.join(' and ')} (${item.assetid}) is a high valued item.`
-                );
+
+                let spellOrParts = '';
+
+                if (hasSpelled) {
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                }
+
+                if (hasStrangeParts) {
+                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                }
+
+                log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+
+                if (webhook.enabled && webhook.url) {
+                    highValuedTheir.nameWithSpellsOrParts.push(
+                        `• [${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                    );
+                } else {
+                    highValuedTheir.nameWithSpellsOrParts.push(
+                        `• ${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                    );
+                }
             }
         });
 
@@ -808,10 +878,12 @@ export = class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
-                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpell);
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is about to take your ${highValuedOur.nameWithSpell.join(', ')} (not in pricelist)`,
+                    `Someone is about to take your ${highValuedOur.nameWithSpellsOrParts.join(
+                        '\n'
+                    )} (not in pricelist)`,
                     []
                 );
             }
@@ -820,7 +892,7 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValuedOur.nameWithSpell
+                    highValueName: highValuedOur.nameWithSpellsOrParts
                 }
             };
         }
@@ -1705,7 +1777,7 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                const offerMade: { nameWithSpell: string[] } = offer.data('highValue');
+                const offerMade: { nameWithSpellsOrParts: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
@@ -1762,7 +1834,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
+                            offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
@@ -1770,16 +1842,16 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.our) {
                             hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
+                            offerMeta.meta.highValueItems.our.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
                     }
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
-                    if (offerMade.nameWithSpell.length > 0) {
+                    if (offerMade.nameWithSpellsOrParts.length > 0) {
                         hasHighValueTheir = true;
-                        offerMade.nameWithSpell.forEach(name => {
+                        offerMade.nameWithSpellsOrParts.forEach(name => {
                             accepted.highValue.push(name);
                         });
                     }
@@ -2187,7 +2259,7 @@ export = class MyHandler extends Handler {
                     const hasHighValue = meta.hasHighValueItems.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.nameWithSpell.forEach(name => {
+                        meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
@@ -3087,6 +3159,69 @@ export = class MyHandler extends Handler {
             'cute' // right?
         ];
         return words;
+    }
+
+    strangeParts(): { high: string[]; low: string[] } {
+        const names = {
+            high: [
+                'Robots Destroyed', // More than a key
+                'Kills',
+                'Airborne Enemies Killed',
+                'Damage Dealt',
+                'Domination Kills',
+                'Snipers Killed',
+                'Buildings Destroyed',
+                'Projectiles Reflected',
+                'Headshot Kills',
+                'Medics Killed',
+                'Fires Survived',
+                'Teammates Extinguished',
+                'Freezecam Taunt Appearances',
+                'Spies Killed',
+                'Allied Healing Done',
+                'Sappers Destroyed',
+                'Player Hits',
+                'Gib Kills',
+                'Scouts Killed',
+                'Kills with a Taunt Attack',
+                'Point-Blank Kills',
+                'Soldiers Killed',
+                'Long-Distance Kills'
+            ],
+            low: [
+                'Giant Robots Destroyed', // Less than a key
+                'Critical Kills',
+                'Demomen Killed',
+                'Unusual-Wearing Player Kills',
+                'Assists',
+                'Medics Killed That Have Full ÜberCharge',
+                'Cloaked Spies Killed',
+                'Engineers Killed',
+                'Kills While Explosive Jumping',
+                'Low-Health Kills',
+                'Burning Enemy Kills',
+                'Kills While Übercharged',
+                'Posthumous Kills',
+                'Not Crit nor MiniCrit Kills',
+                'Full Health Kills',
+                'Killstreaks Ended',
+                'Defender Kills',
+                'Revenge Kills',
+                'Robot Scouts Destroyed',
+                'Heavies Killed',
+                'Tanks Destroyed',
+                'Halloween Kills',
+                'Pyros Killed',
+                'Underwater Kills',
+                'Kills During Victory Time',
+                'Taunting Player Kills',
+                'Robot Spies Destroyed',
+                'Full Moon Kills',
+                'Robots Destroyed During Halloween'
+            ]
+        };
+
+        return names;
     }
 
     noiseMakerNames(): string[] {

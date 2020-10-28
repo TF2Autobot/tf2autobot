@@ -522,15 +522,23 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpell: string[];
+                nameWithSpellsOrParts: string[];
             } = {
                 skus: [],
-                nameWithSpell: []
+                nameWithSpellsOrParts: []
             };
 
+            const isEnabledDiscordWebhook =
+                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
+
             fetched.forEach(item => {
-                let hasHighValued = false;
+                let hasSpelled = false;
                 const spellNames: string[] = [];
+
+                let hasStrangeParts = false;
+                const strangeParts: string[] = [];
+
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
@@ -543,29 +551,55 @@ class UserCart extends Cart {
                             descriptionValue.endsWith('(spell only active during event)') &&
                             descriptionColor === '7ea9d1'
                         ) {
-                            hasHighValued = true;
+                            hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                             spellNames.push(
                                 `${item.market_hash_name} with ${
-                                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                                    isEnabledDiscordWebhook
                                         ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                               .replace(/\s/g, '_')
                                               .replace(/'/g, '%27')}_(halloween_spell))`
                                         : spellName
                                 }`
                             );
+                        } else if (
+                            descriptionValue.startsWith('(') &&
+                            (this.bot.handler as MyHandler).strangeParts().high.includes(descriptionValue) &&
+                            descriptionColor === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            const strangePartName = descriptionValue
+                                .replace('(', '')
+                                .replace(/: \d+\)/g, '')
+                                .trim();
+
+                            strangeParts.push(strangePartName);
                         }
                     }
-                    if (hasHighValued) {
-                        highValuedTheir.skus.push(itemSKU);
-                        highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellNames.join(' and ')}`);
-                        log.debug(
-                            'info',
-                            `${item.market_hash_name} with ${spellNames.join(' and ')} (${
-                                item.assetid
-                            }) is a high value item.`
-                        );
+                    if (hasSpelled || hasStrangeParts) {
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+
+                        let spellOrParts = '';
+
+                        if (hasSpelled) {
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        }
+
+                        if (hasStrangeParts) {
+                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                        }
+
+                        log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+
+                        if (isEnabledDiscordWebhook) {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                            );
+                        } else {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                            );
+                        }
                     }
                 }
             });
@@ -1986,15 +2020,23 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpell: string[];
+                nameWithSpellsOrParts: string[];
             } = {
                 skus: [],
-                nameWithSpell: []
+                nameWithSpellsOrParts: []
             };
 
+            const isEnabledDiscordWebhook =
+                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
+
             fetched.forEach(item => {
-                let hasHighValued = false;
+                let hasSpelled = false;
                 const spellNames: string[] = [];
+
+                let hasStrangeParts = false;
+                const strangeParts: string[] = [];
+
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
@@ -2007,29 +2049,55 @@ class UserCart extends Cart {
                             descriptionValue.endsWith('(spell only active during event)') &&
                             descriptionColor === '7ea9d1'
                         ) {
-                            hasHighValued = true;
+                            hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                             spellNames.push(
                                 `${item.market_hash_name} with ${
-                                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                                    isEnabledDiscordWebhook
                                         ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                               .replace(/\s/g, '_')
                                               .replace(/'/g, '%27')}_(halloween_spell))`
                                         : spellName
                                 }`
                             );
+                        } else if (
+                            descriptionValue.startsWith('(') &&
+                            (this.bot.handler as MyHandler).strangeParts().high.includes(descriptionValue) &&
+                            descriptionColor === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            const strangePartName = descriptionValue
+                                .replace('(', '')
+                                .replace(/: \d+\)/g, '')
+                                .trim();
+
+                            strangeParts.push(strangePartName);
                         }
                     }
-                    if (hasHighValued) {
-                        highValuedTheir.skus.push(itemSKU);
-                        highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellNames.join(' and ')}`);
-                        log.debug(
-                            'info',
-                            `${item.market_hash_name} with ${spellNames.join(' and ')} (${
-                                item.assetid
-                            }) is a high value item.`
-                        );
+                    if (hasSpelled || hasStrangeParts) {
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+
+                        let spellOrParts = '';
+
+                        if (hasSpelled) {
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        }
+
+                        if (hasStrangeParts) {
+                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                        }
+
+                        log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+
+                        if (isEnabledDiscordWebhook) {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                            );
+                        } else {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                            );
+                        }
                     }
                 }
             });
