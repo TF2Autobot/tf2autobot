@@ -555,7 +555,6 @@ class UserCart extends Cart {
                                         : spellName
                                 }`
                             );
-                            break;
                         }
                     }
                     if (hasHighValued) {
@@ -2020,7 +2019,6 @@ class UserCart extends Cart {
                                         : spellName
                                 }`
                             );
-                            break;
                         }
                     }
                     if (hasHighValued) {

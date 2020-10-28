@@ -592,7 +592,6 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
-                    break;
                 }
             }
 
@@ -640,7 +639,6 @@ export = class MyHandler extends Handler {
                                 : spellName
                         }`
                     );
-                    break;
                 }
             }
 
