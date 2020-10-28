@@ -460,12 +460,22 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 let hasNot5Uses = false;
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
-                if (sku === '241;6') {
+                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
-                        if (item.name === 'Dueling Mini-Game') {
+                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.market_hash_name.includes(name);
+                        });
+
+                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -479,27 +489,7 @@ class UserCart extends Cart {
                                     break;
                                 }
                             }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-            }
-
-            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
-
-                if (noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
-                            return item.name.includes(name);
-                        });
-                        if (isNoiseMaker) {
+                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -509,12 +499,18 @@ class UserCart extends Cart {
                                     descriptionColor === '00a000'
                                 ) {
                                     hasNot25Uses = true;
-                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                                     break;
                                 }
                             }
                         }
                     });
+                }
+
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
                 }
 
                 if (hasNot25Uses) {
@@ -1912,12 +1908,22 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 let hasNot5Uses = false;
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
-                if (sku === '241;6') {
+                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
-                        if (item.name === 'Dueling Mini-Game') {
+                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.market_hash_name.includes(name);
+                        });
+
+                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -1931,27 +1937,7 @@ class UserCart extends Cart {
                                     break;
                                 }
                             }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-            }
-
-            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
-
-                if (noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
-                            return item.name.includes(name);
-                        });
-                        if (isNoiseMaker) {
+                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -1961,12 +1947,18 @@ class UserCart extends Cart {
                                     descriptionColor === '00a000'
                                 ) {
                                     hasNot25Uses = true;
-                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                                     break;
                                 }
                             }
                         }
                     });
+                }
+
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
                 }
 
                 if (hasNot25Uses) {

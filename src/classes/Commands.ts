@@ -2434,7 +2434,10 @@ export = class Commands {
                             ) {
                                 // Contains non-25x uses.
                                 hasNot25Uses = true;
-                                log.debug('info', `${item.name} (${item.assetid}) is not 25 uses (re-checked).`);
+                                log.debug(
+                                    'info',
+                                    `${item.market_hash_name} (${item.assetid}) is not 25 uses (re-checked).`
+                                );
                                 break;
                             }
                         }

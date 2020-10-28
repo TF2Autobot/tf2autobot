@@ -80,6 +80,10 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        checkUses: {
+            duelEnabled: boolean;
+            noiseEnabled: boolean;
+        };
         autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
@@ -144,6 +148,10 @@ export = class MyHandler extends Handler {
             reviewOfferWebhook: {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false',
                 url: process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+            },
+            checkUses: {
+                duelEnabled: process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false',
+                noiseEnabled: process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
             },
             autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
@@ -680,10 +688,17 @@ export = class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+        if (this.fromEnv.checkUses.duelEnabled || this.fromEnv.checkUses.noiseEnabled) {
             let hasNot5Uses = false;
+            let hasNot25Uses = false;
+
             offer.itemsToReceive.forEach(item => {
-                if (item.market_hash_name === 'Dueling Mini-Game') {
+                const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                    return item.market_hash_name.includes(name);
+                });
+                if (isDuelingMiniGame && this.fromEnv.checkUses.duelEnabled) {
+                    // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -697,25 +712,8 @@ export = class MyHandler extends Handler {
                             break;
                         }
                     }
-                }
-            });
-
-            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
-                // Only decline if exist in pricelist
-                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
-                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
-            }
-        }
-
-        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
-
-        if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
-            let hasNot25Uses = false;
-            offer.itemsToReceive.forEach(item => {
-                const isNoiseMaker = this.noiseMakerNames().some(name => {
-                    return item.market_hash_name.includes(name);
-                });
-                if (isNoiseMaker) {
+                } else if (isNoiseMaker && this.fromEnv.checkUses.noiseEnabled) {
+                    // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -725,20 +723,27 @@ export = class MyHandler extends Handler {
                             descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
-                            log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                            log.debug('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                             break;
                         }
                     }
                 }
-            });
 
-            const isNoiseMaker = this.noiseMakerSKUs().some(sku => {
-                return checkExist.getPrice(sku, true) !== null;
+                if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                    // Only decline if exist in pricelist
+                    offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                    return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+                }
+
+                const isHasNoiseMaker = this.noiseMakerSKUs().some(sku => {
+                    return checkExist.getPrice(sku, true) !== null;
+                });
+
+                if (hasNot25Uses && isHasNoiseMaker) {
+                    offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                    return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+                }
             });
-            if (hasNot25Uses && isNoiseMaker) {
-                offer.log('info', 'contains Noice Maker that are not 25 uses.');
-                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
-            }
         }
 
         const isInPricelist =
