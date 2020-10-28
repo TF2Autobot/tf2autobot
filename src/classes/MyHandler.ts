@@ -1440,28 +1440,43 @@ export = class MyHandler extends Handler {
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
             const env = this.fromEnv;
-            let acceptTradeCondition = false;
+
+            const canAcceptInvalidItemsOverpay = env.autoAcceptOverpay.invalidItem;
+            const canAcceptOverstockedOverpay = env.autoAcceptOverpay.overstocked;
+            const canAcceptUnderstockedOverpay = env.autoAcceptOverpay.understocked;
+
+            // accepting 🟨_INVALID_ITEMS overpay
+
+            const isAcceptInvalidItems =
+                isInvalidItem &&
+                canAcceptInvalidItemsOverpay &&
+                (exchange.our.value < exchange.their.value ||
+                    (exchange.our.value === exchange.their.value && hasNoPrice)) &&
+                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true) &&
+                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+
+            // accepting 🟦_OVERSTOCKED overpay
+
+            const isAcceptOverstocked =
+                isOverstocked &&
+                canAcceptOverstockedOverpay &&
+                exchange.our.value < exchange.their.value &&
+                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
+                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+
+            // accepting 🟩_UNDERSTOCKED overpay
+
+            const isAcceptUnderstocked =
+                isUnderstocked &&
+                canAcceptUnderstockedOverpay &&
+                exchange.our.value < exchange.their.value &&
+                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
+                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true);
 
             if (
-                ((env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked) &&
-                    exchange.our.value < exchange.their.value) ||
-                (isInvalidItem &&
-                    (exchange.our.value < exchange.their.value ||
-                        (exchange.our.value === exchange.their.value && hasNoPrice)))
-            ) {
-                // if accept over/underpay is enabled and their items value is more than our, OR
-                // if an offer contains INVALID_ITEMS and their items value is more than or our OR equal but have some others with no price,
-                // accept the trade.
-                acceptTradeCondition = true;
-            }
-
-            if (
-                ((isInvalidItem && env.autoAcceptOverpay.invalidItem) ||
-                    (isOverstocked && env.autoAcceptOverpay.overstocked) ||
-                    (isUnderstocked && env.autoAcceptOverpay.understocked)) &&
-                !(isInvalidValue || isDupedItem || isDupedCheckFailed) &&
-                acceptTradeCondition &&
-                exchange.our.value !== 0
+                (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked) &&
+                exchange.our.value !== 0 &&
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed)
             ) {
                 // if the offer is Invalid_items/over/understocked and accepting overpay enabled, but the offer is not
                 // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
