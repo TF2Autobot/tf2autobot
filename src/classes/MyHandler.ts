@@ -76,6 +76,10 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        reviewOfferWebhook: {
+            enabled: boolean;
+            url: string;
+        };
         autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
@@ -136,6 +140,10 @@ export = class MyHandler extends Handler {
             tradeSummaryWebhook: {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
                 url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+            },
+            reviewOfferWebhook: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false',
+                url: process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
             },
             autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
@@ -803,12 +811,15 @@ export = class MyHandler extends Handler {
               }
             | {
                   reason: '🟪_DUPE_CHECK_FAILED';
-                  assetid?: string;
+                  withError: boolean;
+                  assetid: string | string[];
+                  sku: string | string[];
                   error?: string;
               }
             | {
                   reason: '🟫_DUPED_ITEMS';
                   assetid: string;
+                  sku: string;
               }
             | {
                   reason: '⬜_ESCROW_CHECK_FAILED';
@@ -820,8 +831,8 @@ export = class MyHandler extends Handler {
               }
         )[] = [];
 
-        let assetidsToCheck = [];
-        let skuToCheck = [];
+        let assetidsToCheck: string[] = [];
+        let skuToCheck: string[] = [];
         let hasNoPrice = false;
 
         for (let i = 0; i < states.length; i++) {
@@ -1257,20 +1268,23 @@ export = class MyHandler extends Handler {
                             return {
                                 action: 'decline',
                                 reason: '🟫_DUPED_ITEMS',
-                                meta: { assetids: assetidsToCheck, result: result }
+                                meta: { assetids: assetidsToCheck, sku: skuToCheck, result: result }
                             };
                         } else {
                             // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
                             wrongAboutOffer.push({
                                 reason: '🟫_DUPED_ITEMS',
-                                assetid: assetidsToCheck[i]
+                                assetid: assetidsToCheck[i],
+                                sku: skuToCheck[i]
                             });
                         }
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
                         wrongAboutOffer.push({
                             reason: '🟪_DUPE_CHECK_FAILED',
-                            assetid: assetidsToCheck[i]
+                            withError: false,
+                            assetid: assetidsToCheck[i],
+                            sku: skuToCheck[i]
                         });
                     }
                 }
@@ -1278,6 +1292,9 @@ export = class MyHandler extends Handler {
                 log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + err.message);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
+                    withError: true,
+                    assetid: assetidsToCheck,
+                    sku: skuToCheck,
                     error: err.message
                 });
             }
@@ -2017,22 +2034,30 @@ export = class MyHandler extends Handler {
 
             // for 🟫_DUPED_ITEMS
             const dupedItemsName: string[] = [];
+            const dupedItemsJustName: string[] = [];
 
             if (reasons.includes('🟫_DUPED_ITEMS')) {
                 const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
 
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    dupedItemsName.push(name);
+                    dupedItemsJustName.push(name);
+                    if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                        // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                        dupedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                    } else {
+                        // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                        dupedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                    }
                 });
 
                 note = process.env.DUPE_ITEMS_NOTE
                     ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
-                          .replace(/%name%/g, dupedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
+                          .replace(/%name%/g, dupedItemsJustName.join(', '))
+                          .replace(/%isName%/, pluralize('is', dupedItemsJustName.length))
+                    : `🟫_DUPED_ITEMS - ${dupedItemsJustName.join(', ')} ${pluralize(
                           'is',
-                          dupedItemsName.length
+                          dupedItemsJustName.length
                       )} appeared to be duped.`;
                 // Default note: %name% is|are appeared to be duped.
 
@@ -2041,20 +2066,46 @@ export = class MyHandler extends Handler {
 
             // for 🟪_DUPE_CHECK_FAILED
             const dupedFailedItemsName: string[] = [];
+            const dupedFailedJustItemsName: string[] = [];
 
             if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-                const dupedFailed = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+                const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED'));
 
                 dupedFailed.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    dupedFailedItemsName.push(name);
+                    if (el.withError === false) {
+                        // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
+                        const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+                        dupedFailedJustItemsName.push(name);
+
+                        if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                            // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                            dupedFailedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                        } else {
+                            // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                            dupedFailedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                        }
+                    } else {
+                        // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
+                        for (let i = 0; i < el.sku.length; i++) {
+                            const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
+                            dupedFailedJustItemsName.push(name);
+
+                            if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                                // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                                dupedFailedItemsName.push(`[${name}](https://backpack.tf/item/${el.assetid})`);
+                            } else {
+                                // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                                dupedFailedItemsName.push(`${name} (https://backpack.tf/item/${el.assetid})`);
+                            }
+                        }
+                    }
                 });
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
                     ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
-                          .replace(/%name%/g, dupedFailedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
+                          .replace(/%name%/g, dupedFailedJustItemsName.join(', '))
+                          .replace(/%isName%/, pluralize('is', dupedFailedJustItemsName.length))
+                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedJustItemsName.join(', ')}.`;
                 // Default note: I failed to check for duped on %name%.
 
                 reviewReasons.push(note);
