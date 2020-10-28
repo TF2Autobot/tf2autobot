@@ -684,7 +684,8 @@ export = class MyHandler extends Handler {
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
 
-        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+        // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
+        // and decline if not 5x/25x and exist in pricelist
 
         const checkExist = this.bot.pricelist;
 
@@ -697,8 +698,9 @@ export = class MyHandler extends Handler {
                 const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
                     return item.market_hash_name.includes(name);
                 });
+
                 if (isDuelingMiniGame && this.fromEnv.checkUses.duelEnabled) {
-                    // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+                    // Check for Dueling Mini-Game for 5x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -713,7 +715,7 @@ export = class MyHandler extends Handler {
                         }
                     }
                 } else if (isNoiseMaker && this.fromEnv.checkUses.noiseEnabled) {
-                    // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+                    // Check for Noise Maker for 25x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -728,22 +730,23 @@ export = class MyHandler extends Handler {
                         }
                     }
                 }
-
-                if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
-                    // Only decline if exist in pricelist
-                    offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
-                    return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
-                }
-
-                const isHasNoiseMaker = this.noiseMakerSKUs().some(sku => {
-                    return checkExist.getPrice(sku, true) !== null;
-                });
-
-                if (hasNot25Uses && isHasNoiseMaker) {
-                    offer.log('info', 'contains Noice Maker that are not 25 uses.');
-                    return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
-                }
             });
+
+            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                // Dueling Mini-Game: Only decline if exist in pricelist
+                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            }
+
+            const isHasNoiseMaker = this.noiseMakerSKUs().some(sku => {
+                return checkExist.getPrice(sku, true) !== null;
+            });
+
+            if (hasNot25Uses && isHasNoiseMaker) {
+                // Noise Maker: Only decline if exist in pricelist
+                offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+            }
         }
 
         const isInPricelist =
