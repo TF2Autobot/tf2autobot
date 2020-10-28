@@ -544,9 +544,12 @@ class UserCart extends Cart {
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                             highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                            highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellName}`);
 
-                            log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                            log.debug(
+                                'info',
+                                `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                            );
 
                             break;
                         }
@@ -1992,9 +1995,12 @@ class UserCart extends Cart {
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
 
                             highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                            highValuedTheir.nameWithSpell.push(`${item.market_hash_name} with ${spellName}`);
 
-                            log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                            log.debug(
+                                'info',
+                                `${item.market_hash_name} with ${spellName} (${item.assetid}) is a high value item.`
+                            );
 
                             break;
                         }
