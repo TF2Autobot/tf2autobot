@@ -823,7 +823,18 @@ export = class Commands {
 
     private uptimeCommand(steamID: SteamID): void {
         const uptime = (this.bot.handler as MyHandler).getUptime();
-        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true)}.`);
+
+        const now = moment().valueOf();
+        const diffTime = now - uptime;
+
+        const printTime =
+            diffTime >= 77400 && diffTime < 127800 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
+                ? ' (' + Math.round(diffTime / 3600) + ' hours)'
+                : diffTime >= 2203200 // More than 25.5 days, will become "a month", so show how many days in bracket.
+                ? ' (' + Math.round(diffTime / 86400) + ' days)'
+                : '';
+
+        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true) + printTime}.`);
     }
 
     private pureCommand(steamID: SteamID): void {

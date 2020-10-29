@@ -1960,7 +1960,17 @@ export = class MyHandler extends Handler {
             this.sortInventory();
 
             // Tell bot uptime
-            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true)}.`);
+            const now = moment().valueOf();
+            const diffTime = now - this.uptime;
+
+            const printTime =
+                diffTime >= 77400 && diffTime < 127800 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
+                    ? ' (' + Math.round(diffTime / 3600) + ' hours)'
+                    : diffTime >= 2203200 // More than 25.5 days, will become "a month", so show how many days in bracket.
+                    ? ' (' + Math.round(diffTime / 86400) + ' days)'
+                    : '';
+
+            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true) + printTime}.`);
 
             // Update listings
             const diff = offer.getDiff() || {};
