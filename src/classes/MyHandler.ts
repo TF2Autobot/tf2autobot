@@ -1799,7 +1799,8 @@ export = class MyHandler extends Handler {
                     if (
                         offerMeta.reason === 'VALID_WITH_OVERPAY' ||
                         offerMeta.reason === 'MANUAL' ||
-                        offerMeta.reason === 'GIFT'
+                        offerMeta.reason === 'GIFT' ||
+                        offerMeta.reason === 'ADMIN'
                     ) {
                         // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
                         if (offerMeta.meta) {
