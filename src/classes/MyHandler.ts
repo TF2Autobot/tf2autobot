@@ -590,7 +590,7 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    this.strangeParts().high.includes(
+                    this.strangeParts().includes(
                         descriptionValue
                             .replace('(', '')
                             .replace(/: \d+\)/g, '')
@@ -673,7 +673,7 @@ export = class MyHandler extends Handler {
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    this.strangeParts().high.includes(
+                    this.strangeParts().includes(
                         descriptionValue
                             .replace('(', '')
                             .replace(/: \d+\)/g, '')
@@ -3185,65 +3185,61 @@ export = class MyHandler extends Handler {
         return words;
     }
 
-    strangeParts(): { high: string[]; low: string[] } {
-        const names = {
-            high: [
-                'Robots Destroyed', // More than a key
-                'Kills',
-                'Airborne Enemies Killed',
-                'Damage Dealt',
-                'Domination Kills',
-                'Snipers Killed',
-                'Buildings Destroyed',
-                'Projectiles Reflected',
-                'Headshot Kills',
-                'Medics Killed',
-                'Fires Survived',
-                'Teammates Extinguished',
-                'Freezecam Taunt Appearances',
-                'Spies Killed',
-                'Allied Healing Done',
-                'Sappers Destroyed',
-                'Player Hits',
-                'Gib Kills',
-                'Scouts Killed',
-                'Kills with a Taunt Attack',
-                'Point-Blank Kills',
-                'Soldiers Killed',
-                'Long-Distance Kills'
-            ],
-            low: [
-                'Giant Robots Destroyed', // Less than a key
-                'Critical Kills',
-                'Demomen Killed',
-                'Unusual-Wearing Player Kills',
-                'Assists',
-                'Medics Killed That Have Full ÜberCharge',
-                'Cloaked Spies Killed',
-                'Engineers Killed',
-                'Kills While Explosive Jumping',
-                'Low-Health Kills',
-                'Burning Enemy Kills',
-                'Kills While Übercharged',
-                'Posthumous Kills',
-                'Not Crit nor MiniCrit Kills',
-                'Full Health Kills',
-                'Killstreaks Ended',
-                'Defender Kills',
-                'Revenge Kills',
-                'Robot Scouts Destroyed',
-                'Heavies Killed',
-                'Tanks Destroyed',
-                'Halloween Kills',
-                'Pyros Killed',
-                'Underwater Kills',
-                'Kills During Victory Time',
-                'Taunting Player Kills',
-                'Robot Spies Destroyed',
-                'Full Moon Kills',
-                'Robots Destroyed During Halloween'
-            ]
-        };
+    strangeParts(): string[] {
+        const names = [
+            'Robots Destroyed', // More than a key
+            'Kills',
+            'Airborne Enemies Killed',
+            'Damage Dealt',
+            'Domination Kills',
+            'Snipers Killed',
+            'Buildings Destroyed',
+            'Projectiles Reflected',
+            'Headshot Kills',
+            'Medics Killed',
+            'Fires Survived',
+            'Teammates Extinguished',
+            'Freezecam Taunt Appearances',
+            'Spies Killed',
+            'Allied Healing Done',
+            'Sappers Destroyed',
+            'Player Hits',
+            'Gib Kills',
+            'Scouts Killed',
+            'Kills with a Taunt Attack',
+            'Point-Blank Kills',
+            'Soldiers Killed',
+            'Long-Distance Kills',
+            'Giant Robots Destroyed', // Less than a key
+            'Critical Kills',
+            'Demomen Killed',
+            'Unusual-Wearing Player Kills',
+            'Assists',
+            'Medics Killed That Have Full ÜberCharge',
+            'Cloaked Spies Killed',
+            'Engineers Killed',
+            'Kills While Explosive Jumping',
+            'Low-Health Kills',
+            'Burning Enemy Kills',
+            'Kills While Übercharged',
+            'Posthumous Kills',
+            'Not Crit nor MiniCrit Kills',
+            'Full Health Kills',
+            'Killstreaks Ended',
+            'Defender Kills',
+            'Revenge Kills',
+            'Robot Scouts Destroyed',
+            'Heavies Killed',
+            'Tanks Destroyed',
+            'Halloween Kills',
+            'Pyros Killed',
+            'Underwater Kills',
+            'Kills During Victory Time',
+            'Taunting Player Kills',
+            'Robot Spies Destroyed',
+            'Full Moon Kills',
+            'Robots Destroyed During Halloween'
+        ];
 
         return names;
     }

@@ -556,7 +556,7 @@ class UserCart extends Cart {
                             spellNames.push(spellName);
                         } else if (
                             descriptionValue.startsWith('(') &&
-                            (this.bot.handler as MyHandler).strangeParts().high.includes(
+                            (this.bot.handler as MyHandler).strangeParts().includes(
                                 descriptionValue
                                     .replace('(', '')
                                     .replace(/: \d+\)/g, '')
@@ -2055,7 +2055,7 @@ class UserCart extends Cart {
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
-                            (this.bot.handler as MyHandler).strangeParts().high.includes(
+                            (this.bot.handler as MyHandler).strangeParts().includes(
                                 descriptionValue
                                     .replace('(', '')
                                     .replace(/: \d+\)/g, '')
