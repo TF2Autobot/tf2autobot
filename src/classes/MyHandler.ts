@@ -618,7 +618,14 @@ export = class MyHandler extends Handler {
             }
 
             if (hasSpelled || hasStrangeParts) {
-                highValuedOur.skus.push(item.getSKU(this.bot.schema));
+                const itemSKU = item.getSKU(this.bot.schema);
+                highValuedOur.skus.push(itemSKU);
+
+                const itemObj = SKU.fromString(itemSKU);
+
+                // If item is an Unusual, then get itemName from schema.
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                 let spellOrParts = '';
 
@@ -630,16 +637,14 @@ export = class MyHandler extends Handler {
                     spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                 }
 
-                log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                 if (webhook.enabled && webhook.url) {
                     highValuedOur.nameWithSpellsOrParts.push(
-                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
-                    highValuedOur.nameWithSpellsOrParts.push(
-                        `${item.market_hash_name} (${item.assetid})${spellOrParts}`
-                    );
+                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });
@@ -704,7 +709,14 @@ export = class MyHandler extends Handler {
             }
 
             if (hasSpelled || hasStrangeParts) {
-                highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+                const itemSKU = item.getSKU(this.bot.schema);
+                highValuedTheir.skus.push(itemSKU);
+
+                const itemObj = SKU.fromString(itemSKU);
+
+                // If item is an Unusual, then get itemName from schema.
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                 let spellOrParts = '';
 
@@ -716,16 +728,14 @@ export = class MyHandler extends Handler {
                     spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                 }
 
-                log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                 if (webhook.enabled && webhook.url) {
                     highValuedTheir.nameWithSpellsOrParts.push(
-                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
-                    highValuedTheir.nameWithSpellsOrParts.push(
-                        `${item.market_hash_name} (${item.assetid})${spellOrParts}`
-                    );
+                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });

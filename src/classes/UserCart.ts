@@ -582,7 +582,14 @@ class UserCart extends Cart {
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
+                        const itemSKU = item.getSKU(this.bot.schema);
                         highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+
+                        const itemObj = SKU.fromString(itemSKU);
+
+                        // If item is an Unusual, then get itemName from schema.
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                         let spellOrParts = '';
 
@@ -594,16 +601,14 @@ class UserCart extends Cart {
                             spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                         }
 
-                        log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${item.market_hash_name} (${item.assetid})${spellOrParts}`
-                            );
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }
@@ -2084,7 +2089,14 @@ class UserCart extends Cart {
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
+                        const itemSKU = item.getSKU(this.bot.schema);
                         highValuedTheir.skus.push(item.getSKU(this.bot.schema));
+
+                        const itemObj = SKU.fromString(itemSKU);
+
+                        // If item is an Unusual, then get itemName from schema.
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                         let spellOrParts = '';
 
@@ -2096,16 +2108,14 @@ class UserCart extends Cart {
                             spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                         }
 
-                        log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${item.market_hash_name} (${item.assetid})${spellOrParts}`
-                            );
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }
