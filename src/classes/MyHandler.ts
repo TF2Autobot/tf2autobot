@@ -630,15 +630,15 @@ export = class MyHandler extends Handler {
                     spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                 }
 
-                log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+                log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
 
                 if (webhook.enabled && webhook.url) {
                     highValuedOur.nameWithSpellsOrParts.push(
-                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
                     highValuedOur.nameWithSpellsOrParts.push(
-                        `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                        `${item.market_hash_name} (${item.assetid})${spellOrParts}`
                     );
                 }
             }
@@ -716,15 +716,15 @@ export = class MyHandler extends Handler {
                     spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                 }
 
-                log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+                log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
 
                 if (webhook.enabled && webhook.url) {
                     highValuedTheir.nameWithSpellsOrParts.push(
-                        `• [${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                        `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
                     highValuedTheir.nameWithSpellsOrParts.push(
-                        `• ${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                        `${item.market_hash_name} (${item.assetid})${spellOrParts}`
                     );
                 }
             }
@@ -889,9 +889,9 @@ export = class MyHandler extends Handler {
                 this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is about to take your ${highValuedOur.nameWithSpellsOrParts.join(
-                        '\n'
-                    )} (not in pricelist)`,
+                    `Someone is about to take your high valued items that you owned but not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
+                        '\n\n- '
+                    )}`,
                     []
                 );
             }
@@ -3784,7 +3784,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶_HIGH_VALUE_ITEMS:\n- ' +
-              items.highValue.join(',\n- ')
+              items.highValue.join(',\n\n- ')
             : '';
 
     if (list.length === 0) {

@@ -594,15 +594,15 @@ class UserCart extends Cart {
                             spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                         }
 
-                        log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+                        log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                                `${item.market_hash_name} (${item.assetid})${spellOrParts}`
                             );
                         }
                     }
@@ -2096,15 +2096,15 @@ class UserCart extends Cart {
                             spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
                         }
 
-                        log.debug('info', `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`);
+                        log.debug('info', `${item.market_hash_name} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid}) with:-${spellOrParts}`
+                                `[${item.market_hash_name}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `${item.market_hash_name} (${item.assetid}) with:-${spellOrParts}`
+                                `${item.market_hash_name} (${item.assetid})${spellOrParts}`
                             );
                         }
                     }
