@@ -3187,58 +3187,66 @@ export = class MyHandler extends Handler {
 
     strangeParts(): string[] {
         const names = [
-            'Robots Destroyed', // More than a key
-            'Kills',
-            'Airborne Enemies Killed',
-            'Damage Dealt',
-            'Domination Kills',
-            'Snipers Killed',
-            'Buildings Destroyed',
-            'Projectiles Reflected',
-            'Headshot Kills',
-            'Medics Killed',
-            'Fires Survived',
-            'Teammates Extinguished',
-            'Freezecam Taunt Appearances',
-            'Spies Killed',
-            'Allied Healing Done',
-            'Sappers Destroyed',
-            'Player Hits',
-            'Gib Kills',
-            'Scouts Killed',
-            'Kills with a Taunt Attack',
-            'Point-Blank Kills',
-            'Soldiers Killed',
-            'Long-Distance Kills',
-            'Giant Robots Destroyed', // Less than a key
-            'Critical Kills',
-            'Demomen Killed',
-            'Unusual-Wearing Player Kills',
-            'Assists',
-            'Medics Killed That Have Full ÜberCharge',
-            'Cloaked Spies Killed',
-            'Engineers Killed',
-            'Kills While Explosive Jumping',
-            'Low-Health Kills',
-            'Burning Enemy Kills',
-            'Kills While Übercharged',
-            'Posthumous Kills',
-            'Not Crit nor MiniCrit Kills',
-            'Full Health Kills',
-            'Killstreaks Ended',
-            'Defender Kills',
-            'Revenge Kills',
-            'Robot Scouts Destroyed',
-            'Heavies Killed',
-            'Tanks Destroyed',
-            'Halloween Kills',
-            'Pyros Killed',
-            'Underwater Kills',
-            'Kills During Victory Time',
-            'Taunting Player Kills',
-            'Robot Spies Destroyed',
-            'Full Moon Kills',
-            'Robots Destroyed During Halloween'
+            // Most Strange Parts name will change once applied/attached.
+            'Robots Destroyed', // checked
+            'Kills', // checked
+            'Airborne Enemy Kills', // was Airborne Enemies Killed
+            'Damage Dealt', // checked
+            'Dominations', // was Domination Kills
+            'Snipers Killed', // checked
+            'Buildings Destroyed', // checked
+            'Projectiles Reflected', // checked
+            'Headshot Kills', // checked
+            'Medics Killed', // checked
+            'Fires Survived', // checked
+            'Teammates Extinguished', // checked
+            'Freezecam Taunt Appearances', // checked
+            'Spies Killed', // checked
+            'Allied Healing Done', // checked
+            'Sappers Removed', // was "Sappers Destroyed"
+            'Players Hit', // was "Player Hits"
+            'Gib Kills', // checked
+            'Scouts Killed', // checked
+            'Taunt Kills', // was "Kills with a Taunt Attack"
+            'Point Blank Kills', // was "Point-Blank Kills"
+            'Soldiers Killed', // checked
+            'Long-Distance Kills', // checked
+            'Giant Robots Destroyed', // checked
+            'Critical Kills', // checked
+            'Demomen Killed', // checked
+            'Unusual-Wearing Player Kills', // checked
+            'Assists', // checked
+            'Medics Killed That Have Full ÜberCharge', // checked
+            'Cloaked Spies Killed', // checked
+            'Engineers Killed', // checked
+            'Kills While Explosive-Jumping', // was "Kills While Explosive Jumping"
+            'Kills While Low Health', // was "Low-Health Kills"
+            'Burning Player Kills', // was "Burning Enemy Kills"
+            'Kills While Invuln ÜberCharged', // was "Kills While Übercharged"
+            'Posthumous Kills', // checked
+            'Not Crit nor MiniCrit Kills', // checked
+            'Full Health Kills', // checked
+            'Killstreaks Ended', // checked
+            'Defenders Killed', // "was Defender Kills"
+            'Revenges', // "was Revenge Kills"
+            'Robot Scouts Destroyed', // checked
+            'Heavies Killed', // checked
+            'Tanks Destroyed', // checked
+            'Kills During Halloween', // was "Halloween Kills"
+            'Pyros Killed', // checked
+            'Submerged Enemy Kills', // was "Underwater Kills"
+            'Kills During Victory Time', // checked
+            'Taunting Player Kills', // checked
+            'Robot Spies Destroyed', // checked
+            'Kills Under A Full Moon', // was "Full Moon Kills"
+            'Robots Killed During Halloween' // was "Robots Destroyed During Halloween"
+            // 'Double Donks', - Only for Strange Loose Cannon
+            // 'Sentry Kills', - Only for Strange Southern Hospitality
+            // 'Health Dispensed to Teammates', - Only for Strange Construction PDA
+            // 'Teammates Teleported', - Only for Strange Construction PDA
+            // 'Kill Assists', - Only for Strange Medi Gun/Quick-Fix/Vaccinator
+            // 'Ubers', - Only for Strange Kritzkrieg
+            // 'Teammates Whipped' - Only for Strange Disciplinary Action
         ];
 
         return names;
