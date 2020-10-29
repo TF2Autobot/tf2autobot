@@ -589,7 +589,7 @@ export = class MyHandler extends Handler {
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(
-                        `${item.market_hash_name} with ${
+                        `${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                       .replace(/\s/g, '_')
@@ -675,7 +675,7 @@ export = class MyHandler extends Handler {
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                     spellNames.push(
-                        `${item.market_hash_name} with ${
+                        `${
                             webhook.enabled && webhook.url
                                 ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                       .replace(/\s/g, '_')

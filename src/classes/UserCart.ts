@@ -554,7 +554,7 @@ class UserCart extends Cart {
                             hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                             spellNames.push(
-                                `${item.market_hash_name} with ${
+                                `${
                                     isEnabledDiscordWebhook
                                         ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                               .replace(/\s/g, '_')
@@ -2057,7 +2057,7 @@ class UserCart extends Cart {
                             hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
                             spellNames.push(
-                                `${item.market_hash_name} with ${
+                                `${
                                     isEnabledDiscordWebhook
                                         ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
                                               .replace(/\s/g, '_')
