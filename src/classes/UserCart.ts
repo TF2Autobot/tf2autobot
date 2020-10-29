@@ -564,7 +564,12 @@ class UserCart extends Cart {
                             );
                         } else if (
                             descriptionValue.startsWith('(') &&
-                            (this.bot.handler as MyHandler).strangeParts().high.includes(descriptionValue) &&
+                            (this.bot.handler as MyHandler).strangeParts().high.includes(
+                                descriptionValue
+                                    .replace('(', '')
+                                    .replace(/: \d+\)/g, '')
+                                    .trim()
+                            ) &&
                             descriptionColor === '756b5e'
                         ) {
                             hasStrangeParts = true;
@@ -2061,8 +2066,12 @@ class UserCart extends Cart {
                                 }`
                             );
                         } else if (
-                            descriptionValue.startsWith('(') &&
-                            (this.bot.handler as MyHandler).strangeParts().high.includes(descriptionValue) &&
+                            (this.bot.handler as MyHandler).strangeParts().high.includes(
+                                descriptionValue
+                                    .replace('(', '')
+                                    .replace(/: \d+\)/g, '')
+                                    .trim()
+                            ) &&
                             descriptionColor === '756b5e'
                         ) {
                             hasStrangeParts = true;

@@ -598,8 +598,12 @@ export = class MyHandler extends Handler {
                         }`
                     );
                 } else if (
-                    descriptionValue.startsWith('(') &&
-                    this.strangeParts().high.includes(descriptionValue) &&
+                    this.strangeParts().high.includes(
+                        descriptionValue
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim()
+                    ) &&
                     descriptionColor === '756b5e'
                 ) {
                     hasStrangeParts = true;
@@ -680,8 +684,12 @@ export = class MyHandler extends Handler {
                         }`
                     );
                 } else if (
-                    descriptionValue.startsWith('(') &&
-                    this.strangeParts().high.includes(descriptionValue) &&
+                    this.strangeParts().high.includes(
+                        descriptionValue
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim()
+                    ) &&
                     descriptionColor === '756b5e'
                 ) {
                     hasStrangeParts = true;
