@@ -553,15 +553,7 @@ class UserCart extends Cart {
                         ) {
                             hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-                            spellNames.push(
-                                `${
-                                    isEnabledDiscordWebhook
-                                        ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                              .replace(/\s/g, '_')
-                                              .replace(/'/g, '%27')}_(halloween_spell))`
-                                        : spellName
-                                }`
-                            );
+                            spellNames.push(spellName);
                         } else if (
                             descriptionValue.startsWith('(') &&
                             (this.bot.handler as MyHandler).strangeParts().high.includes(
@@ -2061,15 +2053,7 @@ class UserCart extends Cart {
                         ) {
                             hasSpelled = true;
                             const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-                            spellNames.push(
-                                `${
-                                    isEnabledDiscordWebhook
-                                        ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                              .replace(/\s/g, '_')
-                                              .replace(/'/g, '%27')}_(halloween_spell))`
-                                        : spellName
-                                }`
-                            );
+                            spellNames.push(spellName);
                         } else if (
                             (this.bot.handler as MyHandler).strangeParts().high.includes(
                                 descriptionValue

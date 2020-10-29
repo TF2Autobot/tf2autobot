@@ -588,15 +588,7 @@ export = class MyHandler extends Handler {
                     hasSpelled = true;
                     hasHighValueOur = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-                    spellNames.push(
-                        `${
-                            webhook.enabled && webhook.url
-                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                      .replace(/\s/g, '_')
-                                      .replace(/'/g, '%27')}_(halloween_spell))`
-                                : spellName
-                        }`
-                    );
+                    spellNames.push(spellName);
                 } else if (
                     this.strangeParts().high.includes(
                         descriptionValue
@@ -679,15 +671,7 @@ export = class MyHandler extends Handler {
                     hasSpelled = true;
                     hasHighValueTheir = true;
                     const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
-                    spellNames.push(
-                        `${
-                            webhook.enabled && webhook.url
-                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                      .replace(/\s/g, '_')
-                                      .replace(/'/g, '%27')}_(halloween_spell))`
-                                : spellName
-                        }`
-                    );
+                    spellNames.push(spellName);
                 } else if (
                     this.strangeParts().high.includes(
                         descriptionValue
