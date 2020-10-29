@@ -304,8 +304,9 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-') {
-                // if __Item list__ field is empty, remove it
+            if (itemList === '-' || itemList.length > 1024) {
+                // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
+                // to prevent the webhook from failing on POST request
                 if (removeStatus) {
                     // if __Status__ fields was removed, then delete the entire fields properties
                     delete webhookReview.embeds[0].fields;
@@ -495,8 +496,9 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-') {
-                // if __Item list__ field is empty, remove it
+            if (itemList === '-' || itemList.length > 1024) {
+                // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
+                // to prevent the webhook from failing on POST request
                 if (removeStatus) {
                     // if __Status__ fields was removed, then delete the entire fields properties
                     delete acceptedTradeSummary.embeds[0].fields;
