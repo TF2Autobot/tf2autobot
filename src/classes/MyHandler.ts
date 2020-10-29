@@ -1922,7 +1922,7 @@ export = class MyHandler extends Handler {
                                       ? '\n\n'
                                       : '') +
                                   '🔶_HIGH_VALUE_ITEMS:\n- ' +
-                                  accepted.highValue.join(',\n- ')
+                                  accepted.highValue.join('\n- ')
                                 : '') +
                             `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                             `${
@@ -3784,7 +3784,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶_HIGH_VALUE_ITEMS:\n- ' +
-              items.highValue.join(',\n\n- ')
+              items.highValue.join('\n\n- ')
             : '';
 
     if (list.length === 0) {

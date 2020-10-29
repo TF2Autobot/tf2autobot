@@ -611,7 +611,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶`_HIGH_VALUE_ITEMS`\n- ' +
-              items.highValue.join(',\n\n- ')
+              items.highValue.join('\n\n- ')
             : '';
 
     if (list.length === 0) {
