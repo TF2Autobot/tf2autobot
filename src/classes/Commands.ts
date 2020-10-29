@@ -828,10 +828,10 @@ export = class Commands {
         const diffTime = now - uptime;
 
         const printTime =
-            diffTime >= 77400 && diffTime < 127800 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
-                ? ' (' + Math.round(diffTime / 3600) + ' hours)'
-                : diffTime >= 2203200 // More than 25.5 days, will become "a month", so show how many days in bracket.
-                ? ' (' + Math.round(diffTime / 86400) + ' days)'
+            diffTime >= 77400 * 1000 && diffTime < 127800 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
+                ? ' (' + Math.round((diffTime / 3600) * 1000) + ' hours)'
+                : diffTime >= 2203200 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
+                ? ' (' + Math.round((diffTime / 86400) * 1000) + ' days)'
                 : '';
 
         this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true) + printTime}.`);
