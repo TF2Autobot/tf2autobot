@@ -370,9 +370,7 @@ export = class DiscordWebhookClass {
         const highValueA = itemsName.highValue.length;
 
         const mentionOwner =
-            this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
-                ? `<@!${this.ownerID}>`
-                : invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+            invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
                 ? `<@!${this.ownerID}> - Accepted ${
                       invalidA > 0 && highValueA > 0
                           ? `INVALID_ITEMS and High value ${pluralize('item', invalidA + highValueA)}`
@@ -382,6 +380,8 @@ export = class DiscordWebhookClass {
                           ? `High Value ${pluralize('item', highValueA)}`
                           : ''
                   } trade here!`
+                : this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
+                ? `<@!${this.ownerID}>`
                 : '';
 
         const botName = this.botName;
