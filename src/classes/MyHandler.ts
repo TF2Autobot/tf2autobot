@@ -1796,13 +1796,8 @@ export = class MyHandler extends Handler {
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (
-                        offerMeta.reason === 'VALID_WITH_OVERPAY' ||
-                        offerMeta.reason === 'MANUAL' ||
-                        offerMeta.reason === 'GIFT' ||
-                        offerMeta.reason === 'ADMIN'
-                    ) {
-                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
+                    if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
+                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
                         if (offerMeta.meta) {
                             // doing this because if an offer needs a manual review because of the failed for checking
                             // for banned and escrow, then this is undefined.
