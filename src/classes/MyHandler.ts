@@ -1483,7 +1483,7 @@ export = class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer more or equal value, accepting. Summary:\n${offer.summarize(
                         this.bot.schema
                     )}`
                 );
@@ -1959,10 +1959,11 @@ export = class MyHandler extends Handler {
             // Sort inventory
             this.sortInventory();
 
+            // Tell bot uptime
+            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true)}.`);
+
             // Update listings
             const diff = offer.getDiff() || {};
-
-            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true)}.`);
 
             for (const sku in diff) {
                 if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
