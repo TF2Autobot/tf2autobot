@@ -750,7 +750,7 @@ export = class Commands {
                 );
                 return;
             } else {
-                steamIDString = steamIDreg.toString();
+                steamIDString = steamIDreg.exec(steamIdAndMessage).toString();
             }
 
             const recipient = steamIDString;
