@@ -186,16 +186,14 @@ export = class MyHandler extends Handler {
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
 
-        if (!customGameName || customGameName === `TF2Autobot v${process.env.BOT_VERSION}`) {
+        if (!customGameName || customGameName === `TF2Autobot`) {
             this.customGameName = customGameName;
         } else {
             if (customGameName.length <= 45) {
                 this.customGameName = customGameName + ' - TF2Autobot';
             } else {
-                log.warn(
-                    `Your custom game playing name is more than 45 characters, resetting to only "TF2Autobot v${process.env.BOT_VERSION}"...`
-                );
-                this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
+                log.warn(`Your custom game playing name is more than 45 characters, resetting to only "TF2Autobot"...`);
+                this.customGameName = `TF2Autobot`;
             }
         }
 
@@ -2813,10 +2811,10 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
                                   /%admin%/g,
                                   isAdmin ? '!help' : '!how2trade'
-                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                              ) + ` - TF2Autobot`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  `" - TF2Autobot`
                     );
                     return;
                 }
@@ -2838,10 +2836,10 @@ export = class MyHandler extends Handler {
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
                           /%admin%/g,
                           isAdmin ? '!help' : '!how2trade'
-                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                      ) + ` - TF2Autobot`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          `" - TF2Autobot`
             );
         });
     }
