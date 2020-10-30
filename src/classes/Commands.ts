@@ -733,14 +733,20 @@ export = class Commands {
             const parts = message.split(' ');
             const steamIdAndMessage = CommandParser.removeCommand(message);
             // Use regex
-            const steamIDreg = new RegExp(/\d+/).exec(steamIdAndMessage);
+            const steamIDreg = new RegExp(
+                /(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])/
+            );
 
             let steamIDString: string;
 
-            if (isNaN(+steamIDreg) || !steamIDreg || parts.length < 3) {
+            if (!steamIDreg.test(steamIdAndMessage) || !steamIDreg || parts.length < 3) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong or wrong SteamID64. Here\'s an example: "!message 76561198120070906 Hi"'
+                    '❌ Your syntax is wrong or wrong SteamID. Here\'s an example: "!message 76561198120070906 Hi"' +
+                        "\n\nHow to get the targeted user's SteamID?" +
+                        '\n1. Go to his/her profile page.' +
+                        '\n2. Go to https://steamrep.com/' +
+                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
                 );
                 return;
             } else {
@@ -751,7 +757,14 @@ export = class Commands {
             const recipientSteamID = new SteamID(recipient);
 
             if (!recipientSteamID.isValid()) {
-                this.bot.sendMessage(steamID, `❌ "${recipient}" is not a valid steamID64.`);
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ "${recipient}" is not a valid steamID.` +
+                        "\n\nHow to get the targeted user's SteamID?" +
+                        '\n1. Go to his/her profile page.' +
+                        '\n2. Go to https://steamrep.com/' +
+                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                );
                 return;
             }
 
