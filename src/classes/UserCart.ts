@@ -543,33 +543,29 @@ class UserCart extends Cart {
 
                 if (sku === itemSKU) {
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+                        const color = item.descriptions[i].color;
 
                         if (
-                            descriptionValue.startsWith('Halloween:') &&
-                            descriptionValue.endsWith('(spell only active during event)') &&
-                            descriptionColor === '7ea9d1'
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
                         ) {
                             hasSpelled = true;
-                            const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                            const spellName = spell.substring(10, spell.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
-                            descriptionValue.startsWith('(') &&
-                            (this.bot.handler as MyHandler).strangeParts().includes(
-                                descriptionValue
-                                    .replace('(', '')
-                                    .replace(/: \d+\)/g, '')
-                                    .trim()
-                            ) &&
-                            descriptionColor === '756b5e'
+                            (parts === 'Kills'
+                                ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                            color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            const strangePartName = descriptionValue
-                                .replace('(', '')
-                                .replace(/: \d+\)/g, '')
-                                .trim();
-
+                            const strangePartName = parts;
                             strangeParts.push(strangePartName);
                         }
                     }
@@ -2043,32 +2039,29 @@ class UserCart extends Cart {
 
                 if (sku === itemSKU) {
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+                        const color = item.descriptions[i].color;
 
                         if (
-                            descriptionValue.startsWith('Halloween:') &&
-                            descriptionValue.endsWith('(spell only active during event)') &&
-                            descriptionColor === '7ea9d1'
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
                         ) {
                             hasSpelled = true;
-                            const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                            const spellName = spell.substring(10, spell.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
-                            (this.bot.handler as MyHandler).strangeParts().includes(
-                                descriptionValue
-                                    .replace('(', '')
-                                    .replace(/: \d+\)/g, '')
-                                    .trim()
-                            ) &&
-                            descriptionColor === '756b5e'
+                            (parts === 'Kills'
+                                ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                            color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            const strangePartName = descriptionValue
-                                .replace('(', '')
-                                .replace(/: \d+\)/g, '')
-                                .trim();
-
+                            const strangePartName = parts;
                             strangeParts.push(strangePartName);
                         }
                     }

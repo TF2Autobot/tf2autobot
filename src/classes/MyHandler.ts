@@ -577,34 +577,49 @@ export = class MyHandler extends Handler {
             const strangeParts: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
+                // Item description value for Spells and Strange Parts.
+                // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
+                const spell = item.descriptions[i].value;
+
+                // For Strange Parts, example: "(Kills During Halloween: 0)"
+                // remove "(" and ": <numbers>)" to get only the part name.
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+
+                // Description color in Hex Triplet format, example: 7ea9d1
+                const color = item.descriptions[i].color;
 
                 if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
                 ) {
+                    // Example: "Halloween: Voices From Below (spell only active during event)"
+                    // where "Voices From Below" is the spell name.
+                    // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+                    // https://www.spycolor.com/7ea9d1#
                     hasSpelled = true;
                     hasHighValueOur = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                    // Get the spell name
+                    // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+                    // from "(spell only active during event)", and trim any whitespaces.
+                    const spellName = spell.substring(10, spell.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    this.strangeParts().includes(
-                        descriptionValue
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim()
-                    ) &&
-                    descriptionColor === '756b5e'
+                    (parts === 'Kills'
+                        ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                        : this.strangeParts().includes(parts)) &&
+                    color === '756b5e'
                 ) {
+                    // If the part name is "Kills", then confirm the item is a cosmetic, not a weapon.
+                    // Else, will scan through Strange Parts list in this.strangeParts()
+                    // Color of this description must be rgb(117, 107, 94) or 756b5e
+                    // https://www.spycolor.com/756b5e#
                     hasStrangeParts = true;
                     hasHighValueOur = true;
-                    const strangePartName = descriptionValue
-                        .replace('(', '')
-                        .replace(/: \d+\)/g, '')
-                        .trim();
-
+                    const strangePartName = parts;
                     strangeParts.push(strangePartName);
                 }
             }
@@ -660,30 +675,31 @@ export = class MyHandler extends Handler {
             const strangeParts: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
+                const spell = item.descriptions[i].value;
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+                const color = item.descriptions[i].color;
 
                 if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
                 ) {
                     hasSpelled = true;
                     hasHighValueTheir = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                    const spellName = spell.substring(10, spell.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    this.strangeParts().includes(
-                        descriptionValue
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim()
-                    ) &&
-                    descriptionColor === '756b5e'
+                    (parts === 'Kills'
+                        ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                        : this.strangeParts().includes(parts)) &&
+                    color === '756b5e'
                 ) {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
-                    const strangePartName = descriptionValue
+                    const strangePartName = parts
                         .replace('(', '')
                         .replace(/: \d+\)/g, '')
                         .trim();
