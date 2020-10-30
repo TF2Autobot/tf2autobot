@@ -408,7 +408,19 @@ abstract class Cart {
                 } else if (
                     error.message.includes('maximum number of items allowed in your Team Fortress 2 inventory')
                 ) {
-                    return Promise.reject("I don't have space for more items in my inventory");
+                    const msg = "I don't have space for more items in my inventory";
+
+                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                        if (
+                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                        ) {
+                            this.sendWebhookFullAlert(msg);
+                        } else {
+                            this.bot.messageAdmins(msg, []);
+                        }
+                    }
+                    return Promise.reject(msg);
                 } else if (error.eresult == 10 || error.eresult == 16) {
                     return Promise.reject(
                         "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
@@ -441,22 +453,30 @@ abstract class Cart {
     }
 
     private sendWebhookFullAlert(msg: string): void {
-        const ownerID = process.env.DISCORD_OWNER_ID;
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format('MMMM Do YYYY, HH:mm:ss ZZ');
         /*eslint-disable */
-        const fullBackpack = {
+        const fullBackpack = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: `<@!${ownerID}> [Something Wrong alert]: "${msg}" - ${time}`
-        };
+            content: `<@!${process.env.DISCORD_OWNER_ID}>`,
+            embeds: [
+                {
+                    title: 'Something Wrong',
+                    description: msg,
+                    color: '16711680',
+                    footer: {
+                        text: moment()
+                            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+                            .format('MMMM Do YYYY, HH:mm:ss ZZ')
+                    }
+                }
+            ]
+        });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
         request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
         request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(fullBackpack));
+        request.send(fullBackpack);
     }
 
     toString(): string {
