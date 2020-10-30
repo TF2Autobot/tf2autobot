@@ -1635,13 +1635,9 @@ export = class MyHandler extends Handler {
 
         if (handledByUs && offer.data('switchedState') !== offer.state) {
             if (notify) {
-                if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        process.env.CUSTOM_SUCCESS_MESSAGE
-                            ? process.env.CUSTOM_SUCCESS_MESSAGE
-                            : '/pre ✅ Success! The offer went through successfully.'
-                    );
+                this.bot.sendMessage(offer.partner, '/pre ✅ Success! The offer went through successfully.');
+                if (process.env.CUSTOM_SUCCESS_MESSAGE) {
+                    this.bot.sendMessage(offer.partner, process.env.CUSTOM_SUCCESS_MESSAGE);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
