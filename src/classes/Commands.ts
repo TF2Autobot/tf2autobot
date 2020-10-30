@@ -733,16 +733,14 @@ export = class Commands {
             const parts = message.split(' ');
             const steamIdAndMessage = CommandParser.removeCommand(message);
             // Use regex
-            const steamIDreg = new RegExp(
-                /(\d+)|(^STEAM_([0-5]):([0-1]):([0-9]+)$)|(^\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\]$)/
-            ).exec(steamIdAndMessage); // source: https://github.com/DoctorMcKay/node-steamid/blob/master/index.js
+            const steamIDreg = new RegExp(/\d+/).exec(steamIdAndMessage);
 
             let steamIDString: string;
 
-            if (!steamIDreg || parts.length < 3) {
+            if (isNaN(+steamIDreg) || !steamIDreg || parts.length < 3) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong or wrong SteamID. Here\'s an example: "!message 76561198120070906 Hi"'
+                    '❌ Your syntax is wrong or wrong SteamID64. Here\'s an example: "!message 76561198120070906 Hi"'
                 );
                 return;
             } else {
