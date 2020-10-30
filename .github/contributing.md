@@ -2,9 +2,9 @@
 Inspiration from https://github.com/atom/atom/blob/master/CONTRIBUTING.md
 -->
 
-# Contributing to TF2 Automatic/tf2autobot
+# Contributing to TF2Autobot
 
-The following is a set of guidelines for contributing to TF2 Automatic/tf2autobot. These are guidelines and not rules, use your own judgement and feel free to propose changes to this in a pull request.
+The following is a set of guidelines for contributing to TF2Autobot. These are guidelines and not rules, use your own judgement and feel free to propose changes to this in a pull request.
 
 ## Table of Contents
 
@@ -24,13 +24,13 @@ The following is a set of guidelines for contributing to TF2 Automatic/tf2autobo
 
 ### Reporting bugs
 
-Please don't use GitHub issues for questions, we have a [Main TF2 Automatic Discord server](https://discord.tf2automatic.com) and [IdiNium's Discord server](https://discord.gg/ZrVT7mc) for that.
+Please don't use GitHub issues for questions, we have a [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) for that.
 
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find that you don't need to create one. When creating a bug report please include as many details as possible.
 
 * **Make sure that it an actual problem.** You might be able to find the cause of the problem and fix it yourself. Most importantly, check if you can reproduce the problem.
 * **Check perviously made issues** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
-* **Ask for help in the [Discord server](https://discord.tf2automatic.com) or [IdiNium's Discord server](https://discord.gg/ZrVT7mc).** Someone might know the issue and tell you what to do to fix it.
+* **Ask for help in the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc).** Someone might know the issue and tell you what to do to fix it.
 
 #### How to submit a bug report
 
@@ -45,7 +45,7 @@ Explain the problem and include additional details to help reproduce the problem
 * **Describe the behavior you observed following the steps** and point out what the problem is with the behavior.
 * **Describe what you expected to see instead and why.**
 * **Include screenshots and GIFs** which show you following the described steps and clearly demonstrate the problem.
-* **If you're reporting that TF2 Automatic/tf2autobot crashed** then include the crash report with a stack trace. Crash reports are saved in `~/tf2autobot/logs/<STEAM_ACCOUNT_NAME>.error.log`.
+* **If you're reporting that TF2Autobot crashed** then include the crash report with a stack trace. Crash reports are saved in `~/tf2autobot/logs/<STEAM_ACCOUNT_NAME>.error.log`.
 
 Provide more context by answering these questions:
 

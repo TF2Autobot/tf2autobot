@@ -207,7 +207,7 @@ function getElevatedQuality(item: EconItem): number | null {
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (item.type.startsWith('Strange') &&
+        (item.type.includes('Strange') &&
             item.type.includes('Points Scored') &&
             effects.length === 1 &&
             isNotNormalized)

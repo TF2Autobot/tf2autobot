@@ -41,13 +41,14 @@ const COMMANDS: string[] = [
     '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
     '!owner - Get the owner Steam profile and Backpack.tf links',
     '!message <your message> - Send a message to the owner of the bot 💬',
-    '!discord - Get a link to join tf2autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
+    '!discord - Get a link to join TF2Autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
     '!more - Show the advanced commands list'
 ];
 
 const MORE: string[] = [
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
+    '!uptime - Show the bot uptime 🔌',
     "!pure - Get the bot's current pure stock 💰",
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
@@ -87,6 +88,7 @@ const ADMIN_COMMANDS: string[] = [
     "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
+    '!uptime - Show the bot uptime 🔌',
     "!pure - Get the bot's current pure stock 💰",
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
@@ -177,6 +179,8 @@ export = class Commands {
             this.messageCommand(steamID, message);
         } else if (command === 'time') {
             this.timeCommand(steamID);
+        } else if (command === 'uptime') {
+            this.uptimeCommand(steamID);
         } else if (command === 'pure') {
             this.pureCommand(steamID);
         } else if (command === 'rate') {
@@ -297,9 +301,9 @@ export = class Commands {
     private discordCommand(steamID: SteamID): void {
         let reply = '';
         if (process.env.DISCORD_SERVER_INVITE_LINK) {
-            reply += `tf2autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+            reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
         } else {
-            reply += 'tf2autobot Discord Server: https://discord.gg/ZrVT7mc';
+            reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -710,7 +714,6 @@ export = class Commands {
 
     private messageCommand(steamID: SteamID, message: string): void {
         const isAdmin = this.bot.isAdmin(steamID);
-        const parts = message.split(' ');
 
         if (process.env.DISABLE_MESSAGES === 'true') {
             if (isAdmin) {
@@ -727,26 +730,47 @@ export = class Commands {
         const adminDetails = this.bot.friends.getFriend(steamID);
 
         if (isAdmin) {
-            if (parts.length < 3) {
+            const parts = message.split(' ');
+            const steamIdAndMessage = CommandParser.removeCommand(message);
+            // Use regex
+            const steamIDreg = new RegExp(
+                /(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])/
+            );
+
+            let steamIDString: string;
+
+            if (!steamIDreg.test(steamIdAndMessage) || !steamIDreg || parts.length < 3) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong. Here\'s an example: "!message 76561198120070906 Hi"'
+                    '❌ Your syntax is wrong or wrong SteamID. Here\'s an example: "!message 76561198120070906 Hi"' +
+                        "\n\nHow to get the targeted user's SteamID?" +
+                        '\n1. Go to his/her profile page.' +
+                        '\n2. Go to https://steamrep.com/' +
+                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
                 );
                 return;
+            } else {
+                steamIDString = steamIDreg.exec(steamIdAndMessage)[0];
             }
 
-            const recipient = parts[1];
-
+            const recipient = steamIDString;
             const recipientSteamID = new SteamID(recipient);
 
             if (!recipientSteamID.isValid()) {
-                this.bot.sendMessage(steamID, `❌ "${recipient}" is not a valid steamid.`);
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ "${recipient}" is not a valid steamID.` +
+                        "\n\nHow to get the targeted user's SteamID?" +
+                        '\n1. Go to his/her profile page.' +
+                        '\n2. Go to https://steamrep.com/' +
+                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                );
                 return;
             }
 
             const recipentDetails = this.bot.friends.getFriend(recipientSteamID);
 
-            const reply = message.substr(message.toLowerCase().indexOf(recipient) + 18);
+            const reply = steamIdAndMessage.substr(steamIDString.length);
 
             // Send message to recipient
             this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
@@ -815,6 +839,22 @@ export = class Commands {
             `My owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
                 (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
         );
+    }
+
+    private uptimeCommand(steamID: SteamID): void {
+        const uptime = (this.bot.handler as MyHandler).getUptime();
+
+        const now = moment().valueOf();
+        const diffTime = now - uptime;
+
+        const printTime =
+            diffTime >= 77400 * 1000 && diffTime < 127800 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
+                ? ' (' + Math.round((diffTime / 3600) * 1000) + ' hours)'
+                : diffTime >= 2203200 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
+                ? ' (' + Math.round((diffTime / 86400) * 1000) + ' days)'
+                : '';
+
+        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true) + printTime}.`);
     }
 
     private pureCommand(steamID: SteamID): void {
@@ -1844,7 +1884,7 @@ export = class Commands {
                 if (!restarting) {
                     this.bot.sendMessage(
                         steamID,
-                        '❌ You are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2'
+                        '❌ You are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS'
                     );
                 }
             })
@@ -2080,19 +2120,19 @@ export = class Commands {
     private versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            `Currently running tf2autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
+            `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
         this.bot
             .checkForUpdates()
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2autobot!');
+                    this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
-                            `\n\nNavigate to your bot folder and run [git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
+                            `\n\nNavigate to your bot folder and run [git checkout master && git reset HEAD --hard && git pull && npm install && npm run build] and then restart your bot.` +
                             `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                             '\nContact IdiNium if you have any other problem. Thank you.'
                     );
@@ -2245,9 +2285,10 @@ export = class Commands {
         for (let i = 0; i < offers.length; i++) {
             const offer = offers[i];
 
-            reply += `\n- Offer #${offer.id} from ${
-                offer.data.partner
-            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})`;
+            reply +=
+                `\n- Offer #${offer.id} from ${offer.data.partner} (reason: ${offer.data.action.meta.uniqueReasons.join(
+                    ', '
+                )})` + `\n⚠️ Send "!trade ${offer.id}" for more details.\n`;
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -2286,7 +2327,7 @@ export = class Commands {
         // TODO: Create static class for trade offer related functions?
 
         let reply =
-            `Offer #${offerId} from ${offerData.partner} is pending for review. ⚠️` +
+            `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
             `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrices();
@@ -2324,24 +2365,24 @@ export = class Commands {
                     : ')');
         }
 
-        const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
-        reply += `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}`;
+        const links = (this.bot.handler as MyHandler).tradePartnerLinks(offerData.partner.toString());
+        reply +=
+            `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+            `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
 
         this.bot.sendMessage(steamID, reply);
     }
 
     private accepttradeCommand(steamID: SteamID, message: string): void {
         const offerIdAndMessage = CommandParser.removeCommand(message);
-        const offerId = new RegExp(/\d+/).exec(offerIdAndMessage);
-        let offerIdString: string;
+        const offerId = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
+
         if (isNaN(+offerId) || !offerId) {
             this.bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
             return;
-        } else {
-            offerIdString = offerId.toString();
         }
 
-        const state = this.bot.manager.pollData.received[offerIdString];
+        const state = this.bot.manager.pollData.received[offerId];
 
         if (state === undefined) {
             this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
@@ -2354,14 +2395,14 @@ export = class Commands {
             return;
         }
 
-        const offerData = this.bot.manager.pollData.offerData[offerIdString];
+        const offerData = this.bot.manager.pollData.offerData[offerId];
 
         if (offerData?.action.action !== 'skip') {
             this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
-        this.bot.trades.getOffer(offerIdString).asCallback((err, offer) => {
+        this.bot.trades.getOffer(offerId).asCallback((err, offer) => {
             if (err) {
                 this.bot.sendMessage(
                     steamID,
@@ -2372,9 +2413,81 @@ export = class Commands {
 
             this.bot.sendMessage(steamID, 'Accepting offer...');
 
-            const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerIdString].partner);
-            const reply = offerIdAndMessage.substr(offerIdString.length);
+            const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerId].partner);
+            const reply = offerIdAndMessage.substr(offerId.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
+
+            let declineTrade = false;
+            let hasNot5Uses = false;
+            let hasNot25Uses = false;
+
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true'
+            ) {
+                // Re-check for Dueling Mini-Game and/or Noise Maker for 5x/25x Uses only when enabled and exist in pricelist
+                log.debug('Running re-check on Dueling Mini-Game and/or Noise maker...');
+
+                const checkExist = this.bot.pricelist;
+
+                offer.itemsToReceive.forEach(item => {
+                    const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                    const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                        return item.market_hash_name.includes(name);
+                    });
+                    if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+                        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+                        for (let i = 0; i < item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                // Contains non-5x uses.
+                                hasNot5Uses = true;
+                                log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses (re-checked).`);
+                                break;
+                            }
+                        }
+                    } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+                        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
+                        for (let i = 0; i < item.descriptions.length; i++) {
+                            const descriptionValue = item.descriptions[i].value;
+                            const descriptionColor = item.descriptions[i].color;
+
+                            if (
+                                !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                                descriptionColor === '00a000'
+                            ) {
+                                // Contains non-25x uses.
+                                hasNot25Uses = true;
+                                log.debug(
+                                    'info',
+                                    `${item.market_hash_name} (${item.assetid}) is not 25 uses (re-checked).`
+                                );
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                    // Only decline if exist in pricelist
+                    offer.log('info', 'contains Dueling Mini-Game that are not 5 uses (re-checked).');
+                    declineTrade = true;
+                }
+
+                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerSKUs().some(sku => {
+                    return checkExist.getPrice(sku, true) !== null;
+                });
+
+                if (hasNot25Uses && isNoiseMaker) {
+                    offer.log('info', 'contains Noice Maker that are not 25 uses (re-checked).');
+                    declineTrade = true;
+                }
+            }
 
             const reviewMeta: {
                 uniqueReasons: string[];
@@ -2389,53 +2502,85 @@ export = class Commands {
                 };
             } = offer.data('reviewMeta');
 
-            this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
-                if (err) {
+            if (declineTrade === false) {
+                this.bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        );
+                        return;
+                    }
+
+                    const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                    if (isManyItems) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
+                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
+                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    }
+                    // Send message to recipient if includes some messages
+                    if (reply) {
+                        this.bot.sendMessage(
+                            partnerId,
+                            `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        );
+                    }
+                });
+            } else {
+                this.bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
+                    if (err) {
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
+                        );
+                        return;
+                    }
+
                     this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        `❌ Offer #${offer.id} has been automatically decline: contain${
+                            hasNot5Uses && hasNot25Uses
+                                ? 'Dueling Mini-Game and/or Noise Maker'
+                                : hasNot5Uses
+                                ? 'Dueling Mini-Game'
+                                : 'Noise Maker'
+                        } that are not full after re-check...`
                     );
-                    return;
-                }
 
-                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
-
-                if (isManyItems) {
                     this.bot.sendMessage(
                         offer.partner,
-                        'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        `Looks like you've used your ${
+                            hasNot5Uses && hasNot25Uses
+                                ? 'Dueling Mini-Game and/or Noise Maker'
+                                : hasNot5Uses
+                                ? 'Dueling Mini-Game'
+                                : 'Noise Maker'
+                        }, thus your offer has been declined.`
                     );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
-                    );
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    this.bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            });
+                });
+            }
         });
     }
 
     private declinetradeCommand(steamID: SteamID, message: string): void {
         const offerIdAndMessage = CommandParser.removeCommand(message);
-        const offerId = new RegExp(/\d+/).exec(offerIdAndMessage);
-        let offerIdString: string;
+        const offerId = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
+
         if (isNaN(+offerId) || !offerId) {
             this.bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
             return;
-        } else {
-            offerIdString = offerId.toString();
         }
 
-        const state = this.bot.manager.pollData.received[offerIdString];
+        const state = this.bot.manager.pollData.received[offerId];
 
         if (state === undefined) {
             this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
@@ -2448,14 +2593,14 @@ export = class Commands {
             return;
         }
 
-        const offerData = this.bot.manager.pollData.offerData[offerIdString];
+        const offerData = this.bot.manager.pollData.offerData[offerId];
 
         if (offerData?.action.action !== 'skip') {
             this.bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
             return;
         }
 
-        this.bot.trades.getOffer(offerIdString).asCallback((err, offer) => {
+        this.bot.trades.getOffer(offerId).asCallback((err, offer) => {
             if (err) {
                 this.bot.sendMessage(
                     steamID,
@@ -2466,8 +2611,8 @@ export = class Commands {
 
             this.bot.sendMessage(steamID, 'Declining offer...');
 
-            const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerIdString].partner);
-            const reply = offerIdAndMessage.substr(offerIdString.length);
+            const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerId].partner);
+            const reply = offerIdAndMessage.substr(offerId.length);
             const adminDetails = this.bot.friends.getFriend(steamID);
 
             this.bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
@@ -2764,7 +2909,7 @@ export = class Commands {
         if (!foundSomething) {
             this.bot.sendMessage(
                 steamID,
-                '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/h.-Usage'
+                '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F'
             );
             return null;
         }
@@ -2943,7 +3088,7 @@ export = class Commands {
     }
 
     private craftWeapons(): string[] {
-        const craftWeapons = (this.bot.handler as MyHandler).weapon().craft;
+        const craftWeapons = (this.bot.handler as MyHandler).weapons().craftAll;
 
         const items: { amount: number; name: string }[] = [];
 
@@ -2981,7 +3126,7 @@ export = class Commands {
     }
 
     private uncraftWeapons(): string[] {
-        const uncraftWeapons = (this.bot.handler as MyHandler).weapon().uncraft;
+        const uncraftWeapons = (this.bot.handler as MyHandler).weapons().uncraftAll;
 
         const items: { amount: number; name: string }[] = [];
 

@@ -76,11 +76,23 @@ export = class MyHandler extends Handler {
             enabled: boolean;
             url: string;
         };
+        reviewOfferWebhook: {
+            enabled: boolean;
+            url: string;
+        };
+        checkUses: {
+            duelEnabled: boolean;
+            noiseEnabled: boolean;
+        };
+        acceptGiftNoNotes: {
+            enabled: boolean;
+        };
         autoRemoveIntentSell: boolean;
         givePrice: boolean;
         craftWeaponAsCurrency: boolean;
         showMetal: boolean;
         autokeysNotAcceptUnderstocked: boolean;
+        onlyTF2: boolean;
     };
 
     private isTradingKeys = false;
@@ -99,6 +111,8 @@ export = class MyHandler extends Handler {
 
     private classWeaponsTimeout;
 
+    private uptime: number;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -108,6 +122,8 @@ export = class MyHandler extends Handler {
         this.cartQueue = new CartQueue(bot);
         this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
+
+        this.uptime = moment().valueOf();
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
@@ -132,11 +148,23 @@ export = class MyHandler extends Handler {
                 enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
                 url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
             },
+            reviewOfferWebhook: {
+                enabled: process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false',
+                url: process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+            },
+            checkUses: {
+                duelEnabled: process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false',
+                noiseEnabled: process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            },
+            acceptGiftNoNotes: {
+                enabled: process.env.ALLOW_GIFT_WITHOUT_NOTE === 'false'
+            },
             autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
             craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
             showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
-            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true'
+            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true',
+            onlyTF2: process.env.ENABLE_ONLY_PLAY_TF2 === 'true'
         };
 
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
@@ -158,14 +186,16 @@ export = class MyHandler extends Handler {
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
 
-        if (!customGameName || customGameName === 'tf2autobot') {
+        if (!customGameName || customGameName === `TF2Autobot v${process.env.BOT_VERSION}`) {
             this.customGameName = customGameName;
         } else {
             if (customGameName.length <= 45) {
-                this.customGameName = customGameName + ' - tf2autobot';
+                this.customGameName = customGameName + ' - TF2Autobot';
             } else {
-                log.warn('Your custom game playing name is more than 45 characters, resetting to only "tf2autobot"...');
-                this.customGameName = 'tf2autobot';
+                log.warn(
+                    `Your custom game playing name is more than 45 characters, resetting to only "TF2Autobot v${process.env.BOT_VERSION}"...`
+                );
+                this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
             }
         }
 
@@ -244,6 +274,10 @@ export = class MyHandler extends Handler {
         return this.autokeysStatus;
     }
 
+    getUptime(): number {
+        return this.uptime;
+    }
+
     onRun(): Promise<{
         loginAttempts?: number[];
         pricelist?: EntryData[];
@@ -262,7 +296,7 @@ export = class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            'tf2autobot v' +
+            'TF2Autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
                 pluralize('item', this.bot.pricelist.getLength(), true) +
@@ -273,7 +307,7 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed([this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
         // GetBackpackSlots
@@ -311,6 +345,11 @@ export = class MyHandler extends Handler {
 
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
+
+        // Check for missing sell listings every 5 minutes, 30 minutes after start
+        setTimeout(() => {
+            this.autoRefreshListings();
+        }, 30 * 6 * 1000);
     }
 
     onShutdown(): Promise<void> {
@@ -338,7 +377,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed([this.customGameName, 440]);
+            this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
 
@@ -414,6 +453,27 @@ export = class MyHandler extends Handler {
         const details = Object.assign({ private: true }, auth);
 
         log.warn('Please add the backpack.tf API key and access token to the environment variables!', details);
+    }
+
+    private autoRefreshListings(): void {
+        // Automatically check for missing sell listings every 15 minutes
+        setInterval(() => {
+            log.debug('Running automatic checking for missing sell listings...');
+            const inventory = this.bot.inventoryManager.getInventory();
+            const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+                // Filter our pricelist to only the items that the bot currently have.
+                return inventory.findBySKU(entry.sku).length > 0;
+            });
+
+            if (pricelist.length > 0) {
+                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                    log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
+                });
+            } else {
+                log.debug('❌ Nothing to refresh.');
+            }
+        }, 15 * 60 * 1000);
     }
 
     async onNewTradeOffer(
@@ -496,45 +556,102 @@ export = class MyHandler extends Handler {
 
         offer.data('dict', itemsDict);
 
-        // Always check if trade partner is taking higher value items (such as spelled) that are not in our pricelist
+        // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
         const webhook = this.fromEnv.tradeSummaryWebhook;
 
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
-            nameWithSpell: string[];
+            nameWithSpellsOrParts: string[];
         } = {
             skus: [],
-            nameWithSpell: []
+            nameWithSpellsOrParts: []
         };
 
         offer.itemsToGive.forEach(item => {
+            let hasSpelled = false;
+            const spellNames: string[] = [];
+
+            let hasStrangeParts = false;
+            const strangeParts: string[] = [];
+
             for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
+                // Item description value for Spells and Strange Parts.
+                // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
+                const spell = item.descriptions[i].value;
+
+                // For Strange Parts, example: "(Kills During Halloween: 0)"
+                // remove "(" and ": <numbers>)" to get only the part name.
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+
+                // Description color in Hex Triplet format, example: 7ea9d1
+                const color = item.descriptions[i].color;
 
                 if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
                 ) {
+                    // Example: "Halloween: Voices From Below (spell only active during event)"
+                    // where "Voices From Below" is the spell name.
+                    // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+                    // https://www.spycolor.com/7ea9d1#
+                    hasSpelled = true;
                     hasHighValueOur = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                    // Get the spell name
+                    // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+                    // from "(spell only active during event)", and trim any whitespaces.
+                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    spellNames.push(spellName);
+                } else if (
+                    (parts === 'Kills' || parts === 'Assists'
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                        : this.strangeParts().includes(parts)) &&
+                    color === '756b5e'
+                ) {
+                    // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
+                    // Else, will scan through Strange Parts list in this.strangeParts()
+                    // Color of this description must be rgb(117, 107, 94) or 756b5e
+                    // https://www.spycolor.com/756b5e#
+                    hasStrangeParts = true;
+                    hasHighValueOur = true;
+                    const strangePartName = parts;
+                    strangeParts.push(strangePartName);
+                }
+            }
 
-                    highValuedOur.skus.push(item.getSKU(this.bot.schema));
-                    highValuedOur.nameWithSpell.push(
-                        `${item.name} with ${
-                            webhook.enabled && webhook.url
-                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                      .replace(/\s/g, '_')
-                                      .replace(/'/g, '%27')}_(halloween_spell))`
-                                : spellName
-                        }`
+            if (hasSpelled || hasStrangeParts) {
+                const itemSKU = item.getSKU(this.bot.schema);
+                highValuedOur.skus.push(itemSKU);
+
+                const itemObj = SKU.fromString(itemSKU);
+
+                // If item is an Unusual, then get itemName from schema.
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+
+                let spellOrParts = '';
+
+                if (hasSpelled) {
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                }
+
+                if (hasStrangeParts) {
+                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+
+                if (webhook.enabled && webhook.url) {
+                    highValuedOur.nameWithSpellsOrParts.push(
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
-
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
-                    break;
+                } else {
+                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });
@@ -544,38 +661,81 @@ export = class MyHandler extends Handler {
         let hasHighValueTheir = false;
         const highValuedTheir: {
             skus: string[];
-            nameWithSpell: string[];
+            nameWithSpellsOrParts: string[];
         } = {
             skus: [],
-            nameWithSpell: []
+            nameWithSpellsOrParts: []
         };
 
         offer.itemsToReceive.forEach(item => {
+            let hasSpelled = false;
+            const spellNames: string[] = [];
+
+            let hasStrangeParts = false;
+            const strangeParts: string[] = [];
+
             for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
+                const spell = item.descriptions[i].value;
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+                const color = item.descriptions[i].color;
 
                 if (
-                    descriptionValue.startsWith('Halloween:') &&
-                    descriptionValue.endsWith('(spell only active during event)') &&
-                    descriptionColor === '7ea9d1'
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
                 ) {
+                    hasSpelled = true;
                     hasHighValueTheir = true;
-                    const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    spellNames.push(spellName);
+                } else if (
+                    (parts === 'Kills' || parts === 'Assists'
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                        : this.strangeParts().includes(parts)) &&
+                    color === '756b5e'
+                ) {
+                    hasStrangeParts = true;
+                    hasHighValueTheir = true;
+                    const strangePartName = parts
+                        .replace('(', '')
+                        .replace(/: \d+\)/g, '')
+                        .trim();
 
-                    highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-                    highValuedTheir.nameWithSpell.push(
-                        `${item.name} with ${
-                            webhook.enabled && webhook.url
-                                ? `[${spellName}](https://wiki.teamfortress.com/wiki/${spellName
-                                      .replace(/\s/g, '_')
-                                      .replace(/'/g, '%27')}_(halloween_spell))`
-                                : spellName
-                        }`
+                    strangeParts.push(strangePartName);
+                }
+            }
+
+            if (hasSpelled || hasStrangeParts) {
+                const itemSKU = item.getSKU(this.bot.schema);
+                highValuedTheir.skus.push(itemSKU);
+
+                const itemObj = SKU.fromString(itemSKU);
+
+                // If item is an Unusual, then get itemName from schema.
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+
+                let spellOrParts = '';
+
+                if (hasSpelled) {
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                }
+
+                if (hasStrangeParts) {
+                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+
+                if (webhook.enabled && webhook.url) {
+                    highValuedTheir.nameWithSpellsOrParts.push(
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
-
-                    log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
-                    break;
+                } else {
+                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });
@@ -615,23 +775,66 @@ export = class MyHandler extends Handler {
 
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
-            return { action: 'accept', reason: 'GIFT' };
+            return {
+                action: 'accept',
+                reason: 'GIFT',
+                meta: {
+                    hasHighValueItems: {
+                        our: hasHighValueOur,
+                        their: hasHighValueTheir
+                    },
+                    highValueItems: {
+                        our: highValuedOur,
+                        their: highValuedTheir
+                    }
+                }
+            };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            offer.log('info', 'is a gift offer without any offer message, declining...');
-            return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+            if (this.fromEnv.acceptGiftNoNotes.enabled) {
+                offer.log(
+                    'info',
+                    'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                );
+                return {
+                    action: 'accept',
+                    reason: 'GIFT',
+                    meta: {
+                        hasHighValueItems: {
+                            our: hasHighValueOur,
+                            their: hasHighValueTheir
+                        },
+                        highValueItems: {
+                            our: highValuedOur,
+                            their: highValuedTheir
+                        }
+                    }
+                };
+            } else {
+                offer.log('info', 'is a gift offer without any offer message, declining...');
+                return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+            }
         } else if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length === 0) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
 
-        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+        // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
+        // and decline if not 5x/25x and exist in pricelist
 
         const checkExist = this.bot.pricelist;
 
-        if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+        if (this.fromEnv.checkUses.duelEnabled || this.fromEnv.checkUses.noiseEnabled) {
             let hasNot5Uses = false;
+            let hasNot25Uses = false;
+
             offer.itemsToReceive.forEach(item => {
-                if (item.name === 'Dueling Mini-Game') {
+                const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                    return item.market_hash_name.includes(name);
+                });
+
+                if (isDuelingMiniGame && this.fromEnv.checkUses.duelEnabled) {
+                    // Check for Dueling Mini-Game for 5x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -645,25 +848,8 @@ export = class MyHandler extends Handler {
                             break;
                         }
                     }
-                }
-            });
-
-            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
-                // Only decline if exist in pricelist
-                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
-                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
-            }
-        }
-
-        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
-
-        if (process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
-            let hasNot25Uses = false;
-            offer.itemsToReceive.forEach(item => {
-                const isNoiseMaker = this.noiseMakerNames().some(name => {
-                    return item.name.includes(name);
-                });
-                if (isNoiseMaker) {
+                } else if (isNoiseMaker && this.fromEnv.checkUses.noiseEnabled) {
+                    // Check for Noise Maker for 25x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
                         const descriptionColor = item.descriptions[i].color;
@@ -673,17 +859,25 @@ export = class MyHandler extends Handler {
                             descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
-                            log.debug('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                            log.debug('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                             break;
                         }
                     }
                 }
             });
 
-            const isNoiseMaker = this.noiseMakerSKUs().some(sku => {
+            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+                // Dueling Mini-Game: Only decline if exist in pricelist
+                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+            }
+
+            const isHasNoiseMaker = this.noiseMakerSKUs().some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
-            if (hasNot25Uses && isNoiseMaker) {
+
+            if (hasNot25Uses && isHasNoiseMaker) {
+                // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noice Maker that are not 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
             }
@@ -702,10 +896,12 @@ export = class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
-                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpell);
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is about to take your ${highValuedOur.nameWithSpell.join(', ')} (not in pricelist)`,
+                    `Someone is about to take your high valued items that you owned but not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
+                        '\n\n- '
+                    )}`,
                     []
                 );
             }
@@ -714,7 +910,7 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValuedOur.nameWithSpell
+                    highValueName: highValuedOur.nameWithSpellsOrParts
                 }
             };
         }
@@ -759,12 +955,15 @@ export = class MyHandler extends Handler {
               }
             | {
                   reason: '🟪_DUPE_CHECK_FAILED';
-                  assetid?: string;
+                  withError: boolean;
+                  assetid: string | string[];
+                  sku: string | string[];
                   error?: string;
               }
             | {
                   reason: '🟫_DUPED_ITEMS';
                   assetid: string;
+                  sku: string;
               }
             | {
                   reason: '⬜_ESCROW_CHECK_FAILED';
@@ -776,16 +975,16 @@ export = class MyHandler extends Handler {
               }
         )[] = [];
 
-        let assetidsToCheck = [];
-        let skuToCheck = [];
+        let assetidsToCheck: string[] = [];
+        let skuToCheck: string[] = [];
+        let hasNoPrice = false;
 
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const weapons = this.weapon();
-            const craft = weapons.craft;
-            const uncraft = weapons.uncraft;
+            const craft = this.weapons().craftAll;
+            const uncraft = this.weapons().uncraftAll;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -906,6 +1105,7 @@ export = class MyHandler extends Handler {
 
                         if (price === null) {
                             itemSuggestedValue = 'No price';
+                            hasNoPrice = true;
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
@@ -1212,20 +1412,23 @@ export = class MyHandler extends Handler {
                             return {
                                 action: 'decline',
                                 reason: '🟫_DUPED_ITEMS',
-                                meta: { assetids: assetidsToCheck, result: result }
+                                meta: { assetids: assetidsToCheck, sku: skuToCheck, result: result }
                             };
                         } else {
                             // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
                             wrongAboutOffer.push({
                                 reason: '🟫_DUPED_ITEMS',
-                                assetid: assetidsToCheck[i]
+                                assetid: assetidsToCheck[i],
+                                sku: skuToCheck[i]
                             });
                         }
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
                         wrongAboutOffer.push({
                             reason: '🟪_DUPE_CHECK_FAILED',
-                            assetid: assetidsToCheck[i]
+                            withError: false,
+                            assetid: assetidsToCheck[i],
+                            sku: skuToCheck[i]
                         });
                     }
                 }
@@ -1233,6 +1436,9 @@ export = class MyHandler extends Handler {
                 log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + err.message);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
+                    withError: true,
+                    assetid: assetidsToCheck,
+                    sku: skuToCheck,
                     error: err.message
                 });
             }
@@ -1244,15 +1450,6 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            const env = this.fromEnv;
-
-            const acceptingCondition =
-                env.givePrice || env.autoAcceptOverpay.overstocked || env.autoAcceptOverpay.understocked
-                    ? exchange.our.value < exchange.their.value
-                    : !env.givePrice
-                    ? exchange.our.value <= exchange.their.value
-                    : false;
-
             const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
             const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
             const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
@@ -1260,17 +1457,51 @@ export = class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
+            const env = this.fromEnv;
+
+            const canAcceptInvalidItemsOverpay = env.autoAcceptOverpay.invalidItem;
+            const canAcceptOverstockedOverpay = env.autoAcceptOverpay.overstocked;
+            const canAcceptUnderstockedOverpay = env.autoAcceptOverpay.understocked;
+
+            // accepting 🟨_INVALID_ITEMS overpay
+
+            const isAcceptInvalidItems =
+                isInvalidItem &&
+                canAcceptInvalidItemsOverpay &&
+                (exchange.our.value < exchange.their.value ||
+                    (exchange.our.value === exchange.their.value && hasNoPrice)) &&
+                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true) &&
+                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+
+            // accepting 🟦_OVERSTOCKED overpay
+
+            const isAcceptOverstocked =
+                isOverstocked &&
+                canAcceptOverstockedOverpay &&
+                exchange.our.value < exchange.their.value &&
+                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
+                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+
+            // accepting 🟩_UNDERSTOCKED overpay
+
+            const isAcceptUnderstocked =
+                isUnderstocked &&
+                canAcceptUnderstockedOverpay &&
+                exchange.our.value < exchange.their.value &&
+                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
+                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true);
+
             if (
-                ((isInvalidItem && env.autoAcceptOverpay.invalidItem) ||
-                    (isOverstocked && env.autoAcceptOverpay.overstocked) ||
-                    (isUnderstocked && env.autoAcceptOverpay.understocked)) &&
-                !(isInvalidValue || isDupedItem || isDupedCheckFailed) &&
-                acceptingCondition &&
-                exchange.our.value !== 0
+                (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked) &&
+                exchange.our.value !== 0 &&
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed)
             ) {
+                // if the offer is Invalid_items/over/understocked and accepting overpay enabled, but the offer is not
+                // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
+                // accept the trade.
                 offer.log(
                     'trade',
-                    `contains invalid items/overstocked, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer more or equal value, accepting. Summary:\n${offer.summarize(
                         this.bot.schema
                     )}`
                 );
@@ -1405,12 +1636,10 @@ export = class MyHandler extends Handler {
         if (handledByUs && offer.data('switchedState') !== offer.state) {
             if (notify) {
                 if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        process.env.CUSTOM_SUCCESS_MESSAGE
-                            ? process.env.CUSTOM_SUCCESS_MESSAGE
-                            : '/pre ✅ Success! The offer went through successfully.'
-                    );
+                    this.bot.sendMessage(offer.partner, '/pre ✅ Success! The offer went through successfully.');
+                    if (process.env.CUSTOM_SUCCESS_MESSAGE) {
+                        this.bot.sendMessage(offer.partner, process.env.CUSTOM_SUCCESS_MESSAGE);
+                    }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
@@ -1579,12 +1808,12 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                const offerMade: { nameWithSpell: string[] } = offer.data('highValue');
+                const offerMade: { nameWithSpellsOrParts: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
                     if (offerMeta.reason === 'VALID_WITH_OVERPAY' || offerMeta.reason === 'MANUAL') {
-                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED offer
+                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
                         if (offerMeta.meta) {
                             // doing this because if an offer needs a manual review because of the failed for checking
                             // for banned and escrow, then this is undefined.
@@ -1632,7 +1861,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.their.nameWithSpell.forEach(name => {
+                            offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
@@ -1640,16 +1869,16 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.our) {
                             hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.our.nameWithSpell.forEach(name => {
+                            offerMeta.meta.highValueItems.our.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
                     }
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
-                    if (offerMade.nameWithSpell.length > 0) {
+                    if (offerMade.nameWithSpellsOrParts.length > 0) {
                         hasHighValueTheir = true;
-                        offerMade.nameWithSpell.forEach(name => {
+                        offerMade.nameWithSpellsOrParts.forEach(name => {
                             accepted.highValue.push(name);
                         });
                     }
@@ -1701,9 +1930,9 @@ export = class MyHandler extends Handler {
                                       ? '\n\n'
                                       : '') +
                                   '🔶_HIGH_VALUE_ITEMS:\n- ' +
-                                  accepted.highValue.join(',\n- ')
+                                  accepted.highValue.join('\n- ')
                                 : '') +
-                            `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                            `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -1742,6 +1971,19 @@ export = class MyHandler extends Handler {
             // Sort inventory
             this.sortInventory();
 
+            // Tell bot uptime
+            const now = moment().valueOf();
+            const diffTime = now - this.uptime;
+
+            const printTime =
+                diffTime >= 77400 * 1000 && diffTime < 127800 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
+                    ? ' (' + Math.round((diffTime / 3600) * 1000) + ' hours)'
+                    : diffTime >= 2203200 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
+                    ? ' (' + Math.round((diffTime / 86400) * 1000) + ' days)'
+                    : '';
+
+            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true) + printTime}.`);
+
             // Update listings
             const diff = offer.getDiff() || {};
 
@@ -1760,14 +2002,14 @@ export = class MyHandler extends Handler {
                 // and pure.
                 if (
                     !(
-                        this.weapon().craft.includes(sku) ||
-                        this.weapon().uncraft.includes(sku) ||
+                        this.weapons().craftAll.includes(sku) ||
+                        this.weapons().uncraftAll.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     )
                 ) {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
-                            log.warn(
+                            log.debug(
                                 '❌ Failed to request pricecheck for ' +
                                     `${name} (${sku})` +
                                     ': ' +
@@ -1788,8 +2030,8 @@ export = class MyHandler extends Handler {
                 if (
                     inPrice === null &&
                     !(
-                        this.weapon().craft.includes(sku) ||
-                        this.weapon().uncraft.includes(sku) ||
+                        this.weapons().craftAll.includes(sku) ||
+                        this.weapons().uncraftAll.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
@@ -1966,7 +2208,13 @@ export = class MyHandler extends Handler {
 
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    dupedItemsName.push(name);
+                    if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                        // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                        dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
+                    } else {
+                        // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                        dupedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
+                    }
                 });
 
                 note = process.env.DUPE_ITEMS_NOTE
@@ -1986,11 +2234,40 @@ export = class MyHandler extends Handler {
             const dupedFailedItemsName: string[] = [];
 
             if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-                const dupedFailed = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+                const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED'));
 
                 dupedFailed.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    dupedFailedItemsName.push(name);
+                    if (el.withError === false) {
+                        // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
+                        const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
+
+                        if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                            // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                            dupedFailedItemsName.push(
+                                `${name} - [history page](https://backpack.tf/item/${el.assetid})`
+                            );
+                        } else {
+                            // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                            dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
+                        }
+                    } else {
+                        // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
+                        for (let i = 0; i < el.sku.length; i++) {
+                            const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
+
+                            if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                                // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
+                                dupedFailedItemsName.push(
+                                    `${name} - [history page](https://backpack.tf/item/${el.assetid})`
+                                );
+                            } else {
+                                // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
+                                dupedFailedItemsName.push(
+                                    `${name}, history page: https://backpack.tf/item/${el.assetid}`
+                                );
+                            }
+                        }
+                    }
                 });
 
                 note = process.env.DUPE_CHECK_FAILED_NOTE
@@ -2020,7 +2297,7 @@ export = class MyHandler extends Handler {
                     const hasHighValue = meta.hasHighValueItems.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.nameWithSpell.forEach(name => {
+                        meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
@@ -2191,7 +2468,7 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        for (const sku of this.weapon().craft) {
+        for (const sku of this.weapons().craftAll) {
             const weapon = currencies[sku].length;
 
             if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
@@ -2211,31 +2488,9 @@ export = class MyHandler extends Handler {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-
-        // Scout weapons
-        const scout = [
-            '45;6', // Force-A-Nature               == Scout/Primary ==
-            '220;6', // Shortstop
-            '448;6', // Soda Popper
-            '772;6', // Baby Face's Blaster
-            '1103;6', // Back Scatter
-            '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
-            '163;6', // Crit-a-Cola
-            '222;6', // Mad Milk
-            '449;6', // Winger
-            '773;6', // Pretty Boy's Pocket Pistol
-            '812;6', // Flying Guillotine
-            '44;6', // Sandman                      == Scout/Melee ==
-            '221;6', // Holy Mackerel
-            '317;6', // Candy Cane
-            '325;6', // Boston Basher
-            '349;6', // Sun-on-a-Stick
-            '355;6', // Fan O'War
-            '450;6', // Atomizer
-            '648;6' // Wrap Assassin
-        ];
-
         let matched = false;
+
+        const scout = this.weapons().craft.scout;
 
         for (let i = 0; i < scout.length; i++) {
             // for loop for weapon1
@@ -2267,31 +2522,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Soldier weapons
-        const soldier = [
-            '127;6', // Direct Hit                  == Soldier/Primary ==
-            '228;6', // Black Box
-            '237;6', // Rocket Jumper
-            '414;6', // Liberty Launcher
-            '441;6', // Cow Mangler 5000
-            '513;6', // Original
-            '730;6', // Beggar's Bazooka
-            '1104;6', // Air Strike
-            '129;6', // Buff Banner                 == Soldier/Secondary ==
-            '133;6', // Gunboats
-            '226;6', // Battalion's Backup
-            '354;6', // Concheror
-            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-            '442;6', // Righteous Bison
-            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-            '444;6', // Mantreads
-            '128;6', // Equalizer                   == Soldier/Melee ==
-            '154;6', // Pain Train - Shared - Soldier/Demoman
-            '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
-            '416;6', // Market Gardener
-            '447;6', // Disciplinary Action
-            '775;6' // Escape Plan
-        ];
+        const soldier = this.weapons().craft.soldier;
 
         for (let i = 0; i < soldier.length; i++) {
             const sku1 = soldier[i];
@@ -2317,31 +2548,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Pyro weapons
-        const pyro = [
-            '40;6', // Backburner                   == Pyro/Primary ==
-            '215;6', // Degreaser
-            '594;6', // Phlogistinator
-            '741;6', // Rainblower
-            '1178;6', // Dragon's Fury
-            '39;6', // Flare Gun                    == Pyro/Secondary ==
-            '351;6', // Detonator
-            '595;6', // Manmelter
-            '740;6', // Scorch Shot
-            '1179;6', // Thermal Thruster
-            '1180;6', // Gas Passer
-            '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-            '38;6', // Axtinguisher                 == Pyro/Melee ==
-            '153;6', // Homewrecker
-            '214;6', // Powerjack
-            '326;6', // Back Scratcher
-            '348;6', // Sharpened Volcano Fragment
-            '457;6', // Postal Pummeler
-            '593;6', // Third Degree
-            '739;6', // Lollichop
-            '813;6', // Neon Annihilator
-            '1181;6' // Hot Hand
-        ];
+        const pyro = this.weapons().craft.pyro;
 
         for (let i = 0; i < pyro.length; i++) {
             const sku1 = pyro[i];
@@ -2367,29 +2574,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Demomman weapons
-        const demoman = [
-            '308;6', // Loch-n-Load                 == Demoman/Primary ==
-            '405;6', // Ali Baba's Wee Booties
-            '608;6', // Bootlegger
-            '996;6', // Loose Cannon
-            '1151;6', // Iron Bomber
-            '130;6', // Scottish Resistance         == Demoman/Secondary ==
-            '131;6', // Chargin' Targe
-            '265;6', // Sticky Jumper
-            '406;6', // Splendid Screen
-            '1099;6', // Tide Turner
-            '1150;6', // Quickiebomb Launcher
-            '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-            '132;6', // Eyelander                   == Demoman/Melee ==
-            '172;6', // Scotsman's Skullcutter
-            '307;6', // Ullapool Caber
-            '327;6', // Claidheamh Mòr
-            '404;6', // Persian Persuader
-            '482;6', // Nessie's Nine Iron
-            '609;6', // Scottish Handshake
-            '154;6', // Pain Train - Shared - Soldier/Demoman
-            '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
-        ];
+        const demoman = this.weapons().craft.demoman;
 
         for (let i = 0; i < demoman.length; i++) {
             const sku1 = demoman[i];
@@ -2415,24 +2600,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Heavy weapons
-        const heavy = [
-            '41;6', // Natascha                     == Heavy/Primary ==
-            '312;6', // Brass Beast
-            '424;6', // Tomislav
-            '811;6', // Huo-Long Heater
-            '42;6', // Sandvich                     == Heavy/Secondary ==
-            '159;6', // Dalokohs Bar
-            '311;6', // Buffalo Steak Sandvich
-            '425;6', // Family Business
-            '1190;6', // Second Banana
-            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-            '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
-            '239;6', // Gloves of Running Urgently
-            '310;6', // Warrior's Spirit
-            '331;6', // Fists of Steel
-            '426;6', // Eviction Notice
-            '656;6' // Holiday Punch
-        ];
+        const heavy = this.weapons().craft.heavy;
 
         for (let i = 0; i < heavy.length; i++) {
             const sku1 = heavy[i];
@@ -2458,19 +2626,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Engineer weapons
-        const engineer = [
-            '141;6', // Frontier Justice            == Engineer/Primary ==
-            '527;6', // Widowmaker
-            '588;6', // Pomson 6000
-            '997;6', // Rescue Ranger
-            '140;6', // Wrangler                    == Engineer/Secondary ==
-            '528;6', // Short Circuit
-            '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-            '142;6', // Gunslinger                  == Engineer/Melee ==
-            '155;6', // Southern Hospitality
-            '329;6', // Jag
-            '589;6' // Eureka Effect
-        ];
+        const engineer = this.weapons().craft.engineer;
 
         for (let i = 0; i < engineer.length; i++) {
             const sku1 = engineer[i];
@@ -2496,18 +2652,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Medic weapons
-        const medic = [
-            '36;6', // Blutsauger                   == Medic/Primary ==
-            '305;6', // Crusader's Crossbow
-            '412;6', // Overdose
-            '35;6', // Kritzkrieg                   == Medic/Secondary ==
-            '411;6', // Quick-Fix
-            '998;6', // Vaccinator
-            '37;6', // Ubersaw                      == Medic/Melee ==
-            '173;6', // Vita-Saw
-            '304;6', // Amputator
-            '413;6' // Solemn Vow
-        ];
+        const medic = this.weapons().craft.medic;
 
         for (let i = 0; i < medic.length; i++) {
             const sku1 = medic[i];
@@ -2533,23 +2678,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Sniper weapons
-        const sniper = [
-            '56;6', // Huntsman                     == Sniper/Primary ==
-            '230;6', // Sydney Sleeper
-            '402;6', // Bazaar Bargain
-            '526;6', // Machina
-            '752;6', // Hitman's Heatmaker
-            '1092;6', // Fortified Compound
-            '1098;6', // Classic
-            '57;6', // Razorback                    == Sniper/Secondary ==
-            '58;6', // Jarate
-            '231;6', // Darwin's Danger Shield
-            '642;6', // Cozy Camper
-            '751;6', // Cleaner's Carbine
-            '171;6', // Tribalman's Shiv            == Sniper/Melee ==
-            '232;6', // Bushwacka
-            '401;6' // Shahanshah
-        ];
+        const sniper = this.weapons().craft.sniper;
 
         for (let i = 0; i < sniper.length; i++) {
             const sku1 = sniper[i];
@@ -2575,19 +2704,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Spy weapons
-        const spy = [
-            '61;6', // Ambassador                   == Spy/Primary ==
-            '224;6', // L'Etranger
-            '460;6', // Enforcer
-            '525;6', // Diamondback
-            '225;6', // Your Eternal Reward         == Spy/Melee ==
-            '356;6', // Conniver's Kunai
-            '461;6', // Big Earner
-            '649;6', // Spy-cicle
-            '810;6', // Red-Tape Recorder           == Spy/PDA ==
-            '60;6', // Cloak and Dagger             == Spy/PDA2 ==
-            '59;6' // Dead Ringer
-        ];
+        const spy = this.weapons().craft.spy;
 
         for (let i = 0; i < spy.length; i++) {
             const sku1 = spy[i];
@@ -2696,10 +2813,10 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
                                   /%admin%/g,
                                   isAdmin ? '!help' : '!how2trade'
-                              )
+                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  '"'
+                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
                     );
                     return;
                 }
@@ -2721,10 +2838,10 @@ export = class MyHandler extends Handler {
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
                           /%admin%/g,
                           isAdmin ? '!help' : '!how2trade'
-                      )
+                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          '"'
+                          `" - TF2Autobot v${process.env.BOT_VERSION}`
             );
         });
     }
@@ -2799,7 +2916,7 @@ export = class MyHandler extends Handler {
                 (err, response, body) => {
                     if (err) {
                         // if failed, retry after 10 minutes.
-                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
                             this.requestBackpackSlots();
@@ -2810,7 +2927,7 @@ export = class MyHandler extends Handler {
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
                         err.status = body.result.status;
-                        log.warn('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         // if failed, retry after 10 minutes.
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
@@ -3082,6 +3199,66 @@ export = class MyHandler extends Handler {
         return words;
     }
 
+    strangeParts(): string[] {
+        const names = [
+            // Most Strange Parts name will change once applied/attached.
+            'Robots Destroyed', //              checked
+            'Kills', //                         checked
+            'Airborne Enemy Kills', //          was "Airborne Enemies Killed"
+            'Damage Dealt', //                  checked
+            'Dominations', //                   was "Domination Kills"
+            'Snipers Killed', //                checked
+            'Buildings Destroyed', //           checked
+            'Projectiles Reflected', //         checked
+            'Headshot Kills', //                checked
+            'Medics Killed', //                 checked
+            'Fires Survived', //                checked
+            'Teammates Extinguished', //        checked
+            'Freezecam Taunt Appearances', //   checked
+            'Spies Killed', //                  checked
+            'Allied Healing Done', //           checked
+            'Sappers Removed', //               was "Sappers Destroyed"
+            'Players Hit', //                   was "Player Hits"
+            'Gib Kills', //                     checked
+            'Scouts Killed', //                 checked
+            'Taunt Kills', //                   was "Kills with a Taunt Attack"
+            'Point Blank Kills', //             was "Point-Blank Kills"
+            'Soldiers Killed', //               checked
+            'Long-Distance Kills', //           checked
+            'Giant Robots Destroyed', //        checked
+            'Critical Kills', //                checked
+            'Demomen Killed', //                checked
+            'Unusual-Wearing Player Kills', //  checked
+            'Assists', //                       checked
+            'Medics Killed That Have Full ÜberCharge', // checked
+            'Cloaked Spies Killed', //          checked
+            'Engineers Killed', //              checked
+            'Kills While Explosive-Jumping', // was "Kills While Explosive Jumping"
+            'Kills While Low Health', //        was "Low-Health Kills"
+            'Burning Player Kills', //          was "Burning Enemy Kills"
+            'Kills While Invuln ÜberCharged', // was "Kills While Übercharged"
+            'Posthumous Kills', //              checked
+            'Not Crit nor MiniCrit Kills', //   checked
+            'Full Health Kills', //             checked
+            'Killstreaks Ended', //             checked
+            'Defenders Killed', //              was "Defender Kills"
+            'Revenges', //                      was "Revenge Kills"
+            'Robot Scouts Destroyed', //        checked
+            'Heavies Killed', //                checked
+            'Tanks Destroyed', //               checked
+            'Kills During Halloween', //        was "Halloween Kills"
+            'Pyros Killed', //                  checked
+            'Submerged Enemy Kills', //         was "Underwater Kills"
+            'Kills During Victory Time', //     checked
+            'Taunting Player Kills', //         checked
+            'Robot Spies Destroyed', //         checked
+            'Kills Under A Full Moon', //       was "Full Moon Kills"
+            'Robots Killed During Halloween' // was "Robots Destroyed During Halloween"
+        ];
+
+        return names;
+    }
+
     noiseMakerNames(): string[] {
         const names = [
             'Noise Maker - Black Cat',
@@ -3132,9 +3309,23 @@ export = class MyHandler extends Handler {
         return skus;
     }
 
-    weapon(): { craft: string[]; uncraft: string[] } {
-        const weapons = {
-            craft: [
+    weapons(): {
+        craft: {
+            scout: string[];
+            soldier: string[];
+            pyro: string[];
+            demoman: string[];
+            heavy: string[];
+            engineer: string[];
+            medic: string[];
+            sniper: string[];
+            spy: string[];
+        };
+        craftAll: string[];
+        uncraftAll: string[];
+    } {
+        const craft = {
+            scout: [
                 '45;6', // Force-A-Nature               == Scout/Primary ==
                 '220;6', // Shortstop
                 '448;6', // Soda Popper
@@ -3153,7 +3344,9 @@ export = class MyHandler extends Handler {
                 '349;6', // Sun-on-a-Stick
                 '355;6', // Fan O'War
                 '450;6', // Atomizer
-                '648;6', // Wrap Assassin
+                '648;6' // Wrap Assassin
+            ],
+            soldier: [
                 '127;6', // Direct Hit                  == Soldier/Primary ==
                 '228;6', // Black Box
                 '237;6', // Rocket Jumper
@@ -3166,17 +3359,19 @@ export = class MyHandler extends Handler {
                 '133;6', // Gunboats
                 '226;6', // Battalion's Backup
                 '354;6', // Concheror
-                '415;6', // (Reserve Shooter - Shared - Soldier/Pyro)
+                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
                 '442;6', // Righteous Bison
-                '1101;6', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
-                '1153;6', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
+                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
                 '444;6', // Mantreads
                 '128;6', // Equalizer                   == Soldier/Melee ==
-                '154;6', // (Pain Train - Shared - Soldier/Demoman)
-                '357;6', // (Half-Zatoichi - Shared - Soldier/Demoman)
+                '154;6', // Pain Train - Shared - Soldier/Demoman
+                '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
                 '416;6', // Market Gardener
                 '447;6', // Disciplinary Action
-                '775;6', // Escape Plan
+                '775;6' // Escape Plan
+            ],
+            pyro: [
                 '40;6', // Backburner                   == Pyro/Primary ==
                 '215;6', // Degreaser
                 '594;6', // Phlogistinator
@@ -3188,6 +3383,8 @@ export = class MyHandler extends Handler {
                 '740;6', // Scorch Shot
                 '1179;6', // Thermal Thruster
                 '1180;6', // Gas Passer
+                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
+                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
                 '38;6', // Axtinguisher                 == Pyro/Melee ==
                 '153;6', // Homewrecker
                 '214;6', // Powerjack
@@ -3197,7 +3394,9 @@ export = class MyHandler extends Handler {
                 '593;6', // Third Degree
                 '739;6', // Lollichop
                 '813;6', // Neon Annihilator
-                '1181;6', // Hot Hand
+                '1181;6' // Hot Hand
+            ],
+            demoman: [
                 '308;6', // Loch-n-Load                 == Demoman/Primary ==
                 '405;6', // Ali Baba's Wee Booties
                 '608;6', // Bootlegger
@@ -3209,6 +3408,7 @@ export = class MyHandler extends Handler {
                 '406;6', // Splendid Screen
                 '1099;6', // Tide Turner
                 '1150;6', // Quickiebomb Launcher
+                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
                 '132;6', // Eyelander                   == Demoman/Melee ==
                 '172;6', // Scotsman's Skullcutter
                 '307;6', // Ullapool Caber
@@ -3216,6 +3416,10 @@ export = class MyHandler extends Handler {
                 '404;6', // Persian Persuader
                 '482;6', // Nessie's Nine Iron
                 '609;6', // Scottish Handshake
+                '154;6', // Pain Train - Shared - Soldier/Demoman
+                '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
+            ],
+            heavy: [
                 '41;6', // Natascha                     == Heavy/Primary ==
                 '312;6', // Brass Beast
                 '424;6', // Tomislav
@@ -3225,22 +3429,28 @@ export = class MyHandler extends Handler {
                 '311;6', // Buffalo Steak Sandvich
                 '425;6', // Family Business
                 '1190;6', // Second Banana
+                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
                 '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
                 '239;6', // Gloves of Running Urgently
                 '310;6', // Warrior's Spirit
                 '331;6', // Fists of Steel
                 '426;6', // Eviction Notice
-                '656;6', // Holiday Punch
+                '656;6' // Holiday Punch
+            ],
+            engineer: [
                 '141;6', // Frontier Justice            == Engineer/Primary ==
                 '527;6', // Widowmaker
                 '588;6', // Pomson 6000
                 '997;6', // Rescue Ranger
                 '140;6', // Wrangler                    == Engineer/Secondary ==
                 '528;6', // Short Circuit
+                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
                 '142;6', // Gunslinger                  == Engineer/Melee ==
                 '155;6', // Southern Hospitality
                 '329;6', // Jag
-                '589;6', // Eureka Effect
+                '589;6' // Eureka Effect
+            ],
+            medic: [
                 '36;6', // Blutsauger                   == Medic/Primary ==
                 '305;6', // Crusader's Crossbow
                 '412;6', // Overdose
@@ -3250,7 +3460,9 @@ export = class MyHandler extends Handler {
                 '37;6', // Ubersaw                      == Medic/Melee ==
                 '173;6', // Vita-Saw
                 '304;6', // Amputator
-                '413;6', // Solemn Vow
+                '413;6' // Solemn Vow
+            ],
+            sniper: [
                 '56;6', // Huntsman                     == Sniper/Primary ==
                 '230;6', // Sydney Sleeper
                 '402;6', // Bazaar Bargain
@@ -3265,7 +3477,9 @@ export = class MyHandler extends Handler {
                 '751;6', // Cleaner's Carbine
                 '171;6', // Tribalman's Shiv            == Sniper/Melee ==
                 '232;6', // Bushwacka
-                '401;6', // Shahanshah
+                '401;6' // Shahanshah
+            ],
+            spy: [
                 '61;6', // Ambassador                   == Spy/Primary ==
                 '224;6', // L'Etranger
                 '460;6', // Enforcer
@@ -3276,151 +3490,161 @@ export = class MyHandler extends Handler {
                 '649;6', // Spy-cicle
                 '810;6', // Red-Tape Recorder           == Spy/PDA ==
                 '60;6', // Cloak and Dagger             == Spy/PDA2 ==
-                '59;6', // Dead Ringer
-                '939;6' // Bat Outta Hell               == All class/Melee ==
-            ],
-            uncraft: [
-                '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
-                '220;6;uncraftable', // Shortstop
-                '448;6;uncraftable', // Soda Popper
-                '772;6;uncraftable', // Baby Face's Blaster
-                '1103;6;uncraftable', // Back Scatter
-                '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
-                '163;6;uncraftable', // Crit-a-Cola
-                '222;6;uncraftable', // Mad Milk
-                '449;6;uncraftable', // Winger
-                '773;6;uncraftable', // Pretty Boy's Pocket Pistol
-                '812;6;uncraftable', // Flying Guillotine
-                '44;6;uncraftable', // Sandman                      == Scout/Melee ==
-                '221;6;uncraftable', // Holy Mackerel
-                '317;6;uncraftable', // Candy Cane
-                '325;6;uncraftable', // Boston Basher
-                '349;6;uncraftable', // Sun-on-a-Stick
-                '355;6;uncraftable', // Fan O'War
-                '450;6;uncraftable', // Atomizer
-                '648;6;uncraftable', // Wrap Assassin
-                '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
-                '228;6;uncraftable', // Black Box
-                '237;6;uncraftable', // Rocket Jumper
-                '414;6;uncraftable', // Liberty Launcher
-                '441;6;uncraftable', // Cow Mangler 5000
-                '513;6;uncraftable', // Original
-                '730;6;uncraftable', // Beggar's Bazooka
-                '1104;6;uncraftable', // Air Strike
-                '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
-                '133;6;uncraftable', // Gunboats
-                '226;6;uncraftable', // Battalion's Backup
-                '354;6;uncraftable', // Concheror
-                '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
-                '442;6;uncraftable', // Righteous Bison
-                '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
-                '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
-                '444;6;uncraftable', // Mantreads
-                '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
-                '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
-                '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
-                '416;6;uncraftable', // Market Gardener
-                '447;6;uncraftable', // Disciplinary Action
-                '775;6;uncraftable', // Escape Plan
-                '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
-                '215;6;uncraftable', // Degreaser
-                '594;6;uncraftable', // Phlogistinator
-                '741;6;uncraftable', // Rainblower
-                '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
-                '351;6;uncraftable', // Detonator
-                '595;6;uncraftable', // Manmelter
-                '740;6;uncraftable', // Scorch Shot
-                '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
-                '153;6;uncraftable', // Homewrecker
-                '214;6;uncraftable', // Powerjack
-                '326;6;uncraftable', // Back Scratcher
-                '348;6;uncraftable', // Sharpened Volcano Fragment
-                '457;6;uncraftable', // Postal Pummeler
-                '593;6;uncraftable', // Third Degree
-                '739;6;uncraftable', // Lollichop
-                '813;6;uncraftable', // Neon Annihilator
-                '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
-                '405;6;uncraftable', // Ali Baba's Wee Booties
-                '608;6;uncraftable', // Bootlegger
-                '996;6;uncraftable', // Loose Cannon
-                '1151;6;uncraftable', // Iron Bomber
-                '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
-                '131;6;uncraftable', // Chargin' Targe
-                '265;6;uncraftable', // Sticky Jumper
-                '406;6;uncraftable', // Splendid Screen
-                '1099;6;uncraftable', // Tide Turner
-                '1150;6;uncraftable', // Quickiebomb Launcher
-                '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
-                '172;6;uncraftable', // Scotsman's Skullcutter
-                '307;6;uncraftable', // Ullapool Caber
-                '327;6;uncraftable', // Claidheamh Mòr
-                '404;6;uncraftable', // Persian Persuader
-                '482;6;uncraftable', // Nessie's Nine Iron
-                '609;6;uncraftable', // Scottish Handshake
-                '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
-                '312;6;uncraftable', // Brass Beast
-                '424;6;uncraftable', // Tomislav
-                '811;6;uncraftable', // Huo-Long Heater
-                '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
-                '159;6;uncraftable', // Dalokohs Bar
-                '311;6;uncraftable', // Buffalo Steak Sandvich
-                '425;6;uncraftable', // Family Business
-                '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
-                '239;6;uncraftable', // Gloves of Running Urgently
-                '310;6;uncraftable', // Warrior's Spirit
-                '331;6;uncraftable', // Fists of Steel
-                '426;6;uncraftable', // Eviction Notice
-                '656;6;uncraftable', // Holiday Punch
-                '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
-                '527;6;uncraftable', // Widowmaker
-                '588;6;uncraftable', // Pomson 6000
-                '997;6;uncraftable', // Rescue Ranger
-                '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
-                '528;6;uncraftable', // Short Circuit
-                '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
-                '155;6;uncraftable', // Southern Hospitality
-                '329;6;uncraftable', // Jag
-                '589;6;uncraftable', // Eureka Effect
-                '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
-                '305;6;uncraftable', // Crusader's Crossbow
-                '412;6;uncraftable', // Overdose
-                '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
-                '411;6;uncraftable', // Quick-Fix
-                '998;6;uncraftable', // Vaccinator
-                '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
-                '173;6;uncraftable', // Vita-Saw
-                '304;6;uncraftable', // Amputator
-                '413;6;uncraftable', // Solemn Vow
-                '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
-                '230;6;uncraftable', // Sydney Sleeper
-                '402;6;uncraftable', // Bazaar Bargain
-                '526;6;uncraftable', // Machina
-                '752;6;uncraftable', // Hitman's Heatmaker
-                '1092;6;uncraftable', // Fortified Compound
-                '1098;6;uncraftable', // Classic
-                '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
-                '58;6;uncraftable', // Jarate
-                '231;6;uncraftable', // Darwin's Danger Shield
-                '642;6;uncraftable', // Cozy Camper
-                '751;6;uncraftable', // Cleaner's Carbine
-                '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
-                '232;6;uncraftable', // Bushwacka
-                '401;6;uncraftable', // Shahanshah
-                '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
-                '224;6;uncraftable', // L'Etranger
-                '460;6;uncraftable', // Enforcer
-                '525;6;uncraftable', // Diamondback
-                '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
-                '356;6;uncraftable', // Conniver's Kunai
-                '461;6;uncraftable', // Big Earner
-                '649;6;uncraftable', // Spy-cicle
-                '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
-                '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
-                '59;6;uncraftable', // Dead Ringer
-                '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
+                '59;6' // Dead Ringer
             ]
         };
-        return weapons;
+        const uncraftAll = [
+            '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
+            '220;6;uncraftable', // Shortstop
+            '448;6;uncraftable', // Soda Popper
+            '772;6;uncraftable', // Baby Face's Blaster
+            '1103;6;uncraftable', // Back Scatter
+            '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
+            '163;6;uncraftable', // Crit-a-Cola
+            '222;6;uncraftable', // Mad Milk
+            '449;6;uncraftable', // Winger
+            '773;6;uncraftable', // Pretty Boy's Pocket Pistol
+            '812;6;uncraftable', // Flying Guillotine
+            '44;6;uncraftable', // Sandman                      == Scout/Melee ==
+            '221;6;uncraftable', // Holy Mackerel
+            '317;6;uncraftable', // Candy Cane
+            '325;6;uncraftable', // Boston Basher
+            '349;6;uncraftable', // Sun-on-a-Stick
+            '355;6;uncraftable', // Fan O'War
+            '450;6;uncraftable', // Atomizer
+            '648;6;uncraftable', // Wrap Assassin
+            '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
+            '228;6;uncraftable', // Black Box
+            '237;6;uncraftable', // Rocket Jumper
+            '414;6;uncraftable', // Liberty Launcher
+            '441;6;uncraftable', // Cow Mangler 5000
+            '513;6;uncraftable', // Original
+            '730;6;uncraftable', // Beggar's Bazooka
+            '1104;6;uncraftable', // Air Strike
+            '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
+            '133;6;uncraftable', // Gunboats
+            '226;6;uncraftable', // Battalion's Backup
+            '354;6;uncraftable', // Concheror
+            '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
+            '442;6;uncraftable', // Righteous Bison
+            '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
+            '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
+            '444;6;uncraftable', // Mantreads
+            '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
+            '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
+            '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
+            '416;6;uncraftable', // Market Gardener
+            '447;6;uncraftable', // Disciplinary Action
+            '775;6;uncraftable', // Escape Plan
+            '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
+            '215;6;uncraftable', // Degreaser
+            '594;6;uncraftable', // Phlogistinator
+            '741;6;uncraftable', // Rainblower
+            '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
+            '351;6;uncraftable', // Detonator
+            '595;6;uncraftable', // Manmelter
+            '740;6;uncraftable', // Scorch Shot
+            '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
+            '153;6;uncraftable', // Homewrecker
+            '214;6;uncraftable', // Powerjack
+            '326;6;uncraftable', // Back Scratcher
+            '348;6;uncraftable', // Sharpened Volcano Fragment
+            '457;6;uncraftable', // Postal Pummeler
+            '593;6;uncraftable', // Third Degree
+            '739;6;uncraftable', // Lollichop
+            '813;6;uncraftable', // Neon Annihilator
+            '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
+            '405;6;uncraftable', // Ali Baba's Wee Booties
+            '608;6;uncraftable', // Bootlegger
+            '996;6;uncraftable', // Loose Cannon
+            '1151;6;uncraftable', // Iron Bomber
+            '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
+            '131;6;uncraftable', // Chargin' Targe
+            '265;6;uncraftable', // Sticky Jumper
+            '406;6;uncraftable', // Splendid Screen
+            '1099;6;uncraftable', // Tide Turner
+            '1150;6;uncraftable', // Quickiebomb Launcher
+            '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
+            '172;6;uncraftable', // Scotsman's Skullcutter
+            '307;6;uncraftable', // Ullapool Caber
+            '327;6;uncraftable', // Claidheamh Mòr
+            '404;6;uncraftable', // Persian Persuader
+            '482;6;uncraftable', // Nessie's Nine Iron
+            '609;6;uncraftable', // Scottish Handshake
+            '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
+            '312;6;uncraftable', // Brass Beast
+            '424;6;uncraftable', // Tomislav
+            '811;6;uncraftable', // Huo-Long Heater
+            '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
+            '159;6;uncraftable', // Dalokohs Bar
+            '311;6;uncraftable', // Buffalo Steak Sandvich
+            '425;6;uncraftable', // Family Business
+            '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
+            '239;6;uncraftable', // Gloves of Running Urgently
+            '310;6;uncraftable', // Warrior's Spirit
+            '331;6;uncraftable', // Fists of Steel
+            '426;6;uncraftable', // Eviction Notice
+            '656;6;uncraftable', // Holiday Punch
+            '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
+            '527;6;uncraftable', // Widowmaker
+            '588;6;uncraftable', // Pomson 6000
+            '997;6;uncraftable', // Rescue Ranger
+            '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
+            '528;6;uncraftable', // Short Circuit
+            '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
+            '155;6;uncraftable', // Southern Hospitality
+            '329;6;uncraftable', // Jag
+            '589;6;uncraftable', // Eureka Effect
+            '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
+            '305;6;uncraftable', // Crusader's Crossbow
+            '412;6;uncraftable', // Overdose
+            '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
+            '411;6;uncraftable', // Quick-Fix
+            '998;6;uncraftable', // Vaccinator
+            '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
+            '173;6;uncraftable', // Vita-Saw
+            '304;6;uncraftable', // Amputator
+            '413;6;uncraftable', // Solemn Vow
+            '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
+            '230;6;uncraftable', // Sydney Sleeper
+            '402;6;uncraftable', // Bazaar Bargain
+            '526;6;uncraftable', // Machina
+            '752;6;uncraftable', // Hitman's Heatmaker
+            '1092;6;uncraftable', // Fortified Compound
+            '1098;6;uncraftable', // Classic
+            '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
+            '58;6;uncraftable', // Jarate
+            '231;6;uncraftable', // Darwin's Danger Shield
+            '642;6;uncraftable', // Cozy Camper
+            '751;6;uncraftable', // Cleaner's Carbine
+            '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
+            '232;6;uncraftable', // Bushwacka
+            '401;6;uncraftable', // Shahanshah
+            '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
+            '224;6;uncraftable', // L'Etranger
+            '460;6;uncraftable', // Enforcer
+            '525;6;uncraftable', // Diamondback
+            '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
+            '356;6;uncraftable', // Conniver's Kunai
+            '461;6;uncraftable', // Big Earner
+            '649;6;uncraftable', // Spy-cicle
+            '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
+            '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
+            '59;6;uncraftable', // Dead Ringer
+            '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
+        ];
+
+        const craftAll = craft.scout.concat(
+            craft.soldier,
+            craft.pyro,
+            craft.demoman,
+            craft.heavy,
+            craft.engineer,
+            craft.medic,
+            craft.sniper,
+            craft.spy
+        );
+        return { craft, craftAll, uncraftAll };
     }
 
     private checkGroupInvites(): void {
@@ -3495,7 +3719,7 @@ export = class MyHandler extends Handler {
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed([this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
     }
 };
 
@@ -3565,7 +3789,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶_HIGH_VALUE_ITEMS:\n- ' +
-              items.highValue.join(',\n- ')
+              items.highValue.join('\n\n- ')
             : '';
 
     if (list.length === 0) {

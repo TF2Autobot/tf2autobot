@@ -94,7 +94,7 @@ export = class DiscordWebhookClass {
             color = '16711680'; // red
         } else if (type === 'failedPM2') {
             title = 'Automatic restart failed - no PM2';
-            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! See the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2`;
+            description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
             color = '16711680'; // red
         } else if (type === 'failedError') {
             title = 'Automatic restart failed - Error';
@@ -304,8 +304,9 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-') {
-                // if __Item list__ field is empty, remove it
+            if (itemList === '-' || itemList.length > 1024) {
+                // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
+                // to prevent the webhook from failing on POST request
                 if (removeStatus) {
                     // if __Status__ fields was removed, then delete the entire fields properties
                     delete webhookReview.embeds[0].fields;
@@ -370,9 +371,7 @@ export = class DiscordWebhookClass {
         const highValueA = itemsName.highValue.length;
 
         const mentionOwner =
-            this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
-                ? `<@!${this.ownerID}>`
-                : invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+            invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
                 ? `<@!${this.ownerID}> - Accepted ${
                       invalidA > 0 && highValueA > 0
                           ? `INVALID_ITEMS and High value ${pluralize('item', invalidA + highValueA)}`
@@ -382,6 +381,8 @@ export = class DiscordWebhookClass {
                           ? `High Value ${pluralize('item', highValueA)}`
                           : ''
                   } trade here!`
+                : this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
+                ? `<@!${this.ownerID}>`
                 : '';
 
         const botName = this.botName;
@@ -495,8 +496,9 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-') {
-                // if __Item list__ field is empty, remove it
+            if (itemList === '-' || itemList.length > 1024) {
+                // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
+                // to prevent the webhook from failing on POST request
                 if (removeStatus) {
                     // if __Status__ fields was removed, then delete the entire fields properties
                     delete acceptedTradeSummary.embeds[0].fields;
@@ -611,7 +613,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶`_HIGH_VALUE_ITEMS`\n- ' +
-              items.highValue.join(',\n- ')
+              items.highValue.join('\n\n- ')
             : '';
 
     if (list.length === 0) {

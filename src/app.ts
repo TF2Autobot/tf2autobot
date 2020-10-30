@@ -6,7 +6,7 @@ import path from 'path';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
-    console.error('Missing dependencies! Install them using `npm install`');
+    console.error('Missing dependencies! Install them by running `npm install`');
     process.exit(1);
 }
 
@@ -14,7 +14,7 @@ import pjson from 'pjson';
 
 if (process.env.BOT_VERSION !== pjson.version) {
     /* eslint-disable-next-line no-console */
-    console.error('You have a newer version on disk! Compile the code using `tsc`');
+    console.error('You have a newer version on disk! Compile the code by running `npm run build`');
     process.exit(1);
 }
 
@@ -28,7 +28,7 @@ import log from './lib/logger';
 
 if (process.env.pm_id === undefined) {
     log.warn(
-        "You are not running the bot with PM2! If the bot crashes it won't start again, see the documentation: https://github.com/idinium96/tf2autobot/wiki/e.-Running-with-PM2"
+        "You are not running the bot with PM2! If the bot crashes it won't start again. Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS"
     );
 }
 
@@ -71,7 +71,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
 
         log.error(
             [
-                'tf2autobot' +
+                'TF2Autobot' +
                     (!botReady
                         ? ' failed to start properly, this is most likely a temporary error. See the log:'
                         : ' crashed! Please create an issue with the following log:'),
@@ -85,7 +85,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
 
         if (botReady) {
             log.error(
-                'Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
+                'Refer to Wiki here: https://github.com/idinium96/tf2autobot/wiki/Common-Errors OR Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
             );
         }
     } else {

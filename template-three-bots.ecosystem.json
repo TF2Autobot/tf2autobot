@@ -18,15 +18,24 @@
                 "STEAM_SHARED_SECRET": "",
                 "STEAM_IDENTITY_SECRET": "",
 
-                "PRICESTF_API_TOKEN": "",
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
+
+                "ADMINS": ["<your steamid 64>"],
+                "KEEP": ["<steamid of person to keep in friendslist>"],
+                "GROUPS": ["103582791464047777", "103582791462300957"],
+                "ALERTS": ["trade"],
+
+                "PRICESTF_API_TOKEN": "",
 
                 "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
                 "METAL_THRESHOLD": 9,
+                "DISABLE_CRAFTING_METAL": false,
+                "DISABLE_CRAFTING_WEAPONS": false,
+                "ENABLE_SHOW_ONLY_METAL": true,
 
                 "ENABLE_AUTOKEYS": false,
                 "ENABLE_AUTOKEYS_BANKING": false,
@@ -40,8 +49,6 @@
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
-                "DISABLE_CRAFTING_METAL": false,
-                "DISABLE_CRAFTING_WEAPONS": false,
                 "DISABLE_MESSAGES": false,
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
@@ -60,7 +67,6 @@
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
 
-                "ENABLE_SHOW_ONLY_METAL": true,
                 "ENABLE_DUPE_CHECK": true,
                 "DECLINE_DUPES": false,
                 "MINIMUM_KEYS_DUPE_CHECK": 10,
@@ -75,19 +81,17 @@
 
                 "ALLOW_ESCROW": false,
                 "ALLOW_OVERPAY": true,
+                "ALLOW_GIFT_WITHOUT_NOTE": false,
                 "ALLOW_BANNED": false,
-                "MAX_PRICE_AGE": 28800,
 
-                "ADMINS": ["<your steamid 64>"],
-                "KEEP": ["<steamid of person to keep in friendslist>"],
-                "GROUPS": ["103582791464047777", "103582791462300957"],
-                "ALERTS": ["trade"],
+                "MAX_PRICE_AGE": 28800,
 
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
                 "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
+
                 "OFFER_MESSAGE": "",
 
                 "DISCORD_SERVER_INVITE_LINK": "",
@@ -134,11 +138,10 @@
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
-                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
-                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
-
                 "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
                 "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
+                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -151,7 +154,8 @@
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
 
-                "CUSTOM_PLAYING_GAME_NAME": "tf2-automatic",
+                "ENABLE_ONLY_PLAY_TF2": false,
+                "CUSTOM_PLAYING_GAME_NAME": "trading",
 
                 "CUSTOM_WELCOME_MESSAGE": "",
                 "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",
@@ -181,15 +185,24 @@
                 "STEAM_SHARED_SECRET": "",
                 "STEAM_IDENTITY_SECRET": "",
 
-                "PRICESTF_API_TOKEN": "",
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
+
+                "ADMINS": ["<your steamid 64>"],
+                "KEEP": ["<steamid of person to keep in friendslist>"],
+                "GROUPS": ["103582791464047777", "103582791462300957"],
+                "ALERTS": ["trade"],
+
+                "PRICESTF_API_TOKEN": "",
 
                 "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
                 "METAL_THRESHOLD": 9,
+                "DISABLE_CRAFTING_METAL": false,
+                "DISABLE_CRAFTING_WEAPONS": false,
+                "ENABLE_SHOW_ONLY_METAL": true,
 
                 "ENABLE_AUTOKEYS": false,
                 "ENABLE_AUTOKEYS_BANKING": false,
@@ -203,8 +216,6 @@
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
-                "DISABLE_CRAFTING_METAL": false,
-                "DISABLE_CRAFTING_WEAPONS": false,
                 "DISABLE_MESSAGES": false,
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
@@ -223,7 +234,6 @@
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
 
-                "ENABLE_SHOW_ONLY_METAL": true,
                 "ENABLE_DUPE_CHECK": true,
                 "DECLINE_DUPES": false,
                 "MINIMUM_KEYS_DUPE_CHECK": 10,
@@ -238,19 +248,17 @@
 
                 "ALLOW_ESCROW": false,
                 "ALLOW_OVERPAY": true,
+                "ALLOW_GIFT_WITHOUT_NOTE": false,
                 "ALLOW_BANNED": false,
-                "MAX_PRICE_AGE": 28800,
 
-                "ADMINS": ["<your steamid 64>"],
-                "KEEP": ["<steamid of person to keep in friendslist>"],
-                "GROUPS": ["103582791464047777", "103582791462300957"],
-                "ALERTS": ["trade"],
+                "MAX_PRICE_AGE": 28800,
 
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
                 "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
+
                 "OFFER_MESSAGE": "",
 
                 "DISCORD_SERVER_INVITE_LINK": "",
@@ -297,11 +305,10 @@
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
-                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
-                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
-
                 "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
                 "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
+                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -314,7 +321,8 @@
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
 
-                "CUSTOM_PLAYING_GAME_NAME": "tf2-automatic",
+                "ENABLE_ONLY_PLAY_TF2": false,
+                "CUSTOM_PLAYING_GAME_NAME": "trading",
 
                 "CUSTOM_WELCOME_MESSAGE": "",
                 "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",
@@ -327,7 +335,7 @@
             }
         },
         {
-            "name": "tf2autobot-3",
+            "name": "tf2autobot-2",
             "script": "dist/app.js",
             "exec_mode": "fork",
             "shutdown_with_message": false,
@@ -344,15 +352,24 @@
                 "STEAM_SHARED_SECRET": "",
                 "STEAM_IDENTITY_SECRET": "",
 
-                "PRICESTF_API_TOKEN": "",
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
+
+                "ADMINS": ["<your steamid 64>"],
+                "KEEP": ["<steamid of person to keep in friendslist>"],
+                "GROUPS": ["103582791464047777", "103582791462300957"],
+                "ALERTS": ["trade"],
+
+                "PRICESTF_API_TOKEN": "",
 
                 "AUTOBUMP": false,
 
                 "MINIMUM_SCRAP": 9,
                 "MINIMUM_RECLAIMED": 9,
                 "METAL_THRESHOLD": 9,
+                "DISABLE_CRAFTING_METAL": false,
+                "DISABLE_CRAFTING_WEAPONS": false,
+                "ENABLE_SHOW_ONLY_METAL": true,
 
                 "ENABLE_AUTOKEYS": false,
                 "ENABLE_AUTOKEYS_BANKING": false,
@@ -366,8 +383,6 @@
 
                 "DISABLE_INVENTORY_SORT": false,
                 "DISABLE_LISTINGS": false,
-                "DISABLE_CRAFTING_METAL": false,
-                "DISABLE_CRAFTING_WEAPONS": false,
                 "DISABLE_MESSAGES": false,
                 "DISABLE_SOMETHING_WRONG_ALERT": false,
                 "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
@@ -386,7 +401,6 @@
                 "LAST_TOTAL_TRADES": 0,
                 "TRADING_STARTING_TIME_UNIX": 0,
 
-                "ENABLE_SHOW_ONLY_METAL": true,
                 "ENABLE_DUPE_CHECK": true,
                 "DECLINE_DUPES": false,
                 "MINIMUM_KEYS_DUPE_CHECK": 10,
@@ -401,19 +415,17 @@
 
                 "ALLOW_ESCROW": false,
                 "ALLOW_OVERPAY": true,
+                "ALLOW_GIFT_WITHOUT_NOTE": false,
                 "ALLOW_BANNED": false,
-                "MAX_PRICE_AGE": 28800,
 
-                "ADMINS": ["<your steamid 64>"],
-                "KEEP": ["<steamid of person to keep in friendslist>"],
-                "GROUPS": ["103582791464047777", "103582791462300957"],
-                "ALERTS": ["trade"],
+                "MAX_PRICE_AGE": 28800,
 
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
                 "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
                 "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
+
                 "OFFER_MESSAGE": "",
 
                 "DISCORD_SERVER_INVITE_LINK": "",
@@ -460,11 +472,10 @@
                 "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
                 "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
 
-                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
-                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
-
                 "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
                 "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
+                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
+                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
 
                 "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
                 "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
@@ -477,7 +488,8 @@
                 "DUPE_CHECK_FAILED_NOTE": "",
                 "ADDITIONAL_NOTE": "",
 
-                "CUSTOM_PLAYING_GAME_NAME": "tf2-automatic",
+                "ENABLE_ONLY_PLAY_TF2": false,
+                "CUSTOM_PLAYING_GAME_NAME": "trading",
 
                 "CUSTOM_WELCOME_MESSAGE": "",
                 "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",

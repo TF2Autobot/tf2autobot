@@ -460,12 +460,22 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 let hasNot5Uses = false;
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
-                if (sku === '241;6') {
+                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
-                        if (item.name === 'Dueling Mini-Game') {
+                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.market_hash_name.includes(name);
+                        });
+
+                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -479,27 +489,7 @@ class UserCart extends Cart {
                                     break;
                                 }
                             }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-            }
-
-            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
-
-                if (noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
-                            return item.name.includes(name);
-                        });
-                        if (isNoiseMaker) {
+                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -509,12 +499,18 @@ class UserCart extends Cart {
                                     descriptionColor === '00a000'
                                 ) {
                                     hasNot25Uses = true;
-                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                                     break;
                                 }
                             }
                         }
                     });
+                }
+
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
                 }
 
                 if (hasNot25Uses) {
@@ -526,33 +522,81 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpell: string[];
+                nameWithSpellsOrParts: string[];
             } = {
                 skus: [],
-                nameWithSpell: []
+                nameWithSpellsOrParts: []
             };
 
+            const isEnabledDiscordWebhook =
+                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
+
             fetched.forEach(item => {
+                let hasSpelled = false;
+                const spellNames: string[] = [];
+
+                let hasStrangeParts = false;
+                const strangeParts: string[] = [];
+
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+                        const color = item.descriptions[i].color;
 
                         if (
-                            descriptionValue.startsWith('Halloween:') &&
-                            descriptionValue.endsWith('(spell only active during event)') &&
-                            descriptionColor === '7ea9d1'
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
                         ) {
-                            const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                            hasSpelled = true;
+                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            spellNames.push(spellName);
+                        } else if (
+                            (parts === 'Kills' || parts === 'Assists'
+                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                            color === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            const strangePartName = parts;
+                            strangeParts.push(strangePartName);
+                        }
+                    }
+                    if (hasSpelled || hasStrangeParts) {
+                        const itemSKU = item.getSKU(this.bot.schema);
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
 
-                            highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                        const itemObj = SKU.fromString(itemSKU);
 
-                            log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        // If item is an Unusual, then get itemName from schema.
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                            break;
+                        let spellOrParts = '';
+
+                        if (hasSpelled) {
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        }
+
+                        if (hasStrangeParts) {
+                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                        }
+
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+
+                        if (isEnabledDiscordWebhook) {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                            );
+                        } else {
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }
@@ -1749,9 +1793,9 @@ class UserCart extends Cart {
         const summary = super.summarizeOurWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -1791,9 +1835,9 @@ class UserCart extends Cart {
         const summary = super.summarizeTheirWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -1912,12 +1956,22 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+            if (
+                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 let hasNot5Uses = false;
+                let hasNot25Uses = false;
+                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
-                if (sku === '241;6') {
+                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
-                        if (item.name === 'Dueling Mini-Game') {
+                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
+                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                            return item.market_hash_name.includes(name);
+                        });
+
+                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -1931,27 +1985,7 @@ class UserCart extends Cart {
                                     break;
                                 }
                             }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-            }
-
-            if (process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
-
-                if (noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
-                            return item.name.includes(name);
-                        });
-                        if (isNoiseMaker) {
+                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
                             for (let i = 0; i < item.descriptions.length; i++) {
                                 const descriptionValue = item.descriptions[i].value;
                                 const descriptionColor = item.descriptions[i].color;
@@ -1961,12 +1995,18 @@ class UserCart extends Cart {
                                     descriptionColor === '00a000'
                                 ) {
                                     hasNot25Uses = true;
-                                    offer.log('info', `${item.name} (${item.assetid}) is not 25 uses.`);
+                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                                     break;
                                 }
                             }
                         }
                     });
+                }
+
+                if (hasNot5Uses) {
+                    return Promise.reject(
+                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                    );
                 }
 
                 if (hasNot25Uses) {
@@ -1978,33 +2018,81 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpell: string[];
+                nameWithSpellsOrParts: string[];
             } = {
                 skus: [],
-                nameWithSpell: []
+                nameWithSpellsOrParts: []
             };
 
+            const isEnabledDiscordWebhook =
+                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
+
             fetched.forEach(item => {
+                let hasSpelled = false;
+                const spellNames: string[] = [];
+
+                let hasStrangeParts = false;
+                const strangeParts: string[] = [];
+
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+                        const color = item.descriptions[i].color;
 
                         if (
-                            descriptionValue.startsWith('Halloween:') &&
-                            descriptionValue.endsWith('(spell only active during event)') &&
-                            descriptionColor === '7ea9d1'
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
                         ) {
-                            const spellName = descriptionValue.substring(10, descriptionValue.length - 32).trim();
+                            hasSpelled = true;
+                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            spellNames.push(spellName);
+                        } else if (
+                            (parts === 'Kills' || parts === 'Assists'
+                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                            color === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            const strangePartName = parts;
+                            strangeParts.push(strangePartName);
+                        }
+                    }
+                    if (hasSpelled || hasStrangeParts) {
+                        const itemSKU = item.getSKU(this.bot.schema);
+                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
 
-                            highValuedTheir.skus.push(itemSKU);
-                            highValuedTheir.nameWithSpell.push(`${item.name} with ${spellName}`);
+                        const itemObj = SKU.fromString(itemSKU);
 
-                            log.debug('info', `${item.name} with ${spellName} (${item.assetid}) is a high value item.`);
+                        // If item is an Unusual, then get itemName from schema.
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                            break;
+                        let spellOrParts = '';
+
+                        if (hasSpelled) {
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        }
+
+                        if (hasStrangeParts) {
+                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                        }
+
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+
+                        if (isEnabledDiscordWebhook) {
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                            );
+                        } else {
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }
@@ -2395,9 +2483,9 @@ class UserCart extends Cart {
         };
 
         const required = this.getRequiredWithWeapons(buyerCurrenciesCount, currencies, this.canUseKeysWithWeapons());
-        const weapons = (this.bot.handler as MyHandler).weapon();
-        const craft = weapons.craft;
-        const uncraft = weapons.uncraft;
+        const weapons = (this.bot.handler as MyHandler).weapons();
+        const craft = weapons.craftAll;
+        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
         craft.forEach(sku => {
@@ -2511,9 +2599,9 @@ class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = sellerInventory.getCurrencies();
-            const weapons = (this.bot.handler as MyHandler).weapon();
-            const craft = weapons.craft;
-            const uncraft = weapons.uncraft;
+            const weapons = (this.bot.handler as MyHandler).weapons();
+            const craft = weapons.craftAll;
+            const uncraft = weapons.uncraftAll;
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
