@@ -609,7 +609,7 @@ export = class MyHandler extends Handler {
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
-                        ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
                         : this.strangeParts().includes(parts)) &&
                     color === '756b5e'
                 ) {
@@ -693,7 +693,7 @@ export = class MyHandler extends Handler {
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
-                        ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
                         : this.strangeParts().includes(parts)) &&
                     color === '756b5e'
                 ) {
