@@ -559,7 +559,7 @@ class UserCart extends Cart {
                             const spellName = spell.substring(10, spell.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
-                            (parts === 'Kills'
+                            (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
                                 : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
                             color === '756b5e'
@@ -2055,7 +2055,7 @@ class UserCart extends Cart {
                             const spellName = spell.substring(10, spell.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
-                            (parts === 'Kills'
+                            (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
                                 : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
                             color === '756b5e'

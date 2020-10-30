@@ -608,12 +608,12 @@ export = class MyHandler extends Handler {
                     const spellName = spell.substring(10, spell.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    (parts === 'Kills'
+                    (parts === 'Kills' || parts === 'Assists'
                         ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
                         : this.strangeParts().includes(parts)) &&
                     color === '756b5e'
                 ) {
-                    // If the part name is "Kills", then confirm the item is a cosmetic, not a weapon.
+                    // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
                     // Else, will scan through Strange Parts list in this.strangeParts()
                     // Color of this description must be rgb(117, 107, 94) or 756b5e
                     // https://www.spycolor.com/756b5e#
@@ -692,7 +692,7 @@ export = class MyHandler extends Handler {
                     const spellName = spell.substring(10, spell.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
-                    (parts === 'Kills'
+                    (parts === 'Kills' || parts === 'Assists'
                         ? item.type.startsWith('Strange') && item.type.includes('Points Scored')
                         : this.strangeParts().includes(parts)) &&
                     color === '756b5e'
