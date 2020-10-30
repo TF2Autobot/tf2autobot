@@ -30,7 +30,7 @@ If you run into trouble when running the bot, make sure to head to [Common Error
 
 ## Join our Discord server!
 
-Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/721533052890644511) channel and react to the first message to get notified whenever an update has been released!
+Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/771188962550611988) channel and react to the first message to get notified whenever an update has been released!
 
 <div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
@@ -38,4 +38,4 @@ Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over t
 
 ## Environmental Variables summary
 
-You can know more about each variable found in the `.env` and `ecosystem.json` file [here](https://github.com/idinium96/tf2autobot/wiki/b.-Configuration#more-description-of-each-variable).
+You can know more about each variable found in the `.env` and `ecosystem.json` file [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-using-the-environment-file#full-explanation-of-other-environment-variables).
