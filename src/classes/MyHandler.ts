@@ -186,8 +186,8 @@ export = class MyHandler extends Handler {
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
 
-        if (!customGameName || customGameName === `TF2Autobot v${process.env.BOT_VERSION}`) {
-            this.customGameName = customGameName;
+        if (!customGameName || customGameName === 'TF2Autobot') {
+            this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
         } else {
             if (customGameName.length <= 45) {
                 this.customGameName = customGameName + ' - TF2Autobot';
@@ -591,6 +591,10 @@ export = class MyHandler extends Handler {
                 // Description color in Hex Triplet format, example: 7ea9d1
                 const color = item.descriptions[i].color;
 
+                // Get strangePartObject and strangePartNames
+                const strangePartObject = this.strangeParts();
+                const strangePartNames = Object.keys(strangePartObject);
+
                 if (
                     spell.startsWith('Halloween:') &&
                     spell.endsWith('(spell only active during event)') &&
@@ -610,17 +614,16 @@ export = class MyHandler extends Handler {
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
                         ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : this.strangeParts().includes(parts)) &&
+                        : strangePartNames.includes(parts)) &&
                     color === '756b5e'
                 ) {
                     // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
-                    // Else, will scan through Strange Parts list in this.strangeParts()
+                    // Else, will scan through Strange Parts Object keys in this.strangeParts()
                     // Color of this description must be rgb(117, 107, 94) or 756b5e
                     // https://www.spycolor.com/756b5e#
                     hasStrangeParts = true;
                     hasHighValueOur = true;
-                    const strangePartName = parts;
-                    strangeParts.push(strangePartName);
+                    strangeParts.push(parts);
                 }
             }
 
@@ -681,6 +684,8 @@ export = class MyHandler extends Handler {
                     .replace(/: \d+\)/g, '')
                     .trim();
                 const color = item.descriptions[i].color;
+                const strangePartObject = this.strangeParts();
+                const strangePartNames = Object.keys(strangePartObject);
 
                 if (
                     spell.startsWith('Halloween:') &&
@@ -694,17 +699,12 @@ export = class MyHandler extends Handler {
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
                         ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : this.strangeParts().includes(parts)) &&
+                        : strangePartNames.includes(parts)) &&
                     color === '756b5e'
                 ) {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
-                    const strangePartName = parts
-                        .replace('(', '')
-                        .replace(/: \d+\)/g, '')
-                        .trim();
-
-                    strangeParts.push(strangePartName);
+                    strangeParts.push(parts);
                 }
             }
 
@@ -1117,11 +1117,16 @@ export = class MyHandler extends Handler {
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            const valueInRef = Currencies.toRefined(price[intentString].toValue(keyPrice.metal));
+                            const valueInRef = {
+                                buy: Currencies.toRefined(price['buy'].toValue(keyPrice.metal)),
+                                sell: Currencies.toRefined(price['sell'].toValue(keyPrice.metal))
+                            };
+
                             itemSuggestedValue =
-                                valueInRef >= keyPrice.metal
-                                    ? `${valueInRef.toString()} (${price[intentString].toString()})`
-                                    : price[intentString].toString();
+                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                    ? `${valueInRef.buy.toString()} ref (${price['buy'].toString()})` +
+                                      ` / ${valueInRef.sell.toString()} ref (${price['sell'].toString()})`
+                                    : `${price['buy'].toString()} / ${price['sell'].toString()}`;
                         }
 
                         wrongAboutOffer.push({
@@ -2813,10 +2818,10 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
                                   /%admin%/g,
                                   isAdmin ? '!help' : '!how2trade'
-                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                              ) + ` - TF2Autobot`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  `" - TF2Autobot`
                     );
                     return;
                 }
@@ -2838,10 +2843,10 @@ export = class MyHandler extends Handler {
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
                           /%admin%/g,
                           isAdmin ? '!help' : '!how2trade'
-                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                      ) + ` - TF2Autobot`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          `" - TF2Autobot`
             );
         });
     }
@@ -3199,62 +3204,62 @@ export = class MyHandler extends Handler {
         return words;
     }
 
-    strangeParts(): string[] {
-        const names = [
+    strangeParts(): { [key: string]: number } {
+        const names = {
             // Most Strange Parts name will change once applied/attached.
-            'Robots Destroyed', //              checked
-            'Kills', //                         checked
-            'Airborne Enemy Kills', //          was "Airborne Enemies Killed"
-            'Damage Dealt', //                  checked
-            'Dominations', //                   was "Domination Kills"
-            'Snipers Killed', //                checked
-            'Buildings Destroyed', //           checked
-            'Projectiles Reflected', //         checked
-            'Headshot Kills', //                checked
-            'Medics Killed', //                 checked
-            'Fires Survived', //                checked
-            'Teammates Extinguished', //        checked
-            'Freezecam Taunt Appearances', //   checked
-            'Spies Killed', //                  checked
-            'Allied Healing Done', //           checked
-            'Sappers Removed', //               was "Sappers Destroyed"
-            'Players Hit', //                   was "Player Hits"
-            'Gib Kills', //                     checked
-            'Scouts Killed', //                 checked
-            'Taunt Kills', //                   was "Kills with a Taunt Attack"
-            'Point Blank Kills', //             was "Point-Blank Kills"
-            'Soldiers Killed', //               checked
-            'Long-Distance Kills', //           checked
-            'Giant Robots Destroyed', //        checked
-            'Critical Kills', //                checked
-            'Demomen Killed', //                checked
-            'Unusual-Wearing Player Kills', //  checked
-            'Assists', //                       checked
-            'Medics Killed That Have Full ÜberCharge', // checked
-            'Cloaked Spies Killed', //          checked
-            'Engineers Killed', //              checked
-            'Kills While Explosive-Jumping', // was "Kills While Explosive Jumping"
-            'Kills While Low Health', //        was "Low-Health Kills"
-            'Burning Player Kills', //          was "Burning Enemy Kills"
-            'Kills While Invuln ÜberCharged', // was "Kills While Übercharged"
-            'Posthumous Kills', //              checked
-            'Not Crit nor MiniCrit Kills', //   checked
-            'Full Health Kills', //             checked
-            'Killstreaks Ended', //             checked
-            'Defenders Killed', //              was "Defender Kills"
-            'Revenges', //                      was "Revenge Kills"
-            'Robot Scouts Destroyed', //        checked
-            'Heavies Killed', //                checked
-            'Tanks Destroyed', //               checked
-            'Kills During Halloween', //        was "Halloween Kills"
-            'Pyros Killed', //                  checked
-            'Submerged Enemy Kills', //         was "Underwater Kills"
-            'Kills During Victory Time', //     checked
-            'Taunting Player Kills', //         checked
-            'Robot Spies Destroyed', //         checked
-            'Kills Under A Full Moon', //       was "Full Moon Kills"
-            'Robots Killed During Halloween' // was "Robots Destroyed During Halloween"
-        ];
+            'Robots Destroyed': 6026, //              checked
+            Kills: 6060, //                           checked
+            'Airborne Enemy Kills': 6012, //          was "Airborne Enemies Killed"
+            'Damage Dealt': 6056, //                  checked
+            Dominations: 6016, //                     was "Domination Kills"
+            'Snipers Killed': 6005, //                checked
+            'Buildings Destroyed': 6009, //           checked
+            'Projectiles Reflected': 6010, //         checked
+            'Headshot Kills': 6011, //                checked
+            'Medics Killed': 6007, //                 checked
+            'Fires Survived': 6057, //                checked
+            'Teammates Extinguished': 6020, //        checked
+            'Freezecam Taunt Appearances': 6055, //   checked
+            'Spies Killed': 6008, //                  checked
+            'Allied Healing Done': 6058, //           checked
+            'Sappers Removed': 6025, //               was "Sappers Destroyed"
+            'Players Hit': 6064, //                   was "Player Hits"
+            'Gib Kills': 6013, //                     checked
+            'Scouts Killed': 6003, //                 checked
+            'Taunt Kills': 6051, //                   was "Kills with a Taunt Attack"
+            'Point Blank Kills': 6059, //             was "Point-Blank Kills"
+            'Soldiers Killed': 6002, //               checked
+            'Long-Distance Kills': 6039, //           checked
+            'Giant Robots Destroyed': 6028, //        checked
+            'Critical Kills': 6021, //                checked
+            'Demomen Killed': 6001, //                checked
+            'Unusual-Wearing Player Kills': 6052, //  checked
+            Assists: 6065, //                         checked
+            'Medics Killed That Have Full ÜberCharge': 6023, // checked
+            'Cloaked Spies Killed': 6024, //          checked
+            'Engineers Killed': 6004, //              checked
+            'Kills While Explosive-Jumping': 6022, // was "Kills While Explosive Jumping"
+            'Kills While Low Health': 6032, //        was "Low-Health Kills"
+            'Burning Player Kills': 6053, //          was "Burning Enemy Kills"
+            'Kills While Invuln ÜberCharged': 6037, // was "Kills While Übercharged"
+            'Posthumous Kills': 6019, //              checked
+            'Not Crit nor MiniCrit Kills': 6063, //   checked
+            'Full Health Kills': 6061, //             checked
+            'Killstreaks Ended': 6054, //             checked
+            'Defenders Killed': 6035, //              was "Defender Kills"
+            Revenges: 6018, //                        was "Revenge Kills"
+            'Robot Scouts Destroyed': 6042, //        checked
+            'Heavies Killed': 6000, //                checked
+            'Tanks Destroyed': 6038, //               checked
+            'Kills During Halloween': 6033, //        was "Halloween Kills"
+            'Pyros Killed': 6006, //                  checked
+            'Submerged Enemy Kills': 6036, //         was "Underwater Kills"
+            'Kills During Victory Time': 6041, //     checked
+            'Taunting Player Kills': 6062, //         checked
+            'Robot Spies Destroyed': 6048, //         checked
+            'Kills Under A Full Moon': 6015, //       was "Full Moon Kills"
+            'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
+        };
 
         return names;
     }

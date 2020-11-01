@@ -550,6 +550,9 @@ class UserCart extends Cart {
                             .trim();
                         const color = item.descriptions[i].color;
 
+                        const strangePartObject = (this.bot.handler as MyHandler).strangeParts();
+                        const strangePartNames = Object.keys(strangePartObject);
+
                         if (
                             spell.startsWith('Halloween:') &&
                             spell.endsWith('(spell only active during event)') &&
@@ -561,12 +564,11 @@ class UserCart extends Cart {
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                                : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            const strangePartName = parts;
-                            strangeParts.push(strangePartName);
+                            strangeParts.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
@@ -2046,6 +2048,9 @@ class UserCart extends Cart {
                             .trim();
                         const color = item.descriptions[i].color;
 
+                        const strangePartObject = (this.bot.handler as MyHandler).strangeParts();
+                        const strangePartNames = Object.keys(strangePartObject);
+
                         if (
                             spell.startsWith('Halloween:') &&
                             spell.endsWith('(spell only active during event)') &&
@@ -2057,12 +2062,11 @@ class UserCart extends Cart {
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : (this.bot.handler as MyHandler).strangeParts().includes(parts)) &&
+                                : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            const strangePartName = parts;
-                            strangeParts.push(strangePartName);
+                            strangeParts.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
