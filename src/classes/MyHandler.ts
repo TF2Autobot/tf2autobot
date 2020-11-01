@@ -1118,7 +1118,7 @@ export = class MyHandler extends Handler {
                             const valueInRef = Currencies.toRefined(price[intentString].toValue(keyPrice.metal));
                             itemSuggestedValue =
                                 valueInRef >= keyPrice.metal
-                                    ? `${valueInRef.toString()} (${price[intentString].toString()})`
+                                    ? `${valueInRef.toString()} ref (${price[intentString].toString()})`
                                     : price[intentString].toString();
                         }
 
