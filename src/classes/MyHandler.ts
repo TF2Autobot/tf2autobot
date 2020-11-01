@@ -557,7 +557,6 @@ export = class MyHandler extends Handler {
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
         const webhook = this.fromEnv.tradeSummaryWebhook;
-        const checkExist = this.bot.pricelist;
 
         let hasHighValueOur = false;
         const highValuedOur: {
@@ -568,7 +567,7 @@ export = class MyHandler extends Handler {
             nameWithSpellsOrParts: []
         };
 
-        for (const item of offer.itemsToGive) {
+        offer.itemsToGive.forEach(item => {
             let hasSpelled = false;
             const spellNames: string[] = [];
 
@@ -622,30 +621,7 @@ export = class MyHandler extends Handler {
                     // https://www.spycolor.com/756b5e#
                     hasStrangeParts = true;
                     hasHighValueOur = true;
-
-                    // check if the strange part exist in pricelist and is autopriced
-                    const entry = checkExist.getPrice(strangePartNames[parts] + ';6', false);
-                    const isExist = entry !== null;
-                    const isAutoPriced = isExist ? entry.autoprice : false;
-
-                    if (isExist && isAutoPriced) {
-                        // If exist and autopriced, then we include buy/sell price of that strange part directly from pricelist.
-                        strangeParts.push(parts + ` (${entry.buy.toString()}/${entry.sell.toString()})`);
-                    } else {
-                        // Else, we request prices from prices.tf
-                        const price = await this.bot.pricelist.getPricesTF(strangePartNames[parts] + ';6');
-
-                        let strangePartValue: string;
-
-                        if (price === null) {
-                            strangePartValue = 'No price';
-                        } else {
-                            price.buy = new Currencies(price.buy);
-                            price.sell = new Currencies(price.sell);
-                            strangePartValue = `${price.buy.toString()}/${price.sell.toString()}`;
-                        }
-                        strangeParts.push(parts + ` (${strangePartValue})`);
-                    }
+                    strangeParts.push(parts);
                 }
             }
 
@@ -679,7 +655,7 @@ export = class MyHandler extends Handler {
                     highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
-        }
+        });
 
         // Check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
 
@@ -692,7 +668,7 @@ export = class MyHandler extends Handler {
             nameWithSpellsOrParts: []
         };
 
-        for (const item of offer.itemsToGive) {
+        offer.itemsToReceive.forEach(item => {
             let hasSpelled = false;
             const spellNames: string[] = [];
 
@@ -726,27 +702,7 @@ export = class MyHandler extends Handler {
                 ) {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
-
-                    const entry = checkExist.getPrice(strangePartNames[parts] + ';6', false);
-                    const isExist = entry !== null;
-                    const isAutoPriced = isExist ? entry.autoprice : false;
-
-                    if (isExist && isAutoPriced) {
-                        strangeParts.push(parts + ` (${entry.buy.toString()}/${entry.sell.toString()})`);
-                    } else {
-                        const price = await this.bot.pricelist.getPricesTF(strangePartNames[parts] + ';6');
-
-                        let strangePartValue: string;
-
-                        if (price === null) {
-                            strangePartValue = 'No price';
-                        } else {
-                            price.buy = new Currencies(price.buy);
-                            price.sell = new Currencies(price.sell);
-                            strangePartValue = `${price.buy.toString()}/${price.sell.toString()}`;
-                        }
-                        strangeParts.push(parts + ` (${strangePartValue})`);
-                    }
+                    strangeParts.push(parts);
                 }
             }
 
@@ -780,7 +736,7 @@ export = class MyHandler extends Handler {
                     highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
-        }
+        });
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
@@ -862,6 +818,8 @@ export = class MyHandler extends Handler {
 
         // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
         // and decline if not 5x/25x and exist in pricelist
+
+        const checkExist = this.bot.pricelist;
 
         if (this.fromEnv.checkUses.duelEnabled || this.fromEnv.checkUses.noiseEnabled) {
             let hasNot5Uses = false;

@@ -528,12 +528,11 @@ class UserCart extends Cart {
                 nameWithSpellsOrParts: []
             };
 
-            const checkExist = this.bot.pricelist;
             const isEnabledDiscordWebhook =
                 process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
-            for (const item of fetched) {
+            fetched.forEach(item => {
                 let hasSpelled = false;
                 const spellNames: string[] = [];
 
@@ -569,27 +568,7 @@ class UserCart extends Cart {
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-
-                            const entry = checkExist.getPrice(strangePartNames[parts] + ';6', false);
-                            const isExist = entry !== null;
-                            const isAutoPriced = isExist ? entry.autoprice : false;
-
-                            if (isExist && isAutoPriced) {
-                                strangeParts.push(parts + ` (${entry.buy.toString()}/${entry.sell.toString()})`);
-                            } else {
-                                const price = await this.bot.pricelist.getPricesTF(strangePartNames[parts] + ';6');
-
-                                let strangePartValue: string;
-
-                                if (price === null) {
-                                    strangePartValue = 'No price';
-                                } else {
-                                    price.buy = new Currencies(price.buy);
-                                    price.sell = new Currencies(price.sell);
-                                    strangePartValue = `${price.buy.toString()}/${price.sell.toString()}`;
-                                }
-                                strangeParts.push(parts + ` (${strangePartValue})`);
-                            }
+                            strangeParts.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
@@ -623,7 +602,7 @@ class UserCart extends Cart {
                         }
                     }
                 }
-            }
+            });
 
             offer.data('highValue', highValuedTheir);
 
@@ -2047,12 +2026,11 @@ class UserCart extends Cart {
                 nameWithSpellsOrParts: []
             };
 
-            const checkExist = this.bot.pricelist;
             const isEnabledDiscordWebhook =
                 process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
-            for (const item of fetched) {
+            fetched.forEach(item => {
                 let hasSpelled = false;
                 const spellNames: string[] = [];
 
@@ -2088,27 +2066,7 @@ class UserCart extends Cart {
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-
-                            const entry = checkExist.getPrice(strangePartNames[parts] + ';6', false);
-                            const isExist = entry !== null;
-                            const isAutoPriced = isExist ? entry.autoprice : false;
-
-                            if (isExist && isAutoPriced) {
-                                strangeParts.push(parts + ` (${entry.buy.toString()}/${entry.sell.toString()})`);
-                            } else {
-                                const price = await this.bot.pricelist.getPricesTF(strangePartNames[parts] + ';6');
-
-                                let strangePartValue: string;
-
-                                if (price === null) {
-                                    strangePartValue = 'No price';
-                                } else {
-                                    price.buy = new Currencies(price.buy);
-                                    price.sell = new Currencies(price.sell);
-                                    strangePartValue = `${price.buy.toString()}/${price.sell.toString()}`;
-                                }
-                                strangeParts.push(parts + ` (${strangePartValue})`);
-                            }
+                            strangeParts.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
@@ -2142,7 +2100,7 @@ class UserCart extends Cart {
                         }
                     }
                 }
-            }
+            });
 
             offer.data('highValue', highValuedTheir);
 
