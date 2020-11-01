@@ -725,7 +725,7 @@ export = class MyHandler extends Handler {
                     color === '756b5e'
                 ) {
                     hasStrangeParts = true;
-                    hasHighValueOur = true;
+                    hasHighValueTheir = true;
 
                     const entry = checkExist.getPrice(strangePartNames[parts] + ';6', false);
                     const isExist = entry !== null;
