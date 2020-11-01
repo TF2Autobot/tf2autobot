@@ -1115,11 +1115,16 @@ export = class MyHandler extends Handler {
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
-                            const valueInRef = Currencies.toRefined(price[intentString].toValue(keyPrice.metal));
+                            const valueInRef = {
+                                buy: Currencies.toRefined(price['buy'].toValue(keyPrice.metal)),
+                                sell: Currencies.toRefined(price['sell'].toValue(keyPrice.metal))
+                            };
+
                             itemSuggestedValue =
-                                valueInRef >= keyPrice.metal
-                                    ? `${valueInRef.toString()} ref (${price[intentString].toString()})`
-                                    : price[intentString].toString();
+                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                    ? `${valueInRef.buy.toString()} ref (${price['buy'].toString()})` +
+                                      ` / ${valueInRef.sell.toString()} ref (${price['sell'].toString()})`
+                                    : `${price['buy'].toString()} / ${price['sell'].toString()}`;
                         }
 
                         wrongAboutOffer.push({
