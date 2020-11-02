@@ -56,7 +56,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string): Promise<boolean> {
                 }
 
                 const user = body.users[steamID64];
-                const isSteamRepBanned = user.bans ? user.bans.steamrep_scammer : false;
+                const isSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
 
                 return resolve(isSteamRepBanned);
             }
