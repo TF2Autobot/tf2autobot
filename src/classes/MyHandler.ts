@@ -826,6 +826,7 @@ export = class MyHandler extends Handler {
         if (this.fromEnv.checkUses.duelEnabled || this.fromEnv.checkUses.noiseEnabled) {
             let hasNot5Uses = false;
             let hasNot25Uses = false;
+            const noiseMakerSKU: string[] = [];
 
             offer.itemsToReceive.forEach(item => {
                 const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
@@ -859,6 +860,8 @@ export = class MyHandler extends Handler {
                             descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
+                            noiseMakerSKU.push(item.getSKU(this.bot.schema));
+
                             log.debug('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                             break;
                         }
@@ -872,7 +875,7 @@ export = class MyHandler extends Handler {
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
 
-            const isHasNoiseMaker = this.noiseMakerSKUs().some(sku => {
+            const isHasNoiseMaker = noiseMakerSKU.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
 
