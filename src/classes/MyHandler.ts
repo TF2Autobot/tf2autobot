@@ -157,7 +157,7 @@ export = class MyHandler extends Handler {
                 noiseEnabled: process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
             },
             acceptGiftNoNotes: {
-                enabled: process.env.ALLOW_GIFT_WITHOUT_NOTE === 'false'
+                enabled: process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true'
             },
             autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
             givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
