@@ -1112,6 +1112,14 @@ export = class MyHandler extends Handler {
 
                         const item = SKU.fromString(sku);
 
+                        // "match" will return null if the item is not enabled
+                        // define "recheckMatch" with onlyEnabled = false
+                        const recheckMatch = this.bot.pricelist.getPrice(sku, false);
+
+                        // If recheckMatch is not null, then check the enabled key (most likely false here),
+                        // else means the item is truly not in pricelist and make "isCanBePriced" true
+                        const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
+
                         let itemSuggestedValue;
 
                         if (price === null) {
@@ -1121,8 +1129,9 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (this.fromEnv.givePrice && item.wear === null) {
+                            if (this.fromEnv.givePrice && item.wear === null && isCanBePriced) {
                                 // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                                // and the item is not enabled=false,
                                 // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
