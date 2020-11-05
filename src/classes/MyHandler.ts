@@ -113,6 +113,8 @@ export = class MyHandler extends Handler {
 
     private uptime: number;
 
+    private botSteamID: SteamID;
+
     recentlySentMessage: UnknownDictionary<number> = {};
 
     constructor(bot: Bot) {
@@ -124,6 +126,8 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().valueOf();
+
+        this.botSteamID = this.bot.client.steamID;
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
@@ -252,6 +256,10 @@ export = class MyHandler extends Handler {
 
     getFriendToKeep(): number {
         return this.friendsToKeep.length;
+    }
+
+    getBotSteamID(): SteamID {
+        return this.botSteamID;
     }
 
     hasDupeCheckEnabled(): boolean {
@@ -492,7 +500,7 @@ export = class MyHandler extends Handler {
         clearTimeout(this.classWeaponsTimeout);
 
         const ourItems = Inventory.fromItems(
-            this.bot.client.steamID,
+            this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema
@@ -2916,7 +2924,10 @@ export = class MyHandler extends Handler {
                     method: 'GET',
                     qs: {
                         key: this.bot.manager.apiKey,
-                        steamid: this.bot.client.steamID.getSteamID64()
+                        steamid: (this.bot.client.steamID === null
+                            ? this.botSteamID
+                            : this.bot.client.steamID
+                        ).getSteamID64()
                     },
                     json: true,
                     gzip: true
