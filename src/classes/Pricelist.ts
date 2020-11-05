@@ -177,6 +177,23 @@ export default class Pricelist extends EventEmitter {
                 continue;
             }
 
+            if (entry.name === null) {
+                // Check if entry.name is null, if true, get the name
+                if (entry.sku !== null) {
+                    // Check if entry.sku not null, if yes, then get name from it
+                    entry.name = this.schema.getName(SKU.fromString(entry.sku), false);
+
+                    if (entry.name === null) {
+                        // If entry.name still null after getting its name, then skip current iteration
+                        continue;
+                    }
+                } else {
+                    // Else if entry.sku is null, then skip current iteration
+                    continue;
+                }
+            }
+
+            // Bot can crash here if entry.name is null
             const name = entry.name.toLowerCase();
 
             if (search.includes('uncraftable')) {
