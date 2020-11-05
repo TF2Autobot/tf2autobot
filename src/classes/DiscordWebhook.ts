@@ -100,6 +100,10 @@ export = class DiscordWebhookClass {
             title = 'Automatic restart failed - Error';
             description = `❌ An error occurred while trying to restart: ${err.message}`;
             color = '16711680'; // red
+        } else if (type === 'highValuedDisabled') {
+            title = 'Temporarily disabled items with High value attachments';
+            description = msg;
+            color = '8323327'; // purple
         } else {
             title = 'High Valued Items';
             description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
@@ -110,7 +114,7 @@ export = class DiscordWebhookClass {
         const webhook = JSON.stringify({
             username: this.botName,
             avatar_url: this.botAvatarURL,
-            content: type === 'highValue' ? `<@!${this.ownerID}>` : '',
+            content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${this.ownerID}>` : '',
             embeds: [
                 {
                     title: title,

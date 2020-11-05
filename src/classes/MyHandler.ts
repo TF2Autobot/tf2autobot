@@ -1645,6 +1645,7 @@ export = class MyHandler extends Handler {
 
         let hasHighValueOur = false;
         let hasHighValueTheir = false;
+        const theirHighValuedItems: string[] = [];
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1879,6 +1880,7 @@ export = class MyHandler extends Handler {
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
+                                theirHighValuedItems.push(name);
                             });
                         }
 
@@ -1896,6 +1898,7 @@ export = class MyHandler extends Handler {
                         hasHighValueTheir = true;
                         offerMade.nameWithSpellsOrParts.forEach(name => {
                             accepted.highValue.push(name);
+                            theirHighValuedItems.push(name);
                         });
                     }
                 }
@@ -2089,6 +2092,24 @@ export = class MyHandler extends Handler {
                         .updatePrice(entry as EntryData, true)
                         .then(() => {
                             log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
+
+                            let msg =
+                                `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
+                                `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
+                                ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
+                                '\n\nItem information:\n\n- ';
+
+                            for (let i = 0; i < theirHighValuedItems.length; i++) {
+                                if (theirHighValuedItems[i].includes(name)) {
+                                    msg += theirHighValuedItems[i];
+                                }
+                            }
+
+                            if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
+                                this.discord.sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null);
+                            } else {
+                                this.bot.messageAdmins(msg, []);
+                            }
                         })
                         .catch(err => {
                             log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
