@@ -1,8 +1,6 @@
 import { Item } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema';
 
-import isObject from 'isobject';
-
 export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     const schemaItem = schema.getItemByDefindex(item.defindex);
 
@@ -50,47 +48,47 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         }
     }
 
-    if (schemaItem.item_class === 'supply_crate') {
-        let series: number | null = null;
+    // if (schemaItem.item_class === 'supply_crate') {
+    //     let series: number | null = null;
 
-        if (schemaItem.attributes !== undefined) {
-            for (let i = 0; i < schemaItem.attributes.length; i++) {
-                const attribute = schemaItem.attributes[i];
+    //     if (schemaItem.attributes !== undefined) {
+    //         for (let i = 0; i < schemaItem.attributes.length; i++) {
+    //             const attribute = schemaItem.attributes[i];
 
-                if (
-                    attribute.name === 'set supply crate series'
-                    // !(attribute.value === 82 || attribute.value === 83 || attribute.value === 77)
-                ) {
-                    series = attribute.value;
-                }
-            }
-        }
+    //             if (
+    //                 attribute.name === 'set supply crate series'
+    //                 // !(attribute.value === 82 || attribute.value === 83 || attribute.value === 77)
+    //             ) {
+    //                 series = attribute.value;
+    //             }
+    //         }
+    //     }
 
-        if (series === null) {
-            const itemsGameItem = schema.raw.items_game.items[item.defindex];
+    //     if (series === null) {
+    //         const itemsGameItem = schema.raw.items_game.items[item.defindex];
 
-            if (
-                itemsGameItem.static_attrs !== undefined &&
-                itemsGameItem.static_attrs['set supply crate series'] !== undefined
-            ) {
-                // @ts-ignore
-                if (isObject(itemsGameItem.static_attrs['set supply crate series'])) {
-                    series = itemsGameItem.static_attrs['set supply crate series'].value;
-                } else {
-                    series = itemsGameItem.static_attrs['set supply crate series'];
-                }
-            }
-        }
+    //         if (
+    //             itemsGameItem.static_attrs !== undefined &&
+    //             itemsGameItem.static_attrs['set supply crate series'] !== undefined
+    //         ) {
+    //             // @ts-ignore
+    //             if (isObject(itemsGameItem.static_attrs['set supply crate series'])) {
+    //                 series = itemsGameItem.static_attrs['set supply crate series'].value;
+    //             } else {
+    //                 series = itemsGameItem.static_attrs['set supply crate series'];
+    //             }
+    //         }
+    //     }
 
-        if (series !== null) {
-            // @ts-ignore
-            // @TODO We are parsing a number from a number.
-            // If you meant to floor the int, use Math.floor()
-            // If you are expecting a string here,
-            // SchemaManager.attributes might be wrong.
-            item.crateseries = parseInt(series);
-        }
-    }
+    //     if (series !== null) {
+    //         // @ts-ignore
+    //         // @TODO We are parsing a number from a number.
+    //         // If you meant to floor the int, use Math.floor()
+    //         // If you are expecting a string here,
+    //         // SchemaManager.attributes might be wrong.
+    //         item.crateseries = parseInt(series);
+    //     }
+    // }
 
     if (item.effect !== null) {
         if (item.quality === 11) {
