@@ -4,7 +4,7 @@ import SchemaManager from 'tf2-schema';
 import SKU from 'tf2-sku';
 import url from 'url';
 
-import log from '../../../lib/logger';
+// import log from '../../../lib/logger';
 
 import { fixItem } from '../../items';
 
@@ -48,7 +48,7 @@ export = function(schema: SchemaManager.Schema): string {
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
 
-    log.debug(SKU.fromObject(item).toString());
+    // log.debug(SKU.fromObject(item).toString());
 
     return SKU.fromObject(item);
 };
