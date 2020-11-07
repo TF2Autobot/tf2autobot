@@ -253,6 +253,8 @@ export = class MyHandler extends Handler {
         this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
+        this.botSteamID = this.bot.client.steamID;
+
         // Get Backpack slots and Premium info from backpack.tf
         this.getBPTFAccountInfo();
 
@@ -288,8 +290,6 @@ export = class MyHandler extends Handler {
 
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
-
-        this.botSteamID = this.bot.client.steamID;
 
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
