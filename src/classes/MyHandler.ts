@@ -397,7 +397,7 @@ export = class MyHandler extends Handler {
     onBptfAuth(auth: { apiKey: string; accessToken: string }): void {
         const details = Object.assign({ private: true }, auth);
 
-        log.warn('Please add the backpack.tf API key and access token to the environment variables!', details);
+        log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
     private autoRefreshListings(): void {
@@ -407,7 +407,7 @@ export = class MyHandler extends Handler {
         }
 
         setInterval(() => {
-            log.debug('Running automatic checking for missing sell listings...');
+            log.debug('Running automatic check for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                 // Filter our pricelist to only the items that the bot currently have.
@@ -827,7 +827,7 @@ export = class MyHandler extends Handler {
 
             if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
-                offer.log('info', 'contains Dueling Mini-Game that are not 5 uses.');
+                offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
 
@@ -837,7 +837,7 @@ export = class MyHandler extends Handler {
 
             if (hasNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
-                offer.log('info', 'contains Noice Maker that are not 25 uses.');
+                offer.log('info', 'contains Noice Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
             }
         }
@@ -861,7 +861,7 @@ export = class MyHandler extends Handler {
                 this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is about to take your high valued items that you owned but not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
+                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
                         '\n\n- '
                     )}`,
                     []
@@ -1480,7 +1480,7 @@ export = class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer more or equal value, accepting. Summary:\n${offer.summarize(
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${offer.summarize(
                         this.bot.schema
                     )}`
                 );
@@ -1490,14 +1490,14 @@ export = class MyHandler extends Handler {
                 if (isManyItems) {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                            ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                            ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer and the trade will be completed in seconds.' +
-                            ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                        'I have accepted your offer. The trade should be finalized shortly.' +
+                            ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
 
@@ -1571,14 +1571,14 @@ export = class MyHandler extends Handler {
         if (isManyItems) {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                    ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                    ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer and the trade will be completed in seconds.' +
-                    ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                'I have accepted your offer. The trade will be finalized in shortly.' +
+                    ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         }
 
@@ -1616,18 +1616,20 @@ export = class MyHandler extends Handler {
         if (handledByUs && offer.data('switchedState') !== offer.state) {
             if (notify) {
                 if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-                    this.bot.sendMessage(offer.partner, '/pre ✅ Success! The offer went through successfully.');
-                    if (process.env.CUSTOM_SUCCESS_MESSAGE) {
-                        this.bot.sendMessage(offer.partner, process.env.CUSTOM_SUCCESS_MESSAGE);
-                    }
+                    this.bot.sendMessage(
+                        offer.partner,
+                        process.env.CUSTOM_SUCCESS_MESSAGE
+                            ? process.env.CUSTOM_SUCCESS_MESSAGE
+                            : '/pre ✅ Success! The offer went through successfully.'
+                    );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
                         offer.partner,
-                        '✅ Success! The offer went through successfully, but you will receive your items after several days. ' +
-                            'Please use Steam Guard Mobile Authenticator so you will no longer need to wait like this in the future.' +
+                        '✅ Success! The offer has gone through successfully, but you will receive your items after several days. ' +
+                            'To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• How to set up a Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                            '\n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
@@ -1648,9 +1650,9 @@ export = class MyHandler extends Handler {
                     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
                         reason = 'your offer contains a Noise Maker that does not have 25 uses.';
                     } else if (offerReason.reason === 'HIGH_VALUE_ITEMS_NOT_SELLING') {
-                        reason = `you're taking ${offerReason.meta.highValueName.join(
+                        reason = `you're attempting to purchase ${offerReason.meta.highValueName.join(
                             ', '
-                        )}, and I am not selling it right now.`;
+                        )}, but I am not selling it right now.`;
                     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
                         reason =
                             'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
@@ -1662,10 +1664,10 @@ export = class MyHandler extends Handler {
                             'I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
                     } else if (offerReason.reason === 'BANNED') {
                         reason =
-                            "you're currently banned on backpack.tf or marked SCAMMER on steamrep.com or another community.";
+                            "you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community.";
                     } else if (offerReason.reason === 'ESCROW') {
                         reason =
-                            'I do not accept escrow (trade hold). Please use Steam Guard Mobile Authenticator so you will be able to trade instantly in the future.' +
+                            'I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.' +
                             '\nRead:\n' +
                             '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
                             '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
@@ -1681,13 +1683,13 @@ export = class MyHandler extends Handler {
                         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
                     ) {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason = "you're offering some item(s) that I can't buy more than I could.";
+                        reason = "you're attempting to sell item(s) that I can't buy more of.";
                     } else if (
                         offerReason.reason === 'ONLY_UNDERSTOCKED' ||
                         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
                     ) {
                         reasonForInvalidValue = value.diffRef !== 0 ? true : false;
-                        reason = "you're taking some item(s) that I can't sell more than I could.";
+                        reason = "you're attempting to purchase item(s) that I can't sell more of.";
                     } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
                         reason = "I don't accept duped items.";
                     } else {
@@ -1728,7 +1730,7 @@ export = class MyHandler extends Handler {
                         reason = 'Failed to accept mobile confirmation';
                     } else {
                         reason =
-                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later";
+                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later.";
                     }
 
                     this.bot.sendMessage(
@@ -2345,9 +2347,9 @@ export = class MyHandler extends Handler {
             } else {
                 this.bot.sendMessage(
                     offer.partner,
-                    `⚠️ Your offer is waiting for review.\nReasons: ${reasons.join(', ')}` +
+                    `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                         (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
-                            ? '\n\nYour offer summary:\n' +
+                            ? '\n\nOffer Summary:\n' +
                               offer
                                   .summarize(this.bot.schema)
                                   .replace('Asked', '  My side')
@@ -2357,7 +2359,7 @@ export = class MyHandler extends Handler {
                                   : '') +
                               (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
                                   ? `\n\nNote:\n${reviewReasons.join('\n') +
-                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from an owner.')}`
+                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
                                   : '')
                             : '') +
                         (process.env.ADDITIONAL_NOTE
@@ -2368,7 +2370,9 @@ export = class MyHandler extends Handler {
                               ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
                         (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                            ? `\n\nMy owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                            ? `\n\nIt is currently the following time in my owner's timezone: ${
+                                  timeWithEmojis.emoji
+                              } ${timeWithEmojis.time +
                                   (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
                             : '')
                 );
@@ -2401,12 +2405,12 @@ export = class MyHandler extends Handler {
             } else {
                 const offerMessage = offer.message;
                 this.bot.messageAdmins(
-                    `⚠️ Offer #${offer.id} from ${offer.partner} is waiting for review.` +
+                    `⚠️ Offer #${offer.id} from ${offer.partner} is pending review.` +
                         `\nReasons: ${meta.uniqueReasons.join(', ')}` +
                         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\n\nBackpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.'
+                            ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-                            ? '\n\nSteam down, please manually check if this person have escrow.'
+                            ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                             : '') +
                         summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
                         (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
@@ -2799,7 +2803,7 @@ export = class MyHandler extends Handler {
 
         this.bot.client.addFriend(steamID, err => {
             if (err) {
-                log.warn(`Failed to send friend request to ${steamID64}: `, err);
+                log.warn(`Failed to a send friend request to ${steamID64}: `, err);
                 return;
             }
 
@@ -2913,7 +2917,7 @@ export = class MyHandler extends Handler {
                     element.steamID,
                     process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
                         ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
-                        : '/quote I am cleaning up my friend list and you have been selected to be removed. Feel free to add me again if you want to trade at the other time!'
+                        : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!'
                 );
                 this.bot.client.removeFriend(element.steamID);
             });

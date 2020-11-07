@@ -34,14 +34,14 @@ const COMMANDS: string[] = [
     '!sell [amount] <name> - Instantly sell an item 💲\n\n✨=== Multiple items trade ===✨',
     '!buycart [amount] <name> - Add an item you want to buy to your cart 🛒',
     '!sellcart [amount] <name> - Add an item you want to sell to your cart 🛒',
-    '!cart - See your cart 🛒',
+    '!cart - View your cart 🛒',
     '!clearcart - Clear your cart ❎🛒',
-    '!checkout - Have the bot send an offer for the items in your cart ✅🛒\n\n✨=== Trade actions ===✨',
+    '!checkout - Have the bot send an offer with the items in your cart ✅🛒\n\n✨=== Trade actions ===✨',
     '!cancel - Cancel the trade offer ❌',
-    '!queue - See your position in the queue\n\n✨=== Contact Owner ===✨',
-    '!owner - Get the owner Steam profile and Backpack.tf links',
+    '!queue - Check your position in the queue\n\n✨=== Contact Owner ===✨',
+    "!owner - Get the owner's Steam profile and Backpack.tf links",
     '!message <your message> - Send a message to the owner of the bot 💬',
-    '!discord - Get a link to join TF2Autobot and/or the owner discord server\n\n✨=== Other Commands ===✨',
+    "!discord - Get a link to join TF2Autobot and/or the owner's discord server\n\n✨=== Other Commands ===✨",
     '!more - Show the advanced commands list'
 ];
 
@@ -64,28 +64,28 @@ const ADMIN_COMMANDS: string[] = [
     '!update <sku=> OR <item=> - Update a pricelist entry',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
-    "!expand <craftable=true|false> - Use Backpack Expanders to increase your bot's inventory limit",
-    "!delete sku=<item sku> OR assetid=<item assetid> - Delete any item from your bot's inventory (use only sku) 🚮",
+    "!expand <craftable=true|false> - Use Backpack Expanders to increase the bot's inventory limit",
+    "!delete sku=<item sku> OR assetid=<item assetid> - Delete an item from the bot's inventory (SKU input only) 🚮",
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
     '!unblock <steamid> - Unblock a specific user',
-    '!stop - Stop your bot 🔴',
-    '!restart - Restart your bot 🔄',
-    '!refreshautokeys - Refresh your autokeys settings.',
+    '!stop - Stop the bot 🔴',
+    '!restart - Restart the bot 🔄',
+    "!refreshautokeys - Refresh the bot's autokeys settings.",
     '!refreshlist - Refresh sell listings 🔄',
-    "!name <new_name> - Change your bot's name",
-    "!avatar <image_URL> - Change your bot's avatar",
-    '!resetqueue - Reset queue position to 0\n\n✨=== Bot status ===✨',
+    "!name <new_name> - Change the bot's name",
+    "!avatar <image_URL> - Change the bot's avatar",
+    '!resetqueue - Reset the queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
-    "!inventory - Get your bot's current inventory spaces 🎒",
-    '!version - Get the version that your bot is running\n\n✨=== Manual review ===✨',
+    "!inventory - Get the bot's current inventory spaces 🎒",
+    '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
     '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
-    "!pricecheckall - Request all items in your bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
+    "!pricecheckall - Request all items in the bot's pricelist to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
     '!uptime - Show the bot uptime 🔌',
@@ -256,7 +256,7 @@ export = class Commands {
                 steamID,
                 process.env.CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN
                     ? process.env.CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN
-                    : '❌ I don\'t know what you mean, please type "!help" for all my commands!'
+                    : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }
     }
@@ -279,7 +279,7 @@ export = class Commands {
             process.env.CUSTOM_HOW2TRADE_MESSAGE
                 ? process.env.CUSTOM_HOW2TRADE_MESSAGE
                 : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
-                      '\nYou can also buy or sell multiple items by using "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
+                      '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
         );
     }
 
@@ -437,7 +437,7 @@ export = class Commands {
         if (currentCart !== null && !(currentCart instanceof UserCart)) {
             this.bot.sendMessage(
                 steamID,
-                '❌ You already have a different cart open, finish it before making a new one. 🛒'
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
             return;
         }
@@ -505,7 +505,7 @@ export = class Commands {
         if (currentCart !== null && !(currentCart instanceof UserCart)) {
             this.bot.sendMessage(
                 steamID,
-                '❌ You already have a different cart open, finish it before making a new one. 🛒'
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
             return;
         }
@@ -542,7 +542,7 @@ export = class Commands {
             amount = amountCanTrade;
 
             if (amount === cartAmount && cartAmount > 0) {
-                this.bot.sendMessage(steamID, `I don't want any more ${pluralize(name, 0)}.`);
+                this.bot.sendMessage(steamID, `I unable to trade any more ${pluralize(name, 0)}.`);
                 return;
             }
 
@@ -706,7 +706,7 @@ export = class Commands {
         } else if (position === 0) {
             this.bot.sendMessage(steamID, '⌛ Your offer is being made.');
         } else {
-            this.bot.sendMessage(steamID, `There is ${position} infront of you.`);
+            this.bot.sendMessage(steamID, `There are ${position} users ahead of you.`);
         }
     }
 
@@ -742,11 +742,11 @@ export = class Commands {
             if (!steamIDreg.test(steamIdAndMessage) || !steamIDreg || parts.length < 3) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong or wrong SteamID. Here\'s an example: "!message 76561198120070906 Hi"' +
+                    '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
                         "\n\nHow to get the targeted user's SteamID?" +
                         '\n1. Go to his/her profile page.' +
                         '\n2. Go to https://steamrep.com/' +
-                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                        '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
                 );
                 return;
             } else {
@@ -759,11 +759,11 @@ export = class Commands {
             if (!recipientSteamID.isValid()) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ "${recipient}" is not a valid steamID.` +
+                    `❌ "${recipient}" is not a valid SteamID.` +
                         "\n\nHow to get the targeted user's SteamID?" +
                         '\n1. Go to his/her profile page.' +
                         '\n2. Go to https://steamrep.com/' +
-                        '\n2. Watch this gif image: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                        '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
                 );
                 return;
             }
@@ -773,7 +773,7 @@ export = class Commands {
             const reply = steamIdAndMessage.substr(steamIDString.length);
 
             // Send message to recipient
-            this.bot.sendMessage(recipient, `/quote 💬 Message from owner: ${reply}`);
+            this.bot.sendMessage(recipient, `/quote 💬 Message from the owner: ${reply}`);
 
             // Send confirmation message to admin
             this.bot.sendMessage(steamID, '✅ Your message has been sent.');
@@ -836,7 +836,7 @@ export = class Commands {
         const timeWithEmojis = (this.bot.handler as MyHandler).timeWithEmoji();
         this.bot.sendMessage(
             steamID,
-            `My owner time is currently at ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+            `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${timeWithEmojis.time +
                 (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
         );
     }
@@ -1083,7 +1083,7 @@ export = class Commands {
         if (currentCart !== null && !(currentCart instanceof AdminCart)) {
             this.bot.sendMessage(
                 steamID,
-                '❌ You already have a different cart open, finish it before making a new one. 🛒'
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
             return;
         }
@@ -1127,7 +1127,7 @@ export = class Commands {
         if (currentCart !== null && !(currentCart instanceof AdminCart)) {
             this.bot.sendMessage(
                 steamID,
-                '❌ You already have a different cart open, finish it before making a new one. 🛒'
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
             return;
         }
@@ -1377,7 +1377,7 @@ export = class Commands {
             if (match === null) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ I could not find any items in my pricelist that contains "${params.item}"`
+                    `❌ I could not find any items in my pricelist that contain "${params.item}"`
                 );
                 return;
             } else if (Array.isArray(match)) {
@@ -1489,7 +1489,7 @@ export = class Commands {
             if (match === null) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ I could not find any items in my pricelist that contains "${params.item}"`
+                    `❌ I could not find any items in my pricelist that contain "${params.item}"`
                 );
                 return;
             } else if (Array.isArray(match)) {
@@ -1543,7 +1543,7 @@ export = class Commands {
             if (match === null) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ I could not find any items in my pricelist that contains "${params.item}"`
+                    `❌ I could not find any items in my pricelist that contain "${params.item}"`
                 );
                 return;
             } else if (Array.isArray(match)) {
@@ -1739,7 +1739,7 @@ export = class Commands {
             } else {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ Looks like an assetid ${params.assetid} did not matched with any assetids associated with ${name}(${params.sku}) in my inventory. Try only with sku to delete a random assetid.`
+                    `❌ Looks like an assetid ${params.assetid} did not match any assetids associated with ${name}(${params.sku}) in my inventory. Try using the sku to delete a random assetid.`
                 );
                 return;
             }
@@ -1804,11 +1804,11 @@ export = class Commands {
         this.bot.community.uploadAvatar(imageUrl, err => {
             if (err) {
                 log.warn('Error while uploading new avatar: ', err);
-                this.bot.sendMessage(steamID, `❌ Error while uploading new avatar: ${err.message}`);
+                this.bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${err.message}`);
                 return;
             }
 
-            this.bot.sendMessage(steamID, '✅ Successfully uploaded new avatar.');
+            this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
         });
     }
 
@@ -1906,7 +1906,10 @@ export = class Commands {
 
     private relistCommand(steamID: SteamID): void {
         if (this.first30Minutes) {
-            this.bot.sendMessage(steamID, `❌ I am just started... Please wait until the first 30 minutes has ended.`);
+            this.bot.sendMessage(
+                steamID,
+                `❌ I've started only recently, please wait 30 minutes before running this command.`
+            );
             return;
         }
 
@@ -1967,21 +1970,21 @@ export = class Commands {
         if (params.enabled !== undefined && typeof params.enabled === 'boolean') {
             filter = filter.filter(entry => entry.enabled === params.enabled);
         } else if (params.enabled !== undefined && typeof params.enabled !== 'boolean') {
-            this.bot.sendMessage(steamID, '⚠️ enabled parameter must be either true or false only');
+            this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');
             return;
         }
 
         if (params.max !== undefined && typeof params.max === 'number') {
             filter = filter.filter(entry => entry.max === params.max);
         } else if (params.max !== undefined && typeof params.max !== 'number') {
-            this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer only');
+            this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer');
             return;
         }
 
         if (params.min !== undefined && typeof params.min === 'number') {
             filter = filter.filter(entry => entry.min === params.min);
         } else if (params.min !== undefined && typeof params.min !== 'number') {
-            this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer only');
+            this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer');
             return;
         }
 
@@ -1999,7 +2002,7 @@ export = class Commands {
         ) {
             this.bot.sendMessage(
                 steamID,
-                '⚠️ intent parameter must be a word of "buy", "sell", or "bank" OR an integer of "0", "1" or "2" only'
+                '⚠️ intent parameter must be "buy", "sell", or "bank" OR an integer of "0", "1" or "2" respectively'
             );
             return;
         }
@@ -2007,7 +2010,7 @@ export = class Commands {
         if (params.autoprice !== undefined && typeof params.autoprice === 'boolean') {
             filter = filter.filter(entry => entry.autoprice === params.autoprice);
         } else if (params.autoprice !== undefined && typeof params.autoprice !== 'boolean') {
-            this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be either true or false only');
+            this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be "true" or "false"');
             return;
         }
 
@@ -2030,7 +2033,7 @@ export = class Commands {
         } else if (length > 20) {
             this.bot.sendMessage(
                 steamID,
-                `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only max 100 items`
+                `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only a max of 100 items`
             );
             this.bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(0, 20), null, 4)}`);
             if (length <= 40) {
@@ -2081,7 +2084,7 @@ export = class Commands {
             );
             this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
                 log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-                this.bot.sendMessage(steamID, '✅ Done refresh ' + pluralize('item', pricelist.length, true));
+                this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
             });
         } else {
             this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
@@ -2133,7 +2136,7 @@ export = class Commands {
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
                             `\n\nNavigate to your bot folder and run [git checkout master && git reset HEAD --hard && git pull && npm install && npm run build] and then restart your bot.` +
-                            `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
+                            `\nIf the update requires you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                             '\nContact IdiNium if you have any other problem. Thank you.'
                     );
                 }
@@ -2274,13 +2277,13 @@ export = class Commands {
         }
 
         if (offers.length === 0) {
-            this.bot.sendMessage(steamID, '❌ There are no active offers pending for review.');
+            this.bot.sendMessage(steamID, '❌ There are no active offers pending review.');
             return;
         }
 
         offers.sort((a, b) => a.id - b.id);
 
-        let reply = `There is ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
+        let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
 
         for (let i = 0; i < offers.length; i++) {
             const offer = offers[i];
@@ -2447,7 +2450,10 @@ export = class Commands {
                             ) {
                                 // Contains non-5x uses.
                                 hasNot5Uses = true;
-                                log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses (re-checked).`);
+                                log.debug(
+                                    'info',
+                                    `Dueling Mini-Game (${item.assetid}) does not have 5 uses (re-checked).`
+                                );
                                 break;
                             }
                         }
@@ -2465,7 +2471,7 @@ export = class Commands {
                                 hasNot25Uses = true;
                                 log.debug(
                                     'info',
-                                    `${item.market_hash_name} (${item.assetid}) is not 25 uses (re-checked).`
+                                    `${item.market_hash_name} (${item.assetid}) does not have 25 uses (re-checked).`
                                 );
                                 break;
                             }
@@ -2475,7 +2481,7 @@ export = class Commands {
 
                 if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                     // Only decline if exist in pricelist
-                    offer.log('info', 'contains Dueling Mini-Game that are not 5 uses (re-checked).');
+                    offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses (re-checked).');
                     declineTrade = true;
                 }
 
@@ -2484,7 +2490,7 @@ export = class Commands {
                 });
 
                 if (hasNot25Uses && isNoiseMaker) {
-                    offer.log('info', 'contains Noice Maker that are not 25 uses (re-checked).');
+                    offer.log('info', 'contains Noice Maker that does not have 25 uses (re-checked).');
                     declineTrade = true;
                 }
             }
@@ -2957,7 +2963,7 @@ export = class Commands {
 
         if (params.craftable !== undefined) {
             if (typeof params.craftable !== 'boolean') {
-                this.bot.sendMessage(steamID, `Craftable must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Craftable must be "true" or "false".`);
                 return null;
             }
             item.craftable = params.craftable;
@@ -2965,7 +2971,7 @@ export = class Commands {
 
         if (params.australium !== undefined) {
             if (typeof params.australium !== 'boolean') {
-                this.bot.sendMessage(steamID, `Australium must be "true" or "false" only.`);
+                this.bot.sendMessage(steamID, `Australium must be "true" or "false".`);
                 return null;
             }
             item.australium = params.australium;
@@ -2976,7 +2982,7 @@ export = class Commands {
             if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
                 this.bot.sendMessage(
                     steamID,
-                    `Unknown killstreak "${params.killstreak}", it must be between 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS) only.`
+                    `Unknown killstreak "${params.killstreak}", it must either be 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS).`
                 );
                 return null;
             }
@@ -3018,7 +3024,7 @@ export = class Commands {
             if (schemaItem === null) {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ Could not find an item in the schema with the defindex "${params.defindex}".`
+                    `❌ Could not find an item in the schema with a defindex of "${params.defindex}".`
                 );
                 return null;
             }
