@@ -103,6 +103,10 @@ export = class MyHandler extends Handler {
 
     private isPremium = false;
 
+    private botName = '';
+
+    private botAvatarURL = '';
+
     private retryRequest;
 
     private autokeysStatus: {
@@ -128,8 +132,6 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().valueOf();
-
-        this.botSteamID = this.bot.client.steamID;
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
@@ -280,6 +282,13 @@ export = class MyHandler extends Handler {
         return this.backpackSlots;
     }
 
+    getBotInfo(): { name: string; avatarURL: string; steamID: string } {
+        const name = this.botName;
+        const avatarURL = this.botAvatarURL;
+        const steamID = this.botSteamID.toString();
+        return { name, avatarURL, steamID };
+    }
+
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
         return this.autokeysStatus;
     }
@@ -355,6 +364,8 @@ export = class MyHandler extends Handler {
 
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
+
+        this.botSteamID = this.bot.client.steamID;
 
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
@@ -3037,6 +3048,8 @@ export = class MyHandler extends Handler {
 
                     this.isPremium = isPremium;
                     this.backpackSlots = user.inventory['440'].slots.total;
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
 
                     return resolve();
                 }

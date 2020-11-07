@@ -17,10 +17,6 @@ export = class DiscordWebhookClass {
 
     private ownerID: string;
 
-    private botName: string;
-
-    private botAvatarURL: string;
-
     private botEmbedColor: string;
 
     tradeSummaryLinks: string[];
@@ -34,12 +30,6 @@ export = class DiscordWebhookClass {
 
         const ownerID = process.env.DISCORD_OWNER_ID;
         this.ownerID = ownerID;
-
-        const botName = process.env.DISCORD_WEBHOOK_USERNAME;
-        this.botName = botName;
-
-        const botAvatarURL = process.env.DISCORD_WEBHOOK_AVATAR_URL;
-        this.botAvatarURL = botAvatarURL;
 
         const botEmbedColor = process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX;
         this.botEmbedColor = botEmbedColor;
@@ -110,10 +100,14 @@ export = class DiscordWebhookClass {
             color = '8323327'; // purple
         }
 
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
+
         /*eslint-disable */
         const webhook = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
+            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                : botInfo.avatarURL,
             content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${this.ownerID}>` : '',
             embeds: [
                 {
@@ -144,10 +138,14 @@ export = class DiscordWebhookClass {
         steamREP: string,
         time: string
     ): void {
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
+
         /*eslint-disable */
         const discordPartnerMsg = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
+            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                : botInfo.avatarURL,
             content: `<@!${this.ownerID}>, new message! - ${steamID}`,
             embeds: [
                 {
@@ -207,8 +205,7 @@ export = class DiscordWebhookClass {
             }
         }
         const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
-        const botName = this.botName;
-        const botAvatarURL = this.botAvatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         const botEmbedColor = this.botEmbedColor;
 
         const pureStock = (this.bot.handler as MyHandler).pureStock();
@@ -251,8 +248,10 @@ export = class DiscordWebhookClass {
 
             /*eslint-disable */
             const webhookReview = {
-                username: botName,
-                avatar_url: botAvatarURL,
+                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
                     {
@@ -389,8 +388,7 @@ export = class DiscordWebhookClass {
                 ? `<@!${this.ownerID}>`
                 : '';
 
-        const botName = this.botName;
-        const botAvatarURL = this.botAvatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         const botEmbedColor = this.botEmbedColor;
 
         const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
@@ -431,8 +429,10 @@ export = class DiscordWebhookClass {
 
             /*eslint-disable */
             const acceptedTradeSummary = {
-                username: botName,
-                avatar_url: botAvatarURL,
+                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
                     {
@@ -482,7 +482,7 @@ export = class DiscordWebhookClass {
                                     (AdditionalNotes
                                         ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                           AdditionalNotes
-                                        : '')
+                                        : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                             }
                         ],
                         color: botEmbedColor
