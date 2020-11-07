@@ -320,8 +320,8 @@ export = class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
-        // GetBackpackSlots
-        this.requestBackpackSlots();
+        // Get Backpack slots and Premium info from backpack.tf
+        this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
         this.keepMetalSupply();
@@ -355,8 +355,6 @@ export = class MyHandler extends Handler {
 
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
-
-        this.getAccountBPTFPremiumStatus();
 
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
@@ -2962,55 +2960,55 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private requestBackpackSlots(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            request(
-                {
-                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
-                    method: 'GET',
-                    qs: {
-                        key: this.bot.manager.apiKey,
-                        steamid: (this.bot.client.steamID === null
-                            ? this.botSteamID
-                            : this.bot.client.steamID
-                        ).getSteamID64()
-                    },
-                    json: true,
-                    gzip: true
-                },
-                (err, response, body) => {
-                    if (err) {
-                        // if failed, retry after 10 minutes.
-                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
-                        clearTimeout(this.retryRequest);
-                        this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-                        return reject();
-                    }
+    // private requestBackpackSlots(): Promise<void> {
+    //     return new Promise((resolve, reject) => {
+    //         request(
+    //             {
+    //                 url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+    //                 method: 'GET',
+    //                 qs: {
+    //                     key: this.bot.manager.apiKey,
+    //                     steamid: (this.bot.client.steamID === null
+    //                         ? this.botSteamID
+    //                         : this.bot.client.steamID
+    //                     ).getSteamID64()
+    //                 },
+    //                 json: true,
+    //                 gzip: true
+    //             },
+    //             (err, response, body) => {
+    //                 if (err) {
+    //                     // if failed, retry after 10 minutes.
+    //                     log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+    //                     clearTimeout(this.retryRequest);
+    //                     this.retryRequest = setTimeout(() => {
+    //                         this.requestBackpackSlots();
+    //                     }, 10 * 60 * 1000);
+    //                     return reject();
+    //                 }
 
-                    if (body.result.status != 1) {
-                        err = new Error(body.result.statusDetail);
-                        err.status = body.result.status;
-                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
-                        // if failed, retry after 10 minutes.
-                        clearTimeout(this.retryRequest);
-                        this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-                        return reject();
-                    }
+    //                 if (body.result.status != 1) {
+    //                     err = new Error(body.result.statusDetail);
+    //                     err.status = body.result.status;
+    //                     log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+    //                     // if failed, retry after 10 minutes.
+    //                     clearTimeout(this.retryRequest);
+    //                     this.retryRequest = setTimeout(() => {
+    //                         this.requestBackpackSlots();
+    //                     }, 10 * 60 * 1000);
+    //                     return reject();
+    //                 }
 
-                    clearTimeout(this.retryRequest);
-                    this.backpackSlots = body.result.num_backpack_slots;
+    //                 clearTimeout(this.retryRequest);
+    //                 this.backpackSlots = body.result.num_backpack_slots;
 
-                    return resolve();
-                }
-            );
-        });
-    }
+    //                 return resolve();
+    //             }
+    //         );
+    //     });
+    // }
 
-    private getAccountBPTFPremiumStatus(): Promise<void> {
+    private getBPTFAccountInfo(): Promise<void> {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
@@ -3029,7 +3027,7 @@ export = class MyHandler extends Handler {
                     if (err) {
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
-                            this.getAccountBPTFPremiumStatus();
+                            this.getBPTFAccountInfo();
                         }, 5 * 60 * 1000);
                         return reject(err);
                     }
@@ -3038,6 +3036,7 @@ export = class MyHandler extends Handler {
                     const isPremium = user.premium ? user.premium === 1 : false;
 
                     this.isPremium = isPremium;
+                    this.backpackSlots = user.inventory['440'].slots.total;
 
                     return resolve();
                 }
