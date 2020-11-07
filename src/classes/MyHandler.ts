@@ -1647,7 +1647,10 @@ export = class MyHandler extends Handler {
                     if (process.env.CUSTOM_SUCCESS_MESSAGE) {
                         this.bot.sendMessage(offer.partner, process.env.CUSTOM_SUCCESS_MESSAGE);
                     } else {
-                        this.bot.sendMessage(offer.partner, '/pre ✅ Success! The offer has gone through successfully.');
+                        this.bot.sendMessage(
+                            offer.partner,
+                            '/pre ✅ Success! The offer has gone through successfully.'
+                        );
                     }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
                     this.bot.sendMessage(
@@ -2357,7 +2360,9 @@ export = class MyHandler extends Handler {
                               ).replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
                         (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
-                            ? `\n\nIt is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${timeWithEmojis.time +
+                            ? `\n\nIt is currently the following time in my owner's timezone: ${
+                                  timeWithEmojis.emoji
+                              } ${timeWithEmojis.time +
                                   (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
                             : '')
                 );

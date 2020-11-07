@@ -78,7 +78,7 @@ const ADMIN_COMMANDS: string[] = [
     '!resetqueue - Reset the queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
     "!inventory - Get the bot's current inventory spaces 🎒",
-    "!version - Get the tf2autobot version that the bot is running\n\n✨=== Manual review ===✨",
+    '!version - Get the tf2autobot version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
@@ -1906,7 +1906,10 @@ export = class Commands {
 
     private relistCommand(steamID: SteamID): void {
         if (this.first30Minutes) {
-            this.bot.sendMessage(steamID, `❌ I've started only recently, please wait 30 minutes before running this command.`);
+            this.bot.sendMessage(
+                steamID,
+                `❌ I've started only recently, please wait 30 minutes before running this command.`
+            );
             return;
         }
 
@@ -2447,7 +2450,10 @@ export = class Commands {
                             ) {
                                 // Contains non-5x uses.
                                 hasNot5Uses = true;
-                                log.debug('info', `Dueling Mini-Game (${item.assetid}) does not have 5 uses (re-checked).`);
+                                log.debug(
+                                    'info',
+                                    `Dueling Mini-Game (${item.assetid}) does not have 5 uses (re-checked).`
+                                );
                                 break;
                             }
                         }
