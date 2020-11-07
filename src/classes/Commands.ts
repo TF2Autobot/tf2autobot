@@ -2651,6 +2651,7 @@ export = class Commands {
         }
 
         params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
+        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
         requestCheck(params.sku, 'bptf').asCallback((err, body) => {
             if (err) {
@@ -2662,7 +2663,16 @@ export = class Commands {
                 return;
             }
 
-            this.bot.sendMessage(steamID, `⌛ Price check requested for ${body.name}, the item will be checked.`);
+            this.bot.sendMessage(
+                steamID,
+                `⌛ Price check requested for ${
+                    body.name.includes('War Paint') ||
+                    body.name.includes('Mann Co. Supply Crate Series #') ||
+                    body.name.includes('Salvaged Mann Co. Supply Crate #')
+                        ? name
+                        : body.name
+                }, the item will be checked.`
+            );
         });
     }
 

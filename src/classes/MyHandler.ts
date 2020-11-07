@@ -2044,7 +2044,15 @@ export = class MyHandler extends Handler {
                                     (err.body && err.body.message ? err.body.message : err.message)
                             );
                         } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
+                            log.debug(
+                                `✅ Requested pricecheck for ${
+                                    body.name.includes('War Paint') ||
+                                    body.name.includes('Mann Co. Supply Crate Series #') ||
+                                    body.name.includes('Salvaged Mann Co. Supply Crate #')
+                                        ? name
+                                        : body.name
+                                } (${sku}).`
+                            );
                         }
                     });
                 }
