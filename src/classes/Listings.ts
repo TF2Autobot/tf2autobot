@@ -134,7 +134,7 @@ export = class Listings {
                 json: true
             };
 
-            request(options, function(err, reponse, body) {
+            request(options, (err, reponse, body) => {
                 if (err) {
                     return reject(err);
                 }
@@ -234,7 +234,7 @@ export = class Listings {
             log.debug('Checking all');
 
             const doneRemovingAll = (): void => {
-                const next = callbackQueue.add('checkAllListings', function() {
+                const next = callbackQueue.add('checkAllListings', () => {
                     resolve();
                 });
 
@@ -303,7 +303,7 @@ export = class Listings {
             log.debug('Checking all');
 
             const doneRemovingAll = (): void => {
-                const next = callbackQueue.add('checkAllListings', function() {
+                const next = callbackQueue.add('checkAllListings', () => {
                     resolve();
                 });
 
@@ -372,7 +372,7 @@ export = class Listings {
             log.debug('Removing all listings');
 
             // Ensures that we don't to remove listings multiple times
-            const next = callbackQueue.add('removeAllListings', function(err) {
+            const next = callbackQueue.add('removeAllListings', err => {
                 if (err) {
                     return reject(err);
                 }

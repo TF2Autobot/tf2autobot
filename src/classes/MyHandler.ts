@@ -57,49 +57,17 @@ export = class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private fromEnv: {
-        autoAcceptOverpay: {
-            invalidItem: boolean;
-            overstocked: boolean;
-            understocked: boolean;
-        };
-        autoDecline: {
-            invalidValue: boolean;
-            overstocked: boolean;
-            understocked: boolean;
-        };
-        somethingWrong: {
-            enabled: boolean;
-            url: string;
-        };
-        tradeSummaryWebhook: {
-            enabled: boolean;
-            url: string;
-        };
-        reviewOfferWebhook: {
-            enabled: boolean;
-            url: string;
-        };
-        checkUses: {
-            duelEnabled: boolean;
-            noiseEnabled: boolean;
-        };
-        acceptGiftNoNotes: {
-            enabled: boolean;
-        };
-        autoRemoveIntentSell: boolean;
-        givePrice: boolean;
-        craftWeaponAsCurrency: boolean;
-        showMetal: boolean;
-        autokeysNotAcceptUnderstocked: boolean;
-        onlyTF2: boolean;
-    };
-
     private isTradingKeys = false;
 
     private customGameName: string;
 
     private backpackSlots = 0;
+
+    private isPremium = false;
+
+    private botName = '';
+
+    private botAvatarURL = '';
 
     private retryRequest;
 
@@ -112,6 +80,8 @@ export = class MyHandler extends Handler {
     private classWeaponsTimeout;
 
     private uptime: number;
+
+    private botSteamID: SteamID;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -129,49 +99,11 @@ export = class MyHandler extends Handler {
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
         const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
 
-        this.fromEnv = {
-            autoAcceptOverpay: {
-                invalidItem: process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true',
-                overstocked: process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false',
-                understocked: process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false'
-            },
-            autoDecline: {
-                invalidValue: process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true',
-                overstocked: process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false',
-                understocked: process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false'
-            },
-            somethingWrong: {
-                enabled: process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false',
-                url: process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
-            },
-            tradeSummaryWebhook: {
-                enabled: process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false',
-                url: process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
-            },
-            reviewOfferWebhook: {
-                enabled: process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false',
-                url: process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
-            },
-            checkUses: {
-                duelEnabled: process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false',
-                noiseEnabled: process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-            },
-            acceptGiftNoNotes: {
-                enabled: process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true'
-            },
-            autoRemoveIntentSell: process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true', // By default it will remove pricelist entry with intent=sell, unless this is set to true
-            givePrice: process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false',
-            craftWeaponAsCurrency: process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true',
-            showMetal: process.env.ENABLE_SHOW_ONLY_METAL === 'true',
-            autokeysNotAcceptUnderstocked: process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true',
-            onlyTF2: process.env.ENABLE_ONLY_PLAY_TF2 === 'true'
-        };
-
         const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
 
         let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
         if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
-            invalidValueExceptionSKU.forEach(function(sku: string) {
+            invalidValueExceptionSKU.forEach((sku: string) => {
                 if (sku === '' || !sku) {
                     invalidValueExceptionSKU = ['Not Set'];
                 }
@@ -225,7 +157,7 @@ export = class MyHandler extends Handler {
 
         const groups = parseJSON(process.env.GROUPS);
         if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(function(groupID64) {
+            groups.forEach(groupID64 => {
                 if (!new SteamID(groupID64).isValid()) {
                     throw new Error(`Invalid group SteamID64 "${groupID64}"`);
                 }
@@ -236,7 +168,7 @@ export = class MyHandler extends Handler {
 
         const friendsToKeep = parseJSON(process.env.KEEP).concat(this.bot.getAdmins());
         if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(function(steamID64) {
+            friendsToKeep.forEach(steamID64 => {
                 if (!new SteamID(steamID64).isValid()) {
                     throw new Error(`Invalid SteamID64 "${steamID64}"`);
                 }
@@ -254,6 +186,10 @@ export = class MyHandler extends Handler {
         return this.friendsToKeep.length;
     }
 
+    getBotSteamID(): SteamID {
+        return this.botSteamID;
+    }
+
     hasDupeCheckEnabled(): boolean {
         return this.dupeCheckEnabled;
     }
@@ -268,6 +204,13 @@ export = class MyHandler extends Handler {
 
     getBackpackSlots(): number {
         return this.backpackSlots;
+    }
+
+    getBotInfo(): { name: string; avatarURL: string; steamID: string } {
+        const name = this.botName;
+        const avatarURL = this.botAvatarURL;
+        const steamID = this.botSteamID.toString();
+        return { name, avatarURL, steamID };
     }
 
     getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
@@ -289,7 +232,7 @@ export = class MyHandler extends Handler {
             files.readFile(paths.files.pricelist, true),
             files.readFile(paths.files.loginAttempts, true),
             files.readFile(paths.files.pollData, true)
-        ]).then(function([loginKey, pricelist, loginAttempts, pollData]) {
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -307,11 +250,11 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
-        // GetBackpackSlots
-        this.requestBackpackSlots();
+        // Get Backpack slots and Premium info from backpack.tf
+        this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
         this.keepMetalSupply();
@@ -346,6 +289,8 @@ export = class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
+        this.botSteamID = this.bot.client.steamID;
+
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
             this.autoRefreshListings();
@@ -364,7 +309,7 @@ export = class MyHandler extends Handler {
                 this.autokeys.disable();
             }
 
-            this.bot.listings.removeAll().asCallback(function(err) {
+            this.bot.listings.removeAll().asCallback(err => {
                 if (err) {
                     log.warn('Failed to remove all listings: ', err);
                 }
@@ -377,7 +322,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
+            this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
         }
     }
 
@@ -408,7 +353,7 @@ export = class MyHandler extends Handler {
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
-        files.writeFile(paths.files.loginKey, loginKey, false).catch(function(err) {
+        files.writeFile(paths.files.loginKey, loginKey, false).catch(err => {
             log.warn('Failed to save login key: ', err);
         });
     }
@@ -423,7 +368,7 @@ export = class MyHandler extends Handler {
     }
 
     onLoginAttempts(attempts: number[]): void {
-        files.writeFile(paths.files.loginAttempts, attempts, true).catch(function(err) {
+        files.writeFile(paths.files.loginAttempts, attempts, true).catch(err => {
             log.warn('Failed to save login attempts: ', err);
         });
     }
@@ -457,6 +402,10 @@ export = class MyHandler extends Handler {
 
     private autoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
+        if (process.env.AUTOBUMP === 'true' && this.isPremium === false) {
+            return;
+        }
+
         setInterval(() => {
             log.debug('Running automatic check for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
@@ -492,7 +441,7 @@ export = class MyHandler extends Handler {
         clearTimeout(this.classWeaponsTimeout);
 
         const ourItems = Inventory.fromItems(
-            this.bot.client.steamID,
+            this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema
@@ -557,8 +506,6 @@ export = class MyHandler extends Handler {
         offer.data('dict', itemsDict);
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
-
-        const webhook = this.fromEnv.tradeSummaryWebhook;
 
         let hasHighValueOur = false;
         const highValuedOur: {
@@ -649,7 +596,10 @@ export = class MyHandler extends Handler {
 
                 log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
-                if (webhook.enabled && webhook.url) {
+                if (
+                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                ) {
                     highValuedOur.nameWithSpellsOrParts.push(
                         `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
@@ -730,7 +680,10 @@ export = class MyHandler extends Handler {
 
                 log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
-                if (webhook.enabled && webhook.url) {
+                if (
+                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                ) {
                     highValuedTheir.nameWithSpellsOrParts.push(
                         `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
@@ -790,7 +743,7 @@ export = class MyHandler extends Handler {
                 }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            if (this.fromEnv.acceptGiftNoNotes.enabled) {
+            if (process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true') {
                 offer.log(
                     'info',
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
@@ -823,7 +776,10 @@ export = class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (this.fromEnv.checkUses.duelEnabled || this.fromEnv.checkUses.noiseEnabled) {
+        if (
+            process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
+            process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+        ) {
             let hasNot5Uses = false;
             let hasNot25Uses = false;
             const noiseMakerSKU: string[] = [];
@@ -834,7 +790,7 @@ export = class MyHandler extends Handler {
                     return item.market_hash_name.includes(name);
                 });
 
-                if (isDuelingMiniGame && this.fromEnv.checkUses.duelEnabled) {
+                if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                     // Check for Dueling Mini-Game for 5x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
@@ -849,7 +805,7 @@ export = class MyHandler extends Handler {
                             break;
                         }
                     }
-                } else if (isNoiseMaker && this.fromEnv.checkUses.noiseEnabled) {
+                } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
                     // Check for Noise Maker for 25x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
@@ -898,7 +854,10 @@ export = class MyHandler extends Handler {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
-            if (this.fromEnv.somethingWrong.enabled && this.fromEnv.somethingWrong.url) {
+            if (
+                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+            ) {
                 this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
             } else {
                 this.bot.messageAdmins(
@@ -1010,7 +969,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craft.includes(sku) || uncraft.includes(sku)) &&
-                    this.fromEnv.craftWeaponAsCurrency &&
+                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -1018,9 +977,10 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = this.fromEnv.craftWeaponAsCurrency
-                        ? !(craft.includes(sku) || uncraft.includes(sku))
-                        : true;
+                    const notIncludeCraftweapon =
+                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
+                            ? !(craft.includes(sku) || uncraft.includes(sku))
+                            : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -1104,6 +1064,14 @@ export = class MyHandler extends Handler {
 
                         const item = SKU.fromString(sku);
 
+                        // "match" will return null if the item is not enabled
+                        // define "recheckMatch" with onlyEnabled = false
+                        const recheckMatch = this.bot.pricelist.getPrice(sku, false);
+
+                        // If recheckMatch is not null, then check the enabled key (most likely false here),
+                        // else means the item is truly not in pricelist and make "isCanBePriced" true
+                        const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
+
                         let itemSuggestedValue;
 
                         if (price === null) {
@@ -1113,8 +1081,13 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (this.fromEnv.givePrice && item.wear === null) {
+                            if (
+                                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' &&
+                                item.wear === null &&
+                                isCanBePriced
+                            ) {
                                 // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                                // and the item is not enabled=false,
                                 // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
@@ -1145,7 +1118,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.fromEnv.showMetal) {
+        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1213,7 +1186,7 @@ export = class MyHandler extends Handler {
                     this.bot.listings.checkBySKU('5021;6');
                 }
 
-                const isNotAcceptUnderstocked = this.fromEnv.autokeysNotAcceptUnderstocked;
+                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
@@ -1237,14 +1210,14 @@ export = class MyHandler extends Handler {
         const ourItemsSKU = itemsList.our;
         const theirItemsSKU = itemsList.their;
 
-        const isOurItems = exceptionSKU.some((fromEnv: string) => {
-            return ourItemsSKU.some((ourItemSKU: string) => {
+        const isOurItems = exceptionSKU.some(fromEnv => {
+            return ourItemsSKU.some(ourItemSKU => {
                 return ourItemSKU.includes(fromEnv);
             });
         });
 
-        const isThierItems = exceptionSKU.some((fromEnv: string) => {
-            return theirItemsSKU.some((theirItemSKU: string) => {
+        const isThierItems = exceptionSKU.some(fromEnv => {
+            return theirItemsSKU.some(theirItemSKU => {
                 return theirItemSKU.includes(fromEnv);
             });
         });
@@ -1395,7 +1368,7 @@ export = class MyHandler extends Handler {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function(err, result) {
+                    Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -1403,7 +1376,7 @@ export = class MyHandler extends Handler {
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(function(callback) {
+                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
 
@@ -1465,11 +1438,9 @@ export = class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
-            const env = this.fromEnv;
-
-            const canAcceptInvalidItemsOverpay = env.autoAcceptOverpay.invalidItem;
-            const canAcceptOverstockedOverpay = env.autoAcceptOverpay.overstocked;
-            const canAcceptUnderstockedOverpay = env.autoAcceptOverpay.understocked;
+            const canAcceptInvalidItemsOverpay = process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true';
+            const canAcceptOverstockedOverpay = process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false';
+            const canAcceptUnderstockedOverpay = process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false';
 
             // accepting 🟨_INVALID_ITEMS overpay
 
@@ -1547,7 +1518,7 @@ export = class MyHandler extends Handler {
                     }
                 };
             } else if (
-                env.autoDecline.invalidValue &&
+                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
                 isInvalidValue &&
                 !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
@@ -1555,14 +1526,14 @@ export = class MyHandler extends Handler {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
-                env.autoDecline.overstocked &&
+                process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false' &&
                 isOverstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
-                env.autoDecline.understocked &&
+                process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false' &&
                 isUnderstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
@@ -1637,6 +1608,7 @@ export = class MyHandler extends Handler {
 
         let hasHighValueOur = false;
         let hasHighValueTheir = false;
+        const theirHighValuedItems: string[] = [];
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1873,6 +1845,7 @@ export = class MyHandler extends Handler {
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
                                 accepted.highValue.push(name);
+                                theirHighValuedItems.push(name);
                             });
                         }
 
@@ -1890,6 +1863,7 @@ export = class MyHandler extends Handler {
                         hasHighValueTheir = true;
                         offerMade.nameWithSpellsOrParts.forEach(name => {
                             accepted.highValue.push(name);
+                            theirHighValuedItems.push(name);
                         });
                     }
                 }
@@ -2026,7 +2000,15 @@ export = class MyHandler extends Handler {
                                     (err.body && err.body.message ? err.body.message : err.message)
                             );
                         } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
+                            log.debug(
+                                `✅ Requested pricecheck for ${
+                                    body.name.includes('War Paint') ||
+                                    body.name.includes('Mann Co. Supply Crate Series #') ||
+                                    body.name.includes('Salvaged Mann Co. Supply Crate #')
+                                        ? name
+                                        : body.name
+                                } (${sku}).`
+                            );
                         }
                     });
                 }
@@ -2083,12 +2065,33 @@ export = class MyHandler extends Handler {
                         .updatePrice(entry as EntryData, true)
                         .then(() => {
                             log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
+
+                            let msg =
+                                `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
+                                `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
+                                ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
+                                '\n\nItem information:\n\n- ';
+
+                            for (let i = 0; i < theirHighValuedItems.length; i++) {
+                                if (theirHighValuedItems[i].includes(name)) {
+                                    msg += theirHighValuedItems[i];
+                                }
+                            }
+
+                            if (
+                                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
+                                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                            ) {
+                                this.discord.sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null);
+                            } else {
+                                this.bot.messageAdmins(msg, []);
+                            }
                         })
                         .catch(err => {
                             log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
                         });
                 } else if (
-                    this.fromEnv.autoRemoveIntentSell &&
+                    process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1
@@ -2218,7 +2221,10 @@ export = class MyHandler extends Handler {
 
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                    if (
+                        process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
+                        process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                    ) {
                         // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                         dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
                     } else {
@@ -2251,7 +2257,10 @@ export = class MyHandler extends Handler {
                         // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
                         const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
 
-                        if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                        if (
+                            process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
+                            process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                        ) {
                             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                             dupedFailedItemsName.push(
                                 `${name} - [history page](https://backpack.tf/item/${el.assetid})`
@@ -2265,7 +2274,10 @@ export = class MyHandler extends Handler {
                         for (let i = 0; i < el.sku.length; i++) {
                             const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
 
-                            if (this.fromEnv.reviewOfferWebhook.enabled && this.fromEnv.reviewOfferWebhook.url) {
+                            if (
+                                process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
+                                process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                            ) {
                                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                                 dupedFailedItemsName.push(
                                     `${name} - [history page](https://backpack.tf/item/${el.assetid})`
@@ -2775,7 +2787,7 @@ export = class MyHandler extends Handler {
         this.bot.getAdmins().forEach(steamID => {
             if (!this.bot.friends.isFriend(steamID)) {
                 log.info(`Not friends with admin ${steamID}, sending friend request...`);
-                this.bot.client.addFriend(steamID, function(err) {
+                this.bot.client.addFriend(steamID, err => {
                     if (err) {
                         log.warn('Failed to send friend request: ', err);
                     }
@@ -2789,7 +2801,7 @@ export = class MyHandler extends Handler {
 
         log.debug(`Sending friend request to ${steamID64}...`);
 
-        this.bot.client.addFriend(steamID, function(err) {
+        this.bot.client.addFriend(steamID, err => {
             if (err) {
                 log.warn(`Failed to a send friend request to ${steamID64}: `, err);
                 return;
@@ -2873,7 +2885,7 @@ export = class MyHandler extends Handler {
             const friendsWithTrades = this.bot.trades.getTradesWithPeople(friends);
 
             // Ignore friends to keep
-            this.friendsToKeep.forEach(function(steamID) {
+            this.friendsToKeep.forEach(steamID => {
                 delete friendsWithTrades[steamID];
             });
 
@@ -2912,44 +2924,85 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private requestBackpackSlots(): Promise<void> {
+    // private requestBackpackSlots(): Promise<void> {
+    //     return new Promise((resolve, reject) => {
+    //         request(
+    //             {
+    //                 url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+    //                 method: 'GET',
+    //                 qs: {
+    //                     key: this.bot.manager.apiKey,
+    //                     steamid: (this.bot.client.steamID === null
+    //                         ? this.botSteamID
+    //                         : this.bot.client.steamID
+    //                     ).getSteamID64()
+    //                 },
+    //                 json: true,
+    //                 gzip: true
+    //             },
+    //             (err, response, body) => {
+    //                 if (err) {
+    //                     // if failed, retry after 10 minutes.
+    //                     log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+    //                     clearTimeout(this.retryRequest);
+    //                     this.retryRequest = setTimeout(() => {
+    //                         this.requestBackpackSlots();
+    //                     }, 10 * 60 * 1000);
+    //                     return reject();
+    //                 }
+
+    //                 if (body.result.status != 1) {
+    //                     err = new Error(body.result.statusDetail);
+    //                     err.status = body.result.status;
+    //                     log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
+    //                     // if failed, retry after 10 minutes.
+    //                     clearTimeout(this.retryRequest);
+    //                     this.retryRequest = setTimeout(() => {
+    //                         this.requestBackpackSlots();
+    //                     }, 10 * 60 * 1000);
+    //                     return reject();
+    //                 }
+
+    //                 clearTimeout(this.retryRequest);
+    //                 this.backpackSlots = body.result.num_backpack_slots;
+
+    //                 return resolve();
+    //             }
+    //         );
+    //     });
+    // }
+
+    private getBPTFAccountInfo(): Promise<void> {
         return new Promise((resolve, reject) => {
+            const steamID64 = this.bot.manager.steamID.getSteamID64();
+
             request(
                 {
-                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+                    url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
                     qs: {
-                        key: this.bot.manager.apiKey,
-                        steamid: this.bot.client.steamID.getSteamID64()
+                        key: process.env.BPTF_API_KEY,
+                        steamids: steamID64
                     },
-                    json: true,
-                    gzip: true
+                    gzip: true,
+                    json: true
                 },
-                (err, response, body) => {
+                (err, reponse, body) => {
                     if (err) {
-                        // if failed, retry after 10 minutes.
-                        log.debug('Failed to obtain backpack slots, retrying in 10 minutes: ', err);
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-                        return reject();
+                            this.getBPTFAccountInfo();
+                        }, 5 * 60 * 1000);
+                        return reject(err);
                     }
 
-                    if (body.result.status != 1) {
-                        err = new Error(body.result.statusDetail);
-                        err.status = body.result.status;
-                        log.debug('Failed to obtain backpack slots, retrying in 10 minutes: ', err);
-                        // if failed, retry after 10 minutes.
-                        clearTimeout(this.retryRequest);
-                        this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-                        return reject();
-                    }
+                    const user = body.users[steamID64];
+                    const isPremium = user.premium ? user.premium === 1 : false;
 
-                    clearTimeout(this.retryRequest);
-                    this.backpackSlots = body.result.num_backpack_slots;
+                    this.isPremium = isPremium;
+                    this.backpackSlots = user.inventory['440'].slots.total;
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
 
                     return resolve();
                 }
@@ -3004,7 +3057,7 @@ export = class MyHandler extends Handler {
                 }
             };
 
-            if (!this.fromEnv.showMetal) {
+            if (!(process.env.ENABLE_SHOW_ONLY_METAL === 'true')) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
                 if (this.isTradingKeys) {
                     // If trading keys, then their side need to use buying key price.
@@ -3679,14 +3732,14 @@ export = class MyHandler extends Handler {
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Member &&
                 this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Blocked
             ) {
-                this.bot.community.getSteamGroup(new SteamID(steamID), function(err, group) {
+                this.bot.community.getSteamGroup(new SteamID(steamID), (err, group) => {
                     if (err) {
                         log.warn('Failed to get group: ', err);
                         return;
                     }
 
                     log.info(`Not member of group ${group.name} ("${steamID}"), joining...`);
-                    group.join(function(err) {
+                    group.join(err => {
                         if (err) {
                             log.warn('Failed to join group: ', err);
                         }
@@ -3697,7 +3750,7 @@ export = class MyHandler extends Handler {
     }
 
     onPollData(pollData: PollData): void {
-        files.writeFile(paths.files.pollData, pollData, true).catch(function(err) {
+        files.writeFile(paths.files.pollData, pollData, true).catch(err => {
             log.warn('Failed to save polldata: ', err);
         });
     }
@@ -3716,7 +3769,7 @@ export = class MyHandler extends Handler {
                 pricelist.map(entry => entry.getJSON()),
                 true
             )
-            .catch(function(err) {
+            .catch(err => {
                 log.warn('Failed to save pricelist: ', err);
             });
     }
@@ -3731,7 +3784,7 @@ export = class MyHandler extends Handler {
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(this.fromEnv.onlyTF2 ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
     }
 };
 

@@ -44,7 +44,7 @@ SchemaManager.prototype.getSchema = function(callback): void {
             this.setSchema(schema, true);
             callback(null, this.schema);
         })
-        .catch(function(err) {
+        .catch(err => {
             callback(err);
         });
 };
@@ -59,7 +59,7 @@ import ON_DEATH from 'death';
 // This error is a false positive.
 // The signal and err are being created dynamically.
 // Treat them as any for now.
-ON_DEATH({ uncaughtException: true })(function(signal, err) {
+ON_DEATH({ uncaughtException: true })((signal, err) => {
     const crashed = typeof err !== 'string';
 
     if (crashed) {
@@ -95,7 +95,7 @@ ON_DEATH({ uncaughtException: true })(function(signal, err) {
     botManager.stop(crashed ? err : null, true, signal === 'SIGKILL');
 });
 
-process.on('message', function(message) {
+process.on('message', message => {
     if (message === 'shutdown') {
         log.warn('Process received shutdown message, stopping...');
 
@@ -108,18 +108,18 @@ process.on('message', function(message) {
 import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 
-['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(function(v) {
+['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
     EconItem.prototype[v] = require('./lib/extend/item/' + v);
     CEconItem.prototype[v] = require('./lib/extend/item/' + v);
 });
 
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
 
-['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(function(v) {
+['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(v => {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
-botManager.start().asCallback(function(err) {
+botManager.start().asCallback(err => {
     if (err) {
         throw err;
     }

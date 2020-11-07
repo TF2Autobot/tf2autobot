@@ -73,7 +73,10 @@ export = class Friends {
             gzip: true,
             qs: {
                 key: this.bot.manager.apiKey,
-                steamid: this.bot.client.steamID.getSteamID64()
+                steamid: (this.bot.client.steamID === null
+                    ? (this.bot.handler as MyHandler).getBotSteamID()
+                    : this.bot.client.steamID
+                ).getSteamID64()
             }
         };
 

@@ -38,11 +38,11 @@ export = class BotManager {
             this.socket.emit('authentication', process.env.PRICESTF_API_TOKEN || undefined);
         });
 
-        this.socket.on('authenticated', function() {
+        this.socket.on('authenticated', () => {
             log.debug('Authenticated with socket server');
         });
 
-        this.socket.on('unauthorized', function(err) {
+        this.socket.on('unauthorized', err => {
             log.debug('Failed to authenticate with socket server', {
                 error: err
             });
@@ -75,7 +75,7 @@ export = class BotManager {
 
     start(): Promise<void> {
         return new Promise((resolve, reject) => {
-            REQUIRED_OPTS.forEach(function(optName) {
+            REQUIRED_OPTS.forEach(optName => {
                 if (!process.env[optName]) {
                     return reject(new Error(`Missing required environment variable "${optName}"`));
                 }
@@ -179,7 +179,7 @@ export = class BotManager {
 
             log.warn('Stop has been requested, stopping...');
 
-            pm2.stop(process.env.pm_id, function(err) {
+            pm2.stop(process.env.pm_id, err => {
                 if (err) {
                     return reject(err);
                 }
@@ -199,7 +199,7 @@ export = class BotManager {
 
             log.warn('Restart has been initialized, restarting...');
 
-            pm2.restart(process.env.pm_id, function(err) {
+            pm2.restart(process.env.pm_id, err => {
                 if (err) {
                     return reject(err);
                 }
@@ -245,10 +245,10 @@ export = class BotManager {
         }
 
         log.debug('Waiting for files to be saved');
-        waitForWriting().then(function() {
+        waitForWriting().then(() => {
             log.debug('Done waiting for files');
 
-            log.on('finish', function() {
+            log.on('finish', () => {
                 // Logger has finished, exit the process
                 process.exit(err ? 1 : 0);
             });
@@ -262,7 +262,7 @@ export = class BotManager {
 
     connectToPM2(): Promise<void> {
         return new Promise((resolve, reject) => {
-            pm2.connect(function(err) {
+            pm2.connect(err => {
                 if (err) {
                     return reject(err);
                 }
@@ -274,7 +274,7 @@ export = class BotManager {
 
     initializeSchema(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.schemaManager.init(function(err) {
+            this.schemaManager.init(err => {
                 if (err) {
                     return reject(err);
                 }

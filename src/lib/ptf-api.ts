@@ -45,8 +45,8 @@ function apiRequest(httpMethod: string, path: string, input: UnknownDictionary<a
 
     options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
 
-    return new Promise(function(resolve, reject) {
-        request(options, function(err: Error | null, response: ResponseAsJSON, body: UnknownDictionary<any>) {
+    return new Promise((resolve, reject) => {
+        request(options, (err: Error | null, response: ResponseAsJSON, body: UnknownDictionary<any>) => {
             if (err) {
                 return reject(err);
             }

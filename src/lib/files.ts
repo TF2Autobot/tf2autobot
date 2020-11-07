@@ -12,7 +12,7 @@ export function readFile(p: string, json: boolean): Promise<any> {
             return;
         }
 
-        fs.readFile(p, { encoding: 'utf8' }, function(err, data) {
+        fs.readFile(p, { encoding: 'utf8' }, (err, data) => {
             if (err) {
                 return reject(err);
             }
@@ -53,7 +53,7 @@ export function writeFile(p: string, data: any, json: boolean): Promise<void> {
         if (fs.existsSync(dir)) {
             writeFile();
         } else {
-            fs.mkdir(dir, { recursive: true }, function(err) {
+            fs.mkdir(dir, { recursive: true }, err => {
                 if (err) {
                     return reject(err);
                 }
@@ -64,7 +64,7 @@ export function writeFile(p: string, data: any, json: boolean): Promise<void> {
 
         function writeFile(): void {
             filesBeingSaved++;
-            fs.writeFile(p, write, { encoding: 'utf8' }, function(err) {
+            fs.writeFile(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 
                 if (err) {
@@ -85,7 +85,7 @@ export function deleteFile(p: string): Promise<void> {
         }
 
         filesBeingSaved++;
-        fs.unlink(p, function(err) {
+        fs.unlink(p, err => {
             filesBeingSaved--;
             if (err) {
                 return reject(err);
