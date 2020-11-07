@@ -23,7 +23,7 @@ function isBptfBanned(steamID: SteamID | string): Promise<boolean> {
                 gzip: true,
                 json: true
             },
-            function(err, response, body) {
+            (err, response, body) => {
                 if (err) {
                     return reject(err);
                 }
@@ -50,7 +50,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string): Promise<boolean> {
                 gzip: true,
                 json: true
             },
-            function(err, response, body) {
+            (err, response, body) => {
                 if (err) {
                     return reject(err);
                 }
@@ -77,7 +77,7 @@ function isSteamRepMarked(steamID: SteamID | string): Promise<boolean> {
                 gzip: true,
                 json: true
             },
-            function(err, response, body) {
+            (err, response, body) => {
                 if (err) {
                     return isBptfSteamRepBanned(steamID64);
                 }

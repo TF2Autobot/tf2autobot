@@ -17,10 +17,6 @@ export = class DiscordWebhookClass {
 
     private ownerID: string;
 
-    private botName: string;
-
-    private botAvatarURL: string;
-
     private botEmbedColor: string;
 
     tradeSummaryLinks: string[];
@@ -35,18 +31,12 @@ export = class DiscordWebhookClass {
         const ownerID = process.env.DISCORD_OWNER_ID;
         this.ownerID = ownerID;
 
-        const botName = process.env.DISCORD_WEBHOOK_USERNAME;
-        this.botName = botName;
-
-        const botAvatarURL = process.env.DISCORD_WEBHOOK_AVATAR_URL;
-        this.botAvatarURL = botAvatarURL;
-
         const botEmbedColor = process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX;
         this.botEmbedColor = botEmbedColor;
 
         let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
         if (links !== null && Array.isArray(links)) {
-            links.forEach(function(sku: string) {
+            links.forEach((sku: string) => {
                 if (sku === '' || !sku) {
                     links = [];
                 }
@@ -59,7 +49,7 @@ export = class DiscordWebhookClass {
 
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
-            skuFromEnv.forEach(function(sku: string) {
+            skuFromEnv.forEach((sku: string) => {
                 if (sku === '' || !sku) {
                     skuFromEnv = ['Not set'];
                 }
@@ -100,17 +90,25 @@ export = class DiscordWebhookClass {
             title = 'Automatic restart failed - Error';
             description = `❌ An error occurred while trying to restart: ${err.message}`;
             color = '16711680'; // red
+        } else if (type === 'highValuedDisabled') {
+            title = 'Temporarily disabled items with High value attachments';
+            description = msg;
+            color = '8323327'; // purple
         } else {
             title = 'High Valued Items';
             description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
             color = '8323327'; // purple
         }
 
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
+
         /*eslint-disable */
         const webhook = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
-            content: type === 'highValue' ? `<@!${this.ownerID}>` : '',
+            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                : botInfo.avatarURL,
+            content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${this.ownerID}>` : '',
             embeds: [
                 {
                     title: title,
@@ -140,10 +138,14 @@ export = class DiscordWebhookClass {
         steamREP: string,
         time: string
     ): void {
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
+
         /*eslint-disable */
         const discordPartnerMsg = JSON.stringify({
-            username: this.botName,
-            avatar_url: this.botAvatarURL,
+            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                : botInfo.avatarURL,
             content: `<@!${this.ownerID}>, new message! - ${steamID}`,
             embeds: [
                 {
@@ -203,8 +205,7 @@ export = class DiscordWebhookClass {
             }
         }
         const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${this.ownerID}>, check this! - ${offer.id}`;
-        const botName = this.botName;
-        const botAvatarURL = this.botAvatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         const botEmbedColor = this.botEmbedColor;
 
         const pureStock = (this.bot.handler as MyHandler).pureStock();
@@ -231,7 +232,7 @@ export = class DiscordWebhookClass {
         let partnerAvatar: string;
         let partnerName: string;
         log.debug('getting partner Avatar and Name...');
-        offer.getUserDetails(function(err, me, them) {
+        offer.getUserDetails((err, me, them) => {
             if (err) {
                 log.debug('Error retrieving partner Avatar and Name: ', err);
                 partnerAvatar =
@@ -247,8 +248,10 @@ export = class DiscordWebhookClass {
 
             /*eslint-disable */
             const webhookReview = {
-                username: botName,
-                avatar_url: botAvatarURL,
+                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
                     {
@@ -355,14 +358,14 @@ export = class DiscordWebhookClass {
         const itemList = listItems(itemsName);
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
-        const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
-            return ourItems.some((ourItemSKU: string) => {
+        const isMentionOurItems = this.skuToMention.some(fromEnv => {
+            return ourItems.some(ourItemSKU => {
                 return ourItemSKU.includes(fromEnv);
             });
         });
 
-        const isMentionThierItems = this.skuToMention.some((fromEnv: string) => {
-            return theirItems.some((theirItemSKU: string) => {
+        const isMentionThierItems = this.skuToMention.some(fromEnv => {
+            return theirItems.some(theirItemSKU => {
                 return theirItemSKU.includes(fromEnv);
             });
         });
@@ -385,8 +388,7 @@ export = class DiscordWebhookClass {
                 ? `<@!${this.ownerID}>`
                 : '';
 
-        const botName = this.botName;
-        const botAvatarURL = this.botAvatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         const botEmbedColor = this.botEmbedColor;
 
         const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
@@ -405,7 +407,7 @@ export = class DiscordWebhookClass {
         let personaName: string;
         let avatarFull: string;
         log.debug('getting partner Avatar and Name...');
-        this.getPartnerDetails(offer, function(err, details) {
+        this.getPartnerDetails(offer, (err, details) => {
             if (err) {
                 log.debug('Error retrieving partner Avatar and Name: ', err);
                 personaName = 'unknown';
@@ -427,8 +429,10 @@ export = class DiscordWebhookClass {
 
             /*eslint-disable */
             const acceptedTradeSummary = {
-                username: botName,
-                avatar_url: botAvatarURL,
+                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
+                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                    : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
                     {
@@ -478,7 +482,7 @@ export = class DiscordWebhookClass {
                                     (AdditionalNotes
                                         ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                           AdditionalNotes
-                                        : '')
+                                        : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                             }
                         ],
                         color: botEmbedColor
@@ -525,7 +529,7 @@ export = class DiscordWebhookClass {
     private getPartnerDetails(offer: TradeOffer, callback: (err: any, details: any) => void): any {
         // check state of the offer
         if (offer.state === TradeOfferManager.ETradeOfferState.active) {
-            offer.getUserDetails(function(err, me, them) {
+            offer.getUserDetails((err, me, them) => {
                 if (err) {
                     callback(err, {});
                 } else {

@@ -12,7 +12,7 @@ export = function(description: string): boolean {
         return false;
     }
 
-    return self.descriptions.some(function(d) {
+    return self.descriptions.some(d => {
         return d.value === description;
     });
 };

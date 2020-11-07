@@ -272,7 +272,7 @@ export = class TF2GC {
 
         this.listenForEvent(
             'itemRemoved',
-            function(item) {
+            item => {
                 return { success: item.id === job.assetid };
             },
             () => {
@@ -475,15 +475,15 @@ export = class TF2GC {
 
             this.listenForEvent(
                 'connectedToGC',
-                function() {
+                () => {
                     log.debug('running connectToGC iterator...');
                     return { success: true };
                 },
-                function() {
+                () => {
                     log.debug('onSuccess connectToGC.');
                     resolve();
                 },
-                function() {
+                () => {
                     log.debug('onFail connectToGC.');
                     bot.client.gamesPlayed([]);
                     reject(new Error('Could not connect to TF2 GC, restarting TF2..'));

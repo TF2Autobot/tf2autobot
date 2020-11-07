@@ -58,7 +58,7 @@ class UserCart extends Cart {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    Promise.resolve(inventory.isDuped(assetid)).asCallback(function(err, result) {
+                    Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -66,7 +66,7 @@ class UserCart extends Cart {
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(function(callback) {
+                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
 

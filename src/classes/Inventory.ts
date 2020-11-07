@@ -118,7 +118,7 @@ export = class Inventory {
         const tradable: EconItem[] = [];
         const nonTradable: EconItem[] = [];
 
-        items.forEach(function(item) {
+        items.forEach(item => {
             if (item.tradable) {
                 tradable.push(item);
             } else {

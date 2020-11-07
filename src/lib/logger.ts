@@ -24,7 +24,7 @@ const colors = {
 
 winston.addColors(colors);
 
-const levelFilter = function(level: string): FormatWrap {
+const levelFilter = (level: string): FormatWrap => {
     return winston.format(info => {
         if (info.level !== level) {
             return false;
@@ -114,7 +114,7 @@ const transports = [
     }
 ];
 
-transports.forEach(function(transport) {
+transports.forEach(transport => {
     const type = transport.type;
 
     delete transport.type;
