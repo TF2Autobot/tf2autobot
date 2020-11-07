@@ -2989,11 +2989,14 @@ export = class MyHandler extends Handler {
                 },
                 (err, reponse, body) => {
                     if (err) {
+                        log.debug('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                         clearTimeout(this.retryRequest);
+
                         this.retryRequest = setTimeout(() => {
                             this.getBPTFAccountInfo();
                         }, 5 * 60 * 1000);
-                        return reject(err);
+
+                        return reject();
                     }
 
                     const user = body.users[steamID64];
