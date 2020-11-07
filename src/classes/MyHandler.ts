@@ -209,7 +209,7 @@ export = class MyHandler extends Handler {
     getBotInfo(): { name: string; avatarURL: string; steamID: string } {
         const name = this.botName;
         const avatarURL = this.botAvatarURL;
-        const steamID = this.botSteamID.toString();
+        const steamID = this.botSteamID.getSteamID64();
         return { name, avatarURL, steamID };
     }
 
