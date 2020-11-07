@@ -36,7 +36,7 @@ export = class DiscordWebhookClass {
 
         let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
         if (links !== null && Array.isArray(links)) {
-            links.forEach(function(sku: string) {
+            links.forEach((sku: string) => {
                 if (sku === '' || !sku) {
                     links = [];
                 }
@@ -49,7 +49,7 @@ export = class DiscordWebhookClass {
 
         let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
-            skuFromEnv.forEach(function(sku: string) {
+            skuFromEnv.forEach((sku: string) => {
                 if (sku === '' || !sku) {
                     skuFromEnv = ['Not set'];
                 }
@@ -232,7 +232,7 @@ export = class DiscordWebhookClass {
         let partnerAvatar: string;
         let partnerName: string;
         log.debug('getting partner Avatar and Name...');
-        offer.getUserDetails(function(err, me, them) {
+        offer.getUserDetails((err, me, them) => {
             if (err) {
                 log.debug('Error retrieving partner Avatar and Name: ', err);
                 partnerAvatar =
@@ -358,14 +358,14 @@ export = class DiscordWebhookClass {
         const itemList = listItems(itemsName);
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
-        const isMentionOurItems = this.skuToMention.some((fromEnv: string) => {
-            return ourItems.some((ourItemSKU: string) => {
+        const isMentionOurItems = this.skuToMention.some(fromEnv => {
+            return ourItems.some(ourItemSKU => {
                 return ourItemSKU.includes(fromEnv);
             });
         });
 
-        const isMentionThierItems = this.skuToMention.some((fromEnv: string) => {
-            return theirItems.some((theirItemSKU: string) => {
+        const isMentionThierItems = this.skuToMention.some(fromEnv => {
+            return theirItems.some(theirItemSKU => {
                 return theirItemSKU.includes(fromEnv);
             });
         });
@@ -407,7 +407,7 @@ export = class DiscordWebhookClass {
         let personaName: string;
         let avatarFull: string;
         log.debug('getting partner Avatar and Name...');
-        this.getPartnerDetails(offer, function(err, details) {
+        this.getPartnerDetails(offer, (err, details) => {
             if (err) {
                 log.debug('Error retrieving partner Avatar and Name: ', err);
                 personaName = 'unknown';
@@ -529,7 +529,7 @@ export = class DiscordWebhookClass {
     private getPartnerDetails(offer: TradeOffer, callback: (err: any, details: any) => void): any {
         // check state of the offer
         if (offer.state === TradeOfferManager.ETradeOfferState.active) {
-            offer.getUserDetails(function(err, me, them) {
+            offer.getUserDetails((err, me, them) => {
                 if (err) {
                     callback(err, {});
                 } else {

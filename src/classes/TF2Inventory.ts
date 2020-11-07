@@ -147,7 +147,7 @@ export = class TF2Inventory {
                         Cookie: 'user-id=' + uid(12)
                     }
                 },
-                function(err, response, body) {
+                (err, response, body) => {
                     if (err) {
                         return reject(err);
                     }

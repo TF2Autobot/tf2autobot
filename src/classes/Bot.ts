@@ -126,7 +126,7 @@ export = class Bot {
             (steamID: string) => new SteamID(steamID)
         );
 
-        this.admins.forEach(function(steamID) {
+        this.admins.forEach(steamID => {
             if (!steamID.isValid()) {
                 throw new Error('Invalid admin steamID');
             }
@@ -269,7 +269,7 @@ export = class Bot {
                     url: 'https://raw.githubusercontent.com/idinium96/tf2autobot/master/package.json',
                     json: true
                 },
-                function(err, response, body) {
+                (err, response, body) => {
                     if (err) {
                         return reject(err);
                     }
@@ -330,7 +330,7 @@ export = class Bot {
                             'Checking account limitations - Please disable this in the config by setting `SKIP_ACCOUNT_LIMITATIONS` to true'
                         );
 
-                        this.getAccountLimitations().asCallback(function(err, limitations) {
+                        this.getAccountLimitations().asCallback((err, limitations) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -500,7 +500,7 @@ export = class Bot {
         this.community.setCookies(cookies);
 
         return new Promise((resolve, reject) => {
-            this.manager.setCookies(cookies, function(err) {
+            this.manager.setCookies(cookies, err => {
                 if (err) {
                     return reject(err);
                 }
@@ -569,7 +569,7 @@ export = class Bot {
         return this.community._jar
             .getCookies('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
-            .map(function(cookie) {
+            .map(cookie => {
                 return `${cookie.key}=${cookie.value}`;
             });
     }
@@ -598,7 +598,7 @@ export = class Bot {
 
     private getBptfAccessToken(): Promise<string> {
         return new Promise((resolve, reject) => {
-            this.bptf.getAccessToken(function(err, accessToken) {
+            this.bptf.getAccessToken((err, accessToken) => {
                 if (err) {
                     return reject(err);
                 }
@@ -786,7 +786,7 @@ export = class Bot {
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
         log.debug('Conf key needed');
 
-        this.getTimeOffset().asCallback(function(err, offset) {
+        this.getTimeOffset().asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
             const confKey = SteamTotp.getConfirmationKey(process.env.STEAM_IDENTITY_SECRET, time, tag);
 
@@ -840,7 +840,7 @@ export = class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            this.login().asCallback(function(err) {
+            this.login().asCallback(err => {
                 if (err) {
                     throw err;
                 }

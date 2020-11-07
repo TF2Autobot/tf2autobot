@@ -172,7 +172,7 @@ export = class Trades {
     getTradesWithPeople(steamIDs: SteamID[] | string[]): UnknownDictionary<number> {
         const tradesBySteamID = {};
 
-        steamIDs.forEach(function(steamID) {
+        steamIDs.forEach(steamID => {
             tradesBySteamID[steamID.toString()] = 0;
         });
 
@@ -687,7 +687,7 @@ export = class Trades {
                     operation.reset();
 
                     // Wait for bot to sign in to retry
-                    this.bot.getWebSession(true).asCallback(function() {
+                    this.bot.getWebSession(true).asCallback(() => {
                         // Callback was called, ignore error from callback and retry
                         operation.retry(err);
                     });

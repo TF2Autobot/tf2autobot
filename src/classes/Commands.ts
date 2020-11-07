@@ -898,7 +898,7 @@ export = class Commands {
             });
         }
 
-        items.sort(function(a, b) {
+        items.sort((a, b) => {
             if (a.amount === b.amount) {
                 if (a.name < b.name) {
                     return -1;
@@ -1036,7 +1036,7 @@ export = class Commands {
             });
         });
 
-        sales.sort(function(a, b) {
+        sales.sort((a, b) => {
             return b.date - a.date;
         });
 
@@ -1829,7 +1829,7 @@ export = class Commands {
 
         const sendMessage = this.bot;
 
-        this.bot.client.blockUser(targetSteamID64, function(err) {
+        this.bot.client.blockUser(targetSteamID64, err => {
             if (err) {
                 log.warn(`Failed to block user ${targetSteamID64}: `, err);
                 sendMessage.sendMessage(steamID, `❌ Failed to block user ${targetSteamID64}: ${err}`);
@@ -1856,7 +1856,7 @@ export = class Commands {
 
         const sendMessage = this.bot;
 
-        this.bot.client.unblockUser(targetSteamID64, function(err) {
+        this.bot.client.unblockUser(targetSteamID64, err => {
             if (err) {
                 log.warn(`Failed to unblock user ${targetSteamID64}: `, err);
                 sendMessage.sendMessage(steamID, `❌ Failed to unblock user ${targetSteamID64}: ${err}`);
@@ -3112,7 +3112,7 @@ export = class Commands {
             }
         });
 
-        items.sort(function(a, b) {
+        items.sort((a, b) => {
             if (a.amount === b.amount) {
                 if (a.name < b.name) {
                     return -1;
@@ -3150,7 +3150,7 @@ export = class Commands {
             }
         });
 
-        items.sort(function(a, b) {
+        items.sort((a, b) => {
             if (a.amount === b.amount) {
                 if (a.name < b.name) {
                     return -1;
