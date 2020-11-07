@@ -55,7 +55,7 @@ class CartQueue {
             log.debug(`Current queue position: ${position}`);
             if (position >= 2) {
                 this.resetQueue();
-                this.bot.sendMessage(steamID, 'Sorry! Something went wrong. You can try again now...');
+                this.bot.sendMessage(steamID, 'Sorry! Something went wrong. Please try again.');
             }
         }, 3 * 60 * 1000);
     }
