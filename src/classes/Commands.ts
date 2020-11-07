@@ -78,14 +78,14 @@ const ADMIN_COMMANDS: string[] = [
     '!resetqueue - Reset the queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
     "!inventory - Get the bot's current inventory spaces 🎒",
-    '!version - Get the tf2autobot version that the bot is running\n\n✨=== Manual review ===✨',
+    '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
     '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
     '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
-    "!pricecheckall - Request all items in the bot's inventory to be price checked by Prices.TF\n\n✨=== Misc ===✨",
+    "!pricecheckall - Request all items in the bot's pricelist to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
     '!uptime - Show the bot uptime 🔌',
@@ -742,7 +742,7 @@ export = class Commands {
             if (!steamIDreg.test(steamIdAndMessage) || !steamIDreg || parts.length < 3) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong or the SteamID is malformed. Here\'s an example: "!message 76561198120070906 Hi"' +
+                    '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
                         "\n\nHow to get the targeted user's SteamID?" +
                         '\n1. Go to his/her profile page.' +
                         '\n2. Go to https://steamrep.com/' +
