@@ -101,6 +101,8 @@ export = class MyHandler extends Handler {
 
     private backpackSlots = 0;
 
+    private isPremium = false;
+
     private retryRequest;
 
     private autokeysStatus: {
@@ -354,6 +356,8 @@ export = class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
+        this.getAccountBPTFPremiumStatus();
+
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
             this.autoRefreshListings();
@@ -465,6 +469,10 @@ export = class MyHandler extends Handler {
 
     private autoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
+        if (process.env.AUTOBUMP === 'true' && this.isPremium === false) {
+            return;
+        }
+
         setInterval(() => {
             log.debug('Running automatic checking for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
@@ -2995,6 +3003,41 @@ export = class MyHandler extends Handler {
 
                     clearTimeout(this.retryRequest);
                     this.backpackSlots = body.result.num_backpack_slots;
+
+                    return resolve();
+                }
+            );
+        });
+    }
+
+    private getAccountBPTFPremiumStatus(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const steamID64 = this.bot.manager.steamID.getSteamID64();
+
+            request(
+                {
+                    url: 'https://backpack.tf/api/users/info/v1',
+                    method: 'GET',
+                    qs: {
+                        key: process.env.BPTF_API_KEY,
+                        steamids: steamID64
+                    },
+                    gzip: true,
+                    json: true
+                },
+                (err, reponse, body) => {
+                    if (err) {
+                        clearTimeout(this.retryRequest);
+                        this.retryRequest = setTimeout(() => {
+                            this.getAccountBPTFPremiumStatus();
+                        }, 5 * 60 * 1000);
+                        return reject(err);
+                    }
+
+                    const user = body.users[steamID64];
+                    const isPremium = user.premium ? user.premium === 1 : false;
+
+                    this.isPremium = isPremium;
 
                     return resolve();
                 }
