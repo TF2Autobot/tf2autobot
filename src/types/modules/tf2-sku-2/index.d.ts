@@ -1,4 +1,4 @@
-declare module 'tf2-sku' {
+declare module 'tf2-sku-2' {
     export function fromObject(item: {
         defindex: number;
         quality: number;

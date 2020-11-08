@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
@@ -23,7 +23,7 @@ import { fixItem } from '../lib/items';
 import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 import Autokeys from './Autokeys';
 
 const COMMANDS: string[] = [

@@ -1,5 +1,5 @@
 import callbackQueue from 'callback-queue';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from '@nicklason/request-retry';
 import async from 'async';

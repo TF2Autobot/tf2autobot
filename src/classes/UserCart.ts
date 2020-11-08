@@ -1,5 +1,5 @@
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 
