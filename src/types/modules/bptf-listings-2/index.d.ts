@@ -1,4 +1,4 @@
-declare module 'bptf-listings' {
+declare module 'bptf-listings-2' {
     import { EventEmitter } from 'events';
     import SchemaManager from 'tf2-schema';
     import SteamID from 'steamid';

@@ -15,7 +15,7 @@ import SteamUser from 'steam-user';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager from 'bptf-listings';
+import ListingManager from 'bptf-listings-2';
 import SchemaManager from 'tf2-schema';
 import BptfLogin from 'bptf-login';
 import TF2 from 'tf2';
