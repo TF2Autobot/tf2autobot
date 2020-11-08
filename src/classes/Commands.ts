@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';

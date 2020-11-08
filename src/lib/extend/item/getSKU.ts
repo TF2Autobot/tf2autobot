@@ -1,7 +1,7 @@
 import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
 
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import url from 'url';
 
 // import log from '../../../lib/logger';

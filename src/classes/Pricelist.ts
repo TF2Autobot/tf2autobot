@@ -4,7 +4,7 @@ import { UnknownDictionary } from '../types/common';
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';

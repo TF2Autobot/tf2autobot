@@ -6,7 +6,7 @@ import CartQueue from './CartQueue';
 import Inventory from './Inventory';
 import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
-import SKU from 'tf2-sku';
+import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
 import sleepasync from 'sleep-async';
 
