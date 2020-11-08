@@ -32,7 +32,7 @@ if (process.env.pm_id === undefined) {
     );
 }
 
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 import { getSchema } from './lib/ptf-api';
 
 // Make the schema manager request the schema from PricesTF

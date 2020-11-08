@@ -1,5 +1,5 @@
 import { Item } from '../types/TeamFortress2';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 
 import isObject from 'isobject';
 

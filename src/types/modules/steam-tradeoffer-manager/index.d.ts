@@ -1,7 +1,7 @@
 declare module 'steam-tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager from 'tf2-schema';
+    import SchemaManager from 'tf2-schema-2';
 
     interface UnknownKeys<T> {
         [key: string]: T;

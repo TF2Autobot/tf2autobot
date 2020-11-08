@@ -1,7 +1,7 @@
 import { UnknownDictionary } from '../types/common';
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 
 export = class Inventory {
     private readonly steamID: SteamID;

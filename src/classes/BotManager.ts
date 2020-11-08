@@ -2,7 +2,7 @@ import Bot from './Bot';
 
 import async from 'async';
 import SteamUser from 'steam-user';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 import io from 'socket.io-client';
 import pm2 from 'pm2';
 

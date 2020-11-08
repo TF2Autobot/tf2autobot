@@ -1,4 +1,4 @@
-declare module 'tf2-schema' {
+declare module 'tf2-schema-2' {
     import { EventEmitter } from 'events';
 
     interface Events {

@@ -16,7 +16,7 @@ import TradeOfferManager from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 import BptfLogin from 'bptf-login';
 import TF2 from 'tf2';
 import moment from 'moment';

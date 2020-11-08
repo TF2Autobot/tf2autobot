@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 

@@ -23,7 +23,7 @@ import { fixItem } from '../lib/items';
 import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
-import SchemaManager from 'tf2-schema';
+import SchemaManager from 'tf2-schema-2';
 import Autokeys from './Autokeys';
 
 const COMMANDS: string[] = [
