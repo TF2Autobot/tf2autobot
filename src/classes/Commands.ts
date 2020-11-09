@@ -1239,6 +1239,11 @@ export = class Commands {
             }
         }
 
+        if (params.group && typeof params.group !== 'string') {
+            // if group parameter is defined, convert anything to string
+            params.group = params.group.toString();
+        }
+
         if (params.group === undefined) {
             // If group paramater is not defined, set it to null.
             params.group = null;
@@ -1294,7 +1299,7 @@ export = class Commands {
             const pricelist = this.bot.pricelist.getPrices();
 
             let newPricelist: Entry[];
-            if (params.group && typeof params.group === 'string') {
+            if (params.group) {
                 newPricelist = pricelist.filter(entry => entry.group.includes(params.group));
 
                 if (newPricelist.length === 0) {
