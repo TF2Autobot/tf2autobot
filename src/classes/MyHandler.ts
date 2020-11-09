@@ -3710,7 +3710,7 @@ export = class MyHandler extends Handler {
             '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
         ];
 
-        const craftAll = craft.scout.concat(
+        const craftCombine = craft.scout.concat(
             craft.soldier,
             craft.pyro,
             craft.demoman,
@@ -3720,6 +3720,15 @@ export = class MyHandler extends Handler {
             craft.sniper,
             craft.spy
         );
+
+        // Remove duplicate elements
+        const craftAll: string[] = [];
+        craftCombine.forEach(weapon => {
+            if (!craftAll.includes(weapon)) {
+                craftAll.push(weapon);
+            }
+        });
+
         return { craft, craftAll, uncraftAll };
     }
 
