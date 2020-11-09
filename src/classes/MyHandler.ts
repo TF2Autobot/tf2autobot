@@ -1577,7 +1577,7 @@ export = class MyHandler extends Handler {
         } else {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer. The trade will be finalized in shortly.' +
+                'I have accepted your offer. The trade will be finalized shortly.' +
                     ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         }
