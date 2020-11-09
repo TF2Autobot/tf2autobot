@@ -43,6 +43,14 @@ export = {
             // sell price
             $ref: 'tf2-currencies'
         },
+        notebuy: {
+            // custom buy order listing note
+            type: 'string'
+        },
+        notesell: {
+            // custom sell order listing note
+            type: 'string'
+        },
         time: {
             // time when the price changed
             anyOf: [

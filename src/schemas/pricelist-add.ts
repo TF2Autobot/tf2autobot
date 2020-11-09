@@ -38,6 +38,14 @@ export = {
         sell: {
             // sell price
             $ref: 'tf2-currencies'
+        },
+        notebuy: {
+            // custom buy order listing note
+            type: 'string'
+        },
+        notesell: {
+            // custom sell order listing note
+            type: 'string'
         }
     },
     additionalProperties: false,
