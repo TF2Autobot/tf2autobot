@@ -265,7 +265,9 @@ export = class Commands {
         const isAdmin = this.bot.isAdmin(steamID);
         this.bot.sendMessage(
             steamID,
-            `📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
+            `📜 Here's a list of my commands:\n- ${
+                isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')
+            }\n\n📌 Note: Do not include <> nor [] - <> means required and [] means optional.`
         );
     }
 
