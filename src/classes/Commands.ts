@@ -1237,12 +1237,12 @@ export = class Commands {
             }
         }
 
-        if (typeof params.notebuy === 'string') {
-            params.notebuy = params.notebuy || null;
+        if (params.notebuy === undefined) {
+            params.notebuy = '';
         }
 
-        if (typeof params.notesell === 'string') {
-            params.notesell = params.notesell || null;
+        if (params.notesell === undefined) {
+            params.notesell = '';
         }
 
         if (params.autoprice === undefined) {
@@ -1378,14 +1378,6 @@ export = class Commands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
-        }
-
-        if (typeof params.notebuy === 'string') {
-            params.notebuy = params.notebuy || null;
-        }
-
-        if (typeof params.notesell === 'string') {
-            params.notesell = params.notesell || null;
         }
 
         if (params.item !== undefined) {
