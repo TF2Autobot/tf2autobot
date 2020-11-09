@@ -1416,48 +1416,45 @@ export = class Commands {
             }
         }
 
-        if (params.removegroup && typeof params.removegroup === 'boolean' && params.removegroup === true) {
-            params.group = null;
-
-            delete params.removegroup;
-        }
-
-        if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
-            // sending "!update item=<itemName>&removenote=true" will set both buynote and
-            // sellnote to null
-            params.buynote = null;
-            params.sellnote = null;
-
-            delete params.removenote;
-        }
-
-        if (
-            params.buynote === '' ||
-            (params.removebuynote && typeof params.removebuynote === 'boolean' && params.removebuynote === true)
-        ) {
-            // sending "!update item=<itemName>&buynote=" OR "!update item=<itemName>&removebuynote=true"
-            // will set buynote to null
-            params.buynote = null;
-        }
-
-        if (
-            params.sellnote === '' ||
-            (params.removesellnote && typeof params.removesellnote === 'boolean' && params.removesellnote === true)
-        ) {
-            // sending "!update item=<itemName>&sellnote=" OR "!update item=<itemName>&removesellnote=true"
-            // will set sellnote to null
-            params.sellnote = null;
-        }
-
         if (params.removegroup) {
-            if (typeof params.removegroup !== 'boolean') {
+            // if removegroup (when sending "!update item=<itemName>&removegroup=true") is defined,
+            // first check if it's a booelan type
+            if (typeof params.removegroup === 'boolean') {
+                // if it's boolean, then check if it's true
+                if (params.removegroup === true) {
+                    // if it's true, then set group key to null.
+                    params.group = null;
+                } // else if false, just ignore it.
+            } else {
+                // else if it's not a boolean type, then send message.
                 this.bot.sendMessage(steamID, '❌ "removegroup" must be either "true" or "false".');
                 return;
             }
+
+            // delete removegroup key from params so it will not trying to be added into pricelist (validator error)
+            delete params.removegroup;
+        }
+
+        if (params.removenote) {
+            // removenote to remove both buynote and sellnote.
+            if (typeof params.removenote === 'boolean') {
+                if (params.removenote === true) {
+                    params.buynote = null;
+                    params.sellnote = null;
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removenote;
         }
 
         if (params.removebuynote) {
-            if (typeof params.removebuynote !== 'boolean') {
+            if (typeof params.removebuynote === 'boolean') {
+                if (params.removebuynote === true) {
+                    params.buynote = null;
+                }
+            } else {
                 this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
                 return;
             }
@@ -1465,11 +1462,25 @@ export = class Commands {
         }
 
         if (params.removesellnote) {
-            if (typeof params.removesellnote !== 'boolean') {
+            if (typeof params.removesellnote === 'boolean') {
+                if (params.removesellnote === true) {
+                    params.sellnote = null;
+                }
+            } else {
                 this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
                 return;
             }
             delete params.removesellnote;
+        }
+
+        if (params.buynote === '') {
+            // "!update item=<itemName>&removesellnote=true" will set sellnote to null
+            params.buynote = null;
+        }
+
+        if (params.sellnote === '') {
+            // "!update item=<itemName>&removesellnote=true" will set sellnote to null
+            params.sellnote = null;
         }
 
         if (params.item !== undefined) {
