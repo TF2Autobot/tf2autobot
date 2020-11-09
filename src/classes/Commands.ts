@@ -1318,53 +1318,53 @@ export = class Commands {
                 return;
             }
 
-            for (let i = 0; i < newPricelist.length; i++) {
-                if (params.intent) {
-                    newPricelist[i].intent = params.intent as 0 | 1 | 2;
+            newPricelist.forEach((entry, i) => {
+                if (params.intent || params.intent === 0) {
+                    entry.intent = params.intent as 0 | 1 | 2;
                 }
 
-                if (params.min && typeof params.min === 'number') {
-                    newPricelist[i].min = params.min;
+                if ((params.min || params.min === 0) && typeof params.min === 'number') {
+                    entry.min = params.min;
                 }
 
-                if (params.max && typeof params.max === 'number') {
-                    newPricelist[i].max = params.max;
+                if ((params.max || params.max === 0) && typeof params.max === 'number') {
+                    entry.max = params.max;
                 }
 
                 if (params.enabled && typeof params.enabled === 'boolean') {
-                    newPricelist[i].enabled = params.enabled;
+                    entry.enabled = params.enabled;
                 }
 
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // buynote and sellnote for all entries to null.
-                    newPricelist[i].buynote = null;
-                    newPricelist[i].sellnote = null;
+                    entry.buynote = null;
+                    entry.sellnote = null;
                 }
 
                 if (params.autoprice === false) {
-                    newPricelist[i].time = null;
-                    newPricelist[i].autoprice = false;
+                    entry.time = null;
+                    entry.autoprice = false;
                 } else if (params.autoprice === true) {
-                    newPricelist[i].time = 0;
-                    newPricelist[i].autoprice = true;
+                    entry.time = 0;
+                    entry.autoprice = true;
                 }
 
                 if (i === 0) {
                     const errors = validator(
                         {
-                            sku: newPricelist[i].sku,
-                            enabled: newPricelist[i].enabled,
-                            intent: newPricelist[i].intent,
-                            max: newPricelist[i].max,
-                            min: newPricelist[i].min,
-                            autoprice: newPricelist[i].autoprice,
-                            buy: newPricelist[i].buy.toJSON(),
-                            sell: newPricelist[i].sell.toJSON(),
-                            group: newPricelist[i].group,
-                            buynote: newPricelist[i].buynote,
-                            sellnote: newPricelist[i].sellnote,
-                            time: newPricelist[i].time
+                            sku: entry.sku,
+                            enabled: entry.enabled,
+                            intent: entry.intent,
+                            max: entry.max,
+                            min: entry.min,
+                            autoprice: entry.autoprice,
+                            buy: entry.buy.toJSON(),
+                            sell: entry.sell.toJSON(),
+                            group: entry.group,
+                            buynote: entry.buynote,
+                            sellnote: entry.sellnote,
+                            time: entry.time
                         },
                         'pricelist'
                     );
@@ -1373,7 +1373,7 @@ export = class Commands {
                         throw new Error(errors.join(', '));
                     }
                 }
-            }
+            });
 
             if (params.removenote) {
                 delete params.removenote;
