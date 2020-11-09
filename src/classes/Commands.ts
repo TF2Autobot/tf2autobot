@@ -2529,7 +2529,7 @@ export = class Commands {
                     } else {
                         this.bot.sendMessage(
                             offer.partner,
-                            'I have accepted your offer. The trade should be finalized shortly.' +
+                            'My owner has manually accepted your offer. The trade should be finalized shortly.' +
                                 ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                         );
                     }
@@ -2559,7 +2559,7 @@ export = class Commands {
                                 : hasNot5Uses
                                 ? 'Dueling Mini-Game'
                                 : 'Noise Maker'
-                        } that is not full after re-check...`
+                        } that are not full after re-check...`
                     );
 
                     this.bot.sendMessage(
