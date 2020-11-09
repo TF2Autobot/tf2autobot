@@ -60,7 +60,7 @@ const MORE: string[] = [
 const ADMIN_COMMANDS: string[] = [
     '!deposit <name=>&<amount=> - Deposit items',
     '!withdraw <name=>&<amount=> - Withdraw items\n\n✨=== Pricelist manager ===✨',
-    '!add <sku=> OR <item=> - Add a pricelist entry ➕',
+    '!add <sku=> OR <name=> - Add a pricelist entry ➕',
     '!update <sku=> OR <item=> - Update a pricelist entry',
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
