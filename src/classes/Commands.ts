@@ -736,7 +736,7 @@ export = class Commands {
             const steamIdAndMessage = CommandParser.removeCommand(message);
             // Use regex
             const steamIDreg = new RegExp(
-                /(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])/
+                /$(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])$/
             );
 
             let steamIDString: string;
@@ -1263,6 +1263,11 @@ export = class Commands {
             params.autoprice = true;
         }
 
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
+
         if (params.sku === undefined) {
             const item = this.getItemFromParams(steamID, params);
 
@@ -1401,6 +1406,11 @@ export = class Commands {
                     this.bot.sendMessage(steamID, `❌ Failed to update prices: ${err.message}`);
                     return;
                 });
+            return;
+        }
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
@@ -1600,6 +1610,11 @@ export = class Commands {
             return;
         }
 
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
+
         if (params.item !== undefined) {
             // Remove by full name
             let match = this.bot.pricelist.searchByName(params.item as string, false);
@@ -1653,6 +1668,11 @@ export = class Commands {
     private getCommand(steamID: SteamID, message: string): void {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.item !== undefined) {
             // Remove by full name
@@ -1747,6 +1767,11 @@ export = class Commands {
 
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.assetid !== undefined && params.sku === undefined) {
             // This most likely not working with Non-Tradable items.
@@ -2764,6 +2789,11 @@ export = class Commands {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
+
         if (params.sku === undefined) {
             const item = this.getItemFromParams(steamID, params);
 
@@ -2859,6 +2889,11 @@ export = class Commands {
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.sku === undefined) {
             const item = this.getItemFromParams(steamID, params);
@@ -3360,6 +3395,12 @@ export = class Commands {
 
 function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
+}
+
+function testSKU(sku: string): boolean {
+    return /^(\d+);(\d+)(((\b;uncraftable\b)|(\b;untradable\b)|(\b;australium\b)|(\b;festive\b)|(\b;strange\b)|(\b;kt-[1-3]\b)|(\b;u\d+\b)|(\b;pk\d+\b)|(\b;w[1-5]\b)|(\b;td-\d+\b)|(\b;n([0-9]|[1-9][0-9]|100)\b)|(\b;c\d+\b)|(\b;od-\d+\b)|(\b;oq-\d+\b)|(\b;p\d+\b))+)?$/.test(
+        sku
+    );
 }
 
 function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.Schema): string {
