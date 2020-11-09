@@ -2523,14 +2523,14 @@ export = class Commands {
                     if (isManyItems) {
                         this.bot.sendMessage(
                             offer.partner,
-                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                            'My owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                         );
                     } else {
                         this.bot.sendMessage(
                             offer.partner,
-                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                            'I have accepted your offer. The trade should be finalized shortly.' +
+                                ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                         );
                     }
                     // Send message to recipient if includes some messages
@@ -2553,13 +2553,13 @@ export = class Commands {
 
                     this.bot.sendMessage(
                         steamID,
-                        `❌ Offer #${offer.id} has been automatically decline: contain${
+                        `❌ Offer #${offer.id} has been automatically declined: contain${
                             hasNot5Uses && hasNot25Uses
                                 ? 'Dueling Mini-Game and/or Noise Maker'
                                 : hasNot5Uses
                                 ? 'Dueling Mini-Game'
                                 : 'Noise Maker'
-                        } that are not full after re-check...`
+                        } that is not full after re-check...`
                     );
 
                     this.bot.sendMessage(
