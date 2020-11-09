@@ -1239,13 +1239,18 @@ export = class Commands {
             }
         }
 
+        if (params.group === undefined) {
+            // If group paramater is not defined, set it to null.
+            params.group = null;
+        }
+
         if (params.buynote === undefined) {
-            // If buynote parameters is not defined, set it to null.
+            // If buynote parameter is not defined, set it to null.
             params.buynote = null;
         }
 
         if (params.sellnote === undefined) {
-            // If sellnote parameters is not defined, set it to null.
+            // If sellnote parameter is not defined, set it to null.
             params.sellnote = null;
         }
 
@@ -1288,57 +1293,73 @@ export = class Commands {
             // TODO: Must have atleast one other param
             const pricelist = this.bot.pricelist.getPrices();
 
-            if (pricelist.length === 0) {
+            let newPricelist: Entry[];
+            if (params.group && typeof params.group === 'string') {
+                newPricelist = pricelist.filter(entry => entry.group.includes(params.group));
+
+                if (newPricelist.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry with "${params.group}" group found in your pricelist.`
+                    );
+                    return;
+                }
+            } else {
+                newPricelist = pricelist;
+            }
+
+            if (newPricelist.length === 0) {
                 this.bot.sendMessage(steamID, 'Your pricelist is empty.');
                 return;
             }
 
-            for (let i = 0; i < pricelist.length; i++) {
+            for (let i = 0; i < newPricelist.length; i++) {
                 if (params.intent) {
-                    pricelist[i].intent = params.intent as 0 | 1 | 2;
+                    newPricelist[i].intent = params.intent as 0 | 1 | 2;
                 }
 
                 if (params.min && typeof params.min === 'number') {
-                    pricelist[i].min = params.min;
+                    newPricelist[i].min = params.min;
                 }
 
                 if (params.max && typeof params.max === 'number') {
-                    pricelist[i].max = params.max;
+                    newPricelist[i].max = params.max;
                 }
 
                 if (params.enabled && typeof params.enabled === 'boolean') {
-                    pricelist[i].enabled = params.enabled;
+                    newPricelist[i].enabled = params.enabled;
                 }
 
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // buynote and sellnote for all entries to null.
-                    pricelist[i].buynote = null;
-                    pricelist[i].sellnote = null;
+                    newPricelist[i].buynote = null;
+                    newPricelist[i].sellnote = null;
                 }
 
                 if (params.autoprice === false) {
-                    pricelist[i].time = null;
-                    pricelist[i].autoprice = false;
+                    newPricelist[i].time = null;
+                    newPricelist[i].autoprice = false;
                 } else if (params.autoprice === true) {
-                    pricelist[i].time = 0;
-                    pricelist[i].autoprice = true;
+                    newPricelist[i].time = 0;
+                    newPricelist[i].autoprice = true;
                 }
 
                 if (i === 0) {
                     const errors = validator(
                         {
-                            sku: pricelist[i].sku,
-                            enabled: pricelist[i].enabled,
-                            intent: pricelist[i].intent,
-                            max: pricelist[i].max,
-                            min: pricelist[i].min,
-                            autoprice: pricelist[i].autoprice,
-                            buy: pricelist[i].buy.toJSON(),
-                            sell: pricelist[i].sell.toJSON(),
-                            buynote: pricelist[i].buynote,
-                            sellnote: pricelist[i].sellnote,
-                            time: pricelist[i].time
+                            sku: newPricelist[i].sku,
+                            enabled: newPricelist[i].enabled,
+                            intent: newPricelist[i].intent,
+                            max: newPricelist[i].max,
+                            min: newPricelist[i].min,
+                            autoprice: newPricelist[i].autoprice,
+                            buy: newPricelist[i].buy.toJSON(),
+                            sell: newPricelist[i].sell.toJSON(),
+                            group: newPricelist[i].group,
+                            buynote: newPricelist[i].buynote,
+                            sellnote: newPricelist[i].sellnote,
+                            time: newPricelist[i].time
                         },
                         'pricelist'
                     );
@@ -1356,7 +1377,7 @@ export = class Commands {
             // FIXME: Make it so that it is not needed to remove all listings
 
             if (params.autoprice !== true) {
-                this.bot.getHandler().onPricelist(pricelist);
+                this.bot.getHandler().onPricelist(newPricelist);
                 this.bot.sendMessage(steamID, '✅ Updated pricelist!');
                 this.bot.listings.redoListings().asCallback();
                 return;
@@ -1395,6 +1416,12 @@ export = class Commands {
             }
         }
 
+        if (params.removegroup && typeof params.removegroup === 'boolean' && params.removegroup === true) {
+            params.group = null;
+
+            delete params.removegroup;
+        }
+
         if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
             // sending "!update item=<itemName>&removenote=true" will set both buynote and
             // sellnote to null
@@ -1420,6 +1447,13 @@ export = class Commands {
             // sending "!update item=<itemName>&sellnote=" OR "!update item=<itemName>&removesellnote=true"
             // will set sellnote to null
             params.sellnote = null;
+        }
+
+        if (params.removegroup) {
+            if (typeof params.removegroup !== 'boolean') {
+                this.bot.sendMessage(steamID, '❌ "removegroup" must be either "true" or "false".');
+                return;
+            }
         }
 
         if (params.removebuynote) {

@@ -24,6 +24,7 @@ export interface EntryData {
     intent: 0 | 1 | 2;
     buy?: Currency | null;
     sell?: Currency | null;
+    group?: string | null;
     buynote?: string | null;
     sellnote?: string | null;
     time?: number | null;
@@ -48,6 +49,8 @@ export class Entry {
 
     sell: Currencies | null;
 
+    group: string | null;
+
     buynote: string | null;
 
     sellnote: string | null;
@@ -62,6 +65,7 @@ export class Entry {
         this.max = entry.max;
         this.min = entry.min;
         this.intent = entry.intent;
+        this.group = entry.group;
         this.buynote = entry.buynote;
         this.sellnote = entry.sellnote;
 
@@ -96,6 +100,7 @@ export class Entry {
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
+            group: this.group,
             buynote: this.buynote,
             sellnote: this.sellnote,
             time: this.time
@@ -366,6 +371,7 @@ export default class Pricelist extends EventEmitter {
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
+                    group: prices[0].group,
                     buynote: prices[0].buynote,
                     sellnote: prices[0].sellnote,
                     time: prices[0].time

@@ -43,6 +43,16 @@ export = {
             // sell price
             $ref: 'tf2-currencies'
         },
+        group: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
         buynote: {
             // custom buy order listing note
             anyOf: [
