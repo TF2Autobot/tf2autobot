@@ -1238,10 +1238,12 @@ export = class Commands {
         }
 
         if (params.buynote === undefined) {
+            // If buynote parameters is not defined, set it to null.
             params.buynote = null;
         }
 
         if (params.sellnote === undefined) {
+            // If sellnote parameters is not defined, set it to null.
             params.sellnote = null;
         }
 
@@ -1307,6 +1309,8 @@ export = class Commands {
                 }
 
                 if (params.removenote === true) {
+                    // Sending "!update all=true&removenote=true" will set both
+                    // buynote and sellnote for all entries to null.
                     pricelist[i].buynote = null;
                     pricelist[i].sellnote = null;
                 }
@@ -1386,15 +1390,21 @@ export = class Commands {
         }
 
         if (params.removenote === true) {
+            // sending "!update item=<itemName>&removenote=true" will set both buynote and
+            // sellnote to null
             params.buynote = null;
             params.sellnote = null;
         }
 
         if (params.buynote === '' || params.removebuynote === true) {
+            // sending "!update item=<itemName>&buynote=" OR "!update item=<itemName>&removebuynote=true"
+            // will set buynote to null
             params.buynote = null;
         }
 
         if (params.sellnote === '' || params.removesellnote === true) {
+            // sending "!update item=<itemName>&sellnote=" OR "!update item=<itemName>&removesellnote=true"
+            // will set sellnote to null
             params.sellnote = null;
         }
 
