@@ -2553,13 +2553,13 @@ export = class Commands {
 
                     this.bot.sendMessage(
                         steamID,
-                        `❌ Offer #${offer.id} has been automatically declined: contain${
+                        `❌ Offer #${offer.id} has been automatically declined: contains ${
                             hasNot5Uses && hasNot25Uses
                                 ? 'Dueling Mini-Game and/or Noise Maker'
                                 : hasNot5Uses
                                 ? 'Dueling Mini-Game'
                                 : 'Noise Maker'
-                        } that are not full after re-check...`
+                        } that is not full after re-check...`
                     );
 
                     this.bot.sendMessage(
