@@ -502,9 +502,9 @@ export = class Listings {
             }
 
             if (entry.sku === '241;6') {
-                details.replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+                details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
-                details.replace(/%dueling%/g, '✨');
+                details.replace(/%uses%/g, '✨');
             }
         } else if (entry.sellnote && intent === 1) {
             details = entry.sellnote
@@ -521,9 +521,9 @@ export = class Listings {
             }
 
             if (entry.sku === '241;6') {
-                details.replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+                details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
-                details.replace(/%dueling%/g, '✨');
+                details.replace(/%uses%/g, '✨');
             }
         } else if (entry.sku === '241;6') {
             details = this.templates[key]
@@ -534,7 +534,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -544,7 +544,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '');
+                .replace(/%uses%/g, '');
         } else {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
@@ -554,7 +554,7 @@ export = class Listings {
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
-                .replace(/%dueling%/g, '');
+                .replace(/%uses%/g, '');
         }
 
         return details;
