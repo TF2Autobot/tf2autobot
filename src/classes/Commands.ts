@@ -1304,11 +1304,11 @@ export = class Commands {
                     pricelist[i].max = params.max;
                 }
 
-                if (params.enabled === false || params.enabled === true) {
+                if (params.enabled && typeof params.enabled === 'boolean') {
                     pricelist[i].enabled = params.enabled;
                 }
 
-                if (params.removenote === true) {
+                if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // buynote and sellnote for all entries to null.
                     pricelist[i].buynote = null;
@@ -1345,6 +1345,10 @@ export = class Commands {
                         throw new Error(errors.join(', '));
                     }
                 }
+            }
+
+            if (params.removenote) {
+                delete params.removenote;
             }
 
             // FIXME: Make it so that it is not needed to remove all listings
@@ -1389,23 +1393,47 @@ export = class Commands {
             }
         }
 
-        if (params.removenote === true) {
+        if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
             // sending "!update item=<itemName>&removenote=true" will set both buynote and
             // sellnote to null
             params.buynote = null;
             params.sellnote = null;
+
+            delete params.removenote;
         }
 
-        if (params.buynote === '' || params.removebuynote === true) {
+        if (
+            params.buynote === '' ||
+            (params.removebuynote && typeof params.removebuynote === 'boolean' && params.removebuynote === true)
+        ) {
             // sending "!update item=<itemName>&buynote=" OR "!update item=<itemName>&removebuynote=true"
             // will set buynote to null
             params.buynote = null;
         }
 
-        if (params.sellnote === '' || params.removesellnote === true) {
+        if (
+            params.sellnote === '' ||
+            (params.removesellnote && typeof params.removesellnote === 'boolean' && params.removesellnote === true)
+        ) {
             // sending "!update item=<itemName>&sellnote=" OR "!update item=<itemName>&removesellnote=true"
             // will set sellnote to null
             params.sellnote = null;
+        }
+
+        if (params.removebuynote) {
+            if (typeof params.removebuynote !== 'boolean') {
+                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removebuynote;
+        }
+
+        if (params.removesellnote) {
+            if (typeof params.removesellnote !== 'boolean') {
+                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removesellnote;
         }
 
         if (params.item !== undefined) {
