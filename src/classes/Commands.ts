@@ -1238,11 +1238,11 @@ export = class Commands {
         }
 
         if (params.notebuy === undefined) {
-            params.notebuy = '';
+            params.notebuy = null;
         }
 
         if (params.notesell === undefined) {
-            params.notesell = '';
+            params.notesell = null;
         }
 
         if (params.autoprice === undefined) {

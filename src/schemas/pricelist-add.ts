@@ -41,11 +41,25 @@ export = {
         },
         notebuy: {
             // custom buy order listing note
-            type: 'string'
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         notesell: {
             // custom sell order listing note
-            type: 'string'
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     additionalProperties: false,
