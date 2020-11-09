@@ -1237,12 +1237,12 @@ export = class Commands {
             }
         }
 
-        if (params.notebuy === undefined) {
-            params.notebuy = null;
+        if (params.buynote === undefined) {
+            params.buynote = null;
         }
 
-        if (params.notesell === undefined) {
-            params.notesell = null;
+        if (params.sellnote === undefined) {
+            params.sellnote = null;
         }
 
         if (params.autoprice === undefined) {
@@ -1325,8 +1325,8 @@ export = class Commands {
                             autoprice: pricelist[i].autoprice,
                             buy: pricelist[i].buy.toJSON(),
                             sell: pricelist[i].sell.toJSON(),
-                            notebuy: pricelist[i].notebuy,
-                            notesell: pricelist[i].notesell,
+                            buynote: pricelist[i].buynote,
+                            sellnote: pricelist[i].sellnote,
                             time: pricelist[i].time
                         },
                         'pricelist'

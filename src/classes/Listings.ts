@@ -486,8 +486,8 @@ export = class Listings {
 
         let details: string;
 
-        if (entry.notebuy && intent === 0) {
-            details = entry.notebuy
+        if (entry.buynote && intent === 0) {
+            details = entry.buynote
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
@@ -506,8 +506,8 @@ export = class Listings {
             } else {
                 details.replace(/%dueling%/g, '✨');
             }
-        } else if (entry.notesell && intent === 1) {
-            details = entry.notesell
+        } else if (entry.sellnote && intent === 1) {
+            details = entry.sellnote
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())

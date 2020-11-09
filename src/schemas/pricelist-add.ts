@@ -39,7 +39,7 @@ export = {
             // sell price
             $ref: 'tf2-currencies'
         },
-        notebuy: {
+        buynote: {
             // custom buy order listing note
             anyOf: [
                 {
@@ -50,7 +50,7 @@ export = {
                 }
             ]
         },
-        notesell: {
+        sellnote: {
             // custom sell order listing note
             anyOf: [
                 {
