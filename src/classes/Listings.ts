@@ -10,6 +10,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { Entry } from './Pricelist';
 import moment from 'moment';
+import MyHandler from './MyHandler';
 
 export = class Listings {
     private readonly bot: Bot;
@@ -503,6 +504,8 @@ export = class Listings {
 
             if (entry.sku === '241;6') {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+            } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+                details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
                 details.replace(/%uses%/g, '✨');
             }
@@ -522,6 +525,8 @@ export = class Listings {
 
             if (entry.sku === '241;6') {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+            } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+                details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
                 details.replace(/%uses%/g, '✨');
             }
@@ -535,6 +540,16 @@ export = class Listings {
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+        } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+            details = this.templates[key]
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
+                .replace(/%keyPrice%/g, '✨')
+                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦) ');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
