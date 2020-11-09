@@ -502,12 +502,15 @@ export = class Listings {
                 details.replace(/%keyPrice%/g, '✨');
             }
 
-            if (entry.sku === '241;6') {
+            if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
-            } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+            } else if (
+                (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
-                details.replace(/%uses%/g, '✨');
+                details.replace(/%uses%/g, '');
             }
         } else if (entry.sellnote && intent === 1) {
             details = entry.sellnote
@@ -523,14 +526,17 @@ export = class Listings {
                 details.replace(/%keyPrice%/g, '✨');
             }
 
-            if (entry.sku === '241;6') {
+            if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
-            } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+            } else if (
+                (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
+                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+            ) {
                 details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦) ');
             } else {
-                details.replace(/%uses%/g, '✨');
+                details.replace(/%uses%/g, '');
             }
-        } else if (entry.sku === '241;6') {
+        } else if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
@@ -540,7 +546,10 @@ export = class Listings {
                 .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '✨')
                 .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
-        } else if ((this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku)) {
+        } else if (
+            (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
+            process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+        ) {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
