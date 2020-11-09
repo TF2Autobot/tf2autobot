@@ -1306,6 +1306,11 @@ export = class Commands {
                     pricelist[i].enabled = params.enabled;
                 }
 
+                if (params.removenote === true) {
+                    pricelist[i].buynote = null;
+                    pricelist[i].sellnote = null;
+                }
+
                 if (params.autoprice === false) {
                     pricelist[i].time = null;
                     pricelist[i].autoprice = false;
@@ -1378,6 +1383,19 @@ export = class Commands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        }
+
+        if (params.removenote === true) {
+            params.buynote = null;
+            params.sellnote = null;
+        }
+
+        if (params.buynote === '' || params.removebuynote === true) {
+            params.buynote = null;
+        }
+
+        if (params.sellnote === '' || params.removesellnote === true) {
+            params.sellnote = null;
         }
 
         if (params.item !== undefined) {
