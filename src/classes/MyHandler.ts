@@ -1491,13 +1491,13 @@ export = class MyHandler extends Handler {
                     this.bot.sendMessage(
                         offer.partner,
                         'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                            ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
                         'I have accepted your offer. The trade should be finalized shortly.' +
-                            ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
 
@@ -1572,13 +1572,13 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                    ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                    ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer. The trade will be finalized shortly.' +
-                    ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                    ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         }
 
@@ -1730,7 +1730,7 @@ export = class MyHandler extends Handler {
                         reason = 'Failed to accept mobile confirmation';
                     } else {
                         reason =
-                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later.";
+                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again.";
                     }
 
                     this.bot.sendMessage(
