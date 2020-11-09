@@ -24,6 +24,8 @@ export interface EntryData {
     intent: 0 | 1 | 2;
     buy?: Currency | null;
     sell?: Currency | null;
+    notebuy?: string | null;
+    notesell?: string | null;
     time?: number | null;
 }
 
@@ -46,6 +48,10 @@ export class Entry {
 
     sell: Currencies | null;
 
+    notebuy: string | null;
+
+    notesell: string | null;
+
     time: number | null;
 
     constructor(entry: EntryData, schema: SchemaManager.Schema) {
@@ -56,6 +62,8 @@ export class Entry {
         this.max = entry.max;
         this.min = entry.min;
         this.intent = entry.intent;
+        this.notebuy = entry.notebuy;
+        this.notesell = entry.notesell;
 
         // TODO: Validate entry
 
@@ -88,6 +96,8 @@ export class Entry {
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
+            notebuy: this.notebuy,
+            notesell: this.notesell,
             time: this.time
         };
     }
@@ -356,6 +366,8 @@ export default class Pricelist extends EventEmitter {
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
+                    notebuy: prices[0].notebuy,
+                    notesell: prices[0].notesell,
                     time: prices[0].time
                 },
                 'pricelist'

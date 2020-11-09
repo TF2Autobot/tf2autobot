@@ -1237,6 +1237,14 @@ export = class Commands {
             }
         }
 
+        if (typeof params.notebuy === 'string') {
+            params.notebuy = params.notebuy || null;
+        }
+
+        if (typeof params.notesell === 'string') {
+            params.notesell = params.notesell || null;
+        }
+
         if (params.autoprice === undefined) {
             params.autoprice = true;
         }
@@ -1317,6 +1325,8 @@ export = class Commands {
                             autoprice: pricelist[i].autoprice,
                             buy: pricelist[i].buy.toJSON(),
                             sell: pricelist[i].sell.toJSON(),
+                            notebuy: pricelist[i].notebuy,
+                            notesell: pricelist[i].notesell,
                             time: pricelist[i].time
                         },
                         'pricelist'
@@ -1368,6 +1378,14 @@ export = class Commands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        }
+
+        if (typeof params.notebuy === 'string') {
+            params.notebuy = params.notebuy || null;
+        }
+
+        if (typeof params.notesell === 'string') {
+            params.notesell = params.notesell || null;
         }
 
         if (params.item !== undefined) {

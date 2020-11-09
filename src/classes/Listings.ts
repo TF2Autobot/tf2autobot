@@ -486,7 +486,46 @@ export = class Listings {
 
         let details: string;
 
-        if (entry.sku === '241;6') {
+        if (entry.notebuy && intent === 0) {
+            details = entry.notebuy
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%amount_can_buy%/g, amountCanBuy.toString());
+
+            if (entry[key].toString().includes('key')) {
+                details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key');
+            } else {
+                details.replace(/%keyPrice%/g, '✨');
+            }
+
+            if (entry.sku === '241;6') {
+                details.replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+            } else {
+                details.replace(/%dueling%/g, '✨');
+            }
+        } else if (entry.notesell && intent === 1) {
+            details = entry.notesell
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
+
+            if (entry[key].toString().includes('key')) {
+                details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key');
+            } else {
+                details.replace(/%keyPrice%/g, '✨');
+            }
+
+            if (entry.sku === '241;6') {
+                details.replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+            } else {
+                details.replace(/%dueling%/g, '✨');
+            }
+        } else if (entry.sku === '241;6') {
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
