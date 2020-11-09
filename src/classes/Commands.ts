@@ -1300,7 +1300,7 @@ export = class Commands {
 
             let newPricelist: Entry[];
             if (params.group) {
-                newPricelist = pricelist.filter(entry => entry.group.includes(params.group));
+                newPricelist = pricelist.filter(entry => (entry.group ? entry.group.includes(params.group) : false));
 
                 if (newPricelist.length === 0) {
                     this.bot.sendMessage(
