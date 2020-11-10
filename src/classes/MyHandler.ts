@@ -2508,251 +2508,51 @@ export = class MyHandler extends Handler {
         }
     }
 
+    private craftEachClassWeapons(weapons: string[], currencies: { [key: string]: string[] }): void {
+        weapons.forEach((first, i) => {
+            // first loop
+            const sku1 = first;
+            const wep1 = currencies[sku1].length;
+
+            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            weapons.forEach((second, j) => {
+                // second loop inside first loop, but ignore same index (same weapons)
+                if (j !== i) {
+                    const sku2 = second;
+                    const wep2 = currencies[sku2].length;
+
+                    // check if that weapon2 only have 1 in inventory AND it's not in pricelist
+                    const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+                    if (sku1 !== sku2 && isWep1 && isWep2) {
+                        // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
+                        this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                        // break
+                        return;
+                    }
+                }
+            });
+        });
+    }
+
     private craftClassWeapons(): Promise<void> {
         if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-        let matched = false;
 
         const weapons = this.weapons().craft;
 
-        const scout = weapons.scout;
-
-        for (let i = 0; i < scout.length; i++) {
-            // for loop for weapon1
-            const sku1 = scout[i];
-            const wep1 = currencies[sku1].length;
-            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < scout.length; j++) {
-                // for loop for weapon2 inside for loop weapon1
-                const sku2 = scout[j];
-                const wep2 = currencies[sku2].length;
-                // check if that weapon2 only have 1 in inventory AND it's not in pricelist
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    // set matched to true, so we break the loop and only craft one match at a time for each class.
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Soldier weapons
-        const soldier = weapons.soldier;
-
-        for (let i = 0; i < soldier.length; i++) {
-            const sku1 = soldier[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < soldier.length; j++) {
-                const sku2 = soldier[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Pyro weapons
-        const pyro = weapons.pyro;
-
-        for (let i = 0; i < pyro.length; i++) {
-            const sku1 = pyro[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < pyro.length; j++) {
-                const sku2 = pyro[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Demomman weapons
-        const demoman = weapons.demoman;
-
-        for (let i = 0; i < demoman.length; i++) {
-            const sku1 = demoman[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < demoman.length; j++) {
-                const sku2 = demoman[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Heavy weapons
-        const heavy = weapons.heavy;
-
-        for (let i = 0; i < heavy.length; i++) {
-            const sku1 = heavy[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < heavy.length; j++) {
-                const sku2 = heavy[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Engineer weapons
-        const engineer = weapons.engineer;
-
-        for (let i = 0; i < engineer.length; i++) {
-            const sku1 = engineer[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < engineer.length; j++) {
-                const sku2 = engineer[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Medic weapons
-        const medic = weapons.medic;
-
-        for (let i = 0; i < medic.length; i++) {
-            const sku1 = medic[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < medic.length; j++) {
-                const sku2 = medic[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Sniper weapons
-        const sniper = weapons.sniper;
-
-        for (let i = 0; i < sniper.length; i++) {
-            const sku1 = sniper[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < sniper.length; j++) {
-                const sku2 = sniper[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Spy weapons
-        const spy = weapons.spy;
-
-        for (let i = 0; i < spy.length; i++) {
-            const sku1 = spy[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < spy.length; j++) {
-                const sku2 = spy[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
+        this.craftEachClassWeapons(weapons.scout, currencies);
+        this.craftEachClassWeapons(weapons.soldier, currencies);
+        this.craftEachClassWeapons(weapons.pyro, currencies);
+        this.craftEachClassWeapons(weapons.demoman, currencies);
+        this.craftEachClassWeapons(weapons.heavy, currencies);
+        this.craftEachClassWeapons(weapons.engineer, currencies);
+        this.craftEachClassWeapons(weapons.medic, currencies);
+        this.craftEachClassWeapons(weapons.sniper, currencies);
+        this.craftEachClassWeapons(weapons.spy, currencies);
     }
 
     private sortInventory(): void {
