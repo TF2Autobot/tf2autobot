@@ -11,6 +11,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
+import { getPriceSBN } from '../lib/sbn-api';
 import validator from '../lib/validator';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
@@ -393,30 +394,48 @@ export default class Pricelist extends EventEmitter {
     setupPricelist(): Promise<void> {
         log.debug('Getting key price...');
 
-        return getPrice('5021;6', 'bptf').then(keyPrices => {
-            log.debug('Got key price');
+        return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
+            return getPriceSBN('5021;6').then(keyPricesSBN => {
+                log.debug('Got key price');
 
-            this.keyPrices = {
-                buy: new Currencies(keyPrices.buy),
-                sell: new Currencies(keyPrices.sell)
-            };
+                const timePTF = keyPricesPTF.time as number;
+                const timeSBN = keyPricesSBN.updated as number;
 
-            const entryKey = this.getPrice('5021;6');
+                const entryKey = this.getPrice('5021;6');
 
-            if (entryKey !== null && entryKey.autoprice) {
-                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                entryKey.buy = new Currencies(keyPrices.buy);
-                entryKey.sell = new Currencies(keyPrices.sell);
-                entryKey.time = keyPrices.time;
-            }
+                if (timeSBN > timePTF) {
+                    this.keyPrices = {
+                        buy: new Currencies(keyPricesSBN.buy),
+                        sell: new Currencies(keyPricesSBN.sell)
+                    };
 
-            const old = this.getOld();
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = new Currencies(keyPricesSBN.buy);
+                        entryKey.sell = new Currencies(keyPricesSBN.sell);
+                        entryKey.time = keyPricesSBN.time;
+                    }
+                } else {
+                    this.keyPrices = {
+                        buy: new Currencies(keyPricesPTF.buy),
+                        sell: new Currencies(keyPricesPTF.sell)
+                    };
 
-            if (old.length === 0) {
-                return;
-            }
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = new Currencies(keyPricesPTF.buy);
+                        entryKey.sell = new Currencies(keyPricesPTF.sell);
+                        entryKey.time = keyPricesPTF.time;
+                    }
+                }
+                const old = this.getOld();
 
-            return this.updateOldPrices(old);
+                if (old.length === 0) {
+                    return;
+                }
+
+                return this.updateOldPrices(old);
+            });
         });
     }
 
