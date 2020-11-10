@@ -2843,10 +2843,10 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
                                   /%admin%/g,
                                   isAdmin ? '!help' : '!how2trade'
-                              ) + ` - TF2Autobot`
+                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot`
+                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
                     );
                     return;
                 }
@@ -2868,10 +2868,10 @@ export = class MyHandler extends Handler {
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
                           /%admin%/g,
                           isAdmin ? '!help' : '!how2trade'
-                      ) + ` - TF2Autobot`
+                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot`
+                          `" - TF2Autobot v${process.env.BOT_VERSION}`
             );
         });
     }
