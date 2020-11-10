@@ -559,6 +559,8 @@ export = class Listings {
 
             if (entry[key].toString().includes('key')) {
                 details = details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key');
+            } else {
+                details.replace(/%keyPrice%/g, '');
             }
         } else if (
             (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
@@ -575,6 +577,8 @@ export = class Listings {
 
             if (entry[key].toString().includes('key')) {
                 details = details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key');
+            } else {
+                details.replace(/%keyPrice%/g, '');
             }
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
