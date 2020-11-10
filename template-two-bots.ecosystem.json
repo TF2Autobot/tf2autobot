@@ -89,8 +89,8 @@
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
-                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
-                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
+                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%, so I am buying %amount_trade%.",
+                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%.",
 
                 "OFFER_MESSAGE": "",
 
@@ -256,8 +256,8 @@
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
-                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%. %keyPrice%.",
-                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%. %keyPrice%",
+                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%, so I am buying %amount_trade%.",
+                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%.",
 
                 "OFFER_MESSAGE": "",
 
