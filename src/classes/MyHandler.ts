@@ -1985,15 +1985,15 @@ export = class MyHandler extends Handler {
                 const name = this.bot.schema.getName(item, false);
                 const weapons = this.weapons();
 
+                const isNotPureOrWeapons = !(
+                    weapons.craftAll.includes(sku) ||
+                    weapons.uncraftAll.includes(sku) ||
+                    ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                );
+
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
-                if (
-                    !(
-                        weapons.craftAll.includes(sku) ||
-                        weapons.uncraftAll.includes(sku) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    )
-                ) {
+                if (isNotPureOrWeapons) {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
                             log.debug(
@@ -2024,11 +2024,7 @@ export = class MyHandler extends Handler {
 
                 if (
                     inPrice === null &&
-                    !(
-                        weapons.craftAll.includes(sku) ||
-                        weapons.uncraftAll.includes(sku) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    ) &&
+                    isNotPureOrWeapons &&
                     item.wear === null &&
                     !(hasHighValueTheir || hasHighValueOur) &&
                     !this.bot.isAdmin(offer.partner)
@@ -2053,15 +2049,7 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
-                } else if (
-                    inPrice !== null &&
-                    hasHighValueTheir &&
-                    !(
-                        weapons.craftAll.includes(sku) ||
-                        weapons.uncraftAll.includes(sku) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    )
-                ) {
+                } else if (inPrice !== null && hasHighValueTheir && isNotPureOrWeapons) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
                         sku: sku,
@@ -2105,7 +2093,8 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
-                    currentStock < 1
+                    currentStock < 1 &&
+                    isNotPureOrWeapons
                 ) {
                     // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
                     // then remove the item entry from pricelist.
