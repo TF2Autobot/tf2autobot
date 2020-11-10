@@ -876,7 +876,8 @@ export = class Commands {
                 keyPrice +
                 ', and ' +
                 keyPrice +
-                ' is the same as one key.'
+                ' is the same as one key.' +
+                ` Source: ${this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'}`
         );
     }
 
@@ -2355,7 +2356,9 @@ export = class Commands {
         let reply =
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
+        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}(${
+            this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'
+        })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n Autokeys status: ${

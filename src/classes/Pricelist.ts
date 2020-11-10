@@ -144,6 +144,10 @@ export default class Pricelist extends EventEmitter {
         return this.keyPrices.sell;
     }
 
+    getKeyPriceSource(): { source: string; time: number } {
+        return this.keyPricesTime;
+    }
+
     getLength(): number {
         return this.prices.length;
     }
@@ -419,6 +423,7 @@ export default class Pricelist extends EventEmitter {
                             entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
                             entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
                         }
+                        log.debug('New key rate:', this.keyPrices);
                     }
                 });
             });
