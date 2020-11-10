@@ -2053,7 +2053,15 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
-                } else if (inPrice !== null && hasHighValueTheir) {
+                } else if (
+                    inPrice !== null &&
+                    hasHighValueTheir &&
+                    !(
+                        weapons.craftAll.includes(sku) ||
+                        weapons.uncraftAll.includes(sku) ||
+                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                    )
+                ) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
                         sku: sku,
