@@ -406,32 +406,18 @@ export default class Pricelist extends EventEmitter {
                         (this.keyPricesTime.source === 'sbn' ? timeSBN : timePTF) < this.keyPricesTime.time;
 
                     if (needUpdate) {
-                        if (timeSBN > timePTF) {
-                            this.keyPrices = {
-                                buy: new Currencies(keyPricesSBN.buy),
-                                sell: new Currencies(keyPricesSBN.sell)
-                            };
-                            this.keyPricesTime = { source: 'sbn', time: timeSBN };
+                        this.keyPrices = {
+                            buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                            sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
+                        };
+                        this.keyPricesTime =
+                            timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
 
-                            if (entryKey !== null && entryKey.autoprice) {
-                                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                                entryKey.buy = new Currencies(keyPricesSBN.buy);
-                                entryKey.sell = new Currencies(keyPricesSBN.sell);
-                                entryKey.time = keyPricesSBN.time;
-                            }
-                        } else {
-                            this.keyPrices = {
-                                buy: new Currencies(keyPricesPTF.buy),
-                                sell: new Currencies(keyPricesPTF.sell)
-                            };
-                            this.keyPricesTime = { source: 'ptf', time: timePTF };
-
-                            if (entryKey !== null && entryKey.autoprice) {
-                                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                                entryKey.buy = new Currencies(keyPricesPTF.buy);
-                                entryKey.sell = new Currencies(keyPricesPTF.sell);
-                                entryKey.time = keyPricesPTF.time;
-                            }
+                        if (entryKey !== null && entryKey.autoprice) {
+                            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                            entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                            entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
+                            entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
                         }
                     }
                 });
@@ -451,32 +437,18 @@ export default class Pricelist extends EventEmitter {
 
                 const entryKey = this.getPrice('5021;6');
 
-                if (timeSBN > timePTF) {
-                    this.keyPrices = {
-                        buy: new Currencies(keyPricesSBN.buy),
-                        sell: new Currencies(keyPricesSBN.sell)
-                    };
-                    this.keyPricesTime = { source: 'sbn', time: timeSBN };
+                this.keyPrices = {
+                    buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                    sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
+                };
+                this.keyPricesTime =
+                    timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
 
-                    if (entryKey !== null && entryKey.autoprice) {
-                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                        entryKey.buy = new Currencies(keyPricesSBN.buy);
-                        entryKey.sell = new Currencies(keyPricesSBN.sell);
-                        entryKey.time = keyPricesSBN.time;
-                    }
-                } else {
-                    this.keyPrices = {
-                        buy: new Currencies(keyPricesPTF.buy),
-                        sell: new Currencies(keyPricesPTF.sell)
-                    };
-                    this.keyPricesTime = { source: 'ptf', time: timePTF };
-
-                    if (entryKey !== null && entryKey.autoprice) {
-                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                        entryKey.buy = new Currencies(keyPricesPTF.buy);
-                        entryKey.sell = new Currencies(keyPricesPTF.sell);
-                        entryKey.time = keyPricesPTF.time;
-                    }
+                if (entryKey !== null && entryKey.autoprice) {
+                    // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                    entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                    entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
+                    entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
                 }
 
                 setTimeout(() => {
