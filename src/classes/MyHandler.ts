@@ -1261,7 +1261,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟦_OVERSTOCKED',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1277,7 +1277,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟩_UNDERSTOCKED',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1294,7 +1294,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟥_INVALID_VALUE',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1329,7 +1329,7 @@ export = class MyHandler extends Handler {
                 action: 'skip',
                 reason: '⬜_ESCROW_CHECK_FAILED',
                 meta: {
-                    uniqueReasons: uniqueReasons,
+                    uniqueReasons: filterReasons(uniqueReasons),
                     reasons: wrongAboutOffer
                 }
             };
@@ -1356,7 +1356,7 @@ export = class MyHandler extends Handler {
                 action: 'skip',
                 reason: '⬜_BANNED_CHECK_FAILED',
                 meta: {
-                    uniqueReasons: uniqueReasons,
+                    uniqueReasons: filterReasons(uniqueReasons),
                     reasons: wrongAboutOffer
                 }
             };
@@ -1430,23 +1430,14 @@ export = class MyHandler extends Handler {
 
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+            const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
 
-            const uniqueReasonsFiltered: string[] = [];
-
-            // Filter out duplicate reasons
-            uniqueReasons.forEach(reason => {
-                if (!uniqueReasonsFiltered.includes(reason)) {
-                    uniqueReasonsFiltered.push(reason);
-                }
-            });
-
-            const isInvalidValue = uniqueReasonsFiltered.includes('🟥_INVALID_VALUE');
-            const isInvalidItem = uniqueReasonsFiltered.includes('🟨_INVALID_ITEMS');
-            const isOverstocked = uniqueReasonsFiltered.includes('🟦_OVERSTOCKED');
-            const isUnderstocked = uniqueReasonsFiltered.includes('🟩_UNDERSTOCKED');
-            const isDupedItem = uniqueReasonsFiltered.includes('🟫_DUPED_ITEMS');
-            const isDupedCheckFailed = uniqueReasonsFiltered.includes('🟪_DUPE_CHECK_FAILED');
+            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
+            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
+            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
+            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
+            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
             const canAcceptInvalidItemsOverpay = process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true';
             const canAcceptOverstockedOverpay = process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false';
@@ -1515,7 +1506,7 @@ export = class MyHandler extends Handler {
                     action: 'accept',
                     reason: 'VALID_WITH_OVERPAY',
                     meta: {
-                        uniqueReasons: uniqueReasonsFiltered,
+                        uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
                         hasHighValueItems: {
                             our: hasHighValueOur,
@@ -1550,9 +1541,9 @@ export = class MyHandler extends Handler {
                 // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
-                offer.log('info', `offer needs review (${uniqueReasonsFiltered.join(', ')}), skipping...`);
+                offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
                 const reviewMeta = {
-                    uniqueReasons: uniqueReasonsFiltered,
+                    uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer,
                     hasHighValueItems: {
                         our: hasHighValueOur,
@@ -3634,6 +3625,19 @@ function summarizeSteamChat(
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : '');
     return summary;
+}
+
+function filterReasons(reasons: string[]): string[] {
+    const filtered: string[] = [];
+
+    // Filter out duplicate reasons
+    reasons.forEach(reason => {
+        if (!filtered.includes(reason)) {
+            filtered.push(reason);
+        }
+    });
+
+    return filtered;
 }
 
 function listItems(items: {
