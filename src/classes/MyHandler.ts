@@ -1432,12 +1432,21 @@ export = class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
-            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
-            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
-            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
-            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
-            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
+            const uniqueReasonsFiltered: string[] = [];
+
+            // Filter out duplicate reasons
+            uniqueReasons.forEach(reason => {
+                if (!uniqueReasonsFiltered.includes(reason)) {
+                    uniqueReasonsFiltered.push(reason);
+                }
+            });
+
+            const isInvalidValue = uniqueReasonsFiltered.includes('🟥_INVALID_VALUE');
+            const isInvalidItem = uniqueReasonsFiltered.includes('🟨_INVALID_ITEMS');
+            const isOverstocked = uniqueReasonsFiltered.includes('🟦_OVERSTOCKED');
+            const isUnderstocked = uniqueReasonsFiltered.includes('🟩_UNDERSTOCKED');
+            const isDupedItem = uniqueReasonsFiltered.includes('🟫_DUPED_ITEMS');
+            const isDupedCheckFailed = uniqueReasonsFiltered.includes('🟪_DUPE_CHECK_FAILED');
 
             const canAcceptInvalidItemsOverpay = process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true';
             const canAcceptOverstockedOverpay = process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false';
@@ -1506,7 +1515,7 @@ export = class MyHandler extends Handler {
                     action: 'accept',
                     reason: 'VALID_WITH_OVERPAY',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: uniqueReasonsFiltered,
                         reasons: wrongAboutOffer,
                         hasHighValueItems: {
                             our: hasHighValueOur,
@@ -1541,9 +1550,9 @@ export = class MyHandler extends Handler {
                 // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
-                offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+                offer.log('info', `offer needs review (${uniqueReasonsFiltered.join(', ')}), skipping...`);
                 const reviewMeta = {
-                    uniqueReasons: uniqueReasons,
+                    uniqueReasons: uniqueReasonsFiltered,
                     reasons: wrongAboutOffer,
                     hasHighValueItems: {
                         our: hasHighValueOur,
