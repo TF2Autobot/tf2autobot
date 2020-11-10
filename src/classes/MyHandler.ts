@@ -945,8 +945,9 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const craft = this.weapons().craftAll;
-            const uncraft = this.weapons().uncraftAll;
+            const weapons = this.weapons();
+            const craft = weapons.craftAll;
+            const uncraft = weapons.uncraftAll;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -1982,13 +1983,14 @@ export = class MyHandler extends Handler {
 
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item, false);
+                const weapons = this.weapons();
 
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
                 if (
                     !(
-                        this.weapons().craftAll.includes(sku) ||
-                        this.weapons().uncraftAll.includes(sku) ||
+                        weapons.craftAll.includes(sku) ||
+                        weapons.uncraftAll.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     )
                 ) {
@@ -2023,8 +2025,8 @@ export = class MyHandler extends Handler {
                 if (
                     inPrice === null &&
                     !(
-                        this.weapons().craftAll.includes(sku) ||
-                        this.weapons().uncraftAll.includes(sku) ||
+                        weapons.craftAll.includes(sku) ||
+                        weapons.uncraftAll.includes(sku) ||
                         ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                     ) &&
                     item.wear === null &&
@@ -2516,7 +2518,9 @@ export = class MyHandler extends Handler {
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
         let matched = false;
 
-        const scout = this.weapons().craft.scout;
+        const weapons = this.weapons().craft;
+
+        const scout = weapons.scout;
 
         for (let i = 0; i < scout.length; i++) {
             // for loop for weapon1
@@ -2548,7 +2552,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Soldier weapons
-        const soldier = this.weapons().craft.soldier;
+        const soldier = weapons.soldier;
 
         for (let i = 0; i < soldier.length; i++) {
             const sku1 = soldier[i];
@@ -2574,7 +2578,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Pyro weapons
-        const pyro = this.weapons().craft.pyro;
+        const pyro = weapons.pyro;
 
         for (let i = 0; i < pyro.length; i++) {
             const sku1 = pyro[i];
@@ -2600,7 +2604,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Demomman weapons
-        const demoman = this.weapons().craft.demoman;
+        const demoman = weapons.demoman;
 
         for (let i = 0; i < demoman.length; i++) {
             const sku1 = demoman[i];
@@ -2626,7 +2630,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Heavy weapons
-        const heavy = this.weapons().craft.heavy;
+        const heavy = weapons.heavy;
 
         for (let i = 0; i < heavy.length; i++) {
             const sku1 = heavy[i];
@@ -2652,7 +2656,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Engineer weapons
-        const engineer = this.weapons().craft.engineer;
+        const engineer = weapons.engineer;
 
         for (let i = 0; i < engineer.length; i++) {
             const sku1 = engineer[i];
@@ -2678,7 +2682,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Medic weapons
-        const medic = this.weapons().craft.medic;
+        const medic = weapons.medic;
 
         for (let i = 0; i < medic.length; i++) {
             const sku1 = medic[i];
@@ -2704,7 +2708,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Sniper weapons
-        const sniper = this.weapons().craft.sniper;
+        const sniper = weapons.sniper;
 
         for (let i = 0; i < sniper.length; i++) {
             const sku1 = sniper[i];
@@ -2730,7 +2734,7 @@ export = class MyHandler extends Handler {
         matched = false;
 
         // Spy weapons
-        const spy = this.weapons().craft.spy;
+        const spy = weapons.spy;
 
         for (let i = 0; i < spy.length; i++) {
             const sku1 = spy[i];
