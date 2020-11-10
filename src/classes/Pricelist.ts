@@ -399,6 +399,7 @@ export default class Pricelist extends EventEmitter {
 
     private updateKeyRate(): void {
         setInterval(() => {
+            log.debug('Getting key prices...');
             getPrice('5021;6', 'bptf').then(keyPricesPTF => {
                 getPriceSBN('5021;6').then(keyPricesSBN => {
                     const timePTF = keyPricesPTF.time as number;
@@ -423,7 +424,9 @@ export default class Pricelist extends EventEmitter {
                             entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
                             entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
                         }
-                        log.debug('New key rate:', this.keyPrices);
+                        log.debug('New key rate', this.keyPrices);
+                    } else {
+                        log.debug('No update needed.');
                     }
                 });
             });
@@ -431,7 +434,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     setupPricelist(): Promise<void> {
-        log.debug('Getting key price...');
+        log.debug('Getting key prices...');
 
         return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
             return getPriceSBN('5021;6').then(keyPricesSBN => {
