@@ -3398,7 +3398,7 @@ function removeLinkProtocol(message: string): string {
 }
 
 function testSKU(sku: string): boolean {
-    return /^(\d+);(\d+)(((\b;uncraftable\b)|(\b;untradable\b)|(\b;australium\b)|(\b;festive\b)|(\b;strange\b)|(\b;kt-[1-3]\b)|(\b;u\d+\b)|(\b;pk\d+\b)|(\b;w[1-5]\b)|(\b;td-\d+\b)|(\b;n([0-9]|[1-9][0-9]|100)\b)|(\b;c\d+\b)|(\b;od-\d+\b)|(\b;oq-\d+\b)|(\b;p\d+\b))+)?$/.test(
+    return /^(\d+);\b([1-9]|[1][0-5])\b(((\b;uncraftable\b)|(\b;untradable\b)|(\b;australium\b)|(\b;festive\b)|(\b;strange\b)|(\b;kt-[1-3]\b)|(\b;u\d+\b)|(\b;pk\d+\b)|(\b;w[1-5]\b)|(\b;td-\d+\b)|(\b;n([0-9]|[1-9][0-9]|100)\b)|(\b;c\d+\b)|(\b;od-\d+\b)|(\b;oq-\d+\b)|(\b;p\d+\b))+)?$/.test(
         sku
     );
 }
