@@ -483,7 +483,6 @@ export = class Listings {
 
         const maxStock = entry.max;
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
-        const amountCanBuy = maxStock === -1 ? '∞' : maxStock - currentStock;
 
         let details: string;
 
@@ -495,8 +494,7 @@ export = class Listings {
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString());
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
 
             if (entry[key].toString().includes('key')) {
                 // if %keyPrice% is defined in buynote value and the item price involved keys,
@@ -557,7 +555,6 @@ export = class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             if (entry[key].toString().includes('key')) {
@@ -574,7 +571,6 @@ export = class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             if (entry[key].toString().includes('key')) {
@@ -588,7 +584,6 @@ export = class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
         } else {
@@ -599,7 +594,6 @@ export = class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 .replace(/%uses%/g, '');
         }
