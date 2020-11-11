@@ -51,27 +51,8 @@ export const addSchema: jsonschema.Schema = {
                 }
             ]
         },
-        buynote: {
-            // custom buy order listing note
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ]
-        },
-        sellnote: {
-            // custom sell order listing note
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ]
+        note: {
+            $ref: 'listing-note'
         }
     },
     additionalProperties: false,

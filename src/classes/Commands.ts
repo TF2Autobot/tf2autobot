@@ -1249,6 +1249,17 @@ export = class Commands {
             }
         }
 
+        if (typeof params.note === 'object') {
+            params.note.buy = params.note.buy || null;
+            params.note.sell = params.note.sell || null;
+        }
+
+        if (params.note === undefined) {
+            // If note parameter is not defined, set both note.buy and note.sell to null.
+            params.note.buy = null;
+            params.note.sell = null;
+        }
+
         if (params.group && typeof params.group !== 'string') {
             // if group parameter is defined, convert anything to string
             params.group = params.group.toString();
@@ -1257,16 +1268,6 @@ export = class Commands {
         if (params.group === undefined) {
             // If group paramater is not defined, set it to null.
             params.group = null;
-        }
-
-        if (params.buynote === undefined) {
-            // If buynote parameter is not defined, set it to null.
-            params.buynote = null;
-        }
-
-        if (params.sellnote === undefined) {
-            // If sellnote parameter is not defined, set it to null.
-            params.sellnote = null;
         }
 
         if (params.autoprice === undefined) {
@@ -1352,9 +1353,9 @@ export = class Commands {
 
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
-                    // buynote and sellnote for all entries to null.
-                    entry.buynote = null;
-                    entry.sellnote = null;
+                    // note.buy and note.sell for all entries to null.
+                    entry.note.buy = null;
+                    entry.note.sell = null;
                 }
 
                 if (params.autoprice === false) {
@@ -1377,8 +1378,7 @@ export = class Commands {
                             buy: entry.buy.toJSON(),
                             sell: entry.sell.toJSON(),
                             group: entry.group,
-                            buynote: entry.buynote,
-                            sellnote: entry.sellnote,
+                            note: entry.note,
                             time: entry.time
                         },
                         'pricelist'
@@ -1441,6 +1441,11 @@ export = class Commands {
             }
         }
 
+        if (typeof params.note === 'object') {
+            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || null;
+            params.note.sell = params.note.sell === '' ? null : params.note.sell || null;
+        }
+
         if (params.removegroup) {
             // if removegroup (when sending "!update item=<itemName>&removegroup=true") is defined,
             // first check if it's a booelan type
@@ -1461,11 +1466,11 @@ export = class Commands {
         }
 
         if (params.removenote) {
-            // removenote to remove both buynote and sellnote.
+            // removenote to set both note.buy and note.sell to null.
             if (typeof params.removenote === 'boolean') {
                 if (params.removenote === true) {
-                    params.buynote = null;
-                    params.sellnote = null;
+                    params.note.buy = null;
+                    params.note.sell = null;
                 }
             } else {
                 this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
@@ -1477,7 +1482,7 @@ export = class Commands {
         if (params.removebuynote) {
             if (typeof params.removebuynote === 'boolean') {
                 if (params.removebuynote === true) {
-                    params.buynote = null;
+                    params.note.buy = null;
                 }
             } else {
                 this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
@@ -1489,23 +1494,13 @@ export = class Commands {
         if (params.removesellnote) {
             if (typeof params.removesellnote === 'boolean') {
                 if (params.removesellnote === true) {
-                    params.sellnote = null;
+                    params.note.sell = null;
                 }
             } else {
                 this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
                 return;
             }
             delete params.removesellnote;
-        }
-
-        if (params.buynote === '') {
-            // "!update item=<itemName>&removesellnote=true" will set sellnote to null
-            params.buynote = null;
-        }
-
-        if (params.sellnote === '') {
-            // "!update item=<itemName>&removesellnote=true" will set sellnote to null
-            params.sellnote = null;
         }
 
         if (params.item !== undefined) {

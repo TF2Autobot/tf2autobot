@@ -660,7 +660,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
@@ -678,7 +681,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
@@ -696,7 +702,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -722,7 +731,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
@@ -740,7 +752,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
@@ -758,7 +773,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -784,8 +802,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else {
             entry = {
@@ -803,8 +823,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -830,7 +852,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
@@ -848,7 +873,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
@@ -866,7 +894,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 0,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -892,7 +923,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
@@ -910,7 +944,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
@@ -928,7 +965,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 1,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -954,8 +994,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else {
             entry = {
@@ -973,8 +1015,10 @@ export = class Autokeys {
                 min: minKeys,
                 max: maxKeys,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -1000,8 +1044,10 @@ export = class Autokeys {
                 min: 0,
                 max: 1,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         } else {
             entry = {
@@ -1019,8 +1065,10 @@ export = class Autokeys {
                 min: 0,
                 max: 1,
                 intent: 2,
-                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist

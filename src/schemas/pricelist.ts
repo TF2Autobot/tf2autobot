@@ -55,27 +55,8 @@ export const pricelistSchema: jsonschema.Schema = {
                 }
             ]
         },
-        buynote: {
-            // custom buy order listing note
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ]
-        },
-        sellnote: {
-            // custom sell order listing note
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ]
+        note: {
+            $ref: 'listing-note'
         },
         time: {
             // time when the price changed

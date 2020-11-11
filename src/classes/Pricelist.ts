@@ -28,8 +28,7 @@ export interface EntryData {
     buy?: Currency | null;
     sell?: Currency | null;
     group?: string | null;
-    buynote?: string | null;
-    sellnote?: string | null;
+    note?: { buy: string | null; sell: string | null };
     time?: number | null;
 }
 
@@ -54,9 +53,7 @@ export class Entry {
 
     group: string | null;
 
-    buynote: string | null;
-
-    sellnote: string | null;
+    note: { buy: string | null; sell: string | null };
 
     time: number | null;
 
@@ -69,8 +66,7 @@ export class Entry {
         this.min = entry.min;
         this.intent = entry.intent;
         this.group = entry.group;
-        this.buynote = entry.buynote;
-        this.sellnote = entry.sellnote;
+        this.note = entry.note;
 
         // TODO: Validate entry
 
@@ -104,8 +100,7 @@ export class Entry {
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
             group: this.group,
-            buynote: this.buynote,
-            sellnote: this.sellnote,
+            note: this.note,
             time: this.time
         };
     }
@@ -419,8 +414,7 @@ export default class Pricelist extends EventEmitter {
                     buy: prices[0].buy,
                     sell: prices[0].sell,
                     group: prices[0].group,
-                    buynote: prices[0].buynote,
-                    sellnote: prices[0].sellnote,
+                    note: prices[0].note,
                     time: prices[0].time
                 },
                 'pricelist'
