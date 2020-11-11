@@ -1,4 +1,6 @@
-export = {
+import jsonschema from 'jsonschema';
+
+export const addSchema: jsonschema.Schema = {
     id: 'pricelist-add',
     type: 'object',
     properties: {

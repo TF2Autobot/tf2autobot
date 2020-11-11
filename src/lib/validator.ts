@@ -3,17 +3,19 @@ const Validator = jsonschema.Validator;
 
 const v = new Validator();
 
-import currenciesSchema from '../schemas/tf2-currencies';
-import pricelistSchema from '../schemas/pricelist';
-import addSchema from '../schemas/pricelist-add';
+import { currenciesSchema } from '../schemas/tf2-currencies';
+import { pricelistSchema } from '../schemas/pricelist';
+import { addSchema } from '../schemas/pricelist-add';
 
 v.addSchema(currenciesSchema);
 v.addSchema(pricelistSchema);
 v.addSchema(addSchema);
 
-export = function(...args): string[] | null {
-    // @ts-ignore
-    const validated = v.validate(...args);
+export = function(data: any, schema: string): string[] | null {
+    const putSchema =
+        schema === 'pricelist-add' ? addSchema : schema === 'pricelist' ? pricelistSchema : currenciesSchema;
+
+    const validated = v.validate(data, putSchema);
     if (validated.valid === true) {
         return null;
     }
