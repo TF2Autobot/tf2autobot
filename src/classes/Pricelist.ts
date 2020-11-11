@@ -247,6 +247,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     private async validateEntry(entry: Entry): Promise<void> {
+        const keyPrices = this.getKeyPrices();
+
         if (entry.autoprice) {
             let price;
 
@@ -256,18 +258,16 @@ export default class Pricelist extends EventEmitter {
                 throw new Error(err.body && err.body.message ? err.body.message : err.message);
             }
 
-            entry.buy = new Currencies(price.buy);
-            entry.sell = new Currencies(price.sell);
-            entry.time = price.time;
+            entry.buy = new Currencies(entry.sku === '5021;6' ? keyPrices.buy : price.buy);
+            entry.sell = new Currencies(entry.sku === '5021;6' ? keyPrices.sell : price.sell);
+            entry.time = entry.sku === '5021;6' ? this.getKeyPriceSource().time : price.time;
         }
 
         if (!entry.hasPrice()) {
             throw new Error('Pricelist entry does not have a price');
         }
 
-        const keyPrice = this.getKeyPrice();
-
-        if (entry.buy.toValue(keyPrice.metal) >= entry.sell.toValue(keyPrice.metal)) {
+        if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
             throw new Error('Sell must be higher than buy');
         }
     }
