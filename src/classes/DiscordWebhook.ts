@@ -235,6 +235,8 @@ export = class DiscordWebhookClass {
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
             const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
 
+            const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
+
             /*eslint-disable */
             const webhookReview = {
                 username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
@@ -275,8 +277,14 @@ export = class DiscordWebhookClass {
                                 name: '__Status__',
                                 value:
                                     (isShowKeyRate
-                                        ? (`\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                                            ` (${this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'})`)
+                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                                          ` (${
+                                              keyRateSource === 'sbn'
+                                                  ? 'sbn.tf'
+                                                  : keyRateSource === 'manual'
+                                                  ? 'manual'
+                                                  : 'prices.tf'
+                                          })`
                                         : '') +
                                     (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                             }
@@ -415,6 +423,8 @@ export = class DiscordWebhookClass {
             const isShowInventory = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY !== 'false';
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
 
+            const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
+
             /*eslint-disable */
             const acceptedTradeSummary = {
                 username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
@@ -448,7 +458,13 @@ export = class DiscordWebhookClass {
                                 value:
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
-                                          ` (${this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'})` +
+                                          ` (${
+                                              keyRateSource === 'sbn'
+                                                  ? 'sbn.tf'
+                                                  : keyRateSource === 'manual'
+                                                  ? 'manual'
+                                                  : 'prices.tf'
+                                          })` +
                                           `${
                                               autokeys.isEnabled
                                                   ? ' | Autokeys: ' +

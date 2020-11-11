@@ -1864,6 +1864,8 @@ export = class MyHandler extends Handler {
                 const keyPrices = this.bot.pricelist.getKeyPrices();
                 const value = this.valueDiff(offer, keyPrices);
 
+                const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
+
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     this.discord.tradeSummaryLinks.length !== 0
@@ -1910,7 +1912,9 @@ export = class MyHandler extends Handler {
                                   accepted.highValue.join('\n- ')
                                 : '') +
                             `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                            ` (${this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'})` +
+                            ` (${
+                                keyRateSource === 'sbn' ? 'sbn.tf' : keyRateSource === 'manual' ? 'manual' : 'prices.tf'
+                            })` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -2379,6 +2383,7 @@ export = class MyHandler extends Handler {
             };
 
             const list = listItems(items);
+            const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
 
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
@@ -2408,7 +2413,9 @@ export = class MyHandler extends Handler {
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                        ` (${this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'})` +
+                        ` (${
+                            keyRateSource === 'sbn' ? 'sbn.tf' : keyRateSource === 'manual' ? 'manual' : 'prices.tf'
+                        })` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                         `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []

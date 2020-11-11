@@ -250,17 +250,32 @@ export default class Pricelist extends EventEmitter {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
-            let price;
+            let pricePTF;
+            let priceSBN;
 
             try {
-                price = await getPrice(entry.sku, 'bptf');
+                pricePTF = await getPrice(entry.sku, 'bptf');
+                priceSBN = await getPriceSBN(entry.sku);
             } catch (err) {
                 throw new Error(err.body && err.body.message ? err.body.message : err.message);
             }
 
-            entry.buy = new Currencies(entry.sku === '5021;6' ? keyPrices.buy : price.buy);
-            entry.sell = new Currencies(entry.sku === '5021;6' ? keyPrices.sell : price.sell);
-            entry.time = entry.sku === '5021;6' ? this.getKeyPriceSource().time : price.time;
+            entry.buy = new Currencies(
+                entry.sku === '5021;6' ? (priceSBN.updated > pricePTF.time ? priceSBN.buy : pricePTF.buy) : pricePTF.buy
+            );
+            entry.sell = new Currencies(
+                entry.sku === '5021;6'
+                    ? priceSBN.updated > pricePTF.time
+                        ? priceSBN.sell
+                        : pricePTF.sell
+                    : pricePTF.sell
+            );
+            entry.time =
+                entry.sku === '5021;6'
+                    ? priceSBN.updated > pricePTF.time
+                        ? priceSBN.updated
+                        : pricePTF.time
+                    : pricePTF.time;
         }
 
         if (!entry.hasPrice()) {
@@ -269,6 +284,18 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
             throw new Error('Sell must be higher than buy');
+        }
+
+        if (entry.sku === '5021;6') {
+            // update key rate
+            this.keyPrices = {
+                buy: entry.buy,
+                sell: entry.sell
+            };
+
+            if (!entry.autoprice) {
+                this.keyPricesTime = { source: 'manual', time: null };
+            }
         }
     }
 
@@ -281,6 +308,16 @@ export default class Pricelist extends EventEmitter {
         }
         return price;
     }
+
+    // async getPricesSBN(sku: string): Promise<any> {
+    //     let price;
+    //     try {
+    //         price = await getPriceSBN(sku);
+    //     } catch (err) {
+    //         price = null;
+    //     }
+    //     return price;
+    // }
 
     async addPrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
@@ -401,37 +438,43 @@ export default class Pricelist extends EventEmitter {
 
     private updateKeyRate(): void {
         setInterval(() => {
-            log.debug('Getting key prices...');
-            getPrice('5021;6', 'bptf').then(keyPricesPTF => {
-                getPriceSBN('5021;6').then(keyPricesSBN => {
-                    const timePTF = keyPricesPTF.time as number;
-                    const timeSBN = keyPricesSBN.updated as number;
+            const entryKey = this.getPrice('5021;6');
 
-                    const entryKey = this.getPrice('5021;6');
+            if (entryKey.autoprice) {
+                log.debug('Getting key prices...');
+                getPrice('5021;6', 'bptf').then(keyPricesPTF => {
+                    getPriceSBN('5021;6').then(keyPricesSBN => {
+                        const timePTF = keyPricesPTF.time as number;
+                        const timeSBN = keyPricesSBN.updated as number;
 
-                    const needUpdate =
-                        (this.keyPricesTime.source === 'sbn' ? timeSBN : timePTF) < this.keyPricesTime.time;
+                        const entryKey = this.getPrice('5021;6');
 
-                    if (needUpdate) {
-                        this.keyPrices = {
-                            buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
-                            sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
-                        };
-                        this.keyPricesTime =
-                            timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
+                        const needUpdate =
+                            (this.keyPricesTime.source === 'sbn' ? timeSBN : timePTF) < this.keyPricesTime.time;
 
-                        if (entryKey !== null && entryKey.autoprice) {
-                            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                            entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
-                            entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
-                            entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                        if (needUpdate) {
+                            this.keyPrices = {
+                                buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                                sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
+                            };
+                            this.keyPricesTime =
+                                timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
+
+                            if (entryKey !== null && entryKey.autoprice) {
+                                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                                entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                                entryKey.sell = new Currencies(
+                                    timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell
+                                );
+                                entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                            }
+                            log.debug('New key rate', this.keyPrices);
+                        } else {
+                            log.debug('No update needed.');
                         }
-                        log.debug('New key rate', this.keyPrices);
-                    } else {
-                        log.debug('No update needed.');
-                    }
+                    });
                 });
-            });
+            }
         }, 30 * 60 * 1000);
     }
 
@@ -442,23 +485,34 @@ export default class Pricelist extends EventEmitter {
             return getPriceSBN('5021;6').then(keyPricesSBN => {
                 log.debug('Got key price');
 
-                const timePTF = keyPricesPTF.time as number;
-                const timeSBN = keyPricesSBN.updated as number;
-
                 const entryKey = this.getPrice('5021;6');
 
-                this.keyPrices = {
-                    buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
-                    sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
-                };
-                this.keyPricesTime =
-                    timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
+                if (entryKey !== null && !entryKey.autoprice) {
+                    log.debug('Key rate is set based on current key prices in the pricelist.');
+                    this.keyPrices = {
+                        buy: new Currencies(entryKey.buy),
+                        sell: new Currencies(entryKey.sell)
+                    };
+                    this.keyPricesTime = { source: 'manual', time: entryKey.time };
+                } else {
+                    const timePTF = keyPricesPTF.time as number;
+                    const timeSBN = keyPricesSBN.updated as number;
 
-                if (entryKey !== null && entryKey.autoprice) {
-                    // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                    entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
-                    entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
-                    entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                    this.keyPrices = {
+                        buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                        sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell)
+                    };
+                    this.keyPricesTime =
+                        timeSBN > timePTF ? { source: 'sbn', time: timeSBN } : { source: 'ptf', time: timePTF };
+
+                    log.debug('Key rate is set based current key prices.', this.keyPrices);
+
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                        entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
+                        entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                    }
                 }
 
                 setTimeout(() => {

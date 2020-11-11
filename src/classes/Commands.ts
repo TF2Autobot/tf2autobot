@@ -868,6 +868,7 @@ export = class Commands {
 
     private rateCommand(steamID: SteamID): void {
         const keyPrice = this.bot.pricelist.getKeyPrice().toString();
+        const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
 
         this.bot.sendMessage(
             steamID,
@@ -879,8 +880,10 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.' +
                 `\n\nKey rate source: ${
-                    this.bot.pricelist.getKeyPriceSource().source === 'sbn'
+                    keyRateSource === 'sbn'
                         ? 'https://api.sbn.tf/prices/5021;6'
+                        : keyRateSource === 'manual'
+                        ? 'manual'
                         : 'https://api.prices.tf/items/5021;6?src=bptf'
                 }`
         );
@@ -2357,12 +2360,13 @@ export = class Commands {
         )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
 
         const isAdmin = this.bot.isAdmin(steamID);
+        const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
 
         let reply =
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell} (${
-            this.bot.pricelist.getKeyPriceSource().source === 'sbn' ? 'sbn.tf' : 'prices.tf'
+            keyRateSource === 'sbn' ? 'sbn.tf' : keyRateSource === 'manual' ? 'manual' : 'prices.tf'
         })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
