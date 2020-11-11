@@ -17,6 +17,7 @@ import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import { requestCheck } from '../lib/ptf-api';
+import { craftWeapons, craftAll, uncraftAll, giftWords, noiseMakerNames, strangeParts } from '../lib/data';
 
 import moment from 'moment-timezone';
 
@@ -521,7 +522,7 @@ export = class MyHandler extends Handler {
             const spellNames: string[] = [];
 
             let hasStrangeParts = false;
-            const strangeParts: string[] = [];
+            const partsNames: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 // Item description value for Spells and Strange Parts.
@@ -537,10 +538,6 @@ export = class MyHandler extends Handler {
 
                 // Description color in Hex Triplet format, example: 7ea9d1
                 const color = item.descriptions[i].color;
-
-                // Get strangePartObject and strangePartNames
-                const strangePartObject = this.strangeParts();
-                const strangePartNames = Object.keys(strangePartObject);
 
                 if (
                     spell.startsWith('Halloween:') &&
@@ -561,7 +558,7 @@ export = class MyHandler extends Handler {
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
                         ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : strangePartNames.includes(parts)) &&
+                        : Object.keys(strangeParts).includes(parts)) &&
                     color === '756b5e'
                 ) {
                     // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
@@ -570,7 +567,7 @@ export = class MyHandler extends Handler {
                     // https://www.spycolor.com/756b5e#
                     hasStrangeParts = true;
                     hasHighValueOur = true;
-                    strangeParts.push(parts);
+                    partsNames.push(parts);
                 }
             }
 
@@ -591,7 +588,7 @@ export = class MyHandler extends Handler {
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                 }
 
                 log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
@@ -625,7 +622,7 @@ export = class MyHandler extends Handler {
             const spellNames: string[] = [];
 
             let hasStrangeParts = false;
-            const strangeParts: string[] = [];
+            const partsNames: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 const spell = item.descriptions[i].value;
@@ -634,8 +631,6 @@ export = class MyHandler extends Handler {
                     .replace(/: \d+\)/g, '')
                     .trim();
                 const color = item.descriptions[i].color;
-                const strangePartObject = this.strangeParts();
-                const strangePartNames = Object.keys(strangePartObject);
 
                 if (
                     spell.startsWith('Halloween:') &&
@@ -649,12 +644,12 @@ export = class MyHandler extends Handler {
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
                         ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : strangePartNames.includes(parts)) &&
+                        : Object.keys(strangeParts).includes(parts)) &&
                     color === '756b5e'
                 ) {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
-                    strangeParts.push(parts);
+                    partsNames.push(parts);
                 }
             }
 
@@ -675,7 +670,7 @@ export = class MyHandler extends Handler {
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                 }
 
                 log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
@@ -722,7 +717,7 @@ export = class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        const isGift = this.giftWords().some(word => {
+        const isGift = giftWords.some(word => {
             return offerMessage.includes(word);
         });
 
@@ -786,7 +781,7 @@ export = class MyHandler extends Handler {
 
             offer.itemsToReceive.forEach(item => {
                 const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                const isNoiseMaker = noiseMakerNames.some(name => {
                     return item.market_hash_name.includes(name);
                 });
 
@@ -945,9 +940,6 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const weapons = this.weapons();
-            const craft = weapons.craftAll;
-            const uncraft = weapons.uncraftAll;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -969,7 +961,7 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    (craft.includes(sku) || uncraft.includes(sku)) &&
+                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
                     process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
@@ -980,7 +972,7 @@ export = class MyHandler extends Handler {
                     const match = this.bot.pricelist.getPrice(sku, true);
                     const notIncludeCraftweapon =
                         process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !(craft.includes(sku) || uncraft.includes(sku))
+                            ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                             : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -1983,11 +1975,10 @@ export = class MyHandler extends Handler {
 
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item, false);
-                const weapons = this.weapons();
 
                 const isNotPureOrWeapons = !(
-                    weapons.craftAll.includes(sku) ||
-                    weapons.uncraftAll.includes(sku) ||
+                    craftAll.includes(sku) ||
+                    uncraftAll.includes(sku) ||
                     ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                 );
 
@@ -2493,7 +2484,7 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        for (const sku of this.weapons().craftAll) {
+        for (const sku of craftAll) {
             const weapon = currencies[sku].length;
 
             if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
@@ -2540,17 +2531,15 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        const weapons = this.weapons().craft;
-
-        this.craftEachClassWeapons(weapons.scout, currencies);
-        this.craftEachClassWeapons(weapons.soldier, currencies);
-        this.craftEachClassWeapons(weapons.pyro, currencies);
-        this.craftEachClassWeapons(weapons.demoman, currencies);
-        this.craftEachClassWeapons(weapons.heavy, currencies);
-        this.craftEachClassWeapons(weapons.engineer, currencies);
-        this.craftEachClassWeapons(weapons.medic, currencies);
-        this.craftEachClassWeapons(weapons.sniper, currencies);
-        this.craftEachClassWeapons(weapons.spy, currencies);
+        this.craftEachClassWeapons(craftWeapons.scout, currencies);
+        this.craftEachClassWeapons(craftWeapons.soldier, currencies);
+        this.craftEachClassWeapons(craftWeapons.pyro, currencies);
+        this.craftEachClassWeapons(craftWeapons.demoman, currencies);
+        this.craftEachClassWeapons(craftWeapons.heavy, currencies);
+        this.craftEachClassWeapons(craftWeapons.engineer, currencies);
+        this.craftEachClassWeapons(craftWeapons.medic, currencies);
+        this.craftEachClassWeapons(craftWeapons.sniper, currencies);
+        this.craftEachClassWeapons(craftWeapons.spy, currencies);
     }
 
     private sortInventory(): void {
@@ -3047,490 +3036,6 @@ export = class MyHandler extends Handler {
             tradesToday: tradesToday
         };
         return polldata;
-    }
-
-    giftWords(): string[] {
-        const words = [
-            'gift',
-            'donat', // So that 'donate' or 'donation' will also be accepted
-            'tip', // All others are synonyms
-            'tribute',
-            'souvenir',
-            'favor',
-            'giveaway',
-            'bonus',
-            'grant',
-            'bounty',
-            'present',
-            'contribution',
-            'award',
-            'nice', // Up until here actually
-            'happy', // All below people might also use
-            'thank',
-            'goo', // For 'good', 'goodie' or anything else
-            'awesome',
-            'rep',
-            'joy',
-            'cute' // right?
-        ];
-        return words;
-    }
-
-    strangeParts(): { [key: string]: number } {
-        const names = {
-            // Most Strange Parts name will change once applied/attached.
-            'Robots Destroyed': 6026, //              checked
-            Kills: 6060, //                           checked
-            'Airborne Enemy Kills': 6012, //          was "Airborne Enemies Killed"
-            'Damage Dealt': 6056, //                  checked
-            Dominations: 6016, //                     was "Domination Kills"
-            'Snipers Killed': 6005, //                checked
-            'Buildings Destroyed': 6009, //           checked
-            'Projectiles Reflected': 6010, //         checked
-            'Headshot Kills': 6011, //                checked
-            'Medics Killed': 6007, //                 checked
-            'Fires Survived': 6057, //                checked
-            'Teammates Extinguished': 6020, //        checked
-            'Freezecam Taunt Appearances': 6055, //   checked
-            'Spies Killed': 6008, //                  checked
-            'Allied Healing Done': 6058, //           checked
-            'Sappers Removed': 6025, //               was "Sappers Destroyed"
-            'Players Hit': 6064, //                   was "Player Hits"
-            'Gib Kills': 6013, //                     checked
-            'Scouts Killed': 6003, //                 checked
-            'Taunt Kills': 6051, //                   was "Kills with a Taunt Attack"
-            'Point Blank Kills': 6059, //             was "Point-Blank Kills"
-            'Soldiers Killed': 6002, //               checked
-            'Long-Distance Kills': 6039, //           checked
-            'Giant Robots Destroyed': 6028, //        checked
-            'Critical Kills': 6021, //                checked
-            'Demomen Killed': 6001, //                checked
-            'Unusual-Wearing Player Kills': 6052, //  checked
-            Assists: 6065, //                         checked
-            'Medics Killed That Have Full ÜberCharge': 6023, // checked
-            'Cloaked Spies Killed': 6024, //          checked
-            'Engineers Killed': 6004, //              checked
-            'Kills While Explosive-Jumping': 6022, // was "Kills While Explosive Jumping"
-            'Kills While Low Health': 6032, //        was "Low-Health Kills"
-            'Burning Player Kills': 6053, //          was "Burning Enemy Kills"
-            'Kills While Invuln ÜberCharged': 6037, // was "Kills While Übercharged"
-            'Posthumous Kills': 6019, //              checked
-            'Not Crit nor MiniCrit Kills': 6063, //   checked
-            'Full Health Kills': 6061, //             checked
-            'Killstreaks Ended': 6054, //             checked
-            'Defenders Killed': 6035, //              was "Defender Kills"
-            Revenges: 6018, //                        was "Revenge Kills"
-            'Robot Scouts Destroyed': 6042, //        checked
-            'Heavies Killed': 6000, //                checked
-            'Tanks Destroyed': 6038, //               checked
-            'Kills During Halloween': 6033, //        was "Halloween Kills"
-            'Pyros Killed': 6006, //                  checked
-            'Submerged Enemy Kills': 6036, //         was "Underwater Kills"
-            'Kills During Victory Time': 6041, //     checked
-            'Taunting Player Kills': 6062, //         checked
-            'Robot Spies Destroyed': 6048, //         checked
-            'Kills Under A Full Moon': 6015, //       was "Full Moon Kills"
-            'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
-        };
-
-        return names;
-    }
-
-    noiseMakerNames(): string[] {
-        const names = [
-            'Noise Maker - Black Cat',
-            'Noise Maker - Gremlin',
-            'Noise Maker - Werewolf',
-            'Noise Maker - Witch',
-            'Noise Maker - Banshee',
-            'Noise Maker - Crazy Laugh',
-            'Noise Maker - Stabby',
-            'Noise Maker - Bell',
-            'Noise Maker - Gong',
-            'Noise Maker - Koto',
-            'Noise Maker - Fireworks',
-            'Noise Maker - Vuvuzela'
-        ];
-        return names;
-    }
-
-    noiseMakerSKUs(): string[] {
-        const skus = [
-            '280;6', // Noise Maker - Black Cat
-            '280;6;uncraftable',
-            '281;6', // Noise Maker - Gremlin
-            '281;6;uncraftable',
-            '282;6', // Noise Maker - Werewolf
-            '282;6;uncraftable',
-            '283;6', // Noise Maker - Witch
-            '283;6;uncraftable',
-            '284;6', // Noise Maker - Banshee
-            '284;6;uncraftable',
-            '286;6', // Noise Maker - Crazy Laugh
-            '286;6;uncraftable',
-            '288;6', // Noise Maker - Stabby
-            '288;6;uncraftable',
-            '362;6', // Noise Maker - Bell
-            '362;6;uncraftable',
-            '364;6', // Noise Maker - Gong
-            '364;6;uncraftable',
-            '365;6', // Noise Maker - Koto
-            '365;6;uncraftable',
-            '365;1', // Genuine Noise Maker - Koto
-            '493;6', // Noise Maker - Fireworks
-            '493;6;uncraftable',
-            '542;6', // Noise Maker - Vuvuzela
-            '542;6;uncraftable',
-            '542;1' // Genuine Noise Maker - Vuvuzela
-        ];
-        return skus;
-    }
-
-    weapons(): {
-        craft: {
-            scout: string[];
-            soldier: string[];
-            pyro: string[];
-            demoman: string[];
-            heavy: string[];
-            engineer: string[];
-            medic: string[];
-            sniper: string[];
-            spy: string[];
-        };
-        craftAll: string[];
-        uncraftAll: string[];
-    } {
-        const craft = {
-            scout: [
-                '45;6', // Force-A-Nature               == Scout/Primary ==
-                '220;6', // Shortstop
-                '448;6', // Soda Popper
-                '772;6', // Baby Face's Blaster
-                '1103;6', // Back Scatter
-                '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
-                '163;6', // Crit-a-Cola
-                '222;6', // Mad Milk
-                '449;6', // Winger
-                '773;6', // Pretty Boy's Pocket Pistol
-                '812;6', // Flying Guillotine
-                '44;6', // Sandman                      == Scout/Melee ==
-                '221;6', // Holy Mackerel
-                '317;6', // Candy Cane
-                '325;6', // Boston Basher
-                '349;6', // Sun-on-a-Stick
-                '355;6', // Fan O'War
-                '450;6', // Atomizer
-                '648;6' // Wrap Assassin
-            ],
-            soldier: [
-                '127;6', // Direct Hit                  == Soldier/Primary ==
-                '228;6', // Black Box
-                '237;6', // Rocket Jumper
-                '414;6', // Liberty Launcher
-                '441;6', // Cow Mangler 5000
-                '513;6', // Original
-                '730;6', // Beggar's Bazooka
-                '1104;6', // Air Strike
-                '129;6', // Buff Banner                 == Soldier/Secondary ==
-                '133;6', // Gunboats
-                '226;6', // Battalion's Backup
-                '354;6', // Concheror
-                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-                '442;6', // Righteous Bison
-                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '444;6', // Mantreads
-                '128;6', // Equalizer                   == Soldier/Melee ==
-                '154;6', // Pain Train - Shared - Soldier/Demoman
-                '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
-                '416;6', // Market Gardener
-                '447;6', // Disciplinary Action
-                '775;6' // Escape Plan
-            ],
-            pyro: [
-                '40;6', // Backburner                   == Pyro/Primary ==
-                '215;6', // Degreaser
-                '594;6', // Phlogistinator
-                '741;6', // Rainblower
-                '1178;6', // Dragon's Fury
-                '39;6', // Flare Gun                    == Pyro/Secondary ==
-                '351;6', // Detonator
-                '595;6', // Manmelter
-                '740;6', // Scorch Shot
-                '1179;6', // Thermal Thruster
-                '1180;6', // Gas Passer
-                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '38;6', // Axtinguisher                 == Pyro/Melee ==
-                '153;6', // Homewrecker
-                '214;6', // Powerjack
-                '326;6', // Back Scratcher
-                '348;6', // Sharpened Volcano Fragment
-                '457;6', // Postal Pummeler
-                '593;6', // Third Degree
-                '739;6', // Lollichop
-                '813;6', // Neon Annihilator
-                '1181;6' // Hot Hand
-            ],
-            demoman: [
-                '308;6', // Loch-n-Load                 == Demoman/Primary ==
-                '405;6', // Ali Baba's Wee Booties
-                '608;6', // Bootlegger
-                '996;6', // Loose Cannon
-                '1151;6', // Iron Bomber
-                '130;6', // Scottish Resistance         == Demoman/Secondary ==
-                '131;6', // Chargin' Targe
-                '265;6', // Sticky Jumper
-                '406;6', // Splendid Screen
-                '1099;6', // Tide Turner
-                '1150;6', // Quickiebomb Launcher
-                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-                '132;6', // Eyelander                   == Demoman/Melee ==
-                '172;6', // Scotsman's Skullcutter
-                '307;6', // Ullapool Caber
-                '327;6', // Claidheamh Mòr
-                '404;6', // Persian Persuader
-                '482;6', // Nessie's Nine Iron
-                '609;6', // Scottish Handshake
-                '154;6', // Pain Train - Shared - Soldier/Demoman
-                '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
-            ],
-            heavy: [
-                '41;6', // Natascha                     == Heavy/Primary ==
-                '312;6', // Brass Beast
-                '424;6', // Tomislav
-                '811;6', // Huo-Long Heater
-                '42;6', // Sandvich                     == Heavy/Secondary ==
-                '159;6', // Dalokohs Bar
-                '311;6', // Buffalo Steak Sandvich
-                '425;6', // Family Business
-                '1190;6', // Second Banana
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
-                '239;6', // Gloves of Running Urgently
-                '310;6', // Warrior's Spirit
-                '331;6', // Fists of Steel
-                '426;6', // Eviction Notice
-                '656;6' // Holiday Punch
-            ],
-            engineer: [
-                '141;6', // Frontier Justice            == Engineer/Primary ==
-                '527;6', // Widowmaker
-                '588;6', // Pomson 6000
-                '997;6', // Rescue Ranger
-                '140;6', // Wrangler                    == Engineer/Secondary ==
-                '528;6', // Short Circuit
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '142;6', // Gunslinger                  == Engineer/Melee ==
-                '155;6', // Southern Hospitality
-                '329;6', // Jag
-                '589;6' // Eureka Effect
-            ],
-            medic: [
-                '36;6', // Blutsauger                   == Medic/Primary ==
-                '305;6', // Crusader's Crossbow
-                '412;6', // Overdose
-                '35;6', // Kritzkrieg                   == Medic/Secondary ==
-                '411;6', // Quick-Fix
-                '998;6', // Vaccinator
-                '37;6', // Ubersaw                      == Medic/Melee ==
-                '173;6', // Vita-Saw
-                '304;6', // Amputator
-                '413;6' // Solemn Vow
-            ],
-            sniper: [
-                '56;6', // Huntsman                     == Sniper/Primary ==
-                '230;6', // Sydney Sleeper
-                '402;6', // Bazaar Bargain
-                '526;6', // Machina
-                '752;6', // Hitman's Heatmaker
-                '1092;6', // Fortified Compound
-                '1098;6', // Classic
-                '57;6', // Razorback                    == Sniper/Secondary ==
-                '58;6', // Jarate
-                '231;6', // Darwin's Danger Shield
-                '642;6', // Cozy Camper
-                '751;6', // Cleaner's Carbine
-                '171;6', // Tribalman's Shiv            == Sniper/Melee ==
-                '232;6', // Bushwacka
-                '401;6' // Shahanshah
-            ],
-            spy: [
-                '61;6', // Ambassador                   == Spy/Primary ==
-                '224;6', // L'Etranger
-                '460;6', // Enforcer
-                '525;6', // Diamondback
-                '225;6', // Your Eternal Reward         == Spy/Melee ==
-                '356;6', // Conniver's Kunai
-                '461;6', // Big Earner
-                '649;6', // Spy-cicle
-                '810;6', // Red-Tape Recorder           == Spy/PDA ==
-                '60;6', // Cloak and Dagger             == Spy/PDA2 ==
-                '59;6' // Dead Ringer
-            ]
-        };
-        const uncraftAll = [
-            '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
-            '220;6;uncraftable', // Shortstop
-            '448;6;uncraftable', // Soda Popper
-            '772;6;uncraftable', // Baby Face's Blaster
-            '1103;6;uncraftable', // Back Scatter
-            '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
-            '163;6;uncraftable', // Crit-a-Cola
-            '222;6;uncraftable', // Mad Milk
-            '449;6;uncraftable', // Winger
-            '773;6;uncraftable', // Pretty Boy's Pocket Pistol
-            '812;6;uncraftable', // Flying Guillotine
-            '44;6;uncraftable', // Sandman                      == Scout/Melee ==
-            '221;6;uncraftable', // Holy Mackerel
-            '317;6;uncraftable', // Candy Cane
-            '325;6;uncraftable', // Boston Basher
-            '349;6;uncraftable', // Sun-on-a-Stick
-            '355;6;uncraftable', // Fan O'War
-            '450;6;uncraftable', // Atomizer
-            '648;6;uncraftable', // Wrap Assassin
-            '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
-            '228;6;uncraftable', // Black Box
-            '237;6;uncraftable', // Rocket Jumper
-            '414;6;uncraftable', // Liberty Launcher
-            '441;6;uncraftable', // Cow Mangler 5000
-            '513;6;uncraftable', // Original
-            '730;6;uncraftable', // Beggar's Bazooka
-            '1104;6;uncraftable', // Air Strike
-            '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
-            '133;6;uncraftable', // Gunboats
-            '226;6;uncraftable', // Battalion's Backup
-            '354;6;uncraftable', // Concheror
-            '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
-            '442;6;uncraftable', // Righteous Bison
-            '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
-            '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
-            '444;6;uncraftable', // Mantreads
-            '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
-            '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
-            '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
-            '416;6;uncraftable', // Market Gardener
-            '447;6;uncraftable', // Disciplinary Action
-            '775;6;uncraftable', // Escape Plan
-            '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
-            '215;6;uncraftable', // Degreaser
-            '594;6;uncraftable', // Phlogistinator
-            '741;6;uncraftable', // Rainblower
-            '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
-            '351;6;uncraftable', // Detonator
-            '595;6;uncraftable', // Manmelter
-            '740;6;uncraftable', // Scorch Shot
-            '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
-            '153;6;uncraftable', // Homewrecker
-            '214;6;uncraftable', // Powerjack
-            '326;6;uncraftable', // Back Scratcher
-            '348;6;uncraftable', // Sharpened Volcano Fragment
-            '457;6;uncraftable', // Postal Pummeler
-            '593;6;uncraftable', // Third Degree
-            '739;6;uncraftable', // Lollichop
-            '813;6;uncraftable', // Neon Annihilator
-            '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
-            '405;6;uncraftable', // Ali Baba's Wee Booties
-            '608;6;uncraftable', // Bootlegger
-            '996;6;uncraftable', // Loose Cannon
-            '1151;6;uncraftable', // Iron Bomber
-            '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
-            '131;6;uncraftable', // Chargin' Targe
-            '265;6;uncraftable', // Sticky Jumper
-            '406;6;uncraftable', // Splendid Screen
-            '1099;6;uncraftable', // Tide Turner
-            '1150;6;uncraftable', // Quickiebomb Launcher
-            '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
-            '172;6;uncraftable', // Scotsman's Skullcutter
-            '307;6;uncraftable', // Ullapool Caber
-            '327;6;uncraftable', // Claidheamh Mòr
-            '404;6;uncraftable', // Persian Persuader
-            '482;6;uncraftable', // Nessie's Nine Iron
-            '609;6;uncraftable', // Scottish Handshake
-            '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
-            '312;6;uncraftable', // Brass Beast
-            '424;6;uncraftable', // Tomislav
-            '811;6;uncraftable', // Huo-Long Heater
-            '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
-            '159;6;uncraftable', // Dalokohs Bar
-            '311;6;uncraftable', // Buffalo Steak Sandvich
-            '425;6;uncraftable', // Family Business
-            '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
-            '239;6;uncraftable', // Gloves of Running Urgently
-            '310;6;uncraftable', // Warrior's Spirit
-            '331;6;uncraftable', // Fists of Steel
-            '426;6;uncraftable', // Eviction Notice
-            '656;6;uncraftable', // Holiday Punch
-            '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
-            '527;6;uncraftable', // Widowmaker
-            '588;6;uncraftable', // Pomson 6000
-            '997;6;uncraftable', // Rescue Ranger
-            '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
-            '528;6;uncraftable', // Short Circuit
-            '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
-            '155;6;uncraftable', // Southern Hospitality
-            '329;6;uncraftable', // Jag
-            '589;6;uncraftable', // Eureka Effect
-            '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
-            '305;6;uncraftable', // Crusader's Crossbow
-            '412;6;uncraftable', // Overdose
-            '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
-            '411;6;uncraftable', // Quick-Fix
-            '998;6;uncraftable', // Vaccinator
-            '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
-            '173;6;uncraftable', // Vita-Saw
-            '304;6;uncraftable', // Amputator
-            '413;6;uncraftable', // Solemn Vow
-            '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
-            '230;6;uncraftable', // Sydney Sleeper
-            '402;6;uncraftable', // Bazaar Bargain
-            '526;6;uncraftable', // Machina
-            '752;6;uncraftable', // Hitman's Heatmaker
-            '1092;6;uncraftable', // Fortified Compound
-            '1098;6;uncraftable', // Classic
-            '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
-            '58;6;uncraftable', // Jarate
-            '231;6;uncraftable', // Darwin's Danger Shield
-            '642;6;uncraftable', // Cozy Camper
-            '751;6;uncraftable', // Cleaner's Carbine
-            '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
-            '232;6;uncraftable', // Bushwacka
-            '401;6;uncraftable', // Shahanshah
-            '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
-            '224;6;uncraftable', // L'Etranger
-            '460;6;uncraftable', // Enforcer
-            '525;6;uncraftable', // Diamondback
-            '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
-            '356;6;uncraftable', // Conniver's Kunai
-            '461;6;uncraftable', // Big Earner
-            '649;6;uncraftable', // Spy-cicle
-            '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
-            '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
-            '59;6;uncraftable', // Dead Ringer
-            '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
-        ];
-
-        const craftCombine = craft.scout.concat(
-            craft.soldier,
-            craft.pyro,
-            craft.demoman,
-            craft.heavy,
-            craft.engineer,
-            craft.medic,
-            craft.sniper,
-            craft.spy
-        );
-
-        // Remove duplicate elements
-        const craftAll: string[] = [];
-        craftCombine.forEach(weapon => {
-            if (!craftAll.includes(weapon)) {
-                craftAll.push(weapon);
-            }
-        });
-
-        return { craft, craftAll, uncraftAll };
     }
 
     private checkGroupInvites(): void {

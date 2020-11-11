@@ -1,7 +1,7 @@
 import Bot from './Bot';
 
 import log from '../lib/logger';
-import MyHandler from './MyHandler';
+import { craftAll } from '../lib/data';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
@@ -47,7 +47,7 @@ export = class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!(this.bot.handler as MyHandler).weapons().craftAll.includes(sku)) {
+        if (!craftAll.includes(sku)) {
             return;
         }
 
@@ -58,7 +58,7 @@ export = class TF2GC {
 
     combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
         skus.forEach(sku => {
-            if (!(this.bot.handler as MyHandler).weapons().craftAll.includes(sku)) {
+            if (!craftAll.includes(sku)) {
                 return;
             }
         });

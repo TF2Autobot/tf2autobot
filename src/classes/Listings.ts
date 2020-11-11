@@ -10,7 +10,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { Entry } from './Pricelist';
 import moment from 'moment';
-import MyHandler from './MyHandler';
+import { noiseMakerSKU } from '../lib/data';
 
 export = class Listings {
     private readonly bot: Bot;
@@ -509,8 +509,7 @@ export = class Listings {
             details =
                 entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
-                      process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.sellnote && intent === 1) {
@@ -529,8 +528,7 @@ export = class Listings {
             details =
                 entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
-                      process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
@@ -547,10 +545,7 @@ export = class Listings {
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
-        } else if (
-            (this.bot.handler as MyHandler).noiseMakerSKUs().includes(entry.sku) &&
-            process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-        ) {
+        } else if (noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
             // this part checks if the item is Noise Maker.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())

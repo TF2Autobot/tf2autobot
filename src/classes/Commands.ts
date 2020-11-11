@@ -25,6 +25,7 @@ import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema-2';
 import Autokeys from './Autokeys';
+import { ignoreWords, craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames } from '../lib/data';
 
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
@@ -136,10 +137,10 @@ export = class Commands {
         const isAdmin = this.bot.isAdmin(steamID);
 
         const isNoReply =
-            this.messageInputsStartWith().some(word => {
+            ignoreWords.startsWith.some(word => {
                 return message.startsWith(word);
             }) ||
-            this.messageInputEndsWith().some(word => {
+            ignoreWords.endsWith.some(word => {
                 return message.endsWith(word);
             });
 
@@ -2585,7 +2586,7 @@ export = class Commands {
 
                 offer.itemsToReceive.forEach(item => {
                     const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                    const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                    const isNoiseMaker = noiseMakerNames.some(name => {
                         return item.market_hash_name.includes(name);
                     });
                     if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
@@ -2635,7 +2636,7 @@ export = class Commands {
                     declineTrade = true;
                 }
 
-                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerSKUs().some(sku => {
+                const isNoiseMaker = noiseMakerSKU.some(sku => {
                     return checkExist.getPrice(sku, true) !== null;
                 });
 
@@ -3264,11 +3265,9 @@ export = class Commands {
     }
 
     private craftWeapons(): string[] {
-        const craftWeapons = (this.bot.handler as MyHandler).weapons().craftAll;
-
         const items: { amount: number; name: string }[] = [];
 
-        craftWeapons.forEach(sku => {
+        craftAll.forEach(sku => {
             const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
             if (amount > 0) {
                 items.push({
@@ -3302,11 +3301,9 @@ export = class Commands {
     }
 
     private uncraftWeapons(): string[] {
-        const uncraftWeapons = (this.bot.handler as MyHandler).weapons().uncraftAll;
-
         const items: { amount: number; name: string }[] = [];
 
-        uncraftWeapons.forEach(sku => {
+        uncraftAll.forEach(sku => {
             const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
             if (amount > 0) {
                 items.push({
@@ -3337,66 +3334,6 @@ export = class Commands {
             }
         }
         return uncraftWeaponsStock;
-    }
-
-    private messageInputsStartWith(): string[] {
-        const words = [
-            'I',
-            '❌',
-            'Hi',
-            '🙋🏻‍♀️Hi',
-            '⚠',
-            '⚠️',
-            '✅',
-            '⌛',
-            '💲',
-            '📜',
-            '🛒',
-            '💰',
-            'Here',
-            'The',
-            'Please',
-            'You',
-            '/quote',
-            '/pre',
-            '/me',
-            '/code',
-            'Oh',
-            'Success!',
-            'Hey',
-            'Unfortunately',
-            '==',
-            '💬',
-            '⇌',
-            'Command',
-            'Hello',
-            '✋ Hold on',
-            'Hold on',
-            'Sending',
-            '👋 Welcome',
-            'Welcome',
-            'To',
-            '🔰',
-            'My',
-            'Owner',
-            'Bot',
-            'Those',
-            '👨🏼‍💻',
-            '🔶',
-            'Buying',
-            '🔷',
-            'Selling',
-            '📥',
-            'Stock',
-            'Thank',
-            'Unknown'
-        ];
-        return words;
-    }
-
-    private messageInputEndsWith(): string[] {
-        const words = ['cart.', 'checkout.', '✅'];
-        return words;
     }
 };
 

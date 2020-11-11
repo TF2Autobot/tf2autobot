@@ -11,6 +11,8 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
 import { UnknownDictionary } from '../types/common';
 
+import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts } from '../lib/data';
+
 import log from '../lib/logger';
 
 export = UserCart;
@@ -466,12 +468,11 @@ class UserCart extends Cart {
             ) {
                 let hasNot5Uses = false;
                 let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
                         const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                        const isNoiseMaker = noiseMakerNames.some(name => {
                             return item.market_hash_name.includes(name);
                         });
 
@@ -537,7 +538,7 @@ class UserCart extends Cart {
                 const spellNames: string[] = [];
 
                 let hasStrangeParts = false;
-                const strangeParts: string[] = [];
+                const partsNames: string[] = [];
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
@@ -550,9 +551,6 @@ class UserCart extends Cart {
                             .trim();
                         const color = item.descriptions[i].color;
 
-                        const strangePartObject = (this.bot.handler as MyHandler).strangeParts();
-                        const strangePartNames = Object.keys(strangePartObject);
-
                         if (
                             spell.startsWith('Halloween:') &&
                             spell.endsWith('(spell only active during event)') &&
@@ -564,11 +562,11 @@ class UserCart extends Cart {
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : strangePartNames.includes(parts)) &&
+                                : Object.keys(strangeParts).includes(parts)) &&
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            strangeParts.push(parts);
+                            partsNames.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
@@ -588,7 +586,7 @@ class UserCart extends Cart {
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
                         log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
@@ -1795,9 +1793,6 @@ class UserCart extends Cart {
         const summary = super.summarizeOurWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapons();
-        const craft = weapons.craftAll;
-        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -1805,10 +1800,10 @@ class UserCart extends Cart {
         const scrap = ourDict['5000;6'] || 0;
         const reclaimed = ourDict['5001;6'] || 0;
         const refined = ourDict['5002;6'] || 0;
-        craft.forEach(sku => {
+        craftAll.forEach(sku => {
             addWeapons += ourDict[sku] || 0;
         });
-        uncraft.forEach(sku => {
+        uncraftAll.forEach(sku => {
             addWeapons += ourDict[sku] || 0;
         });
 
@@ -1837,9 +1832,6 @@ class UserCart extends Cart {
         const summary = super.summarizeTheirWithWeapons();
 
         const { isBuyer } = this.getCurrenciesWithWeapons();
-        const weapons = (this.bot.handler as MyHandler).weapons();
-        const craft = weapons.craftAll;
-        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
 
@@ -1847,10 +1839,10 @@ class UserCart extends Cart {
         const scrap = theirDict['5000;6'] || 0;
         const reclaimed = theirDict['5001;6'] || 0;
         const refined = theirDict['5002;6'] || 0;
-        craft.forEach(sku => {
+        craftAll.forEach(sku => {
             addWeapons += theirDict[sku] || 0;
         });
-        uncraft.forEach(sku => {
+        uncraftAll.forEach(sku => {
             addWeapons += theirDict[sku] || 0;
         });
 
@@ -1964,12 +1956,11 @@ class UserCart extends Cart {
             ) {
                 let hasNot5Uses = false;
                 let hasNot25Uses = false;
-                const noiseMakerSKU = (this.bot.handler as MyHandler).noiseMakerSKUs();
 
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     fetched.forEach(item => {
                         const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                        const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                        const isNoiseMaker = noiseMakerNames.some(name => {
                             return item.market_hash_name.includes(name);
                         });
 
@@ -2035,7 +2026,7 @@ class UserCart extends Cart {
                 const spellNames: string[] = [];
 
                 let hasStrangeParts = false;
-                const strangeParts: string[] = [];
+                const partsNames: string[] = [];
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
@@ -2048,9 +2039,6 @@ class UserCart extends Cart {
                             .trim();
                         const color = item.descriptions[i].color;
 
-                        const strangePartObject = (this.bot.handler as MyHandler).strangeParts();
-                        const strangePartNames = Object.keys(strangePartObject);
-
                         if (
                             spell.startsWith('Halloween:') &&
                             spell.endsWith('(spell only active during event)') &&
@@ -2062,11 +2050,11 @@ class UserCart extends Cart {
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
                                 ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : strangePartNames.includes(parts)) &&
+                                : Object.keys(strangeParts).includes(parts)) &&
                             color === '756b5e'
                         ) {
                             hasStrangeParts = true;
-                            strangeParts.push(parts);
+                            partsNames.push(parts);
                         }
                     }
                     if (hasSpelled || hasStrangeParts) {
@@ -2086,7 +2074,7 @@ class UserCart extends Cart {
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
                         log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
@@ -2487,15 +2475,12 @@ class UserCart extends Cart {
         };
 
         const required = this.getRequiredWithWeapons(buyerCurrenciesCount, currencies, this.canUseKeysWithWeapons());
-        const weapons = (this.bot.handler as MyHandler).weapons();
-        const craft = weapons.craftAll;
-        const uncraft = weapons.uncraftAll;
 
         let addWeapons = 0;
-        craft.forEach(sku => {
+        craftAll.forEach(sku => {
             addWeapons += required.currencies[sku] * 0.5;
         });
-        uncraft.forEach(sku => {
+        uncraftAll.forEach(sku => {
             addWeapons += required.currencies[sku] * 0.5;
         });
 
@@ -2603,9 +2588,6 @@ class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = sellerInventory.getCurrencies();
-            const weapons = (this.bot.handler as MyHandler).weapons();
-            const craft = weapons.craftAll;
-            const uncraft = weapons.uncraftAll;
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -2623,7 +2605,7 @@ class UserCart extends Cart {
                 } else if (sku === '5000;6') {
                     value = 1;
                 } else if (
-                    (craft.includes(sku) || uncraft.includes(sku)) &&
+                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
