@@ -669,11 +669,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -731,11 +731,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -794,11 +794,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -839,11 +839,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -901,11 +901,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -964,11 +964,11 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: keyPrices.sell
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: keyPrices.buy
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
