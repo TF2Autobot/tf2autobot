@@ -295,7 +295,7 @@ export default class Pricelist extends EventEmitter {
                 buy: entry.buy,
                 sell: entry.sell,
                 src: 'manual',
-                time: entry.time
+                time: null
             };
         }
     }
@@ -439,7 +439,7 @@ export default class Pricelist extends EventEmitter {
 
     private updateKeyRate(): void {
         setInterval(() => {
-            log.debug('Getting key prices...');
+            log.debug('Checking for key prices...');
             getPrice('5021;6', 'bptf').then(keyPricesPTF => {
                 getPriceSBN('5021;6').then(keyPricesSBN => {
                     const entryKey = this.getPrice('5021;6', false);
@@ -469,6 +469,21 @@ export default class Pricelist extends EventEmitter {
                         } else {
                             log.debug('No update needed.');
                         }
+                    } else {
+                        const currentRate = {
+                            ptf: {
+                                buy: new Currencies(keyPricesPTF.buy),
+                                sell: new Currencies(keyPricesPTF.sell)
+                            },
+                            sbn: {
+                                buy: new Currencies(keyPricesSBN.buy),
+                                sell: new Currencies(keyPricesSBN.sell)
+                            }
+                        };
+                        log.debug(
+                            'No update needed because the key prices was manually set. Current key rate from prices.tf/sbn.tf:',
+                            currentRate
+                        );
                     }
                 });
             });
@@ -488,8 +503,8 @@ export default class Pricelist extends EventEmitter {
 
                 if (entryKey !== null && !entryKey.autoprice) {
                     this.keyPrices = {
-                        buy: new Currencies(entryKey.buy),
-                        sell: new Currencies(entryKey.sell),
+                        buy: entryKey.buy,
+                        sell: entryKey.sell,
                         src: 'manual',
                         time: entryKey.time
                     };
@@ -501,7 +516,6 @@ export default class Pricelist extends EventEmitter {
                         src: timeSBN > timePTF ? 'sbn' : 'ptf',
                         time: timeSBN > timePTF ? timeSBN : timePTF
                     };
-
                     log.debug('Key rate is set based current key prices.', this.keyPrices);
 
                     if (entryKey !== null && entryKey.autoprice) {
@@ -512,6 +526,7 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
 
+                log.debug('Checking new key rate in 30 minutes.');
                 setTimeout(() => {
                     this.updateKeyRate();
                 }, 30 * 60 * 1000);
