@@ -11,7 +11,8 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
 import { UnknownDictionary } from '../types/common';
 
-import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts } from '../lib/data';
+import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames } from '../lib/data';
+import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';
 
@@ -534,69 +535,53 @@ class UserCart extends Cart {
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
             fetched.forEach(item => {
-                let hasSpelled = false;
-                const spellNames: string[] = [];
-
-                let hasStrangeParts = false;
-                const partsNames: string[] = [];
+                const parsed = parseEconItem(
+                    {
+                        ...item,
+                        tradable: item.tradable ? 1 : 0,
+                        commodity: item.commodity ? 1 : 0,
+                        marketable: item.marketable ? 1 : 0,
+                        amount: item.amount + ''
+                    },
+                    true,
+                    true
+                );
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const spell = item.descriptions[i].value;
-                        const parts = item.descriptions[i].value
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim();
-                        const color = item.descriptions[i].color;
+                    let hasSpelled = false;
+                    if (parsed.spells.length > 0) {
+                        hasSpelled = true;
+                    }
 
-                        if (
-                            spell.startsWith('Halloween:') &&
-                            spell.endsWith('(spell only active during event)') &&
-                            color === '7ea9d1'
-                        ) {
-                            hasSpelled = true;
-                            const spellName = spell.substring(10, spell.length - 32).trim();
-                            spellNames.push(spellName);
-                        } else if (
-                            (parts === 'Kills' || parts === 'Assists'
-                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : Object.keys(strangeParts).includes(parts)) &&
-                            color === '756b5e'
-                        ) {
-                            hasStrangeParts = true;
-                            partsNames.push(parts);
-                        }
+                    let hasStrangeParts = false;
+                    if (parsed.parts.length > 0) {
+                        hasStrangeParts = true;
                     }
                     if (hasSpelled || hasStrangeParts) {
-                        const itemSKU = item.getSKU(this.bot.schema);
-                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-
-                        const itemObj = SKU.fromString(itemSKU);
-
-                        // If item is an Unusual, then get itemName from schema.
-                        const itemName =
-                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+                        highValuedTheir.skus.push(sku);
 
                         let spellOrParts = '';
 
                         if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                            spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
                         }
 
-                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${parsed.fullName} (${item.assetid})${spellOrParts}`
+                            );
                         }
                     }
                 }
@@ -2022,69 +2007,54 @@ class UserCart extends Cart {
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
             fetched.forEach(item => {
-                let hasSpelled = false;
-                const spellNames: string[] = [];
-
-                let hasStrangeParts = false;
-                const partsNames: string[] = [];
+                const parsed = parseEconItem(
+                    {
+                        ...item,
+                        tradable: item.tradable ? 1 : 0,
+                        commodity: item.commodity ? 1 : 0,
+                        marketable: item.marketable ? 1 : 0,
+                        amount: item.amount + ''
+                    },
+                    true,
+                    true
+                );
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const spell = item.descriptions[i].value;
-                        const parts = item.descriptions[i].value
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim();
-                        const color = item.descriptions[i].color;
-
-                        if (
-                            spell.startsWith('Halloween:') &&
-                            spell.endsWith('(spell only active during event)') &&
-                            color === '7ea9d1'
-                        ) {
-                            hasSpelled = true;
-                            const spellName = spell.substring(10, spell.length - 32).trim();
-                            spellNames.push(spellName);
-                        } else if (
-                            (parts === 'Kills' || parts === 'Assists'
-                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : Object.keys(strangeParts).includes(parts)) &&
-                            color === '756b5e'
-                        ) {
-                            hasStrangeParts = true;
-                            partsNames.push(parts);
-                        }
+                    let hasSpelled = false;
+                    if (parsed.spells.length > 0) {
+                        hasSpelled = true;
                     }
+
+                    let hasStrangeParts = false;
+                    if (parsed.parts.length > 0) {
+                        hasStrangeParts = true;
+                    }
+
                     if (hasSpelled || hasStrangeParts) {
-                        const itemSKU = item.getSKU(this.bot.schema);
-                        highValuedTheir.skus.push(item.getSKU(this.bot.schema));
-
-                        const itemObj = SKU.fromString(itemSKU);
-
-                        // If item is an Unusual, then get itemName from schema.
-                        const itemName =
-                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+                        highValuedTheir.skus.push(sku);
 
                         let spellOrParts = '';
 
                         if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                            spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
                         }
 
-                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${parsed.fullName} (${item.assetid})${spellOrParts}`
+                            );
                         }
                     }
                 }
