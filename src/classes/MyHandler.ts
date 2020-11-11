@@ -1979,7 +1979,8 @@ export = class MyHandler extends Handler {
                         autoprice: true,
                         min: 0,
                         max: 1,
-                        intent: 1
+                        intent: 1,
+                        group: 'invalidItem'
                     } as any;
 
                     this.bot.pricelist
@@ -1999,7 +2000,8 @@ export = class MyHandler extends Handler {
                         autoprice: inPrice.autoprice,
                         min: inPrice.min,
                         max: inPrice.max,
-                        intent: inPrice.intent
+                        intent: inPrice.intent,
+                        group: 'highValue'
                     } as any;
 
                     this.bot.pricelist
