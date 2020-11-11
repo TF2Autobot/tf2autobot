@@ -122,12 +122,12 @@ export default class Pricelist extends EventEmitter {
 
     private keyPricesTime: { source: string; time: number };
 
-    private priceChanges: {
-        sku: string;
-        name: string;
-        newPrice: Entry;
-        time: string;
-    }[] = [];
+    // private priceChanges: {
+    //     sku: string;
+    //     name: string;
+    //     newPrice: Entry;
+    //     time: string;
+    // }[] = [];
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
@@ -556,17 +556,23 @@ export default class Pricelist extends EventEmitter {
                         process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                this.priceChanges.push({
-                    sku: data.sku,
-                    name: this.schema.getName(SKU.fromString(match.sku), false),
-                    newPrice: match,
-                    time: time
-                });
+                this.sendWebHookPriceUpdateV1(
+                    data.sku,
+                    this.schema.getName(SKU.fromString(match.sku), false),
+                    match,
+                    time
+                );
+                // this.priceChanges.push({
+                //     sku: data.sku,
+                //     name: this.schema.getName(SKU.fromString(match.sku), false),
+                //     newPrice: match,
+                //     time: time
+                // });
 
-                if (this.priceChanges.length > 4) {
-                    this.sendWebHookPriceUpdate(this.priceChanges);
-                    this.priceChanges.length = 0;
-                }
+                // if (this.priceChanges.length > 4) {
+                //     this.sendWebHookPriceUpdate(this.priceChanges);
+                //     this.priceChanges.length = 0;
+                // }
             }
         }
     }
@@ -576,7 +582,102 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
+    private sendWebHookPriceUpdateV1(sku: string, name: string, newPrice: Entry, time: string): void {
+        const parts = sku.split(';');
+        const newSku = parts[0] + ';6';
+        const newItem = SKU.fromString(newSku);
+        const newName = this.schema.getName(newItem, false);
+
+        const itemImageUrl = this.schema.getItemByItemName(newName);
+
+        let itemImageUrlPrint: string;
+
+        const item = SKU.fromString(sku);
+
+        if (!itemImageUrl || !item) {
+            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+        } else if (Object.keys(paintCan).includes(newSku)) {
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
+        } else if (item.australium === true) {
+            const australiumSKU = parts[0] + ';11;australium';
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+        } else if (item.defindex === 266) {
+            itemImageUrlPrint =
+                'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
+        } else if (item.paintkit !== null) {
+            itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${item.paintkit}_${
+                item.wear
+            }_${item.festive === true ? 1 : 0}.png`;
+        } else {
+            itemImageUrlPrint = itemImageUrl.image_url_large;
+        }
+
+        let effectsId: string;
+
+        if (parts[2]) {
+            effectsId = parts[2].replace('u', '');
+        }
+
+        let effectURL: string;
+
+        if (!effectsId) {
+            effectURL = '';
+        } else {
+            effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+        }
+
+        const qualityItem = parts[1];
+        const qualityColorPrint = qualityColor[qualityItem].toString();
+
+        /*eslint-disable */
+        const priceUpdate = JSON.stringify({
+            username: process.env.DISCORD_WEBHOOK_USERNAME,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            content: '',
+            embeds: {
+                author: {
+                    name: name,
+                    url: `https://www.prices.tf/items/${sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `${sku} • ${time}`
+                },
+                thumbnail: {
+                    url: itemImageUrlPrint
+                },
+                image: {
+                    url: effectURL
+                },
+                title: '',
+                fields: [
+                    {
+                        name: 'Buying for',
+                        value: newPrice.buy.toString(),
+                        inline: true
+                    },
+                    {
+                        name: 'Selling for',
+                        value: newPrice.sell.toString(),
+                        inline: true
+                    }
+                ],
+                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    : '',
+                color: qualityColorPrint
+            }
+        });
+        /*eslint-enable */
+
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(priceUpdate);
+    }
+
+    private sendWebHookPriceUpdateV2(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
         const embed: {
             author: {
                 name: string;
