@@ -1,6 +1,6 @@
 import Bot from './Bot';
 import { EntryData } from './Pricelist';
-import moment from 'moment-timezone';
+// import moment from 'moment-timezone';
 
 import Currencies from 'tf2-currencies';
 import MyHandler from './MyHandler';
@@ -1059,15 +1059,15 @@ export = class Autokeys {
             alreadyUpdatedToSell: false
         };
         this.isActive = false;
-        this.sleep(2 * 1000);
+        // this.sleep(2 * 1000);
         this.check();
     }
 
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
-    }
+    // private sleep(mili: number): void {
+    //     const date = moment().valueOf();
+    //     let currentDate = null;
+    //     do {
+    //         currentDate = moment().valueOf();
+    //     } while (currentDate - date < mili);
+    // }
 };
