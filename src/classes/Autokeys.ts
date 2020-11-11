@@ -652,7 +652,7 @@ export = class Autokeys {
     private createToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual') {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -661,7 +661,24 @@ export = class Autokeys {
                 max: maxKeys,
                 intent: 0
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 0
+            } as any;
+        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -694,7 +711,7 @@ export = class Autokeys {
     private createToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual') {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -703,18 +720,35 @@ export = class Autokeys {
                 max: maxKeys,
                 intent: 1
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.sell
                 },
                 buy: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 1
+            } as any;
+        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -734,14 +768,35 @@ export = class Autokeys {
     }
 
     private createToBank(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                min: minKeys,
+                max: maxKeys,
+                intent: 2
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 2
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, false)
             .then(data => {
@@ -757,7 +812,7 @@ export = class Autokeys {
     private updateToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual') {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -766,7 +821,24 @@ export = class Autokeys {
                 max: maxKeys,
                 intent: 0
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 0
+            } as any;
+        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -799,7 +871,7 @@ export = class Autokeys {
     private updateToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual') {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -808,18 +880,35 @@ export = class Autokeys {
                 max: maxKeys,
                 intent: 1
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.sell
                 },
                 buy: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 1
+            } as any;
+        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
                 },
                 min: minKeys,
                 max: maxKeys,
@@ -839,14 +928,35 @@ export = class Autokeys {
     }
 
     private updateToBank(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                min: minKeys,
+                max: maxKeys,
+                intent: 2
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 2
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, false)
             .then(data => {

@@ -165,7 +165,7 @@ export = class DiscordWebhookClass {
         offer: TradeOffer,
         reasons: string,
         time: string,
-        keyPrice: { buy: Currencies; sell: Currencies },
+        keyPrices: { buy: Currencies; sell: Currencies; src: string },
         value: { diff: number; diffRef: number; diffKey: string },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
         items: {
@@ -211,7 +211,7 @@ export = class DiscordWebhookClass {
             highValue: items.highValue.map(name => replaceItemName(name))
         };
 
-        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices);
         const itemList = listItems(itemsName);
 
         let partnerAvatar: string;
@@ -234,8 +234,6 @@ export = class DiscordWebhookClass {
             const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
             const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
             const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
-
-            const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
 
             /*eslint-disable */
             const webhookReview = {
@@ -277,11 +275,11 @@ export = class DiscordWebhookClass {
                                 name: '__Status__',
                                 value:
                                     (isShowKeyRate
-                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                                        ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                           ` (${
-                                              keyRateSource === 'sbn'
+                                              keyPrices.src === 'sbn'
                                                   ? 'sbn.tf'
-                                                  : keyRateSource === 'manual'
+                                                  : keyPrices.src === 'manual'
                                                   ? 'manual'
                                                   : 'prices.tf'
                                           })`
@@ -335,7 +333,7 @@ export = class DiscordWebhookClass {
             understocked: string[];
             highValue: string[];
         },
-        keyPrice: { buy: Currencies; sell: Currencies },
+        keyPrices: { buy: Currencies; sell: Currencies; src: string },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
         links: { steamProfile: string; backpackTF: string; steamREP: string },
@@ -398,7 +396,7 @@ export = class DiscordWebhookClass {
                 ? tradeNumbertoShowStarter + trades.tradesTotal
                 : trades.tradesTotal;
 
-        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrice);
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices);
 
         let personaName: string;
         let avatarFull: string;
@@ -422,8 +420,6 @@ export = class DiscordWebhookClass {
             const isShowPureStock = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK !== 'false';
             const isShowInventory = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY !== 'false';
             const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
-
-            const keyRateSource = this.bot.pricelist.getKeyPriceSource().source;
 
             /*eslint-disable */
             const acceptedTradeSummary = {
@@ -457,11 +453,11 @@ export = class DiscordWebhookClass {
                                 name: '__Status__',
                                 value:
                                     (isShowKeyRate
-                                        ? `\n🔑 Key rate: ${keyPrice.buy.metal.toString()}/${keyPrice.sell.metal.toString()} ref` +
+                                        ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                           ` (${
-                                              keyRateSource === 'sbn'
+                                              keyPrices.src === 'sbn'
                                                   ? 'sbn.tf'
-                                                  : keyRateSource === 'manual'
+                                                  : keyPrices.src === 'manual'
                                                   ? 'manual'
                                                   : 'prices.tf'
                                           })` +
