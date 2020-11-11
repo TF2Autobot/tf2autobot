@@ -487,13 +487,13 @@ export default class Pricelist extends EventEmitter {
                 const timeSBN = keyPricesSBN.updated as number;
 
                 if (entryKey !== null && !entryKey.autoprice) {
-                    log.debug('Key rate is set based on current key prices in the pricelist.');
                     this.keyPrices = {
                         buy: new Currencies(entryKey.buy),
                         sell: new Currencies(entryKey.sell),
                         src: 'manual',
                         time: entryKey.time
                     };
+                    log.debug('Key rate is set based on current key prices in the pricelist.', this.keyPrices);
                 } else {
                     this.keyPrices = {
                         buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
