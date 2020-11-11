@@ -652,7 +652,7 @@ export = class Autokeys {
     private createToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (keyPrices.src !== 'manual') {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -686,7 +686,7 @@ export = class Autokeys {
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
                 }
             } as any;
-        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -723,7 +723,7 @@ export = class Autokeys {
     private createToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (keyPrices.src !== 'manual') {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -757,7 +757,7 @@ export = class Autokeys {
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
                 }
             } as any;
-        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -844,7 +844,7 @@ export = class Autokeys {
     private updateToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (keyPrices.src !== 'manual') {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -878,7 +878,7 @@ export = class Autokeys {
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
                 }
             } as any;
-        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -915,7 +915,7 @@ export = class Autokeys {
     private updateToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (keyPrices.src !== 'manual') {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -949,7 +949,7 @@ export = class Autokeys {
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
                 }
             } as any;
-        } else if (keyPrices.src !== 'manual' && this.isEnableScrapAdjustment) {
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
