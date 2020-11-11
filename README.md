@@ -43,5 +43,6 @@ You can know more about each variable found in the `.env` and `ecosystem.json` f
 ## Useful Modules
 
 ### Typed
+
 1. [`xmlhttprequest-ts`](https://www.npmjs.com/package/xmlhttprequest-ts) - For sending trade summary/review offer/messages to Discord Webhook.
-2. [`tf2-item-format`](https://github.com/danocmx/node-tf2-item-format/tree/v4) by @danocmx - to get item info (Spelled, Strange parts, etc).
+2. [`tf2-item-format`](https://github.com/danocmx/node-tf2-item-format/tree/v4) by [@danocmx](https://github.com/danocmx) - to get item info (Spelled, Strange parts, etc).
