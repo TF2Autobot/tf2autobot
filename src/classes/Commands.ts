@@ -1315,13 +1315,15 @@ export = class Commands {
             const pricelist = this.bot.pricelist.getPrices();
 
             let newPricelist: Entry[];
-            if (params.group) {
-                newPricelist = pricelist.filter(entry => (entry.group ? entry.group.includes(params.group) : false));
+            if (params.withgroup) {
+                newPricelist = pricelist.filter(entry =>
+                    entry.group ? entry.group.toLowerCase().includes(params.withgroup.toLowerCase()) : false
+                );
 
                 if (newPricelist.length === 0) {
                     this.bot.sendMessage(
                         steamID,
-                        `❌ There is no entry with "${params.group}" group found in your pricelist.`
+                        `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
                     );
                     return;
                 }
@@ -1349,6 +1351,10 @@ export = class Commands {
 
                 if (params.enabled && typeof params.enabled === 'boolean') {
                     entry.enabled = params.enabled;
+                }
+
+                if (params.group && typeof params.group === 'string') {
+                    entry.group = params.group;
                 }
 
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
