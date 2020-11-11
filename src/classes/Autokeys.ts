@@ -990,14 +990,39 @@ export = class Autokeys {
     }
 
     disable(): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: false,
-            autoprice: true,
-            min: 0,
-            max: 1,
-            intent: 1
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: false,
+                autoprice: true,
+                min: 0,
+                max: 1,
+                intent: 2,
+                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: false,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: 0,
+                max: 1,
+                intent: 2,
+                buynote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                sellnote: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, false)
             .then(data => {
