@@ -364,6 +364,15 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
+    removeByGroup(newEntry: Entry[]): Promise<any> {
+        return new Promise(resolve => {
+            this.prices = newEntry;
+            this.emit('pricelist, newEntry');
+
+            return resolve();
+        });
+    }
+
     removeAll(): Promise<any> {
         return new Promise(resolve => {
             if (this.getLength() !== 0) {

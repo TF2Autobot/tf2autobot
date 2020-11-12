@@ -1643,25 +1643,62 @@ export = class Commands {
                 return;
             }
 
+            const pricelist = this.bot.pricelist.getPrices();
+
+            let newPricelist: Entry[] = [];
+            let newPricelistCount: Entry[] = [];
+            if (params.withgroup) {
+                // first filter out pricelist with ONLY "withgroup" value.
+                newPricelistCount = pricelist.filter(entry =>
+                    entry.group ? entry.group.toLowerCase().includes(params.withgroup.toLowerCase()) : false
+                );
+
+                if (newPricelistCount.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    );
+                    return;
+                }
+
+                // then filter out pricelist with NOT "withgroup" value.
+                newPricelist = pricelist.filter(entry => {
+                    return entry.group ? !entry.group.includes(params.withgroup) : true;
+                });
+            } else {
+                newPricelist = pricelist;
+            }
+
             if (params.i_am_sure !== 'yes_i_am') {
                 this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
-                        pluralize('item', pricelistLength, true) +
+                        pluralize('item', newPricelist.length, true) +
                         '? Try again with i_am_sure=yes_i_am'
                 );
                 return;
             }
 
-            this.bot.pricelist
-                .removeAll()
-                .then(() => {
-                    this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
-                })
-                .catch(err => {
-                    this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
-                });
-            return;
+            if (!params.withgroup) {
+                this.bot.pricelist
+                    .removeAll()
+                    .then(() => {
+                        this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
+                    })
+                    .catch(err => {
+                        this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
+                    });
+                return;
+            } else {
+                this.bot.pricelist
+                    .removeByGroup(newPricelist)
+                    .then(() => {
+                        this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                    })
+                    .catch(err => {
+                        this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
+                    });
+            }
         }
 
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
