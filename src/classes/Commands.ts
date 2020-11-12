@@ -1341,27 +1341,66 @@ export = class Commands {
                     entry.intent = params.intent as 0 | 1 | 2;
                 }
 
-                if ((params.min || params.min === 0) && typeof params.min === 'number') {
+                if (params.min === 0 || typeof params.min === 'number') {
                     entry.min = params.min;
                 }
 
-                if ((params.max || params.max === 0) && typeof params.max === 'number') {
+                if (params.max === 0 || typeof params.max === 'number') {
                     entry.max = params.max;
                 }
 
-                if (params.enabled && typeof params.enabled === 'boolean') {
+                if (typeof params.enabled === 'boolean') {
                     entry.enabled = params.enabled;
                 }
 
-                if (params.group && typeof params.group === 'string') {
-                    entry.group = params.group;
+                if (params.group) {
+                    entry.group = params.group.toString();
+                }
+
+                if (!params.withgroup && typeof params.note === 'object') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                    );
+                    return;
+                } else if (params.withgroup && typeof params.note === 'object') {
+                    // can change note if have withgroup parameter
+                    entry.note.buy = params.note.buy || null;
+                    entry.note.sell = params.note.sell || null;
                 }
 
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
-                    // note.buy and note.sell for all entries to null.
+                    // note.buy and note.sell for entire/withgroup entries to null.
                     entry.note.buy = null;
                     entry.note.sell = null;
+                }
+
+                if (!params.withgroup && (typeof params.buy === 'object' || typeof params.sell === 'object')) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
+                            `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                    );
+                    return;
+                }
+
+                if (params.withgroup && params.buy !== null) {
+                    params.buy.keys = params.buy.keys || 0;
+                    params.buy.metal = params.buy.metal || 0;
+
+                    if (params.autoprice === undefined) {
+                        params.autoprice = false;
+                    }
+                }
+
+                if (params.withgroup && params.sell !== null) {
+                    params.sell.keys = params.sell.keys || 0;
+                    params.sell.metal = params.sell.metal || 0;
+
+                    if (params.autoprice === undefined) {
+                        params.autoprice = false;
+                    }
                 }
 
                 if (params.autoprice === false) {
@@ -1398,6 +1437,10 @@ export = class Commands {
 
             if (params.removenote) {
                 delete params.removenote;
+            }
+
+            if (params.withgroup) {
+                delete params.withgroup;
             }
 
             // FIXME: Make it so that it is not needed to remove all listings
