@@ -2125,7 +2125,7 @@ export = class MyHandler extends Handler {
                     // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
                     // then remove the item entry from pricelist.
                     this.bot.pricelist
-                        .removePrice(sku, false)
+                        .removePrice(sku, true)
                         .then(() => {
                             log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                         })
