@@ -1313,22 +1313,36 @@ export = class Commands {
             // TODO: Must have atleast one other param
             const pricelist = this.bot.pricelist.getPrices();
 
+            log.debug('pricelist, initial: ', pricelist);
+
+            let targetedPricelist: Entry[];
+            let unTargetedPricelist: Entry[];
             let newPricelist: Entry[];
+
             if (params.withgroup) {
-                newPricelist = pricelist.filter(entry =>
+                targetedPricelist = pricelist.filter(entry =>
                     entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
                 );
+                unTargetedPricelist = pricelist.filter(entry =>
+                    entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
 
-                if (newPricelist.length === 0) {
+                log.debug('targetedPricelist', targetedPricelist);
+                log.debug('unTargetedPricelist', unTargetedPricelist);
+
+                if (targetedPricelist.length === 0) {
                     this.bot.sendMessage(
                         steamID,
                         `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
                     );
                     return;
                 }
+                newPricelist = targetedPricelist;
             } else {
                 newPricelist = pricelist;
             }
+
+            log.debug('newPricelist, after 1st filter', newPricelist);
 
             if (newPricelist.length === 0) {
                 this.bot.sendMessage(steamID, 'Your pricelist is empty.');
@@ -1371,8 +1385,10 @@ export = class Commands {
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // note.buy and note.sell for entire/withgroup entries to null.
-                    entry.note.buy = null;
-                    entry.note.sell = null;
+                    if (entry.note) {
+                        entry.note.buy = null;
+                        entry.note.sell = null;
+                    }
                 }
 
                 if (!params.withgroup && (typeof params.buy === 'object' || typeof params.sell === 'object')) {
@@ -1384,7 +1400,7 @@ export = class Commands {
                     return;
                 }
 
-                if (params.withgroup && params.buy !== null) {
+                if (params.withgroup && typeof params.buy === 'object' && params.buy !== null) {
                     params.buy.keys = params.buy.keys || 0;
                     params.buy.metal = params.buy.metal || 0;
 
@@ -1393,7 +1409,7 @@ export = class Commands {
                     }
                 }
 
-                if (params.withgroup && params.sell !== null) {
+                if (params.withgroup && typeof params.sell === 'object' && params.sell !== null) {
                     params.sell.keys = params.sell.keys || 0;
                     params.sell.metal = params.sell.metal || 0;
 
@@ -1434,11 +1450,16 @@ export = class Commands {
                 }
             });
 
+            log.debug('newPricelist, after adjustment', newPricelist);
+
             if (params.removenote) {
                 delete params.removenote;
             }
 
             if (params.withgroup) {
+                newPricelist = unTargetedPricelist.concat(newPricelist);
+                log.debug('Combined newPricelist: ', newPricelist);
+
                 delete params.withgroup;
             }
 
