@@ -1313,8 +1313,6 @@ export = class Commands {
             // TODO: Must have atleast one other param
             const pricelist = this.bot.pricelist.getPrices();
 
-            log.debug('pricelist, initial: ', pricelist);
-
             let targetedPricelist: Entry[];
             let unTargetedPricelist: Entry[];
             let newPricelist: Entry[];
@@ -1327,9 +1325,6 @@ export = class Commands {
                     entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
                 );
 
-                log.debug('targetedPricelist', targetedPricelist);
-                log.debug('unTargetedPricelist', unTargetedPricelist);
-
                 if (targetedPricelist.length === 0) {
                     this.bot.sendMessage(
                         steamID,
@@ -1341,8 +1336,6 @@ export = class Commands {
             } else {
                 newPricelist = pricelist;
             }
-
-            log.debug('newPricelist, after 1st filter', newPricelist);
 
             if (newPricelist.length === 0) {
                 this.bot.sendMessage(steamID, 'Your pricelist is empty.');
@@ -1450,15 +1443,12 @@ export = class Commands {
                 }
             });
 
-            log.debug('newPricelist, after adjustment', newPricelist);
-
             if (params.removenote) {
                 delete params.removenote;
             }
 
             if (params.withgroup) {
                 newPricelist = unTargetedPricelist.concat(newPricelist);
-                log.debug('Combined newPricelist: ', newPricelist);
 
                 delete params.withgroup;
             }
