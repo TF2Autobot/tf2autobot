@@ -524,10 +524,10 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpellsOrParts: string[];
+                names: string[];
             } = {
                 skus: [],
-                nameWithSpellsOrParts: []
+                names: []
             };
 
             const isEnabledDiscordWebhook =
@@ -638,13 +638,11 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.nameWithSpellsOrParts.push(
+                            highValuedTheir.names.push(
                                 `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${itemName} (${item.assetid})${itemDescriptions}`
-                            );
+                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                         }
                     }
                 }
@@ -2059,10 +2057,10 @@ class UserCart extends Cart {
 
             const highValuedTheir: {
                 skus: string[];
-                nameWithSpellsOrParts: string[];
+                names: string[];
             } = {
                 skus: [],
-                nameWithSpellsOrParts: []
+                names: []
             };
 
             const isEnabledDiscordWebhook =
@@ -2173,13 +2171,11 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.nameWithSpellsOrParts.push(
+                            highValuedTheir.names.push(
                                 `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${itemName} (${item.assetid})${itemDescriptions}`
-                            );
+                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                         }
                     }
                 }
