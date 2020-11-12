@@ -1332,13 +1332,46 @@ export = class Commands {
                     );
                     return;
                 }
+
                 newPricelist = targetedPricelist;
+
+                if (
+                    (typeof params.buy === 'object' || typeof params.sell === 'object') &&
+                    new Currencies(params.buy) >= new Currencies(params.sell)
+                ) {
+                    this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
+                    return;
+                } else if (
+                    (typeof params.buy === 'object' || typeof params.sell === 'object') &&
+                    ((params.buy !== null && params.sell === undefined) ||
+                        (params.buy === undefined && params.sell !== null))
+                ) {
+                    this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                    return;
+                }
             } else {
                 newPricelist = pricelist;
             }
 
             if (newPricelist.length === 0) {
                 this.bot.sendMessage(steamID, 'Your pricelist is empty.');
+                return;
+            }
+
+            if (!params.withgroup && typeof params.note === 'object') {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                );
+                return;
+            }
+
+            if (!params.withgroup && (typeof params.buy === 'object' || typeof params.sell === 'object')) {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
+                        `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                );
                 return;
             }
 
@@ -1363,18 +1396,6 @@ export = class Commands {
                     entry.group = params.group.toString();
                 }
 
-                if (!params.withgroup && typeof params.note === 'object') {
-                    this.bot.sendMessage(
-                        steamID,
-                        `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
-                    );
-                    return;
-                } else if (params.withgroup && typeof params.note === 'object') {
-                    // can change note if have withgroup parameter
-                    entry.note.buy = params.note.buy || null;
-                    entry.note.sell = params.note.sell || null;
-                }
-
                 if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // note.buy and note.sell for entire/withgroup entries to null.
@@ -1384,39 +1405,38 @@ export = class Commands {
                     }
                 }
 
-                if (!params.withgroup && (typeof params.buy === 'object' || typeof params.sell === 'object')) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
-                            `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
-                    );
-                    return;
-                }
-
-                if (params.withgroup && typeof params.buy === 'object' && params.buy !== null) {
-                    params.buy.keys = params.buy.keys || 0;
-                    params.buy.metal = params.buy.metal || 0;
-
-                    if (params.autoprice === undefined) {
-                        params.autoprice = false;
+                if (typeof params.autoprice === 'boolean') {
+                    if (params.autoprice === false) {
+                        entry.time = null;
+                        entry.autoprice = false;
                     }
+                    entry.autoprice = params.autoprice;
                 }
 
-                if (params.withgroup && typeof params.sell === 'object' && params.sell !== null) {
-                    params.sell.keys = params.sell.keys || 0;
-                    params.sell.metal = params.sell.metal || 0;
-
-                    if (params.autoprice === undefined) {
-                        params.autoprice = false;
+                if (params.withgroup) {
+                    if (typeof params.note === 'object') {
+                        // can change note if have withgroup parameter
+                        entry.note.buy = params.note.buy || null;
+                        entry.note.sell = params.note.sell || null;
                     }
-                }
 
-                if (params.autoprice === false) {
-                    entry.time = null;
-                    entry.autoprice = false;
-                } else if (params.autoprice === true) {
-                    entry.time = 0;
-                    entry.autoprice = true;
+                    if (typeof params.buy === 'object' && params.buy !== null) {
+                        entry.buy.keys = params.buy.keys || 0;
+                        entry.buy.metal = params.buy.metal || 0;
+
+                        if (params.autoprice === undefined) {
+                            entry.autoprice = false;
+                        }
+                    }
+
+                    if (typeof params.sell === 'object' && params.sell !== null) {
+                        entry.sell.keys = params.sell.keys || 0;
+                        entry.sell.metal = params.sell.metal || 0;
+
+                        if (params.autoprice === undefined) {
+                            entry.autoprice = false;
+                        }
+                    }
                 }
 
                 if (i === 0) {
