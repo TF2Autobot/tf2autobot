@@ -512,10 +512,10 @@ export = class MyHandler extends Handler {
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
-            nameWithSpellsOrParts: string[];
+            names: string[];
         } = {
             skus: [],
-            nameWithSpellsOrParts: []
+            names: []
         };
 
         offer.itemsToGive.forEach(item => {
@@ -651,12 +651,12 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedOur.nameWithSpellsOrParts.push(
+                    highValuedOur.names.push(
                         `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                         // parsed.fullName  - tf2-items-format module
                     );
                 } else {
-                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    highValuedOur.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                     // parsed.fullName  - tf2-items-format module
                 }
             }
@@ -667,10 +667,10 @@ export = class MyHandler extends Handler {
         let hasHighValueTheir = false;
         const highValuedTheir: {
             skus: string[];
-            nameWithSpellsOrParts: string[];
+            names: string[];
         } = {
             skus: [],
-            nameWithSpellsOrParts: []
+            names: []
         };
 
         offer.itemsToReceive.forEach(item => {
@@ -755,11 +755,11 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedTheir.nameWithSpellsOrParts.push(
+                    highValuedTheir.names.push(
                         `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                     );
                 } else {
-                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                 }
             }
         });
@@ -929,10 +929,10 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                 process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             ) {
-                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.names);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
+                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.names.join(
                         '\n\n- '
                     )}`,
                     []
@@ -943,7 +943,7 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValuedOur.nameWithSpellsOrParts
+                    highValueName: highValuedOur.names
                 }
             };
         }
@@ -1859,7 +1859,7 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                const offerMade: { nameWithSpellsOrParts: string[] } = offer.data('highValue');
+                const offerMade: { names: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
@@ -1912,7 +1912,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
+                            offerMeta.meta.highValueItems.their.names.forEach(name => {
                                 accepted.highValue.push(name);
                                 theirHighValuedItems.push(name);
                             });
@@ -1921,16 +1921,16 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.our) {
                             hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.our.nameWithSpellsOrParts.forEach(name => {
+                            offerMeta.meta.highValueItems.our.names.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
                     }
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
-                    if (offerMade.nameWithSpellsOrParts.length > 0) {
+                    if (offerMade.names.length > 0) {
                         hasHighValueTheir = true;
-                        offerMade.nameWithSpellsOrParts.forEach(name => {
+                        offerMade.names.forEach(name => {
                             accepted.highValue.push(name);
                             theirHighValuedItems.push(name);
                         });
@@ -2390,7 +2390,7 @@ export = class MyHandler extends Handler {
                     const hasHighValue = meta.hasHighValueItems.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
+                        meta.highValueItems.their.names.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
