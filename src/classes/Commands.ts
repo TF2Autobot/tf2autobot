@@ -1316,7 +1316,7 @@ export = class Commands {
             let newPricelist: Entry[];
             if (params.withgroup) {
                 newPricelist = pricelist.filter(entry =>
-                    entry.group ? entry.group.toLowerCase().includes(params.withgroup.toLowerCase()) : false
+                    entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
                 );
 
                 if (newPricelist.length === 0) {
