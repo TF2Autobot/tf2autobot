@@ -743,7 +743,7 @@ export = class Commands {
             const steamIdAndMessage = CommandParser.removeCommand(message);
             // Use regex
             const steamIDreg = new RegExp(
-                /$(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])$/
+                /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])$/
             );
 
             let steamIDString: string;
