@@ -1335,19 +1335,17 @@ export = class Commands {
 
                 newPricelist = targetedPricelist;
 
-                if (
-                    (typeof params.buy === 'object' || typeof params.sell === 'object') &&
-                    new Currencies(params.buy) >= new Currencies(params.sell)
-                ) {
-                    this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                    return;
-                } else if (
-                    (typeof params.buy === 'object' || typeof params.sell === 'object') &&
-                    ((params.buy !== null && params.sell === undefined) ||
-                        (params.buy === undefined && params.sell !== null))
-                ) {
-                    this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
-                    return;
+                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                    if (new Currencies(params.buy) >= new Currencies(params.sell)) {
+                        this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
+                        return;
+                    } else if (
+                        (params.buy !== null && params.sell === undefined) ||
+                        (params.buy === undefined && params.sell !== null)
+                    ) {
+                        this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                        return;
+                    }
                 }
             } else {
                 newPricelist = pricelist;
@@ -1358,21 +1356,23 @@ export = class Commands {
                 return;
             }
 
-            if (!params.withgroup && typeof params.note === 'object') {
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
-                );
-                return;
-            }
+            if (!params.withgroup) {
+                if (typeof params.note === 'object') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                    );
+                    return;
+                }
 
-            if (!params.withgroup && (typeof params.buy === 'object' || typeof params.sell === 'object')) {
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
-                        `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
-                );
-                return;
+                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
+                            `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                    );
+                    return;
+                }
             }
 
             newPricelist.forEach((entry, i) => {
