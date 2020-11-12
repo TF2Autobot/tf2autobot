@@ -1649,8 +1649,9 @@ export = class Commands {
             if (params.withgroup) {
                 // first filter out pricelist with ONLY "withgroup" value.
                 newPricelistCount = pricelist.filter(entry =>
-                    entry.group ? entry.group.toLowerCase().includes(params.withgroup.toLowerCase()) : false
+                    entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
                 );
+                log.debug('newPricelistCount: ', newPricelistCount.length);
 
                 if (newPricelistCount.length === 0) {
                     this.bot.sendMessage(
@@ -1661,18 +1662,19 @@ export = class Commands {
                 }
 
                 // then filter out pricelist with NOT "withgroup" value.
-                newPricelist = pricelist.filter(entry => {
-                    return entry.group ? !entry.group.includes(params.withgroup) : true;
-                });
+                newPricelist = pricelist.filter(entry =>
+                    entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
+                log.debug('newPricelist: ', newPricelist.length);
             } else {
-                newPricelist = pricelist;
+                newPricelistCount = pricelist;
             }
 
             if (params.i_am_sure !== 'yes_i_am') {
                 this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
-                        pluralize('item', newPricelist.length, true) +
+                        pluralize('item', newPricelistCount.length, true) +
                         '? Try again with i_am_sure=yes_i_am'
                 );
                 return;
@@ -1697,6 +1699,7 @@ export = class Commands {
                     .catch(err => {
                         this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
                     });
+                return;
             }
         }
 
