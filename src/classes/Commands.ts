@@ -2790,8 +2790,8 @@ export = class Commands {
                     their: boolean;
                 };
                 highValueItems: {
-                    our: { skus: string[]; nameWithSpell: string[] };
-                    their: { skus: string[]; nameWithSpell: string[] };
+                    our: { skus: string[]; names: string[] };
+                    their: { skus: string[]; names: string[] };
                 };
             } = offer.data('reviewMeta');
 
