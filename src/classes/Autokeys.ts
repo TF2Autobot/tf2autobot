@@ -1,6 +1,6 @@
 import Bot from './Bot';
 import { EntryData } from './Pricelist';
-import moment from 'moment-timezone';
+// import moment from 'moment-timezone';
 
 import Currencies from 'tf2-currencies';
 import MyHandler from './MyHandler';
@@ -652,16 +652,41 @@ export = class Autokeys {
     private createToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
                 min: minKeys,
                 max: maxKeys,
-                intent: 0
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -676,7 +701,11 @@ export = class Autokeys {
                 },
                 min: minKeys,
                 max: maxKeys,
-                intent: 0
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -694,31 +723,60 @@ export = class Autokeys {
     private createToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
                 min: minKeys,
                 max: maxKeys,
-                intent: 1
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
-                intent: 1
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else if (this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -734,14 +792,43 @@ export = class Autokeys {
     }
 
     private createToBank(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                min: minKeys,
+                max: maxKeys,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        }
         this.bot.pricelist
             .addPrice(entry as EntryData, false)
             .then(data => {
@@ -757,16 +844,41 @@ export = class Autokeys {
     private updateToBuy(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
                 min: minKeys,
                 max: maxKeys,
-                intent: 0
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else if (this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
@@ -781,7 +893,11 @@ export = class Autokeys {
                 },
                 min: minKeys,
                 max: maxKeys,
-                intent: 0
+                intent: 0,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -799,31 +915,60 @@ export = class Autokeys {
     private updateToSell(minKeys: number, maxKeys: number): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         let entry;
-        if (!this.isEnableScrapAdjustment) {
+        if (keyPrices.src !== 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: true,
                 min: minKeys,
                 max: maxKeys,
-                intent: 1
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
-        } else {
+        } else if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
             entry = {
                 sku: '5021;6',
                 enabled: true,
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.sell.metal
                 },
                 buy: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.buy.toValue() - this.scrapAdjustmentValue)
+                    metal: keyPrices.buy.metal
                 },
                 min: minKeys,
                 max: maxKeys,
-                intent: 1
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else if (this.isEnableScrapAdjustment) {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                },
+                buy: {
+                    keys: 0,
+                    metal: Currencies.toRefined(keyPrices.buy.toValue() + this.scrapAdjustmentValue)
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 1,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
             } as any;
         }
         this.bot.pricelist
@@ -839,14 +984,43 @@ export = class Autokeys {
     }
 
     private updateToBank(minKeys: number, maxKeys: number): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: true,
+                min: minKeys,
+                max: maxKeys,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: true,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: minKeys,
+                max: maxKeys,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, false)
             .then(data => {
@@ -860,14 +1034,43 @@ export = class Autokeys {
     }
 
     disable(): void {
-        const entry = {
-            sku: '5021;6',
-            enabled: false,
-            autoprice: true,
-            min: 0,
-            max: 1,
-            intent: 1
-        } as any;
+        const keyPrices = this.bot.pricelist.getKeyPrices();
+        let entry;
+        if (keyPrices.src !== 'manual') {
+            entry = {
+                sku: '5021;6',
+                enabled: false,
+                autoprice: true,
+                min: 0,
+                max: 1,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        } else {
+            entry = {
+                sku: '5021;6',
+                enabled: false,
+                autoprice: false,
+                sell: {
+                    keys: 0,
+                    metal: keyPrices.sell.metal
+                },
+                buy: {
+                    keys: 0,
+                    metal: keyPrices.buy.metal
+                },
+                min: 0,
+                max: 1,
+                intent: 2,
+                note: {
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                }
+            } as any;
+        }
         this.bot.pricelist
             .updatePrice(entry as EntryData, false)
             .then(data => {
@@ -904,15 +1107,15 @@ export = class Autokeys {
             alreadyUpdatedToSell: false
         };
         this.isActive = false;
-        this.sleep(2 * 1000);
+        // this.sleep(2 * 1000);
         this.check();
     }
 
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
-    }
+    // private sleep(mili: number): void {
+    //     const date = moment().valueOf();
+    //     let currentDate = null;
+    //     do {
+    //         currentDate = moment().valueOf();
+    //     } while (currentDate - date < mili);
+    // }
 };

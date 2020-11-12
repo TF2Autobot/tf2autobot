@@ -8,7 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
-import sleepasync from 'sleep-async';
+// import sleepasync from 'sleep-async';
 
 import SteamUser from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
@@ -17,6 +17,8 @@ import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import { requestCheck } from '../lib/ptf-api';
+import { craftWeapons, craftAll, uncraftAll, giftWords, noiseMakerNames, strangeParts } from '../lib/data';
+// import { parseEconItem } from 'tf2-item-format';
 
 import moment from 'moment-timezone';
 
@@ -121,11 +123,11 @@ export = class MyHandler extends Handler {
         if (!customGameName || customGameName === 'TF2Autobot') {
             this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
         } else {
-            if (customGameName.length <= 45) {
-                this.customGameName = customGameName + ' - TF2Autobot';
+            if (customGameName.length <= 60) {
+                this.customGameName = customGameName;
             } else {
                 log.warn(
-                    `Your custom game playing name is more than 45 characters, resetting to only "TF2Autobot v${process.env.BOT_VERSION}"...`
+                    `Your custom game playing name is more than 60 characters, resetting to only "TF2Autobot v${process.env.BOT_VERSION}"...`
                 );
                 this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
             }
@@ -510,23 +512,52 @@ export = class MyHandler extends Handler {
         let hasHighValueOur = false;
         const highValuedOur: {
             skus: string[];
-            nameWithSpellsOrParts: string[];
+            names: string[];
         } = {
             skus: [],
-            nameWithSpellsOrParts: []
+            names: []
         };
 
         offer.itemsToGive.forEach(item => {
-            let hasSpelled = false;
-            const spellNames: string[] = [];
+            // tf2-items-format module (will use this once fixed)
+            // const parsed = parseEconItem(
+            //     {
+            //         ...item,
+            //         tradable: item.tradable ? 1 : 0,
+            //         commodity: item.commodity ? 1 : 0,
+            //         marketable: item.marketable ? 1 : 0,
+            //         amount: item.amount + ''
+            //     },
+            //     true,
+            //     true
+            // );
 
+            // let hasSpelled = false;
+            // if (parsed.spells.length > 0) {
+            //     hasSpelled = true;
+            //     hasHighValueOur = true;
+            // }
+
+            // let hasStrangeParts = false;
+            // if (parsed.parts.length > 0) {
+            //     hasStrangeParts = true;
+            //     hasHighValueOur = true;
+            // }
+
+            let hasSpells = false;
             let hasStrangeParts = false;
-            const strangeParts: string[] = [];
+            let hasKillstreaker = false;
+            let hasSheen = false;
+
+            const spellNames: string[] = [];
+            const partsNames: string[] = [];
+            const killstreakerName: string[] = [];
+            const sheenName: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 // Item description value for Spells and Strange Parts.
                 // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
-                const spell = item.descriptions[i].value;
+                const desc = item.descriptions[i].value;
 
                 // For Strange Parts, example: "(Kills During Halloween: 0)"
                 // remove "(" and ": <numbers>)" to get only the part name.
@@ -539,24 +570,23 @@ export = class MyHandler extends Handler {
                 const color = item.descriptions[i].color;
 
                 // Get strangePartObject and strangePartNames
-                const strangePartObject = this.strangeParts();
-                const strangePartNames = Object.keys(strangePartObject);
+                const strangePartNames = Object.keys(strangeParts);
 
                 if (
-                    spell.startsWith('Halloween:') &&
-                    spell.endsWith('(spell only active during event)') &&
+                    desc.startsWith('Halloween:') &&
+                    desc.endsWith('(spell only active during event)') &&
                     color === '7ea9d1'
                 ) {
                     // Example: "Halloween: Voices From Below (spell only active during event)"
                     // where "Voices From Below" is the spell name.
                     // Color of this description must be rgb(126, 169, 209) or 7ea9d1
                     // https://www.spycolor.com/7ea9d1#
-                    hasSpelled = true;
+                    hasSpells = true;
                     hasHighValueOur = true;
                     // Get the spell name
                     // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
                     // from "(spell only active during event)", and trim any whitespaces.
-                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    const spellName = desc.substring(10, desc.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
@@ -570,11 +600,19 @@ export = class MyHandler extends Handler {
                     // https://www.spycolor.com/756b5e#
                     hasStrangeParts = true;
                     hasHighValueOur = true;
-                    strangeParts.push(parts);
+                    partsNames.push(parts);
+                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                    hasKillstreaker = true;
+                    hasHighValueOur = true;
+                    killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                    hasSheen = true;
+                    hasHighValueOur = true;
+                    sheenName.push(desc.replace('Sheen: ', '').trim());
                 }
             }
 
-            if (hasSpelled || hasStrangeParts) {
+            if (hasHighValueOur) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedOur.skus.push(itemSKU);
 
@@ -584,27 +622,42 @@ export = class MyHandler extends Handler {
                 const itemName =
                     itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                let spellOrParts = '';
+                let itemDescriptions = '';
 
-                if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                if (hasSpells) {
+                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
+                    // spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + '); - tf2-items-format module
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
+                    // spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + '); - tf2-items-format module
                 }
 
-                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                if (hasKillstreaker) {
+                    // well, this actually will just have one, but we don't know if there's any that have two 😅
+                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                }
+
+                if (hasSheen) {
+                    // same as Killstreaker
+                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
+                // parsed.fullName  - tf2-items-format module
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedOur.nameWithSpellsOrParts.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                    highValuedOur.names.push(
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
+                        // parsed.fullName  - tf2-items-format module
                     );
                 } else {
-                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                    highValuedOur.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    // parsed.fullName  - tf2-items-format module
                 }
             }
         });
@@ -614,37 +667,41 @@ export = class MyHandler extends Handler {
         let hasHighValueTheir = false;
         const highValuedTheir: {
             skus: string[];
-            nameWithSpellsOrParts: string[];
+            names: string[];
         } = {
             skus: [],
-            nameWithSpellsOrParts: []
+            names: []
         };
 
         offer.itemsToReceive.forEach(item => {
-            let hasSpelled = false;
-            const spellNames: string[] = [];
-
+            let hasSpells = false;
             let hasStrangeParts = false;
-            const strangeParts: string[] = [];
+            let hasKillstreaker = false;
+            let hasSheen = false;
+
+            const spellNames: string[] = [];
+            const partsNames: string[] = [];
+            const killstreakerName: string[] = [];
+            const sheenName: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
-                const spell = item.descriptions[i].value;
+                const desc = item.descriptions[i].value;
                 const parts = item.descriptions[i].value
                     .replace('(', '')
                     .replace(/: \d+\)/g, '')
                     .trim();
+
                 const color = item.descriptions[i].color;
-                const strangePartObject = this.strangeParts();
-                const strangePartNames = Object.keys(strangePartObject);
+                const strangePartNames = Object.keys(strangeParts);
 
                 if (
-                    spell.startsWith('Halloween:') &&
-                    spell.endsWith('(spell only active during event)') &&
+                    desc.startsWith('Halloween:') &&
+                    desc.endsWith('(spell only active during event)') &&
                     color === '7ea9d1'
                 ) {
-                    hasSpelled = true;
+                    hasSpells = true;
                     hasHighValueTheir = true;
-                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    const spellName = desc.substring(10, desc.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
@@ -654,41 +711,55 @@ export = class MyHandler extends Handler {
                 ) {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
-                    strangeParts.push(parts);
+                    partsNames.push(parts);
+                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                    hasKillstreaker = true;
+                    hasHighValueTheir = true;
+                    killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                    hasSheen = true;
+                    hasHighValueTheir = true;
+                    sheenName.push(desc.replace('Sheen: ', '').trim());
                 }
             }
 
-            if (hasSpelled || hasStrangeParts) {
+            if (hasHighValueTheir) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedTheir.skus.push(itemSKU);
 
                 const itemObj = SKU.fromString(itemSKU);
-
-                // If item is an Unusual, then get itemName from schema.
                 const itemName =
                     itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                let spellOrParts = '';
+                let itemDescriptions = '';
 
-                if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                if (hasSpells) {
+                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + strangeParts.join(' + ');
+                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
                 }
 
-                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                if (hasKillstreaker) {
+                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                }
+
+                if (hasSheen) {
+                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedTheir.nameWithSpellsOrParts.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                    highValuedTheir.names.push(
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                     );
                 } else {
-                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                    highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                 }
             }
         });
@@ -722,7 +793,7 @@ export = class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        const isGift = this.giftWords().some(word => {
+        const isGift = giftWords.some(word => {
             return offerMessage.includes(word);
         });
 
@@ -786,7 +857,7 @@ export = class MyHandler extends Handler {
 
             offer.itemsToReceive.forEach(item => {
                 const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                const isNoiseMaker = noiseMakerNames.some(name => {
                     return item.market_hash_name.includes(name);
                 });
 
@@ -858,10 +929,10 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                 process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             ) {
-                this.discord.sendAlert('highValue', null, null, null, highValuedOur.nameWithSpellsOrParts);
+                this.discord.sendAlert('highValue', null, null, null, highValuedOur.names);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.nameWithSpellsOrParts.join(
+                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.names.join(
                         '\n\n- '
                     )}`,
                     []
@@ -872,7 +943,7 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValuedOur.nameWithSpellsOrParts
+                    highValueName: highValuedOur.names
                 }
             };
         }
@@ -945,8 +1016,6 @@ export = class MyHandler extends Handler {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
-            const craft = this.weapons().craftAll;
-            const uncraft = this.weapons().uncraftAll;
 
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
@@ -968,7 +1037,7 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    (craft.includes(sku) || uncraft.includes(sku)) &&
+                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
                     process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
@@ -979,7 +1048,7 @@ export = class MyHandler extends Handler {
                     const match = this.bot.pricelist.getPrice(sku, true);
                     const notIncludeCraftweapon =
                         process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !(craft.includes(sku) || uncraft.includes(sku))
+                            ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                             : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -1059,7 +1128,7 @@ export = class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
-                        await sleepasync().Promise.sleep(1 * 1000);
+                        // await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
 
                         const item = SKU.fromString(sku);
@@ -1260,7 +1329,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟦_OVERSTOCKED',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1276,7 +1345,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟩_UNDERSTOCKED',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1293,7 +1362,7 @@ export = class MyHandler extends Handler {
                     action: 'decline',
                     reason: '🟥_INVALID_VALUE',
                     meta: {
-                        uniqueReasons: uniqueReasons,
+                        uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer
                     }
                 };
@@ -1328,7 +1397,7 @@ export = class MyHandler extends Handler {
                 action: 'skip',
                 reason: '⬜_ESCROW_CHECK_FAILED',
                 meta: {
-                    uniqueReasons: uniqueReasons,
+                    uniqueReasons: filterReasons(uniqueReasons),
                     reasons: wrongAboutOffer
                 }
             };
@@ -1355,7 +1424,7 @@ export = class MyHandler extends Handler {
                 action: 'skip',
                 reason: '⬜_BANNED_CHECK_FAILED',
                 meta: {
-                    uniqueReasons: uniqueReasons,
+                    uniqueReasons: filterReasons(uniqueReasons),
                     reasons: wrongAboutOffer
                 }
             };
@@ -1429,7 +1498,7 @@ export = class MyHandler extends Handler {
 
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+            const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
 
             const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
             const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
@@ -1491,13 +1560,13 @@ export = class MyHandler extends Handler {
                     this.bot.sendMessage(
                         offer.partner,
                         'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                            ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
                         'I have accepted your offer. The trade should be finalized shortly.' +
-                            ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
 
@@ -1572,13 +1641,13 @@ export = class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                    ' If the trade does not finalize after 5-10 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                    ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer. The trade will be finalized in shortly.' +
-                    ' If the trade does not finalize after 1-2 minutes had passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                'I have accepted your offer. The trade will be finalized shortly.' +
+                    ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         }
 
@@ -1730,7 +1799,7 @@ export = class MyHandler extends Handler {
                         reason = 'Failed to accept mobile confirmation';
                     } else {
                         reason =
-                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again later.";
+                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again.";
                     }
 
                     this.bot.sendMessage(
@@ -1790,7 +1859,7 @@ export = class MyHandler extends Handler {
                 };
 
                 const offerMeta: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                const offerMade: { nameWithSpellsOrParts: string[] } = offer.data('highValue');
+                const offerMade: { names: string[] } = offer.data('highValue');
 
                 if (offerMeta) {
                     // doing this because if an offer is being made by bot (from command), then this is undefined
@@ -1843,7 +1912,7 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.their) {
                             hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
+                            offerMeta.meta.highValueItems.their.names.forEach(name => {
                                 accepted.highValue.push(name);
                                 theirHighValuedItems.push(name);
                             });
@@ -1852,16 +1921,16 @@ export = class MyHandler extends Handler {
                         if (offerMeta.meta.hasHighValueItems.our) {
                             hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerMeta.meta.highValueItems.our.nameWithSpellsOrParts.forEach(name => {
+                            offerMeta.meta.highValueItems.our.names.forEach(name => {
                                 accepted.highValue.push(name);
                             });
                         }
                     }
                 } else if (offerMade) {
                     // This is for offer that bot created from commands
-                    if (offerMade.nameWithSpellsOrParts.length > 0) {
+                    if (offerMade.names.length > 0) {
                         hasHighValueTheir = true;
-                        offerMade.nameWithSpellsOrParts.forEach(name => {
+                        offerMade.names.forEach(name => {
                             accepted.highValue.push(name);
                             theirHighValuedItems.push(name);
                         });
@@ -1917,6 +1986,9 @@ export = class MyHandler extends Handler {
                                   accepted.highValue.join('\n- ')
                                 : '') +
                             `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                            ` (${
+                                keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+                            })` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -1982,15 +2054,15 @@ export = class MyHandler extends Handler {
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item, false);
 
+                const isNotPureOrWeapons = !(
+                    craftAll.includes(sku) ||
+                    uncraftAll.includes(sku) ||
+                    ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                );
+
                 // Request priceheck on each sku involved in the trade, except craft weapons,
                 // and pure.
-                if (
-                    !(
-                        this.weapons().craftAll.includes(sku) ||
-                        this.weapons().uncraftAll.includes(sku) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    )
-                ) {
+                if (isNotPureOrWeapons) {
                     requestCheck(sku, 'bptf').asCallback((err, body) => {
                         if (err) {
                             log.debug(
@@ -2021,11 +2093,7 @@ export = class MyHandler extends Handler {
 
                 if (
                     inPrice === null &&
-                    !(
-                        this.weapons().craftAll.includes(sku) ||
-                        this.weapons().uncraftAll.includes(sku) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    ) &&
+                    isNotPureOrWeapons &&
                     item.wear === null &&
                     !(hasHighValueTheir || hasHighValueOur) &&
                     !this.bot.isAdmin(offer.partner)
@@ -2038,7 +2106,8 @@ export = class MyHandler extends Handler {
                         autoprice: true,
                         min: 0,
                         max: 1,
-                        intent: 1
+                        intent: 1,
+                        group: 'invalidItem'
                     } as any;
 
                     this.bot.pricelist
@@ -2050,7 +2119,7 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
-                } else if (inPrice !== null && hasHighValueTheir) {
+                } else if (inPrice !== null && hasHighValueTheir && isNotPureOrWeapons) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
                         sku: sku,
@@ -2058,7 +2127,8 @@ export = class MyHandler extends Handler {
                         autoprice: inPrice.autoprice,
                         min: inPrice.min,
                         max: inPrice.max,
-                        intent: inPrice.intent
+                        intent: inPrice.intent,
+                        group: 'highValue'
                     } as any;
 
                     this.bot.pricelist
@@ -2094,12 +2164,13 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
-                    currentStock < 1
+                    currentStock < 1 &&
+                    isNotPureOrWeapons
                 ) {
                     // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
                     // then remove the item entry from pricelist.
                     this.bot.pricelist
-                        .removePrice(sku, false)
+                        .removePrice(sku, true)
                         .then(() => {
                             log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                         })
@@ -2319,7 +2390,7 @@ export = class MyHandler extends Handler {
                     const hasHighValue = meta.hasHighValueItems.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.nameWithSpellsOrParts.forEach(name => {
+                        meta.highValueItems.their.names.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
@@ -2417,6 +2488,9 @@ export = class MyHandler extends Handler {
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                        ` (${
+                            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+                        })` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                         `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
@@ -2492,7 +2566,7 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        for (const sku of this.weapons().craftAll) {
+        for (const sku of craftAll) {
             const weapon = currencies[sku].length;
 
             if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
@@ -2507,249 +2581,47 @@ export = class MyHandler extends Handler {
         }
     }
 
+    private craftEachClassWeapons(weapons: string[], currencies: { [key: string]: string[] }): void {
+        weapons.forEach((sku1, i) => {
+            // first loop
+            const wep1 = currencies[sku1].length;
+
+            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+
+            weapons.forEach((sku2, j) => {
+                // second loop inside first loop, but ignore same index (same weapons)
+                if (j !== i) {
+                    const wep2 = currencies[sku2].length;
+
+                    // check if that weapon2 only have 1 in inventory AND it's not in pricelist
+                    const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+                    if (isWep1 && isWep2) {
+                        // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
+                        this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                        // break
+                        return;
+                    }
+                }
+            });
+        });
+    }
+
     private craftClassWeapons(): Promise<void> {
         if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-        let matched = false;
 
-        const scout = this.weapons().craft.scout;
-
-        for (let i = 0; i < scout.length; i++) {
-            // for loop for weapon1
-            const sku1 = scout[i];
-            const wep1 = currencies[sku1].length;
-            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < scout.length; j++) {
-                // for loop for weapon2 inside for loop weapon1
-                const sku2 = scout[j];
-                const wep2 = currencies[sku2].length;
-                // check if that weapon2 only have 1 in inventory AND it's not in pricelist
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    // set matched to true, so we break the loop and only craft one match at a time for each class.
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Soldier weapons
-        const soldier = this.weapons().craft.soldier;
-
-        for (let i = 0; i < soldier.length; i++) {
-            const sku1 = soldier[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < soldier.length; j++) {
-                const sku2 = soldier[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Pyro weapons
-        const pyro = this.weapons().craft.pyro;
-
-        for (let i = 0; i < pyro.length; i++) {
-            const sku1 = pyro[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < pyro.length; j++) {
-                const sku2 = pyro[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Demomman weapons
-        const demoman = this.weapons().craft.demoman;
-
-        for (let i = 0; i < demoman.length; i++) {
-            const sku1 = demoman[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < demoman.length; j++) {
-                const sku2 = demoman[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Heavy weapons
-        const heavy = this.weapons().craft.heavy;
-
-        for (let i = 0; i < heavy.length; i++) {
-            const sku1 = heavy[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < heavy.length; j++) {
-                const sku2 = heavy[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Engineer weapons
-        const engineer = this.weapons().craft.engineer;
-
-        for (let i = 0; i < engineer.length; i++) {
-            const sku1 = engineer[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < engineer.length; j++) {
-                const sku2 = engineer[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Medic weapons
-        const medic = this.weapons().craft.medic;
-
-        for (let i = 0; i < medic.length; i++) {
-            const sku1 = medic[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < medic.length; j++) {
-                const sku2 = medic[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Sniper weapons
-        const sniper = this.weapons().craft.sniper;
-
-        for (let i = 0; i < sniper.length; i++) {
-            const sku1 = sniper[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < sniper.length; j++) {
-                const sku2 = sniper[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
-
-        matched = false;
-
-        // Spy weapons
-        const spy = this.weapons().craft.spy;
-
-        for (let i = 0; i < spy.length; i++) {
-            const sku1 = spy[i];
-            const wep1 = currencies[sku1].length;
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            for (let j = 1; j < spy.length; j++) {
-                const sku2 = spy[j];
-                const wep2 = currencies[sku2].length;
-                const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-
-                if (sku1 !== sku2 && isWep1 && isWep2) {
-                    this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                    matched = true;
-                    break;
-                }
-            }
-            if (matched) {
-                break;
-            }
-        }
+        this.craftEachClassWeapons(craftWeapons.scout, currencies);
+        this.craftEachClassWeapons(craftWeapons.soldier, currencies);
+        this.craftEachClassWeapons(craftWeapons.pyro, currencies);
+        this.craftEachClassWeapons(craftWeapons.demoman, currencies);
+        this.craftEachClassWeapons(craftWeapons.heavy, currencies);
+        this.craftEachClassWeapons(craftWeapons.engineer, currencies);
+        this.craftEachClassWeapons(craftWeapons.medic, currencies);
+        this.craftEachClassWeapons(craftWeapons.sniper, currencies);
+        this.craftEachClassWeapons(craftWeapons.spy, currencies);
     }
 
     private sortInventory(): void {
@@ -2837,10 +2709,10 @@ export = class MyHandler extends Handler {
                             ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
                                   /%admin%/g,
                                   isAdmin ? '!help' : '!how2trade'
-                              ) + ` - TF2Autobot`
+                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot`
+                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
                     );
                     return;
                 }
@@ -2862,10 +2734,10 @@ export = class MyHandler extends Handler {
                     ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
                           /%admin%/g,
                           isAdmin ? '!help' : '!how2trade'
-                      ) + ` - TF2Autobot`
+                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot`
+                          `" - TF2Autobot v${process.env.BOT_VERSION}`
             );
         });
     }
@@ -3248,481 +3120,6 @@ export = class MyHandler extends Handler {
         return polldata;
     }
 
-    giftWords(): string[] {
-        const words = [
-            'gift',
-            'donat', // So that 'donate' or 'donation' will also be accepted
-            'tip', // All others are synonyms
-            'tribute',
-            'souvenir',
-            'favor',
-            'giveaway',
-            'bonus',
-            'grant',
-            'bounty',
-            'present',
-            'contribution',
-            'award',
-            'nice', // Up until here actually
-            'happy', // All below people might also use
-            'thank',
-            'goo', // For 'good', 'goodie' or anything else
-            'awesome',
-            'rep',
-            'joy',
-            'cute' // right?
-        ];
-        return words;
-    }
-
-    strangeParts(): { [key: string]: number } {
-        const names = {
-            // Most Strange Parts name will change once applied/attached.
-            'Robots Destroyed': 6026, //              checked
-            Kills: 6060, //                           checked
-            'Airborne Enemy Kills': 6012, //          was "Airborne Enemies Killed"
-            'Damage Dealt': 6056, //                  checked
-            Dominations: 6016, //                     was "Domination Kills"
-            'Snipers Killed': 6005, //                checked
-            'Buildings Destroyed': 6009, //           checked
-            'Projectiles Reflected': 6010, //         checked
-            'Headshot Kills': 6011, //                checked
-            'Medics Killed': 6007, //                 checked
-            'Fires Survived': 6057, //                checked
-            'Teammates Extinguished': 6020, //        checked
-            'Freezecam Taunt Appearances': 6055, //   checked
-            'Spies Killed': 6008, //                  checked
-            'Allied Healing Done': 6058, //           checked
-            'Sappers Removed': 6025, //               was "Sappers Destroyed"
-            'Players Hit': 6064, //                   was "Player Hits"
-            'Gib Kills': 6013, //                     checked
-            'Scouts Killed': 6003, //                 checked
-            'Taunt Kills': 6051, //                   was "Kills with a Taunt Attack"
-            'Point Blank Kills': 6059, //             was "Point-Blank Kills"
-            'Soldiers Killed': 6002, //               checked
-            'Long-Distance Kills': 6039, //           checked
-            'Giant Robots Destroyed': 6028, //        checked
-            'Critical Kills': 6021, //                checked
-            'Demomen Killed': 6001, //                checked
-            'Unusual-Wearing Player Kills': 6052, //  checked
-            Assists: 6065, //                         checked
-            'Medics Killed That Have Full ÜberCharge': 6023, // checked
-            'Cloaked Spies Killed': 6024, //          checked
-            'Engineers Killed': 6004, //              checked
-            'Kills While Explosive-Jumping': 6022, // was "Kills While Explosive Jumping"
-            'Kills While Low Health': 6032, //        was "Low-Health Kills"
-            'Burning Player Kills': 6053, //          was "Burning Enemy Kills"
-            'Kills While Invuln ÜberCharged': 6037, // was "Kills While Übercharged"
-            'Posthumous Kills': 6019, //              checked
-            'Not Crit nor MiniCrit Kills': 6063, //   checked
-            'Full Health Kills': 6061, //             checked
-            'Killstreaks Ended': 6054, //             checked
-            'Defenders Killed': 6035, //              was "Defender Kills"
-            Revenges: 6018, //                        was "Revenge Kills"
-            'Robot Scouts Destroyed': 6042, //        checked
-            'Heavies Killed': 6000, //                checked
-            'Tanks Destroyed': 6038, //               checked
-            'Kills During Halloween': 6033, //        was "Halloween Kills"
-            'Pyros Killed': 6006, //                  checked
-            'Submerged Enemy Kills': 6036, //         was "Underwater Kills"
-            'Kills During Victory Time': 6041, //     checked
-            'Taunting Player Kills': 6062, //         checked
-            'Robot Spies Destroyed': 6048, //         checked
-            'Kills Under A Full Moon': 6015, //       was "Full Moon Kills"
-            'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
-        };
-
-        return names;
-    }
-
-    noiseMakerNames(): string[] {
-        const names = [
-            'Noise Maker - Black Cat',
-            'Noise Maker - Gremlin',
-            'Noise Maker - Werewolf',
-            'Noise Maker - Witch',
-            'Noise Maker - Banshee',
-            'Noise Maker - Crazy Laugh',
-            'Noise Maker - Stabby',
-            'Noise Maker - Bell',
-            'Noise Maker - Gong',
-            'Noise Maker - Koto',
-            'Noise Maker - Fireworks',
-            'Noise Maker - Vuvuzela'
-        ];
-        return names;
-    }
-
-    noiseMakerSKUs(): string[] {
-        const skus = [
-            '280;6', // Noise Maker - Black Cat
-            '280;6;uncraftable',
-            '281;6', // Noise Maker - Gremlin
-            '281;6;uncraftable',
-            '282;6', // Noise Maker - Werewolf
-            '282;6;uncraftable',
-            '283;6', // Noise Maker - Witch
-            '283;6;uncraftable',
-            '284;6', // Noise Maker - Banshee
-            '284;6;uncraftable',
-            '286;6', // Noise Maker - Crazy Laugh
-            '286;6;uncraftable',
-            '288;6', // Noise Maker - Stabby
-            '288;6;uncraftable',
-            '362;6', // Noise Maker - Bell
-            '362;6;uncraftable',
-            '364;6', // Noise Maker - Gong
-            '364;6;uncraftable',
-            '365;6', // Noise Maker - Koto
-            '365;6;uncraftable',
-            '365;1', // Genuine Noise Maker - Koto
-            '493;6', // Noise Maker - Fireworks
-            '493;6;uncraftable',
-            '542;6', // Noise Maker - Vuvuzela
-            '542;6;uncraftable',
-            '542;1' // Genuine Noise Maker - Vuvuzela
-        ];
-        return skus;
-    }
-
-    weapons(): {
-        craft: {
-            scout: string[];
-            soldier: string[];
-            pyro: string[];
-            demoman: string[];
-            heavy: string[];
-            engineer: string[];
-            medic: string[];
-            sniper: string[];
-            spy: string[];
-        };
-        craftAll: string[];
-        uncraftAll: string[];
-    } {
-        const craft = {
-            scout: [
-                '45;6', // Force-A-Nature               == Scout/Primary ==
-                '220;6', // Shortstop
-                '448;6', // Soda Popper
-                '772;6', // Baby Face's Blaster
-                '1103;6', // Back Scatter
-                '46;6', // Bonk! Atomic Punch           == Scout/Secondary ==
-                '163;6', // Crit-a-Cola
-                '222;6', // Mad Milk
-                '449;6', // Winger
-                '773;6', // Pretty Boy's Pocket Pistol
-                '812;6', // Flying Guillotine
-                '44;6', // Sandman                      == Scout/Melee ==
-                '221;6', // Holy Mackerel
-                '317;6', // Candy Cane
-                '325;6', // Boston Basher
-                '349;6', // Sun-on-a-Stick
-                '355;6', // Fan O'War
-                '450;6', // Atomizer
-                '648;6' // Wrap Assassin
-            ],
-            soldier: [
-                '127;6', // Direct Hit                  == Soldier/Primary ==
-                '228;6', // Black Box
-                '237;6', // Rocket Jumper
-                '414;6', // Liberty Launcher
-                '441;6', // Cow Mangler 5000
-                '513;6', // Original
-                '730;6', // Beggar's Bazooka
-                '1104;6', // Air Strike
-                '129;6', // Buff Banner                 == Soldier/Secondary ==
-                '133;6', // Gunboats
-                '226;6', // Battalion's Backup
-                '354;6', // Concheror
-                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-                '442;6', // Righteous Bison
-                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '444;6', // Mantreads
-                '128;6', // Equalizer                   == Soldier/Melee ==
-                '154;6', // Pain Train - Shared - Soldier/Demoman
-                '357;6', // Half-Zatoichi - Shared - Soldier/Demoman
-                '416;6', // Market Gardener
-                '447;6', // Disciplinary Action
-                '775;6' // Escape Plan
-            ],
-            pyro: [
-                '40;6', // Backburner                   == Pyro/Primary ==
-                '215;6', // Degreaser
-                '594;6', // Phlogistinator
-                '741;6', // Rainblower
-                '1178;6', // Dragon's Fury
-                '39;6', // Flare Gun                    == Pyro/Secondary ==
-                '351;6', // Detonator
-                '595;6', // Manmelter
-                '740;6', // Scorch Shot
-                '1179;6', // Thermal Thruster
-                '1180;6', // Gas Passer
-                '415;6', // Reserve Shooter - Shared - Soldier/Pyro
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '38;6', // Axtinguisher                 == Pyro/Melee ==
-                '153;6', // Homewrecker
-                '214;6', // Powerjack
-                '326;6', // Back Scratcher
-                '348;6', // Sharpened Volcano Fragment
-                '457;6', // Postal Pummeler
-                '593;6', // Third Degree
-                '739;6', // Lollichop
-                '813;6', // Neon Annihilator
-                '1181;6' // Hot Hand
-            ],
-            demoman: [
-                '308;6', // Loch-n-Load                 == Demoman/Primary ==
-                '405;6', // Ali Baba's Wee Booties
-                '608;6', // Bootlegger
-                '996;6', // Loose Cannon
-                '1151;6', // Iron Bomber
-                '130;6', // Scottish Resistance         == Demoman/Secondary ==
-                '131;6', // Chargin' Targe
-                '265;6', // Sticky Jumper
-                '406;6', // Splendid Screen
-                '1099;6', // Tide Turner
-                '1150;6', // Quickiebomb Launcher
-                '1101;6', // B.A.S.E Jumper - Shared - Soldier/Demoman
-                '132;6', // Eyelander                   == Demoman/Melee ==
-                '172;6', // Scotsman's Skullcutter
-                '307;6', // Ullapool Caber
-                '327;6', // Claidheamh Mòr
-                '404;6', // Persian Persuader
-                '482;6', // Nessie's Nine Iron
-                '609;6', // Scottish Handshake
-                '154;6', // Pain Train - Shared - Soldier/Demoman
-                '357;6' // Half-Zatoichi - Shared - Soldier/Demoman
-            ],
-            heavy: [
-                '41;6', // Natascha                     == Heavy/Primary ==
-                '312;6', // Brass Beast
-                '424;6', // Tomislav
-                '811;6', // Huo-Long Heater
-                '42;6', // Sandvich                     == Heavy/Secondary ==
-                '159;6', // Dalokohs Bar
-                '311;6', // Buffalo Steak Sandvich
-                '425;6', // Family Business
-                '1190;6', // Second Banana
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '43;6', // Killing Gloves of Boxing     == Heavy/Melee ==
-                '239;6', // Gloves of Running Urgently
-                '310;6', // Warrior's Spirit
-                '331;6', // Fists of Steel
-                '426;6', // Eviction Notice
-                '656;6' // Holiday Punch
-            ],
-            engineer: [
-                '141;6', // Frontier Justice            == Engineer/Primary ==
-                '527;6', // Widowmaker
-                '588;6', // Pomson 6000
-                '997;6', // Rescue Ranger
-                '140;6', // Wrangler                    == Engineer/Secondary ==
-                '528;6', // Short Circuit
-                '1153;6', // Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer
-                '142;6', // Gunslinger                  == Engineer/Melee ==
-                '155;6', // Southern Hospitality
-                '329;6', // Jag
-                '589;6' // Eureka Effect
-            ],
-            medic: [
-                '36;6', // Blutsauger                   == Medic/Primary ==
-                '305;6', // Crusader's Crossbow
-                '412;6', // Overdose
-                '35;6', // Kritzkrieg                   == Medic/Secondary ==
-                '411;6', // Quick-Fix
-                '998;6', // Vaccinator
-                '37;6', // Ubersaw                      == Medic/Melee ==
-                '173;6', // Vita-Saw
-                '304;6', // Amputator
-                '413;6' // Solemn Vow
-            ],
-            sniper: [
-                '56;6', // Huntsman                     == Sniper/Primary ==
-                '230;6', // Sydney Sleeper
-                '402;6', // Bazaar Bargain
-                '526;6', // Machina
-                '752;6', // Hitman's Heatmaker
-                '1092;6', // Fortified Compound
-                '1098;6', // Classic
-                '57;6', // Razorback                    == Sniper/Secondary ==
-                '58;6', // Jarate
-                '231;6', // Darwin's Danger Shield
-                '642;6', // Cozy Camper
-                '751;6', // Cleaner's Carbine
-                '171;6', // Tribalman's Shiv            == Sniper/Melee ==
-                '232;6', // Bushwacka
-                '401;6' // Shahanshah
-            ],
-            spy: [
-                '61;6', // Ambassador                   == Spy/Primary ==
-                '224;6', // L'Etranger
-                '460;6', // Enforcer
-                '525;6', // Diamondback
-                '225;6', // Your Eternal Reward         == Spy/Melee ==
-                '356;6', // Conniver's Kunai
-                '461;6', // Big Earner
-                '649;6', // Spy-cicle
-                '810;6', // Red-Tape Recorder           == Spy/PDA ==
-                '60;6', // Cloak and Dagger             == Spy/PDA2 ==
-                '59;6' // Dead Ringer
-            ]
-        };
-        const uncraftAll = [
-            '45;6;uncraftable', // Force-A-Nature               == Scout/Primary ==
-            '220;6;uncraftable', // Shortstop
-            '448;6;uncraftable', // Soda Popper
-            '772;6;uncraftable', // Baby Face's Blaster
-            '1103;6;uncraftable', // Back Scatter
-            '46;6;uncraftable', // Bonk! Atomic Punch           == Scout/Secondary ==
-            '163;6;uncraftable', // Crit-a-Cola
-            '222;6;uncraftable', // Mad Milk
-            '449;6;uncraftable', // Winger
-            '773;6;uncraftable', // Pretty Boy's Pocket Pistol
-            '812;6;uncraftable', // Flying Guillotine
-            '44;6;uncraftable', // Sandman                      == Scout/Melee ==
-            '221;6;uncraftable', // Holy Mackerel
-            '317;6;uncraftable', // Candy Cane
-            '325;6;uncraftable', // Boston Basher
-            '349;6;uncraftable', // Sun-on-a-Stick
-            '355;6;uncraftable', // Fan O'War
-            '450;6;uncraftable', // Atomizer
-            '648;6;uncraftable', // Wrap Assassin
-            '127;6;uncraftable', // Direct Hit                  == Soldier/Primary ==
-            '228;6;uncraftable', // Black Box
-            '237;6;uncraftable', // Rocket Jumper
-            '414;6;uncraftable', // Liberty Launcher
-            '441;6;uncraftable', // Cow Mangler 5000
-            '513;6;uncraftable', // Original
-            '730;6;uncraftable', // Beggar's Bazooka
-            '1104;6;uncraftable', // Air Strike
-            '129;6;uncraftable', // Buff Banner                 == Soldier/Secondary ==
-            '133;6;uncraftable', // Gunboats
-            '226;6;uncraftable', // Battalion's Backup
-            '354;6;uncraftable', // Concheror
-            '415;6;uncraftable', // (Reserve Shooter - Shared - Soldier/Pyro)
-            '442;6;uncraftable', // Righteous Bison
-            '1101;6;uncraftable', // (B.A.S.E Jumper - Shared - Soldier/Demoman)
-            '1153;6;uncraftable', // (Panic Attack - Shared - Soldier/Pyro/Heavy/Engineer)
-            '444;6;uncraftable', // Mantreads
-            '128;6;uncraftable', // Equalizer                   == Soldier/Melee ==
-            '154;6;uncraftable', // (Pain Train - Shared - Soldier/Demoman)
-            '357;6;uncraftable', // (Half-Zatoichi - Shared - Soldier/Demoman)
-            '416;6;uncraftable', // Market Gardener
-            '447;6;uncraftable', // Disciplinary Action
-            '775;6;uncraftable', // Escape Plan
-            '40;6;uncraftable', // Backburner                   == Pyro/Primary ==
-            '215;6;uncraftable', // Degreaser
-            '594;6;uncraftable', // Phlogistinator
-            '741;6;uncraftable', // Rainblower
-            '39;6;uncraftable', // Flare Gun                    == Pyro/Secondary ==
-            '351;6;uncraftable', // Detonator
-            '595;6;uncraftable', // Manmelter
-            '740;6;uncraftable', // Scorch Shot
-            '38;6;uncraftable', // Axtinguisher                 == Pyro/Melee ==
-            '153;6;uncraftable', // Homewrecker
-            '214;6;uncraftable', // Powerjack
-            '326;6;uncraftable', // Back Scratcher
-            '348;6;uncraftable', // Sharpened Volcano Fragment
-            '457;6;uncraftable', // Postal Pummeler
-            '593;6;uncraftable', // Third Degree
-            '739;6;uncraftable', // Lollichop
-            '813;6;uncraftable', // Neon Annihilator
-            '308;6;uncraftable', // Loch-n-Load                 == Demoman/Primary ==
-            '405;6;uncraftable', // Ali Baba's Wee Booties
-            '608;6;uncraftable', // Bootlegger
-            '996;6;uncraftable', // Loose Cannon
-            '1151;6;uncraftable', // Iron Bomber
-            '130;6;uncraftable', // Scottish Resistance         == Demoman/Secondary ==
-            '131;6;uncraftable', // Chargin' Targe
-            '265;6;uncraftable', // Sticky Jumper
-            '406;6;uncraftable', // Splendid Screen
-            '1099;6;uncraftable', // Tide Turner
-            '1150;6;uncraftable', // Quickiebomb Launcher
-            '132;6;uncraftable', // Eyelander                   == Demoman/Melee ==
-            '172;6;uncraftable', // Scotsman's Skullcutter
-            '307;6;uncraftable', // Ullapool Caber
-            '327;6;uncraftable', // Claidheamh Mòr
-            '404;6;uncraftable', // Persian Persuader
-            '482;6;uncraftable', // Nessie's Nine Iron
-            '609;6;uncraftable', // Scottish Handshake
-            '41;6;uncraftable', // Natascha                     == Heavy/Primary ==
-            '312;6;uncraftable', // Brass Beast
-            '424;6;uncraftable', // Tomislav
-            '811;6;uncraftable', // Huo-Long Heater
-            '42;6;uncraftable', // Sandvich                     == Heavy/Secondary ==
-            '159;6;uncraftable', // Dalokohs Bar
-            '311;6;uncraftable', // Buffalo Steak Sandvich
-            '425;6;uncraftable', // Family Business
-            '43;6;uncraftable', // Killing Gloves of Boxing     == Heavy/Melee ==
-            '239;6;uncraftable', // Gloves of Running Urgently
-            '310;6;uncraftable', // Warrior's Spirit
-            '331;6;uncraftable', // Fists of Steel
-            '426;6;uncraftable', // Eviction Notice
-            '656;6;uncraftable', // Holiday Punch
-            '141;6;uncraftable', // Frontier Justice            == Engineer/Primary ==
-            '527;6;uncraftable', // Widowmaker
-            '588;6;uncraftable', // Pomson 6000
-            '997;6;uncraftable', // Rescue Ranger
-            '140;6;uncraftable', // Wrangler                    == Engineer/Secondary ==
-            '528;6;uncraftable', // Short Circuit
-            '142;6;uncraftable', // Gunslinger                  == Engineer/Melee ==
-            '155;6;uncraftable', // Southern Hospitality
-            '329;6;uncraftable', // Jag
-            '589;6;uncraftable', // Eureka Effect
-            '36;6;uncraftable', // Blutsauger                   == Medic/Primary ==
-            '305;6;uncraftable', // Crusader's Crossbow
-            '412;6;uncraftable', // Overdose
-            '35;6;uncraftable', // Kritzkrieg                   == Medic/Secondary ==
-            '411;6;uncraftable', // Quick-Fix
-            '998;6;uncraftable', // Vaccinator
-            '37;6;uncraftable', // Ubersaw                      == Medic/Melee ==
-            '173;6;uncraftable', // Vita-Saw
-            '304;6;uncraftable', // Amputator
-            '413;6;uncraftable', // Solemn Vow
-            '56;6;uncraftable', // Huntsman                     == Sniper/Primary ==
-            '230;6;uncraftable', // Sydney Sleeper
-            '402;6;uncraftable', // Bazaar Bargain
-            '526;6;uncraftable', // Machina
-            '752;6;uncraftable', // Hitman's Heatmaker
-            '1092;6;uncraftable', // Fortified Compound
-            '1098;6;uncraftable', // Classic
-            '57;6;uncraftable', // Razorback                    == Sniper/Secondary ==
-            '58;6;uncraftable', // Jarate
-            '231;6;uncraftable', // Darwin's Danger Shield
-            '642;6;uncraftable', // Cozy Camper
-            '751;6;uncraftable', // Cleaner's Carbine
-            '171;6;uncraftable', // Tribalman's Shiv            == Sniper/Melee ==
-            '232;6;uncraftable', // Bushwacka
-            '401;6;uncraftable', // Shahanshah
-            '61;6;uncraftable', // Ambassador                   == Spy/Primary ==
-            '224;6;uncraftable', // L'Etranger
-            '460;6;uncraftable', // Enforcer
-            '525;6;uncraftable', // Diamondback
-            '225;6;uncraftable', // Your Eternal Reward         == Spy/Melee ==
-            '356;6;uncraftable', // Conniver's Kunai
-            '461;6;uncraftable', // Big Earner
-            '649;6;uncraftable', // Spy-cicle
-            '810;6;uncraftable', // Red-Tape Recorder           == Spy/PDA ==
-            '60;6;uncraftable', // Cloak and Dagger             == Spy/PDA2 ==
-            '59;6;uncraftable', // Dead Ringer
-            '939;6;uncraftable' // Bat Outta Hell               == All class/Melee ==
-        ];
-
-        const craftAll = craft.scout.concat(
-            craft.soldier,
-            craft.pyro,
-            craft.demoman,
-            craft.heavy,
-            craft.engineer,
-            craft.medic,
-            craft.sniper,
-            craft.spy
-        );
-        return { craft, craftAll, uncraftAll };
-    }
-
     private checkGroupInvites(): void {
         log.debug('Checking group invites');
 
@@ -3815,6 +3212,19 @@ function summarizeSteamChat(
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : '');
     return summary;
+}
+
+function filterReasons(reasons: string[]): string[] {
+    const filtered: string[] = [];
+
+    // Filter out duplicate reasons
+    reasons.forEach(reason => {
+        if (!filtered.includes(reason)) {
+            filtered.push(reason);
+        }
+    });
+
+    return filtered;
 }
 
 function listItems(items: {

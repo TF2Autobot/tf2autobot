@@ -1,4 +1,6 @@
-export = {
+import jsonschema from 'jsonschema';
+
+export const currenciesSchema: jsonschema.Schema = {
     id: 'tf2-currencies',
     type: 'object',
     properties: {

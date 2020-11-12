@@ -1,4 +1,6 @@
-export = {
+import jsonschema from 'jsonschema';
+
+export const addSchema: jsonschema.Schema = {
     id: 'pricelist-add',
     type: 'object',
     properties: {
@@ -38,6 +40,19 @@ export = {
         sell: {
             // sell price
             $ref: 'tf2-currencies'
+        },
+        group: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        note: {
+            $ref: 'listing-note'
         }
     },
     additionalProperties: false,

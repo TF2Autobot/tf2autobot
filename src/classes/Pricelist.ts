@@ -11,7 +11,10 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
+import { getPriceSBN } from '../lib/sbn-api';
 import validator from '../lib/validator';
+
+import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
 
@@ -24,6 +27,8 @@ export interface EntryData {
     intent: 0 | 1 | 2;
     buy?: Currency | null;
     sell?: Currency | null;
+    group?: string | null;
+    note?: { buy: string | null; sell: string | null };
     time?: number | null;
 }
 
@@ -46,6 +51,10 @@ export class Entry {
 
     sell: Currencies | null;
 
+    group: string | null;
+
+    note: { buy: string | null; sell: string | null };
+
     time: number | null;
 
     constructor(entry: EntryData, schema: SchemaManager.Schema) {
@@ -56,6 +65,8 @@ export class Entry {
         this.max = entry.max;
         this.min = entry.min;
         this.intent = entry.intent;
+        this.group = entry.group;
+        this.note = entry.note;
 
         // TODO: Validate entry
 
@@ -88,6 +99,8 @@ export class Entry {
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
+            group: this.group,
+            note: this.note,
             time: this.time
         };
     }
@@ -100,14 +113,14 @@ export default class Pricelist extends EventEmitter {
 
     private prices: Entry[] = [];
 
-    private keyPrices: { buy: Currencies; sell: Currencies };
+    private keyPrices: { buy: Currencies; sell: Currencies; src: string; time: number };
 
-    private priceChanges: {
-        sku: string;
-        name: string;
-        newPrice: Entry;
-        time: string;
-    }[] = [];
+    // private priceChanges: {
+    //     sku: string;
+    //     name: string;
+    //     newPrice: Entry;
+    //     time: string;
+    // }[] = [];
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
@@ -118,7 +131,7 @@ export default class Pricelist extends EventEmitter {
         this.socket.on('price', this.handlePriceChange.bind(this));
     }
 
-    getKeyPrices(): { buy: Currencies; sell: Currencies } {
+    getKeyPrices(): { buy: Currencies; sell: Currencies; src: string; time: number } {
         return this.keyPrices;
     }
 
@@ -223,28 +236,62 @@ export default class Pricelist extends EventEmitter {
     }
 
     private async validateEntry(entry: Entry): Promise<void> {
+        const keyPrices = this.getKeyPrices();
+
         if (entry.autoprice) {
-            let price;
+            let pricePTF;
+            let priceSBN;
 
             try {
-                price = await getPrice(entry.sku, 'bptf');
+                pricePTF = await getPrice(entry.sku, 'bptf');
+                priceSBN = await getPriceSBN(entry.sku);
             } catch (err) {
                 throw new Error(err.body && err.body.message ? err.body.message : err.message);
             }
 
-            entry.buy = new Currencies(price.buy);
-            entry.sell = new Currencies(price.sell);
-            entry.time = price.time;
+            entry.buy = new Currencies(
+                entry.sku === '5021;6' ? (priceSBN.updated > pricePTF.time ? priceSBN.buy : pricePTF.buy) : pricePTF.buy
+            );
+            entry.sell = new Currencies(
+                entry.sku === '5021;6'
+                    ? priceSBN.updated > pricePTF.time
+                        ? priceSBN.sell
+                        : pricePTF.sell
+                    : pricePTF.sell
+            );
+            entry.time =
+                entry.sku === '5021;6'
+                    ? priceSBN.updated > pricePTF.time
+                        ? priceSBN.updated
+                        : pricePTF.time
+                    : pricePTF.time;
+
+            if (entry.sku === '5021;6') {
+                this.keyPrices = {
+                    buy: entry.buy,
+                    sell: entry.sell,
+                    src: priceSBN.updated > pricePTF.time ? 'sbn' : 'ptf',
+                    time: entry.time
+                };
+            }
         }
 
         if (!entry.hasPrice()) {
             throw new Error('Pricelist entry does not have a price');
         }
 
-        const keyPrice = this.getKeyPrice();
-
-        if (entry.buy.toValue(keyPrice.metal) >= entry.sell.toValue(keyPrice.metal)) {
+        if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
             throw new Error('Sell must be higher than buy');
+        }
+
+        if (entry.sku === '5021;6' && !entry.autoprice) {
+            // update key rate if manually set the price
+            this.keyPrices = {
+                buy: entry.buy,
+                sell: entry.sell,
+                src: 'manual',
+                time: null
+            };
         }
     }
 
@@ -257,6 +304,16 @@ export default class Pricelist extends EventEmitter {
         }
         return price;
     }
+
+    // async getPricesSBN(sku: string): Promise<any> {
+    //     let price;
+    //     try {
+    //         price = await getPriceSBN(sku);
+    //     } catch (err) {
+    //         price = null;
+    //     }
+    //     return price;
+    // }
 
     async addPrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
@@ -305,6 +362,15 @@ export default class Pricelist extends EventEmitter {
         }
 
         return entry;
+    }
+
+    removeByGroup(newEntry: Entry[]): Promise<any> {
+        return new Promise(resolve => {
+            this.prices = newEntry;
+            this.emit('pricelist', newEntry);
+
+            return resolve();
+        });
     }
 
     removeAll(): Promise<any> {
@@ -356,6 +422,8 @@ export default class Pricelist extends EventEmitter {
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
+                    group: prices[0].group,
+                    note: prices[0].note,
                     time: prices[0].time
                 },
                 'pricelist'
@@ -372,33 +440,108 @@ export default class Pricelist extends EventEmitter {
         return this.setupPricelist();
     }
 
+    private updateKeyRate(): void {
+        setInterval(() => {
+            log.debug('Checking for key prices...');
+            getPrice('5021;6', 'bptf').then(keyPricesPTF => {
+                getPriceSBN('5021;6').then(keyPricesSBN => {
+                    const entryKey = this.getPrice('5021;6', false);
+                    const timePTF = keyPricesPTF.time as number;
+                    const timeSBN = keyPricesSBN.updated as number;
+
+                    if (entryKey.autoprice) {
+                        const needUpdate = (this.keyPrices.src === 'sbn' ? timeSBN : timePTF) < this.keyPrices.time;
+
+                        if (needUpdate) {
+                            this.keyPrices = {
+                                buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                                sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell),
+                                src: timeSBN > timePTF ? 'sbn' : 'ptf',
+                                time: timeSBN > timePTF ? timeSBN : timePTF
+                            };
+
+                            if (entryKey !== null && entryKey.autoprice) {
+                                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                                entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                                entryKey.sell = new Currencies(
+                                    timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell
+                                );
+                                entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                            }
+                            log.debug('New key rate', this.keyPrices);
+                        } else {
+                            log.debug('No update needed.');
+                        }
+                    } else {
+                        const currentRate = {
+                            ptf: {
+                                buy: new Currencies(keyPricesPTF.buy),
+                                sell: new Currencies(keyPricesPTF.sell)
+                            },
+                            sbn: {
+                                buy: new Currencies(keyPricesSBN.buy),
+                                sell: new Currencies(keyPricesSBN.sell)
+                            }
+                        };
+                        log.debug(
+                            'No update needed because the key prices was manually set. Current key rate from prices.tf/sbn.tf:',
+                            currentRate
+                        );
+                    }
+                });
+            });
+        }, 30 * 60 * 1000);
+    }
+
     setupPricelist(): Promise<void> {
-        log.debug('Getting key price...');
+        log.debug('Getting key prices...');
 
-        return getPrice('5021;6', 'bptf').then(keyPrices => {
-            log.debug('Got key price');
+        return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
+            return getPriceSBN('5021;6').then(keyPricesSBN => {
+                log.debug('Got key price');
 
-            this.keyPrices = {
-                buy: new Currencies(keyPrices.buy),
-                sell: new Currencies(keyPrices.sell)
-            };
+                const entryKey = this.getPrice('5021;6', false);
+                const timePTF = keyPricesPTF.time as number;
+                const timeSBN = keyPricesSBN.updated as number;
 
-            const entryKey = this.getPrice('5021;6');
+                if (entryKey !== null && !entryKey.autoprice) {
+                    this.keyPrices = {
+                        buy: entryKey.buy,
+                        sell: entryKey.sell,
+                        src: 'manual',
+                        time: entryKey.time
+                    };
+                    log.debug('Key rate is set based on current key prices in the pricelist.', this.keyPrices);
+                } else {
+                    this.keyPrices = {
+                        buy: new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy),
+                        sell: new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell),
+                        src: timeSBN > timePTF ? 'sbn' : 'ptf',
+                        time: timeSBN > timePTF ? timeSBN : timePTF
+                    };
+                    log.debug('Key rate is set based current key prices.', this.keyPrices);
 
-            if (entryKey !== null && entryKey.autoprice) {
-                // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                entryKey.buy = new Currencies(keyPrices.buy);
-                entryKey.sell = new Currencies(keyPrices.sell);
-                entryKey.time = keyPrices.time;
-            }
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = new Currencies(timeSBN > timePTF ? keyPricesSBN.buy : keyPricesPTF.buy);
+                        entryKey.sell = new Currencies(timeSBN > timePTF ? keyPricesSBN.sell : keyPricesPTF.sell);
+                        entryKey.time = timeSBN > timePTF ? keyPricesSBN.time : keyPricesPTF.time;
+                    }
+                }
 
-            const old = this.getOld();
+                log.debug('Checking new key rate in 30 minutes.');
+                setTimeout(() => {
+                    this.updateKeyRate();
+                }, 30 * 60 * 1000);
 
-            if (old.length === 0) {
-                return;
-            }
+                const old = this.getOld();
 
-            return this.updateOldPrices(old);
+                if (old.length === 0) {
+                    return;
+                }
+
+                return this.updateOldPrices(old);
+            });
         });
     }
 
@@ -459,7 +602,9 @@ export default class Pricelist extends EventEmitter {
         if (data.sku === '5021;6') {
             this.keyPrices = {
                 buy: new Currencies(data.buy),
-                sell: new Currencies(data.sell)
+                sell: new Currencies(data.sell),
+                src: 'ptf',
+                time: data.time
             };
         }
 
@@ -481,17 +626,23 @@ export default class Pricelist extends EventEmitter {
                         process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                this.priceChanges.push({
-                    sku: data.sku,
-                    name: this.schema.getName(SKU.fromString(match.sku), false),
-                    newPrice: match,
-                    time: time
-                });
+                this.sendWebHookPriceUpdateV1(
+                    data.sku,
+                    this.schema.getName(SKU.fromString(match.sku), false),
+                    match,
+                    time
+                );
+                // this.priceChanges.push({
+                //     sku: data.sku,
+                //     name: this.schema.getName(SKU.fromString(match.sku), false),
+                //     newPrice: match,
+                //     time: time
+                // });
 
-                if (this.priceChanges.length > 4) {
-                    this.sendWebHookPriceUpdate(this.priceChanges);
-                    this.priceChanges.length = 0;
-                }
+                // if (this.priceChanges.length > 4) {
+                //     this.sendWebHookPriceUpdate(this.priceChanges);
+                //     this.priceChanges.length = 0;
+                // }
             }
         }
     }
@@ -501,7 +652,102 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
+    private sendWebHookPriceUpdateV1(sku: string, name: string, newPrice: Entry, time: string): void {
+        const parts = sku.split(';');
+        const newSku = parts[0] + ';6';
+        const newItem = SKU.fromString(newSku);
+        const newName = this.schema.getName(newItem, false);
+
+        const itemImageUrl = this.schema.getItemByItemName(newName);
+
+        let itemImageUrlPrint: string;
+
+        const item = SKU.fromString(sku);
+
+        if (!itemImageUrl || !item) {
+            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+        } else if (Object.keys(paintCan).includes(newSku)) {
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
+        } else if (item.australium === true) {
+            const australiumSKU = parts[0] + ';11;australium';
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+        } else if (item.defindex === 266) {
+            itemImageUrlPrint =
+                'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
+        } else if (item.paintkit !== null) {
+            itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${item.paintkit}_${
+                item.wear
+            }_${item.festive === true ? 1 : 0}.png`;
+        } else {
+            itemImageUrlPrint = itemImageUrl.image_url_large;
+        }
+
+        let effectsId: string;
+
+        if (parts[2]) {
+            effectsId = parts[2].replace('u', '');
+        }
+
+        let effectURL: string;
+
+        if (!effectsId) {
+            effectURL = '';
+        } else {
+            effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+        }
+
+        const qualityItem = parts[1];
+        const qualityColorPrint = qualityColor[qualityItem].toString();
+
+        /*eslint-disable */
+        const priceUpdate = JSON.stringify({
+            username: process.env.DISCORD_WEBHOOK_USERNAME,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            content: '',
+            embeds: {
+                author: {
+                    name: name,
+                    url: `https://www.prices.tf/items/${sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `${sku} • ${time}`
+                },
+                thumbnail: {
+                    url: itemImageUrlPrint
+                },
+                image: {
+                    url: effectURL
+                },
+                title: '',
+                fields: [
+                    {
+                        name: 'Buying for',
+                        value: newPrice.buy.toString(),
+                        inline: true
+                    },
+                    {
+                        name: 'Selling for',
+                        value: newPrice.sell.toString(),
+                        inline: true
+                    }
+                ],
+                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    : '',
+                color: qualityColorPrint
+            }
+        });
+        /*eslint-enable */
+
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(priceUpdate);
+    }
+
+    private sendWebHookPriceUpdateV2(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
         const embed: {
             author: {
                 name: string;
@@ -533,174 +779,6 @@ export default class Pricelist extends EventEmitter {
             description: string;
             color: string;
         }[] = [];
-
-        const australiumImageURL = {
-            // Australium Ambassador
-            '61;11;australium':
-                'IUwYcXxrxqzlHh9rZCv2ADN8Mmsgy4N4MgGBvxVQuY7G2ZW8zJlfDUKJYCqxp8lnuW34wvJM3DIHgr-8CcAu9qsKYZG08QCvM/',
-            // Australium Medi Gun
-            '211;11;australium':
-                'cUwoUWRLlrTZ8j8fqCc2ACfIHnpQ35pFWgGVtkFEqMuawNTQ-IwaaVfgICfRs9Vm9UXdmvpcwV4TipO4CZ0yx42dGigAL/',
-            // Australium SMG
-            '203;11;australium':
-                'IUxQcWiTltzRHt8TnH_WJRrhXmYpmvchRimI4xlMtbOfmNGdhdlTGV_VdDqBjrV-9CH43uZMzV4f457UBxvSrc7I/',
-            // Australium Stickybomb Launcher
-            '207;11;australium':
-                'cUxQFVBjpoTpMhcrZAfOZBuMInsgK4p9Z3QlnkBN8Ma2xNGBldwbGBfQHCqNj9Vy-UXJm6sVmVYS0oLlWeFm9soqSYbd_N4tEAYCODYMwr6jb/',
-            // Australium Black Box
-            '228;11;australium':
-                'IUwUdXBjpujdbt8_pAfazBOESnN97tJUAiGc6wFl4ZbvjaDU0JFbGUvUJCPc-8QvqDXc36pI6V4_go-oCexKv6tWDpsnI5Q/',
-            // Australium Blutsauger
-            '36;11;australium':
-                'IUwsUWBjqvy1Nt8_pAfazBOESnN97vZQFgGVtyQUrbeW2ZjM_IFHGA_JYC_BuoQ7qDyJlusVnUdO1orpQfRKv6tW-OVvZVQ/',
-            // Australium Flame Thrower
-            '208;11;australium':
-                'IUwEdXBbnrDBRh9_jH82LB-wEpNY095dQl2AzwlAsY7GzY242JlbHUKRdD6JtrV_pCndhvcJgDI7jpe8Afgrq54LYc-5723D3DXU/',
-            // Australium Force-A-Nature
-            '45;11;australium':
-                'IUwMeSBnuvQdBidr0CP6zD-8Mn-U55IJS3Hg4xFB_NbSzYjJkcwCRUaFaCaJopVzuWHBi65dnAILu8u9Te1--t9DCLfByZ9DzsRlF/',
-            // Australium Frontier Justice
-            '141;11;australium':
-                'IUwEDUhX2sT1Rgt31GfuPDd8HlNYx2pxUyzFu31V6YrLiZWJiIVeUV6IKDvdi9wy-UXA3upY3VtG19eMDeAzusYLOMrcycIYb30r634E/',
-            // Australium Grenade Launcher
-            '206;11;australium':
-                'cUwADWBXjvD1Pid3oDvqJGt8HlNYx2pxUyzFu31YtYObgYGFjJ12VBKYLDac78FC5WyYxvMU1DYC0pLpTcAq8sIOVNrEycIYbGbNsLhA/',
-            // Australium Minigun
-            '202;11;australium':
-                'cUwoYUxLlrTZ8j8fqCc2ACfIHnpRl48RRjjczw1N_YuLmYjVhJwaSUvILCa1r8Fm5X3cwupFnAoXvob8DZ0yx4_oW5y4u/',
-            // Australium Tomislav
-            '424;11;australium':
-                'IUxMeUBLxtDlVt8_pAfazBOESnN974chX2mQ9wQMrY-G3YGdhcwWXB_UPWKZt9wruUX9ivpFlAIWwou1VehKv6tXcWH-bzQ/',
-            // Australium Rocket Launcher
-            '205;11;australium':
-                'cUxUeXhDnrDRCncblBfeeN-cPl94K6ZFH3jMlwgcsNeaxZDYwcQWbA_BbDvZprArqXSJluJ5hUYPur-xRKlnq4daUO65sbo8Wbc6SlA/',
-            // Australium Scattergun
-            '200;11;australium':
-                'cUxQSXA_2vSpEncbZCv2ADN8Mmsgy4N4E2Gc-lQcsMuDlY2A2IQbHB6UGWK0-9V29WnY365E3BYTkpb1UewzqqsKYZAHhHABV/',
-            // Australium Sniper Rifle
-            '201;11;australium':
-                'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-            // Australium Sniper Rifle 2 - weird
-            '15072;11;australium':
-                'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-            // Australium Axtinguisher
-            '38;11;australium':
-                'IUwYJSRLsvy1Km8DjH82cEfIPpN066ZRq1Td5lgQ1MrDhZmAyKgfHU_cLX6NtrAy8W3Bnup4zVdPur-heew3otoTCZ7R_ZcYMQZeUvB7w1w/',
-            // Australium Eyelander
-            '132;11;australium':
-                'IUwQdXALvtypGt8_pAfazBOESnN974ZFWjW8ylVJ_Y-C3aWEyKwGbUvUHWaRpo1--CHE2vsRmUITh9bhWehKv6tX00uGxPA/',
-            // Australium Knife
-            '194;11;australium':
-                'cUwwfVB3nhz9MhMzZAfOeD-VOyIJs55YAjDA8wAd6NrHnMm4xcFKSU_ZcCPQ49QzoXXQ0vcUxAYDu8vUWJ1teRmVbCw/',
-            // Australium Wrench
-            '197;11;australium':
-                'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
-        };
-
-        const paintCan = {
-            // A Color Similar to Slate
-            '5052;6':
-                'TbL_ROFcpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvOvr1MdQ/',
-            // A Deep Commitment to Purple
-            '5031;6':
-                'TeLfQYFp1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvVs13Vys/',
-            // A Distinctive Lack of Hue
-            '5040;6':
-                'TYffEcEJhnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvXrHVMg0/',
-            // A Mann's Mint
-            '5076;6':
-                'SLKqRMQ59nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvU8z3W20/',
-            // After Eight
-            '5077;6':
-                'TbLfJME5hnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvWdo-dtk/',
-            // Aged Moustache Grey
-            '5038;6':
-                'TeLPdNFslnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvFkHADQU/',
-            // An Air of Debonair
-            '5063;6':
-                'TffPQfFZxnqWSMU5OD2NsHx3oIzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V0p8gFQg/',
-            // An Extraordinary Abundance of Tinge
-            '5039;6':
-                'SMf6UeRJpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv64ewDK8/',
-            // Australium Gold
-            '5037;6':
-                'SMfqIdEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvsjysS5w/',
-            // Balaclavas Are Forever
-            '5062;6':
-                'TaK_FOE59nqWSMU5OD2NgHxnAPzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V3lcfHzA/',
-            // Color No. 216-190-216
-            '5030;6':
-                'SNcaJNRZRnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvFOcRWGY/',
-            // Cream Spirit
-            '5065;6':
-                'SKevZLE8hnqWSMU5OD2IsHzHMPnShGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VQmu5hdU/',
-            // Dark Salmon Injustice
-            '5056;6':
-                'SMcPkeFs1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvy3dkty0/',
-            // Drably Olive
-            '5053;6':
-                'TRefgYEZxnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvMuQVCSQ/',
-            // Indubitably Green
-            '5027;6':
-                'Tee_lNFZ5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvm153-6I/',
-            // Mann Co. Orange
-            '5032;6':
-                'SKL_cbEppnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvTFGBHn4/',
-            // Muskelmannbraun
-            '5033;6':
-                'SIfPcdFZlnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvcmoesjg/',
-            // Noble Hatter's Violet
-            '5029;6':
-                'TcePMQFc1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvgXmHfsU/',
-            // Operator's Overalls
-            '5060;6':
-                'TdcfMQEpRnqWSMU5OD2NoHwHEIkChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8V-hQN5Nc/',
-            // Peculiarly Drab Tincture
-            '5034;6':
-                'SKfKFOGJ1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvG7gZwMo/',
-            // Pink as Hell
-            '5051;6':
-                'SPL_YRQ5hnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv9O7ytVg/',
-            // Radigan Conagher Brown
-            '5035;6':
-                'TfcPRMEs1nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgv4OlkQfA/',
-            // Team Spirit
-            '5046;6':
-                'SLcfMQEs5nqWSMU5OD2NwHzHZdmihGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VWwsKTpY/',
-            // The Bitter Taste of Defeat and Lime
-            '5054;6':
-                'Tae6NMEp5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvvmRKa6k/',
-            // The Color of a Gentlemann's Business Pants
-            '5055;6':
-                'SPeaUeGc9nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvoDEBbxU/',
-            // The Value of Teamwork
-            '5064;6':
-                'TRefMYE5xnqWSMU5OD2NsKwicEzChGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8Vs4Ux0YY/',
-            // Waterlogged Lab Coat
-            '5061;6':
-                'SIcflJGc9nqWSMU5OD2NEMzSVdmyhGKyv2yXdsa7g9fsrW0Az__LbZTDL-ZTCZJiLWEk0nCeYPaCiIp23hirHFAG-cX714QglReKMAoGJKO5qBPxRogIVe_DO5xxB4TBB6dJNEKVrtnidHNeVr2C8VT2CQ46M/',
-            // Ye Olde Rustic Colour
-            '5036;6':
-                'TeKvZLFJtnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvmeRW1Z8/',
-            // Zepheniah's Greed
-            '5028;6':
-                'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/'
-        };
-
-        const qualityColor = {
-            '0': '11711154', // Normal - #B2B2B2
-            '1': '5076053', // Genuine - #4D7455
-            '3': '4678289', // Vintage - #476291
-            '5': '8802476', // Unusual - #8650AC
-            '6': '16766720', // Unique - #FFD700
-            '7': '7385162', // Community - #70B04A
-            '8': '10817401', // Valve - #A50F79
-            '9': '7385162', //Self-Made - #70B04A
-            '11': '13593138', //Strange - #CF6A32
-            '13': '3732395', //Haunted - #38F3AB
-            '14': '11141120', //Collector's - #AA0000
-            '15': '16711422' // Decorated Weapon
-        };
 
         data.forEach(data => {
             const parts = data.sku.split(';');

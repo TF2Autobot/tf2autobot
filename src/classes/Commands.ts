@@ -25,6 +25,7 @@ import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema-2';
 import Autokeys from './Autokeys';
+import { ignoreWords, craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames } from '../lib/data';
 
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
@@ -54,18 +55,18 @@ const MORE: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
+    '!sales name=<item name> OR sku=<item sku> - Get the sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
-    '!deposit <name=>&<amount=> - Deposit items',
-    '!withdraw <name=>&<amount=> - Withdraw items\n\n✨=== Pricelist manager ===✨',
-    '!add <sku=> OR <item=> - Add a pricelist entry ➕',
-    '!update <sku=> OR <item=> - Update a pricelist entry',
-    '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
-    '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
-    "!expand <craftable=true|false> - Use Backpack Expanders to increase the bot's inventory limit",
-    "!delete sku=<item sku> OR assetid=<item assetid> - Delete an item from the bot's inventory (SKU input only) 🚮",
+    '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
+    '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
+    '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+    '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
+    '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
+    '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
+    "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
+    "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
     '!unblock <steamid> - Unblock a specific user',
@@ -83,8 +84,8 @@ const ADMIN_COMMANDS: string[] = [
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
-    '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
-    '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
+    '!check (sku|name|defindex)=<a> - Request the current price for an item from Prices.TF',
+    '!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by Prices.TF',
     "!pricecheckall - Request all items in the bot's pricelist to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
@@ -94,8 +95,8 @@ const ADMIN_COMMANDS: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item 🔍',
-    '!find <parameters> - Get the list of filtered items detail based on the parameters 🔍'
+    '!sales (sku|name|defindex)=<a> - Get the sales history for an item 🔍',
+    '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍'
 ];
 
 export = class Commands {
@@ -136,10 +137,10 @@ export = class Commands {
         const isAdmin = this.bot.isAdmin(steamID);
 
         const isNoReply =
-            this.messageInputsStartWith().some(word => {
+            ignoreWords.startsWith.some(word => {
                 return message.startsWith(word);
             }) ||
-            this.messageInputEndsWith().some(word => {
+            ignoreWords.endsWith.some(word => {
                 return message.endsWith(word);
             });
 
@@ -265,7 +266,15 @@ export = class Commands {
         const isAdmin = this.bot.isAdmin(steamID);
         this.bot.sendMessage(
             steamID,
-            `📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
+            `📌 Note 📌${
+                isAdmin
+                    ? '\n• a = Directly add "a"' +
+                      '\n• [a] = Optionally add "a"' +
+                      '\n• (a|b) = Directly input "a" OR "b"' +
+                      '\n• <a> = Replace "a" with relevant content' +
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                    : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
+            }\n\n📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
         );
     }
 
@@ -734,7 +743,7 @@ export = class Commands {
             const steamIdAndMessage = CommandParser.removeCommand(message);
             // Use regex
             const steamIDreg = new RegExp(
-                /(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])/
+                /$(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])$/
             );
 
             let steamIDString: string;
@@ -864,7 +873,9 @@ export = class Commands {
     }
 
     private rateCommand(steamID: SteamID): void {
-        const keyPrice = this.bot.pricelist.getKeyPrice().toString();
+        const key = this.bot.pricelist.getKeyPrices();
+        const keyPrice = key.sell.toString();
+        const keyRateSource = key.src;
 
         this.bot.sendMessage(
             steamID,
@@ -874,7 +885,14 @@ export = class Commands {
                 keyPrice +
                 ', and ' +
                 keyPrice +
-                ' is the same as one key.'
+                ' is the same as one key.' +
+                `\n\nKey rate source: ${
+                    keyRateSource === 'sbn'
+                        ? 'https://api.sbn.tf/prices/5021;6'
+                        : keyRateSource === 'manual'
+                        ? 'manual'
+                        : 'https://api.prices.tf/items/5021;6?src=bptf'
+                }`
         );
     }
 
@@ -1237,8 +1255,33 @@ export = class Commands {
             }
         }
 
+        if (typeof params.note === 'object') {
+            params.note.buy = params.note.buy || null;
+            params.note.sell = params.note.sell || null;
+        }
+
+        if (params.note === undefined) {
+            // If note parameter is not defined, set both note.buy and note.sell to null.
+            params['note'] = { buy: null, sell: null };
+        }
+
+        if (params.group && typeof params.group !== 'string') {
+            // if group parameter is defined, convert anything to string
+            params.group = params.group.toString();
+        }
+
+        if (params.group === undefined) {
+            // If group paramater is not defined, set it to null.
+            params['group'] = 'all';
+        }
+
         if (params.autoprice === undefined) {
             params.autoprice = true;
+        }
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
         }
 
         if (params.sku === undefined) {
@@ -1276,48 +1319,146 @@ export = class Commands {
             // TODO: Must have atleast one other param
             const pricelist = this.bot.pricelist.getPrices();
 
-            if (pricelist.length === 0) {
+            let targetedPricelist: Entry[];
+            let unTargetedPricelist: Entry[];
+            let newPricelist: Entry[];
+
+            if (params.withgroup) {
+                targetedPricelist = pricelist.filter(entry =>
+                    entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                );
+                unTargetedPricelist = pricelist.filter(entry =>
+                    entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
+
+                if (targetedPricelist.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    );
+                    return;
+                }
+
+                newPricelist = targetedPricelist;
+
+                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                    if (new Currencies(params.buy) >= new Currencies(params.sell)) {
+                        this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
+                        return;
+                    } else if (
+                        (params.buy !== null && params.sell === undefined) ||
+                        (params.buy === undefined && params.sell !== null)
+                    ) {
+                        this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                        return;
+                    }
+                }
+            } else {
+                newPricelist = pricelist;
+            }
+
+            if (newPricelist.length === 0) {
                 this.bot.sendMessage(steamID, 'Your pricelist is empty.');
                 return;
             }
 
-            for (let i = 0; i < pricelist.length; i++) {
-                if (params.intent) {
-                    pricelist[i].intent = params.intent as 0 | 1 | 2;
+            if (!params.withgroup) {
+                if (typeof params.note === 'object') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                    );
+                    return;
                 }
 
-                if (params.min && typeof params.min === 'number') {
-                    pricelist[i].min = params.min;
+                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
+                            `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                    );
+                    return;
+                }
+            }
+
+            newPricelist.forEach((entry, i) => {
+                if (params.intent || params.intent === 0) {
+                    entry.intent = params.intent as 0 | 1 | 2;
                 }
 
-                if (params.max && typeof params.max === 'number') {
-                    pricelist[i].max = params.max;
+                if (params.min === 0 || typeof params.min === 'number') {
+                    entry.min = params.min;
                 }
 
-                if (params.enabled === false || params.enabled === true) {
-                    pricelist[i].enabled = params.enabled;
+                if (params.max === 0 || typeof params.max === 'number') {
+                    entry.max = params.max;
                 }
 
-                if (params.autoprice === false) {
-                    pricelist[i].time = null;
-                    pricelist[i].autoprice = false;
-                } else if (params.autoprice === true) {
-                    pricelist[i].time = 0;
-                    pricelist[i].autoprice = true;
+                if (typeof params.enabled === 'boolean') {
+                    entry.enabled = params.enabled;
+                }
+
+                if (params.group) {
+                    entry.group = params.group.toString();
+                }
+
+                if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
+                    // Sending "!update all=true&removenote=true" will set both
+                    // note.buy and note.sell for entire/withgroup entries to null.
+                    if (entry.note) {
+                        entry.note.buy = null;
+                        entry.note.sell = null;
+                    }
+                }
+
+                if (typeof params.autoprice === 'boolean') {
+                    if (params.autoprice === false) {
+                        entry.time = null;
+                        entry.autoprice = false;
+                    }
+                    entry.autoprice = params.autoprice;
+                }
+
+                if (params.withgroup) {
+                    if (typeof params.note === 'object') {
+                        // can change note if have withgroup parameter
+                        entry.note.buy = params.note.buy || null;
+                        entry.note.sell = params.note.sell || null;
+                    }
+
+                    if (typeof params.buy === 'object' && params.buy !== null) {
+                        entry.buy.keys = params.buy.keys || 0;
+                        entry.buy.metal = params.buy.metal || 0;
+
+                        if (params.autoprice === undefined) {
+                            entry.autoprice = false;
+                        }
+                    }
+
+                    if (typeof params.sell === 'object' && params.sell !== null) {
+                        entry.sell.keys = params.sell.keys || 0;
+                        entry.sell.metal = params.sell.metal || 0;
+
+                        if (params.autoprice === undefined) {
+                            entry.autoprice = false;
+                        }
+                    }
                 }
 
                 if (i === 0) {
                     const errors = validator(
                         {
-                            sku: pricelist[i].sku,
-                            enabled: pricelist[i].enabled,
-                            intent: pricelist[i].intent,
-                            max: pricelist[i].max,
-                            min: pricelist[i].min,
-                            autoprice: pricelist[i].autoprice,
-                            buy: pricelist[i].buy.toJSON(),
-                            sell: pricelist[i].sell.toJSON(),
-                            time: pricelist[i].time
+                            sku: entry.sku,
+                            enabled: entry.enabled,
+                            intent: entry.intent,
+                            max: entry.max,
+                            min: entry.min,
+                            autoprice: entry.autoprice,
+                            buy: entry.buy.toJSON(),
+                            sell: entry.sell.toJSON(),
+                            group: entry.group,
+                            note: entry.note,
+                            time: entry.time
                         },
                         'pricelist'
                     );
@@ -1326,12 +1467,22 @@ export = class Commands {
                         throw new Error(errors.join(', '));
                     }
                 }
+            });
+
+            if (params.removenote) {
+                delete params.removenote;
+            }
+
+            if (params.withgroup) {
+                newPricelist = unTargetedPricelist.concat(newPricelist);
+
+                delete params.withgroup;
             }
 
             // FIXME: Make it so that it is not needed to remove all listings
 
             if (params.autoprice !== true) {
-                this.bot.getHandler().onPricelist(pricelist);
+                this.bot.getHandler().onPricelist(newPricelist);
                 this.bot.sendMessage(steamID, '✅ Updated pricelist!');
                 this.bot.listings.redoListings().asCallback();
                 return;
@@ -1353,6 +1504,11 @@ export = class Commands {
             return;
         }
 
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
+
         if (typeof params.buy === 'object' && params.buy !== null) {
             params.buy.keys = params.buy.keys || 0;
             params.buy.metal = params.buy.metal || 0;
@@ -1368,6 +1524,68 @@ export = class Commands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        }
+
+        if (typeof params.note === 'object') {
+            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || null;
+            params.note.sell = params.note.sell === '' ? null : params.note.sell || null;
+        }
+
+        if (params.resetgroup) {
+            // if resetgroup (when sending "!update item=<itemName>&resetgroup=true") is defined,
+            // first check if it's a booelan type
+            if (typeof params.resetgroup === 'boolean') {
+                // if it's boolean, then check if it's true
+                if (params.resetgroup === true) {
+                    // if it's true, then set group key to null.
+                    params.group = 'all';
+                } // else if false, just ignore it.
+            } else {
+                // else if it's not a boolean type, then send message.
+                this.bot.sendMessage(steamID, '❌ "resetgroup" must be either "true" or "false".');
+                return;
+            }
+
+            // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
+            delete params.resetgroup;
+        }
+
+        if (params.removenote) {
+            // removenote to set both note.buy and note.sell to null.
+            if (typeof params.removenote === 'boolean') {
+                if (params.removenote === true) {
+                    params.note.buy = null;
+                    params.note.sell = null;
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removenote;
+        }
+
+        if (params.removebuynote) {
+            if (typeof params.removebuynote === 'boolean') {
+                if (params.removebuynote === true) {
+                    params.note.buy = null;
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removebuynote;
+        }
+
+        if (params.removesellnote) {
+            if (typeof params.removesellnote === 'boolean') {
+                if (params.removesellnote === true) {
+                    params.note.sell = null;
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removesellnote;
         }
 
         if (params.item !== undefined) {
@@ -1461,24 +1679,69 @@ export = class Commands {
                 return;
             }
 
+            const pricelist = this.bot.pricelist.getPrices();
+
+            let newPricelist: Entry[] = [];
+            let newPricelistCount: Entry[] = [];
+            if (params.withgroup) {
+                // first filter out pricelist with ONLY "withgroup" value.
+                newPricelistCount = pricelist.filter(entry =>
+                    entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                );
+                log.debug('newPricelistCount: ', newPricelistCount.length);
+
+                if (newPricelistCount.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    );
+                    return;
+                }
+
+                // then filter out pricelist with NOT "withgroup" value.
+                newPricelist = pricelist.filter(entry =>
+                    entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
+                log.debug('newPricelist: ', newPricelist.length);
+            } else {
+                newPricelistCount = pricelist;
+            }
+
             if (params.i_am_sure !== 'yes_i_am') {
                 this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
-                        pluralize('item', pricelistLength, true) +
+                        pluralize('item', newPricelistCount.length, true) +
                         '? Try again with i_am_sure=yes_i_am'
                 );
                 return;
             }
 
-            this.bot.pricelist
-                .removeAll()
-                .then(() => {
-                    this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
-                })
-                .catch(err => {
-                    this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
-                });
+            if (!params.withgroup) {
+                this.bot.pricelist
+                    .removeAll()
+                    .then(() => {
+                        this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
+                    })
+                    .catch(err => {
+                        this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
+                    });
+                return;
+            } else {
+                this.bot.pricelist
+                    .removeByGroup(newPricelist)
+                    .then(() => {
+                        this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                    })
+                    .catch(err => {
+                        this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
+                    });
+                return;
+            }
+        }
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
@@ -1535,6 +1798,11 @@ export = class Commands {
     private getCommand(steamID: SteamID, message: string): void {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.item !== undefined) {
             // Remove by full name
@@ -1629,6 +1897,11 @@ export = class Commands {
 
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.assetid !== undefined && params.sku === undefined) {
             // This most likely not working with Non-Tradable items.
@@ -1954,12 +2227,13 @@ export = class Commands {
                 params.max !== undefined ||
                 params.min !== undefined ||
                 params.intent !== undefined ||
-                params.autoprice !== undefined
+                params.autoprice !== undefined ||
+                params.group !== undefined
             )
         ) {
             this.bot.sendMessage(
                 steamID,
-                '⚠️ Only parameters: enabled, max, min, intent, autoprice\nExample: !find intent=sell'
+                '⚠️ Only parameters available for !find command: enabled, max, min, intent, autoprice or group\nExample: !find intent=bank&max=2'
             );
             return;
         }
@@ -1967,51 +2241,62 @@ export = class Commands {
         const pricelist = this.bot.pricelist.getPrices();
         let filter = pricelist;
 
-        if (params.enabled !== undefined && typeof params.enabled === 'boolean') {
-            filter = filter.filter(entry => entry.enabled === params.enabled);
-        } else if (params.enabled !== undefined && typeof params.enabled !== 'boolean') {
-            this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');
-            return;
-        }
-
-        if (params.max !== undefined && typeof params.max === 'number') {
-            filter = filter.filter(entry => entry.max === params.max);
-        } else if (params.max !== undefined && typeof params.max !== 'number') {
-            this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer');
-            return;
-        }
-
-        if (params.min !== undefined && typeof params.min === 'number') {
-            filter = filter.filter(entry => entry.min === params.min);
-        } else if (params.min !== undefined && typeof params.min !== 'number') {
-            this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer');
-            return;
-        }
-
-        if (params.intent !== undefined && typeof params.intent === 'number') {
-            filter = filter.filter(entry => entry.intent === params.intent);
-        } else if (typeof params.intent === 'string') {
-            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-            if (intent !== -1) {
-                params.intent = intent;
-                filter = filter.filter(entry => entry.intent === params.intent);
+        if (params.enabled !== undefined) {
+            if (typeof params.enabled !== 'boolean') {
+                this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');
+                return;
             }
-        } else if (
-            params.intent !== undefined &&
-            (typeof params.intent !== 'number' || typeof params.intent !== 'string')
-        ) {
-            this.bot.sendMessage(
-                steamID,
-                '⚠️ intent parameter must be "buy", "sell", or "bank" OR an integer of "0", "1" or "2" respectively'
-            );
-            return;
+            filter = filter.filter(entry => entry.enabled === params.enabled);
         }
 
-        if (params.autoprice !== undefined && typeof params.autoprice === 'boolean') {
+        if (params.max !== undefined) {
+            if (typeof params.max !== 'number') {
+                this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer');
+                return;
+            }
+            filter = filter.filter(entry => entry.max === params.max);
+        }
+
+        if (params.min !== undefined) {
+            if (typeof params.min !== 'number') {
+                this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer');
+                return;
+            }
+            filter = filter.filter(entry => entry.min === params.min);
+        }
+
+        if (params.intent !== undefined) {
+            if (typeof params.intent === 'string') {
+                const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
+                if (intent !== -1) {
+                    params.intent = intent;
+                }
+            }
+
+            if (typeof params.intent !== 'number' || params.intent < 0) {
+                this.bot.sendMessage(
+                    steamID,
+                    '⚠️ intent parameter must be "buy", "sell", or "bank" OR an integer of "0", "1" or "2" respectively'
+                );
+                return;
+            }
+            filter = filter.filter(entry => entry.intent === params.intent);
+        }
+
+        if (params.autoprice !== undefined) {
+            if (typeof params.autoprice !== 'boolean') {
+                this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be "true" or "false"');
+                return;
+            }
             filter = filter.filter(entry => entry.autoprice === params.autoprice);
-        } else if (params.autoprice !== undefined && typeof params.autoprice !== 'boolean') {
-            this.bot.sendMessage(steamID, '⚠️ autoprice parameter must be "true" or "false"');
-            return;
+        }
+
+        if (params.group !== undefined) {
+            if (typeof params.group !== 'string') {
+                this.bot.sendMessage(steamID, '⚠️ group parameter must be a string');
+                return;
+            }
+            filter = filter.filter(entry => entry.group === params.group);
         }
 
         const parametersUsed = {
@@ -2019,11 +2304,11 @@ export = class Commands {
             autoprice: params.autoprice !== undefined ? 'autoprice=' + params.autoprice.toString() : '',
             max: params.max !== undefined ? 'max=' + params.max.toString() : '',
             min: params.min !== undefined ? 'min=' + params.min.toString() : '',
-            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : ''
+            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : '',
+            group: params.group !== undefined ? 'group=' + params.group.toString() : ''
         };
 
         const parameters = Object.values(parametersUsed);
-        log.debug(JSON.stringify(parameters));
         const display = parameters.filter(param => param !== '');
 
         const length = filter.length;
@@ -2212,7 +2497,9 @@ export = class Commands {
         let reply =
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell}`;
+        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell} (${
+            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+        })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n Autokeys status: ${
@@ -2435,7 +2722,7 @@ export = class Commands {
 
                 offer.itemsToReceive.forEach(item => {
                     const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                    const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerNames().some(name => {
+                    const isNoiseMaker = noiseMakerNames.some(name => {
                         return item.market_hash_name.includes(name);
                     });
                     if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
@@ -2485,7 +2772,7 @@ export = class Commands {
                     declineTrade = true;
                 }
 
-                const isNoiseMaker = (this.bot.handler as MyHandler).noiseMakerSKUs().some(sku => {
+                const isNoiseMaker = noiseMakerSKU.some(sku => {
                     return checkExist.getPrice(sku, true) !== null;
                 });
 
@@ -2523,14 +2810,14 @@ export = class Commands {
                     if (isManyItems) {
                         this.bot.sendMessage(
                             offer.partner,
-                            'My owner have manually accepted your offer and the trade will take a while to complete since it is quite a big offer.' +
-                                ' If the trade did not complete after 5-10 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                            'My owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                         );
                     } else {
                         this.bot.sendMessage(
                             offer.partner,
-                            'My owner have manually accepted your offer and the trade will be completed in seconds.' +
-                                ' If the trade did not complete after 1-2 minutes had passed, please send your offer again or add me and use !sell/!sellcart or !buy/!buycart command.'
+                            'My owner has manually accepted your offer. The trade should be finalized shortly.' +
+                                ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                         );
                     }
                     // Send message to recipient if includes some messages
@@ -2553,13 +2840,13 @@ export = class Commands {
 
                     this.bot.sendMessage(
                         steamID,
-                        `❌ Offer #${offer.id} has been automatically decline: contain${
+                        `❌ Offer #${offer.id} has been automatically declined: contains ${
                             hasNot5Uses && hasNot25Uses
                                 ? 'Dueling Mini-Game and/or Noise Maker'
                                 : hasNot5Uses
                                 ? 'Dueling Mini-Game'
                                 : 'Noise Maker'
-                        } that are not full after re-check...`
+                        } that is not full after re-check...`
                     );
 
                     this.bot.sendMessage(
@@ -2645,6 +2932,11 @@ export = class Commands {
     private pricecheckCommand(steamID: SteamID, message: string): void {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.sku === undefined) {
             const item = this.getItemFromParams(steamID, params);
@@ -2741,6 +3033,11 @@ export = class Commands {
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
         message = removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            return;
+        }
 
         if (params.sku === undefined) {
             const item = this.getItemFromParams(steamID, params);
@@ -3104,11 +3401,9 @@ export = class Commands {
     }
 
     private craftWeapons(): string[] {
-        const craftWeapons = (this.bot.handler as MyHandler).weapons().craftAll;
-
         const items: { amount: number; name: string }[] = [];
 
-        craftWeapons.forEach(sku => {
+        craftAll.forEach(sku => {
             const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
             if (amount > 0) {
                 items.push({
@@ -3142,11 +3437,9 @@ export = class Commands {
     }
 
     private uncraftWeapons(): string[] {
-        const uncraftWeapons = (this.bot.handler as MyHandler).weapons().uncraftAll;
-
         const items: { amount: number; name: string }[] = [];
 
-        uncraftWeapons.forEach(sku => {
+        uncraftAll.forEach(sku => {
             const amount = this.bot.inventoryManager.getInventory().getAmount(sku);
             if (amount > 0) {
                 items.push({
@@ -3178,70 +3471,16 @@ export = class Commands {
         }
         return uncraftWeaponsStock;
     }
-
-    private messageInputsStartWith(): string[] {
-        const words = [
-            'I',
-            '❌',
-            'Hi',
-            '🙋🏻‍♀️Hi',
-            '⚠',
-            '⚠️',
-            '✅',
-            '⌛',
-            '💲',
-            '📜',
-            '🛒',
-            '💰',
-            'Here',
-            'The',
-            'Please',
-            'You',
-            '/quote',
-            '/pre',
-            '/me',
-            '/code',
-            'Oh',
-            'Success!',
-            'Hey',
-            'Unfortunately',
-            '==',
-            '💬',
-            '⇌',
-            'Command',
-            'Hello',
-            '✋ Hold on',
-            'Hold on',
-            'Sending',
-            '👋 Welcome',
-            'Welcome',
-            'To',
-            '🔰',
-            'My',
-            'Owner',
-            'Bot',
-            'Those',
-            '👨🏼‍💻',
-            '🔶',
-            'Buying',
-            '🔷',
-            'Selling',
-            '📥',
-            'Stock',
-            'Thank',
-            'Unknown'
-        ];
-        return words;
-    }
-
-    private messageInputEndsWith(): string[] {
-        const words = ['cart.', 'checkout.', '✅'];
-        return words;
-    }
 };
 
 function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
+}
+
+function testSKU(sku: string): boolean {
+    return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
+        sku
+    );
 }
 
 function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.Schema): string {

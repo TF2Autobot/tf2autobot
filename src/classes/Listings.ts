@@ -10,6 +10,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { Entry } from './Pricelist';
 import moment from 'moment';
+import { noiseMakerSKU } from '../lib/data';
 
 export = class Listings {
     private readonly bot: Bot;
@@ -482,40 +483,101 @@ export = class Listings {
 
         const maxStock = entry.max;
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
-        const amountCanBuy = maxStock === -1 ? '∞' : maxStock - currentStock;
 
         let details: string;
 
-        if (entry.sku === '241;6') {
+        if (entry.note && entry.note.buy && intent === 0) {
+            // If note.buy value is defined and not null and intent is buying, then use whatever in the
+            // note.buy for buy order listing note.
+            details = entry.note.buy
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
+
+            // if %keyPrice% is defined in note.buy value and the item price involved keys,
+            // then replace it with current key rate.
+            // else just empty string.
+            details = entry[key].toString().includes('key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                : details.replace(/%keyPrice%/g, '');
+
+            // if %uses% is defined in note.buy value and the item is Dueling Mini-Game and only accept
+            // 5x uses, then replace %uses% with (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
+            // else just empty string.
+            details =
+                entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
+                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    : details.replace(/%uses%/g, '');
+        } else if (entry.note && entry.note.sell && intent === 1) {
+            // else if note.sell value is defined and not null and intent is selling, then use whatever in the
+            // note.sell for sell order listing note.
+            details = entry.note.sell
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
+
+            details = entry[key].toString().includes('key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                : details.replace(/%keyPrice%/g, '');
+            details =
+                entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
+                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    : details.replace(/%uses%/g, '');
+        } else if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+            // else if note.buy or note.sell are both null, use template/in config file.
+            // this part checks if the item is Dueling Mini-Game.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
-                .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦) ');
+                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+
+            details = entry[key].toString().includes('key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                : details.replace(/%keyPrice%/g, '');
+        } else if (noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
+            // this part checks if the item is Noise Maker.
+            details = this.templates[key]
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
+
+            details = entry[key].toString().includes('key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                : details.replace(/%keyPrice%/g, '');
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
+            // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
-                .replace(/%keyPrice%/g, '✨')
-                .replace(/%dueling%/g, '');
+                .replace(/%keyPrice%/g, '')
+                .replace(/%uses%/g, '');
         } else {
+            // else if nothing above, then just use template/in config and replace every parameters.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%amount_can_buy%/g, amountCanBuy.toString())
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
-                .replace(/%dueling%/g, '');
+                .replace(/%uses%/g, '');
         }
 
         return details;
