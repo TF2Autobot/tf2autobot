@@ -1256,8 +1256,7 @@ export = class Commands {
 
         if (params.note === undefined) {
             // If note parameter is not defined, set both note.buy and note.sell to null.
-            params.note.buy = null;
-            params.note.sell = null;
+            params['note'] = { buy: null, sell: null };
         }
 
         if (params.group && typeof params.group !== 'string') {
@@ -1267,7 +1266,7 @@ export = class Commands {
 
         if (params.group === undefined) {
             // If group paramater is not defined, set it to null.
-            params.group = 'all';
+            params['group'] = 'all';
         }
 
         if (params.autoprice === undefined) {
