@@ -560,14 +560,20 @@ class UserCart extends Cart {
                     //     hasStrangeParts = true;
                     // }
 
-                    let hasSpelled = false;
-                    const spellNames: string[] = [];
+                    let hasHighValued = false;
 
+                    let hasSpells = false;
                     let hasStrangeParts = false;
+                    let hasKillstreaker = false;
+                    let hasSheen = false;
+
+                    const spellNames: string[] = [];
                     const partsNames: string[] = [];
+                    const killstreakerName: string[] = [];
+                    const sheenName: string[] = [];
 
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const spell = item.descriptions[i].value;
+                        const desc = item.descriptions[i].value;
                         const parts = item.descriptions[i].value
                             .replace('(', '')
                             .replace(/: \d+\)/g, '')
@@ -577,12 +583,13 @@ class UserCart extends Cart {
                         const strangePartNames = Object.keys(strangeParts);
 
                         if (
-                            spell.startsWith('Halloween:') &&
-                            spell.endsWith('(spell only active during event)') &&
+                            desc.startsWith('Halloween:') &&
+                            desc.endsWith('(spell only active during event)') &&
                             color === '7ea9d1'
                         ) {
-                            hasSpelled = true;
-                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            hasHighValued = true;
+                            hasSpells = true;
+                            const spellName = desc.substring(10, desc.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
@@ -590,35 +597,54 @@ class UserCart extends Cart {
                                 : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
+                            hasHighValued = true;
                             hasStrangeParts = true;
                             partsNames.push(parts);
+                        } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                            hasHighValued = true;
+                            hasKillstreaker = true;
+                            killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                        } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                            hasHighValued = true;
+                            hasSheen = true;
+                            sheenName.push(desc.replace('Sheen: ', '').trim());
                         }
                     }
 
-                    if (hasSpelled || hasStrangeParts) {
+                    if (hasHighValued) {
                         highValuedTheir.skus.push(itemSKU);
                         const itemObj = SKU.fromString(itemSKU);
                         const itemName =
                             itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                        let spellOrParts = '';
+                        let itemDescriptions = '';
 
-                        if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        if (hasSpells) {
+                            itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                            itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
-                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                        if (hasKillstreaker) {
+                            itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                        }
+
+                        if (hasSheen) {
+                            itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                        }
+
+                        log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${itemName} (${item.assetid})${itemDescriptions}`
+                            );
                         }
                     }
                 }
@@ -2069,14 +2095,20 @@ class UserCart extends Cart {
                     //     hasStrangeParts = true;
                     // }
 
-                    let hasSpelled = false;
-                    const spellNames: string[] = [];
+                    let hasHighValued = false;
 
+                    let hasSpells = false;
                     let hasStrangeParts = false;
+                    let hasKillstreaker = false;
+                    let hasSheen = false;
+
+                    const spellNames: string[] = [];
                     const partsNames: string[] = [];
+                    const killstreakerName: string[] = [];
+                    const sheenName: string[] = [];
 
                     for (let i = 0; i < item.descriptions.length; i++) {
-                        const spell = item.descriptions[i].value;
+                        const desc = item.descriptions[i].value;
                         const parts = item.descriptions[i].value
                             .replace('(', '')
                             .replace(/: \d+\)/g, '')
@@ -2086,12 +2118,13 @@ class UserCart extends Cart {
                         const strangePartNames = Object.keys(strangeParts);
 
                         if (
-                            spell.startsWith('Halloween:') &&
-                            spell.endsWith('(spell only active during event)') &&
+                            desc.startsWith('Halloween:') &&
+                            desc.endsWith('(spell only active during event)') &&
                             color === '7ea9d1'
                         ) {
-                            hasSpelled = true;
-                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            hasHighValued = true;
+                            hasSpells = true;
+                            const spellName = desc.substring(10, desc.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
                             (parts === 'Kills' || parts === 'Assists'
@@ -2099,35 +2132,54 @@ class UserCart extends Cart {
                                 : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
+                            hasHighValued = true;
                             hasStrangeParts = true;
                             partsNames.push(parts);
+                        } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                            hasHighValued = true;
+                            hasKillstreaker = true;
+                            killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                        } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                            hasHighValued = true;
+                            hasSheen = true;
+                            sheenName.push(desc.replace('Sheen: ', '').trim());
                         }
                     }
 
-                    if (hasSpelled || hasStrangeParts) {
+                    if (hasHighValued) {
                         highValuedTheir.skus.push(itemSKU);
                         const itemObj = SKU.fromString(itemSKU);
                         const itemName =
                             itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                        let spellOrParts = '';
+                        let itemDescriptions = '';
 
-                        if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                        if (hasSpells) {
+                            itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                            itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
-                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                        if (hasKillstreaker) {
+                            itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                        }
+
+                        if (hasSheen) {
+                            itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                        }
+
+                        log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                            highValuedTheir.nameWithSpellsOrParts.push(
+                                `${itemName} (${item.assetid})${itemDescriptions}`
+                            );
                         }
                     }
                 }

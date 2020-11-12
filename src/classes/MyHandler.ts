@@ -544,16 +544,20 @@ export = class MyHandler extends Handler {
             //     hasHighValueOur = true;
             // }
 
-            let hasSpelled = false;
-            const spellNames: string[] = [];
-
+            let hasSpells = false;
             let hasStrangeParts = false;
+            let hasKillstreaker = false;
+            let hasSheen = false;
+
+            const spellNames: string[] = [];
             const partsNames: string[] = [];
+            const killstreakerName: string[] = [];
+            const sheenName: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
                 // Item description value for Spells and Strange Parts.
                 // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
-                const spell = item.descriptions[i].value;
+                const desc = item.descriptions[i].value;
 
                 // For Strange Parts, example: "(Kills During Halloween: 0)"
                 // remove "(" and ": <numbers>)" to get only the part name.
@@ -569,20 +573,20 @@ export = class MyHandler extends Handler {
                 const strangePartNames = Object.keys(strangeParts);
 
                 if (
-                    spell.startsWith('Halloween:') &&
-                    spell.endsWith('(spell only active during event)') &&
+                    desc.startsWith('Halloween:') &&
+                    desc.endsWith('(spell only active during event)') &&
                     color === '7ea9d1'
                 ) {
                     // Example: "Halloween: Voices From Below (spell only active during event)"
                     // where "Voices From Below" is the spell name.
                     // Color of this description must be rgb(126, 169, 209) or 7ea9d1
                     // https://www.spycolor.com/7ea9d1#
-                    hasSpelled = true;
+                    hasSpells = true;
                     hasHighValueOur = true;
                     // Get the spell name
                     // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
                     // from "(spell only active during event)", and trim any whitespaces.
-                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    const spellName = desc.substring(10, desc.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
@@ -597,10 +601,18 @@ export = class MyHandler extends Handler {
                     hasStrangeParts = true;
                     hasHighValueOur = true;
                     partsNames.push(parts);
+                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                    hasKillstreaker = true;
+                    hasHighValueOur = true;
+                    killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                    hasSheen = true;
+                    hasHighValueOur = true;
+                    sheenName.push(desc.replace('Sheen: ', '').trim());
                 }
             }
 
-            if (hasSpelled || hasStrangeParts) {
+            if (hasHighValueOur) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedOur.skus.push(itemSKU);
 
@@ -610,29 +622,42 @@ export = class MyHandler extends Handler {
                 const itemName =
                     itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                let spellOrParts = '';
+                let itemDescriptions = '';
 
-                if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                if (hasSpells) {
+                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
                     // spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + '); - tf2-items-format module
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
                     // spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + '); - tf2-items-format module
                 }
 
-                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                if (hasKillstreaker) {
+                    // well, this actually will just have one, but we don't know if there's any that have two 😅
+                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                }
+
+                if (hasSheen) {
+                    // same as Killstreaker
+                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
+                // parsed.fullName  - tf2-items-format module
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
                     highValuedOur.nameWithSpellsOrParts.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
+                        // parsed.fullName  - tf2-items-format module
                     );
                 } else {
-                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    // parsed.fullName  - tf2-items-format module
                 }
             }
         });
@@ -649,14 +674,18 @@ export = class MyHandler extends Handler {
         };
 
         offer.itemsToReceive.forEach(item => {
-            let hasSpelled = false;
-            const spellNames: string[] = [];
-
+            let hasSpells = false;
             let hasStrangeParts = false;
+            let hasKillstreaker = false;
+            let hasSheen = false;
+
+            const spellNames: string[] = [];
             const partsNames: string[] = [];
+            const killstreakerName: string[] = [];
+            const sheenName: string[] = [];
 
             for (let i = 0; i < item.descriptions.length; i++) {
-                const spell = item.descriptions[i].value;
+                const desc = item.descriptions[i].value;
                 const parts = item.descriptions[i].value
                     .replace('(', '')
                     .replace(/: \d+\)/g, '')
@@ -666,13 +695,13 @@ export = class MyHandler extends Handler {
                 const strangePartNames = Object.keys(strangeParts);
 
                 if (
-                    spell.startsWith('Halloween:') &&
-                    spell.endsWith('(spell only active during event)') &&
+                    desc.startsWith('Halloween:') &&
+                    desc.endsWith('(spell only active during event)') &&
                     color === '7ea9d1'
                 ) {
-                    hasSpelled = true;
+                    hasSpells = true;
                     hasHighValueTheir = true;
-                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    const spellName = desc.substring(10, desc.length - 32).trim();
                     spellNames.push(spellName);
                 } else if (
                     (parts === 'Kills' || parts === 'Assists'
@@ -683,10 +712,18 @@ export = class MyHandler extends Handler {
                     hasStrangeParts = true;
                     hasHighValueTheir = true;
                     partsNames.push(parts);
+                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                    hasKillstreaker = true;
+                    hasHighValueTheir = true;
+                    killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
+                    hasSheen = true;
+                    hasHighValueTheir = true;
+                    sheenName.push(desc.replace('Sheen: ', '').trim());
                 }
             }
 
-            if (hasSpelled || hasStrangeParts) {
+            if (hasHighValueTheir) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedTheir.skus.push(itemSKU);
 
@@ -694,27 +731,35 @@ export = class MyHandler extends Handler {
                 const itemName =
                     itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
-                let spellOrParts = '';
+                let itemDescriptions = '';
 
-                if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                if (hasSpells) {
+                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
                 }
 
-                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
+                if (hasKillstreaker) {
+                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                }
+
+                if (hasSheen) {
+                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
+                }
+
+                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
                     highValuedTheir.nameWithSpellsOrParts.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
                     );
                 } else {
-                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
+                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${itemDescriptions}`);
                 }
             }
         });
