@@ -105,10 +105,14 @@ export = class Autokeys {
         const currKeys = pure.key;
         const currRef = pure.refTotalInScrap;
 
+        const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
+        const isAutoprice = keyEntry !== null ? keyEntry.autoprice : false;
+
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
-        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
+        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment && isAutoprice) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
+            // Only if autoprice enabled.
             this.status = {
                 isBuyingKeys: false,
                 isBankingKeys: false,
@@ -267,7 +271,7 @@ export = class Autokeys {
         );
 
         const isAlreadyRunningAutokeys = this.isActive;
-        const isKeysAlreadyExist = this.bot.pricelist.searchByName('Mann Co. Supply Crate Key', false);
+        const isKeysAlreadyExist = keyEntry !== null;
 
         if (isAlreadyRunningAutokeys) {
             // if Autokeys already running
@@ -419,7 +423,7 @@ export = class Autokeys {
             }
         } else if (!isAlreadyRunningAutokeys) {
             // if Autokeys is not running/disabled
-            if (isKeysAlreadyExist === null) {
+            if (!isKeysAlreadyExist) {
                 // if Mann Co. Supply Crate Key entry does not exist in the pricelist.json
                 if (isBankingKeys && isEnableKeyBanking) {
                     //create new Key entry and enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -1097,7 +1101,6 @@ export = class Autokeys {
     }
 
     refresh(): void {
-        this.remove();
         this.status = {
             isBuyingKeys: false,
             isBankingKeys: false,
