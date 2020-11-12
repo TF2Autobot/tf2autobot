@@ -1531,23 +1531,23 @@ export = class Commands {
             params.note.sell = params.note.sell === '' ? null : params.note.sell || null;
         }
 
-        if (params.removegroup) {
-            // if removegroup (when sending "!update item=<itemName>&removegroup=true") is defined,
+        if (params.resetgroup) {
+            // if resetgroup (when sending "!update item=<itemName>&resetgroup=true") is defined,
             // first check if it's a booelan type
-            if (typeof params.removegroup === 'boolean') {
+            if (typeof params.resetgroup === 'boolean') {
                 // if it's boolean, then check if it's true
-                if (params.removegroup === true) {
+                if (params.resetgroup === true) {
                     // if it's true, then set group key to null.
-                    params.group = null;
+                    params.group = 'all';
                 } // else if false, just ignore it.
             } else {
                 // else if it's not a boolean type, then send message.
-                this.bot.sendMessage(steamID, '❌ "removegroup" must be either "true" or "false".');
+                this.bot.sendMessage(steamID, '❌ "resetgroup" must be either "true" or "false".');
                 return;
             }
 
-            // delete removegroup key from params so it will not trying to be added into pricelist (validator error)
-            delete params.removegroup;
+            // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
+            delete params.resetgroup;
         }
 
         if (params.removenote) {
