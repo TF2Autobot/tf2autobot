@@ -1267,7 +1267,7 @@ export = class Commands {
 
         if (params.group === undefined) {
             // If group paramater is not defined, set it to null.
-            params.group = null;
+            params.group = 'all';
         }
 
         if (params.autoprice === undefined) {
