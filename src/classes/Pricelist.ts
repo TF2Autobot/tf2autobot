@@ -704,40 +704,42 @@ export default class Pricelist extends EventEmitter {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: '',
-            embeds: {
-                author: {
-                    name: name,
-                    url: `https://www.prices.tf/items/${sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                },
-                footer: {
-                    text: `${sku} • ${time}`
-                },
-                thumbnail: {
-                    url: itemImageUrlPrint
-                },
-                image: {
-                    url: effectURL
-                },
-                title: '',
-                fields: [
-                    {
-                        name: 'Buying for',
-                        value: newPrice.buy.toString(),
-                        inline: true
+            embeds: [
+                {
+                    author: {
+                        name: name,
+                        url: `https://www.prices.tf/items/${sku}`,
+                        icon_url:
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                     },
-                    {
-                        name: 'Selling for',
-                        value: newPrice.sell.toString(),
-                        inline: true
-                    }
-                ],
-                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                    : '',
-                color: qualityColorPrint
-            }
+                    footer: {
+                        text: `${sku} • ${time}`
+                    },
+                    thumbnail: {
+                        url: itemImageUrlPrint
+                    },
+                    image: {
+                        url: effectURL
+                    },
+                    title: '',
+                    fields: [
+                        {
+                            name: 'Buying for',
+                            value: newPrice.buy.toString(),
+                            inline: true
+                        },
+                        {
+                            name: 'Selling for',
+                            value: newPrice.sell.toString(),
+                            inline: true
+                        }
+                    ],
+                    description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        : '',
+                    color: qualityColorPrint
+                }
+            ]
         });
         /*eslint-enable */
 
