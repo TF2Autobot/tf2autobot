@@ -2190,12 +2190,13 @@ export = class Commands {
                 params.max !== undefined ||
                 params.min !== undefined ||
                 params.intent !== undefined ||
-                params.autoprice !== undefined
+                params.autoprice !== undefined ||
+                params.group !== undefined
             )
         ) {
             this.bot.sendMessage(
                 steamID,
-                '⚠️ Only parameters: enabled, max, min, intent, autoprice\nExample: !find intent=sell'
+                '⚠️ Only parameters: enabled, max, min, intent, autoprice or group\nExample: !find intent=sell'
             );
             return;
         }
@@ -2250,12 +2251,20 @@ export = class Commands {
             return;
         }
 
+        if (params.group !== undefined && typeof params.group === 'string') {
+            filter = filter.filter(entry => entry.group === params.group);
+        } else if (params.group !== undefined && typeof params.group !== 'string') {
+            this.bot.sendMessage(steamID, '⚠️ group parameter must be a string');
+            return;
+        }
+
         const parametersUsed = {
             enabled: params.enabled !== undefined ? 'enabled=' + params.enabled.toString() : '',
             autoprice: params.autoprice !== undefined ? 'autoprice=' + params.autoprice.toString() : '',
             max: params.max !== undefined ? 'max=' + params.max.toString() : '',
             min: params.min !== undefined ? 'min=' + params.min.toString() : '',
-            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : ''
+            intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : '',
+            group: params.group !== undefined ? 'group=' + params.group.toString() : ''
         };
 
         const parameters = Object.values(parametersUsed);
