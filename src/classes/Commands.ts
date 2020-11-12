@@ -55,18 +55,18 @@ const MORE: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item'
+    '!sales name=<item name> OR sku=<item sku> - Get the sales history for an item'
 ];
 
 const ADMIN_COMMANDS: string[] = [
-    '!deposit <name=>&<amount=> - Deposit items',
-    '!withdraw <name=>&<amount=> - Withdraw items\n\n✨=== Pricelist manager ===✨',
-    '!add <sku=> OR <name=> - Add a pricelist entry ➕',
-    '!update <sku=> OR <item=> - Update a pricelist entry',
-    '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
-    '!get <sku=> OR <item=> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
-    "!expand <craftable=true|false> - Use Backpack Expanders to increase the bot's inventory limit",
-    "!delete sku=<item sku> OR assetid=<item assetid> - Delete an item from the bot's inventory (SKU input only) 🚮",
+    '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
+    '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
+    '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+    '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
+    '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
+    '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
+    "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
+    "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
     '!unblock <steamid> - Unblock a specific user',
@@ -84,8 +84,8 @@ const ADMIN_COMMANDS: string[] = [
     '!trade <offerID> - Get information about a trade',
     '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
     '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍\n\n✨=== Request ===✨',
-    '!check <sku=> OR <item=> - Request the current price for an item from Prices.TF',
-    '!pricecheck <sku=> OR <item=> - Request an item to be price checked by Prices.TF',
+    '!check (sku|name|defindex)=<a> - Request the current price for an item from Prices.TF',
+    '!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by Prices.TF',
     "!pricecheckall - Request all items in the bot's pricelist to be price checked by Prices.TF\n\n✨=== Misc ===✨",
     "!autokeys - Get info on the bot's current autokeys settings 🔑",
     "!time - Show the owner's current time 🕥",
@@ -95,8 +95,8 @@ const ADMIN_COMMANDS: string[] = [
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales <name=item name> OR <sku=item sku> - Get the sales history for an item 🔍',
-    '!find <parameters> - Get the list of filtered items detail based on the parameters 🔍'
+    '!sales (sku|name|defindex)=<a> - Get the sales history for an item 🔍',
+    '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍'
 ];
 
 export = class Commands {
@@ -266,9 +266,15 @@ export = class Commands {
         const isAdmin = this.bot.isAdmin(steamID);
         this.bot.sendMessage(
             steamID,
-            `📜 Here's a list of my commands:\n- ${
-                isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')
-            }\n\n📌 Note: Do not include <> nor [] - <> means required and [] means optional.`
+            `📌 Note 📌${
+                isAdmin
+                    ? '\n• a = Directly add "a"' +
+                      '\n• [a] = Optionally add "a"' +
+                      '\n• (a|b) = Directly input "a" OR "b"' +
+                      '\n• <a> = Replace "a" with relevant content' +
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                    : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
+            }\n\n📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
         );
     }
 
