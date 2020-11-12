@@ -11,8 +11,8 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
 import { UnknownDictionary } from '../types/common';
 
-import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames } from '../lib/data';
-import { parseEconItem } from 'tf2-item-format';
+import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts } from '../lib/data';
+// import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';
 
@@ -535,53 +535,90 @@ class UserCart extends Cart {
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
             fetched.forEach(item => {
-                const parsed = parseEconItem(
-                    {
-                        ...item,
-                        tradable: item.tradable ? 1 : 0,
-                        commodity: item.commodity ? 1 : 0,
-                        marketable: item.marketable ? 1 : 0,
-                        amount: item.amount + ''
-                    },
-                    true,
-                    true
-                );
+                // const parsed = parseEconItem(
+                //     {
+                //         ...item,
+                //         tradable: item.tradable ? 1 : 0,
+                //         commodity: item.commodity ? 1 : 0,
+                //         marketable: item.marketable ? 1 : 0,
+                //         amount: item.amount + ''
+                //     },
+                //     true,
+                //     true
+                // );
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
+                    // let hasSpelled = false;
+                    // if (parsed.spells.length > 0) {
+                    //     hasSpelled = true;
+                    // }
+
+                    // let hasStrangeParts = false;
+                    // if (parsed.parts.length > 0) {
+                    //     hasStrangeParts = true;
+                    // }
+
                     let hasSpelled = false;
-                    if (parsed.spells.length > 0) {
-                        hasSpelled = true;
-                    }
+                    const spellNames: string[] = [];
 
                     let hasStrangeParts = false;
-                    if (parsed.parts.length > 0) {
-                        hasStrangeParts = true;
+                    const partsNames: string[] = [];
+
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+
+                        const color = item.descriptions[i].color;
+                        const strangePartNames = Object.keys(strangeParts);
+
+                        if (
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
+                        ) {
+                            hasSpelled = true;
+                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            spellNames.push(spellName);
+                        } else if (
+                            (parts === 'Kills' || parts === 'Assists'
+                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                                : strangePartNames.includes(parts)) &&
+                            color === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            partsNames.push(parts);
+                        }
                     }
+
                     if (hasSpelled || hasStrangeParts) {
-                        highValuedTheir.skus.push(sku);
+                        highValuedTheir.skus.push(itemSKU);
+                        const itemObj = SKU.fromString(itemSKU);
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                         let spellOrParts = '';
 
                         if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
-                        log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${parsed.fullName} (${item.assetid})${spellOrParts}`
-                            );
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }
@@ -2007,54 +2044,90 @@ class UserCart extends Cart {
                 process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
 
             fetched.forEach(item => {
-                const parsed = parseEconItem(
-                    {
-                        ...item,
-                        tradable: item.tradable ? 1 : 0,
-                        commodity: item.commodity ? 1 : 0,
-                        marketable: item.marketable ? 1 : 0,
-                        amount: item.amount + ''
-                    },
-                    true,
-                    true
-                );
+                // const parsed = parseEconItem(
+                //     {
+                //         ...item,
+                //         tradable: item.tradable ? 1 : 0,
+                //         commodity: item.commodity ? 1 : 0,
+                //         marketable: item.marketable ? 1 : 0,
+                //         amount: item.amount + ''
+                //     },
+                //     true,
+                //     true
+                // );
 
                 const itemSKU = item.getSKU(this.bot.schema);
 
                 if (sku === itemSKU) {
+                    // let hasSpelled = false;
+                    // if (parsed.spells.length > 0) {
+                    //     hasSpelled = true;
+                    // }
+
+                    // let hasStrangeParts = false;
+                    // if (parsed.parts.length > 0) {
+                    //     hasStrangeParts = true;
+                    // }
+
                     let hasSpelled = false;
-                    if (parsed.spells.length > 0) {
-                        hasSpelled = true;
-                    }
+                    const spellNames: string[] = [];
 
                     let hasStrangeParts = false;
-                    if (parsed.parts.length > 0) {
-                        hasStrangeParts = true;
+                    const partsNames: string[] = [];
+
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const spell = item.descriptions[i].value;
+                        const parts = item.descriptions[i].value
+                            .replace('(', '')
+                            .replace(/: \d+\)/g, '')
+                            .trim();
+
+                        const color = item.descriptions[i].color;
+                        const strangePartNames = Object.keys(strangeParts);
+
+                        if (
+                            spell.startsWith('Halloween:') &&
+                            spell.endsWith('(spell only active during event)') &&
+                            color === '7ea9d1'
+                        ) {
+                            hasSpelled = true;
+                            const spellName = spell.substring(10, spell.length - 32).trim();
+                            spellNames.push(spellName);
+                        } else if (
+                            (parts === 'Kills' || parts === 'Assists'
+                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                                : strangePartNames.includes(parts)) &&
+                            color === '756b5e'
+                        ) {
+                            hasStrangeParts = true;
+                            partsNames.push(parts);
+                        }
                     }
 
                     if (hasSpelled || hasStrangeParts) {
-                        highValuedTheir.skus.push(sku);
+                        highValuedTheir.skus.push(itemSKU);
+                        const itemObj = SKU.fromString(itemSKU);
+                        const itemName =
+                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
 
                         let spellOrParts = '';
 
                         if (hasSpelled) {
-                            spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
+                            spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
                         }
 
                         if (hasStrangeParts) {
-                            spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
+                            spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                         }
 
-                        log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                        log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                         if (isEnabledDiscordWebhook) {
                             highValuedTheir.nameWithSpellsOrParts.push(
-                                `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                                `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                             );
                         } else {
-                            highValuedTheir.nameWithSpellsOrParts.push(
-                                `${parsed.fullName} (${item.assetid})${spellOrParts}`
-                            );
+                            highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                         }
                     }
                 }

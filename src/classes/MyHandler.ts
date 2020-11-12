@@ -17,8 +17,8 @@ import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import { requestCheck } from '../lib/ptf-api';
-import { craftWeapons, craftAll, uncraftAll, giftWords, noiseMakerNames } from '../lib/data';
-import { parseEconItem } from 'tf2-item-format';
+import { craftWeapons, craftAll, uncraftAll, giftWords, noiseMakerNames, strangeParts } from '../lib/data';
+// import { parseEconItem } from 'tf2-item-format';
 
 import moment from 'moment-timezone';
 
@@ -519,55 +519,120 @@ export = class MyHandler extends Handler {
         };
 
         offer.itemsToGive.forEach(item => {
-            const parsed = parseEconItem(
-                {
-                    ...item,
-                    tradable: item.tradable ? 1 : 0,
-                    commodity: item.commodity ? 1 : 0,
-                    marketable: item.marketable ? 1 : 0,
-                    amount: item.amount + ''
-                },
-                true,
-                true
-            );
+            // tf2-items-format module (will use this once fixed)
+            // const parsed = parseEconItem(
+            //     {
+            //         ...item,
+            //         tradable: item.tradable ? 1 : 0,
+            //         commodity: item.commodity ? 1 : 0,
+            //         marketable: item.marketable ? 1 : 0,
+            //         amount: item.amount + ''
+            //     },
+            //     true,
+            //     true
+            // );
+
+            // let hasSpelled = false;
+            // if (parsed.spells.length > 0) {
+            //     hasSpelled = true;
+            //     hasHighValueOur = true;
+            // }
+
+            // let hasStrangeParts = false;
+            // if (parsed.parts.length > 0) {
+            //     hasStrangeParts = true;
+            //     hasHighValueOur = true;
+            // }
 
             let hasSpelled = false;
-            if (parsed.spells.length > 0) {
-                hasSpelled = true;
-                hasHighValueOur = true;
-            }
+            const spellNames: string[] = [];
 
             let hasStrangeParts = false;
-            if (parsed.parts.length > 0) {
-                hasStrangeParts = true;
-                hasHighValueOur = true;
+            const partsNames: string[] = [];
+
+            for (let i = 0; i < item.descriptions.length; i++) {
+                // Item description value for Spells and Strange Parts.
+                // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
+                const spell = item.descriptions[i].value;
+
+                // For Strange Parts, example: "(Kills During Halloween: 0)"
+                // remove "(" and ": <numbers>)" to get only the part name.
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+
+                // Description color in Hex Triplet format, example: 7ea9d1
+                const color = item.descriptions[i].color;
+
+                // Get strangePartObject and strangePartNames
+                const strangePartNames = Object.keys(strangeParts);
+
+                if (
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
+                ) {
+                    // Example: "Halloween: Voices From Below (spell only active during event)"
+                    // where "Voices From Below" is the spell name.
+                    // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+                    // https://www.spycolor.com/7ea9d1#
+                    hasSpelled = true;
+                    hasHighValueOur = true;
+                    // Get the spell name
+                    // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+                    // from "(spell only active during event)", and trim any whitespaces.
+                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    spellNames.push(spellName);
+                } else if (
+                    (parts === 'Kills' || parts === 'Assists'
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                        : strangePartNames.includes(parts)) &&
+                    color === '756b5e'
+                ) {
+                    // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
+                    // Else, will scan through Strange Parts Object keys in this.strangeParts()
+                    // Color of this description must be rgb(117, 107, 94) or 756b5e
+                    // https://www.spycolor.com/756b5e#
+                    hasStrangeParts = true;
+                    hasHighValueOur = true;
+                    partsNames.push(parts);
+                }
             }
 
             if (hasSpelled || hasStrangeParts) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedOur.skus.push(itemSKU);
 
+                const itemObj = SKU.fromString(itemSKU);
+
+                // If item is an Unusual, then get itemName from schema.
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+
                 let spellOrParts = '';
 
                 if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
+                    // spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + '); - tf2-items-format module
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
+                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
+                    // spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + '); - tf2-items-format module
                 }
 
-                log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
                     highValuedOur.nameWithSpellsOrParts.push(
-                        `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
-                    highValuedOur.nameWithSpellsOrParts.push(`${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                    highValuedOur.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });
@@ -584,55 +649,72 @@ export = class MyHandler extends Handler {
         };
 
         offer.itemsToReceive.forEach(item => {
-            const parsed = parseEconItem(
-                {
-                    ...item,
-                    tradable: item.tradable ? 1 : 0,
-                    commodity: item.commodity ? 1 : 0,
-                    marketable: item.marketable ? 1 : 0,
-                    amount: item.amount + ''
-                },
-                true,
-                true
-            );
-
             let hasSpelled = false;
-            if (parsed.spells.length > 0) {
-                hasSpelled = true;
-                hasHighValueTheir = true;
-            }
+            const spellNames: string[] = [];
 
             let hasStrangeParts = false;
-            if (parsed.parts.length > 0) {
-                hasStrangeParts = true;
-                hasHighValueTheir = true;
+            const partsNames: string[] = [];
+
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const spell = item.descriptions[i].value;
+                const parts = item.descriptions[i].value
+                    .replace('(', '')
+                    .replace(/: \d+\)/g, '')
+                    .trim();
+
+                const color = item.descriptions[i].color;
+                const strangePartNames = Object.keys(strangeParts);
+
+                if (
+                    spell.startsWith('Halloween:') &&
+                    spell.endsWith('(spell only active during event)') &&
+                    color === '7ea9d1'
+                ) {
+                    hasSpelled = true;
+                    hasHighValueTheir = true;
+                    const spellName = spell.substring(10, spell.length - 32).trim();
+                    spellNames.push(spellName);
+                } else if (
+                    (parts === 'Kills' || parts === 'Assists'
+                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
+                        : strangePartNames.includes(parts)) &&
+                    color === '756b5e'
+                ) {
+                    hasStrangeParts = true;
+                    hasHighValueTheir = true;
+                    partsNames.push(parts);
+                }
             }
 
             if (hasSpelled || hasStrangeParts) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedTheir.skus.push(itemSKU);
 
+                const itemObj = SKU.fromString(itemSKU);
+                const itemName =
+                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
+
                 let spellOrParts = '';
 
                 if (hasSpelled) {
-                    spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + ');
+                    spellOrParts += '\n🎃 Spells: ' + spellNames.join(' + ');
                 }
 
                 if (hasStrangeParts) {
-                    spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + ');
+                    spellOrParts += '\n🎰 Parts: ' + partsNames.join(' + ');
                 }
 
-                log.debug('info', `${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                log.debug('info', `${itemName} (${item.assetid})${spellOrParts}`);
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
                     highValuedTheir.nameWithSpellsOrParts.push(
-                        `[${parsed.fullName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
+                        `[${itemName}](https://backpack.tf/item/${item.assetid})${spellOrParts}`
                     );
                 } else {
-                    highValuedTheir.nameWithSpellsOrParts.push(`${parsed.fullName} (${item.assetid})${spellOrParts}`);
+                    highValuedTheir.nameWithSpellsOrParts.push(`${itemName} (${item.assetid})${spellOrParts}`);
                 }
             }
         });
