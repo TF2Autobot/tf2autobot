@@ -599,16 +599,21 @@ export default class Pricelist extends EventEmitter {
             return;
         }
 
+        const match = this.getPrice(data.sku);
+
         if (data.sku === '5021;6') {
-            this.keyPrices = {
-                buy: new Currencies(data.buy),
-                sell: new Currencies(data.sell),
-                src: 'ptf',
-                time: data.time
-            };
+            if (match === null || (match !== null && match.autoprice)) {
+                // Only update global key rate if key is not in pricelist
+                // OR if exist, it's autoprice enabled (true)
+                this.keyPrices = {
+                    buy: new Currencies(data.buy),
+                    sell: new Currencies(data.sell),
+                    src: 'ptf',
+                    time: data.time
+                };
+            }
         }
 
-        const match = this.getPrice(data.sku);
         if (match !== null && match.autoprice) {
             match.buy = new Currencies(data.buy);
             match.sell = new Currencies(data.sell);
