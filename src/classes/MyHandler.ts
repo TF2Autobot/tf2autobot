@@ -2037,9 +2037,9 @@ export = class MyHandler extends Handler {
             // If the bot has been up for ~1 month, show the exact amount of days
             // Otherwise, show the uptime as it is
             if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
-                log.debug(`Bot has been up for ${hoursDiff} hours.`);
+                log.debug(`Bot has been up for a day (${hoursDiff} hours).`);
             } else if (daysDiff >= 25.5) {
-                log.debug(`Bot has been up for ${daysDiff} days.`);
+                log.debug(`Bot has been up for a month (${daysDiff} days).`);
             } else {
                 log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
             }
