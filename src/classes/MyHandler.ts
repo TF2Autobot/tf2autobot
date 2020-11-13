@@ -2034,12 +2034,12 @@ export = class MyHandler extends Handler {
             const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
 
             // If the bot has been up for ~1 day, show the exact amount of hours
+            // If the bot has been up for ~1 month, show the exact amount of days
+            // Otherwise, show the uptime as it is
             if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
                 log.debug(`Bot has been up for ${hoursDiff} hours.`);
-                // If the bot has been up for ~1 month, show the exact amount of days
             } else if (daysDiff >= 25.5) {
                 log.debug(`Bot has been up for ${daysDiff} days.`);
-                // Otherwise, show the difference as it is
             } else {
                 log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
             }
