@@ -2028,17 +2028,21 @@ export = class MyHandler extends Handler {
             this.sortInventory();
 
             // Tell bot uptime
-            const now = moment().valueOf();
-            const diffTime = now - this.uptime;
+            const currentTime = moment();
+            const uptimeAsMoment = moment.unix(this.uptime);
+            const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
+            const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
 
-            const printTime =
-                diffTime >= 21.5 * 60 * 60 * 1000 && diffTime < 35.5 * 60 * 60 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
-                    ? ' (' + Math.round(diffTime / (1 * 60 * 60 * 1000)) + ' hours)'
-                    : diffTime >= 25.5 * 24 * 60 * 60 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
-                    ? ' (' + Math.round(diffTime / (1 * 24 * 60 * 60 * 1000)) + ' days)'
-                    : '';
-
-            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true) + printTime}.`);
+            // If the bot has been up for ~1 day, show the exact amount of hours
+            if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
+                log.debug(`Bot has been up for ${hoursDiff} hours.`);
+                // If the bot has been up for ~1 month, show the exact amount of days
+            } else if (daysDiff >= 25.5) {
+                log.debug(`Bot has been up for ${daysDiff} days.`);
+                // Otherwise, show the difference as it is
+            } else {
+                log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
+            }
 
             // Update listings
             const diff = offer.getDiff() || {};
