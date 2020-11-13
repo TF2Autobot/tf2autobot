@@ -2119,7 +2119,12 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
-                } else if (inPrice !== null && hasHighValueTheir && isNotPureOrWeapons) {
+                } else if (
+                    inPrice !== null &&
+                    hasHighValueTheir &&
+                    isNotPureOrWeapons &&
+                    process.env.DISABLE_HIGH_VALUE_HOLD !== 'true'
+                ) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
                         sku: sku,
