@@ -106,11 +106,10 @@ export = class Autokeys {
         const currRef = pure.refTotalInScrap;
 
         const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
-        const isAutoprice = keyEntry !== null ? keyEntry.autoprice : false;
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
-        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment && isAutoprice) {
+        if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
             // Only if autoprice enabled.
             this.status = {
