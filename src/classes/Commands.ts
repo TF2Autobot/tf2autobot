@@ -1295,7 +1295,7 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .addPrice(params as EntryData, true)
+            .addPrice(params as EntryData, true, params.sku === '5021;6' ? 'manual' : null)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Added "${entry.name}".`);
             })
@@ -1653,7 +1653,7 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .updatePrice(entryData, true)
+            .updatePrice(entryData, true, entryData.sku === '5021;6' ? 'manual' : null)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Updated "${entry.name}".`);
             })
