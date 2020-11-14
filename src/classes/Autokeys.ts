@@ -697,7 +697,7 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
                 },
                 buy: {
                     keys: 0,
@@ -768,7 +768,7 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
                 },
                 buy: {
                     keys: 0,
@@ -889,7 +889,7 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
                 },
                 buy: {
                     keys: 0,
@@ -960,7 +960,7 @@ export = class Autokeys {
                 autoprice: false,
                 sell: {
                     keys: 0,
-                    metal: Currencies.toRefined(keyPrices.sell.toValue() + this.scrapAdjustmentValue)
+                    metal: Currencies.toRefined(keyPrices.sell.toValue() - this.scrapAdjustmentValue)
                 },
                 buy: {
                     keys: 0,
