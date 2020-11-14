@@ -1,5 +1,5 @@
 import Bot from './Bot';
-import { EntryData } from './Pricelist';
+import { EntryData, PricelistChangedSource } from './Pricelist';
 // import moment from 'moment-timezone';
 
 import Currencies from 'tf2-currencies';
@@ -713,7 +713,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .addPrice(entry as EntryData, false)
+            .addPrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -784,7 +784,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .addPrice(entry as EntryData, false)
+            .addPrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -834,7 +834,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .addPrice(entry as EntryData, false)
+            .addPrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -905,7 +905,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
+            .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -976,7 +976,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
+            .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -1026,7 +1026,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
+            .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
                 this.bot.listings.checkBySKU(data.sku, data);
@@ -1076,7 +1076,7 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, false)
+            .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug(`✅ Automatically disabled Autokeys.`);
                 this.bot.listings.checkBySKU(data.sku, data);
