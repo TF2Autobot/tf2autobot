@@ -8,7 +8,7 @@ import TradeOfferManager from 'steam-tradeoffer-manager';
 
 import Bot from './Bot';
 import CommandParser from './CommandParser';
-import { Entry, EntryData } from './Pricelist';
+import { Entry, EntryData, PricelistChangedSource } from './Pricelist';
 import Cart from './Cart';
 import AdminCart from './AdminCart';
 import UserCart from './UserCart';
@@ -1295,7 +1295,7 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .addPrice(params as EntryData, true, params.sku === '5021;6' ? 'manual' : null)
+            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Added "${entry.name}".`);
             })
@@ -1653,7 +1653,7 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .updatePrice(entryData, true, entryData.sku === '5021;6' ? 'manual' : null)
+            .updatePrice(entryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Updated "${entry.name}".`);
             })
