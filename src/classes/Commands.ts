@@ -853,17 +853,22 @@ export = class Commands {
     private uptimeCommand(steamID: SteamID): void {
         const uptime = (this.bot.handler as MyHandler).getUptime();
 
-        const now = moment().valueOf();
-        const diffTime = now - uptime;
+        const currentTime = moment();
+        const uptimeAsMoment = moment.unix(uptime);
+        const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
+        const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
 
-        const printTime =
-            diffTime >= 21.5 * 60 * 60 * 1000 && diffTime < 35.5 * 60 * 60 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
-                ? ' (' + Math.round(diffTime / (1 * 60 * 60 * 1000)) + ' hours)'
-                : diffTime >= 25.5 * 24 * 60 * 60 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
-                ? ' (' + Math.round(diffTime / (1 * 24 * 60 * 60 * 1000)) + ' days)'
-                : '';
-
-        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true) + printTime}.`);
+        // If the bot has been up for ~1 day, show the exact amount of hours
+        // If the bot has been up for ~1 month, show the exact amount of days
+        // Otherwise, show the uptime as it is
+        if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
+            this.bot.sendMessage(steamID, `Bot has been up for a day (${hoursDiff} hours).`);
+        } else if (daysDiff >= 25.5) {
+            this.bot.sendMessage(steamID, `Bot has been up for a month (${daysDiff} days).`);
+        } else {
+            this.bot.sendMessage(steamID, `Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
+            log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
+        }
     }
 
     private pureCommand(steamID: SteamID): void {
