@@ -106,7 +106,6 @@ export = class Autokeys {
         const currRef = pure.refTotalInScrap;
 
         const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
-        // let us see what you start from here...
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices();
 
