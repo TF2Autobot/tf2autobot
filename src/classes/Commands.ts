@@ -867,7 +867,6 @@ export = class Commands {
             this.bot.sendMessage(steamID, `Bot has been up for a month (${daysDiff} days).`);
         } else {
             this.bot.sendMessage(steamID, `Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
-            log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
         }
     }
 
