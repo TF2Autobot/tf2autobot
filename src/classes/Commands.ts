@@ -1683,7 +1683,7 @@ export = class Commands {
                 const keyPrice = this.bot.pricelist.getKeyPrice();
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}"` +
+                    `✅ Updated "${entry.name}"` +
                         `\n💲 Buy: ${
                             itemEntry.buy.toValue(keyPrice.metal) !== entry.buy.toValue(keyPrice.metal)
                                 ? `${itemEntry.buy} → ${entry.buy}`
