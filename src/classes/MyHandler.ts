@@ -612,7 +612,7 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            if (hasHighValueOur) {
+            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedOur.skus.push(itemSKU);
 
@@ -723,7 +723,7 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            if (hasHighValueTheir) {
+            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedTheir.skus.push(itemSKU);
 
