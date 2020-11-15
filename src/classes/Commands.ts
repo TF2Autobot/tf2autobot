@@ -887,11 +887,7 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.' +
                 `\n\nKey rate source: ${
-                    keyRateSource === 'sbn'
-                        ? 'https://api.sbn.tf/prices/5021;6'
-                        : keyRateSource === 'manual'
-                        ? 'manual'
-                        : 'https://api.prices.tf/items/5021;6?src=bptf'
+                    keyRateSource === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf'
                 }`
         );
     }
@@ -2568,7 +2564,7 @@ export = class Commands {
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell} (${
-            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+            keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
         })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;

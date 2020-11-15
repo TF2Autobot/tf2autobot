@@ -295,16 +295,6 @@ export default class Pricelist extends EventEmitter {
         return price;
     }
 
-    // async getPricesSBN(sku: string): Promise<any> {
-    //     let price;
-    //     try {
-    //         price = await getPriceSBN(sku);
-    //     } catch (err) {
-    //         price = null;
-    //     }
-    //     return price;
-    // }
-
     async addPrice(
         entryData: EntryData,
         emitChange: boolean,

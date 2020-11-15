@@ -1986,9 +1986,7 @@ export = class MyHandler extends Handler {
                                   accepted.highValue.join('\n- ')
                                 : '') +
                             `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                            ` (${
-                                keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-                            })` +
+                            ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -2497,9 +2495,7 @@ export = class MyHandler extends Handler {
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                        ` (${
-                            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-                        })` +
+                        ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                         `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []
