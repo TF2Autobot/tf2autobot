@@ -18,6 +18,12 @@ import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
 
+export enum PricelistChangedSource {
+    Command = 'COMMAND',
+    Autokeys = 'AUTOKEYS',
+    Other = 'OTHER'
+}
+
 export interface EntryData {
     sku: string;
     enabled: boolean;
@@ -235,7 +241,7 @@ export default class Pricelist extends EventEmitter {
         return match.map(entry => entry.name);
     }
 
-    private async validateEntry(entry: Entry): Promise<void> {
+    private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
@@ -284,7 +290,7 @@ export default class Pricelist extends EventEmitter {
             throw new Error('Sell must be higher than buy');
         }
 
-        if (entry.sku === '5021;6' && !entry.autoprice) {
+        if (entry.sku === '5021;6' && !entry.autoprice && src === PricelistChangedSource.Command) {
             // update key rate if manually set the price
             this.keyPrices = {
                 buy: entry.buy,
@@ -315,7 +321,11 @@ export default class Pricelist extends EventEmitter {
     //     return price;
     // }
 
-    async addPrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
+    async addPrice(
+        entryData: EntryData,
+        emitChange: boolean,
+        src: PricelistChangedSource = PricelistChangedSource.Other
+    ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
@@ -328,7 +338,7 @@ export default class Pricelist extends EventEmitter {
 
         const entry = new Entry(entryData, this.schema);
 
-        await this.validateEntry(entry);
+        await this.validateEntry(entry, src);
 
         // Add new price
         this.prices.push(entry);
@@ -340,7 +350,11 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
-    async updatePrice(entryData: EntryData, emitChange: boolean): Promise<Entry> {
+    async updatePrice(
+        entryData: EntryData,
+        emitChange: boolean,
+        src: PricelistChangedSource = PricelistChangedSource.Other
+    ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
@@ -349,7 +363,7 @@ export default class Pricelist extends EventEmitter {
 
         const entry = new Entry(entryData, this.schema);
 
-        await this.validateEntry(entry);
+        await this.validateEntry(entry, src);
 
         // Remove old price
         this.removePrice(entry.sku, false);
