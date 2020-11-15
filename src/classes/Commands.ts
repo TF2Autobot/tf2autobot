@@ -1297,7 +1297,19 @@ export = class Commands {
         this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
-                this.bot.sendMessage(steamID, `✅ Added "${entry.name}".`);
+                const amount = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+                this.bot.sendMessage(
+                    steamID,
+                    `✅ Added "${entry.name}"` +
+                        `\n💲 Buy: ${entry.buy} | Sell: ${entry.sell}` +
+                        `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
+                        `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
+                        `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
+                        `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+                        `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
+                        `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+                        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+                );
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${err.message}`);
@@ -1644,6 +1656,7 @@ export = class Commands {
             return;
         }
 
+        const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
         const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON();
 
         delete entryData.time;
@@ -1666,7 +1679,53 @@ export = class Commands {
         this.bot.pricelist
             .updatePrice(entryData, true, PricelistChangedSource.Command)
             .then(entry => {
-                this.bot.sendMessage(steamID, `✅ Updated "${entry.name}".`);
+                const amount = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+                const keyPrice = this.bot.pricelist.getKeyPrice();
+                this.bot.sendMessage(
+                    steamID,
+                    `✅ Added "${entry.name}"` +
+                        `\n💲 Buy: ${
+                            itemEntry.buy.toValue(keyPrice.metal) !== entry.buy.toValue(keyPrice.metal)
+                                ? `${itemEntry.buy} → ${entry.buy}`
+                                : entry.buy
+                        } | Sell: ${
+                            itemEntry.sell.toValue(keyPrice.metal) !== entry.sell.toValue(keyPrice.metal)
+                                ? `${itemEntry.sell} → ${entry.sell}`
+                                : entry.sell
+                        }` +
+                        `\n📦 Stock: ${amount}` +
+                        ` | Min: ${
+                            itemEntry.min !== entry.min ? `${itemEntry.min} → ${entry.min}` : entry.min
+                        } | Max: ${itemEntry.max !== entry.max ? `${itemEntry.max} → ${entry.max}` : entry.max}` +
+                        `\n🛒 Intent: ${
+                            itemEntry.intent !== entry.intent
+                                ? `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'} → ${
+                                      entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'
+                                  }`
+                                : `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'}`
+                        }` +
+                        `\n📋 Enabled: ${
+                            itemEntry.enabled !== entry.enabled
+                                ? `${itemEntry.enabled ? '✅' : '❌'} → ${entry.enabled ? '✅' : '❌'}`
+                                : `${entry.enabled ? '✅' : '❌'}`
+                        }` +
+                        `\n🔄 Autoprice: ${
+                            itemEntry.autoprice !== entry.autoprice
+                                ? `${itemEntry.autoprice ? '✅' : '❌'} → ${entry.autoprice ? '✅' : '❌'}`
+                                : `${entry.autoprice ? '✅' : '❌'}`
+                        }` +
+                        `${
+                            entry.group !== 'all'
+                                ? `\n🔰 Group: ${
+                                      itemEntry.group !== entry.group
+                                          ? `${itemEntry.group} → ${entry.group}`
+                                          : entry.group
+                                  }`
+                                : ''
+                        }` +
+                        `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+                        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+                );
             })
             .catch(err => {
                 this.bot.sendMessage(
