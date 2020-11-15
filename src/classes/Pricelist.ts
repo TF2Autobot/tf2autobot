@@ -417,7 +417,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private getIndex(sku: string): number {
+    getIndex(sku: string): number {
         // Get name of item
         const name = this.schema.getName(SKU.fromString(sku), false);
 

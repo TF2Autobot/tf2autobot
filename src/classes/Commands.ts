@@ -1355,6 +1355,17 @@ export = class Commands {
                 }
             } else {
                 newPricelist = pricelist;
+
+                if (process.env.ENABLE_AUTOKEYS === 'true') {
+                    // Autokeys is a feature, so when updating multiple entry with
+                    // "!update all=true", key entry will be removed from newPricelist.
+                    // https://github.com/idinium96/tf2autobot/issues/131
+                    const keyEntry = this.bot.pricelist.getPrice('5021;6');
+                    if (keyEntry !== null) {
+                        const index = this.bot.pricelist.getIndex('5021;6');
+                        newPricelist.splice(index, 1);
+                    }
+                }
             }
 
             if (newPricelist.length === 0) {
