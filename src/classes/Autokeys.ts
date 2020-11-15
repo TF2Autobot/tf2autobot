@@ -111,7 +111,6 @@ export = class Autokeys {
 
         if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
-            // Only if autoprice enabled.
             this.status = {
                 isBuyingKeys: false,
                 isBankingKeys: false,
