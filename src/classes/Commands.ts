@@ -8,7 +8,7 @@ import TradeOfferManager from 'steam-tradeoffer-manager';
 
 import Bot from './Bot';
 import CommandParser from './CommandParser';
-import { Entry, EntryData } from './Pricelist';
+import { Entry, EntryData, PricelistChangedSource } from './Pricelist';
 import Cart from './Cart';
 import AdminCart from './AdminCart';
 import UserCart from './UserCart';
@@ -853,17 +853,21 @@ export = class Commands {
     private uptimeCommand(steamID: SteamID): void {
         const uptime = (this.bot.handler as MyHandler).getUptime();
 
-        const now = moment().valueOf();
-        const diffTime = now - uptime;
+        const currentTime = moment();
+        const uptimeAsMoment = moment.unix(uptime);
+        const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
+        const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
 
-        const printTime =
-            diffTime >= 21.5 * 60 * 60 * 1000 && diffTime < 35.5 * 60 * 60 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
-                ? ' (' + Math.round(diffTime / (1 * 60 * 60 * 1000)) + ' hours)'
-                : diffTime >= 25.5 * 24 * 60 * 60 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
-                ? ' (' + Math.round(diffTime / (1 * 24 * 60 * 60 * 1000)) + ' days)'
-                : '';
-
-        this.bot.sendMessage(steamID, `Bot has been up for ${moment(uptime).fromNow(true) + printTime}.`);
+        // If the bot has been up for ~1 day, show the exact amount of hours
+        // If the bot has been up for ~1 month, show the exact amount of days
+        // Otherwise, show the uptime as it is
+        if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
+            this.bot.sendMessage(steamID, `Bot has been up for a day (${hoursDiff} hours).`);
+        } else if (daysDiff >= 25.5) {
+            this.bot.sendMessage(steamID, `Bot has been up for a month (${daysDiff} days).`);
+        } else {
+            this.bot.sendMessage(steamID, `Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
+        }
     }
 
     private pureCommand(steamID: SteamID): void {
@@ -887,11 +891,7 @@ export = class Commands {
                 keyPrice +
                 ' is the same as one key.' +
                 `\n\nKey rate source: ${
-                    keyRateSource === 'sbn'
-                        ? 'https://api.sbn.tf/prices/5021;6'
-                        : keyRateSource === 'manual'
-                        ? 'manual'
-                        : 'https://api.prices.tf/items/5021;6?src=bptf'
+                    keyRateSource === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf'
                 }`
         );
     }
@@ -1295,9 +1295,21 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .addPrice(params as EntryData, true)
+            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
-                this.bot.sendMessage(steamID, `✅ Added "${entry.name}".`);
+                const amount = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+                this.bot.sendMessage(
+                    steamID,
+                    `✅ Added "${entry.name}"` +
+                        `\n💲 Buy: ${entry.buy} | Sell: ${entry.sell}` +
+                        `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
+                        `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
+                        `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
+                        `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+                        `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
+                        `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+                        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+                );
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${err.message}`);
@@ -1355,6 +1367,17 @@ export = class Commands {
                 }
             } else {
                 newPricelist = pricelist;
+
+                if (process.env.ENABLE_AUTOKEYS === 'true') {
+                    // Autokeys is a feature, so when updating multiple entry with
+                    // "!update all=true", key entry will be removed from newPricelist.
+                    // https://github.com/idinium96/tf2autobot/issues/131
+                    const keyEntry = this.bot.pricelist.getPrice('5021;6');
+                    if (keyEntry !== null) {
+                        const index = this.bot.pricelist.getIndex('5021;6');
+                        newPricelist.splice(index, 1);
+                    }
+                }
             }
 
             if (newPricelist.length === 0) {
@@ -1633,6 +1656,7 @@ export = class Commands {
             return;
         }
 
+        const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
         const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON();
 
         delete entryData.time;
@@ -1653,9 +1677,55 @@ export = class Commands {
         }
 
         this.bot.pricelist
-            .updatePrice(entryData, true)
+            .updatePrice(entryData, true, PricelistChangedSource.Command)
             .then(entry => {
-                this.bot.sendMessage(steamID, `✅ Updated "${entry.name}".`);
+                const amount = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
+                const keyPrice = this.bot.pricelist.getKeyPrice();
+                this.bot.sendMessage(
+                    steamID,
+                    `✅ Updated "${entry.name}"` +
+                        `\n💲 Buy: ${
+                            itemEntry.buy.toValue(keyPrice.metal) !== entry.buy.toValue(keyPrice.metal)
+                                ? `${itemEntry.buy} → ${entry.buy}`
+                                : entry.buy
+                        } | Sell: ${
+                            itemEntry.sell.toValue(keyPrice.metal) !== entry.sell.toValue(keyPrice.metal)
+                                ? `${itemEntry.sell} → ${entry.sell}`
+                                : entry.sell
+                        }` +
+                        `\n📦 Stock: ${amount}` +
+                        ` | Min: ${
+                            itemEntry.min !== entry.min ? `${itemEntry.min} → ${entry.min}` : entry.min
+                        } | Max: ${itemEntry.max !== entry.max ? `${itemEntry.max} → ${entry.max}` : entry.max}` +
+                        `\n🛒 Intent: ${
+                            itemEntry.intent !== entry.intent
+                                ? `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'} → ${
+                                      entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'
+                                  }`
+                                : `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'}`
+                        }` +
+                        `\n📋 Enabled: ${
+                            itemEntry.enabled !== entry.enabled
+                                ? `${itemEntry.enabled ? '✅' : '❌'} → ${entry.enabled ? '✅' : '❌'}`
+                                : `${entry.enabled ? '✅' : '❌'}`
+                        }` +
+                        `\n🔄 Autoprice: ${
+                            itemEntry.autoprice !== entry.autoprice
+                                ? `${itemEntry.autoprice ? '✅' : '❌'} → ${entry.autoprice ? '✅' : '❌'}`
+                                : `${entry.autoprice ? '✅' : '❌'}`
+                        }` +
+                        `${
+                            entry.group !== 'all'
+                                ? `\n🔰 Group: ${
+                                      itemEntry.group !== entry.group
+                                          ? `${itemEntry.group} → ${entry.group}`
+                                          : entry.group
+                                  }`
+                                : ''
+                        }` +
+                        `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+                        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+                );
             })
             .catch(err => {
                 this.bot.sendMessage(
@@ -2498,7 +2568,7 @@ export = class Commands {
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell} (${
-            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+            keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
         })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
         reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;

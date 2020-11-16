@@ -612,7 +612,7 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            if (hasHighValueOur) {
+            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedOur.skus.push(itemSKU);
 
@@ -723,7 +723,7 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            if (hasHighValueTheir) {
+            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                 const itemSKU = item.getSKU(this.bot.schema);
                 highValuedTheir.skus.push(itemSKU);
 
@@ -1986,9 +1986,7 @@ export = class MyHandler extends Handler {
                                   accepted.highValue.join('\n- ')
                                 : '') +
                             `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                            ` (${
-                                keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-                            })` +
+                            ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                             `${
                                 autokeys.isEnabled
                                     ? ' | Autokeys: ' +
@@ -2028,17 +2026,21 @@ export = class MyHandler extends Handler {
             this.sortInventory();
 
             // Tell bot uptime
-            const now = moment().valueOf();
-            const diffTime = now - this.uptime;
+            const currentTime = moment();
+            const uptimeAsMoment = moment.unix(this.uptime);
+            const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
+            const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
 
-            const printTime =
-                diffTime >= 21.5 * 60 * 60 * 1000 && diffTime < 35.5 * 60 * 60 * 1000 // 21.5 h - 35.5 hours will show "a day", so show hours in bracket.
-                    ? ' (' + Math.round(diffTime / (1 * 60 * 60 * 1000)) + ' hours)'
-                    : diffTime >= 25.5 * 24 * 60 * 60 * 1000 // More than 25.5 days, will become "a month", so show how many days in bracket.
-                    ? ' (' + Math.round(diffTime / (1 * 24 * 60 * 60 * 1000)) + ' days)'
-                    : '';
-
-            log.debug(`Bot has been up for ${moment(this.uptime).fromNow(true) + printTime}.`);
+            // If the bot has been up for ~1 day, show the exact amount of hours
+            // If the bot has been up for ~1 month, show the exact amount of days
+            // Otherwise, show the uptime as it is
+            if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
+                log.debug(`Bot has been up for a day (${hoursDiff} hours).`);
+            } else if (daysDiff >= 25.5) {
+                log.debug(`Bot has been up for a month (${daysDiff} days).`);
+            } else {
+                log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
+            }
 
             // Update listings
             const diff = offer.getDiff() || {};
@@ -2119,7 +2121,12 @@ export = class MyHandler extends Handler {
                         .catch(err => {
                             log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                         });
-                } else if (inPrice !== null && hasHighValueTheir && isNotPureOrWeapons) {
+                } else if (
+                    inPrice !== null &&
+                    hasHighValueTheir &&
+                    isNotPureOrWeapons &&
+                    process.env.DISABLE_HIGH_VALUE_HOLD !== 'true'
+                ) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
                         sku: sku,
@@ -2488,9 +2495,7 @@ export = class MyHandler extends Handler {
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
                         `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                        ` (${
-                            keyPrices.src === 'sbn' ? 'sbn.tf' : keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-                        })` +
+                        ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                         `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
                     []

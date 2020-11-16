@@ -276,13 +276,7 @@ export = class DiscordWebhookClass {
                                 value:
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                                          ` (${
-                                              keyPrices.src === 'sbn'
-                                                  ? 'sbn.tf'
-                                                  : keyPrices.src === 'manual'
-                                                  ? 'manual'
-                                                  : 'prices.tf'
-                                          })`
+                                          ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
                                         : '') +
                                     (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                             }
@@ -454,13 +448,7 @@ export = class DiscordWebhookClass {
                                 value:
                                     (isShowKeyRate
                                         ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                                          ` (${
-                                              keyPrices.src === 'sbn'
-                                                  ? 'sbn.tf'
-                                                  : keyPrices.src === 'manual'
-                                                  ? 'manual'
-                                                  : 'prices.tf'
-                                          })` +
+                                          ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                                           `${
                                               autokeys.isEnabled
                                                   ? ' | Autokeys: ' +
