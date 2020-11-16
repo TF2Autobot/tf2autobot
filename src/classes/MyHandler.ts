@@ -95,7 +95,7 @@ export = class MyHandler extends Handler {
         this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
 
-        this.uptime = moment().valueOf();
+        this.uptime = moment().unix();
 
         const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
         const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
