@@ -70,8 +70,6 @@ export class Entry {
         this.max = entry.max;
         this.min = entry.min;
         this.intent = entry.intent;
-        this.group = entry.group;
-        this.note = entry.note;
 
         // TODO: Validate entry
 
