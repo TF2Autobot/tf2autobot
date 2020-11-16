@@ -1772,7 +1772,7 @@ export = class MyHandler extends Handler {
                             .replace('Asked', '  My side')
                             .replace('Offered', 'Your side') +
                         "\n[You're missing: " +
-                        (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
                             process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
                                 ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
@@ -2388,7 +2388,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
+                    (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
             const highValueItems: string[] = [];
