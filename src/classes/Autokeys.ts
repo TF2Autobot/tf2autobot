@@ -1035,8 +1035,9 @@ export = class Autokeys {
             });
     }
 
-    disable(): void {
+    disable(onShutdown = false): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
+        log.debug('on Autokeys Disabling key prices', keyPrices);
         let entry;
         if (keyPrices.src !== 'manual') {
             entry = {
@@ -1076,8 +1077,10 @@ export = class Autokeys {
         this.bot.pricelist
             .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
             .then(data => {
-                log.debug(`✅ Automatically disabled Autokeys.`);
-                this.bot.listings.checkBySKU(data.sku, data);
+                log.debug('✅ Automatically disabled Autokeys.', data);
+                if (!onShutdown) {
+                    this.bot.listings.checkBySKU(data.sku, data);
+                }
             })
             .catch(err => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);

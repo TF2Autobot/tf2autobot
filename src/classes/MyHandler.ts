@@ -308,7 +308,7 @@ export = class MyHandler extends Handler {
 
             if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable();
+                this.autokeys.disable(true);
             }
 
             this.bot.listings.removeAll().asCallback(err => {
