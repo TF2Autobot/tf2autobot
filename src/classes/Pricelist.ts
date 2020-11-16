@@ -280,8 +280,6 @@ export default class Pricelist extends EventEmitter {
                     buy: entry.buy,
                     sell: entry.sell
                 };
-
-                log.debug('Autoprice key rate: ', this.globalKeyPrices);
             }
         }
 
@@ -301,7 +299,6 @@ export default class Pricelist extends EventEmitter {
                 src: 'manual',
                 time: null
             };
-            log.debug('New manually priced key rate: ', this.globalKeyPrices);
         }
     }
 
