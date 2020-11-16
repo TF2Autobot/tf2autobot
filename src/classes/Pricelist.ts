@@ -87,6 +87,18 @@ export class Entry {
             this.sell = null;
             this.time = null;
         }
+
+        if (entry.group) {
+            this.group = entry.group;
+        } else {
+            this.group = 'all';
+        }
+
+        if (entry.note) {
+            this.note = entry.note;
+        } else {
+            this.note = { buy: null, sell: null };
+        }
     }
 
     hasPrice(): boolean {
