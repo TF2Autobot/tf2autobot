@@ -459,7 +459,10 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(keyPricesPTF.sell)
             };
 
-            if (entryKey !== null && !entryKey.autoprice) {
+            const isEnabledScrapAdjustment =
+                process.env.ENABLE_AUTOKEYS === 'true' && process.env.DISABLE_SCRAP_ADJUSTMENT === 'false';
+
+            if (entryKey !== null && !entryKey.autoprice && !isEnabledScrapAdjustment) {
                 this.globalKeyPrices = {
                     buy: entryKey.buy,
                     sell: entryKey.sell,
