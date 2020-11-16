@@ -307,7 +307,7 @@ export = class MyHandler extends Handler {
             }
 
             if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
-                log.debug('Disabling Autokeys and removing key from pricelist...');
+                log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
                 this.autokeys.disable();
             }
 
