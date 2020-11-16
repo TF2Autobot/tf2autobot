@@ -132,7 +132,7 @@ export = class Commands {
     }
 
     processMessage(steamID: SteamID, message: string): void {
-        const command = CommandParser.getCommand(message);
+        const command = CommandParser.getCommand(message.toLowerCase());
 
         const isAdmin = this.bot.isAdmin(steamID);
 
