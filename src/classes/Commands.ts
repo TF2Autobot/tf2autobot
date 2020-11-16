@@ -817,23 +817,14 @@ export = class Commands {
                 process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
                 process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL
             ) {
-                this.discord.sendPartnerMessage(
-                    steamID.toString(),
-                    msg,
-                    adminDetails.player_name,
-                    adminDetails.avatar_url_full,
-                    links.steamProfile,
-                    links.backpackTF,
-                    links.steamREP,
-                    time.time
-                );
+                this.discord.sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time);
             } else {
                 this.bot.messageAdmins(
                     `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
                         `"${msg}". ` +
-                        `\nSteam: ${links.steamProfile}` +
-                        `\nBackpack.tf: ${links.backpackTF}` +
-                        `\nSteamREP: ${links.steamREP}`,
+                        `\nSteam: ${links.steam}` +
+                        `\nBackpack.tf: ${links.bptf}` +
+                        `\nSteamREP: ${links.steamrep}`,
                     []
                 );
             }
@@ -2727,7 +2718,7 @@ export = class Commands {
 
         const links = (this.bot.handler as MyHandler).tradePartnerLinks(offerData.partner.toString());
         reply +=
-            `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+            `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
             `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
 
         this.bot.sendMessage(steamID, reply);

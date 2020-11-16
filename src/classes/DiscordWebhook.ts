@@ -121,11 +121,8 @@ export = class DiscordWebhookClass {
     sendPartnerMessage(
         steamID: string,
         msg: string,
-        theirName: string,
-        theirAvatar: string,
-        steamProfile: string,
-        backpackTF: string,
-        steamREP: string,
+        their: { player_name: string; avatar_url_full: string },
+        links: { steam: string; bptf: string; steamrep: string },
         time: string
     ): void {
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
@@ -140,15 +137,15 @@ export = class DiscordWebhookClass {
             embeds: [
                 {
                     author: {
-                        name: theirName,
-                        url: steamProfile,
-                        icon_url: theirAvatar
+                        name: their.player_name,
+                        url: links.steam,
+                        icon_url: their.avatar_url_full
                     },
                     footer: {
                         text: `Partner SteamID: ${steamID} • ${time}`
                     },
                     title: '',
-                    description: `💬 ${msg}\n\n${quickLinks(theirName, { steamProfile, backpackTF, steamREP })}`,
+                    description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
                     color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
                 }
             ]
@@ -167,7 +164,7 @@ export = class DiscordWebhookClass {
         time: string,
         keyPrices: { buy: Currencies; sell: Currencies; src: string },
         value: { diff: number; diffRef: number; diffKey: string },
-        links: { steamProfile: string; backpackTF: string; steamREP: string },
+        links: { steam: string; bptf: string; steamrep: string },
         items: {
             invalid: string[];
             overstock: string[];
@@ -246,7 +243,7 @@ export = class DiscordWebhookClass {
                     {
                         author: {
                             name: 'Offer from: ' + partnerName,
-                            url: links.steamProfile,
+                            url: links.steam,
                             icon_url: partnerAvatar
                         },
                         footer: {
@@ -330,7 +327,7 @@ export = class DiscordWebhookClass {
         keyPrices: { buy: Currencies; sell: Currencies; src: string },
         value: { diff: number; diffRef: number; diffKey: string },
         items: { their: string[]; our: string[] },
-        links: { steamProfile: string; backpackTF: string; steamREP: string },
+        links: { steam: string; bptf: string; steamrep: string },
         time: string
     ): void {
         const ourItems = items.our;
@@ -426,7 +423,7 @@ export = class DiscordWebhookClass {
                     {
                         author: {
                             name: `Trade from: ${personaName} #${tradesMade.toString()}`,
-                            url: links.steamProfile,
+                            url: links.steam,
                             icon_url: avatarFull
                         },
                         footer: {
@@ -615,8 +612,8 @@ function listItems(items: {
     return list;
 }
 
-function quickLinks(name: string, links: { steamProfile: string; backpackTF: string; steamREP: string }): string {
-    return `🔍 ${name}'s info:\n[Steam Profile](${links.steamProfile}) | [backpack.tf](${links.backpackTF}) | [steamREP](${links.steamREP})`;
+function quickLinks(name: string, links: { steam: string; bptf: string; steamrep: string }): string {
+    return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [steamREP](${links.steamrep})`;
 }
 
 function replaceItemName(name: string): string {
