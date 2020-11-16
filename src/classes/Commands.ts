@@ -1749,7 +1749,6 @@ export = class Commands {
                 newPricelistCount = pricelist.filter(entry =>
                     entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
                 );
-                log.debug('newPricelistCount: ', newPricelistCount.length);
 
                 if (newPricelistCount.length === 0) {
                     this.bot.sendMessage(
@@ -1763,7 +1762,6 @@ export = class Commands {
                 newPricelist = pricelist.filter(entry =>
                     entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
                 );
-                log.debug('newPricelist: ', newPricelist.length);
             } else {
                 newPricelistCount = pricelist;
             }
