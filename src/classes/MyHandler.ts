@@ -17,7 +17,17 @@ import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import { requestCheck } from '../lib/ptf-api';
-import { craftWeapons, craftAll, uncraftAll, giftWords, noiseMakerNames, strangeParts, spMore1Keys } from '../lib/data';
+import {
+    craftWeapons,
+    craftAll,
+    uncraftAll,
+    giftWords,
+    noiseMakerNames,
+    strangeParts,
+    spMore1Keys,
+    sheensData,
+    killstreakersData
+} from '../lib/data';
 // import { parseEconItem } from 'tf2-item-format';
 
 import moment from 'moment-timezone';
@@ -126,26 +136,33 @@ export = class MyHandler extends Handler {
         if (sheens !== null && Array.isArray(sheens)) {
             sheens.forEach(sheen => {
                 if (sheen === '' || !sheen) {
-                    sheens = ['Not Set'];
+                    // if HIGH_VALUE_SHEENS was set as [''] (empty string), then mention/disable on all sheens.
+                    sheens = sheensData;
                 }
             });
-            this.sheens = sheens.map(sheen => sheen.toLowerCase());
+            this.sheens = sheens.map(sheen => sheen.toLowerCase().trim());
         } else {
-            log.warn('You did not set HIGH_VALUE_SHEENS array, resetting to Fire Horns and Tornado');
-            this.sheens = ['fire horns', 'tornado'];
+            // if HIGH_VALUE_SHEENS undefined (not exist in env), then set to all.
+            log.warn(
+                'You did not set HIGH_VALUE_SHEENS array in your environmental file, will mention/disable all sheens.'
+            );
+            this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
         }
 
         let killstreakers = parseJSON(process.env.HIGH_VALUE_KILLSTREAKERS);
         if (killstreakers !== null && Array.isArray(killstreakers)) {
             killstreakers.forEach(killstreaker => {
                 if (killstreaker === '' || !killstreaker) {
-                    killstreakers = ['Not Set'];
+                    // if HIGH_VALUE_KILLSTREAKERS was set as [''], then mention/disable on all killstreakers.
+                    killstreakers = killstreakersData;
                 }
             });
-            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase());
+            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
         } else {
-            log.warn('You did not set HIGH_VALUE_KILLSTREAKERS array, resetting to Team Shine');
-            this.killstreakers = ['team shine'];
+            log.warn(
+                'You did not set HIGH_VALUE_KILLSTREAKERS array in your environmental file, will mention/disable all killstreakers.'
+            );
+            this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
         }
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;

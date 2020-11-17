@@ -578,6 +578,26 @@ export const spMore1Keys = {
     'Taunt Kills': 6051
 };
 
+export const sheensData = [
+    'Team Shine',
+    'Villainous Violet',
+    'Hot Rod',
+    'Agonizing Emerald',
+    'Manndarin',
+    'Deadly Daffodil',
+    'Mean Green'
+];
+
+export const killstreakersData = [
+    'Fire Horns',
+    'Flames',
+    'Singularity',
+    'Tornado',
+    'Cerebral Discharge',
+    'Incinerator',
+    'Hypno-Beam'
+];
+
 export const giftWords = [
     'gift',
     'donat', // So that 'donate' or 'donation' will also be accepted
