@@ -11,7 +11,7 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
 import { UnknownDictionary } from '../types/common';
 
-import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts } from '../lib/data';
+import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts, spMore1Keys } from '../lib/data';
 // import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';
@@ -522,12 +522,15 @@ class UserCart extends Cart {
                 }
             }
 
+            const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
                 skus: string[];
                 names: string[];
+                isMention: boolean;
             } = {
                 skus: [],
-                names: []
+                names: [],
+                isMention: false
             };
 
             const isEnabledDiscordWebhook =
@@ -560,8 +563,6 @@ class UserCart extends Cart {
                     //     hasStrangeParts = true;
                     // }
 
-                    let hasHighValued = false;
-
                     let hasSpells = false;
                     let hasStrangeParts = false;
                     let hasKillstreaker = false;
@@ -587,8 +588,8 @@ class UserCart extends Cart {
                             desc.endsWith('(spell only active during event)') &&
                             color === '7ea9d1'
                         ) {
-                            hasHighValued = true;
                             hasSpells = true;
+                            highValuedTheir.isMention = true;
                             const spellName = desc.substring(10, desc.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
@@ -597,21 +598,35 @@ class UserCart extends Cart {
                                 : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
-                            hasHighValued = true;
                             hasStrangeParts = true;
-                            partsNames.push(parts);
+                            if (Object.keys(spMore1Keys).includes(parts)) {
+                                highValuedTheir.isMention = true;
+                                partsNames.push(parts + ' (>🔑)');
+                            } else {
+                                partsNames.push(parts);
+                            }
                         } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                            hasHighValued = true;
+                            const extractedName = desc.replace('Killstreaker: ', '').trim();
                             hasKillstreaker = true;
-                            killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                            if (toMention.killstreakers.includes(extractedName)) {
+                                highValuedTheir.isMention = true;
+                                killstreakerName.push(extractedName + ' (🌟)');
+                            } else {
+                                killstreakerName.push(extractedName);
+                            }
                         } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                            hasHighValued = true;
+                            const extractedName = desc.replace('Sheen: ', '').trim();
                             hasSheen = true;
-                            sheenName.push(desc.replace('Sheen: ', '').trim());
+                            if (toMention.sheens.includes(extractedName)) {
+                                highValuedTheir.isMention = true;
+                                sheenName.push(extractedName + ' (🌟)');
+                            } else {
+                                sheenName.push(extractedName);
+                            }
                         }
                     }
 
-                    if (hasHighValued) {
+                    if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                         highValuedTheir.skus.push(itemSKU);
                         const itemObj = SKU.fromString(itemSKU);
                         const itemName =
@@ -2055,12 +2070,15 @@ class UserCart extends Cart {
                 }
             }
 
+            const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
                 skus: string[];
                 names: string[];
+                isMention: boolean;
             } = {
                 skus: [],
-                names: []
+                names: [],
+                isMention: false
             };
 
             const isEnabledDiscordWebhook =
@@ -2093,8 +2111,6 @@ class UserCart extends Cart {
                     //     hasStrangeParts = true;
                     // }
 
-                    let hasHighValued = false;
-
                     let hasSpells = false;
                     let hasStrangeParts = false;
                     let hasKillstreaker = false;
@@ -2120,8 +2136,8 @@ class UserCart extends Cart {
                             desc.endsWith('(spell only active during event)') &&
                             color === '7ea9d1'
                         ) {
-                            hasHighValued = true;
                             hasSpells = true;
+                            highValuedTheir.isMention = true;
                             const spellName = desc.substring(10, desc.length - 32).trim();
                             spellNames.push(spellName);
                         } else if (
@@ -2130,21 +2146,35 @@ class UserCart extends Cart {
                                 : strangePartNames.includes(parts)) &&
                             color === '756b5e'
                         ) {
-                            hasHighValued = true;
                             hasStrangeParts = true;
-                            partsNames.push(parts);
+                            if (Object.keys(spMore1Keys).includes(parts)) {
+                                highValuedTheir.isMention = true;
+                                partsNames.push(parts + ' (>🔑)');
+                            } else {
+                                partsNames.push(parts);
+                            }
                         } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                            hasHighValued = true;
+                            const extractedName = desc.replace('Killstreaker: ', '').trim();
                             hasKillstreaker = true;
-                            killstreakerName.push(desc.replace('Killstreaker: ', '').trim());
+                            if (toMention.killstreakers.includes(extractedName)) {
+                                highValuedTheir.isMention = true;
+                                killstreakerName.push(extractedName + ' (🌟)');
+                            } else {
+                                killstreakerName.push(extractedName);
+                            }
                         } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                            hasHighValued = true;
+                            const extractedName = desc.replace('Sheen: ', '').trim();
                             hasSheen = true;
-                            sheenName.push(desc.replace('Sheen: ', '').trim());
+                            if (toMention.sheens.includes(extractedName)) {
+                                highValuedTheir.isMention = true;
+                                sheenName.push(extractedName + ' (🌟)');
+                            } else {
+                                sheenName.push(extractedName);
+                            }
                         }
                     }
 
-                    if (hasHighValued) {
+                    if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
                         highValuedTheir.skus.push(itemSKU);
                         const itemObj = SKU.fromString(itemSKU);
                         const itemName =

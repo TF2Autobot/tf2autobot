@@ -2844,13 +2844,25 @@ export = class Commands {
             const reviewMeta: {
                 uniqueReasons: string[];
                 reasons: any;
-                hasHighValueItems: {
-                    our: boolean;
-                    their: boolean;
-                };
-                highValueItems: {
-                    our: { skus: string[]; names: string[] };
-                    their: { skus: string[]; names: string[] };
+                highValue: {
+                    has: {
+                        our: boolean;
+                        their: boolean;
+                    };
+                    items: {
+                        our: {
+                            skus: string[];
+                            names: string[];
+                        };
+                        their: {
+                            skus: string[];
+                            names: string[];
+                        };
+                    };
+                    isMention: {
+                        our: boolean;
+                        their: boolean;
+                    };
                 };
             } = offer.data('reviewMeta');
 

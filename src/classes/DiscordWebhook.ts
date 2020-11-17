@@ -323,6 +323,7 @@ export = class DiscordWebhookClass {
             overstocked: string[];
             understocked: string[];
             highValue: string[];
+            isMention: boolean;
         },
         keyPrices: { buy: Currencies; sell: Currencies; src: string },
         value: { diff: number; diffRef: number; diffKey: string },
@@ -357,18 +358,19 @@ export = class DiscordWebhookClass {
             });
         });
 
-        const invalidA = itemsName.invalid.length;
-        const highValueA = itemsName.highValue.length;
+        const IVAmount = itemsName.invalid.length;
+        const HVAmount = itemsName.highValue.length;
+        const isMentionHV = accepted.isMention;
 
         const mentionOwner =
-            invalidA > 0 || highValueA > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+            IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
                 ? `<@!${process.env.DISCORD_OWNER_ID}> - Accepted ${
-                      invalidA > 0 && highValueA > 0
-                          ? `INVALID_ITEMS and High value ${pluralize('item', invalidA + highValueA)}`
-                          : invalidA > 0 && highValueA === 0
-                          ? `INVALID_ITEMS ${pluralize('item', invalidA)}`
-                          : invalidA === 0 && highValueA > 0
-                          ? `High Value ${pluralize('item', highValueA)}`
+                      IVAmount > 0 && isMentionHV
+                          ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
+                          : IVAmount > 0 && !isMentionHV
+                          ? `INVALID_ITEMS ${pluralize('item', IVAmount)}`
+                          : IVAmount === 0 && isMentionHV
+                          ? `High Value ${pluralize('item', HVAmount)}`
                           : ''
                   } trade here!`
                 : this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
