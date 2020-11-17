@@ -1074,9 +1074,9 @@ export = class Autokeys {
             } as any;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
+            .updatePrice(entry as EntryData, onShutdown, PricelistChangedSource.Autokeys)
             .then(data => {
-                log.debug('✅ Automatically disabled Autokeys.');
+                log.debug('✅ Automatically disabled Autokeys.', data);
                 if (!onShutdown) {
                     this.bot.listings.checkBySKU(data.sku, data);
                 }

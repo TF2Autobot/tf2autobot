@@ -301,14 +301,14 @@ export = class MyHandler extends Handler {
 
     onShutdown(): Promise<void> {
         return new Promise(resolve => {
+            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive) {
+                log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
+                this.autokeys.disable(true);
+            }
+
             if (this.bot.listingManager.ready !== true) {
                 // We have not set up the listing manager, don't try and remove listings
                 return resolve();
-            }
-
-            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
-                log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable(true);
             }
 
             this.bot.listings.removeAll().asCallback(err => {
