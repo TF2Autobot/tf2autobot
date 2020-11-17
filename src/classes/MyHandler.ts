@@ -307,8 +307,8 @@ export = class MyHandler extends Handler {
             }
 
             if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive === true) {
-                log.debug('Disabling Autokeys and removing key from pricelist...');
-                this.autokeys.disable();
+                log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
+                this.autokeys.disable(true);
             }
 
             this.bot.listings.removeAll().asCallback(err => {
@@ -1772,7 +1772,7 @@ export = class MyHandler extends Handler {
                             .replace('Asked', '  My side')
                             .replace('Offered', 'Your side') +
                         "\n[You're missing: " +
-                        (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
+                        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
                             process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
                                 ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
@@ -2388,7 +2388,7 @@ export = class MyHandler extends Handler {
                 reviewReasons.push(note);
                 missingPureNote =
                     "\n[You're missing: " +
-                    (value.diffRef > keyPrices.sell.toValue() ? `${value.diffKey}]` : `${value.diffRef} ref]`);
+                    (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
             }
 
             const highValueItems: string[] = [];
@@ -2493,7 +2493,7 @@ export = class MyHandler extends Handler {
                         summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
                         (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
-                        `\n\nSteam: ${links.steamProfile}\nBackpack.tf: ${links.backpackTF}\nSteamREP: ${links.steamREP}` +
+                        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                         `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                         ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                         `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
@@ -2982,11 +2982,11 @@ export = class MyHandler extends Handler {
         return { diff, diffRef, diffKey };
     }
 
-    tradePartnerLinks(steamID: string): { steamProfile: string; backpackTF: string; steamREP: string } {
+    tradePartnerLinks(steamID: string): { steam: string; bptf: string; steamrep: string } {
         const links = {
-            steamProfile: `https://steamcommunity.com/profiles/${steamID}`,
-            backpackTF: `https://backpack.tf/profiles/${steamID}`,
-            steamREP: `https://steamrep.com/profiles/${steamID}`
+            steam: `https://steamcommunity.com/profiles/${steamID}`,
+            bptf: `https://backpack.tf/profiles/${steamID}`,
+            steamrep: `https://steamrep.com/profiles/${steamID}`
         };
         return links;
     }
