@@ -129,10 +129,10 @@ export = class MyHandler extends Handler {
                     sheens = ['Not Set'];
                 }
             });
-            this.sheens = sheens;
+            this.sheens = sheens.map(sheen => sheen.toLowerCase());
         } else {
             log.warn('You did not set HIGH_VALUE_SHEENS array, resetting to Fire Horns and Tornado');
-            this.sheens = ['Fire Horns', 'Tornado'];
+            this.sheens = ['fire horns', 'tornado'];
         }
 
         let killstreakers = parseJSON(process.env.HIGH_VALUE_KILLSTREAKERS);
@@ -142,10 +142,10 @@ export = class MyHandler extends Handler {
                     killstreakers = ['Not Set'];
                 }
             });
-            this.killstreakers = killstreakers;
+            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase());
         } else {
             log.warn('You did not set HIGH_VALUE_KILLSTREAKERS array, resetting to Team Shine');
-            this.killstreakers = ['Team Shine'];
+            this.killstreakers = ['team shine'];
         }
 
         const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
@@ -655,7 +655,7 @@ export = class MyHandler extends Handler {
                     hasKillstreaker = true;
                     highValuedOur.has = true;
 
-                    if (this.sheens.includes(extractedName)) {
+                    if (this.sheens.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         killstreakerName.push(extractedName + ' (🌟)');
                     } else {
@@ -666,7 +666,7 @@ export = class MyHandler extends Handler {
                     hasSheen = true;
                     highValuedOur.has = true;
 
-                    if (this.killstreakers.includes(extractedName)) {
+                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         sheenName.push(extractedName + ' (🌟)');
                     } else {
@@ -789,7 +789,7 @@ export = class MyHandler extends Handler {
                     const extractedName = desc.replace('Killstreaker: ', '').trim();
                     hasKillstreaker = true;
                     highValuedTheir.has = true;
-                    if (this.sheens.includes(extractedName)) {
+                    if (this.sheens.includes(extractedName.toLowerCase())) {
                         highValuedTheir.isMention = true;
                         killstreakerName.push(extractedName + ' (🌟)');
                     } else {
@@ -799,7 +799,7 @@ export = class MyHandler extends Handler {
                     const extractedName = desc.replace('Sheen: ', '').trim();
                     hasSheen = true;
                     highValuedTheir.has = true;
-                    if (this.killstreakers.includes(extractedName)) {
+                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
                         highValuedTheir.isMention = true;
                         sheenName.push(extractedName + ' (🌟)');
                     } else {

@@ -608,7 +608,7 @@ class UserCart extends Cart {
                         } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
                             const extractedName = desc.replace('Killstreaker: ', '').trim();
                             hasKillstreaker = true;
-                            if (toMention.killstreakers.includes(extractedName)) {
+                            if (toMention.killstreakers.includes(extractedName.toLowerCase())) {
                                 highValuedTheir.isMention = true;
                                 killstreakerName.push(extractedName + ' (🌟)');
                             } else {
@@ -617,7 +617,7 @@ class UserCart extends Cart {
                         } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
                             const extractedName = desc.replace('Sheen: ', '').trim();
                             hasSheen = true;
-                            if (toMention.sheens.includes(extractedName)) {
+                            if (toMention.sheens.includes(extractedName.toLowerCase())) {
                                 highValuedTheir.isMention = true;
                                 sheenName.push(extractedName + ' (🌟)');
                             } else {
@@ -2156,7 +2156,7 @@ class UserCart extends Cart {
                         } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
                             const extractedName = desc.replace('Killstreaker: ', '').trim();
                             hasKillstreaker = true;
-                            if (toMention.killstreakers.includes(extractedName)) {
+                            if (toMention.killstreakers.includes(extractedName.toLowerCase())) {
                                 highValuedTheir.isMention = true;
                                 killstreakerName.push(extractedName + ' (🌟)');
                             } else {
@@ -2165,7 +2165,7 @@ class UserCart extends Cart {
                         } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
                             const extractedName = desc.replace('Sheen: ', '').trim();
                             hasSheen = true;
-                            if (toMention.sheens.includes(extractedName)) {
+                            if (toMention.sheens.includes(extractedName.toLowerCase())) {
                                 highValuedTheir.isMention = true;
                                 sheenName.push(extractedName + ' (🌟)');
                             } else {
