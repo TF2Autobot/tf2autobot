@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import moment from 'moment';
 import SKU from 'tf2-sku-2';
-import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
@@ -17,6 +17,12 @@ export = Cart;
  */
 abstract class Cart {
     private static carts: UnknownDictionary<Cart> = {};
+
+    private ourInventoryCount = 0;
+
+    private theirInventoryCount = 0;
+
+    private theirBackpackSlots = 0;
 
     readonly partner: SteamID;
 
@@ -95,6 +101,18 @@ abstract class Cart {
 
     getCancelReason(): string | undefined {
         return this.cancelReason;
+    }
+
+    getOurInventoryCount(count: number): void {
+        this.ourInventoryCount = count;
+    }
+
+    getTheirInventoryCount(econ: EconItem[]): void {
+        this.theirInventoryCount = econ.length;
+    }
+
+    getTheirBackpackSlots(slots: number): void {
+        this.theirBackpackSlots = slots;
     }
 
     getOurCount(sku: string): number {
@@ -426,6 +444,7 @@ abstract class Cart {
                         "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
                     );
                 } else if (error.eresult == 15) {
+                    // now need to add something here...
                     const msg = "I don't, or the trade partner don't, have space for more items. Please take a look.";
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
                         if (
