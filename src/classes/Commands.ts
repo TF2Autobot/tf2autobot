@@ -1540,11 +1540,6 @@ export = class Commands {
             }
         }
 
-        if (typeof params.note === 'object') {
-            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || null;
-            params.note.sell = params.note.sell === '' ? null : params.note.sell || null;
-        }
-
         if (params.resetgroup) {
             // if resetgroup (when sending "!update item=<itemName>&resetgroup=true") is defined,
             // first check if it's a booelan type
@@ -1562,44 +1557,6 @@ export = class Commands {
 
             // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
             delete params.resetgroup;
-        }
-
-        if (params.removenote) {
-            // removenote to set both note.buy and note.sell to null.
-            if (typeof params.removenote === 'boolean') {
-                if (params.removenote === true) {
-                    params.note.buy = null;
-                    params.note.sell = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removenote;
-        }
-
-        if (params.removebuynote) {
-            if (typeof params.removebuynote === 'boolean') {
-                if (params.removebuynote === true) {
-                    params.note.buy = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removebuynote;
-        }
-
-        if (params.removesellnote) {
-            if (typeof params.removesellnote === 'boolean') {
-                if (params.removesellnote === true) {
-                    params.note.sell = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removesellnote;
         }
 
         if (params.item !== undefined) {
@@ -1648,6 +1605,57 @@ export = class Commands {
         }
 
         const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
+
+        if (typeof params.note === 'object') {
+            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || itemEntry.note.buy;
+            params.note.sell = (params.note.sell === '' ? null : params.note.sell) || itemEntry.note.sell;
+        }
+
+        if (params.removenote) {
+            // removenote to set both note.buy and note.sell to null.
+            if (typeof params.removenote === 'boolean') {
+                if (params.removenote === true) {
+                    params.note = { buy: null, sell: null };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removenote;
+        }
+
+        if (params.removebuynote && params.removesellnote) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ Please only use either "removebuynote" or "removesellnote", not both, or if you wish to remove both buy and sell note, please use "removenote".'
+            );
+            return;
+        }
+
+        if (params.removebuynote) {
+            if (typeof params.removebuynote === 'boolean') {
+                if (params.removebuynote === true) {
+                    params.note = { buy: null, sell: itemEntry.note.sell };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removebuynote;
+        }
+
+        if (params.removesellnote) {
+            if (typeof params.removesellnote === 'boolean') {
+                if (params.removesellnote === true) {
+                    params.note = { buy: itemEntry.note.buy, sell: null };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removesellnote;
+        }
+
         const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON();
 
         delete entryData.time;
