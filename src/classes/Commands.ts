@@ -1326,6 +1326,14 @@ export = class Commands {
             let unTargetedPricelist: Entry[];
             let newPricelist: Entry[];
 
+            if (params.withgroup && params.withoutgroup) {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Don't be dumb. Please choose only "withgroup" OR "withoutgroup", not both. Thanks.`
+                );
+                return;
+            }
+
             if (params.withgroup) {
                 targetedPricelist = pricelist.filter(entry =>
                     entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
@@ -1338,6 +1346,37 @@ export = class Commands {
                     this.bot.sendMessage(
                         steamID,
                         `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    );
+                    return;
+                }
+
+                newPricelist = targetedPricelist;
+
+                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                    if (new Currencies(params.buy) >= new Currencies(params.sell)) {
+                        this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
+                        return;
+                    } else if (
+                        (params.buy !== null && params.sell === undefined) ||
+                        (params.buy === undefined && params.sell !== null)
+                    ) {
+                        this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                        return;
+                    }
+                }
+            } else if (params.withoutgroup) {
+                // reverse of withgroup
+                targetedPricelist = pricelist.filter(entry =>
+                    entry.group ? ![params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
+                unTargetedPricelist = pricelist.filter(entry =>
+                    entry.group ? [params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                );
+
+                if (targetedPricelist.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry other than "${params.withoutgroup}" group found in your pricelist.`
                     );
                     return;
                 }
@@ -1493,6 +1532,12 @@ export = class Commands {
                 delete params.withgroup;
             }
 
+            if (params.withoutgroup) {
+                newPricelist = unTargetedPricelist.concat(newPricelist);
+
+                delete params.withoutgroup;
+            }
+
             // FIXME: Make it so that it is not needed to remove all listings
 
             if (params.autoprice !== true) {
@@ -1540,11 +1585,6 @@ export = class Commands {
             }
         }
 
-        if (typeof params.note === 'object') {
-            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || null;
-            params.note.sell = params.note.sell === '' ? null : params.note.sell || null;
-        }
-
         if (params.resetgroup) {
             // if resetgroup (when sending "!update item=<itemName>&resetgroup=true") is defined,
             // first check if it's a booelan type
@@ -1562,44 +1602,6 @@ export = class Commands {
 
             // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
             delete params.resetgroup;
-        }
-
-        if (params.removenote) {
-            // removenote to set both note.buy and note.sell to null.
-            if (typeof params.removenote === 'boolean') {
-                if (params.removenote === true) {
-                    params.note.buy = null;
-                    params.note.sell = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removenote;
-        }
-
-        if (params.removebuynote) {
-            if (typeof params.removebuynote === 'boolean') {
-                if (params.removebuynote === true) {
-                    params.note.buy = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removebuynote;
-        }
-
-        if (params.removesellnote) {
-            if (typeof params.removesellnote === 'boolean') {
-                if (params.removesellnote === true) {
-                    params.note.sell = null;
-                }
-            } else {
-                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
-                return;
-            }
-            delete params.removesellnote;
         }
 
         if (params.item !== undefined) {
@@ -1648,6 +1650,57 @@ export = class Commands {
         }
 
         const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
+
+        if (typeof params.note === 'object') {
+            params.note.buy = (params.note.buy === '' ? null : params.note.buy) || itemEntry.note.buy;
+            params.note.sell = (params.note.sell === '' ? null : params.note.sell) || itemEntry.note.sell;
+        }
+
+        if (params.removenote) {
+            // removenote to set both note.buy and note.sell to null.
+            if (typeof params.removenote === 'boolean') {
+                if (params.removenote === true) {
+                    params.note = { buy: null, sell: null };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removenote;
+        }
+
+        if (params.removebuynote && params.removesellnote) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ Please only use either "removebuynote" or "removesellnote", not both, or if you wish to remove both buy and sell note, please use "removenote".'
+            );
+            return;
+        }
+
+        if (params.removebuynote) {
+            if (typeof params.removebuynote === 'boolean') {
+                if (params.removebuynote === true) {
+                    params.note = { buy: null, sell: itemEntry.note.sell };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removebuynote;
+        }
+
+        if (params.removesellnote) {
+            if (typeof params.removesellnote === 'boolean') {
+                if (params.removesellnote === true) {
+                    params.note = { buy: itemEntry.note.buy, sell: null };
+                }
+            } else {
+                this.bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
+                return;
+            }
+            delete params.removesellnote;
+        }
+
         const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON();
 
         delete entryData.time;
@@ -1744,6 +1797,15 @@ export = class Commands {
 
             let newPricelist: Entry[] = [];
             let newPricelistCount: Entry[] = [];
+
+            if (params.withgroup && params.withoutgroup) {
+                this.bot.sendMessage(
+                    steamID,
+                    `❌ Don't be dumb. Please choose only "withgroup" OR "withoutgroup", not both. Thanks.`
+                );
+                return;
+            }
+
             if (params.withgroup) {
                 // first filter out pricelist with ONLY "withgroup" value.
                 newPricelistCount = pricelist.filter(entry =>
@@ -1762,6 +1824,23 @@ export = class Commands {
                 newPricelist = pricelist.filter(entry =>
                     entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
                 );
+            } else if (params.withoutgroup) {
+                // reverse of withgroup
+                newPricelistCount = pricelist.filter(entry =>
+                    entry.group ? ![params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                );
+
+                if (newPricelistCount.length === 0) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry other than "${params.withoutgroup}" group found in your pricelist.`
+                    );
+                    return;
+                }
+
+                newPricelist = pricelist.filter(entry =>
+                    entry.group ? [params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                );
             } else {
                 newPricelistCount = pricelist;
             }
@@ -1776,11 +1855,12 @@ export = class Commands {
                 return;
             }
 
-            if (!params.withgroup) {
+            if (params.withgroup || params.withoutgroup) {
                 this.bot.pricelist
-                    .removeAll()
+                    .removeByGroup(newPricelist)
                     .then(() => {
-                        this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
+                        this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                        this.bot.listings.redoListings().asCallback();
                     })
                     .catch(err => {
                         this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
@@ -1788,9 +1868,9 @@ export = class Commands {
                 return;
             } else {
                 this.bot.pricelist
-                    .removeByGroup(newPricelist)
+                    .removeAll()
                     .then(() => {
-                        this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                        this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
                     })
                     .catch(err => {
                         this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
@@ -2844,13 +2924,25 @@ export = class Commands {
             const reviewMeta: {
                 uniqueReasons: string[];
                 reasons: any;
-                hasHighValueItems: {
-                    our: boolean;
-                    their: boolean;
-                };
-                highValueItems: {
-                    our: { skus: string[]; names: string[] };
-                    their: { skus: string[]; names: string[] };
+                highValue: {
+                    has: {
+                        our: boolean;
+                        their: boolean;
+                    };
+                    items: {
+                        our: {
+                            skus: string[];
+                            names: string[];
+                        };
+                        their: {
+                            skus: string[];
+                            names: string[];
+                        };
+                    };
+                    isMention: {
+                        our: boolean;
+                        their: boolean;
+                    };
                 };
             } = offer.data('reviewMeta');
 

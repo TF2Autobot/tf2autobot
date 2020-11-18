@@ -59,7 +59,10 @@
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
                 "DISABLE_OWNER_COMMAND": false,
                 "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
+
                 "DISABLE_HIGH_VALUE_HOLD": false,
+                "HIGH_VALUE_SHEENS": ["Fire Horns", "Tornado"],
+                "HIGH_VALUE_KILLSTREAKERS": ["Team Shine"],
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
@@ -227,7 +230,10 @@
                 "DISABLE_CHECK_USES_NOISE_MAKER": false,
                 "DISABLE_OWNER_COMMAND": false,
                 "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
+
                 "DISABLE_HIGH_VALUE_HOLD": false,
+                "HIGH_VALUE_SHEENS": ["Fire Horns", "Tornado"],
+                "HIGH_VALUE_KILLSTREAKERS": ["Team Shine"],
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
