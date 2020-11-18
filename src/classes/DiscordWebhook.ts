@@ -266,7 +266,7 @@ export = class DiscordWebhookClass {
                         fields: [
                             {
                                 name: '__Item list__',
-                                value: itemList
+                                value: itemList.replace(/@/g, '')
                             },
                             {
                                 name: '__Status__',
@@ -311,7 +311,7 @@ export = class DiscordWebhookClass {
                 // now remove __Item list__, so now it should be empty
                 webhookReview.embeds[0].fields.length = 0;
 
-                const separate = itemList.split('#');
+                const separate = itemList.split('@');
 
                 let newSentences = '';
                 let j = 1;
@@ -319,7 +319,7 @@ export = class DiscordWebhookClass {
                     if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
                         webhookReview.embeds[0].fields.push({
                             name: `__Item list ${j}__`,
-                            value: newSentences.replace(/#/g, '')
+                            value: newSentences.replace(/@/g, '')
                         });
 
                         if (i === separate.length - 1 || j > 4) {
@@ -468,7 +468,7 @@ export = class DiscordWebhookClass {
                         fields: [
                             {
                                 name: '__Item list__',
-                                value: itemList
+                                value: itemList.replace(/@/g, '')
                             },
                             {
                                 name: '__Status__',
@@ -533,7 +533,7 @@ export = class DiscordWebhookClass {
                 // now remove __Item list__, so now it should be empty
                 acceptedTradeSummary.embeds[0].fields.length = 0;
 
-                const separate = itemList.split('#');
+                const separate = itemList.split('@');
 
                 let newSentences = '';
                 let j = 1;
@@ -541,7 +541,7 @@ export = class DiscordWebhookClass {
                     if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
                         acceptedTradeSummary.embeds[0].fields.push({
                             name: `__Item list ${j}__`,
-                            value: newSentences.replace(/#/g, '')
+                            value: newSentences.replace(/@/g, '')
                         });
 
                         if (i === separate.length - 1 || j > 4) {
@@ -623,18 +623,18 @@ function listItems(items: {
     dupedFailed: string[];
     highValue: string[];
 }): string {
-    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',#\n- ') : '';
+    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- ') : '';
 
     list +=
         items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',#\n- ')
+            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',@\n- ')
             : '';
 
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
               '🟩`_UNDERSTOCKED:`\n- ' +
-              items.understock.join(',#\n- ')
+              items.understock.join(',@\n- ')
             : '';
 
     list +=
@@ -643,7 +643,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🟫`_DUPED_ITEMS:`\n- ' +
-              items.duped.join(',#\n- ')
+              items.duped.join(',@\n- ')
             : '';
 
     list +=
@@ -655,7 +655,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🟪`_DUPE_CHECK_FAILED:`\n- ' +
-              items.dupedFailed.join(',#\n- ')
+              items.dupedFailed.join(',@\n- ')
             : '';
 
     list +=
@@ -668,7 +668,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶`_HIGH_VALUE_ITEMS`\n- ' +
-              items.highValue.join('#\n\n- ')
+              items.highValue.join('@\n\n- ')
             : '';
 
     if (list.length === 0) {
