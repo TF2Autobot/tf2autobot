@@ -653,7 +653,7 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
+                            highValuedTheir.names.push(`_${itemName}_${itemDescriptions}`);
                         } else {
                             highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                         }
@@ -2199,7 +2199,7 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
+                            highValuedTheir.names.push(`_${itemName}_${itemDescriptions}`);
                         } else {
                             highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                         }

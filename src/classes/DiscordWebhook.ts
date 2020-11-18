@@ -294,7 +294,7 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-' || itemList.length > 1024) {
+            if (itemList === '-') {
                 // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
                 // to prevent the webhook from failing on POST request
                 if (removeStatus) {
@@ -304,6 +304,34 @@ export = class DiscordWebhookClass {
                     // else just remove the first element of the fields array (__Item list__)
                     webhookReview.embeds[0].fields.shift();
                 }
+            } else if (itemList.length >= 1024) {
+                // first get __Status__ element
+                const statusElement = webhookReview.embeds[0].fields.pop();
+
+                // now remove __Item list__, so now it should be empty
+                webhookReview.embeds[0].fields.length = 0;
+
+                const separate = itemList.split('#');
+
+                let newSentences = '';
+                let j = 1;
+                separate.forEach((sentence, i) => {
+                    if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
+                        webhookReview.embeds[0].fields.push({
+                            name: `__Item list ${j}__`,
+                            value: newSentences.replace(/#/g, '')
+                        });
+
+                        if (i === separate.length - 1 || j > 4) {
+                            webhookReview.embeds[0].fields.push(statusElement);
+                        }
+
+                        newSentences = '';
+                        j++;
+                    } else {
+                        newSentences += sentence;
+                    }
+                });
             }
 
             const request = new XMLHttpRequest();
@@ -488,7 +516,7 @@ export = class DiscordWebhookClass {
                 removeStatus = true;
             }
 
-            if (itemList === '-' || itemList.length > 1024) {
+            if (itemList === '-') {
                 // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
                 // to prevent the webhook from failing on POST request
                 if (removeStatus) {
@@ -498,7 +526,37 @@ export = class DiscordWebhookClass {
                     // else just remove the __Item list__
                     acceptedTradeSummary.embeds[0].fields.shift();
                 }
+            } else if (itemList.length >= 1024) {
+                // first get __Status__ element
+                const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
+
+                // now remove __Item list__, so now it should be empty
+                acceptedTradeSummary.embeds[0].fields.length = 0;
+
+                const separate = itemList.split('#');
+
+                let newSentences = '';
+                let j = 1;
+                separate.forEach((sentence, i) => {
+                    if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
+                        acceptedTradeSummary.embeds[0].fields.push({
+                            name: `__Item list ${j}__`,
+                            value: newSentences.replace(/#/g, '')
+                        });
+
+                        if (i === separate.length - 1 || j > 4) {
+                            acceptedTradeSummary.embeds[0].fields.push(statusElement);
+                        }
+
+                        newSentences = '';
+                        j++;
+                    } else {
+                        newSentences += sentence;
+                    }
+                });
             }
+
+            log.debug('acceptedTradeSummary: ', acceptedTradeSummary);
 
             tradeLinks.forEach((link, i) => {
                 const request = new XMLHttpRequest();
@@ -565,25 +623,29 @@ function listItems(items: {
     dupedFailed: string[];
     highValue: string[];
 }): string {
-    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',\n- ') : '';
+    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',#\n- ') : '';
+
     list +=
         items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',\n- ')
+            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',#\n- ')
             : '';
+
     list +=
         items.understock.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
               '🟩`_UNDERSTOCKED:`\n- ' +
-              items.understock.join(',\n- ')
+              items.understock.join(',#\n- ')
             : '';
+
     list +=
         items.duped.length !== 0
             ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
                   ? '\n\n'
                   : '') +
               '🟫`_DUPED_ITEMS:`\n- ' +
-              items.duped.join(',\n- ')
+              items.duped.join(',#\n- ')
             : '';
+
     list +=
         items.dupedFailed.length !== 0
             ? (items.invalid.length !== 0 ||
@@ -593,8 +655,9 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🟪`_DUPE_CHECK_FAILED:`\n- ' +
-              items.dupedFailed.join(',\n- ')
+              items.dupedFailed.join(',#\n- ')
             : '';
+
     list +=
         items.highValue.length !== 0
             ? (items.invalid.length !== 0 ||
@@ -605,7 +668,7 @@ function listItems(items: {
                   ? '\n\n'
                   : '') +
               '🔶`_HIGH_VALUE_ITEMS`\n- ' +
-              items.highValue.join('\n\n- ')
+              items.highValue.join('#\n\n- ')
             : '';
 
     if (list.length === 0) {

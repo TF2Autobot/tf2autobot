@@ -731,10 +731,7 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedOur.names.push(
-                        `**${itemName}**${itemDescriptions}`
-                        // parsed.fullName  - tf2-items-format module
-                    );
+                    highValuedOur.names.push(`_${itemName}_${itemDescriptions}`);
                 } else {
                     highValuedOur.names.push(`${itemName}${itemDescriptions}`);
                     // parsed.fullName  - tf2-items-format module
@@ -857,7 +854,7 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
+                    highValuedTheir.names.push(`_${itemName}_${itemDescriptions}`);
                 } else {
                     highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                 }
