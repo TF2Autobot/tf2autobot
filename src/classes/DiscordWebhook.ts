@@ -556,8 +556,6 @@ export = class DiscordWebhookClass {
                 });
             }
 
-            log.debug('acceptedTradeSummary: ', acceptedTradeSummary);
-
             tradeLinks.forEach((link, i) => {
                 const request = new XMLHttpRequest();
                 request.open('POST', link);
