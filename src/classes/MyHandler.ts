@@ -732,11 +732,11 @@ export = class MyHandler extends Handler {
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
                     highValuedOur.names.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
+                        `**${itemName}**${itemDescriptions}`
                         // parsed.fullName  - tf2-items-format module
                     );
                 } else {
-                    highValuedOur.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    highValuedOur.names.push(`${itemName}${itemDescriptions}`);
                     // parsed.fullName  - tf2-items-format module
                 }
             }
@@ -857,11 +857,9 @@ export = class MyHandler extends Handler {
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
                     process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
                 ) {
-                    highValuedTheir.names.push(
-                        `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
-                    );
+                    highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
                 } else {
-                    highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                    highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                 }
             }
         });

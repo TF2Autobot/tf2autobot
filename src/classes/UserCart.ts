@@ -653,11 +653,9 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
-                            );
+                            highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
                         } else {
-                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                            highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                         }
                     }
                 }
@@ -2201,11 +2199,9 @@ class UserCart extends Cart {
                         log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                         if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
-                            );
+                            highValuedTheir.names.push(`**${itemName}**${itemDescriptions}`);
                         } else {
-                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
+                            highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
                         }
                     }
                 }
