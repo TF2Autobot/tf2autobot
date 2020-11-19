@@ -10,7 +10,6 @@ import MyHandler from '../MyHandler';
 
 import { pure, timeNow } from '../../lib/tools/export';
 
-
 export function timeCommand(steamID: SteamID, bot: Bot): void {
     const timeWithEmojis = timeNow();
     bot.sendMessage(
@@ -41,7 +40,7 @@ export function uptimeCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function pureCommand(steamID: SteamID, bot: Bot): void {
-    const pureStock = pure(bot);
+    const pureStock = pure.stock(bot);
 
     bot.sendMessage(steamID, `💰 I have ${pureStock.join(' and ')} in my inventory.`);
 }
@@ -140,7 +139,7 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
-    const crafWeaponStock = craftWeapons();
+    const crafWeaponStock = craftWeapons(bot);
 
     let reply: string;
     if (crafWeaponStock.length > 0) {
@@ -152,12 +151,11 @@ export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
-    const uncrafWeaponStock = uncraftWeapons();
+    const uncrafWeaponStock = uncraftWeapons(bot);
 
     let reply: string;
     if (uncrafWeaponStock.length > 0) {
-        reply =
-            "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
+        reply = "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
     } else {
         reply = "❌ I don't have any uncraftable weapons in my inventory.";
     }

@@ -10,7 +10,7 @@ import CommandParser from '../CommandParser';
 
 import { Currency } from '../../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
-import { checkUses, generateLinks } from '../../lib/tools/export';
+import { check, generateLinks } from '../../lib/tools/export';
 import log from '../../lib/logger';
 
 // Manual review commands
@@ -200,7 +200,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 isNot5Uses: boolean;
                 isNot25Uses: boolean;
                 noiseMakerSKU: string[];
-            } = checkUses(offer, offer.itemsToReceive, bot);
+            } = check.uses(offer, offer.itemsToReceive, bot);
 
             hasNot5Uses = im.isNot5Uses;
             hasNot25Uses = im.isNot25Uses;
