@@ -672,7 +672,7 @@ export = class MyHandler extends Handler {
                     hasKillstreaker = true;
                     highValuedOur.has = true;
 
-                    if (this.sheens.includes(extractedName.toLowerCase())) {
+                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         killstreakerName.push(extractedName + ' (🌟)');
                     } else {
@@ -683,7 +683,7 @@ export = class MyHandler extends Handler {
                     hasSheen = true;
                     highValuedOur.has = true;
 
-                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
+                    if (this.sheens.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         sheenName.push(extractedName + ' (🌟)');
                     } else {
