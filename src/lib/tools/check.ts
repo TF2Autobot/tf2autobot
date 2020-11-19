@@ -171,7 +171,7 @@ export function checkHighValue(
                 hasKillstreaker = true;
                 highValued.has = true;
 
-                if (sheens.includes(extractedName.toLowerCase())) {
+                if (killstreakers.includes(extractedName.toLowerCase())) {
                     highValued.isMention = true;
                     killstreakerName.push(extractedName + ' (🌟)');
                 } else {
@@ -182,7 +182,7 @@ export function checkHighValue(
                 hasSheen = true;
                 highValued.has = true;
 
-                if (killstreakers.includes(extractedName.toLowerCase())) {
+                if (sheens.includes(extractedName.toLowerCase())) {
                     highValued.isMention = true;
                     sheenName.push(extractedName + ' (🌟)');
                 } else {
