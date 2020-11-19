@@ -2308,30 +2308,28 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private craftEachClassWeapons(weapons: string[], currencies: { [key: string]: string[] }): Promise<void> {
-        return new Promise(resolve => {
-            weapons.forEach((sku1, i) => {
-                // first loop
-                const wep1 = currencies[sku1].length;
+    private craftEachClassWeapons(weapons: string[], currencies: { [key: string]: string[] }): void {
+        weapons.forEach((sku1, i) => {
+            // first loop
+            const wep1 = currencies[sku1].length;
 
-                // check if that weapon1 only have 1 in inventory AND it's not in pricelist
-                const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
+            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
+            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
 
-                weapons.forEach((sku2, j) => {
-                    // second loop inside first loop, but ignore same index (same weapons)
-                    if (j !== i) {
-                        const wep2 = currencies[sku2].length;
+            weapons.forEach((sku2, j) => {
+                // second loop inside first loop, but ignore same index (same weapons)
+                if (j !== i) {
+                    const wep2 = currencies[sku2].length;
 
-                        // check if that weapon2 only have 1 in inventory AND it's not in pricelist
-                        const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-                        if (isWep1 && isWep2) {
-                            // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
-                            this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                            // break
-                            resolve();
-                        }
+                    // check if that weapon2 only have 1 in inventory AND it's not in pricelist
+                    const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
+                    if (isWep1 && isWep2) {
+                        // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
+                        this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
+                        // break
+                        return;
                     }
-                });
+                }
             });
         });
     }
@@ -2342,19 +2340,15 @@ export = class MyHandler extends Handler {
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
 
-        Promise.all([
-            this.craftEachClassWeapons(craftWeapons.scout, currencies),
-            this.craftEachClassWeapons(craftWeapons.soldier, currencies),
-            this.craftEachClassWeapons(craftWeapons.pyro, currencies),
-            this.craftEachClassWeapons(craftWeapons.demoman, currencies),
-            this.craftEachClassWeapons(craftWeapons.heavy, currencies),
-            this.craftEachClassWeapons(craftWeapons.engineer, currencies),
-            this.craftEachClassWeapons(craftWeapons.medic, currencies),
-            this.craftEachClassWeapons(craftWeapons.sniper, currencies),
-            this.craftEachClassWeapons(craftWeapons.spy, currencies)
-        ]).then(() => {
-            // empty function
-        });
+        this.craftEachClassWeapons(craftWeapons.scout, currencies);
+        this.craftEachClassWeapons(craftWeapons.soldier, currencies);
+        this.craftEachClassWeapons(craftWeapons.pyro, currencies);
+        this.craftEachClassWeapons(craftWeapons.demoman, currencies);
+        this.craftEachClassWeapons(craftWeapons.heavy, currencies);
+        this.craftEachClassWeapons(craftWeapons.engineer, currencies);
+        this.craftEachClassWeapons(craftWeapons.medic, currencies);
+        this.craftEachClassWeapons(craftWeapons.sniper, currencies);
+        this.craftEachClassWeapons(craftWeapons.spy, currencies);
     }
 
     private sortInventory(): void {
