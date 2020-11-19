@@ -1,7 +1,7 @@
 import moment from 'moment-timezone';
 import Bot from '../../classes/Bot';
 
-export default function(
+export default function stats(
     bot: Bot
 ): { totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number } {
     const now = moment();

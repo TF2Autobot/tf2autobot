@@ -22,10 +22,7 @@ import moment from 'moment-timezone';
 
 import paths from '../resources/paths';
 import TF2Inventory from './TF2Inventory';
-import sendAlert from './DiscordWebhook/sendAlert';
-import sendTradeSummary from './DiscordWebhook/sendTradeSummary';
-import { tradeSummaryLinks } from './DiscordWebhook/userSettings';
-import sendOfferReview from './DiscordWebhook/sendOfferReview';
+import { sendAlert, sendTradeSummary, sendOfferReview, tradeSummaryLinks } from './DiscordWebhook/export';
 import Autokeys from './Autokeys/main';
 
 import log from '../lib/logger';
@@ -33,13 +30,17 @@ import * as files from '../lib/files';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import { requestCheck } from '../lib/ptf-api';
 import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
-import partnerLinks from '../lib/tools/links';
-import { pure, currPure } from '../lib/tools/pure';
-import time from '../lib/tools/time';
-import { checkUses, checkHighValue } from '../lib/tools/check';
-import valueDiff from '../lib/tools/valueDiff';
-import summarize from '../lib/tools/summarizeOffer';
-import listItems from '../lib/tools/summarizeItems';
+import {
+    checkUses,
+    checkHighValue,
+    pure,
+    currPure,
+    valueDiff,
+    listItems,
+    summarize,
+    timeNow,
+    generateLinks
+} from '../lib/tools/export';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -1552,8 +1553,8 @@ export = class MyHandler extends Handler {
                 };
 
                 const pureStock = pure(this.bot);
-                const timeWithEmojis = time();
-                const links = partnerLinks(offer.partner.toString());
+                const timeWithEmojis = timeNow();
+                const links = generateLinks(offer.partner.toString());
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
@@ -1938,8 +1939,8 @@ export = class MyHandler extends Handler {
         const pureStock = pure(this.bot);
         const value = valueDiff(offer, keyPrices, this.isTradingKeys);
         this.isTradingKeys = false; // reset
-        const timeWithEmojis = time();
-        const links = partnerLinks(offer.partner.toString());
+        const timeWithEmojis = timeNow();
+        const links = generateLinks(offer.partner.toString());
 
         if (action === 'skip') {
             // Offer review note

@@ -12,8 +12,7 @@ import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/Te
 import { UnknownDictionary } from '../types/common';
 
 import { craftAll, uncraftAll, noiseMakerSKU } from '../lib/data';
-import { pure } from '../lib/tools/pure';
-import { checkUses, checkHighValue } from '../lib/tools/check';
+import { pure, checkUses, checkHighValue } from '../lib/tools/export';
 // import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';

@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-export default function(): { time: string; emoji: string; note: string } {
+export default function timeNow(): { time: string; emoji: string; note: string } {
     const time = moment()
         .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
         .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm

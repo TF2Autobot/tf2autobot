@@ -14,7 +14,7 @@ import AdminCart from './AdminCart';
 import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
-import sendPartnerMessage from './DiscordWebhook/sendPartnerMessage';
+import { sendPartnerMessage } from './DiscordWebhook/export';
 import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
@@ -26,11 +26,7 @@ import log from '../lib/logger';
 import SchemaManager from 'tf2-schema-2';
 import Autokeys from './Autokeys/main';
 import { ignoreWords, craftAll, uncraftAll } from '../lib/data';
-import partnerLinks from '../lib/tools/links';
-import { pure, currPure } from '../lib/tools/pure';
-import stats from '../lib/tools/stats';
-import timeNow from '../lib/tools/time';
-import { checkUses } from '../lib/tools/check';
+import { checkUses, generateLinks, pure, currPure, stats, timeNow } from '../lib/tools/export';
 
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
@@ -812,7 +808,7 @@ export = class Commands {
                 return;
             }
 
-            const links = partnerLinks(steamID.toString());
+            const links = generateLinks(steamID.toString());
             const time = timeNow();
 
             if (
@@ -2796,7 +2792,7 @@ export = class Commands {
                     : ')');
         }
 
-        const links = partnerLinks(offerData.partner.toString());
+        const links = generateLinks(offerData.partner.toString());
         reply +=
             `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
             `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;

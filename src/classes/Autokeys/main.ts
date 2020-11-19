@@ -9,12 +9,7 @@ import log from '../../lib/logger';
 import sendAlert from '../DiscordWebhook/sendAlert';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 
-import createToBuy from './createToBuy';
-import createToSell from './createToSell';
-import createToBank from './createToBank';
-import updateToBuy from './updateToBuy';
-import updateToSell from './updateToSell';
-import updateToBank from './updateToBank';
+import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
 
 export = class Autokeys {
     private readonly bot: Bot;
