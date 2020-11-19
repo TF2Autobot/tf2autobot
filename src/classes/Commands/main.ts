@@ -22,7 +22,7 @@ import { fixItem } from '../../lib/items';
 import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';
 import log from '../../lib/logger';
 import { ignoreWords } from '../../lib/data';
-import { currPure } from '../../lib/tools/export';
+import { pure } from '../../lib/tools/export';
 
 export = class Commands {
     private readonly bot: Bot;
@@ -1124,9 +1124,9 @@ export = class Commands {
 
         const autokeys = this.autokeys;
 
-        const pure = currPure(this.bot);
-        const currKey = pure.key;
-        const currRef = pure.refTotalInScrap;
+        const pureNow = pure.currPure(this.bot);
+        const currKey = pureNow.key;
+        const currRef = pureNow.refTotalInScrap;
 
         const keyPrices = this.bot.pricelist.getKeyPrices();
 

@@ -1,7 +1,7 @@
 import Handler from './Handler';
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
-import Commands from './Commands';
+import Commands from './Commands/main';
 import CartQueue from './CartQueue';
 import Inventory from './Inventory';
 import { UnknownDictionary } from '../types/common';
@@ -30,17 +30,7 @@ import * as files from '../lib/files';
 import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import { requestCheck } from '../lib/ptf-api';
 import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
-import {
-    checkUses,
-    checkHighValue,
-    pure,
-    currPure,
-    valueDiff,
-    listItems,
-    summarize,
-    timeNow,
-    generateLinks
-} from '../lib/tools/export';
+import { check, pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../lib/tools/export';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -561,8 +551,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValuedOur = checkHighValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
-        const highValuedTheir = checkHighValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
+        const highValuedOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
+        const highValuedTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
@@ -624,7 +614,7 @@ export = class MyHandler extends Handler {
             process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
             process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
         ) {
-            const im = checkUses(offer, offer.itemsToReceive, this.bot);
+            const im = check.uses(offer, offer.itemsToReceive, this.bot);
 
             if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
@@ -1552,7 +1542,7 @@ export = class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const pureStock = pure(this.bot);
+                const pureStock = pure.stock(this.bot);
                 const timeWithEmojis = timeNow();
                 const links = generateLinks(offer.partner.toString());
                 const itemsList = this.itemList(offer);
@@ -1936,7 +1926,7 @@ export = class MyHandler extends Handler {
         }
 
         const keyPrices = this.bot.pricelist.getKeyPrices();
-        const pureStock = pure(this.bot);
+        const pureStock = pure.stock(this.bot);
         const value = valueDiff(offer, keyPrices, this.isTradingKeys);
         this.isTradingKeys = false; // reset
         const timeWithEmojis = timeNow();
@@ -2243,11 +2233,11 @@ export = class MyHandler extends Handler {
         if (process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
-        const pure = currPure(this.bot);
+        const pureNow = pure.currPure(this.bot);
 
         // let refined = pure.ref;
-        let reclaimed = pure.rec * 3; // Because it was divided by 3
-        let scrap = pure.scrap * 9; // Because it was divided by 9
+        let reclaimed = pureNow.rec * 3; // Because it was divided by 3
+        let scrap = pureNow.scrap * 9; // Because it was divided by 9
 
         // const maxRefined = this.maximumRefined;
         const maxReclaimed = this.minimumReclaimed + this.combineThreshold;

@@ -2,7 +2,7 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../classes/Bot';
 
-export function pure(bot: Bot): string[] {
+export function stock(bot: Bot): string[] {
     const pureStock: string[] = [];
     const pure = currPure(bot);
     const totalKeys = pure.key;

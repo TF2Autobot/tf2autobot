@@ -4,7 +4,7 @@ import log from '../logger';
 import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
 import { strangeParts, spMore1Keys, noiseMakerNames } from '../data';
 
-export function checkUses(
+export function uses(
     offer: TradeOffer,
     items: EconItem[],
     bot: Bot
@@ -55,7 +55,7 @@ export function checkUses(
     return ex;
 }
 
-export function checkHighValue(
+export function highValue(
     econ: EconItem[],
     sheens: string[],
     killstreakers: string[],

@@ -1,4 +1,4 @@
-export function replaceItemName(name: string): string {
+export function itemName(name: string): string {
     if (!name) {
         // if undefined, just return untouched.
         return name;
@@ -11,7 +11,7 @@ export function replaceItemName(name: string): string {
     }
 }
 
-export function replaceSpecialChar(toChange: string): string {
+export function specialChar(toChange: string): string {
     return toChange
         .replace(/_/g, '‗')
         .replace(/\*/g, '^')
