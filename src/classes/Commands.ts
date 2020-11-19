@@ -24,8 +24,13 @@ import { requestCheck, getPrice, getSales } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import log from '../lib/logger';
 import SchemaManager from 'tf2-schema-2';
-import Autokeys from './Autokeys';
-import { ignoreWords, craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames } from '../lib/data';
+import Autokeys from './Autokeys/main';
+import { ignoreWords, craftAll, uncraftAll } from '../lib/data';
+import partnerLinks from '../lib/tools/links';
+import { pure, currPure } from '../lib/tools/pure';
+import stats from '../lib/tools/stats';
+import timeNow from '../lib/tools/time';
+import { checkUses } from '../lib/tools/check';
 
 const COMMANDS: string[] = [
     '!help - Get a list of commands',
@@ -810,8 +815,8 @@ export = class Commands {
                 return;
             }
 
-            const links = (this.bot.handler as MyHandler).tradePartnerLinks(steamID.toString());
-            const time = (this.bot.handler as MyHandler).timeWithEmoji();
+            const links = partnerLinks(steamID.toString());
+            const time = timeNow();
 
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
@@ -833,7 +838,7 @@ export = class Commands {
     }
 
     private timeCommand(steamID: SteamID): void {
-        const timeWithEmojis = (this.bot.handler as MyHandler).timeWithEmoji();
+        const timeWithEmojis = timeNow();
         this.bot.sendMessage(
             steamID,
             `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${timeWithEmojis.time +
@@ -862,7 +867,7 @@ export = class Commands {
     }
 
     private pureCommand(steamID: SteamID): void {
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
+        const pureStock = pure(this.bot);
 
         this.bot.sendMessage(steamID, `💰 I have ${pureStock.join(' and ')} in my inventory.`);
     }
@@ -2519,7 +2524,7 @@ export = class Commands {
 
     private statsCommand(steamID: SteamID): void {
         const tradesFromEnv = parseInt(process.env.LAST_TOTAL_TRADES);
-        const trades = (this.bot.handler as MyHandler).polldata();
+        const trades = stats(this.bot);
 
         this.bot.sendMessage(
             steamID,
@@ -2578,7 +2583,7 @@ export = class Commands {
 
         const autokeys = this.autokeys;
 
-        const pure = (this.bot.handler as MyHandler).currPure();
+        const pure = currPure(this.bot);
         const currKey = pure.key;
         const currRef = pure.refTotalInScrap;
 
@@ -2794,7 +2799,7 @@ export = class Commands {
                     : ')');
         }
 
-        const links = (this.bot.handler as MyHandler).tradePartnerLinks(offerData.partner.toString());
+        const links = partnerLinks(offerData.partner.toString());
         reply +=
             `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
             `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
@@ -2859,51 +2864,14 @@ export = class Commands {
 
                 const checkExist = this.bot.pricelist;
 
-                offer.itemsToReceive.forEach(item => {
-                    const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                    const isNoiseMaker = noiseMakerNames.some(name => {
-                        return item.market_hash_name.includes(name);
-                    });
-                    if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
-                        // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
+                const im: {
+                    isNot5Uses: boolean;
+                    isNot25Uses: boolean;
+                    noiseMakerSKU: string[];
+                } = checkUses(offer, offer.itemsToReceive, this.bot);
 
-                            if (
-                                !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                // Contains non-5x uses.
-                                hasNot5Uses = true;
-                                log.debug(
-                                    'info',
-                                    `Dueling Mini-Game (${item.assetid}) does not have 5 uses (re-checked).`
-                                );
-                                break;
-                            }
-                        }
-                    } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
-                        // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
-
-                            if (
-                                !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                // Contains non-25x uses.
-                                hasNot25Uses = true;
-                                log.debug(
-                                    'info',
-                                    `${item.market_hash_name} (${item.assetid}) does not have 25 uses (re-checked).`
-                                );
-                                break;
-                            }
-                        }
-                    }
-                });
+                hasNot5Uses = im.isNot5Uses;
+                hasNot25Uses = im.isNot25Uses;
 
                 if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                     // Only decline if exist in pricelist
@@ -2911,7 +2879,7 @@ export = class Commands {
                     declineTrade = true;
                 }
 
-                const isNoiseMaker = noiseMakerSKU.some(sku => {
+                const isNoiseMaker = im.noiseMakerSKU.some(sku => {
                     return checkExist.getPrice(sku, true) !== null;
                 });
 

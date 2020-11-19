@@ -5,7 +5,6 @@ import Commands from './Commands';
 import CartQueue from './CartQueue';
 import Inventory from './Inventory';
 import { UnknownDictionary } from '../types/common';
-import { Currency } from '../types/TeamFortress2';
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
 // import sleepasync from 'sleep-async';
@@ -16,29 +15,28 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import { requestCheck } from '../lib/ptf-api';
-import {
-    craftWeapons,
-    craftAll,
-    uncraftAll,
-    giftWords,
-    noiseMakerNames,
-    strangeParts,
-    spMore1Keys,
-    sheensData,
-    killstreakersData
-} from '../lib/data';
+
 // import { parseEconItem } from 'tf2-item-format';
 
 import moment from 'moment-timezone';
 
-import log from '../lib/logger';
-import * as files from '../lib/files';
 import paths from '../resources/paths';
-import { parseJSON, exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
 import DiscordWebhookClass from './DiscordWebhook';
-import Autokeys from './Autokeys';
+import Autokeys from './Autokeys/main';
+
+import log from '../lib/logger';
+import * as files from '../lib/files';
+import { parseJSON, exponentialBackoff } from '../lib/helpers';
+import { requestCheck } from '../lib/ptf-api';
+import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
+import partnerLinks from '../lib/tools/links';
+import { pure, currPure } from '../lib/tools/pure';
+import time from '../lib/tools/time';
+import { checkUses, checkHighValue } from '../lib/tools/check';
+import valueDiff from '../lib/tools/valueDiff';
+import summarize from '../lib/tools/summarizeOffer';
+import listItems from '../lib/tools/summarizeItems';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -562,304 +560,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValuedOur: {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
-        } = {
-            has: false,
-            skus: [],
-            names: [],
-            isMention: false
-        };
-
-        offer.itemsToGive.forEach(item => {
-            // tf2-items-format module (will use this once fixed)
-            // const parsed = parseEconItem(
-            //     {
-            //         ...item,
-            //         tradable: item.tradable ? 1 : 0,
-            //         commodity: item.commodity ? 1 : 0,
-            //         marketable: item.marketable ? 1 : 0,
-            //         amount: item.amount + ''
-            //     },
-            //     true,
-            //     true
-            // );
-
-            // let hasSpelled = false;
-            // if (parsed.spells.length > 0) {
-            //     hasSpelled = true;
-            //     hasHighValueOur = true;
-            // }
-
-            // let hasStrangeParts = false;
-            // if (parsed.parts.length > 0) {
-            //     hasStrangeParts = true;
-            //     hasHighValueOur = true;
-            // }
-
-            let hasSpells = false;
-            let hasStrangeParts = false;
-            let hasKillstreaker = false;
-            let hasSheen = false;
-
-            const spellNames: string[] = [];
-            const partsNames: string[] = [];
-            const killstreakerName: string[] = [];
-            const sheenName: string[] = [];
-
-            for (let i = 0; i < item.descriptions.length; i++) {
-                // Item description value for Spells and Strange Parts.
-                // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
-                const desc = item.descriptions[i].value;
-
-                // For Strange Parts, example: "(Kills During Halloween: 0)"
-                // remove "(" and ": <numbers>)" to get only the part name.
-                const parts = item.descriptions[i].value
-                    .replace('(', '')
-                    .replace(/: \d+\)/g, '')
-                    .trim();
-
-                // Description color in Hex Triplet format, example: 7ea9d1
-                const color = item.descriptions[i].color;
-
-                // Get strangePartObject and strangePartNames
-                const strangePartNames = Object.keys(strangeParts);
-
-                if (
-                    desc.startsWith('Halloween:') &&
-                    desc.endsWith('(spell only active during event)') &&
-                    color === '7ea9d1'
-                ) {
-                    // Example: "Halloween: Voices From Below (spell only active during event)"
-                    // where "Voices From Below" is the spell name.
-                    // Color of this description must be rgb(126, 169, 209) or 7ea9d1
-                    // https://www.spycolor.com/7ea9d1#
-                    hasSpells = true;
-                    highValuedOur.has = true;
-                    highValuedOur.isMention = true;
-                    // Get the spell name
-                    // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
-                    // from "(spell only active during event)", and trim any whitespaces.
-                    const spellName = desc.substring(10, desc.length - 32).trim();
-                    spellNames.push(spellName);
-                } else if (
-                    (parts === 'Kills' || parts === 'Assists'
-                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : strangePartNames.includes(parts)) &&
-                    color === '756b5e'
-                ) {
-                    // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
-                    // Else, will scan through Strange Parts Object keys in this.strangeParts()
-                    // Color of this description must be rgb(117, 107, 94) or 756b5e
-                    // https://www.spycolor.com/756b5e#
-                    hasStrangeParts = true;
-                    highValuedOur.has = true;
-
-                    if (Object.keys(spMore1Keys).includes(parts)) {
-                        // if the particular strange part is one of the parts that are more than 1 key,
-                        // then mention and put "(>🔑)"
-                        highValuedOur.isMention = true;
-                        partsNames.push(parts + ' (>🔑)');
-                    } else {
-                        // else no mention and just the name.
-                        partsNames.push(parts);
-                    }
-                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                    const extractedName = desc.replace('Killstreaker: ', '').trim();
-                    hasKillstreaker = true;
-                    highValuedOur.has = true;
-
-                    if (this.sheens.includes(extractedName.toLowerCase())) {
-                        highValuedOur.isMention = true;
-                        killstreakerName.push(extractedName + ' (🌟)');
-                    } else {
-                        killstreakerName.push(extractedName);
-                    }
-                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                    const extractedName = desc.replace('Sheen: ', '').trim();
-                    hasSheen = true;
-                    highValuedOur.has = true;
-
-                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
-                        highValuedOur.isMention = true;
-                        sheenName.push(extractedName + ' (🌟)');
-                    } else {
-                        sheenName.push(extractedName);
-                    }
-                }
-            }
-
-            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                const itemSKU = item.getSKU(this.bot.schema);
-                highValuedOur.skus.push(itemSKU);
-
-                const itemObj = SKU.fromString(itemSKU);
-
-                // If item is an Unusual, then get itemName from schema.
-                const itemName =
-                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
-
-                let itemDescriptions = '';
-
-                if (hasSpells) {
-                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
-                    // spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + '); - tf2-items-format module
-                }
-
-                if (hasStrangeParts) {
-                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
-                    // spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + '); - tf2-items-format module
-                }
-
-                if (hasKillstreaker) {
-                    // well, this actually will just have one, but we don't know if there's any that have two 😅
-                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
-                }
-
-                if (hasSheen) {
-                    // same as Killstreaker
-                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
-                }
-
-                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
-                // parsed.fullName  - tf2-items-format module
-
-                if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
-                ) {
-                    highValuedOur.names.push(`_${itemName}_${itemDescriptions}`);
-                } else {
-                    highValuedOur.names.push(`${itemName}${itemDescriptions}`);
-                    // parsed.fullName  - tf2-items-format module
-                }
-            }
-        });
-
-        // Check if we are receiving high valued items, if does, then the bot will mention the owner on the Discord Webhook.
-
-        const highValuedTheir: {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
-        } = {
-            has: false,
-            skus: [],
-            names: [],
-            isMention: false
-        };
-
-        offer.itemsToReceive.forEach(item => {
-            let hasSpells = false;
-            let hasStrangeParts = false;
-            let hasKillstreaker = false;
-            let hasSheen = false;
-
-            const spellNames: string[] = [];
-            const partsNames: string[] = [];
-            const killstreakerName: string[] = [];
-            const sheenName: string[] = [];
-
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const desc = item.descriptions[i].value;
-                const parts = item.descriptions[i].value
-                    .replace('(', '')
-                    .replace(/: \d+\)/g, '')
-                    .trim();
-
-                const color = item.descriptions[i].color;
-                const strangePartNames = Object.keys(strangeParts);
-
-                if (
-                    desc.startsWith('Halloween:') &&
-                    desc.endsWith('(spell only active during event)') &&
-                    color === '7ea9d1'
-                ) {
-                    hasSpells = true;
-                    highValuedTheir.has = true;
-                    highValuedTheir.isMention = true;
-                    const spellName = desc.substring(10, desc.length - 32).trim();
-                    spellNames.push(spellName);
-                } else if (
-                    (parts === 'Kills' || parts === 'Assists'
-                        ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                        : strangePartNames.includes(parts)) &&
-                    color === '756b5e'
-                ) {
-                    hasStrangeParts = true;
-                    highValuedTheir.has = true;
-
-                    if (Object.keys(spMore1Keys).includes(parts)) {
-                        highValuedTheir.isMention = true;
-                        partsNames.push(parts + ' (>🔑)');
-                    } else {
-                        partsNames.push(parts);
-                    }
-                } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                    const extractedName = desc.replace('Killstreaker: ', '').trim();
-                    hasKillstreaker = true;
-                    highValuedTheir.has = true;
-                    if (this.sheens.includes(extractedName.toLowerCase())) {
-                        highValuedTheir.isMention = true;
-                        killstreakerName.push(extractedName + ' (🌟)');
-                    } else {
-                        killstreakerName.push(extractedName);
-                    }
-                } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                    const extractedName = desc.replace('Sheen: ', '').trim();
-                    hasSheen = true;
-                    highValuedTheir.has = true;
-                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
-                        highValuedTheir.isMention = true;
-                        sheenName.push(extractedName + ' (🌟)');
-                    } else {
-                        sheenName.push(extractedName);
-                    }
-                }
-            }
-
-            if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                const itemSKU = item.getSKU(this.bot.schema);
-                highValuedTheir.skus.push(itemSKU);
-
-                const itemObj = SKU.fromString(itemSKU);
-                const itemName =
-                    itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
-
-                let itemDescriptions = '';
-
-                if (hasSpells) {
-                    itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
-                }
-
-                if (hasStrangeParts) {
-                    itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
-                }
-
-                if (hasKillstreaker) {
-                    itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
-                }
-
-                if (hasSheen) {
-                    itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
-                }
-
-                log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
-
-                if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
-                ) {
-                    highValuedTheir.names.push(`_${itemName}_${itemDescriptions}`);
-                } else {
-                    highValuedTheir.names.push(`${itemName}${itemDescriptions}`);
-                }
-            }
-        });
+        const highValuedOur = checkHighValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
+        const highValuedTheir = checkHighValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
@@ -867,28 +569,7 @@ export = class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'ADMIN',
-                meta: {
-                    highValue: {
-                        has: {
-                            our: highValuedOur.has,
-                            their: highValuedTheir.has
-                        },
-                        items: {
-                            our: {
-                                skus: highValuedOur.skus,
-                                names: highValuedOur.names
-                            },
-                            their: {
-                                skus: highValuedTheir.skus,
-                                names: highValuedTheir.names
-                            }
-                        },
-                        isMention: {
-                            our: highValuedOur.isMention,
-                            their: highValuedTheir.isMention
-                        }
-                    }
-                }
+                meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
             };
         }
 
@@ -911,28 +592,7 @@ export = class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'GIFT',
-                meta: {
-                    highValue: {
-                        has: {
-                            our: highValuedOur.has,
-                            their: highValuedTheir.has
-                        },
-                        items: {
-                            our: {
-                                skus: highValuedOur.skus,
-                                names: highValuedOur.names
-                            },
-                            their: {
-                                skus: highValuedTheir.skus,
-                                names: highValuedTheir.names
-                            }
-                        },
-                        isMention: {
-                            our: highValuedOur.isMention,
-                            their: highValuedTheir.isMention
-                        }
-                    }
-                }
+                meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
             if (process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true') {
@@ -943,28 +603,7 @@ export = class MyHandler extends Handler {
                 return {
                     action: 'accept',
                     reason: 'GIFT',
-                    meta: {
-                        highValue: {
-                            has: {
-                                our: highValuedOur.has,
-                                their: highValuedTheir.has
-                            },
-                            items: {
-                                our: {
-                                    skus: highValuedOur.skus,
-                                    names: highValuedOur.names
-                                },
-                                their: {
-                                    skus: highValuedTheir.skus,
-                                    names: highValuedTheir.names
-                                }
-                            },
-                            isMention: {
-                                our: highValuedOur.isMention,
-                                their: highValuedTheir.isMention
-                            }
-                        }
-                    }
+                    meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
                 };
             } else {
                 offer.log('info', 'is a gift offer without any offer message, declining...');
@@ -984,62 +623,19 @@ export = class MyHandler extends Handler {
             process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
             process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
         ) {
-            let hasNot5Uses = false;
-            let hasNot25Uses = false;
-            const noiseMakerSKU: string[] = [];
+            const im = checkUses(offer, offer.itemsToReceive, this.bot);
 
-            offer.itemsToReceive.forEach(item => {
-                const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                const isNoiseMaker = noiseMakerNames.some(name => {
-                    return item.market_hash_name.includes(name);
-                });
-
-                if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
-                    // Check for Dueling Mini-Game for 5x Uses only when enabled
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
-
-                        if (
-                            !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                            descriptionColor === '00a000'
-                        ) {
-                            hasNot5Uses = true;
-                            log.debug('info', `Dueling Mini-Game (${item.assetid}) is not 5 uses.`);
-                            break;
-                        }
-                    }
-                } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                    // Check for Noise Maker for 25x Uses only when enabled
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const descriptionValue = item.descriptions[i].value;
-                        const descriptionColor = item.descriptions[i].color;
-
-                        if (
-                            !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                            descriptionColor === '00a000'
-                        ) {
-                            hasNot25Uses = true;
-                            noiseMakerSKU.push(item.getSKU(this.bot.schema));
-
-                            log.debug('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                            break;
-                        }
-                    }
-                }
-            });
-
-            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+            if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
 
-            const isHasNoiseMaker = noiseMakerSKU.some(sku => {
+            const isHasNoiseMaker = im.noiseMakerSKU.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
 
-            if (hasNot25Uses && isHasNoiseMaker) {
+            if (im.isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noice Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
@@ -1709,26 +1305,7 @@ export = class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
-                        highValue: {
-                            has: {
-                                our: highValuedOur.has,
-                                their: highValuedTheir.has
-                            },
-                            items: {
-                                our: {
-                                    skus: highValuedOur.skus,
-                                    names: highValuedOur.names
-                                },
-                                their: {
-                                    skus: highValuedTheir.skus,
-                                    names: highValuedTheir.names
-                                }
-                            },
-                            isMention: {
-                                our: highValuedOur.isMention,
-                                their: highValuedTheir.isMention
-                            }
-                        }
+                        highValue: highValueMeta(highValuedOur, highValuedTheir)
                     }
                 };
             } else if (
@@ -1758,26 +1335,7 @@ export = class MyHandler extends Handler {
                 const reviewMeta = {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer,
-                    highValue: {
-                        has: {
-                            our: highValuedOur.has,
-                            their: highValuedTheir.has
-                        },
-                        items: {
-                            our: {
-                                skus: highValuedOur.skus,
-                                names: highValuedOur.names
-                            },
-                            their: {
-                                skus: highValuedTheir.skus,
-                                names: highValuedTheir.names
-                            }
-                        },
-                        isMention: {
-                            our: highValuedOur.isMention,
-                            their: highValuedTheir.isMention
-                        }
-                    }
+                    highValue: highValueMeta(highValuedOur, highValuedTheir)
                 };
 
                 offer.data('reviewMeta', reviewMeta);
@@ -1812,26 +1370,7 @@ export = class MyHandler extends Handler {
             action: 'accept',
             reason: 'VALID',
             meta: {
-                highValue: {
-                    has: {
-                        our: highValuedOur.has,
-                        their: highValuedTheir.has
-                    },
-                    items: {
-                        our: {
-                            skus: highValuedOur.skus,
-                            names: highValuedOur.names
-                        },
-                        their: {
-                            skus: highValuedTheir.skus,
-                            names: highValuedTheir.names
-                        }
-                    },
-                    isMention: {
-                        our: highValuedOur.isMention,
-                        their: highValuedTheir.isMention
-                    }
-                }
+                highValue: highValueMeta(highValuedOur, highValuedTheir)
             }
         };
     }
@@ -1874,7 +1413,8 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrices = this.bot.pricelist.getKeyPrices();
-                    const value = this.valueDiff(offer, keyPrices);
+                    const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+                    this.isTradingKeys = false; // reset
                     const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
 
                     let reasonForInvalidValue = false;
@@ -2011,9 +1551,9 @@ export = class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const pureStock = this.pureStock();
-                const timeWithEmojis = this.timeWithEmoji();
-                const links = this.tradePartnerLinks(offer.partner.toString());
+                const pureStock = pure(this.bot);
+                const timeWithEmojis = time();
+                const links = partnerLinks(offer.partner.toString());
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
@@ -2130,7 +1670,8 @@ export = class MyHandler extends Handler {
                 }
 
                 const keyPrices = this.bot.pricelist.getKeyPrices();
-                const value = this.valueDiff(offer, keyPrices);
+                const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+                this.isTradingKeys = false; // reset
 
                 if (
                     process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
@@ -2152,7 +1693,7 @@ export = class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         'trade',
                         `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
+                            summarize(offer.summarize(this.bot.schema), value, keyPrices, true) +
                             (accepted.invalidItems.length !== 0
                                 ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
                                 : '') +
@@ -2396,10 +1937,11 @@ export = class MyHandler extends Handler {
         }
 
         const keyPrices = this.bot.pricelist.getKeyPrices();
-        const pureStock = this.pureStock();
-        const value = this.valueDiff(offer, keyPrices);
-        const timeWithEmojis = this.timeWithEmoji();
-        const links = this.tradePartnerLinks(offer.partner.toString());
+        const pureStock = pure(this.bot);
+        const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+        this.isTradingKeys = false; // reset
+        const timeWithEmojis = time();
+        const links = partnerLinks(offer.partner.toString());
 
         if (action === 'skip') {
             // Offer review note
@@ -2658,7 +2200,7 @@ export = class MyHandler extends Handler {
                 highValue: highValueItems
             };
 
-            const list = listItems(items);
+            const list = listItems(items, true);
 
             if (
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
@@ -2683,7 +2225,7 @@ export = class MyHandler extends Handler {
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                             : '') +
-                        summarizeSteamChat(offer.summarize(this.bot.schema), value, keyPrices) +
+                        summarize(offer.summarize(this.bot.schema), value, keyPrices, true) +
                         (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                         (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                         `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
@@ -2701,7 +2243,7 @@ export = class MyHandler extends Handler {
         if (process.env.DISABLE_CRAFTING_METAL === 'true') {
             return;
         }
-        const pure = this.currPure();
+        const pure = currPure(this.bot);
 
         // let refined = pure.ref;
         let reclaimed = pure.rec * 3; // Because it was divided by 3
@@ -3113,211 +2655,6 @@ export = class MyHandler extends Handler {
         return { their, our };
     }
 
-    private valueDiff(
-        offer: TradeOffer,
-        keyPrices: { buy: Currencies; sell: Currencies }
-    ): { diff: number; diffRef: number; diffKey: string } {
-        const value: { our: Currency; their: Currency } = offer.data('value');
-
-        let diff: number;
-        let diffRef: number;
-        let diffKey: string;
-        if (!value) {
-            diff = 0;
-            diffRef = 0;
-            diffKey = '';
-        } else {
-            const newValue: { our: Currency; their: Currency } = {
-                our: {
-                    keys: value.our.keys,
-                    metal: value.our.metal
-                },
-                their: {
-                    keys: value.their.keys,
-                    metal: value.their.metal
-                }
-            };
-
-            if (!(process.env.ENABLE_SHOW_ONLY_METAL === 'true')) {
-                // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-                if (this.isTradingKeys) {
-                    // If trading keys, then their side need to use buying key price.
-                    newValue.our.metal = Currencies.toRefined(
-                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
-                    );
-                    newValue.our.keys = 0;
-                    newValue.their.metal = Currencies.toRefined(
-                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
-                    );
-                    newValue.their.keys = 0;
-
-                    this.isTradingKeys = false; // Reset
-                } else {
-                    // Else both use selling key price.
-                    newValue.our.metal = Currencies.toRefined(
-                        Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
-                    );
-                    newValue.our.keys = 0;
-                    newValue.their.metal = Currencies.toRefined(
-                        Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.sell.toValue()
-                    );
-                    newValue.their.keys = 0;
-                }
-            }
-
-            diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
-            diffRef = Currencies.toRefined(Math.abs(diff));
-            diffKey = Currencies.toCurrencies(
-                Math.abs(diff),
-                Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
-            ).toString();
-        }
-        return { diff, diffRef, diffKey };
-    }
-
-    tradePartnerLinks(steamID: string): { steam: string; bptf: string; steamrep: string } {
-        const links = {
-            steam: `https://steamcommunity.com/profiles/${steamID}`,
-            bptf: `https://backpack.tf/profiles/${steamID}`,
-            steamrep: `https://steamrep.com/profiles/${steamID}`
-        };
-        return links;
-    }
-
-    timeWithEmoji(): { time: string; emoji: string; note: string } {
-        const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
-
-        const timeEmoji = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
-            .format();
-        const emoji =
-            timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
-                ? '🕛'
-                : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
-                ? '🕐'
-                : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
-                ? '🕑'
-                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
-                ? '🕒'
-                : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
-                ? '🕓'
-                : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
-                ? '🕔'
-                : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
-                ? '🕕'
-                : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
-                ? '🕖'
-                : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
-                ? '🕗'
-                : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
-                ? '🕘'
-                : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
-                ? '🕙'
-                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
-                ? '🕚'
-                : '';
-
-        const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
-
-        const timeWithEmoji = {
-            time: time,
-            emoji: emoji,
-            note: timeNote
-        };
-        return timeWithEmoji;
-    }
-
-    pureStock(): string[] {
-        const pureStock: string[] = [];
-        const pure = this.currPure();
-        const totalKeys = pure.key;
-        const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
-
-        const pureCombine = [
-            {
-                name: pluralize('key', totalKeys),
-                amount: totalKeys
-            },
-            {
-                name: pluralize('ref', Math.trunc(totalRefs)),
-                amount: totalRefs
-            }
-        ];
-        for (let i = 0; i < pureCombine.length; i++) {
-            pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
-        }
-        return pureStock;
-    }
-
-    currPure(): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
-        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-
-        const currKeys = currencies['5021;6'].length;
-        const currScrap = currencies['5000;6'].length * (1 / 9);
-        const currRec = currencies['5001;6'].length * (1 / 3);
-        const currRef = currencies['5002;6'].length;
-        const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
-
-        const pure = {
-            key: currKeys,
-            scrap: currScrap,
-            rec: currRec,
-            ref: currRef,
-            refTotalInScrap: currReftoScrap
-        };
-        return pure;
-    }
-
-    polldata(): { totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number } {
-        const now = moment();
-        const aDayAgo = moment().subtract(24, 'hour');
-        const startOfDay = moment().startOf('day');
-
-        let tradesToday = 0;
-        let trades24Hours = 0;
-        let tradesTotal = 0;
-
-        const pollData = this.bot.manager.pollData;
-        const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
-        const timeSince =
-            +process.env.TRADING_STARTING_TIME_UNIX === 0
-                ? pollData.timestamps[oldestId]
-                : +process.env.TRADING_STARTING_TIME_UNIX;
-        const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
-
-        const offerData = this.bot.manager.pollData.offerData;
-        for (const offerID in offerData) {
-            if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
-                continue;
-            }
-
-            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
-                // Sucessful trades handled by the bot
-                tradesTotal++;
-
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
-                    // Within the last 24 hours
-                    trades24Hours++;
-                }
-
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
-                    // All trades since 0:00 in the morning.
-                    tradesToday++;
-                }
-            }
-        }
-
-        const polldata = {
-            totalDays: totalDays,
-            tradesTotal: tradesTotal,
-            trades24Hours: trades24Hours,
-            tradesToday: tradesToday
-        };
-        return polldata;
-    }
-
     private checkGroupInvites(): void {
         log.debug('Checking group invites');
 
@@ -3394,24 +2731,6 @@ export = class MyHandler extends Handler {
     }
 };
 
-function summarizeSteamChat(
-    trade: string,
-    value: { diff: number; diffRef: number; diffKey: string },
-    keyPrice: { buy: Currencies; sell: Currencies }
-): string {
-    const summary =
-        `\n\nSummary\n` +
-        trade.replace('Asked:', '• Asked:').replace('Offered:', '• Offered:') +
-        (value.diff > 0
-            ? `\n📈 Profit from overpay: ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : value.diff < 0
-            ? `\n📉 Loss from underpay: ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : '');
-    return summary;
-}
-
 function filterReasons(reasons: string[]): string[] {
     const filtered: string[] = [];
 
@@ -3425,59 +2744,57 @@ function filterReasons(reasons: string[]): string[] {
     return filtered;
 }
 
-function listItems(items: {
-    invalid: string[];
-    overstock: string[];
-    understock: string[];
-    duped: string[];
-    dupedFailed: string[];
-    highValue: string[];
-}): string {
-    let list = items.invalid.length !== 0 ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ') : '';
-    list +=
-        items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
-            : '';
-    list +=
-        items.understock.length !== 0
-            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
-              '🟩_UNDERSTOCKED:\n- ' +
-              items.understock.join(',\n- ')
-            : '';
-    list +=
-        items.duped.length !== 0
-            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🟫_DUPED_ITEMS:\n- ' +
-              items.duped.join(',\n- ')
-            : '';
-    list +=
-        items.dupedFailed.length !== 0
-            ? (items.invalid.length !== 0 ||
-              items.overstock.length !== 0 ||
-              items.understock.length !== 0 ||
-              items.duped.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🟪_DUPE_CHECK_FAILED:\n- ' +
-              items.dupedFailed.join(',\n- ')
-            : '';
-    list +=
-        items.highValue.length !== 0
-            ? (items.invalid.length !== 0 ||
-              items.overstock.length !== 0 ||
-              items.understock.length !== 0 ||
-              items.duped.length !== 0 ||
-              items.dupedFailed.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🔶_HIGH_VALUE_ITEMS:\n- ' +
-              items.highValue.join('\n\n- ')
-            : '';
-
-    if (list.length === 0) {
-        list = '-';
+function highValueMeta(
+    infoOur: {
+        has: boolean;
+        skus: string[];
+        names: string[];
+        isMention: boolean;
+    },
+    infoTheir: {
+        has: boolean;
+        skus: string[];
+        names: string[];
+        isMention: boolean;
     }
-    return list;
+): {
+    has: {
+        our: boolean;
+        their: boolean;
+    };
+    items: {
+        our: {
+            skus: string[];
+            names: string[];
+        };
+        their: {
+            skus: string[];
+            names: string[];
+        };
+    };
+    isMention: {
+        our: boolean;
+        their: boolean;
+    };
+} {
+    return {
+        has: {
+            our: infoOur.has,
+            their: infoTheir.has
+        },
+        items: {
+            our: {
+                skus: infoOur.skus,
+                names: infoOur.names
+            },
+            their: {
+                skus: infoTheir.skus,
+                names: infoTheir.names
+            }
+        },
+        isMention: {
+            our: infoOur.isMention,
+            their: infoTheir.isMention
+        }
+    };
 }

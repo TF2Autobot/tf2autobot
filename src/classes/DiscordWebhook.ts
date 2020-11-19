@@ -8,6 +8,13 @@ import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
 import pluralize from 'pluralize';
 
+import { pure } from '../lib/tools/pure';
+import stats from '../lib/tools/stats';
+import timeNow from '../lib/tools/time';
+import summarize from '../lib/tools/summarizeOffer';
+import listItems from '../lib/tools/summarizeItems';
+import { replaceItemName, replaceSpecialChar } from '../lib/tools/replace';
+
 export = class DiscordWebhookClass {
     private readonly bot: Bot;
 
@@ -58,7 +65,7 @@ export = class DiscordWebhookClass {
         err: any | null,
         items: string[] | null
     ): void {
-        const time = (this.bot.handler as MyHandler).timeWithEmoji();
+        const time = timeNow();
 
         let title;
         let description;
@@ -196,7 +203,7 @@ export = class DiscordWebhookClass {
             : `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`;
 
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
+        const pureStock = pure(this.bot);
         const message = replaceSpecialChar(offer.message);
 
         const itemsName = {
@@ -208,8 +215,8 @@ export = class DiscordWebhookClass {
             highValue: items.highValue.map(name => replaceItemName(name))
         };
 
-        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices);
-        const itemList = listItems(itemsName);
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices, false);
+        const itemList = listItems(itemsName, false);
 
         let partnerAvatar: string;
         let partnerName: string;
@@ -371,7 +378,7 @@ export = class DiscordWebhookClass {
             highValue: accepted.highValue.map(name => replaceItemName(name)) // 🔶_HIGH_VALUE_ITEMS
         };
 
-        const itemList = listItems(itemsName);
+        const itemList = listItems(itemsName, false);
 
         // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
         const isMentionOurItems = this.skuToMention.some(fromEnv => {
@@ -407,8 +414,8 @@ export = class DiscordWebhookClass {
 
         const tradeLinks = this.tradeSummaryLinks;
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
-        const trades = (this.bot.handler as MyHandler).polldata();
+        const pureStock = pure(this.bot);
+        const trades = stats(this.bot);
 
         const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
 
@@ -417,7 +424,7 @@ export = class DiscordWebhookClass {
                 ? tradeNumbertoShowStarter + trades.tradesTotal
                 : trades.tradesTotal;
 
-        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices);
+        const summary = summarize(offer.summarizeWithLink(this.bot.schema), value, keyPrices, false);
 
         let personaName: string;
         let avatarFull: string;
@@ -595,114 +602,6 @@ export = class DiscordWebhookClass {
     }
 };
 
-function summarize(
-    trade: string,
-    value: { diff: number; diffRef: number; diffKey: string },
-    keyPrice: { buy: Currencies; sell: Currencies }
-): string {
-    const summary =
-        `\n\n__**Summary**__\n` +
-        trade.replace('Asked:', '**Asked:**').replace('Offered:', '**Offered:**') +
-        (value.diff > 0
-            ? `\n📈 ***Profit from overpay:*** ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : value.diff < 0
-            ? `\n📉 ***Loss from underpay:*** ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : '');
-    return summary;
-}
-
-function listItems(items: {
-    invalid: string[];
-    overstock: string[];
-    understock: string[];
-    duped: string[];
-    dupedFailed: string[];
-    highValue: string[];
-}): string {
-    let list = items.invalid.length !== 0 ? '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- ') : '';
-
-    list +=
-        items.overstock.length !== 0
-            ? (items.invalid.length !== 0 ? '\n\n' : '') + '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',@\n- ')
-            : '';
-
-    list +=
-        items.understock.length !== 0
-            ? (items.invalid.length !== 0 || items.overstock.length !== 0 ? '\n\n' : '') +
-              '🟩`_UNDERSTOCKED:`\n- ' +
-              items.understock.join(',@\n- ')
-            : '';
-
-    list +=
-        items.duped.length !== 0
-            ? (items.invalid.length !== 0 || items.overstock.length !== 0 || items.understock.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🟫`_DUPED_ITEMS:`\n- ' +
-              items.duped.join(',@\n- ')
-            : '';
-
-    list +=
-        items.dupedFailed.length !== 0
-            ? (items.invalid.length !== 0 ||
-              items.overstock.length !== 0 ||
-              items.understock.length !== 0 ||
-              items.duped.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🟪`_DUPE_CHECK_FAILED:`\n- ' +
-              items.dupedFailed.join(',@\n- ')
-            : '';
-
-    list +=
-        items.highValue.length !== 0
-            ? (items.invalid.length !== 0 ||
-              items.overstock.length !== 0 ||
-              items.understock.length !== 0 ||
-              items.duped.length !== 0 ||
-              items.dupedFailed.length !== 0
-                  ? '\n\n'
-                  : '') +
-              '🔶`_HIGH_VALUE_ITEMS`\n- ' +
-              items.highValue.join('@\n\n- ')
-            : '';
-
-    if (list.length === 0) {
-        list = '-';
-    }
-    return list;
-}
-
 function quickLinks(name: string, links: { steam: string; bptf: string; steamrep: string }): string {
     return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [steamREP](${links.steamrep})`;
-}
-
-function replaceItemName(name: string): string {
-    if (!name) {
-        // if undefined, just return untouched.
-        return name;
-    } else {
-        return name
-            .replace(/Non-Craftable/g, 'NC')
-            .replace(/Professional Killstreak/g, 'Pro KS')
-            .replace(/Specialized Killstreak/g, 'Spec KS')
-            .replace(/Killstreak/g, 'KS');
-    }
-}
-
-function replaceSpecialChar(toChange: string): string {
-    return toChange
-        .replace(/_/g, '‗')
-        .replace(/\*/g, '^')
-        .replace(/~/g, '-')
-        .replace(/`/g, "'")
-        .replace(/>/g, '<')
-        .replace(/\|/g, 'l')
-        .replace(/\\/g, '/')
-        .replace(/\(/g, '/')
-        .replace(/\)/g, '/')
-        .replace(/\[/g, '/')
-        .replace(/\]/g, '/');
 }
