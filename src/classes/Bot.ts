@@ -1,15 +1,3 @@
-import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
-import Handler from './Handler';
-import Friends from './Friends';
-import Trades from './Trades';
-import Listings from './Listings';
-import TF2GC from './TF2GC';
-import Inventory from './Inventory';
-import BotManager from './BotManager';
-import MyHandler from './MyHandler';
-import Groups from './Groups';
-
 import SteamID from 'steamid';
 import SteamUser from 'steam-user';
 import TradeOfferManager from 'steam-tradeoffer-manager';
@@ -23,6 +11,18 @@ import moment from 'moment';
 import async from 'async';
 import semver from 'semver';
 import request from '@nicklason/request-retry';
+
+import InventoryManager from './InventoryManager';
+import Pricelist, { EntryData } from './Pricelist';
+import Handler from './Handler';
+import Friends from './Friends';
+import Trades from './Trades';
+import Listings from './Listings';
+import TF2GC from './TF2GC';
+import Inventory from './Inventory';
+import BotManager from './BotManager';
+import MyHandler from './MyHandler';
+import Groups from './Groups';
 
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';

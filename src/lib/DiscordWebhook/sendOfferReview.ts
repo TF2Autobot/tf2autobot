@@ -1,14 +1,14 @@
-import Bot from '../../classes/Bot';
-
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import log from '../logger';
 import Currencies from 'tf2-currencies';
-import MyHandler from '../../classes/MyHandler';
-
-import { pure, summarize, listItems, replace } from '../tools/export';
 
 import { quickLinks } from './utils';
+
+import { pure, summarize, listItems, replace } from '../tools/export';
+import log from '../logger';
+
+import Bot from '../../classes/Bot';
+import MyHandler from '../../classes/MyHandler';
 
 export default function sendOfferReview(
     offer: TradeOffer,

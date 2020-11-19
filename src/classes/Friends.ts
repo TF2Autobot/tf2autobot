@@ -1,11 +1,10 @@
 import SteamUser from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
+import request from '@nicklason/request-retry';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-
-import request from '@nicklason/request-retry';
 import MyHandler from './MyHandler';
 
 export = class Friends {

@@ -1,7 +1,8 @@
-import Bot from '../../classes/Bot';
-
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+
 import { quickLinks } from './utils';
+
+import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler';
 
 export default function sendPartnerMessage(

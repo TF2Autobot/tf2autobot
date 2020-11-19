@@ -1,18 +1,15 @@
-import { Currency } from '../types/TeamFortress2';
-import { UnknownDictionary } from '../types/common';
-
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { Currency } from '../types/TeamFortress2';
+import { UnknownDictionary } from '../types/common';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
-
 import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;

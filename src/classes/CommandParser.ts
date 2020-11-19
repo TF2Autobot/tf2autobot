@@ -1,6 +1,6 @@
 import dotProp from 'dot-prop';
-
 import { UnknownDictionaryKnownValues } from '../types/common';
+
 import { parseJSON } from '../lib/helpers';
 
 export = class CommandParser {

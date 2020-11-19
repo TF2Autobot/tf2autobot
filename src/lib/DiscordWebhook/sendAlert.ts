@@ -1,8 +1,9 @@
-import Bot from '../../classes/Bot';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import timeNow from '../tools/time';
+
+import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 export default function sendAlert(
     type: string,

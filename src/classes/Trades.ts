@@ -1,9 +1,9 @@
 import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
 

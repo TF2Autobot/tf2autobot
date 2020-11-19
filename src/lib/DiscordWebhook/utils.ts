@@ -1,5 +1,5 @@
-import Bot from '../../classes/Bot';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
+import Bot from '../../classes/Bot';
 
 export function getPartnerDetails(offer: TradeOffer, bot: Bot, callback: (err: any, details: any) => void): any {
     // check state of the offer

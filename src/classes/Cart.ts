@@ -4,9 +4,9 @@ import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-import { UnknownDictionary } from '../types/common';
 
 export = Cart;
 

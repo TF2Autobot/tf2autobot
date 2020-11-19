@@ -2,12 +2,12 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
+import { Item } from '../../types/TeamFortress2';
 
 import Bot from '../Bot';
 import { Entry } from '../Pricelist';
 
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
-import { Item } from '../../types/TeamFortress2';
 import { craftAll, uncraftAll } from '../../lib/data';
 import { fixItem } from '../../lib/items';
 

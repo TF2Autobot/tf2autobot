@@ -1,8 +1,11 @@
-import Bot from '../Bot';
 import Currencies from 'tf2-currencies';
-import log from '../../lib/logger';
-import { EntryData, PricelistChangedSource } from '../Pricelist';
+
 import { scrapAdjustment } from './userSettings';
+
+import Bot from '../Bot';
+import { EntryData, PricelistChangedSource } from '../Pricelist';
+
+import log from '../../lib/logger';
 
 export default function createToSell(minKeys: number, maxKeys: number, bot: Bot): void {
     const keyPrices = bot.pricelist.getKeyPrices();

@@ -3,13 +3,13 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from '@nicklason/request-retry';
 import async from 'async';
+import moment from 'moment';
 
 import Bot = require('./Bot');
+import { Entry } from './Pricelist';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { Entry } from './Pricelist';
-import moment from 'moment';
 import { noiseMakerSKU } from '../lib/data';
 
 export = class Listings {

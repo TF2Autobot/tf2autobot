@@ -1,4 +1,5 @@
 import SteamID from 'steamid';
+
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
 

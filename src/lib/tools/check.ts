@@ -1,8 +1,10 @@
-import Bot from '../../classes/Bot';
 import SKU from 'tf2-sku-2';
-import log from '../logger';
 import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
+
+import log from '../logger';
 import { strangeParts, spMore1Keys, noiseMakerNames } from '../data';
+
+import Bot from '../../classes/Bot';
 
 export function uses(
     offer: TradeOffer,

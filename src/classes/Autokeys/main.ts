@@ -1,15 +1,14 @@
-import Bot from '../Bot';
-// import moment from 'moment-timezone';
+import Currencies from 'tf2-currencies';
 
 import { userPure, scrapAdjustment } from './userSettings';
-import Currencies from 'tf2-currencies';
-import { currPure } from '../../lib/tools/pure';
+import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
 
-import log from '../../lib/logger';
-import sendAlert from '../../lib/DiscordWebhook/sendAlert';
+import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 
-import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
+import { currPure } from '../../lib/tools/pure';
+import log from '../../lib/logger';
+import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
 export = class Autokeys {
     private readonly bot: Bot;
