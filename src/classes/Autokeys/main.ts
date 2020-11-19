@@ -6,7 +6,7 @@ import Currencies from 'tf2-currencies';
 import { currPure } from '../../lib/tools/pure';
 
 import log from '../../lib/logger';
-import DiscordWebhookClass from '../DiscordWebhook';
+import sendAlert from '../DiscordWebhook/sendAlert';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 
 import createToBuy from './createToBuy';
@@ -18,8 +18,6 @@ import updateToBank from './updateToBank';
 
 export = class Autokeys {
     private readonly bot: Bot;
-
-    private readonly discord: DiscordWebhookClass;
 
     isEnabled = false;
 
@@ -59,7 +57,6 @@ export = class Autokeys {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhookClass(bot);
 
         this.userPure = userPure;
         this.isEnableScrapAdjustment = scrapAdjustment.enabled;
@@ -389,7 +386,7 @@ export = class Autokeys {
                         process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                         process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                     ) {
-                        this.discord.sendAlert('lowPure', msg, null, null, null);
+                        sendAlert('lowPure', msg, null, null, null, this.bot);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -492,7 +489,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendAlert('lowPure', msg, null, null, null);
+                            sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -616,7 +613,7 @@ export = class Autokeys {
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                             process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                         ) {
-                            this.discord.sendAlert('lowPure', msg, null, null, null);
+                            sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }

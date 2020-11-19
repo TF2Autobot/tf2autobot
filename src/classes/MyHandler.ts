@@ -22,7 +22,10 @@ import moment from 'moment-timezone';
 
 import paths from '../resources/paths';
 import TF2Inventory from './TF2Inventory';
-import DiscordWebhookClass from './DiscordWebhook';
+import sendAlert from './DiscordWebhook/sendAlert';
+import sendTradeSummary from './DiscordWebhook/sendTradeSummary';
+import { tradeSummaryLinks } from './DiscordWebhook/userSettings';
+import sendOfferReview from './DiscordWebhook/sendOfferReview';
 import Autokeys from './Autokeys/main';
 
 import log from '../lib/logger';
@@ -40,8 +43,6 @@ import listItems from '../lib/tools/summarizeItems';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
-
-    private readonly discord: DiscordWebhookClass;
 
     private readonly autokeys: Autokeys;
 
@@ -104,7 +105,6 @@ export = class MyHandler extends Handler {
 
         this.commands = new Commands(bot);
         this.cartQueue = new CartQueue(bot);
-        this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().unix();
@@ -658,7 +658,7 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                 process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             ) {
-                this.discord.sendAlert('highValue', null, null, null, highValuedOur.names);
+                sendAlert('highValue', null, null, null, highValuedOur.names, this.bot);
             } else {
                 this.bot.messageAdmins(
                     `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.names.join(
@@ -1673,11 +1673,8 @@ export = class MyHandler extends Handler {
                 const value = valueDiff(offer, keyPrices, this.isTradingKeys);
                 this.isTradingKeys = false; // reset
 
-                if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    this.discord.tradeSummaryLinks.length !== 0
-                ) {
-                    this.discord.sendTradeSummary(
+                if (process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' && tradeSummaryLinks.length !== 0) {
+                    sendTradeSummary(
                         offer,
                         autokeys,
                         currentItems,
@@ -1687,7 +1684,8 @@ export = class MyHandler extends Handler {
                         value,
                         itemsList,
                         links,
-                        timeWithEmojis.time
+                        timeWithEmojis.time,
+                        this.bot
                     );
                 } else {
                     this.bot.messageAdmins(
@@ -1893,7 +1891,7 @@ export = class MyHandler extends Handler {
                                 process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                                 process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
                             ) {
-                                this.discord.sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null);
+                                sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null, this.bot);
                             } else {
                                 this.bot.messageAdmins(msg, []);
                             }
@@ -2206,14 +2204,15 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
                 process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
             ) {
-                this.discord.sendOfferReview(
+                sendOfferReview(
                     offer,
                     reasons.join(', '),
                     timeWithEmojis.time,
                     keyPrices,
                     value,
                     links,
-                    items
+                    items,
+                    this.bot
                 );
             } else {
                 const offerMessage = offer.message;

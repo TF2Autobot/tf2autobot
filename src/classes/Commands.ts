@@ -14,7 +14,7 @@ import AdminCart from './AdminCart';
 import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
-import DiscordWebhookClass from './DiscordWebhook';
+import sendPartnerMessage from './DiscordWebhook/sendPartnerMessage';
 import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
@@ -107,8 +107,6 @@ const ADMIN_COMMANDS: string[] = [
 export = class Commands {
     private readonly bot: Bot;
 
-    readonly discord: DiscordWebhookClass;
-
     readonly autokeys: Autokeys;
 
     private first30Minutes = true;
@@ -123,7 +121,6 @@ export = class Commands {
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.discord = new DiscordWebhookClass(bot);
         this.autokeys = new Autokeys(bot);
 
         this.first30MinutesTimeout = setTimeout(() => {
@@ -822,7 +819,7 @@ export = class Commands {
                 process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
                 process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL
             ) {
-                this.discord.sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time);
+                sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, this.bot);
             } else {
                 this.bot.messageAdmins(
                     `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
