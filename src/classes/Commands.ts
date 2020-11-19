@@ -14,7 +14,7 @@ import AdminCart from './AdminCart';
 import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
-import { sendPartnerMessage } from './DiscordWebhook/export';
+import { sendPartnerMessage } from '../lib/DiscordWebhook/export';
 import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';

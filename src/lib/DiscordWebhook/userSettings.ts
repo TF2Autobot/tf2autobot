@@ -1,7 +1,7 @@
 export const enableMentionOwner = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true';
 
-import { parseJSON } from '../../lib/helpers';
-import log from '../../lib/logger';
+import { parseJSON } from '../helpers';
+import log from '../logger';
 
 let url: string[];
 let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);

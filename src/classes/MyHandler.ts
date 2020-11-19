@@ -22,7 +22,7 @@ import moment from 'moment-timezone';
 
 import paths from '../resources/paths';
 import TF2Inventory from './TF2Inventory';
-import { sendAlert, sendTradeSummary, sendOfferReview, tradeSummaryLinks } from './DiscordWebhook/export';
+import { sendAlert, sendTradeSummary, sendOfferReview, tradeSummaryLinks } from '../lib/DiscordWebhook/export';
 import Autokeys from './Autokeys/main';
 
 import log from '../lib/logger';

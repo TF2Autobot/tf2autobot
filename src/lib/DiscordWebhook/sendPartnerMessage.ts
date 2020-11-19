@@ -1,8 +1,8 @@
-import Bot from '../Bot';
+import Bot from '../../classes/Bot';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { quickLinks } from './utils';
-import MyHandler from '../MyHandler';
+import MyHandler from '../../classes/MyHandler';
 
 export default function sendPartnerMessage(
     steamID: string,

@@ -1,15 +1,12 @@
-import Bot from '../Bot';
+import Bot from '../../classes/Bot';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import log from '../../lib/logger';
+import log from '../logger';
 import Currencies from 'tf2-currencies';
-import MyHandler from '../MyHandler';
+import MyHandler from '../../classes/MyHandler';
 
-import { pure } from '../../lib/tools/pure';
-import summarize from '../../lib/tools/summarizeOffer';
-import listItems from '../../lib/tools/summarizeItems';
-import { replaceItemName, replaceSpecialChar } from '../../lib/tools/replace';
+import { pure, summarize, listItems, replaceItemName, replaceSpecialChar } from '../tools/export';
 
 import { quickLinks } from './utils';
 
