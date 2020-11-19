@@ -6,7 +6,7 @@ import Currencies from 'tf2-currencies';
 import { currPure } from '../../lib/tools/pure';
 
 import log from '../../lib/logger';
-import sendAlert from '../DiscordWebhook/sendAlert';
+import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 
 import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
