@@ -672,7 +672,7 @@ export = class MyHandler extends Handler {
                     hasKillstreaker = true;
                     highValuedOur.has = true;
 
-                    if (this.sheens.includes(extractedName.toLowerCase())) {
+                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         killstreakerName.push(extractedName + ' (🌟)');
                     } else {
@@ -683,7 +683,7 @@ export = class MyHandler extends Handler {
                     hasSheen = true;
                     highValuedOur.has = true;
 
-                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
+                    if (this.sheens.includes(extractedName.toLowerCase())) {
                         highValuedOur.isMention = true;
                         sheenName.push(extractedName + ' (🌟)');
                     } else {
@@ -803,7 +803,7 @@ export = class MyHandler extends Handler {
                     const extractedName = desc.replace('Killstreaker: ', '').trim();
                     hasKillstreaker = true;
                     highValuedTheir.has = true;
-                    if (this.sheens.includes(extractedName.toLowerCase())) {
+                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
                         highValuedTheir.isMention = true;
                         killstreakerName.push(extractedName + ' (🌟)');
                     } else {
@@ -813,7 +813,7 @@ export = class MyHandler extends Handler {
                     const extractedName = desc.replace('Sheen: ', '').trim();
                     hasSheen = true;
                     highValuedTheir.has = true;
-                    if (this.killstreakers.includes(extractedName.toLowerCase())) {
+                    if (this.sheens.includes(extractedName.toLowerCase())) {
                         highValuedTheir.isMention = true;
                         sheenName.push(extractedName + ' (🌟)');
                     } else {
