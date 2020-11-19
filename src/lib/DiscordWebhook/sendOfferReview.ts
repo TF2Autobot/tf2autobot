@@ -6,7 +6,7 @@ import log from '../logger';
 import Currencies from 'tf2-currencies';
 import MyHandler from '../../classes/MyHandler';
 
-import { pure, summarize, listItems, replaceItemName, replaceSpecialChar } from '../tools/export';
+import { pure, summarize, listItems, replace } from '../tools/export';
 
 import { quickLinks } from './utils';
 
@@ -49,16 +49,16 @@ export default function sendOfferReview(
         : `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`;
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
-    const pureStock = pure(bot);
-    const message = replaceSpecialChar(offer.message);
+    const pureStock = pure.stock(bot);
+    const message = replace.specialChar(offer.message);
 
     const itemsName = {
-        invalid: items.invalid.map(name => replaceItemName(name)),
-        overstock: items.overstock.map(name => replaceItemName(name)),
-        understock: items.understock.map(name => replaceItemName(name)),
-        duped: items.duped.map(name => replaceItemName(name)),
-        dupedFailed: items.dupedFailed.map(name => replaceItemName(name)),
-        highValue: items.highValue.map(name => replaceItemName(name))
+        invalid: items.invalid.map(name => replace.itemName(name)),
+        overstock: items.overstock.map(name => replace.itemName(name)),
+        understock: items.understock.map(name => replace.itemName(name)),
+        duped: items.duped.map(name => replace.itemName(name)),
+        dupedFailed: items.dupedFailed.map(name => replace.itemName(name)),
+        highValue: items.highValue.map(name => replace.itemName(name))
     };
 
     const summary = summarize(offer.summarizeWithLink(bot.schema), value, keyPrices, false);
@@ -79,7 +79,7 @@ export default function sendOfferReview(
             partnerName = them.personaName;
         }
 
-        const partnerNameNoFormat = replaceSpecialChar(partnerName);
+        const partnerNameNoFormat = replace.specialChar(partnerName);
 
         const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
         const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';

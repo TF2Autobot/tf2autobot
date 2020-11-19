@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import MyHandler from '../../classes/MyHandler';
 import pluralize from 'pluralize';
 
-import { pure, stats, summarize, listItems, replaceItemName, replaceSpecialChar } from '../tools/export';
+import { pure, stats, summarize, listItems, replace } from '../tools/export';
 
 import { getPartnerDetails, quickLinks } from './utils';
 import { enableMentionOwner, tradeSummaryLinks, skusToMention } from './userSettings';
@@ -35,12 +35,12 @@ export default function sendTradeSummary(
     const theirItems = items.their;
 
     const itemsName = {
-        invalid: accepted.invalidItems.map(name => replaceItemName(name)), // 🟨_INVALID_ITEMS
-        overstock: accepted.overstocked.map(name => replaceItemName(name)), // 🟦_OVERSTOCKED
-        understock: accepted.understocked.map(name => replaceItemName(name)), // 🟩_UNDERSTOCKED
+        invalid: accepted.invalidItems.map(name => replace.itemName(name)), // 🟨_INVALID_ITEMS
+        overstock: accepted.overstocked.map(name => replace.itemName(name)), // 🟦_OVERSTOCKED
+        understock: accepted.understocked.map(name => replace.itemName(name)), // 🟩_UNDERSTOCKED
         duped: [],
         dupedFailed: [],
-        highValue: accepted.highValue.map(name => replaceItemName(name)) // 🔶_HIGH_VALUE_ITEMS
+        highValue: accepted.highValue.map(name => replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
     };
 
     const itemList = listItems(itemsName, false);
@@ -79,7 +79,7 @@ export default function sendTradeSummary(
 
     const tradeLinks = tradeSummaryLinks;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
-    const pureStock = pure(bot);
+    const pureStock = pure.stock(bot);
     const trades = stats(bot);
 
     const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
@@ -106,7 +106,7 @@ export default function sendTradeSummary(
             avatarFull = details.avatarFull;
         }
 
-        const partnerNameNoFormat = replaceSpecialChar(personaName);
+        const partnerNameNoFormat = replace.specialChar(personaName);
 
         const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
         const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';

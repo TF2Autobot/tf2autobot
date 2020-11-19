@@ -5,7 +5,7 @@ import SchemaManager from 'tf2-schema-2';
 
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
-import { replaceItemName } from '../../tools/replace';
+import { replace } from '../../tools/export';
 
 export = function(schema: SchemaManager.Schema): string {
     // @ts-ignore
@@ -53,7 +53,7 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         }
 
         const amount = dict[sku];
-        const name = replaceItemName(schema.getName(SKU.fromString(sku), false));
+        const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ' x' + amount : ''));
     }

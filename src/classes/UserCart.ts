@@ -12,7 +12,7 @@ import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/Te
 import { UnknownDictionary } from '../types/common';
 
 import { craftAll, uncraftAll, noiseMakerSKU } from '../lib/data';
-import { pure, checkUses, checkHighValue } from '../lib/tools/export';
+import { pure, check } from '../lib/tools/export';
 // import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';
@@ -472,7 +472,7 @@ class UserCart extends Cart {
                     const yes: {
                         isNot5Uses: boolean;
                         isNot25Uses: boolean;
-                    } = checkUses(offer, fetched, this.bot);
+                    } = check.uses(offer, fetched, this.bot);
 
                     if (yes.isNot5Uses) {
                         return Promise.reject(
@@ -494,7 +494,7 @@ class UserCart extends Cart {
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = checkHighValue(fetched, toMention.sheens, toMention.killstreakers, this.bot);
+            } = check.highValue(fetched, toMention.sheens, toMention.killstreakers, this.bot);
 
             offer.data('highValue', highValuedTheir);
 
@@ -566,7 +566,7 @@ class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = pure(this.bot);
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -1852,7 +1852,7 @@ class UserCart extends Cart {
                     const yes: {
                         isNot5Uses: boolean;
                         isNot25Uses: boolean;
-                    } = checkUses(offer, fetched, this.bot);
+                    } = check.uses(offer, fetched, this.bot);
 
                     if (yes.isNot5Uses) {
                         return Promise.reject(
@@ -1874,7 +1874,7 @@ class UserCart extends Cart {
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = checkHighValue(fetched, toMention.sheens, toMention.killstreakers, this.bot);
+            } = check.highValue(fetched, toMention.sheens, toMention.killstreakers, this.bot);
 
             offer.data('highValue', highValuedTheir);
 
@@ -1946,7 +1946,7 @@ class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = pure(this.bot);
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeysWithWeapons(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
