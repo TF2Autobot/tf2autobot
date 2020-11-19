@@ -548,8 +548,8 @@ export = class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValuedOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
-        const highValuedTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
+        const highValueOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
+        const highValueTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
@@ -557,7 +557,7 @@ export = class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'ADMIN',
-                meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
+                meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
             };
         }
 
@@ -580,7 +580,7 @@ export = class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'GIFT',
-                meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
+                meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
             if (process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true') {
@@ -591,7 +591,7 @@ export = class MyHandler extends Handler {
                 return {
                     action: 'accept',
                     reason: 'GIFT',
-                    meta: { highValue: highValueMeta(highValuedOur, highValuedTheir) }
+                    meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
                 };
             } else {
                 offer.log('info', 'is a gift offer without any offer message, declining...');
@@ -631,13 +631,13 @@ export = class MyHandler extends Handler {
         }
 
         const isInPricelist =
-            highValuedOur.skus.length > 0 // Only check if this not empty
-                ? highValuedOur.skus.some(sku => {
+            highValueOur.skus.length > 0 // Only check if this not empty
+                ? highValueOur.skus.some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
-        if (highValuedOur.has && isInPricelist === false) {
+        if (highValueOur.has && isInPricelist === false) {
             // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
@@ -646,10 +646,10 @@ export = class MyHandler extends Handler {
                 process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
                 process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
             ) {
-                sendAlert('highValue', null, null, null, highValuedOur.names, this.bot);
+                sendAlert('highValue', null, null, null, highValueOur.names, this.bot);
             } else {
                 this.bot.messageAdmins(
-                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValuedOur.names.join(
+                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOur.names.join(
                         '\n\n- '
                     )}`,
                     []
@@ -660,7 +660,7 @@ export = class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValuedOur.names
+                    highValueName: highValueOur.names
                 }
             };
         }
@@ -1293,7 +1293,7 @@ export = class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
-                        highValue: highValueMeta(highValuedOur, highValuedTheir)
+                        highValue: highValueMeta(highValueOur, highValueTheir)
                     }
                 };
             } else if (
@@ -1323,7 +1323,7 @@ export = class MyHandler extends Handler {
                 const reviewMeta = {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer,
-                    highValue: highValueMeta(highValuedOur, highValuedTheir)
+                    highValue: highValueMeta(highValueOur, highValueTheir)
                 };
 
                 offer.data('reviewMeta', reviewMeta);
@@ -1358,7 +1358,7 @@ export = class MyHandler extends Handler {
             action: 'accept',
             reason: 'VALID',
             meta: {
-                highValue: highValueMeta(highValuedOur, highValuedTheir)
+                highValue: highValueMeta(highValueOur, highValueTheir)
             }
         };
     }
