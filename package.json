@@ -38,6 +38,7 @@
         "graceful-fs": "^4.2.4",
         "isobject": "^4.0.0",
         "jsonschema": "^1.4.0",
+        "js-levenshtein": "^1.1.6",
         "moment": "^2.29.1",
         "moment-timezone": "^0.5.32",
         "pjson": "^1.0.9",

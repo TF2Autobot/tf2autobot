@@ -4,6 +4,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
 import { Item } from '../../types/TeamFortress2';
+import levenshtein from 'js-levenshtein';
 
 import Bot from '../Bot';
 import { Entry } from '../Pricelist';
@@ -52,21 +53,45 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
 
     let match = bot.pricelist.searchByName(name);
     if (match === null) {
-        bot.sendMessage(
-            steamID,
-            `❌ I could not find any items in my pricelist that contains "${name}". I may not be trading the item you are looking for.` +
-                '\n\nAlternatively, please try to:' +
-                '\n• Remove "The".' +
-                '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
-                '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
-                '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
-                '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
-                `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
-                '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
-        );
-        return null;
+        // Search the item by Levenshtein distance to find a close match (if one exists)
+        let lowestDistance = 999;
+        let closestMatch = null;
+        for (const pricedItem of bot.pricelist.getPrices()) {
+            const itemDistance = levenshtein(pricedItem.name, name);
+            if (itemDistance < lowestDistance) {
+                lowestDistance = itemDistance;
+                closestMatch = pricedItem;
+            }
+        }
+
+        // If we found an item that is different in 3-characters or less
+        if (lowestDistance <= 3) {
+            bot.sendMessage(
+                steamID,
+                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${closestMatch.name}" instead.`
+            );
+
+            return {
+                amount: amount,
+                match: closestMatch
+            };
+        } else {
+            bot.sendMessage(
+                steamID,
+                `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
+                    '\n\nAlternatively, please try to:' +
+                    '\n• Remove "The".' +
+                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
+                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
+                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
+                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
+                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
+                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
+                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
+                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+            );
+            return null;
+        }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
         if (match.length > 20) {
