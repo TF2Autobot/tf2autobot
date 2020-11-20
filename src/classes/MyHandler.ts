@@ -23,7 +23,7 @@ import Autokeys from './Autokeys/main';
 import paths from '../resources/paths';
 import log from '../lib/logger';
 import * as files from '../lib/files';
-import { parseJSON, exponentialBackoff } from '../lib/helpers';
+import { exponentialBackoff } from '../lib/helpers';
 import { requestCheck } from '../lib/ptf-api';
 import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
 import { sendAlert, sendTradeSummary, sendOfferReview, tradeSummaryLinks } from '../lib/DiscordWebhook/export';
@@ -201,7 +201,7 @@ export = class MyHandler extends Handler {
             this.groups = groups;
         }
 
-        const friendsToKeep = this.bot.options.keep + this.bot.getAdmins().toString();
+        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
         if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
             friendsToKeep.forEach(steamID64 => {
                 if (!new SteamID(steamID64).isValid()) {
