@@ -44,7 +44,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (!this.bot.options.disableCraftWeaponAsCurrency) {
+        if (!this.bot.options.disableCraftweaponAsCurrency) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
