@@ -1371,9 +1371,6 @@ export = class MyHandler extends Handler {
             offer.data('switchedState', oldState);
         }
 
-        let hasHighValueOur = false;
-        let hasHighValueTheir = false;
-        let isDisable = false;
         const isDisableSKU: string[] = [];
         const theirHighValuedItems: string[] = [];
 
@@ -1611,7 +1608,6 @@ export = class MyHandler extends Handler {
 
                     if (offerReceived.meta && offerReceived.meta.highValue.has) {
                         if (offerReceived.meta.highValue.has.their) {
-                            hasHighValueTheir = true;
                             // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                             offerReceived.meta.highValue.items.their.names.forEach(name => {
                                 accepted.highValue.push(name);
@@ -1619,7 +1615,6 @@ export = class MyHandler extends Handler {
                             });
 
                             if (offerReceived.meta.highValue.isMention.their) {
-                                isDisable = true;
                                 offerReceived.meta.highValue.items.their.skus.forEach(sku => isDisableSKU.push(sku));
 
                                 if (!this.bot.isAdmin(offer.partner)) {
@@ -1629,7 +1624,6 @@ export = class MyHandler extends Handler {
                         }
 
                         if (offerReceived.meta.highValue.has.our) {
-                            hasHighValueOur = true;
                             // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
                             offerReceived.meta.highValue.items.our.names.forEach(name => accepted.highValue.push(name));
 
@@ -1643,7 +1637,6 @@ export = class MyHandler extends Handler {
                 } else if (offerSent) {
                     // This is for offer that bot created from commands
                     if (offerSent.names.length > 0) {
-                        hasHighValueTheir = true;
                         offerSent.names.forEach(name => {
                             accepted.highValue.push(name);
                             theirHighValuedItems.push(name);
@@ -1651,7 +1644,6 @@ export = class MyHandler extends Handler {
                     }
 
                     if (offerSent.isMention) {
-                        isDisable = true;
                         offerSent.skus.forEach(sku => isDisableSKU.push(sku));
                         accepted.isMention = true;
                     }
@@ -1816,7 +1808,7 @@ export = class MyHandler extends Handler {
                     inPrice === null &&
                     isNotPureOrWeapons &&
                     item.wear === null &&
-                    !(hasHighValueTheir || hasHighValueOur) &&
+                    !isDisableSKU.includes(sku) &&
                     !this.bot.isAdmin(offer.partner)
                 ) {
                     // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
@@ -1842,7 +1834,6 @@ export = class MyHandler extends Handler {
                         });
                 } else if (
                     inPrice !== null &&
-                    isDisable &&
                     isDisableSKU.includes(sku) &&
                     isNotPureOrWeapons &&
                     process.env.DISABLE_HIGH_VALUE_HOLD !== 'true'
