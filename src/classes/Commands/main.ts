@@ -871,6 +871,16 @@ export = class Commands {
                 const item = SKU.fromString(sku);
                 const name = this.bot.schema.getName(item, false);
 
+                if (params.i_am_sure !== 'yes_i_am') {
+                    this.bot.sendMessage(
+                        steamID,
+                        `/pre ⚠️ Are you sure that you want to delete ${name}?` +
+                            `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
+                            `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                    );
+                    return;
+                }
+
                 this.bot.tf2gc.deleteItem(params.assetid, err => {
                     if (err) {
                         log.warn(`Error trying to delete ${name}: `, err);
@@ -967,6 +977,16 @@ export = class Commands {
             }
         } else {
             assetid = assetids[0];
+        }
+
+        if (params.i_am_sure !== 'yes_i_am') {
+            this.bot.sendMessage(
+                steamID,
+                `/pre ⚠️ Are you sure that you want to delete ${name}?` +
+                    `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
+                    `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+            );
+            return;
         }
 
         this.bot.tf2gc.deleteItem(assetid, err => {
