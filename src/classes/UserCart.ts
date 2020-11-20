@@ -2,7 +2,6 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import request from '@nicklason/request-retry';
 
 import Cart from './Cart';
 import Inventory from './Inventory';
@@ -393,8 +392,6 @@ class UserCart extends Cart {
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
 
-        this.getOurInventoryCount(this.bot.inventoryManager.getInventory().getTotalItems());
-
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
                 continue;
@@ -458,9 +455,6 @@ class UserCart extends Cart {
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
-
-        this.getTheirInventoryCount(fetched);
-        this.getTheirBackpackSlots(await this.getBackpackSlots(this.partner.getSteamID64()));
 
         // Add their items
 
@@ -2907,33 +2901,5 @@ class UserCart extends Cart {
         str += '\n\nType !checkout to checkout and proceed trade, or !clearcart to cancel.';
 
         return str;
-    }
-
-    private async getBackpackSlots(steamID64: string): Promise<number> {
-        return new Promise(resolve => {
-            request(
-                {
-                    url: 'https://backpack.tf/api/users/info/v1',
-                    method: 'GET',
-                    qs: {
-                        key: process.env.BPTF_API_KEY,
-                        steamids: steamID64
-                    },
-                    gzip: true,
-                    json: true
-                },
-                (err, reponse, body) => {
-                    if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf: ', err);
-                        return resolve(0);
-                    }
-
-                    const user = body.users[steamID64];
-
-                    const backpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
-                    return resolve(backpackSlots);
-                }
-            );
-        });
     }
 }

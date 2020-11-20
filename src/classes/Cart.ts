@@ -7,6 +7,9 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import Bot from './Bot';
 import { UnknownDictionary } from '../types/common';
+import UserCart from './UserCart';
+import log from '../lib/logger';
+import request from 'request';
 
 export = Cart;
 
@@ -407,7 +410,7 @@ abstract class Cart {
 
                 return status;
             })
-            .catch(err => {
+            .catch(async err => {
                 if (!(err instanceof Error)) {
                     return Promise.reject(err);
                 }
@@ -444,8 +447,19 @@ abstract class Cart {
                         "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
                     );
                 } else if (error.eresult == 15) {
-                    // now need to add something here...
-                    const msg = "I don't, or the trade partner don't, have space for more items. Please take a look.";
+                    const [ourUsedSlots, ourTotalSlots] = await this.getBackpackSlots(
+                        this.bot.client.steamID.getSteamID64()
+                    );
+                    const [theirUsedSlots, theirTotalSlots] = await this.getBackpackSlots(this.partner.getSteamID64());
+                    const ourNumItems = this.summarizeOur().length;
+                    const theirNumItems = this.summarizeTheir().length;
+
+                    const msg =
+                        `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
+                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots +
+                            theirNumItems} / ${ourTotalSlots} slots used` +
+                        `\n➡️ They would have received ${ourNumItems} item(s) → ${theirUsedSlots +
+                            ourNumItems} / ${theirTotalSlots} slots used`;
                     if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
                         if (
                             process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
@@ -456,7 +470,16 @@ abstract class Cart {
                             this.bot.messageAdmins(msg, []);
                         }
                     }
-                    return Promise.reject("I don't, or you don't, have space for more items");
+                    return Promise.reject(
+                        `It appears as if ${
+                            ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
+                        } backpack is full!` +
+                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots +
+                                theirNumItems} / ${ourTotalSlots} slots used` +
+                            `\n➡️ You would have received ${ourNumItems} item(s) → ${theirUsedSlots +
+                                ourNumItems} / ${theirTotalSlots} slots used` +
+                            `\nIf this is in error, please give Steam time to refresh our backpacks`
+                    );
                 } else if (error.eresult == 20) {
                     return Promise.reject(
                         "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
@@ -592,5 +615,34 @@ abstract class Cart {
         } else {
             return cart.toString();
         }
+    }
+
+    private async getBackpackSlots(steamID64: string): Promise<number[]> {
+        return new Promise(resolve => {
+            request(
+                {
+                    url: 'https://backpack.tf/api/users/info/v1',
+                    method: 'GET',
+                    qs: {
+                        key: process.env.BPTF_API_KEY,
+                        steamids: steamID64
+                    },
+                    gzip: true,
+                    json: true
+                },
+                (err, reponse, body) => {
+                    if (err) {
+                        log.debug('Failed requesting bot info from backpack.tf: ', err);
+                        return resolve([0, 0]);
+                    }
+
+                    const user = body.users[steamID64];
+                    const usedSlots = user.inventory ? user.inventory['440'].slots.used : 0;
+                    const totalSlots = user.inventory ? user.inventory['440'].slots.total : 0;
+
+                    return resolve([usedSlots, totalSlots]);
+                }
+            );
+        });
     }
 }
