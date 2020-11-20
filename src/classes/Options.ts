@@ -1,4 +1,5 @@
 import { snakeCase } from 'change-case';
+// import log from '../lib/logger';
 
 export interface Options {
     steamAccountName?: string;
@@ -163,6 +164,8 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
     try {
         if (options && options[option]) return options[option];
         const envVar = snakeCase(option).toUpperCase();
+        // log.debug('envVar: ', envVar);
+        // log.debug('value: ', process.env[envVar] ? parseFn(process.env[envVar]) : def);
         return process.env[envVar] ? parseFn(process.env[envVar]) : def;
     } catch {
         return def;
@@ -185,70 +188,70 @@ export function loadOptions(rawOptions?: Options): Options {
 
         pricestfAPIToken: getOption('pricestfAPIToken', '', String, rawOptions),
 
-        autobump: getOption('autobump', false, Boolean, rawOptions),
+        autobump: getOption('autobump', false, JSON.parse, rawOptions),
 
         minimumScrap: getOption('minimumScrap', 9, parseInt, rawOptions),
         minimumReclaimed: getOption('minimumReclaimed', 9, parseInt, rawOptions),
         metalThreshold: getOption('metalThreshold', 9, parseInt, rawOptions),
-        disableCraftingMetal: getOption('disableCraftingMetal', false, Boolean, rawOptions),
-        disableCraftingWeapons: getOption('disableCraftingWeapons', false, Boolean, rawOptions),
-        enableShowOnlyMetal: getOption('enableShowOnlyMetal', true, Boolean, rawOptions),
+        disableCraftingMetal: getOption('disableCraftingMetal', false, JSON.parse, rawOptions),
+        disableCraftingWeapons: getOption('disableCraftingWeapons', false, JSON.parse, rawOptions),
+        enableShowOnlyMetal: getOption('enableShowOnlyMetal', true, JSON.parse, rawOptions),
 
-        enableAutoKeys: getOption('enableAutoKeys', false, Boolean, rawOptions),
-        enableAutoKeysBanking: getOption('enableAutoKeysBanking', false, Boolean, rawOptions),
+        enableAutoKeys: getOption('enableAutoKeys', false, JSON.parse, rawOptions),
+        enableAutoKeysBanking: getOption('enableAutoKeysBanking', false, JSON.parse, rawOptions),
         minimumKeys: getOption('minimumKeys', 3, parseInt, rawOptions),
         maximumKeys: getOption('maximumKeys', 15, parseInt, rawOptions),
         minimumRefinedToStartSellKeys: getOption('minimumRefinedToStartSellKeys', 30, parseInt, rawOptions),
         maximumRefinedToStopSellKeys: getOption('maximumRefinedToStopSellKeys', 150, parseInt, rawOptions),
-        disableScrapAdjustment: getOption('disableScrapAdjustment', true, Boolean, rawOptions),
+        disableScrapAdjustment: getOption('disableScrapAdjustment', true, JSON.parse, rawOptions),
         scrapAdjustmentValue: getOption('scrapAdjustmentValue', 1, parseInt, rawOptions),
-        autoKeysAcceptUnderstocked: getOption('autoKeysAcceptUnderstocked', false, Boolean, rawOptions),
+        autoKeysAcceptUnderstocked: getOption('autoKeysAcceptUnderstocked', false, JSON.parse, rawOptions),
 
-        disableInventorySort: getOption('disableInventorySort', false, Boolean, rawOptions),
-        disableListings: getOption('disableListings', false, Boolean, rawOptions),
-        disableMessages: getOption('disableMessages', false, Boolean, rawOptions),
-        disableSomethingWrongAlert: getOption('disableSomethingWrongAlert', false, Boolean, rawOptions),
-        disableCraftWeaponAsCurrency: getOption('disableCraftWeaponAsCurrency', false, Boolean, rawOptions),
-        disableGivePriceToInvalidItems: getOption('disableGivePriceToInvalidItems', false, Boolean, rawOptions),
-        disableAddFriends: getOption('disableAddFriends', false, Boolean, rawOptions),
-        disableGroupsInvite: getOption('disableGroupsInvite', false, Boolean, rawOptions),
-        disableCheckUsesDuelingMiniGame: getOption('disableCheckUsesDuelingMiniGame', false, Boolean, rawOptions),
-        disableCheckUsesNoiseMaker: getOption('disableCheckUsesNoiseMaker', false, Boolean, rawOptions),
-        disableOwnerCommand: getOption('disableOwnerCommand', false, Boolean, rawOptions),
-        disableAutoRemoveIntentSell: getOption('disableAutoRemoveIntentSell', false, Boolean, rawOptions),
+        disableInventorySort: getOption('disableInventorySort', false, JSON.parse, rawOptions),
+        disableListings: getOption('disableListings', false, JSON.parse, rawOptions),
+        disableMessages: getOption('disableMessages', false, JSON.parse, rawOptions),
+        disableSomethingWrongAlert: getOption('disableSomethingWrongAlert', false, JSON.parse, rawOptions),
+        disableCraftWeaponAsCurrency: getOption('disableCraftWeaponAsCurrency', false, JSON.parse, rawOptions),
+        disableGivePriceToInvalidItems: getOption('disableGivePriceToInvalidItems', false, JSON.parse, rawOptions),
+        disableAddFriends: getOption('disableAddFriends', false, JSON.parse, rawOptions),
+        disableGroupsInvite: getOption('disableGroupsInvite', false, JSON.parse, rawOptions),
+        disableCheckUsesDuelingMiniGame: getOption('disableCheckUsesDuelingMiniGame', false, JSON.parse, rawOptions),
+        disableCheckUsesNoiseMaker: getOption('disableCheckUsesNoiseMaker', false, JSON.parse, rawOptions),
+        disableOwnerCommand: getOption('disableOwnerCommand', false, JSON.parse, rawOptions),
+        disableAutoRemoveIntentSell: getOption('disableAutoRemoveIntentSell', false, JSON.parse, rawOptions),
 
-        disableHighValueHold: getOption('disableAutoRemoveIntentSell', false, Boolean, rawOptions),
+        disableHighValueHold: getOption('disableAutoRemoveIntentSell', false, JSON.parse, rawOptions),
         highValueSheens: getOption('highValueSheens', ['Team Shine'], JSON.parse, rawOptions),
         highValueKillstreakers: getOption('highValueKillstreakers', ['Fire Horns', 'Tornado'], JSON.parse, rawOptions),
 
-        normalizeFestivizedItems: getOption('normalizeFestivizedItems', false, Boolean, rawOptions),
-        normalizeStrangeUnusual: getOption('normalizeStrangeUnusual', false, Boolean, rawOptions),
+        normalizeFestivizedItems: getOption('normalizeFestivizedItems', false, JSON.parse, rawOptions),
+        normalizeStrangeUnusual: getOption('normalizeStrangeUnusual', false, JSON.parse, rawOptions),
 
         tradesMadeStarterValue: getOption('tradesMadeStarterValue', 0, parseInt, rawOptions),
         lastTotalTrades: getOption('lastTotalTrades', 0, parseInt, rawOptions),
         tradingStartingTimeUnix: getOption('tradingStartingTimeUnix', 0, parseInt, rawOptions),
 
-        enableDupeCheck: getOption('enableDupeCheck', true, Boolean, rawOptions),
-        declineDupes: getOption('declineDupes', false, Boolean, rawOptions),
+        enableDupeCheck: getOption('enableDupeCheck', true, JSON.parse, rawOptions),
+        declineDupes: getOption('declineDupes', false, JSON.parse, rawOptions),
         minimumKeysDupeCheck: getOption('minimumKeysDupeCheck', 10, parseInt, rawOptions),
 
-        skipBPTPTradeOfferURL: getOption('skipBPTPTradeOfferURL', true, Boolean, rawOptions),
-        skipAccountLimitations: getOption('skipAccountLimitations', true, Boolean, rawOptions),
-        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, Boolean, rawOptions),
+        skipBPTPTradeOfferURL: getOption('skipBPTPTradeOfferURL', true, JSON.parse, rawOptions),
+        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, rawOptions),
+        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, rawOptions),
 
         timezone: getOption('timezone', '', String, rawOptions),
         customTimeFormat: getOption('customTimeFormat', '', String, rawOptions),
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, rawOptions),
 
-        allowEscrow: getOption('allowEscrow', false, Boolean, rawOptions),
-        allowOverpay: getOption('allowOverpay', true, Boolean, rawOptions),
-        allowGiftWithoutNote: getOption('allowGiftWithoutNote', false, Boolean, rawOptions),
-        allowBanned: getOption('allowBanned', false, Boolean, rawOptions),
+        allowEscrow: getOption('allowEscrow', false, JSON.parse, rawOptions),
+        allowOverpay: getOption('allowOverpay', true, JSON.parse, rawOptions),
+        allowGiftWithoutNote: getOption('allowGiftWithoutNote', false, JSON.parse, rawOptions),
+        allowBanned: getOption('allowBanned', false, JSON.parse, rawOptions),
 
         maxPriceAge: getOption('maxPriceAge', 28800, parseInt, rawOptions),
 
-        debug: getOption('debug', true, Boolean, rawOptions),
-        debugFile: getOption('debugFile', true, Boolean, rawOptions),
+        debug: getOption('debug', true, JSON.parse, rawOptions),
+        debugFile: getOption('debugFile', true, JSON.parse, rawOptions),
 
         bptfDetailsBuy: getOption(
             'bptfDetailsBuy',
@@ -280,12 +283,12 @@ export function loadOptions(rawOptions?: Options): Options {
         disableDiscordWebhookSomethingWrongAlert: getOption(
             'disableDiscordWebhookSomethingWrongAlert',
             false,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookSomethingWrongAlertURL: getOption('discordWebhookSomethingWrongAlertURL', '', String, rawOptions),
 
-        disableDiscordWebhookPriceUpdate: getOption('disableDiscordWebhookPriceUpdate', false, Boolean, rawOptions),
+        disableDiscordWebhookPriceUpdate: getOption('disableDiscordWebhookPriceUpdate', false, JSON.parse, rawOptions),
         discordWebhookPriceUpdateURL: getOption('discordWebhookPriceUpdateURL', '', String, rawOptions),
         discordWebHookPriceUpdateAdditionalDescriptionNote: getOption(
             'discordWebHookPriceUpdateAdditionalDescriptionNote',
@@ -294,30 +297,35 @@ export function loadOptions(rawOptions?: Options): Options {
             rawOptions
         ),
 
-        disableDiscordWebhookTradeSummary: getOption('disableDiscordWebhookTradeSummary', false, Boolean, rawOptions),
+        disableDiscordWebhookTradeSummary: getOption(
+            'disableDiscordWebhookTradeSummary',
+            false,
+            JSON.parse,
+            rawOptions
+        ),
         discordWebhookTradeSummaryURL: getOption('discordWebhookTradeSummaryURL', [''], JSON.parse, rawOptions),
         discordWebhookTradeSummaryShowQuickLinks: getOption(
             'discordWebhookTradeSummaryShowQuickLinks',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookTradeSummaryShowKeyRate: getOption(
             'discordWebhookTradeSummaryShowKeyRate',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookTradeSummaryShowPureStock: getOption(
             'discordWebhookTradeSummaryShowPureStock',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookTradeSummaryShowInventory: getOption(
             'discordWebhookTradeSummaryShowInventory',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookTradeSummaryAdditionalDescriptionNote: getOption(
@@ -329,69 +337,69 @@ export function loadOptions(rawOptions?: Options): Options {
         discordWebhookTradeSummaryMentionOwner: getOption(
             'discordWebhookTradeSummaryMentionOwner',
             false,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU: getOption(
             'discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU',
-            [';'],
+            [''],
             JSON.parse,
             rawOptions
         ),
 
-        disableDiscordWebHookOfferReview: getOption('disableDiscordWebHookOfferReview', false, Boolean, rawOptions),
+        disableDiscordWebHookOfferReview: getOption('disableDiscordWebHookOfferReview', false, JSON.parse, rawOptions),
         discordWebHookReviewOfferURL: getOption('discordWebhookReviewOfferURL', '', String, rawOptions),
         discordWebhookReviewOfferDisableMentionInvalidValue: getOption(
             'discordWebhookReviewOfferDisableMentionInvalidValue',
             false,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookReviewOfferShowQuickLinks: getOption(
             'discordWebhookReviewOfferShowQuickLinks',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookReviewOfferShowKeyRate: getOption(
             'discordWebhookReviewOfferShowKeyRate',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookReviewOfferShowPureStock: getOption(
             'discordWebhookReviewOfferShowPureStock',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
 
         disableDiscordWebhookMessageFromPartner: getOption(
             'disableDiscordWebhookMessageFromPartner',
             false,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
         discordWebhookMessageFromPartnerURL: getOption('discordWebhookMessageFromPartnerURL', '', String, rawOptions),
         discordWebhookMessageFromPartnerShowQuickLinks: getOption(
             'discordWebhookMessageFromPartnerShowQuickLinks',
             true,
-            Boolean,
+            JSON.parse,
             rawOptions
         ),
 
-        enableManualReview: getOption('enableManualReview', true, Boolean, rawOptions),
-        disableShowReviewOfferSummary: getOption('disableShowReviewOfferSummary', false, Boolean, rawOptions),
-        disableReviewOfferNote: getOption('disableReviewOfferNote', false, Boolean, rawOptions),
-        disableShowCurrentTime: getOption('disableShowCurrentTime', false, Boolean, rawOptions),
+        enableManualReview: getOption('enableManualReview', true, JSON.parse, rawOptions),
+        disableShowReviewOfferSummary: getOption('disableShowReviewOfferSummary', false, JSON.parse, rawOptions),
+        disableReviewOfferNote: getOption('disableReviewOfferNote', false, JSON.parse, rawOptions),
+        disableShowCurrentTime: getOption('disableShowCurrentTime', false, JSON.parse, rawOptions),
 
-        disableAcceptInvalidItemsOverpay: getOption('disableAcceptInvalidItemsOverpay', true, Boolean, rawOptions),
-        disableAcceptOverstockedOverpay: getOption('disableAcceptOverstockedOverpay', true, Boolean, rawOptions),
-        disableAcceptUnderstockedOverpay: getOption('disableAcceptUnderstockedOverpay', false, Boolean, rawOptions),
+        disableAcceptInvalidItemsOverpay: getOption('disableAcceptInvalidItemsOverpay', true, JSON.parse, rawOptions),
+        disableAcceptOverstockedOverpay: getOption('disableAcceptOverstockedOverpay', true, JSON.parse, rawOptions),
+        disableAcceptUnderstockedOverpay: getOption('disableAcceptUnderstockedOverpay', false, JSON.parse, rawOptions),
 
-        disableAutoDeclineOverstocked: getOption('disableAutoDeclineOverstocked', true, Boolean, rawOptions),
-        disableAutoDeclineUnderstocked: getOption('disableAutoDeclineUnderstocked', true, Boolean, rawOptions),
-        disableAutoDeclineInvalidValue: getOption('disableAutoDeclineInvalidValue', false, Boolean, rawOptions),
+        disableAutoDeclineOverstocked: getOption('disableAutoDeclineOverstocked', true, JSON.parse, rawOptions),
+        disableAutoDeclineUnderstocked: getOption('disableAutoDeclineUnderstocked', true, JSON.parse, rawOptions),
+        disableAutoDeclineInvalidValue: getOption('disableAutoDeclineInvalidValue', false, JSON.parse, rawOptions),
         autoDeclineInvalidValueNote: getOption('autoDeclineInvalidValueNote', '', String, rawOptions),
 
         invalidValueExceptionSKUs: getOption(
@@ -410,7 +418,7 @@ export function loadOptions(rawOptions?: Options): Options {
         dupeCheckFailedNote: getOption('dupeCheckFailedNote', '', String, rawOptions),
         additionalNote: getOption('additionalNote', '', String, rawOptions),
 
-        enableOnlyPlayTF2: getOption('enableOnlyPlayTF2', false, Boolean, rawOptions),
+        enableOnlyPlayTF2: getOption('enableOnlyPlayTF2', false, JSON.parse, rawOptions),
         customPlayingGameName: getOption('customPlayingGameName', 'trading', String, rawOptions),
 
         customWelcomeMessage: getOption('customWelcomeMessage', '', String, rawOptions),
