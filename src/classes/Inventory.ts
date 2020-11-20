@@ -2,6 +2,7 @@ import { UnknownDictionary } from '../types/common';
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
+import { Options } from './Options';
 
 export = class Inventory {
     private readonly steamID: SteamID;
@@ -14,19 +15,23 @@ export = class Inventory {
 
     private nonTradable: UnknownDictionary<string[]> = {};
 
-    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema) {
+    private options: Options;
+
+    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
+        this.options = options;
     }
 
     static fromItems(
         steamID: SteamID | string,
         items: EconItem[],
         manager: TradeOfferManager,
-        schema: SchemaManager.Schema
+        schema: SchemaManager.Schema,
+        options: Options
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema);
+        const inventory = new Inventory(steamID, manager, schema, options);
 
         // Funny how typescript allows calling a private function from a static function
         inventory.setItems(items);
@@ -126,8 +131,18 @@ export = class Inventory {
             }
         });
 
-        this.tradable = Inventory.createDictionary(tradable, this.schema);
-        this.nonTradable = Inventory.createDictionary(nonTradable, this.schema);
+        this.tradable = Inventory.createDictionary(
+            tradable,
+            this.schema,
+            this.options.normalizeFestivizedItems,
+            this.options.normalizeStrangeUnusual
+        );
+        this.nonTradable = Inventory.createDictionary(
+            nonTradable,
+            this.schema,
+            this.options.normalizeFestivizedItems,
+            this.options.normalizeStrangeUnusual
+        );
     }
 
     findByAssetid(assetid: string): string | null {
@@ -751,12 +766,17 @@ export = class Inventory {
         };
     }
 
-    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema): UnknownDictionary<string[]> {
+    private static createDictionary(
+        items: EconItem[],
+        schema: SchemaManager.Schema,
+        normalizeFestivizedItems: boolean,
+        normalizeStrangeUnusual: boolean
+    ): UnknownDictionary<string[]> {
         const dict: UnknownDictionary<string[]> = {};
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const sku = item.getSKU(schema);
+            const sku = item.getSKU(schema, normalizeFestivizedItems, normalizeStrangeUnusual);
             (dict[sku] = dict[sku] || []).push(item.id);
         }
 

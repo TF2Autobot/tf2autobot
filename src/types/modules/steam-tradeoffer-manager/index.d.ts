@@ -172,7 +172,11 @@ declare module 'steam-tradeoffer-manager' {
             getTag(category: string): string | null;
 
             // Custom function added to prototype
-            getSKU(schema: SchemaManager.Schema): string | null;
+            getSKU(
+                schema: SchemaManager.Schema,
+                normalizeFestivizedItems: boolean,
+                normalizeStrangeUnusual: boolean
+            ): string | null;
         }
 
         type TradeOfferItem = {

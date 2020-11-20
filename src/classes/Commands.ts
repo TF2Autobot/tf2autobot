@@ -255,8 +255,8 @@ export = class Commands {
         } else {
             this.bot.sendMessage(
                 steamID,
-                process.env.CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN
-                    ? process.env.CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN
+                this.bot.options.customIDontKnowWhatYouMean
+                    ? this.bot.options.customIDontKnowWhatYouMean
                     : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }
@@ -285,15 +285,15 @@ export = class Commands {
     private howToTradeCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            process.env.CUSTOM_HOW2TRADE_MESSAGE
-                ? process.env.CUSTOM_HOW2TRADE_MESSAGE
+            this.bot.options.customHow2TradeMessage
+                ? this.bot.options.customHow2TradeMessage
                 : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
                       '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
         );
     }
 
     private ownerCommand(steamID: SteamID): void {
-        if (process.env.DISABLE_OWNER_COMMAND === 'true') {
+        if (this.bot.options.disableOwnerCommand) {
             this.bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
             return;
         }
@@ -309,8 +309,8 @@ export = class Commands {
 
     private discordCommand(steamID: SteamID): void {
         let reply = '';
-        if (process.env.DISCORD_SERVER_INVITE_LINK) {
-            reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+        if (this.bot.options.discordServerInviteLink) {
+            reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${this.bot.options.discordServerInviteLink}`;
         } else {
             reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
         }
@@ -575,7 +575,7 @@ export = class Commands {
     }
 
     private cartCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, Cart.stringify(steamID));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, this.bot.options.disableCraftWeaponAsCurrency));
     }
 
     private clearCartCommand(steamID: SteamID): void {
@@ -724,7 +724,7 @@ export = class Commands {
     private messageCommand(steamID: SteamID, message: string): void {
         const isAdmin = this.bot.isAdmin(steamID);
 
-        if (process.env.DISABLE_MESSAGES === 'true') {
+        if (this.bot.options.disableMessages) {
             if (isAdmin) {
                 this.bot.sendMessage(
                     steamID,
@@ -814,8 +814,8 @@ export = class Commands {
             const time = (this.bot.handler as MyHandler).timeWithEmoji();
 
             if (
-                process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
-                process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL
+                !this.bot.options.disableDiscordWebhookMessageFromPartner &&
+                this.bot.options.discordWebhookMessageFromPartnerURL
             ) {
                 this.discord.sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time);
             } else {
@@ -1398,7 +1398,7 @@ export = class Commands {
             } else {
                 newPricelist = pricelist;
 
-                if (process.env.ENABLE_AUTOKEYS === 'true') {
+                if (this.bot.options.enableAutoKeys) {
                     // Autokeys is a feature, so when updating multiple entry with
                     // "!update all=true", key entry will be removed from newPricelist.
                     // https://github.com/idinium96/tf2autobot/issues/131
@@ -2518,7 +2518,7 @@ export = class Commands {
     // Bot status
 
     private statsCommand(steamID: SteamID): void {
-        const tradesFromEnv = parseInt(process.env.LAST_TOTAL_TRADES);
+        const tradesFromEnv = this.bot.options.lastTotalTrades;
         const trades = (this.bot.handler as MyHandler).polldata();
 
         this.bot.sendMessage(
@@ -2850,10 +2850,7 @@ export = class Commands {
             let hasNot5Uses = false;
             let hasNot25Uses = false;
 
-            if (
-                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true' ||
-                process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true'
-            ) {
+            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
                 // Re-check for Dueling Mini-Game and/or Noise Maker for 5x/25x Uses only when enabled and exist in pricelist
                 log.debug('Running re-check on Dueling Mini-Game and/or Noise maker...');
 
@@ -2864,7 +2861,7 @@ export = class Commands {
                     const isNoiseMaker = noiseMakerNames.some(name => {
                         return item.market_hash_name.includes(name);
                     });
-                    if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true') {
+                    if (isDuelingMiniGame && !this.bot.options.disableCheckUsesDuelingMiniGame) {
                         // Check for Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
                         for (let i = 0; i < item.descriptions.length; i++) {
                             const descriptionValue = item.descriptions[i].value;
@@ -2883,7 +2880,7 @@ export = class Commands {
                                 break;
                             }
                         }
-                    } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true') {
+                    } else if (isNoiseMaker && !this.bot.options.disableCheckUsesNoiseMaker) {
                         // Check for Noise Maker for 25x Uses only when enabled and exist in pricelist
                         for (let i = 0; i < item.descriptions.length; i++) {
                             const descriptionValue = item.descriptions[i].value;

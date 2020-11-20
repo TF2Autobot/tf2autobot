@@ -90,7 +90,7 @@ export = class Friends {
                 const level = result.player_level;
 
                 const friendToKeep = (this.bot.handler as MyHandler).getFriendToKeep();
-                const disableAddFriends = process.env.DISABLE_ADD_FRIENDS === 'true';
+                const disableAddFriends = this.bot.options.disableAddFriends;
 
                 const base = 250;
                 const multiplier = 5;

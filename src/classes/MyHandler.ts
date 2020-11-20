@@ -35,7 +35,7 @@ import moment from 'moment-timezone';
 import log from '../lib/logger';
 import * as files from '../lib/files';
 import paths from '../resources/paths';
-import { parseJSON, exponentialBackoff } from '../lib/helpers';
+import { exponentialBackoff } from '../lib/helpers';
 import TF2Inventory from './TF2Inventory';
 import DiscordWebhookClass from './DiscordWebhook';
 import Autokeys from './Autokeys';
@@ -111,13 +111,13 @@ export = class MyHandler extends Handler {
 
         this.uptime = moment().unix();
 
-        const minimumScrap = parseInt(process.env.MINIMUM_SCRAP);
-        const minimumReclaimed = parseInt(process.env.MINIMUM_RECLAIMED);
-        const combineThreshold = parseInt(process.env.METAL_THRESHOLD);
+        const minimumScrap = this.bot.options.minimumScrap;
+        const minimumReclaimed = this.bot.options.minimumReclaimed;
+        const combineThreshold = this.bot.options.metalThreshold;
 
-        const exceptionRef = parseInt(process.env.INVALID_VALUE_EXCEPTION_VALUE_IN_REF);
+        const exceptionRef = this.bot.options.invalidValueExceptionValueInRef;
 
-        let invalidValueExceptionSKU = parseJSON(process.env.INVALID_VALUE_EXCEPTION_SKUS);
+        let invalidValueExceptionSKU = this.bot.options.invalidValueExceptionSKUs;
         if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
             invalidValueExceptionSKU.forEach((sku: string) => {
                 if (sku === '' || !sku) {
@@ -132,7 +132,7 @@ export = class MyHandler extends Handler {
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
         }
 
-        let sheens = parseJSON(process.env.HIGH_VALUE_SHEENS);
+        let sheens = this.bot.options.highValueSheens;
         if (sheens !== null && Array.isArray(sheens)) {
             sheens.forEach(sheen => {
                 if (sheen === '' || !sheen) {
@@ -149,7 +149,7 @@ export = class MyHandler extends Handler {
             this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
         }
 
-        let killstreakers = parseJSON(process.env.HIGH_VALUE_KILLSTREAKERS);
+        let killstreakers = this.bot.options.highValueKillstreakers;
         if (killstreakers !== null && Array.isArray(killstreakers)) {
             killstreakers.forEach(killstreaker => {
                 if (killstreaker === '' || !killstreaker) {
@@ -165,7 +165,7 @@ export = class MyHandler extends Handler {
             this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
         }
 
-        const customGameName = process.env.CUSTOM_PLAYING_GAME_NAME;
+        const customGameName = this.bot.options.customPlayingGameName;
 
         if (!customGameName || customGameName === 'TF2Autobot') {
             this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
@@ -195,16 +195,16 @@ export = class MyHandler extends Handler {
             this.combineThreshold = combineThreshold;
         }
 
-        if (process.env.ENABLE_DUPE_CHECK === 'true') {
+        if (this.bot.options.enableDupeCheck) {
             this.dupeCheckEnabled = true;
         }
 
-        const minimumKeysDupeCheck = parseInt(process.env.MINIMUM_KEYS_DUPE_CHECK);
+        const minimumKeysDupeCheck = this.bot.options.minimumKeysDupeCheck;
         if (!isNaN(minimumKeysDupeCheck)) {
             this.minimumKeysDupeCheck = minimumKeysDupeCheck;
         }
 
-        const groups = parseJSON(process.env.GROUPS);
+        const groups = this.bot.options.groups;
         if (groups !== null && Array.isArray(groups)) {
             groups.forEach(groupID64 => {
                 if (!new SteamID(groupID64).isValid()) {
@@ -215,7 +215,7 @@ export = class MyHandler extends Handler {
             this.groups = groups;
         }
 
-        const friendsToKeep = parseJSON(process.env.KEEP).concat(this.bot.getAdmins());
+        const friendsToKeep = this.bot.options.keep + this.bot.getAdmins().toString();
         if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
             friendsToKeep.forEach(steamID64 => {
                 if (!new SteamID(steamID64).isValid()) {
@@ -305,7 +305,7 @@ export = class MyHandler extends Handler {
                 ')'
         );
 
-        this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.bot.options.enableOnlyPlayTF2 ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(SteamUser.EPersonaState.Online);
 
         this.botSteamID = this.bot.client.steamID;
@@ -354,7 +354,7 @@ export = class MyHandler extends Handler {
 
     onShutdown(): Promise<void> {
         return new Promise(resolve => {
-            if (process.env.ENABLE_AUTOKEYS === 'true' && this.autokeys.isActive) {
+            if (this.bot.options.enableAutoKeys && this.autokeys.isActive) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
                 this.autokeys.disable(true);
             }
@@ -377,7 +377,7 @@ export = class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady()) {
             this.bot.client.setPersona(SteamUser.EPersonaState.Online);
-            this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
+            this.bot.client.gamesPlayed(this.bot.options.enableOnlyPlayTF2 ? 440 : [this.customGameName, 440]);
         }
     }
 
@@ -457,7 +457,7 @@ export = class MyHandler extends Handler {
 
     private autoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
-        if (process.env.AUTOBUMP === 'true' && this.isPremium === false) {
+        if (this.bot.options.autobump && this.isPremium === false) {
             return;
         }
 
@@ -499,10 +499,17 @@ export = class MyHandler extends Handler {
             this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
             this.bot.manager,
-            this.bot.schema
+            this.bot.schema,
+            this.bot.options
         );
 
-        const theirItems = Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot.manager, this.bot.schema);
+        const theirItems = Inventory.fromItems(
+            offer.partner,
+            offer.itemsToReceive,
+            this.bot.manager,
+            this.bot.schema,
+            this.bot.options
+        );
 
         const items = {
             our: ourItems.getItems(),
@@ -693,7 +700,11 @@ export = class MyHandler extends Handler {
             }
 
             if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                const itemSKU = item.getSKU(this.bot.schema);
+                const itemSKU = item.getSKU(
+                    this.bot.schema,
+                    this.bot.options.normalizeFestivizedItems,
+                    this.bot.options.normalizeStrangeUnusual
+                );
                 highValuedOur.skus.push(itemSKU);
 
                 const itemObj = SKU.fromString(itemSKU);
@@ -728,8 +739,8 @@ export = class MyHandler extends Handler {
                 // parsed.fullName  - tf2-items-format module
 
                 if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                    !this.bot.options.disableDiscordWebhookTradeSummary &&
+                    this.bot.options.discordWebhookTradeSummaryURL
                 ) {
                     highValuedOur.names.push(`_${itemName}_${itemDescriptions}`);
                 } else {
@@ -823,7 +834,11 @@ export = class MyHandler extends Handler {
             }
 
             if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                const itemSKU = item.getSKU(this.bot.schema);
+                const itemSKU = item.getSKU(
+                    this.bot.schema,
+                    this.bot.options.normalizeFestivizedItems,
+                    this.bot.options.normalizeStrangeUnusual
+                );
                 highValuedTheir.skus.push(itemSKU);
 
                 const itemObj = SKU.fromString(itemSKU);
@@ -851,8 +866,8 @@ export = class MyHandler extends Handler {
                 log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
 
                 if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                    process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL
+                    !this.bot.options.disableDiscordWebhookTradeSummary &&
+                    this.bot.options.discordWebhookTradeSummaryURL
                 ) {
                     highValuedTheir.names.push(`_${itemName}_${itemDescriptions}`);
                 } else {
@@ -935,7 +950,7 @@ export = class MyHandler extends Handler {
                 }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            if (process.env.ALLOW_GIFT_WITHOUT_NOTE === 'true') {
+            if (this.bot.options.allowGiftWithoutNote) {
                 offer.log(
                     'info',
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
@@ -980,10 +995,7 @@ export = class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (
-            process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
-            process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-        ) {
+        if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
             let hasNot5Uses = false;
             let hasNot25Uses = false;
             const noiseMakerSKU: string[] = [];
@@ -994,7 +1006,7 @@ export = class MyHandler extends Handler {
                     return item.market_hash_name.includes(name);
                 });
 
-                if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+                if (isDuelingMiniGame && !this.bot.options.disableCheckUsesDuelingMiniGame) {
                     // Check for Dueling Mini-Game for 5x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
@@ -1009,7 +1021,7 @@ export = class MyHandler extends Handler {
                             break;
                         }
                     }
-                } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
+                } else if (isNoiseMaker && !this.bot.options.disableCheckUsesNoiseMaker) {
                     // Check for Noise Maker for 25x Uses only when enabled
                     for (let i = 0; i < item.descriptions.length; i++) {
                         const descriptionValue = item.descriptions[i].value;
@@ -1020,7 +1032,13 @@ export = class MyHandler extends Handler {
                             descriptionColor === '00a000'
                         ) {
                             hasNot25Uses = true;
-                            noiseMakerSKU.push(item.getSKU(this.bot.schema));
+                            noiseMakerSKU.push(
+                                item.getSKU(
+                                    this.bot.schema,
+                                    this.bot.options.normalizeFestivizedItems,
+                                    this.bot.options.normalizeStrangeUnusual
+                                )
+                            );
 
                             log.debug('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                             break;
@@ -1059,8 +1077,8 @@ export = class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             if (
-                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                this.bot.options.discordWebhookSomethingWrongAlertURL
             ) {
                 this.discord.sendAlert('highValue', null, null, null, highValuedOur.names);
             } else {
@@ -1081,7 +1099,7 @@ export = class MyHandler extends Handler {
             };
         }
 
-        const manualReviewEnabled = process.env.ENABLE_MANUAL_REVIEW !== 'false';
+        const manualReviewEnabled = this.bot.options.enableManualReview;
 
         const itemPrices = {};
 
@@ -1171,7 +1189,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
-                    process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true' &&
+                    !this.bot.options.disableCraftWeaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -1179,10 +1197,9 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon =
-                        process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true'
-                            ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
-                            : true;
+                    const notIncludeCraftweapon = !this.bot.options.disableCraftWeaponAsCurrency
+                        ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
+                        : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -1284,7 +1301,7 @@ export = class MyHandler extends Handler {
                             price.sell = new Currencies(price.sell);
 
                             if (
-                                process.env.DISABLE_GIVE_PRICE_TO_INVALID_ITEMS === 'false' &&
+                                !this.bot.options.disableGivePriceToInvalidItems &&
                                 item.wear === null &&
                                 isCanBePriced
                             ) {
@@ -1320,7 +1337,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (this.bot.options.enableShowOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1388,7 +1405,7 @@ export = class MyHandler extends Handler {
                     this.bot.listings.checkBySKU('5021;6');
                 }
 
-                const isNotAcceptUnderstocked = process.env.AUTOKEYS_ACCEPT_UNDERSTOCKED !== 'true';
+                const isNotAcceptUnderstocked = !this.bot.options.autoKeysAcceptUnderstocked;
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
@@ -1502,7 +1519,7 @@ export = class MyHandler extends Handler {
             }
         }
 
-        if (exchange.our.value < exchange.their.value && process.env.ALLOW_OVERPAY === 'false') {
+        if (exchange.our.value < exchange.their.value && !this.bot.options.allowOverpay) {
             offer.log('info', 'is offering more than needed, declining...');
             return { action: 'decline', reason: 'OVERPAY' };
         }
@@ -1585,7 +1602,7 @@ export = class MyHandler extends Handler {
                 log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
                 // Decline by default
-                const declineDupes = process.env.DECLINE_DUPES !== 'false';
+                const declineDupes = this.bot.options.declineDupes;
 
                 for (let i = 0; i < result.length; i++) {
                     if (result[i] === true) {
@@ -1640,9 +1657,9 @@ export = class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
-            const canAcceptInvalidItemsOverpay = process.env.DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY !== 'true';
-            const canAcceptOverstockedOverpay = process.env.DISABLE_ACCEPT_OVERSTOCKED_OVERPAY === 'false';
-            const canAcceptUnderstockedOverpay = process.env.DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY === 'false';
+            const canAcceptInvalidItemsOverpay = !this.bot.options.disableAcceptInvalidItemsOverpay;
+            const canAcceptOverstockedOverpay = !this.bot.options.disableAcceptOverstockedOverpay;
+            const canAcceptUnderstockedOverpay = !this.bot.options.disableAutoDeclineOverstocked;
 
             // accepting 🟨_INVALID_ITEMS overpay
 
@@ -1732,7 +1749,7 @@ export = class MyHandler extends Handler {
                     }
                 };
             } else if (
-                process.env.DISABLE_AUTO_DECLINE_INVALID_VALUE !== 'true' &&
+                !this.bot.options.disableAutoDeclineInvalidValue &&
                 isInvalidValue &&
                 !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
@@ -1740,14 +1757,14 @@ export = class MyHandler extends Handler {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
-                process.env.DISABLE_AUTO_DECLINE_OVERSTOCKED === 'false' &&
+                !this.bot.options.disableAutoDeclineOverstocked &&
                 isOverstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
-                process.env.DISABLE_AUTO_DECLINE_UNDERSTOCKED === 'false' &&
+                !this.bot.options.disableAutoDeclineUnderstocked &&
                 isUnderstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
@@ -1855,8 +1872,8 @@ export = class MyHandler extends Handler {
                 if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
                     this.bot.sendMessage(
                         offer.partner,
-                        process.env.CUSTOM_SUCCESS_MESSAGE
-                            ? process.env.CUSTOM_SUCCESS_MESSAGE
+                        this.bot.options.customSuccessMessage
+                            ? this.bot.options.customSuccessMessage
                             : '/pre ✅ Success! The offer went through successfully.'
                     );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
@@ -1872,7 +1889,7 @@ export = class MyHandler extends Handler {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrices = this.bot.pricelist.getKeyPrices();
                     const value = this.valueDiff(offer, keyPrices);
-                    const manualReviewDisabled = process.env.ENABLE_MANUAL_REVIEW === 'false';
+                    const manualReviewDisabled = !this.bot.options.enableManualReview;
 
                     let reasonForInvalidValue = false;
                     let reason: string;
@@ -1942,18 +1959,17 @@ export = class MyHandler extends Handler {
                         "\n[You're missing: " +
                         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
                         `${
-                            process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
-                                ? '\n\nNote from owner: ' + process.env.AUTO_DECLINE_INVALID_VALUE_NOTE
+                            this.bot.options.autoDeclineInvalidValueNote
+                                ? '\n\nNote from owner: ' + this.bot.options.autoDeclineInvalidValueNote
                                 : ''
                         }`;
 
                     this.bot.sendMessage(
                         offer.partner,
-                        process.env.CUSTOM_DECLINED_MESSAGE
-                            ? process.env.CUSTOM_DECLINED_MESSAGE.replace(/%reason%/g, reason).replace(
-                                  /%invalid_value_summary%/g,
-                                  invalidValueSummary
-                              )
+                        this.bot.options.customDeclinedMessage
+                            ? this.bot.options.customDeclinedMessage
+                                  .replace(/%reason%/g, reason)
+                                  .replace(/%invalid_value_summary%/g, invalidValueSummary)
                             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
                                   reason ? ` because ${reason}` : '.'
                               }` + (reasonForInvalidValue ? invalidValueSummary : '')
@@ -1977,8 +1993,8 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InvalidItems) {
                     this.bot.sendMessage(
                         offer.partner,
-                        process.env.CUSTOM_TRADED_AWAY_MESSAGE
-                            ? process.env.CUSTOM_TRADED_AWAY_MESSAGE
+                        this.bot.options.customTradedAwayMessage
+                            ? this.bot.options.customTradedAwayMessage
                             : '/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade).'
                     );
                 }
@@ -2125,7 +2141,7 @@ export = class MyHandler extends Handler {
                 const value = this.valueDiff(offer, keyPrices);
 
                 if (
-                    process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
+                    !this.bot.options.disableDiscordWebhookTradeSummary &&
                     this.discord.tradeSummaryLinks.length !== 0
                 ) {
                     this.discord.sendTradeSummary(
@@ -2309,7 +2325,7 @@ export = class MyHandler extends Handler {
                     inPrice !== null &&
                     isDisableSKU.includes(sku) &&
                     isNotPureOrWeapons &&
-                    process.env.DISABLE_HIGH_VALUE_HOLD !== 'true'
+                    !this.bot.options.disableHighValueHold
                 ) {
                     // If item received is high value, temporarily disable that item so it will not be sellable.
                     const entry = {
@@ -2340,8 +2356,8 @@ export = class MyHandler extends Handler {
                             }
 
                             if (
-                                process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                                process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                                !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                                this.bot.options.discordWebhookSomethingWrongAlertURL
                             ) {
                                 this.discord.sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null);
                             } else {
@@ -2352,7 +2368,7 @@ export = class MyHandler extends Handler {
                             log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
                         });
                 } else if (
-                    process.env.DISABLE_AUTO_REMOVE_INTENT_SELL !== 'true' &&
+                    !this.bot.options.disableAutoRemoveIntentSell &&
                     inPrice !== null &&
                     inPrice.intent === 1 &&
                     currentStock < 1 &&
@@ -2416,8 +2432,8 @@ export = class MyHandler extends Handler {
                     invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
                 });
 
-                note = process.env.INVALID_ITEMS_NOTE
-                    ? `🟨_INVALID_ITEMS - ${process.env.INVALID_ITEMS_NOTE}`
+                note = this.bot.options.invalidItemsNote
+                    ? `🟨_INVALID_ITEMS - ${this.bot.options.invalidItemsNote}`
                           .replace(/%name%/g, invalidForTheir.join(', '))
                           .replace(/%isName%/, pluralize('is', invalidForTheir.length))
                     : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
@@ -2442,8 +2458,8 @@ export = class MyHandler extends Handler {
                     overstockedForOur.push(name + ' (can only buy ' + el.amountCanTrade + ')');
                 });
 
-                note = process.env.OVERSTOCKED_NOTE
-                    ? `🟦_OVERSTOCKED - ${process.env.OVERSTOCKED_NOTE}`
+                note = this.bot.options.overstockedNote
+                    ? `🟦_OVERSTOCKED - ${this.bot.options.overstockedNote}`
                           .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
                           .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
                     : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
@@ -2465,8 +2481,8 @@ export = class MyHandler extends Handler {
                     understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
                 });
 
-                note = process.env.UNDERSTOCKED_NOTE
-                    ? `🟩_UNDERSTOCKED - ${process.env.UNDERSTOCKED_NOTE}`
+                note = this.bot.options.understockedNote
+                    ? `🟩_UNDERSTOCKED - ${this.bot.options.understockedNote}`
                           .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
                           .replace(/%isName%/, pluralize('is', understockedForTheir.length))
                     : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
@@ -2484,8 +2500,8 @@ export = class MyHandler extends Handler {
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     if (
-                        process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
-                        process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                        !this.bot.options.disableDiscordWebHookOfferReview &&
+                        this.bot.options.discordWebHookReviewOfferURL
                     ) {
                         // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                         dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
@@ -2495,8 +2511,8 @@ export = class MyHandler extends Handler {
                     }
                 });
 
-                note = process.env.DUPE_ITEMS_NOTE
-                    ? `🟫_DUPED_ITEMS - ${process.env.DUPE_ITEMS_NOTE}`
+                note = this.bot.options.dupeItemsNote
+                    ? `🟫_DUPED_ITEMS - ${this.bot.options.dupeItemsNote}`
                           .replace(/%name%/g, dupedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedItemsName.length))
                     : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
@@ -2520,8 +2536,8 @@ export = class MyHandler extends Handler {
                         const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
 
                         if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
-                            process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                            !this.bot.options.disableDiscordWebHookOfferReview &&
+                            this.bot.options.discordWebHookReviewOfferURL
                         ) {
                             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                             dupedFailedItemsName.push(
@@ -2537,8 +2553,8 @@ export = class MyHandler extends Handler {
                             const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
 
                             if (
-                                process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
-                                process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
+                                !this.bot.options.disableDiscordWebHookOfferReview &&
+                                this.bot.options.discordWebHookReviewOfferURL
                             ) {
                                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                                 dupedFailedItemsName.push(
@@ -2554,8 +2570,8 @@ export = class MyHandler extends Handler {
                     }
                 });
 
-                note = process.env.DUPE_CHECK_FAILED_NOTE
-                    ? `🟪_DUPE_CHECK_FAILED - ${process.env.DUPE_CHECK_FAILED_NOTE}`
+                note = this.bot.options.dupeCheckFailedNote
+                    ? `🟪_DUPE_CHECK_FAILED - ${this.bot.options.dupeCheckFailedNote}`
                           .replace(/%name%/g, dupedFailedItemsName.join(', '))
                           .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
                     : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
@@ -2565,8 +2581,8 @@ export = class MyHandler extends Handler {
             }
 
             if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
-                note = process.env.INVALID_VALUE_NOTE
-                    ? `🟥_INVALID_VALUE - ${process.env.INVALID_VALUE_NOTE}`
+                note = this.bot.options.invalidValueNote
+                    ? `🟥_INVALID_VALUE - ${this.bot.options.invalidValueNote}`
                     : "🟥_INVALID_VALUE - You're taking too much in value.";
 
                 reviewReasons.push(note);
@@ -2589,11 +2605,11 @@ export = class MyHandler extends Handler {
             }
 
             const hasCustomNote =
-                process.env.INVALID_ITEMS_NOTE ||
-                process.env.OVERSTOCKED_NOTE ||
-                process.env.UNDERSTOCKED_NOTE ||
-                process.env.DUPE_ITEMS_NOTE ||
-                process.env.DUPE_CHECK_FAILED_NOTE
+                this.bot.options.invalidItemsNote ||
+                this.bot.options.overstockedNote ||
+                this.bot.options.understockedNote ||
+                this.bot.options.dupeItemsNote ||
+                this.bot.options.dupeCheckFailedNote
                     ? true
                     : false;
 
@@ -2610,7 +2626,7 @@ export = class MyHandler extends Handler {
                 this.bot.sendMessage(
                     offer.partner,
                     `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
-                        (process.env.DISABLE_SHOW_REVIEW_OFFER_SUMMARY !== 'true'
+                        (this.bot.options.disableShowReviewOfferSummary
                             ? '\n\nOffer Summary:\n' +
                               offer
                                   .summarize(this.bot.schema)
@@ -2619,19 +2635,18 @@ export = class MyHandler extends Handler {
                               (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                                   ? missingPureNote
                                   : '') +
-                              (process.env.DISABLE_REVIEW_OFFER_NOTE !== 'true'
+                              (!this.bot.options.disableReviewOfferNote
                                   ? `\n\nNote:\n${reviewReasons.join('\n') +
                                         (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
                                   : '')
                             : '') +
-                        (process.env.ADDITIONAL_NOTE
+                        (this.bot.options.additionalNote
                             ? '\n\n' +
-                              process.env.ADDITIONAL_NOTE.replace(
-                                  /%keyRate%/g,
-                                  `${keyPrices.sell.metal.toString()} ref`
-                              ).replace(/%pureStock%/g, pureStock.join(', ').toString())
+                              this.bot.options.additionalNote
+                                  .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
+                                  .replace(/%pureStock%/g, pureStock.join(', ').toString())
                             : '') +
-                        (process.env.DISABLE_SHOW_CURRENT_TIME !== 'true'
+                        (!this.bot.options.disableShowCurrentTime
                             ? `\n\nIt is currently the following time in my owner's timezone: ${
                                   timeWithEmojis.emoji
                               } ${timeWithEmojis.time +
@@ -2651,10 +2666,7 @@ export = class MyHandler extends Handler {
 
             const list = listItems(items);
 
-            if (
-                process.env.DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW === 'false' &&
-                process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL
-            ) {
+            if (!this.bot.options.disableDiscordWebHookOfferReview && this.bot.options.discordWebHookReviewOfferURL) {
                 this.discord.sendOfferReview(
                     offer,
                     reasons.join(', '),
@@ -2689,7 +2701,7 @@ export = class MyHandler extends Handler {
     }
 
     private keepMetalSupply(): void {
-        if (process.env.DISABLE_CRAFTING_METAL === 'true') {
+        if (this.bot.options.disableCraftingMetal) {
             return;
         }
         const pure = this.currPure();
@@ -2750,7 +2762,7 @@ export = class MyHandler extends Handler {
     }
 
     private craftDuplicateWeapons(): Promise<void> {
-        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+        if (this.bot.options.disableCraftingWeapons) {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
@@ -2797,7 +2809,7 @@ export = class MyHandler extends Handler {
     }
 
     private craftClassWeapons(): Promise<void> {
-        if (process.env.DISABLE_CRAFTING_WEAPONS === 'true') {
+        if (this.bot.options.disableCraftingWeapons) {
             return;
         }
         const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
@@ -2814,13 +2826,13 @@ export = class MyHandler extends Handler {
     }
 
     private sortInventory(): void {
-        if (process.env.DISABLE_INVENTORY_SORT !== 'true') {
+        if (!this.bot.options.disableInventorySort) {
             this.bot.tf2gc.sortInventory(3);
         }
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
-        if (process.env.DISABLE_GROUPS_INVITE === 'true') {
+        if (this.bot.options.disableGroupsInvite) {
             // You still need to include the group ID in your env.
             return;
         }
@@ -2894,11 +2906,11 @@ export = class MyHandler extends Handler {
 
                     this.bot.sendMessage(
                         steamID,
-                        process.env.CUSTOM_WELCOME_MESSAGE
-                            ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, '').replace(
-                                  /%admin%/g,
-                                  isAdmin ? '!help' : '!how2trade'
-                              ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                        this.bot.options.customWelcomeMessage
+                            ? this.bot.options.customWelcomeMessage
+                                  .replace(/%name%/g, '')
+                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
+                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
                                   `" - TF2Autobot v${process.env.BOT_VERSION}`
@@ -2919,11 +2931,11 @@ export = class MyHandler extends Handler {
 
             this.bot.sendMessage(
                 steamID,
-                process.env.CUSTOM_WELCOME_MESSAGE
-                    ? process.env.CUSTOM_WELCOME_MESSAGE.replace(/%name%/g, friend.player_name).replace(
-                          /%admin%/g,
-                          isAdmin ? '!help' : '!how2trade'
-                      ) + ` - TF2Autobot v${process.env.BOT_VERSION}`
+                this.bot.options.customWelcomeMessage
+                    ? this.bot.options.customWelcomeMessage
+                          .replace(/%name%/g, friend.player_name)
+                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
+                          ` - TF2Autobot v${process.env.BOT_VERSION}`
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
                           `" - TF2Autobot v${process.env.BOT_VERSION}`
@@ -2976,8 +2988,8 @@ export = class MyHandler extends Handler {
                 const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
-                    process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE
-                        ? process.env.CUSTOM_CLEARING_FRIENDS_MESSAGE.replace(/%name%/g, friend.player_name)
+                    this.bot.options.customClearingFriendsMessage
+                        ? this.bot.options.customClearingFriendsMessage.replace(/%name%/g, friend.player_name)
                         : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!'
                 );
                 this.bot.client.removeFriend(element.steamID);
@@ -3045,7 +3057,7 @@ export = class MyHandler extends Handler {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
                     qs: {
-                        key: process.env.BPTF_API_KEY,
+                        key: this.bot.options.bptfAPIKey,
                         steamids: steamID64
                     },
                     gzip: true,
@@ -3129,7 +3141,7 @@ export = class MyHandler extends Handler {
                 }
             };
 
-            if (!(process.env.ENABLE_SHOW_ONLY_METAL === 'true')) {
+            if (!this.bot.options.enableShowOnlyMetal) {
                 // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
                 if (this.isTradingKeys) {
                     // If trading keys, then their side need to use buying key price.
@@ -3177,11 +3189,13 @@ export = class MyHandler extends Handler {
 
     timeWithEmoji(): { time: string; emoji: string; note: string } {
         const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+            .tz(this.bot.options.timezone ? this.bot.options.timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            .format(
+                this.bot.options.customTimeFormat ? this.bot.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
+            ); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
 
         const timeEmoji = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+            .tz(this.bot.options.timezone ? this.bot.options.timezone : 'UTC')
             .format();
         const emoji =
             timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
@@ -3210,7 +3224,7 @@ export = class MyHandler extends Handler {
                 ? '🕚'
                 : '';
 
-        const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
+        const timeNote = this.bot.options.timeAdditionalNotes ? this.bot.options.timeAdditionalNotes : '';
 
         const timeWithEmoji = {
             time: time,
@@ -3273,9 +3287,9 @@ export = class MyHandler extends Handler {
         const pollData = this.bot.manager.pollData;
         const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
         const timeSince =
-            +process.env.TRADING_STARTING_TIME_UNIX === 0
+            +this.bot.options.tradingStartingTimeUnix === 0
                 ? pollData.timestamps[oldestId]
-                : +process.env.TRADING_STARTING_TIME_UNIX;
+                : +this.bot.options.tradingStartingTimeUnix;
         const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
 
         const offerData = this.bot.manager.pollData.offerData;
@@ -3381,7 +3395,7 @@ export = class MyHandler extends Handler {
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(process.env.ENABLE_ONLY_PLAY_TF2 === 'true' ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.bot.options.enableOnlyPlayTF2 ? 440 : [this.customGameName, 440]);
     }
 };
 

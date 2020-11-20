@@ -14,8 +14,7 @@ import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
 
 import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
-
-const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
+import { Options } from './Options';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -139,13 +138,16 @@ export default class Pricelist extends EventEmitter {
     //     time: string;
     // }[] = [];
 
-    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
+    private maxAge: number;
+
+    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket, private options?: Options) {
         super();
         this.schema = schema;
         this.socket = socket;
 
         this.socket.removeListener('price', this.handlePriceChange.bind(this));
         this.socket.on('price', this.handlePriceChange.bind(this));
+        this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
     }
 
     getKeyPrices(): { buy: Currencies; sell: Currencies; src: string; time: number } {
@@ -459,9 +461,6 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(keyPricesPTF.sell)
             };
 
-            // const isEnabledScrapAdjustment =
-            //     process.env.ENABLE_AUTOKEYS === 'true' && process.env.DISABLE_SCRAP_ADJUSTMENT === 'false';
-
             if (entryKey !== null && !entryKey.autoprice) {
                 this.globalKeyPrices = {
                     buy: entryKey.buy,
@@ -560,8 +559,8 @@ export default class Pricelist extends EventEmitter {
             const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                process.env.ENABLE_AUTOKEYS === 'true' &&
-                process.env.DISABLE_SCRAP_ADJUSTMENT === 'false' &&
+                this.options.enableAutoKeys &&
+                this.options.disableScrapAdjustment &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
@@ -595,14 +594,11 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (
-                process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
-                process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
-            ) {
+            if (this.options.disableDiscordWebhookPriceUpdate && this.options.discordWebhookPriceUpdateURL) {
                 const time = moment()
-                    .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
                     .format(
-                        process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
+                        this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
                 this.sendWebHookPriceUpdateV1(
@@ -680,8 +676,8 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            username: this.options.discordWebhookUserName,
+            avatar_url: this.options.discordWebhookAvatarURL,
             content: '',
             embeds: [
                 {
@@ -713,8 +709,8 @@ export default class Pricelist extends EventEmitter {
                             inline: true
                         }
                     ],
-                    description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                    description: this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
+                        ? this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
                         : '',
                     color: qualityColorPrint
                 }
@@ -723,7 +719,7 @@ export default class Pricelist extends EventEmitter {
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        request.open('POST', this.options.discordWebhookPriceUpdateURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(priceUpdate);
     }
@@ -838,8 +834,8 @@ export default class Pricelist extends EventEmitter {
                         inline: true
                     }
                 ],
-                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                description: this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
+                    ? this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
                     : '',
                 color: qualityColorPrint
             });
@@ -848,27 +844,27 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            username: this.options.discordWebhookUserName,
+            avatar_url: this.options.discordWebhookAvatarURL,
             content: '',
             embeds: embed
         });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        request.open('POST', this.options.discordWebhookPriceUpdateURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(priceUpdate);
     }
 
     private getOld(): Entry[] {
-        if (maxAge <= 0) {
+        if (this.maxAge <= 0) {
             return this.prices;
         }
 
         const now = moment().unix();
 
-        return this.prices.filter(entry => entry.time + maxAge <= now);
+        return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
     static groupPrices(prices: any[]): UnknownDictionary<UnknownDictionary<any[]>> {

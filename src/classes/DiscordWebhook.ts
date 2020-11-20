@@ -4,7 +4,6 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import log from '../lib/logger';
 import Currencies from 'tf2-currencies';
-import { parseJSON } from '../lib/helpers';
 import MyHandler from './MyHandler';
 import pluralize from 'pluralize';
 
@@ -20,11 +19,11 @@ export = class DiscordWebhookClass {
     constructor(bot: Bot) {
         this.bot = bot;
 
-        if (process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER === 'true') {
+        if (this.bot.options.discordWebhookTradeSummaryMentionOwner) {
             this.enableMentionOwner = true;
         }
 
-        let links = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL);
+        let links = this.bot.options.discordWebhookTradeSummaryURL;
         if (links !== null && Array.isArray(links)) {
             links.forEach((sku: string) => {
                 if (sku === '' || !sku) {
@@ -37,7 +36,7 @@ export = class DiscordWebhookClass {
             this.tradeSummaryLinks = [];
         }
 
-        let skuFromEnv = parseJSON(process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU);
+        let skuFromEnv = this.bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU;
         if (skuFromEnv !== null && Array.isArray(skuFromEnv)) {
             skuFromEnv.forEach((sku: string) => {
                 if (sku === '' || !sku) {
@@ -94,11 +93,11 @@ export = class DiscordWebhookClass {
 
         /*eslint-disable */
         const webhook = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+            username: this.bot.options.discordWebhookUserName ? this.bot.options.discordWebhookUserName : botInfo.name,
+            avatar_url: this.bot.options.discordWebhookAvatarURL
+                ? this.bot.options.discordWebhookAvatarURL
                 : botInfo.avatarURL,
-            content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${process.env.DISCORD_OWNER_ID}>` : '',
+            content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${this.bot.options.discordOwnerID}>` : '',
             embeds: [
                 {
                     title: title,
@@ -113,7 +112,7 @@ export = class DiscordWebhookClass {
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.open('POST', this.bot.options.discordWebhookSomethingWrongAlertURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(webhook);
     }
@@ -129,11 +128,11 @@ export = class DiscordWebhookClass {
 
         /*eslint-disable */
         const discordPartnerMsg = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+            username: this.bot.options.discordWebhookUserName ? this.bot.options.discordWebhookUserName : botInfo.name,
+            avatar_url: this.bot.options.discordWebhookAvatarURL
+                ? this.bot.options.discordWebhookAvatarURL
                 : botInfo.avatarURL,
-            content: `<@!${process.env.DISCORD_OWNER_ID}>, new message! - ${steamID}`,
+            content: `<@!${this.bot.options.discordOwnerID}>, new message! - ${steamID}`,
             embeds: [
                 {
                     author: {
@@ -146,14 +145,14 @@ export = class DiscordWebhookClass {
                     },
                     title: '',
                     description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
-                    color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                    color: this.bot.options.discordWebhookEmdedColorInDecimalIndex
                 }
             ]
         });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+        request.open('POST', this.bot.options.discordWebhookMessageFromPartnerURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(discordPartnerMsg);
     }
@@ -175,7 +174,7 @@ export = class DiscordWebhookClass {
         }
     ): void {
         let noMentionOnInvalidValue = false;
-        if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
+        if (this.bot.options.discordWebhookReviewOfferDisableMentionInvalidValue) {
             if (
                 reasons.includes('🟥_INVALID_VALUE') &&
                 !(
@@ -193,7 +192,7 @@ export = class DiscordWebhookClass {
         }
         const mentionOwner = noMentionOnInvalidValue
             ? `${offer.id}`
-            : `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`;
+            : `<@!${this.bot.options.discordOwnerID}>, check this! - ${offer.id}`;
 
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         const pureStock = (this.bot.handler as MyHandler).pureStock();
@@ -228,15 +227,15 @@ export = class DiscordWebhookClass {
 
             const partnerNameNoFormat = replaceSpecialChar(partnerName);
 
-            const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
-            const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
-            const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+            const isShowQuickLinks = this.bot.options.discordWebhookReviewOfferShowQuickLinks;
+            const isShowKeyRate = this.bot.options.discordWebhookReviewOfferShowKeyRate;
+            const isShowPureStock = this.bot.options.discordWebhookReviewOfferShowPureStock;
 
             /*eslint-disable */
             const webhookReview = {
-                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                username: this.bot.options.discordWebhookUserName ? this.bot.options.discordWebhookUserName : botInfo.name,
+                avatar_url: this.bot.options.discordWebhookAvatarURL
+                    ? this.bot.options.discordWebhookAvatarURL
                     : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
@@ -278,7 +277,7 @@ export = class DiscordWebhookClass {
                                     (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                             }
                         ],
-                        color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                        color: this.bot.options.discordWebhookEmdedColorInDecimalIndex
                     }
                 ]
             };
@@ -335,7 +334,7 @@ export = class DiscordWebhookClass {
             }
 
             const request = new XMLHttpRequest();
-            request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
+            request.open('POST', this.bot.options.discordWebhookSomethingWrongAlertURL);
             request.setRequestHeader('Content-type', 'application/json');
             request.send(JSON.stringify(webhookReview));
         });
@@ -392,7 +391,7 @@ export = class DiscordWebhookClass {
 
         const mentionOwner =
             IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-                ? `<@!${process.env.DISCORD_OWNER_ID}> - Accepted ${
+                ? `<@!${this.bot.options.discordOwnerID}> - Accepted ${
                       IVAmount > 0 && isMentionHV
                           ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                           : IVAmount > 0 && !isMentionHV
@@ -402,7 +401,7 @@ export = class DiscordWebhookClass {
                           : ''
                   } trade here!`
                 : this.enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
-                ? `<@!${process.env.DISCORD_OWNER_ID}>`
+                ? `<@!${this.bot.options.discordOwnerID}>`
                 : '';
 
         const tradeLinks = this.tradeSummaryLinks;
@@ -410,7 +409,7 @@ export = class DiscordWebhookClass {
         const pureStock = (this.bot.handler as MyHandler).pureStock();
         const trades = (this.bot.handler as MyHandler).polldata();
 
-        const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
+        const tradeNumbertoShowStarter = this.bot.options.tradesMadeStarterValue;
 
         const tradesMade =
             tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
@@ -436,17 +435,17 @@ export = class DiscordWebhookClass {
 
             const partnerNameNoFormat = replaceSpecialChar(personaName);
 
-            const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
-            const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
-            const isShowPureStock = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK !== 'false';
-            const isShowInventory = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY !== 'false';
-            const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
+            const isShowQuickLinks = this.bot.options.discordWebhookTradeSummaryShowQuickLinks;
+            const isShowKeyRate = this.bot.options.discordWebhookTradeSummaryShowKeyRate;
+            const isShowPureStock = this.bot.options.discordWebhookTradeSummaryShowPureStock;
+            const isShowInventory = this.bot.options.discordWebhookTradeSummaryShowInventory;
+            const AdditionalNotes = this.bot.options.discordWebhookTradeSummaryAdditionalDescriptionNote;
 
             /*eslint-disable */
             const acceptedTradeSummary = {
-                username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-                avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                    ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+                username: this.bot.options.discordWebhookUserName ? this.bot.options.discordWebhookUserName : botInfo.name,
+                avatar_url: this.bot.options.discordWebhookAvatarURL
+                    ? this.bot.options.discordWebhookAvatarURL
                     : botInfo.avatarURL,
                 content: mentionOwner,
                 embeds: [
@@ -501,7 +500,7 @@ export = class DiscordWebhookClass {
                                         : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                             }
                         ],
-                        color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                        color: this.bot.options.discordWebhookEmdedColorInDecimalIndex
                     }
                 ]
             };

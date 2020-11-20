@@ -26,7 +26,7 @@ export = class BotManager {
 
     private exiting = false;
 
-    constructor() {
+    constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
         this.socket = io('https://api.prices.tf', {
             forceNew: true,
@@ -35,7 +35,7 @@ export = class BotManager {
 
         this.socket.on('connect', () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', process.env.PRICESTF_API_TOKEN || undefined);
+            this.socket.emit('authentication', pricestfApiToken);
         });
 
         this.socket.on('authenticated', () => {
