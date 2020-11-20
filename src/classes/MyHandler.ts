@@ -103,7 +103,7 @@ export = class MyHandler extends Handler {
 
         const exceptionRef = this.bot.options.invalidValueExceptionValueInRef;
 
-        let invalidValueExceptionSKU = this.bot.options.invalidValueExceptionSKUs;
+        let invalidValueExceptionSKU = this.bot.options.invalidValueExceptionSKUS;
         if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
             invalidValueExceptionSKU.forEach((sku: string) => {
                 if (sku === '' || !sku) {
@@ -340,7 +340,7 @@ export = class MyHandler extends Handler {
 
     onShutdown(): Promise<void> {
         return new Promise(resolve => {
-            if (this.bot.options.enableAutoKeys && this.autokeys.isActive) {
+            if (this.bot.options.enableAutokeys && this.autokeys.isActive) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
                 this.autokeys.disable(true);
             }
@@ -759,7 +759,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
-                    !this.bot.options.disableCraftWeaponAsCurrency &&
+                    !this.bot.options.disableCraftweaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -767,7 +767,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = !this.bot.options.disableCraftWeaponAsCurrency
+                    const notIncludeCraftweapon = !this.bot.options.disableCraftweaponAsCurrency
                         ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                         : true;
 

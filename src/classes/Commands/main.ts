@@ -81,7 +81,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, this.bot.options.disableCraftWeaponAsCurrency);
+            this.cartCommand(steamID, this.bot.options.disableCraftweaponAsCurrency);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {

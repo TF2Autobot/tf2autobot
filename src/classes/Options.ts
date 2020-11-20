@@ -26,8 +26,8 @@ export interface Options {
     disableCraftingWeapons?: boolean;
     enableShowOnlyMetal?: boolean;
 
-    enableAutoKeys?: boolean;
-    enableAutoKeysBanking?: boolean;
+    enableAutokeys?: boolean;
+    enableAutokeysBanking?: boolean;
     minimumKeys?: number;
     maximumKeys?: number;
     minimumRefinedToStartSellKeys?: number;
@@ -40,7 +40,7 @@ export interface Options {
     disableListings?: boolean;
     disableMessages?: boolean;
     disableSomethingWrongAlert?: boolean;
-    disableCraftWeaponAsCurrency?: boolean;
+    disableCraftweaponAsCurrency?: boolean;
     disableGivePriceToInvalidItems?: boolean;
     disableAddFriends?: boolean;
     disableGroupsInvite?: boolean;
@@ -64,7 +64,7 @@ export interface Options {
     declineDupes?: boolean;
     minimumKeysDupeCheck?: number;
 
-    skipBPTPTradeOfferURL?: boolean;
+    skipBPTFTradeofferURL?: boolean;
     skipAccountLimitations?: boolean;
     skipUpdateProfileSettings?: boolean;
 
@@ -90,7 +90,7 @@ export interface Options {
     discordServerInviteLink?: string;
 
     discordOwnerID?: string;
-    discordWebhookUserName?: string;
+    discordWebhookUsername?: string;
     discordWebhookAvatarURL?: string;
     discordWebhookEmdedColorInDecimalIndex?: string;
 
@@ -136,7 +136,7 @@ export interface Options {
     disableAutoDeclineInvalidValue?: boolean;
     autoDeclineInvalidValueNote?: string;
 
-    invalidValueExceptionSKUs?: Array<string>;
+    invalidValueExceptionSKUS?: Array<string>;
     invalidValueExceptionValueInRef?: number;
 
     invalidValueNote?: string;
@@ -152,7 +152,7 @@ export interface Options {
 
     customWelcomeMessage?: string;
     customIDontKnowWhatYouMean?: string;
-    customHow2TradeMessage?: string;
+    customHow2tradeMessage?: string;
 
     customSuccessMessage?: string;
     customDeclinedMessage?: string;
@@ -197,8 +197,8 @@ export function loadOptions(rawOptions?: Options): Options {
         disableCraftingWeapons: getOption('disableCraftingWeapons', false, JSON.parse, rawOptions),
         enableShowOnlyMetal: getOption('enableShowOnlyMetal', true, JSON.parse, rawOptions),
 
-        enableAutoKeys: getOption('enableAutoKeys', false, JSON.parse, rawOptions),
-        enableAutoKeysBanking: getOption('enableAutoKeysBanking', false, JSON.parse, rawOptions),
+        enableAutokeys: getOption('enableAutokeys', false, JSON.parse, rawOptions),
+        enableAutokeysBanking: getOption('enableAutokeysBanking', false, JSON.parse, rawOptions),
         minimumKeys: getOption('minimumKeys', 3, parseInt, rawOptions),
         maximumKeys: getOption('maximumKeys', 15, parseInt, rawOptions),
         minimumRefinedToStartSellKeys: getOption('minimumRefinedToStartSellKeys', 30, parseInt, rawOptions),
@@ -211,7 +211,7 @@ export function loadOptions(rawOptions?: Options): Options {
         disableListings: getOption('disableListings', false, JSON.parse, rawOptions),
         disableMessages: getOption('disableMessages', false, JSON.parse, rawOptions),
         disableSomethingWrongAlert: getOption('disableSomethingWrongAlert', false, JSON.parse, rawOptions),
-        disableCraftWeaponAsCurrency: getOption('disableCraftWeaponAsCurrency', false, JSON.parse, rawOptions),
+        disableCraftweaponAsCurrency: getOption('disableCraftweaponAsCurrency', false, JSON.parse, rawOptions),
         disableGivePriceToInvalidItems: getOption('disableGivePriceToInvalidItems', false, JSON.parse, rawOptions),
         disableAddFriends: getOption('disableAddFriends', false, JSON.parse, rawOptions),
         disableGroupsInvite: getOption('disableGroupsInvite', false, JSON.parse, rawOptions),
@@ -220,7 +220,7 @@ export function loadOptions(rawOptions?: Options): Options {
         disableOwnerCommand: getOption('disableOwnerCommand', false, JSON.parse, rawOptions),
         disableAutoRemoveIntentSell: getOption('disableAutoRemoveIntentSell', false, JSON.parse, rawOptions),
 
-        disableHighValueHold: getOption('disableAutoRemoveIntentSell', false, JSON.parse, rawOptions),
+        disableHighValueHold: getOption('disableHighValueHold', false, JSON.parse, rawOptions),
         highValueSheens: getOption('highValueSheens', ['Team Shine'], JSON.parse, rawOptions),
         highValueKillstreakers: getOption('highValueKillstreakers', ['Fire Horns', 'Tornado'], JSON.parse, rawOptions),
 
@@ -235,7 +235,7 @@ export function loadOptions(rawOptions?: Options): Options {
         declineDupes: getOption('declineDupes', false, JSON.parse, rawOptions),
         minimumKeysDupeCheck: getOption('minimumKeysDupeCheck', 10, parseInt, rawOptions),
 
-        skipBPTPTradeOfferURL: getOption('skipBPTPTradeOfferURL', true, JSON.parse, rawOptions),
+        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, rawOptions),
         skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, rawOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, rawOptions),
 
@@ -271,7 +271,7 @@ export function loadOptions(rawOptions?: Options): Options {
         discordServerInviteLink: getOption('discordServerInviteLink', '', String, rawOptions),
 
         discordOwnerID: getOption('discordOwnerID', '', String, rawOptions),
-        discordWebhookUserName: getOption('discordWebhookUserName', '', String, rawOptions),
+        discordWebhookUsername: getOption('discordWebhookUsername', '', String, rawOptions),
         discordWebhookAvatarURL: getOption('discordWebhookAvatarURL', '', String, rawOptions),
         discordWebhookEmdedColorInDecimalIndex: getOption(
             'discordWebhookEmdedColorInDecimalIndex',
@@ -402,8 +402,8 @@ export function loadOptions(rawOptions?: Options): Options {
         disableAutoDeclineInvalidValue: getOption('disableAutoDeclineInvalidValue', false, JSON.parse, rawOptions),
         autoDeclineInvalidValueNote: getOption('autoDeclineInvalidValueNote', '', String, rawOptions),
 
-        invalidValueExceptionSKUs: getOption(
-            'invalidValueExceptionSKUs',
+        invalidValueExceptionSKUS: getOption(
+            'invalidValueExceptionSKUS',
             [';5;u', ';11;australium'],
             JSON.parse,
             rawOptions
@@ -423,7 +423,7 @@ export function loadOptions(rawOptions?: Options): Options {
 
         customWelcomeMessage: getOption('customWelcomeMessage', '', String, rawOptions),
         customIDontKnowWhatYouMean: getOption('customIDontKnowWhatYouMean', '', String, rawOptions),
-        customHow2TradeMessage: getOption('customHow2TradeMessage', '', String, rawOptions),
+        customHow2tradeMessage: getOption('customHow2tradeMessage', '', String, rawOptions),
 
         customSuccessMessage: getOption('customSuccessMessage', '', String, rawOptions),
         customDeclinedMessage: getOption('customDeclinedMessage', '', String, rawOptions),

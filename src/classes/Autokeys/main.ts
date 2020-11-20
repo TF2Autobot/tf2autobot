@@ -65,11 +65,11 @@ export = class Autokeys {
         this.isEnableScrapAdjustment = scrapAdjustment.enabled;
         this.scrapAdjustmentValue = scrapAdjustment.value;
 
-        if (bot.options.enableAutoKeys) {
+        if (bot.options.enableAutokeys) {
             this.isEnabled = true;
         }
 
-        if (bot.options.enableAutoKeysBanking) {
+        if (bot.options.enableAutokeysBanking) {
             this.isKeyBankingEnabled = true;
         }
     }

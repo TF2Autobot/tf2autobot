@@ -556,7 +556,7 @@ export default class Pricelist extends EventEmitter {
             const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                this.options.enableAutoKeys &&
+                this.options.enableAutokeys &&
                 this.options.disableScrapAdjustment &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
@@ -673,7 +673,7 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhookUserName,
+            username: this.options.discordWebhookUsername,
             avatar_url: this.options.discordWebhookAvatarURL,
             content: '',
             embeds: [
@@ -841,7 +841,7 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhookUserName,
+            username: this.options.discordWebhookUsername,
             avatar_url: this.options.discordWebhookAvatarURL,
             content: '',
             embeds: embed

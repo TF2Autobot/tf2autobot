@@ -455,7 +455,7 @@ abstract class Cart {
     private sendWebhookFullAlert(msg: string): void {
         /*eslint-disable */
         const fullBackpack = JSON.stringify({
-            username: this.bot.options.discordWebhookUserName,
+            username: this.bot.options.discordWebhookUsername,
             avatar_url: this.bot.options.discordWebhookAvatarURL,
             content: `<@!${this.bot.options.discordOwnerID}>`,
             embeds: [
