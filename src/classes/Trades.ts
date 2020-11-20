@@ -448,7 +448,7 @@ export = class Trades {
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
-            this.bot.community.acceptConfirmationForObject(process.env.STEAM_IDENTITY_SECRET, offer.id, err => {
+            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 const confirmationTime = moment().valueOf() - start;
                 offer.data('confirmationTime', confirmationTime);
 

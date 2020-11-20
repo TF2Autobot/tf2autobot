@@ -112,7 +112,7 @@ class CartQueue {
 
         log.debug('Constructing offer');
 
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
+        if (!this.bot.options.disableCraftWeaponAsCurrency) {
             Promise.resolve(cart.constructOfferWithWeapons())
                 .then(alteredMessage => {
                     log.debug('Constructed offer');

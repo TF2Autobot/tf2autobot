@@ -352,7 +352,7 @@ abstract class Cart {
         this.offer.data('handleTimestamp', moment().valueOf());
 
         this.offer.setMessage(
-            'Powered by TF2Autobot' + (process.env.OFFER_MESSAGE ? '. ' + process.env.OFFER_MESSAGE : '')
+            'Powered by TF2Autobot' + (this.bot.options.offerMessage ? '. ' + this.bot.options.offerMessage : '')
         );
 
         if (this.notify === true) {
@@ -410,10 +410,10 @@ abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (!this.bot.options.disableSomethingWrongAlert) {
                         if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                            this.bot.options.discordWebhookSomethingWrongAlertURL
                         ) {
                             this.sendWebhookFullAlert(msg);
                         } else {
@@ -427,10 +427,10 @@ abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const msg = "I don't, or the trade partner don't, have space for more items. Please take a look.";
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT === 'false') {
+                    if (this.bot.options.disableSomethingWrongAlert) {
                         if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                            this.bot.options.discordWebhookSomethingWrongAlertURL
                         ) {
                             this.sendWebhookFullAlert(msg);
                         } else {
@@ -455,9 +455,9 @@ abstract class Cart {
     private sendWebhookFullAlert(msg: string): void {
         /*eslint-disable */
         const fullBackpack = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: `<@!${process.env.DISCORD_OWNER_ID}>`,
+            username: this.bot.options.discordWebhookUserName,
+            avatar_url: this.bot.options.discordWebhookAvatarURL,
+            content: `<@!${this.bot.options.discordOwnerID}>`,
             embeds: [
                 {
                     title: 'Something Wrong',
@@ -465,7 +465,7 @@ abstract class Cart {
                     color: '16711680',
                     footer: {
                         text: moment()
-                            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+                            .tz(this.bot.options.timezone ? this.bot.options.timezone : 'UTC')
                             .format('MMMM Do YYYY, HH:mm:ss ZZ')
                     }
                 }
@@ -474,7 +474,7 @@ abstract class Cart {
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+        request.open('POST', this.bot.options.discordWebhookSomethingWrongAlertURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(fullBackpack);
     }
@@ -561,14 +561,14 @@ abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID): string {
+    static stringify(steamID: SteamID, disableCraftWeaponAsCurrency: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
             return '❌ Your cart is empty.';
         }
 
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
+        if (!disableCraftWeaponAsCurrency) {
             return cart.toStringWithWeapons();
         } else {
             return cart.toString();

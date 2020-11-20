@@ -56,11 +56,11 @@ export = class Autokeys {
         this.isEnableScrapAdjustment = scrapAdjustment.enabled;
         this.scrapAdjustmentValue = scrapAdjustment.value;
 
-        if (process.env.ENABLE_AUTOKEYS === 'true') {
+        if (bot.options.enableAutoKeys) {
             this.isEnabled = true;
         }
 
-        if (process.env.ENABLE_AUTOKEYS_BANKING === 'true') {
+        if (bot.options.enableAutoKeysBanking) {
             this.isKeyBankingEnabled = true;
         }
     }
@@ -375,10 +375,10 @@ export = class Autokeys {
                 };
                 this.isActive = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
+                if (this.bot.options.disableSomethingWrongAlert) {
                     if (
-                        process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                        process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                        !this.bot.options.disableSomethingWrongAlert &&
+                        this.bot.options.discordWebhookSomethingWrongAlertURL
                     ) {
                         sendAlert('lowPure', msg, null, null, null, this.bot);
                     } else {
@@ -478,10 +478,10 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
+                    if (!this.bot.options.disableSomethingWrongAlert) {
                         if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                            this.bot.options.discordWebhookSomethingWrongAlertURL
                         ) {
                             sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
@@ -602,10 +602,10 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (process.env.DISABLE_SOMETHING_WRONG_ALERT !== 'true') {
+                    if (!this.bot.options.disableSomethingWrongAlert) {
                         if (
-                            process.env.DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT === 'false' &&
-                            process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL
+                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
+                            this.bot.options.discordWebhookSomethingWrongAlertURL
                         ) {
                             sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
@@ -646,8 +646,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsBuy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsSell
                 }
             } as any;
         } else {
@@ -667,8 +667,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsBuy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsSell
                 }
             } as any;
         }

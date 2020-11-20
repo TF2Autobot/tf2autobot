@@ -1,15 +1,18 @@
 import request from '@nicklason/request-retry';
 import SteamID from 'steamid';
 
-export async function isBanned(steamID: SteamID | string): Promise<boolean> {
+export async function isBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
-    const [bptf, steamrep] = await Promise.all([isBptfBanned(steamID64), isSteamRepMarked(steamID64)]);
+    const [bptf, steamrep] = await Promise.all([
+        isBptfBanned(steamID64, bptfApiKey),
+        isSteamRepMarked(steamID64, bptfApiKey)
+    ]);
 
     return bptf || steamrep;
 }
 
-function isBptfBanned(steamID: SteamID | string): Promise<boolean> {
+function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
@@ -17,7 +20,7 @@ function isBptfBanned(steamID: SteamID | string): Promise<boolean> {
             {
                 url: 'https://backpack.tf/api/users/info/v1',
                 qs: {
-                    key: process.env.BPTF_API_KEY,
+                    key: bptfApiKey,
                     steamids: steamID64
                 },
                 gzip: true,
@@ -36,7 +39,7 @@ function isBptfBanned(steamID: SteamID | string): Promise<boolean> {
     });
 }
 
-function isBptfSteamRepBanned(steamID: SteamID | string): Promise<boolean> {
+function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
@@ -44,7 +47,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string): Promise<boolean> {
             {
                 url: 'https://backpack.tf/api/users/info/v1',
                 qs: {
-                    key: process.env.BPTF_API_KEY,
+                    key: bptfApiKey,
                     steamids: steamID64
                 },
                 gzip: true,
@@ -64,7 +67,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string): Promise<boolean> {
     });
 }
 
-function isSteamRepMarked(steamID: SteamID | string): Promise<boolean> {
+function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise(resolve => {
@@ -79,7 +82,7 @@ function isSteamRepMarked(steamID: SteamID | string): Promise<boolean> {
             },
             (err, response, body) => {
                 if (err) {
-                    return isBptfSteamRepBanned(steamID64);
+                    return isBptfSteamRepBanned(steamID64, bptfApiKey);
                 }
 
                 return resolve(body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1);

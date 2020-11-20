@@ -26,6 +26,7 @@ import Groups from './Groups';
 
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
+import { loadOptions, Options } from './Options';
 
 export = class Bot {
     // Modules and classes
@@ -85,7 +86,10 @@ export = class Bot {
 
     private ready = false;
 
-    constructor(botManager: BotManager) {
+    public options: Options;
+
+    constructor(botManager: BotManager, options?: Options) {
+        this.options = loadOptions(options);
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema();
@@ -103,7 +107,7 @@ export = class Bot {
         });
 
         this.listingManager = new ListingManager({
-            token: process.env.BPTF_ACCESS_TOKEN,
+            token: this.options.bptfAccessToken,
             batchSize: 25,
             waitTime: 100,
             schema: this.schema
@@ -119,12 +123,10 @@ export = class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.socket);
+        this.pricelist = new Pricelist(this.schema, this.socket, this.options);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
-        this.admins = (process.env.ADMINS === undefined ? [] : JSON.parse(process.env.ADMINS)).map(
-            (steamID: string) => new SteamID(steamID)
-        );
+        this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
         this.admins.forEach(steamID => {
             if (!steamID.isValid()) {
@@ -132,7 +134,7 @@ export = class Bot {
             }
         });
 
-        this.alertTypes = process.env.ALERTS === undefined ? [] : JSON.parse(process.env.ALERTS);
+        this.alertTypes = this.options.alerts;
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
@@ -176,15 +178,15 @@ export = class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
-        if (process.env.ALLOW_BANNED === 'true') {
+        if (this.options.allowBanned) {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID));
+        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
     }
 
     checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
-        if (process.env.ALLOW_ESCROW === 'true') {
+        if (this.options.allowEscrow) {
             return Promise.resolve(false);
         }
 
@@ -322,7 +324,7 @@ export = class Bot {
                             .asCallback(callback);
                     },
                     (callback): void => {
-                        if (process.env.SKIP_ACCOUNT_LIMITATIONS === 'true') {
+                        if (this.options.skipAccountLimitations) {
                             return callback(null);
                         }
 
@@ -371,7 +373,12 @@ export = class Bot {
                             log.info('Signed in to Steam!');
 
                             // We now know our SteamID, but we still don't have our Steam API key
-                            const inventory = new Inventory(this.client.steamID, this.manager, this.schema);
+                            const inventory = new Inventory(
+                                this.client.steamID,
+                                this.manager,
+                                this.schema,
+                                this.options
+                            );
                             this.inventoryManager.setInventory(inventory);
 
                             return callback(null);
@@ -394,7 +401,7 @@ export = class Bot {
                         });
                     },
                     (callback): void => {
-                        if (process.env.BPTF_API_KEY && process.env.BPTF_ACCESS_TOKEN) {
+                        if (this.options.bptfAPIKey && this.options.bptfAccessToken) {
                             return callback(null);
                         }
 
@@ -423,13 +430,13 @@ export = class Bot {
                                 },
                                 (callback): void => {
                                     log.debug('Initializing bptf-listings...');
-                                    this.listingManager.token = process.env.BPTF_ACCESS_TOKEN;
+                                    this.listingManager.token = this.options.bptfAccessToken;
                                     this.listingManager.steamid = this.client.steamID;
 
                                     this.listingManager.init(callback);
                                 },
                                 (callback): void => {
-                                    if (process.env.SKIP_UPDATE_PROFILE_SETTINGS === 'true') {
+                                    if (this.options.skipUpdateProfileSettings) {
                                         return callback(null);
                                     }
 
@@ -585,8 +592,8 @@ export = class Bot {
                 ([apiKey, accessToken]) => {
                     log.verbose('Got backpack.tf API key and access token!');
 
-                    process.env.BPTF_API_KEY = apiKey;
-                    process.env.BPTF_ACCESS_TOKEN = accessToken;
+                    this.options.bptfAPIKey = apiKey;
+                    this.options.bptfAccessToken = accessToken;
 
                     this.handler.onBptfAuth({ apiKey, accessToken });
 
@@ -684,7 +691,7 @@ export = class Bot {
                     password?: string;
                     loginKey?: string;
                 } = {
-                    accountName: process.env.STEAM_ACCOUNT_NAME,
+                    accountName: this.options.steamAccountName,
                     logonID: 69420,
                     rememberPassword: true
                 };
@@ -694,7 +701,7 @@ export = class Bot {
                     details.loginKey = loginKey;
                 } else {
                     log.debug('Signing in using password');
-                    details.password = process.env.STEAM_PASSWORD;
+                    details.password = this.options.steamPassword;
                 }
 
                 this.newLoginAttempt();
@@ -788,7 +795,7 @@ export = class Bot {
 
         this.getTimeOffset().asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
-            const confKey = SteamTotp.getConfirmationKey(process.env.STEAM_IDENTITY_SECRET, time, tag);
+            const confKey = SteamTotp.getConfirmationKey(this.options.steamIdentitySecret, time, tag);
 
             return callback(null, time, confKey);
         });
@@ -858,7 +865,7 @@ export = class Bot {
             // ignore error
         }
 
-        return SteamTotp.generateAuthCode(process.env.STEAM_SHARED_SECRET, offset);
+        return SteamTotp.generateAuthCode(this.options.steamSharedSecret, offset);
     }
 
     private getTimeOffset(): Promise<number> {
