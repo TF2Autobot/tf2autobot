@@ -1,6 +1,6 @@
 import Currencies from 'tf2-currencies';
 
-import { scrapAdjustment } from './userSettings';
+import { genScrapAdjustment } from './userSettings';
 
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
@@ -11,6 +11,7 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
     const keyPrices = bot.pricelist.getKeyPrices();
     let entry;
 
+    const scrapAdjustment = genScrapAdjustment(bot.options.scrapAdjustmentValue, bot.options.disableScrapAdjustment);
     if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {
         entry = {
             sku: '5021;6',
@@ -20,8 +21,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
             }
         } as any;
     } else if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
@@ -41,8 +42,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
             }
         } as any;
     } else if (scrapAdjustment.enabled) {
@@ -62,8 +63,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_BUY,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + process.env.BPTF_DETAILS_SELL
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
             }
         } as any;
     }

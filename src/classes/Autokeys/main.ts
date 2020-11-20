@@ -1,6 +1,6 @@
 import Currencies from 'tf2-currencies';
 
-import { userPure, scrapAdjustment } from './userSettings';
+import { genUserPure, genScrapAdjustment } from './userSettings';
 import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
 
 import Bot from '../Bot';
@@ -52,7 +52,16 @@ export = class Autokeys {
     constructor(bot: Bot) {
         this.bot = bot;
 
-        this.userPure = userPure;
+        this.userPure = genUserPure(
+            bot.options.minimumKeys,
+            bot.options.maximumKeys,
+            bot.options.minimumRefinedToStartSellKeys,
+            bot.options.maximumRefinedToStopSellKeys
+        );
+        const scrapAdjustment = genScrapAdjustment(
+            bot.options.scrapAdjustmentValue,
+            bot.options.disableScrapAdjustment
+        );
         this.isEnableScrapAdjustment = scrapAdjustment.enabled;
         this.scrapAdjustmentValue = scrapAdjustment.value;
 

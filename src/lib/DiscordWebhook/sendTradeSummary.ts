@@ -64,7 +64,7 @@ export default function sendTradeSummary(
 
     const mentionOwner =
         IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${process.env.DISCORD_OWNER_ID}> - Accepted ${
+            ? `<@!${bot.options.discordOwnerID}> - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -74,7 +74,7 @@ export default function sendTradeSummary(
                       : ''
               } trade here!`
             : enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
-            ? `<@!${process.env.DISCORD_OWNER_ID}>`
+            ? `<@!${bot.options.discordOwnerID}>`
             : '';
 
     const tradeLinks = tradeSummaryLinks;
@@ -82,7 +82,7 @@ export default function sendTradeSummary(
     const pureStock = pure.stock(bot);
     const trades = stats(bot);
 
-    const tradeNumbertoShowStarter = parseInt(process.env.TRADES_MADE_STARTER_VALUE);
+    const tradeNumbertoShowStarter = bot.options.tradesMadeStarterValue;
 
     const tradesMade =
         tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
@@ -108,17 +108,17 @@ export default function sendTradeSummary(
 
         const partnerNameNoFormat = replace.specialChar(personaName);
 
-        const isShowQuickLinks = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS !== 'false';
-        const isShowKeyRate = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE !== 'false';
-        const isShowPureStock = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK !== 'false';
-        const isShowInventory = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY !== 'false';
-        const AdditionalNotes = process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE;
+        const isShowQuickLinks = bot.options.discordWebhookTradeSummaryShowQuickLinks;
+        const isShowKeyRate = bot.options.discordWebhookTradeSummaryShowKeyRate;
+        const isShowPureStock = bot.options.discordWebhookTradeSummaryShowPureStock;
+        const isShowInventory = bot.options.discordWebhookTradeSummaryShowInventory;
+        const AdditionalNotes = bot.options.discordWebhookTradeSummaryAdditionalDescriptionNote;
 
         /*eslint-disable */
         const acceptedTradeSummary = {
-            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+            username: bot.options.discordWebhookUserName ? bot.options.discordWebhookUserName : botInfo.name,
+            avatar_url: bot.options.discordWebhookAvatarURL
+                ? bot.options.discordWebhookAvatarURL
                 : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
@@ -173,7 +173,7 @@ export default function sendTradeSummary(
                                     : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                         }
                     ],
-                    color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                    color: bot.options.discordWebhookEmdedColorInDecimalIndex
                 }
             ]
         };

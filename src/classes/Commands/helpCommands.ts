@@ -96,8 +96,8 @@ export function moreCommand(steamID: SteamID, bot: Bot): void {
 export function howToTradeCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(
         steamID,
-        process.env.CUSTOM_HOW2TRADE_MESSAGE
-            ? process.env.CUSTOM_HOW2TRADE_MESSAGE
+        bot.options.customHow2TradeMessage
+            ? bot.options.customHow2TradeMessage
             : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
                   '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
     );

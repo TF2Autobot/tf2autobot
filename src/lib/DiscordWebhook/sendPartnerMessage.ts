@@ -17,11 +17,11 @@ export default function sendPartnerMessage(
 
     /*eslint-disable */
     const discordPartnerMsg = JSON.stringify({
-        username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-            ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+        username: bot.options.discordWebhookUserName ? bot.options.discordWebhookUserName : botInfo.name,
+        avatar_url: bot.options.discordWebhookAvatarURL
+            ? bot.options.discordWebhookAvatarURL
             : botInfo.avatarURL,
-        content: `<@!${process.env.DISCORD_OWNER_ID}>, new message! - ${steamID}`,
+        content: `<@!${bot.options.discordOwnerID}>, new message! - ${steamID}`,
         embeds: [
             {
                 author: {
@@ -34,14 +34,14 @@ export default function sendPartnerMessage(
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
-                color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                color: bot.options.discordWebhookEmdedColorInDecimalIndex
             }
         ]
     });
     /*eslint-enable */
 
     const request = new XMLHttpRequest();
-    request.open('POST', process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL);
+    request.open('POST', bot.options.discordWebhookMessageFromPartnerURL);
     request.setRequestHeader('Content-type', 'application/json');
     request.send(discordPartnerMsg);
 }

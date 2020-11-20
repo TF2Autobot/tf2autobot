@@ -484,7 +484,14 @@ class UserCart extends Cart {
                 }
             }
 
-            const filtered = fetched.filter(item => item.getSKU(this.bot.schema) === sku);
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
@@ -1863,7 +1870,14 @@ class UserCart extends Cart {
                 }
             }
 
-            const filtered = fetched.filter(item => item.getSKU(this.bot.schema) === sku);
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
@@ -1871,8 +1885,7 @@ class UserCart extends Cart {
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = check
-            .highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
+            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
 
             offer.data('highValue', highValuedTheir);
 

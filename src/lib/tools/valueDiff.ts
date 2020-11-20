@@ -5,7 +5,8 @@ import { Currency } from '../../types/TeamFortress2';
 export default function valueDiff(
     offer: TradeOffer,
     keyPrices: { buy: Currencies; sell: Currencies },
-    isTradingKeys: boolean
+    isTradingKeys: boolean,
+    enableShowOnlyMetal: boolean
 ): { diff: number; diffRef: number; diffKey: string } {
     const value: { our: Currency; their: Currency } = offer.data('value');
 
@@ -28,7 +29,7 @@ export default function valueDiff(
             }
         };
 
-        if (!(process.env.ENABLE_SHOW_ONLY_METAL === 'true')) {
+        if (!enableShowOnlyMetal) {
             // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
             if (isTradingKeys) {
                 // If trading keys, then their side need to use buying key price.

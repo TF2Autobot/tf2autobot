@@ -187,10 +187,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         let hasNot5Uses = false;
         let hasNot25Uses = false;
 
-        if (
-            process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME !== 'true' ||
-            process.env.DISABLE_CHECK_USES_NOISE_MAKER !== 'true'
-        ) {
+        if (!bot.options.disableCheckUsesDuelingMiniGame || !bot.options.disableCheckUsesNoiseMaker) {
             // Re-check for Dueling Mini-Game and/or Noise Maker for 5x/25x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Dueling Mini-Game and/or Noise maker...');
 

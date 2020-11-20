@@ -1401,7 +1401,7 @@ export = class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
                     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
                     const keyPrices = this.bot.pricelist.getKeyPrices();
-                    const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+                    const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.enableShowOnlyMetal);
                     this.isTradingKeys = false; // reset
                     const manualReviewDisabled = !this.bot.options.enableManualReview;
 
@@ -1539,7 +1539,11 @@ export = class MyHandler extends Handler {
                 };
 
                 const pureStock = pure.stock(this.bot);
-                const timeWithEmojis = timeNow();
+                const timeWithEmojis = timeNow(
+                    this.bot.options.timezone,
+                    this.bot.options.customTimeFormat,
+                    this.bot.options.timeAdditionalNotes
+                );
                 const links = generateLinks(offer.partner.toString());
                 const itemsList = this.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
@@ -1652,13 +1656,10 @@ export = class MyHandler extends Handler {
                 }
 
                 const keyPrices = this.bot.pricelist.getKeyPrices();
-                const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+                const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.enableShowOnlyMetal);
                 this.isTradingKeys = false; // reset
 
-                if (
-                    !this.bot.options.disableDiscordWebhookTradeSummary &&
-                    this.discord.tradeSummaryLinks.length !== 0
-                ) {
+                if (!this.bot.options.disableDiscordWebhookTradeSummary && tradeSummaryLinks.length !== 0) {
                     sendTradeSummary(
                         offer,
                         autokeys,
@@ -1920,9 +1921,13 @@ export = class MyHandler extends Handler {
 
         const keyPrices = this.bot.pricelist.getKeyPrices();
         const pureStock = pure.stock(this.bot);
-        const value = valueDiff(offer, keyPrices, this.isTradingKeys);
+        const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.enableShowOnlyMetal);
         this.isTradingKeys = false; // reset
-        const timeWithEmojis = timeNow();
+        const timeWithEmojis = timeNow(
+            this.bot.options.timezone,
+            this.bot.options.customTimeFormat,
+            this.bot.options.timeAdditionalNotes
+        );
         const links = generateLinks(offer.partner.toString());
 
         if (action === 'skip') {

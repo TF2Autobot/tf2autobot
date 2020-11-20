@@ -11,7 +11,7 @@ import MyHandler from '../MyHandler';
 import { pure, timeNow } from '../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
-    const timeWithEmojis = timeNow();
+    const timeWithEmojis = timeNow(bot.options.timezone, bot.options.timezone, bot.options.timeAdditionalNotes);
     bot.sendMessage(
         steamID,
         `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${timeWithEmojis.time +
@@ -163,7 +163,7 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function ownerCommand(steamID: SteamID, bot: Bot): void {
-    if (process.env.DISABLE_OWNER_COMMAND === 'true') {
+    if (bot.options.disableOwnerCommand) {
         bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
         return;
     }
@@ -179,8 +179,8 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
 
 export function discordCommand(steamID: SteamID, bot: Bot): void {
     let reply = '';
-    if (process.env.DISCORD_SERVER_INVITE_LINK) {
-        reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${process.env.DISCORD_SERVER_INVITE_LINK}`;
+    if (bot.options.discordServerInviteLink) {
+        reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${bot.options.discordServerInviteLink}`;
     } else {
         reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
     }
