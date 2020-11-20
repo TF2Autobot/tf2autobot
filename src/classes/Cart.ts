@@ -7,7 +7,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import Bot from './Bot';
 import { UnknownDictionary } from '../types/common';
-import UserCart from './UserCart';
+import Inventory from './Inventory';
 import log from '../lib/logger';
 import request from 'request';
 
@@ -447,10 +447,16 @@ abstract class Cart {
                         "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
                     );
                 } else if (error.eresult == 15) {
-                    const [ourUsedSlots, ourTotalSlots] = await this.getBackpackSlots(
-                        this.bot.client.steamID.getSteamID64()
-                    );
-                    const [theirUsedSlots, theirTotalSlots] = await this.getBackpackSlots(this.partner.getSteamID64());
+                    const [ourUsedSlots, ourTotalSlots] = [
+                        this.bot.inventoryManager.getInventory().getTotalItems(),
+                        this.bot.tf2.backpackSlots
+                    ];
+
+                    const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+                    this.getTheirInventoryCount(await theirInventory.fetchWithReturn());
+                    const theirUsedSlots = this.theirInventoryCount;
+                    const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
+
                     const ourNumItems = this.summarizeOur().length;
                     const theirNumItems = this.summarizeTheir().length;
 
@@ -617,7 +623,7 @@ abstract class Cart {
         }
     }
 
-    private async getBackpackSlots(steamID64: string): Promise<number[]> {
+    private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
             request(
                 {
@@ -633,14 +639,13 @@ abstract class Cart {
                 (err, reponse, body) => {
                     if (err) {
                         log.debug('Failed requesting bot info from backpack.tf: ', err);
-                        return resolve([0, 0]);
+                        return resolve(0);
                     }
 
                     const user = body.users[steamID64];
-                    const usedSlots = user.inventory ? user.inventory['440'].slots.used : 0;
-                    const totalSlots = user.inventory ? user.inventory['440'].slots.total : 0;
+                    const totalBackpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
 
-                    return resolve([usedSlots, totalSlots]);
+                    return resolve(totalBackpackSlots);
                 }
             );
         });
