@@ -29,7 +29,7 @@ export default function sendOfferReview(
 ): void {
     let noMentionOnInvalidValue = false;
     if (bot.options.discordWebhookReviewOfferDisableMentionInvalidValue) {
-        if (
+        noMentionOnInvalidValue =
             reasons.includes('🟥_INVALID_VALUE') &&
             !(
                 reasons.includes('🟩_UNDERSTOCKED') ||
@@ -37,12 +37,7 @@ export default function sendOfferReview(
                 reasons.includes('🟦_OVERSTOCKED') ||
                 reasons.includes('🟫_DUPED_ITEMS') ||
                 reasons.includes('🟪_DUPE_CHECK_FAILED')
-            )
-        ) {
-            noMentionOnInvalidValue = true;
-        } else {
-            noMentionOnInvalidValue = false;
-        }
+            );
     }
     const mentionOwner = noMentionOnInvalidValue
         ? `${offer.id}`

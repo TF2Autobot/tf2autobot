@@ -23,5 +23,5 @@ export function specialChar(toChange: string): string {
         .replace(/\(/g, '/')
         .replace(/\)/g, '/')
         .replace(/\[/g, '/')
-        .replace(/\]/g, '/');
+        .replace(/]/g, '/');
 }

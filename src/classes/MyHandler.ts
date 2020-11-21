@@ -20,7 +20,7 @@ import Inventory from './Inventory';
 import TF2Inventory from './TF2Inventory';
 import Autokeys from './Autokeys/main';
 
-import paths, { Paths } from '../resources/paths';
+import { Paths } from '../resources/paths';
 import log from '../lib/logger';
 import * as files from '../lib/files';
 import { exponentialBackoff } from '../lib/helpers';
@@ -1002,7 +1002,7 @@ export = class MyHandler extends Handler {
         }
 
         const exceptionSKU = this.invalidValueExceptionSKU;
-        const itemsList = this.itemList(offer);
+        const itemsList = MyHandler.itemList(offer);
         const ourItemsSKU = itemsList.our;
         const theirItemsSKU = itemsList.their;
 
@@ -1245,8 +1245,8 @@ export = class MyHandler extends Handler {
                 canAcceptInvalidItemsOverpay &&
                 (exchange.our.value < exchange.their.value ||
                     (exchange.our.value === exchange.their.value && hasNoPrice)) &&
-                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true) &&
-                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (isUnderstocked ? canAcceptUnderstockedOverpay : true);
 
             // accepting 🟦_OVERSTOCKED overpay
 
@@ -1254,8 +1254,8 @@ export = class MyHandler extends Handler {
                 isOverstocked &&
                 canAcceptOverstockedOverpay &&
                 exchange.our.value < exchange.their.value &&
-                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
-                (isUnderstocked ? (canAcceptUnderstockedOverpay ? true : false) : true);
+                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (isUnderstocked ? canAcceptUnderstockedOverpay : true);
 
             // accepting 🟩_UNDERSTOCKED overpay
 
@@ -1263,8 +1263,8 @@ export = class MyHandler extends Handler {
                 isUnderstocked &&
                 canAcceptUnderstockedOverpay &&
                 exchange.our.value < exchange.their.value &&
-                (isInvalidItem ? (canAcceptInvalidItemsOverpay ? true : false) : true) &&
-                (isOverstocked ? (canAcceptOverstockedOverpay ? true : false) : true);
+                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (isOverstocked ? canAcceptOverstockedOverpay : true);
 
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked) &&
@@ -1457,13 +1457,13 @@ export = class MyHandler extends Handler {
                         offerReason.reason === 'ONLY_OVERSTOCKED' ||
                         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
                     ) {
-                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reasonForInvalidValue = value.diffRef !== 0;
                         reason = "you're attempting to sell item(s) that I can't buy more of.";
                     } else if (
                         offerReason.reason === 'ONLY_UNDERSTOCKED' ||
                         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
                     ) {
-                        reasonForInvalidValue = value.diffRef !== 0 ? true : false;
+                        reasonForInvalidValue = value.diffRef !== 0;
                         reason = "you're attempting to purchase item(s) that I can't sell more of.";
                     } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
                         reason = "I don't accept duped items.";
@@ -1552,7 +1552,7 @@ export = class MyHandler extends Handler {
                     this.bot.options.timeAdditionalNotes
                 );
                 const links = generateLinks(offer.partner.toString());
-                const itemsList = this.itemList(offer);
+                const itemsList = MyHandler.itemList(offer);
                 const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
                 const accepted: {
@@ -2133,14 +2133,13 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            const hasCustomNote =
+            const hasCustomNote = !!(
                 this.bot.options.invalidItemsNote ||
                 this.bot.options.overstockedNote ||
                 this.bot.options.understockedNote ||
                 this.bot.options.dupeItemsNote ||
                 this.bot.options.dupeCheckFailedNote
-                    ? true
-                    : false;
+            );
 
             // Notify partner and admin that the offer is waiting for manual review
             if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
@@ -2624,23 +2623,21 @@ export = class MyHandler extends Handler {
         });
     }
 
-    private itemList(offer: TradeOffer): { their: string[]; our: string[] } {
+    private static itemList(offer: TradeOffer): { their: string[]; our: string[] } {
         const items: { our: {}; their: {} } = offer.data('dict');
         const their: string[] = [];
-        for (const sku in items.their) {
-            if (!Object.prototype.hasOwnProperty.call(items.their, sku)) {
+        for (const theirItemsSku in items.their) {
+            if (!Object.prototype.hasOwnProperty.call(items.their, theirItemsSku)) {
                 continue;
             }
-            const theirItemsSku = sku;
             their.push(theirItemsSku);
         }
 
         const our: string[] = [];
-        for (const sku in items.our) {
-            if (!Object.prototype.hasOwnProperty.call(items.our, sku)) {
+        for (const ourItemsSku in items.our) {
+            if (!Object.prototype.hasOwnProperty.call(items.our, ourItemsSku)) {
                 continue;
             }
-            const ourItemsSku = sku;
             our.push(ourItemsSku);
         }
         return { their, our };

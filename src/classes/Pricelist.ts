@@ -356,7 +356,7 @@ export default class Pricelist extends EventEmitter {
         await this.validateEntry(entry, src);
 
         // Remove old price
-        this.removePrice(entry.sku, false);
+        await this.removePrice(entry.sku, false);
 
         // Add new price
         this.prices.push(entry);
@@ -561,7 +561,7 @@ export default class Pricelist extends EventEmitter {
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
-            if (match === null || (match !== null && match.autoprice) || isEnableScrapAdjustmentWithAutoprice) {
+            if (match === null || match.autoprice || isEnableScrapAdjustmentWithAutoprice) {
                 // Only update global key rate if key is not in pricelist
                 // OR if exist, it's autoprice enabled (true)
                 // OR if Autokeys and Scrap Adjustment enabled, then check whether
