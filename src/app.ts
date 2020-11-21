@@ -5,6 +5,7 @@ process.env.BOT_VERSION = '1.7.0';
 
 import fs from 'fs';
 import path from 'path';
+import genPaths from './resources/paths';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
@@ -119,7 +120,6 @@ import CEconItem from 'steamcommunity/classes/CEconItem.js';
 });
 
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
-import genPaths from './resources/paths';
 
 ['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(v => {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
