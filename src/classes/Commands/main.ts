@@ -440,8 +440,8 @@ export = class Commands {
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, disableCraftWeaponAsCurrency: boolean): void {
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, disableCraftWeaponAsCurrency));
+    private cartCommand(steamID: SteamID, disableCraftweaponAsCurrency: boolean): void {
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, disableCraftweaponAsCurrency));
     }
 
     private clearCartCommand(steamID: SteamID): void {

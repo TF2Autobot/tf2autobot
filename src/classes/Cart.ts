@@ -427,7 +427,7 @@ abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const msg = "I don't, or the trade partner don't, have space for more items. Please take a look.";
-                    if (this.bot.options.disableSomethingWrongAlert) {
+                    if (!this.bot.options.disableSomethingWrongAlert) {
                         if (
                             !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
                             this.bot.options.discordWebhookSomethingWrongAlertURL
@@ -561,14 +561,14 @@ abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, disableCraftWeaponAsCurrency: boolean): string {
+    static stringify(steamID: SteamID, disableCraftweaponAsCurrency: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
             return '❌ Your cart is empty.';
         }
 
-        if (!disableCraftWeaponAsCurrency) {
+        if (!disableCraftweaponAsCurrency) {
             return cart.toStringWithWeapons();
         } else {
             return cart.toString();

@@ -557,11 +557,11 @@ export default class Pricelist extends EventEmitter {
 
             const isEnableScrapAdjustmentWithAutoprice =
                 this.options.enableAutokeys &&
-                this.options.disableScrapAdjustment &&
+                !this.options.disableScrapAdjustment &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
-            if (match === null || match.autoprice || isEnableScrapAdjustmentWithAutoprice) {
+            if (match === null || (match !== null && match.autoprice) || isEnableScrapAdjustmentWithAutoprice) {
                 // Only update global key rate if key is not in pricelist
                 // OR if exist, it's autoprice enabled (true)
                 // OR if Autokeys and Scrap Adjustment enabled, then check whether
@@ -591,7 +591,7 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (this.options.disableDiscordWebhookPriceUpdate && this.options.discordWebhookPriceUpdateURL) {
+            if (!this.options.disableDiscordWebhookPriceUpdate && this.options.discordWebhookPriceUpdateURL) {
                 const time = moment()
                     .tz(this.options.timezone ? this.options.timezone : 'UTC')
                     .format(
@@ -706,8 +706,8 @@ export default class Pricelist extends EventEmitter {
                             inline: true
                         }
                     ],
-                    description: this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
-                        ? this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
+                    description: this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
+                        ? this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
                         : '',
                     color: qualityColorPrint
                 }
@@ -831,8 +831,8 @@ export default class Pricelist extends EventEmitter {
                         inline: true
                     }
                 ],
-                description: this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
-                    ? this.options.discordWebHookPriceUpdateAdditionalDescriptionNote
+                description: this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
+                    ? this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
                     : '',
                 color: qualityColorPrint
             });

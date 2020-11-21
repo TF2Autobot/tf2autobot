@@ -15,7 +15,7 @@ interface UserPure {
 export function genScrapAdjustment(scrapAdjustmentValue?: number, disableScrapAdjustment?: boolean): ScrapAdjustment {
     return {
         enabled: !disableScrapAdjustment,
-        value: !scrapAdjustmentValue ? 0 : scrapAdjustmentValue
+        value: isNaN(scrapAdjustmentValue) ? 0 : scrapAdjustmentValue
     };
 }
 

@@ -384,7 +384,7 @@ export = class Autokeys {
                 };
                 this.isActive = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (this.bot.options.disableSomethingWrongAlert) {
+                if (!this.bot.options.disableSomethingWrongAlert) {
                     if (
                         !this.bot.options.disableSomethingWrongAlert &&
                         this.bot.options.discordWebhookSomethingWrongAlertURL

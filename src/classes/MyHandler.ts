@@ -982,7 +982,7 @@ export = class MyHandler extends Handler {
                     this.bot.listings.checkBySKU('5021;6');
                 }
 
-                const isNotAcceptUnderstocked = !this.bot.options.autoKeysAcceptUnderstocked;
+                const isNotAcceptUnderstocked = !this.bot.options.autokeysAcceptUnderstocked;
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
                     // User is taking too many
@@ -2029,8 +2029,8 @@ export = class MyHandler extends Handler {
                 duped.forEach(el => {
                     const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
                     if (
-                        !this.bot.options.disableDiscordWebHookOfferReview &&
-                        this.bot.options.discordWebHookReviewOfferURL
+                        !this.bot.options.disableDiscordWebhookOfferReview &&
+                        this.bot.options.discordWebhookReviewOfferURL
                     ) {
                         // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                         dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
@@ -2065,8 +2065,8 @@ export = class MyHandler extends Handler {
                         const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
 
                         if (
-                            !this.bot.options.disableDiscordWebHookOfferReview &&
-                            this.bot.options.discordWebHookReviewOfferURL
+                            !this.bot.options.disableDiscordWebhookOfferReview &&
+                            this.bot.options.discordWebhookReviewOfferURL
                         ) {
                             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                             dupedFailedItemsName.push(
@@ -2082,8 +2082,8 @@ export = class MyHandler extends Handler {
                             const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
 
                             if (
-                                !this.bot.options.disableDiscordWebHookOfferReview &&
-                                this.bot.options.discordWebHookReviewOfferURL
+                                !this.bot.options.disableDiscordWebhookOfferReview &&
+                                this.bot.options.discordWebhookReviewOfferURL
                             ) {
                                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                                 dupedFailedItemsName.push(
@@ -2154,7 +2154,7 @@ export = class MyHandler extends Handler {
                 this.bot.sendMessage(
                     offer.partner,
                     `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
-                        (this.bot.options.disableShowReviewOfferSummary
+                        (!this.bot.options.disableShowReviewOfferSummary
                             ? '\n\nOffer Summary:\n' +
                               offer
                                   .summarize(this.bot.schema)
@@ -2194,7 +2194,7 @@ export = class MyHandler extends Handler {
 
             const list = listItems(items, true);
 
-            if (!this.bot.options.disableDiscordWebHookOfferReview && this.bot.options.discordWebHookReviewOfferURL) {
+            if (!this.bot.options.disableDiscordWebhookOfferReview && this.bot.options.discordWebhookReviewOfferURL) {
                 sendOfferReview(
                     offer,
                     reasons.join(', '),

@@ -34,7 +34,7 @@ export default interface Options {
     maximumRefinedToStopSellKeys?: number;
     disableScrapAdjustment?: boolean;
     scrapAdjustmentValue?: number;
-    autoKeysAcceptUnderstocked?: boolean;
+    autokeysAcceptUnderstocked?: boolean;
 
     disableInventorySort?: boolean;
     disableListings?: boolean;
@@ -99,7 +99,7 @@ export default interface Options {
 
     disableDiscordWebhookPriceUpdate?: boolean;
     discordWebhookPriceUpdateURL?: string;
-    discordWebHookPriceUpdateAdditionalDescriptionNote?: string;
+    discordWebhookPriceUpdateAdditionalDescriptionNote?: string;
 
     disableDiscordWebhookTradeSummary?: boolean;
     discordWebhookTradeSummaryURL?: Array<string>;
@@ -111,8 +111,8 @@ export default interface Options {
     discordWebhookTradeSummaryMentionOwner?: boolean;
     discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU?: Array<string>;
 
-    disableDiscordWebHookOfferReview?: boolean;
-    discordWebHookReviewOfferURL?: string;
+    disableDiscordWebhookOfferReview?: boolean;
+    discordWebhookReviewOfferURL?: string;
     discordWebhookReviewOfferDisableMentionInvalidValue?: boolean;
     discordWebhookReviewOfferShowQuickLinks?: boolean;
     discordWebhookReviewOfferShowKeyRate?: boolean;
@@ -209,7 +209,7 @@ export function loadOptions(rawOptions?: Options): Options {
         maximumRefinedToStopSellKeys: getOption('maximumRefinedToStopSellKeys', 150, parseInt, rawOptions),
         disableScrapAdjustment: getOption('disableScrapAdjustment', true, JSON.parse, rawOptions),
         scrapAdjustmentValue: getOption('scrapAdjustmentValue', 1, parseInt, rawOptions),
-        autoKeysAcceptUnderstocked: getOption('autoKeysAcceptUnderstocked', false, JSON.parse, rawOptions),
+        autokeysAcceptUnderstocked: getOption('autokeysAcceptUnderstocked', false, JSON.parse, rawOptions),
 
         disableInventorySort: getOption('disableInventorySort', false, JSON.parse, rawOptions),
         disableListings: getOption('disableListings', false, JSON.parse, rawOptions),
@@ -294,8 +294,8 @@ export function loadOptions(rawOptions?: Options): Options {
 
         disableDiscordWebhookPriceUpdate: getOption('disableDiscordWebhookPriceUpdate', false, JSON.parse, rawOptions),
         discordWebhookPriceUpdateURL: getOption('discordWebhookPriceUpdateURL', '', String, rawOptions),
-        discordWebHookPriceUpdateAdditionalDescriptionNote: getOption(
-            'discordWebHookPriceUpdateAdditionalDescriptionNote',
+        discordWebhookPriceUpdateAdditionalDescriptionNote: getOption(
+            'discordWebhookPriceUpdateAdditionalDescriptionNote',
             '',
             String,
             rawOptions
@@ -351,8 +351,8 @@ export function loadOptions(rawOptions?: Options): Options {
             rawOptions
         ),
 
-        disableDiscordWebHookOfferReview: getOption('disableDiscordWebHookOfferReview', false, JSON.parse, rawOptions),
-        discordWebHookReviewOfferURL: getOption('discordWebhookReviewOfferURL', '', String, rawOptions),
+        disableDiscordWebhookOfferReview: getOption('disableDiscordWebhookOfferReview', false, JSON.parse, rawOptions),
+        discordWebhookReviewOfferURL: getOption('discordWebhookReviewOfferURL', '', String, rawOptions),
         discordWebhookReviewOfferDisableMentionInvalidValue: getOption(
             'discordWebhookReviewOfferDisableMentionInvalidValue',
             false,
