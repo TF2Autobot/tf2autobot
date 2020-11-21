@@ -3,6 +3,7 @@ import 'winston-daily-rotate-file';
 import { FormatWrap } from 'logform';
 
 import { Paths } from '../resources/paths';
+import Options from '../classes/Options';
 
 const levels = {
     debug: 5,
@@ -77,17 +78,15 @@ const consoleFormat = winston.format.combine(
     })
 );
 
-const debugConsole = process.env.DEBUG === 'true';
-// Debug to file is enabled by default
-const debugFile = process.env.DEBUG_FILE === undefined ? true : process.env.DEBUG_FILE === 'true';
-
 const logger = winston.createLogger({
     levels: levels
 });
 
-// TODO: Populate transports through some sort of config / env variable
+export function init(paths: Paths, options: Options): void {
+    const debugConsole = options.debug;
+    // Debug to file is enabled by default
+    const debugFile = options.debugFile;
 
-export function init(paths: Paths): void {
     const transports = [
         {
             type: 'DailyRotateFile',

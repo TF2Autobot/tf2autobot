@@ -1,8 +1,7 @@
-// TODO: Update version for each release
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
-
-process.env.BOT_VERSION = '1.7.0';
-
+process.env.BOT_VERSION = BOT_VERSION;
 import fs from 'fs';
 import path from 'path';
 import genPaths from './resources/paths';
@@ -30,7 +29,7 @@ const options = loadOptions();
 const paths = genPaths(options.folderName, options.filePrefix);
 
 import log, { init } from './lib/logger';
-init(paths);
+init(paths, options);
 
 if (process.env.pm_id === undefined) {
     log.warn(
