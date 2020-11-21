@@ -11,7 +11,7 @@ import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
-import { Options } from './Options';
+import Options from './Options';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',

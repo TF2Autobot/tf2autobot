@@ -26,7 +26,7 @@ import Groups from './Groups';
 
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
-import { loadOptions, Options } from './Options';
+import Options from './Options';
 
 export = class Bot {
     // Modules and classes
@@ -86,10 +86,7 @@ export = class Bot {
 
     private ready = false;
 
-    public options: Options;
-
-    constructor(botManager: BotManager, options?: Options) {
-        this.options = loadOptions(options);
+    constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema();

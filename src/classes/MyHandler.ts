@@ -20,14 +20,15 @@ import Inventory from './Inventory';
 import TF2Inventory from './TF2Inventory';
 import Autokeys from './Autokeys/main';
 
-import paths from '../resources/paths';
+import paths, { Paths } from '../resources/paths';
 import log from '../lib/logger';
 import * as files from '../lib/files';
 import { exponentialBackoff } from '../lib/helpers';
 import { requestCheck } from '../lib/ptf-api';
 import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
-import { sendAlert, sendTradeSummary, sendOfferReview, tradeSummaryLinks } from '../lib/DiscordWebhook/export';
+import { sendAlert, sendTradeSummary, sendOfferReview, genTradeSummaryLinks } from '../lib/DiscordWebhook/export';
 import { check, pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../lib/tools/export';
+import genPaths from '../resources/paths';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -88,6 +89,10 @@ export = class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
+    private tradeSummaryLinks: Array<string>;
+
+    private paths: Paths;
+
     constructor(bot: Bot) {
         super(bot);
 
@@ -96,6 +101,8 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().unix();
+        this.tradeSummaryLinks = genTradeSummaryLinks(this.bot.options.discordWebhookTradeSummaryURL);
+        this.paths = genPaths(this.bot.options.folderName, this.bot.options.filePrefix);
 
         const minimumScrap = this.bot.options.minimumScrap;
         const minimumReclaimed = this.bot.options.minimumReclaimed;
@@ -269,10 +276,10 @@ export = class MyHandler extends Handler {
         pollData?: PollData;
     }> {
         return Promise.all([
-            files.readFile(paths.files.loginKey, false),
-            files.readFile(paths.files.pricelist, true),
-            files.readFile(paths.files.loginAttempts, true),
-            files.readFile(paths.files.pollData, true)
+            files.readFile(this.paths.files.loginKey, false),
+            files.readFile(this.paths.files.pricelist, true),
+            files.readFile(this.paths.files.loginAttempts, true),
+            files.readFile(this.paths.files.pollData, true)
         ]).then(([loginKey, pricelist, loginAttempts, pollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
@@ -394,7 +401,7 @@ export = class MyHandler extends Handler {
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
-        files.writeFile(paths.files.loginKey, loginKey, false).catch(err => {
+        files.writeFile(this.paths.files.loginKey, loginKey, false).catch(err => {
             log.warn('Failed to save login key: ', err);
         });
     }
@@ -402,14 +409,14 @@ export = class MyHandler extends Handler {
     onLoginError(err: Error): void {
         // @ts-ignore
         if (err.eresult === SteamUser.EResult.InvalidPassword) {
-            files.deleteFile(paths.files.loginKey).catch(err => {
+            files.deleteFile(this.paths.files.loginKey).catch(err => {
                 log.warn('Failed to delete login key: ', err);
             });
         }
     }
 
     onLoginAttempts(attempts: number[]): void {
-        files.writeFile(paths.files.loginAttempts, attempts, true).catch(err => {
+        files.writeFile(this.paths.files.loginAttempts, attempts, true).catch(err => {
             log.warn('Failed to save login attempts: ', err);
         });
     }
@@ -1659,7 +1666,7 @@ export = class MyHandler extends Handler {
                 const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.enableShowOnlyMetal);
                 this.isTradingKeys = false; // reset
 
-                if (!this.bot.options.disableDiscordWebhookTradeSummary && tradeSummaryLinks.length !== 0) {
+                if (!this.bot.options.disableDiscordWebhookTradeSummary && this.tradeSummaryLinks.length !== 0) {
                     sendTradeSummary(
                         offer,
                         autokeys,
@@ -2677,7 +2684,7 @@ export = class MyHandler extends Handler {
     }
 
     onPollData(pollData: PollData): void {
-        files.writeFile(paths.files.pollData, pollData, true).catch(err => {
+        files.writeFile(this.paths.files.pollData, pollData, true).catch(err => {
             log.warn('Failed to save polldata: ', err);
         });
     }
@@ -2692,7 +2699,7 @@ export = class MyHandler extends Handler {
 
         files
             .writeFile(
-                paths.files.pricelist,
+                this.paths.files.pricelist,
                 pricelist.map(entry => entry.getJSON()),
                 true
             )

@@ -4,7 +4,7 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 
 import { getPartnerDetails, quickLinks } from './utils';
-import { enableMentionOwner, tradeSummaryLinks, skusToMention } from './userSettings';
+import { genTradeSummaryLinks, genSkusToMention } from './userSettings';
 
 import log from '../logger';
 import { pure, stats, summarize, listItems, replace } from '../tools/export';
@@ -46,17 +46,21 @@ export default function sendTradeSummary(
     const itemList = listItems(itemsName, false);
 
     // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
-    const isMentionOurItems = skusToMention.some(fromEnv => {
-        return ourItems.some(ourItemSKU => {
-            return ourItemSKU.includes(fromEnv);
-        });
-    });
+    const isMentionOurItems = genSkusToMention(bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU).some(
+        fromEnv => {
+            return ourItems.some(ourItemSKU => {
+                return ourItemSKU.includes(fromEnv);
+            });
+        }
+    );
 
-    const isMentionThierItems = skusToMention.some(fromEnv => {
-        return theirItems.some(theirItemSKU => {
-            return theirItemSKU.includes(fromEnv);
-        });
-    });
+    const isMentionThierItems = genSkusToMention(bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU).some(
+        fromEnv => {
+            return theirItems.some(theirItemSKU => {
+                return theirItemSKU.includes(fromEnv);
+            });
+        }
+    );
 
     const IVAmount = itemsName.invalid.length;
     const HVAmount = itemsName.highValue.length;
@@ -73,11 +77,11 @@ export default function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : enableMentionOwner === true && (isMentionOurItems || isMentionThierItems)
+            : bot.options.discordWebhookTradeSummaryMentionOwner && (isMentionOurItems || isMentionThierItems)
             ? `<@!${bot.options.discordOwnerID}>`
             : '';
 
-    const tradeLinks = tradeSummaryLinks;
+    const tradeLinks = genTradeSummaryLinks(bot.options.discordWebhookTradeSummaryURL);
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
     const trades = stats(bot);

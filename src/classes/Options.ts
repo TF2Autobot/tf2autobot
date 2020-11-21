@@ -1,7 +1,7 @@
 import { snakeCase } from 'change-case';
 // import log from '../lib/logger';
 
-export interface Options {
+export default interface Options {
     steamAccountName?: string;
     steamPassword?: string;
     steamSharedSecret?: string;
@@ -158,6 +158,9 @@ export interface Options {
     customDeclinedMessage?: string;
     customTradedAwayMessage?: string;
     customClearingFriendsMessage?: string;
+
+    folderName?: string;
+    filePrefix?: string;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -173,8 +176,9 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 }
 
 export function loadOptions(rawOptions?: Options): Options {
+    const steamAccountName = getOption('steamAccountName', '', String, rawOptions);
     return {
-        steamAccountName: getOption('steamAccountName', '', String, rawOptions),
+        steamAccountName: steamAccountName,
         steamPassword: getOption('steamPassword', '', String, rawOptions),
         steamSharedSecret: getOption('steamSharedSecret', '', String, rawOptions),
         steamIdentitySecret: getOption('steamIdentitySecret', '', String, rawOptions),
@@ -428,6 +432,9 @@ export function loadOptions(rawOptions?: Options): Options {
         customSuccessMessage: getOption('customSuccessMessage', '', String, rawOptions),
         customDeclinedMessage: getOption('customDeclinedMessage', '', String, rawOptions),
         customTradedAwayMessage: getOption('customTradedAwayMessage', '', String, rawOptions),
-        customClearingFriendsMessage: getOption('customClearingFriendsMessage', '', String, rawOptions)
+        customClearingFriendsMessage: getOption('customClearingFriendsMessage', '', String, rawOptions),
+
+        folderName: getOption('folderName', steamAccountName, String, rawOptions),
+        filePrefix: getOption('filePrefix', steamAccountName, String, rawOptions)
     };
 }

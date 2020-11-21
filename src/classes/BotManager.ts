@@ -8,6 +8,7 @@ import Bot from './Bot';
 
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
+import Options from './Options';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -73,7 +74,7 @@ export = class BotManager {
         return this.bot !== null && this.bot.isReady();
     }
 
-    start(): Promise<void> {
+    start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {
                 if (!process.env[optName]) {
@@ -93,7 +94,7 @@ export = class BotManager {
                     },
                     (callback): void => {
                         log.info('Starting bot...');
-                        this.bot = new Bot(this);
+                        this.bot = new Bot(this, options);
 
                         this.bot.start().asCallback(callback);
                     }

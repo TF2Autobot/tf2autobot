@@ -1,4 +1,6 @@
 // TODO: Update version for each release
+import { loadOptions } from './classes/Options';
+
 process.env.BOT_VERSION = '1.7.0';
 
 import fs from 'fs';
@@ -23,8 +25,11 @@ import 'bluebird-global';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
+const options = loadOptions();
+const paths = genPaths(options.folderName, options.filePrefix);
 
-import log from './lib/logger';
+import log, { init } from './lib/logger';
+init(paths);
 
 if (process.env.pm_id === undefined) {
     log.warn(
@@ -114,12 +119,13 @@ import CEconItem from 'steamcommunity/classes/CEconItem.js';
 });
 
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
+import genPaths from './resources/paths';
 
 ['log', 'summarize', 'getDiff', 'summarizeWithLink', 'summarizeSKU'].forEach(v => {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
-botManager.start().asCallback(err => {
+botManager.start(options).asCallback(err => {
     if (err) {
         throw err;
     }
