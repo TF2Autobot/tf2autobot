@@ -185,8 +185,8 @@ export function loadOptions(rawOptions?: Options): Options {
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, rawOptions),
         bptfAPIKey: getOption('bptfAPIKey', '', String, rawOptions),
-        admins: getOption('admins', [''], JSON.parse, rawOptions),
-        keep: getOption('keep', [''], JSON.parse, rawOptions),
+        admins: getOption('admins', [], JSON.parse, rawOptions),
+        keep: getOption('keep', [], JSON.parse, rawOptions),
         groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, rawOptions),
         alerts: getOption('alerts', ['trade'], JSON.parse, rawOptions),
 
@@ -307,7 +307,7 @@ export function loadOptions(rawOptions?: Options): Options {
             JSON.parse,
             rawOptions
         ),
-        discordWebhookTradeSummaryURL: getOption('discordWebhookTradeSummaryURL', [''], JSON.parse, rawOptions),
+        discordWebhookTradeSummaryURL: getOption('discordWebhookTradeSummaryURL', [], JSON.parse, rawOptions),
         discordWebhookTradeSummaryShowQuickLinks: getOption(
             'discordWebhookTradeSummaryShowQuickLinks',
             true,
@@ -346,7 +346,7 @@ export function loadOptions(rawOptions?: Options): Options {
         ),
         discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU: getOption(
             'discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU',
-            [''],
+            [],
             JSON.parse,
             rawOptions
         ),
