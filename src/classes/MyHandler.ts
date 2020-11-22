@@ -619,7 +619,7 @@ export = class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (!this.bot.options.checkUses.duel || !this.bot.options.checkUses.noiseMaker) {
+        if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
             const im = check.uses(offer, offer.itemsToReceive, this.bot);
 
             if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
@@ -769,7 +769,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = this.bot.options.enableCraftweaponAsCurrency
+                    const includeCraftweapon = this.bot.options.enableCraftweaponAsCurrency
                         ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                         : true;
 
@@ -794,7 +794,7 @@ export = class MyHandler extends Handler {
                         const isBuying = diff > 0; // is buying if true.
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && !includeCraftweapon) {
                             // User is offering too many
                             hasOverstock = true;
 
@@ -814,7 +814,7 @@ export = class MyHandler extends Handler {
                             !isBuying &&
                             sku !== '5021;6' &&
                             amountCanTrade < Math.abs(diff) &&
-                            notIncludeCraftweapon
+                            !includeCraftweapon
                         ) {
                             // User is taking too many
                             hasUnderstock = true;
@@ -846,7 +846,7 @@ export = class MyHandler extends Handler {
                         // Offer contains keys and we are not trading keys, add key value
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
-                    } else if ((match === null && notIncludeCraftweapon) || match.intent === (buying ? 1 : 0)) {
+                    } else if ((match === null && !includeCraftweapon) || match.intent === (buying ? 1 : 0)) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
@@ -977,9 +977,9 @@ export = class MyHandler extends Handler {
                     this.bot.listings.checkBySKU('5021;6');
                 }
 
-                const isNotAcceptUnderstocked = !this.bot.options.autokeys.accept.understock;
+                const acceptUnderstock = this.bot.options.autokeys.accept.understock;
 
-                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && isNotAcceptUnderstocked) {
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
                     // User is taking too many
                     hasUnderstock = true;
 

@@ -463,7 +463,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (!this.bot.options.checkUses.duel || !this.bot.options.checkUses.noiseMaker) {
+            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -1849,7 +1849,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (!this.bot.options.checkUses.duel || !this.bot.options.checkUses.noiseMaker) {
+            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;

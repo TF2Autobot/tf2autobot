@@ -28,7 +28,7 @@ export default function sendOfferReview(
     bot: Bot
 ): void {
     let noMentionOnInvalidValue = false;
-    if (bot.options.discordWebhook.offerReview.mentionInvalidValue) {
+    if (!bot.options.discordWebhook.offerReview.mentionInvalidValue) {
         noMentionOnInvalidValue =
             reasons.includes('🟥_INVALID_VALUE') &&
             !(

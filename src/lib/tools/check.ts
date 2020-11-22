@@ -23,7 +23,7 @@ export function uses(
             return item.market_hash_name.includes(name);
         });
 
-        if (isDuelingMiniGame && !bot.options.checkUses.duel) {
+        if (isDuelingMiniGame && bot.options.checkUses.duel) {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -37,7 +37,7 @@ export function uses(
                     break;
                 }
             }
-        } else if (isNoiseMaker && !bot.options.checkUses.noiseMaker) {
+        } else if (isNoiseMaker && bot.options.checkUses.noiseMaker) {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
