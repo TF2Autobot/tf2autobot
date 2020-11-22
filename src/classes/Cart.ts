@@ -452,7 +452,12 @@ abstract class Cart {
                         this.bot.tf2.backpackSlots
                     ];
 
-                    const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+                    const theirInventory = new Inventory(
+                        this.partner,
+                        this.bot.manager,
+                        this.bot.schema,
+                        this.bot.options
+                    );
                     this.getTheirInventoryCount(await theirInventory.fetchWithReturn());
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
