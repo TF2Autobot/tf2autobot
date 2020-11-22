@@ -1230,7 +1230,7 @@ export = class MyHandler extends Handler {
 
             const canAcceptInvalidItemsOverpay = this.bot.options.manualReview.invalidItems.autoAcceptOverpay;
             const canAcceptOverstockedOverpay = this.bot.options.manualReview.overstocked.autoAcceptOverpay;
-            const canAcceptUnderstockedOverpay = this.bot.options.manualReview.overstocked.autoDecline;
+            const canAcceptUnderstockedOverpay = this.bot.options.manualReview.understocked.autoAcceptOverpay;
 
             // accepting 🟨_INVALID_ITEMS overpay
 
@@ -2157,7 +2157,7 @@ export = class MyHandler extends Handler {
                               (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                                   ? missingPureNote
                                   : '') +
-                              (!this.bot.options.manualReview.showReviewOfferNote
+                              (this.bot.options.manualReview.showReviewOfferNote
                                   ? `\n\nNote:\n${reviewReasons.join('\n') +
                                         (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
                                   : '')
