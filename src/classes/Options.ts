@@ -6,7 +6,7 @@ const DEFAULTS = {
     showOnlyMetal: true,
     sortInventory: true,
     createListings: true,
-    messages: true,
+    enableMessages: true,
     sendAlert: true,
     enableAddFriends: true,
     enableGroupInvites: true,
@@ -386,7 +386,7 @@ export interface JsonOptions {
     showOnlyMetal?: boolean;
     sortInventory?: boolean;
     createListings?: boolean;
-    messages?: boolean;
+    enableMessages?: boolean;
     sendAlert?: boolean;
     enableAddFriends?: boolean;
     enableCraftweaponAsCurrency?: boolean;

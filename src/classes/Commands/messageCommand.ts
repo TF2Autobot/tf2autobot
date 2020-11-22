@@ -9,7 +9,7 @@ import { sendPartnerMessage } from '../../lib/DiscordWebhook/export';
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
     const isAdmin = bot.isAdmin(steamID);
 
-    if (!bot.options.discordWebhook.messages.enable) {
+    if (!bot.options.enableMessages) {
         if (isAdmin) {
             bot.sendMessage(
                 steamID,
