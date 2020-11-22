@@ -57,9 +57,13 @@ test('Parsing Options', () => {
     const defaults = JSON.parse(JSON.stringify(DEFAULTS));
     delete defaults.crafting.metals;
     expect(defaults.crafting).toEqual({ weapons: { enable: true } });
-    writeFileSync(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123', 'options.json'), defaults, {
-        encoding: 'utf8'
-    });
+    writeFileSync(
+        path.resolve(__dirname, '..', '..', '..', 'files', 'abc123', 'options.json'),
+        JSON.stringify(defaults),
+        {
+            encoding: 'utf8'
+        }
+    );
     result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.crafting).toEqual({
         weapons: {
