@@ -174,7 +174,7 @@ const DEFAULTS = {
             url: ''
         }
     },
-    maxPriceAge: '28800'
+    maxPriceAge: 28800
 };
 
 export interface HighValue {
