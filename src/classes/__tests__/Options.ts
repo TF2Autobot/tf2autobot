@@ -1,6 +1,13 @@
 import * as Options from '../Options';
+import { readdirSync, rmdirSync, unlinkSync } from 'fs';
+import path from 'path';
 
 const OLD_ENV = process.env;
+
+function cleanPath(p: string): void {
+    readdirSync(p).map(s => unlinkSync(path.join(p, s)));
+    rmdirSync(p);
+}
 
 beforeEach(() => {
     jest.resetModules(); // most important - it clears the cache
@@ -9,6 +16,8 @@ beforeEach(() => {
 
 afterAll(() => {
     process.env = OLD_ENV; // restore old env
+    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
+    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'test123'));
 });
 
 test('Parsing Options', () => {

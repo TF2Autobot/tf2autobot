@@ -287,7 +287,7 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
     try {
         fileOptions = JSON.parse(readFileSync(p, { encoding: 'utf8' }));
     } catch {
-        if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p));
+        if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
         writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
         fileOptions = DEFAULTS;
     }
@@ -330,7 +330,7 @@ export function loadOptions(options?: Options): Options {
         filePrefix: getOption('filePrefix', steamAccountName, String, options)
     };
     const jsonOptions = loadJsonOptions(
-        path.join(process.cwd(), 'files', envOptions.folderName, 'options.json'),
+        path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
         options
     );
     return {
