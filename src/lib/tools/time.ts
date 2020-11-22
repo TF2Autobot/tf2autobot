@@ -1,12 +1,16 @@
 import moment from 'moment-timezone';
 
-export default function timeNow(): { time: string; emoji: string; note: string } {
+export default function timeNow(
+    timezone?: string,
+    customTimeFormat?: string,
+    timeAdditionalNotes?: string
+): { time: string; emoji: string; note: string } {
     const time = moment()
-        .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-        .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+        .tz(timezone ? timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        .format(customTimeFormat ? customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
 
     const timeEmoji = moment()
-        .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
+        .tz(timezone ? timezone : 'UTC')
         .format();
     const emoji =
         timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
@@ -35,7 +39,7 @@ export default function timeNow(): { time: string; emoji: string; note: string }
             ? '🕚'
             : '';
 
-    const timeNote = process.env.TIME_ADDITIONAL_NOTES ? process.env.TIME_ADDITIONAL_NOTES : '';
+    const timeNote = timeAdditionalNotes ? timeAdditionalNotes : '';
 
     const timeWithEmoji = {
         time: time,

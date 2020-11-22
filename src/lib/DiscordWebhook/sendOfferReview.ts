@@ -28,8 +28,8 @@ export default function sendOfferReview(
     bot: Bot
 ): void {
     let noMentionOnInvalidValue = false;
-    if (process.env.DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE !== 'false') {
-        if (
+    if (bot.options.discordWebhookReviewOfferDisableMentionInvalidValue) {
+        noMentionOnInvalidValue =
             reasons.includes('🟥_INVALID_VALUE') &&
             !(
                 reasons.includes('🟩_UNDERSTOCKED') ||
@@ -37,16 +37,11 @@ export default function sendOfferReview(
                 reasons.includes('🟦_OVERSTOCKED') ||
                 reasons.includes('🟫_DUPED_ITEMS') ||
                 reasons.includes('🟪_DUPE_CHECK_FAILED')
-            )
-        ) {
-            noMentionOnInvalidValue = true;
-        } else {
-            noMentionOnInvalidValue = false;
-        }
+            );
     }
     const mentionOwner = noMentionOnInvalidValue
         ? `${offer.id}`
-        : `<@!${process.env.DISCORD_OWNER_ID}>, check this! - ${offer.id}`;
+        : `<@!${bot.options.discordOwnerID}>, check this! - ${offer.id}`;
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
@@ -81,15 +76,15 @@ export default function sendOfferReview(
 
         const partnerNameNoFormat = replace.specialChar(partnerName);
 
-        const isShowQuickLinks = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS !== 'false';
-        const isShowKeyRate = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE !== 'false';
-        const isShowPureStock = process.env.DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK !== 'false';
+        const isShowQuickLinks = bot.options.discordWebhookReviewOfferShowQuickLinks;
+        const isShowKeyRate = bot.options.discordWebhookReviewOfferShowKeyRate;
+        const isShowPureStock = bot.options.discordWebhookReviewOfferShowPureStock;
 
         /*eslint-disable */
         const webhookReview = {
-            username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-                ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+            username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
+            avatar_url: bot.options.discordWebhookAvatarURL
+                ? bot.options.discordWebhookAvatarURL
                 : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
@@ -131,7 +126,7 @@ export default function sendOfferReview(
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                         }
                     ],
-                    color: process.env.DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX
+                    color: bot.options.discordWebhookEmdedColorInDecimalIndex
                 }
             ]
         };
@@ -188,7 +183,7 @@ export default function sendOfferReview(
         }
 
         const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_REVIEW_OFFER_URL);
+        request.open('POST', bot.options.discordWebhookReviewOfferURL);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(JSON.stringify(webhookReview));
     });

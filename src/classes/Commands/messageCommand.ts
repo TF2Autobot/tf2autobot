@@ -9,7 +9,7 @@ import { sendPartnerMessage } from '../../lib/DiscordWebhook/export';
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
     const isAdmin = bot.isAdmin(steamID);
 
-    if (process.env.DISABLE_MESSAGES === 'true') {
+    if (bot.options.disableMessages) {
         if (isAdmin) {
             bot.sendMessage(
                 steamID,
@@ -28,7 +28,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const steamIdAndMessage = CommandParser.removeCommand(message);
         // Use regex
         const steamIDreg = new RegExp(
-            /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?\])$/
+            /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?])$/
         );
 
         let steamIDString: string;
@@ -96,12 +96,9 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         }
 
         const links = generateLinks(steamID.toString());
-        const time = timeNow();
+        const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
-        if (
-            process.env.DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER === 'false' &&
-            process.env.DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL
-        ) {
+        if (!bot.options.disableDiscordWebhookMessageFromPartner && bot.options.discordWebhookMessageFromPartnerURL) {
             sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(

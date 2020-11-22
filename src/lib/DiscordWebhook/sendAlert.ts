@@ -13,7 +13,7 @@ export default function sendAlert(
     items: string[] | null,
     bot: Bot
 ): void {
-    const time = timeNow();
+    const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
     let title;
     let description;
@@ -49,11 +49,11 @@ export default function sendAlert(
 
     /*eslint-disable */
     const webhook = JSON.stringify({
-        username: process.env.DISCORD_WEBHOOK_USERNAME ? process.env.DISCORD_WEBHOOK_USERNAME : botInfo.name,
-        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL
-            ? process.env.DISCORD_WEBHOOK_AVATAR_URL
+        username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
+        avatar_url: bot.options.discordWebhookAvatarURL
+            ? bot.options.discordWebhookAvatarURL
             : botInfo.avatarURL,
-        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${process.env.DISCORD_OWNER_ID}>` : '',
+        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordOwnerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -68,7 +68,7 @@ export default function sendAlert(
     /*eslint-enable */
 
     const request = new XMLHttpRequest();
-    request.open('POST', process.env.DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL);
+    request.open('POST', bot.options.discordWebhookSomethingWrongAlertURL);
     request.setRequestHeader('Content-type', 'application/json');
     request.send(webhook);
 }

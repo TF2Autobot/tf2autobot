@@ -11,7 +11,7 @@ import { Entry, EntryData } from './Pricelist';
 abstract class Handler {
     readonly bot: Bot;
 
-    constructor(bot: Bot) {
+    protected constructor(bot: Bot) {
         this.bot = bot;
     }
 

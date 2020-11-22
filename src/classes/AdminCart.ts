@@ -73,7 +73,7 @@ class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
 
             theirInventory.fetch().asCallback(err => {
                 if (err) {
@@ -194,7 +194,7 @@ class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
 
             theirInventory.fetch().asCallback(err => {
                 if (err) {

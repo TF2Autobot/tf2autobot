@@ -44,7 +44,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
+        if (!this.bot.options.disableCraftweaponAsCurrency) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
@@ -446,7 +446,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
@@ -463,10 +463,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (
-                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
-                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-            ) {
+            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -487,7 +484,14 @@ class UserCart extends Cart {
                 }
             }
 
-            const filtered = fetched.filter(item => item.getSKU(this.bot.schema) === sku);
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
@@ -818,7 +822,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (this.bot.options.enableShowOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1828,7 +1832,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
@@ -1845,10 +1849,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (
-                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
-                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-            ) {
+            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -1869,7 +1870,14 @@ class UserCart extends Cart {
                 }
             }
 
-            const filtered = fetched.filter(item => item.getSKU(this.bot.schema) === sku);
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
@@ -2497,7 +2505,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (this.bot.options.enableShowOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

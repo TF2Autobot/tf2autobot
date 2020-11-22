@@ -9,7 +9,7 @@ import { stats } from '../../lib/tools/export';
 // Bot status
 
 export function statsCommand(steamID: SteamID, bot: Bot): void {
-    const tradesFromEnv = parseInt(process.env.LAST_TOTAL_TRADES);
+    const tradesFromEnv = bot.options.lastTotalTrades;
     const trades = stats(bot);
 
     bot.sendMessage(
