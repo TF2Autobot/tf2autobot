@@ -1,8 +1,183 @@
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const DEFAULTS = require('../../template.options.json');
+
+const DEFAULTS = {
+    showOnlyMetal: true,
+    sortInventory: true,
+    createListings: true,
+    messages: true,
+    sendAlert: true,
+    enableAddFriends: true,
+    enableGroupInvites: true,
+    enableOwnerCommand: true,
+    autoRemoveIntentSell: false,
+    enableCraftweaponAsCurrency: true,
+
+    allowEscrow: false,
+    allowOverpay: true,
+    allowGiftNoMessage: false,
+    allowBanned: false,
+
+    sendOfferMessage: 'Thank you',
+
+    autobump: false,
+
+    highValue: {
+        disableHold: false,
+        sheens: ['Team Shine'],
+        killstreakers: ['Fire Horns', 'Tornado']
+    },
+    checkUses: {
+        duel: true,
+        noiseMaker: true
+    },
+    game: {
+        playOnlyTF2: false,
+        customName: ''
+    },
+    normalize: {
+        festivized: false,
+        strangeUnusual: false
+    },
+    details: {
+        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+    },
+    customMessage: {
+        welcome: '',
+        iDontKnowWhatYouMean: '',
+        how2trade: '',
+        success: '',
+        decline: '',
+        tradedAway: '',
+        clearFriends: ''
+    },
+    statistics: {
+        starter: 0,
+        lastTotalTrades: 0,
+        startingTimeInUnix: 0
+    },
+    autokeys: {
+        enable: false,
+        minKeys: 3,
+        maxKeys: 15,
+        minRefined: 30,
+        maxRefined: 150,
+        banking: {
+            enable: false
+        },
+        scrapAdjustment: {
+            enable: false,
+            value: 1
+        },
+        accept: {
+            understock: false
+        }
+    },
+    crafting: {
+        weapons: {
+            enable: true
+        },
+        metals: {
+            enable: true,
+            minScrap: 9,
+            minRec: 9,
+            threshold: 9
+        }
+    },
+    manualReview: {
+        enable: true,
+        showOfferSummary: true,
+        showReviewOfferNote: true,
+        showOwnerCurrentTime: true,
+        invalidValue: {
+            note: '',
+            autoDecline: {
+                enable: true,
+                note: ''
+            },
+            exceptionValue: {
+                skus: [';5;u', ';11;australium'],
+                valueInRef: 0
+            }
+        },
+        invalidItems: {
+            note: '',
+            givePrice: true,
+            autoAcceptOverpay: true
+        },
+        overstocked: {
+            note: '',
+            autoAcceptOverpay: false,
+            autoDecline: false
+        },
+        understocked: {
+            note: '',
+            autoAcceptOverpay: false,
+            autoDecline: false
+        },
+        duped: {
+            enable: true,
+            declineDuped: false,
+            minKeys: 10,
+            note: ''
+        },
+        dupedCheckFailed: {
+            note: ''
+        },
+        additionalNotes: ''
+    },
+    discordInviteLink: '',
+    discordWebhook: {
+        ownerID: '',
+        username: '',
+        displayName: '',
+        avatarURL: '',
+        embedColor: '9171753',
+        tradeSummary: {
+            enable: true,
+            url: [''],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            },
+            mentionOwner: {
+                enable: true,
+                itemSkus: [';5;u', ';11;australium']
+            }
+        },
+        offerReview: {
+            enable: true,
+            url: '',
+            mentionInvalidValue: false,
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true
+            }
+        },
+        messages: {
+            enable: true,
+            url: '',
+            showQuickLinks: true
+        },
+        priceUpdate: {
+            enable: true,
+            url: '',
+            note: ''
+        },
+        sendAlert: {
+            enable: true,
+            url: ''
+        }
+    },
+    maxPriceAge: '28800'
+};
+
 export interface HighValue {
     disableHold?: boolean;
     sheens?: string[];
