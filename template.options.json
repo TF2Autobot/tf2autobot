@@ -133,7 +133,7 @@
         "tradeSummary": {
             "enable": true,
             "url": [""],
-            "enableMisc": {
+            "misc": {
                 "showQuickLinks": true,
                 "showKeyRate": true,
                 "showPureStock": true,
@@ -149,7 +149,7 @@
             "enable": true,
             "url": "",
             "mentionInvalidValue": false,
-            "enableMisc": {
+            "misc": {
                 "showQuickLinks": true,
                 "showKeyRate": true,
                 "showPureStock": true
