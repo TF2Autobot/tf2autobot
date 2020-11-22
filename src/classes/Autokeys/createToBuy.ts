@@ -8,7 +8,10 @@ import { EntryData, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
 
 export default function createToBuy(minKeys: number, maxKeys: number, bot: Bot): void {
-    const scrapAdjustment = genScrapAdjustment(bot.options.autokeys.scrapAdjustment.value, bot.options.autokeys.scrapAdjustment.enable);
+    const scrapAdjustment = genScrapAdjustment(
+        bot.options.autokeys.scrapAdjustment.value,
+        bot.options.autokeys.scrapAdjustment.enable
+    );
     const keyPrices = bot.pricelist.getKeyPrices();
     let entry;
 

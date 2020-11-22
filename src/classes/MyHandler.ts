@@ -651,10 +651,7 @@ export = class MyHandler extends Handler {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
-            if (
-                this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url
-            ) {
+            if (this.bot.options.discordWebhook.sendAlert.enable && this.bot.options.discordWebhook.sendAlert.url) {
                 sendAlert('highValue', null, null, null, highValueOur.names, this.bot);
             } else {
                 this.bot.messageAdmins(

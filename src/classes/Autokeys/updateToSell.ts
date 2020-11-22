@@ -11,7 +11,10 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
     const keyPrices = bot.pricelist.getKeyPrices();
     let entry;
 
-    const scrapAdjustment = genScrapAdjustment(bot.options.autokeys.scrapAdjustment.value, bot.options.autokeys.scrapAdjustment.enable);
+    const scrapAdjustment = genScrapAdjustment(
+        bot.options.autokeys.scrapAdjustment.value,
+        bot.options.autokeys.scrapAdjustment.enable
+    );
     if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {
         entry = {
             sku: '5021;6',

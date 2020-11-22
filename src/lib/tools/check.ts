@@ -48,11 +48,7 @@ export function uses(
                 ) {
                     ex.isNot25Uses = true;
                     ex.noiseMakerSKU.push(
-                        item.getSKU(
-                            bot.schema,
-                            bot.options.normalize.festivized,
-                            bot.options.normalize.strangeUnusual
-                        )
+                        item.getSKU(bot.schema, bot.options.normalize.festivized, bot.options.normalize.strangeUnusual)
                     );
                     offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                     break;
