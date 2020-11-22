@@ -2,7 +2,7 @@ import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 
-export const DEFAULTS = {
+export const DEFAULTS: Options = {
     showOnlyMetal: true,
     sortInventory: true,
     createListings: true,
@@ -509,6 +509,7 @@ export function loadOptions(options?: Options): Options {
     );
     return {
         ...jsonOptions,
-        ...envOptions
+        ...envOptions,
+        ...options
     };
 }

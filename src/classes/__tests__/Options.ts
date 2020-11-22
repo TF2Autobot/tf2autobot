@@ -1,6 +1,7 @@
 import * as Options from '../Options';
-import { readdirSync, rmdirSync, unlinkSync } from 'fs';
+import { readdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
+import { DEFAULTS } from '../Options';
 
 const OLD_ENV = process.env;
 
@@ -51,4 +52,24 @@ test('Parsing Options', () => {
     // test loading booleans
     result = Options.loadOptions({ normalize: { festivized: true } });
     expect(result.normalize.festivized).toBeTruthy();
+
+    // test missing options in json
+    const defaults = JSON.parse(JSON.stringify(DEFAULTS));
+    delete defaults.crafting.metals;
+    expect(defaults.crafting).toEqual({ weapons: { enable: true } });
+    writeFileSync(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123', 'options.json'), defaults, {
+        encoding: 'utf8'
+    });
+    result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.crafting).toEqual({
+        weapons: {
+            enable: true
+        },
+        metals: {
+            enable: true,
+            minScrap: 9,
+            minRec: 9,
+            threshold: 9
+        }
+    });
 });
