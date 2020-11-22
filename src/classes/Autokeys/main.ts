@@ -53,23 +53,23 @@ export = class Autokeys {
         this.bot = bot;
 
         this.userPure = genUserPure(
-            bot.options.minimumKeys,
-            bot.options.maximumKeys,
-            bot.options.minimumRefinedToStartSellKeys,
-            bot.options.maximumRefinedToStopSellKeys
+            bot.options.autokeys.minKeys,
+            bot.options.autokeys.maxKeys,
+            bot.options.autokeys.minRefined,
+            bot.options.autokeys.maxRefined
         );
         const scrapAdjustment = genScrapAdjustment(
-            bot.options.scrapAdjustmentValue,
-            bot.options.disableScrapAdjustment
+            bot.options.autokeys.scrapAdjustment.value,
+            bot.options.autokeys.scrapAdjustment.enable
         );
         this.isEnableScrapAdjustment = scrapAdjustment.enabled;
         this.scrapAdjustmentValue = scrapAdjustment.value;
 
-        if (bot.options.enableAutokeys) {
+        if (bot.options.autokeys.enable) {
             this.isEnabled = true;
         }
 
-        if (bot.options.enableAutokeysBanking) {
+        if (bot.options.autokeys.banking.enable) {
             this.isKeyBankingEnabled = true;
         }
     }
@@ -384,10 +384,10 @@ export = class Autokeys {
                 };
                 this.isActive = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (!this.bot.options.disableSomethingWrongAlert) {
+                if (this.bot.options.sendAlert) {
                     if (
-                        !this.bot.options.disableSomethingWrongAlert &&
-                        this.bot.options.discordWebhookSomethingWrongAlertURL
+                        this.bot.options.sendAlert &&
+                        this.bot.options.discordWebhook.sendAlert.url
                     ) {
                         sendAlert('lowPure', msg, null, null, null, this.bot);
                     } else {
@@ -487,10 +487,10 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (!this.bot.options.disableSomethingWrongAlert) {
+                    if (this.bot.options.sendAlert) {
                         if (
-                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
-                            this.bot.options.discordWebhookSomethingWrongAlertURL
+                            this.bot.options.discordWebhook.sendAlert.enable &&
+                            this.bot.options.discordWebhook.sendAlert.url
                         ) {
                             sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
@@ -611,10 +611,10 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (!this.bot.options.disableSomethingWrongAlert) {
+                    if (this.bot.options.sendAlert) {
                         if (
-                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
-                            this.bot.options.discordWebhookSomethingWrongAlertURL
+                            this.bot.options.discordWebhook.sendAlert.enable &&
+                            this.bot.options.discordWebhook.sendAlert.url
                         ) {
                             sendAlert('lowPure', msg, null, null, null, this.bot);
                         } else {
@@ -655,8 +655,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsBuy,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsSell
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.buy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.sell
                 }
             } as any;
         } else {
@@ -676,8 +676,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsBuy,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.bptfDetailsSell
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.buy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.sell
                 }
             } as any;
         }

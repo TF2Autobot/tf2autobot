@@ -15,9 +15,9 @@ export default function stats(
     const pollData = bot.manager.pollData;
     const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
     const timeSince =
-        +bot.options.tradingStartingTimeUnix === 0
+        +bot.options.statistics.startingTimeInUnix === 0
             ? pollData.timestamps[oldestId]
-            : +bot.options.tradingStartingTimeUnix;
+            : +bot.options.statistics.startingTimeInUnix;
     const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
 
     const offerData = bot.manager.pollData.offerData;

@@ -28,7 +28,7 @@ export default function sendOfferReview(
     bot: Bot
 ): void {
     let noMentionOnInvalidValue = false;
-    if (bot.options.discordWebhookReviewOfferDisableMentionInvalidValue) {
+    if (bot.options.discordWebhook.offerReview.mentionInvalidValue) {
         noMentionOnInvalidValue =
             reasons.includes('🟥_INVALID_VALUE') &&
             !(
@@ -41,7 +41,7 @@ export default function sendOfferReview(
     }
     const mentionOwner = noMentionOnInvalidValue
         ? `${offer.id}`
-        : `<@!${bot.options.discordOwnerID}>, check this! - ${offer.id}`;
+        : `<@!${bot.options.discordWebhook.ownerID}>, check this! - ${offer.id}`;
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
@@ -76,15 +76,15 @@ export default function sendOfferReview(
 
         const partnerNameNoFormat = replace.specialChar(partnerName);
 
-        const isShowQuickLinks = bot.options.discordWebhookReviewOfferShowQuickLinks;
-        const isShowKeyRate = bot.options.discordWebhookReviewOfferShowKeyRate;
-        const isShowPureStock = bot.options.discordWebhookReviewOfferShowPureStock;
+        const isShowQuickLinks = bot.options.discordWebhook.tradeSummary.misc.showQuickLinks;
+        const isShowKeyRate = bot.options.discordWebhook.tradeSummary.misc.showKeyRate;
+        const isShowPureStock = bot.options.discordWebhook.tradeSummary.misc.showPureStock;
 
         /*eslint-disable */
         const webhookReview = {
-            username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
-            avatar_url: bot.options.discordWebhookAvatarURL
-                ? bot.options.discordWebhookAvatarURL
+            username: bot.options.discordWebhook.username ? bot.options.discordWebhook.username : botInfo.name,
+            avatar_url: bot.options.discordWebhook.avatarURL
+                ? bot.options.discordWebhook.avatarURL
                 : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
@@ -126,7 +126,7 @@ export default function sendOfferReview(
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                         }
                     ],
-                    color: bot.options.discordWebhookEmdedColorInDecimalIndex
+                    color: bot.options.discordWebhook.embedColor
                 }
             ]
         };
@@ -183,7 +183,7 @@ export default function sendOfferReview(
         }
 
         const request = new XMLHttpRequest();
-        request.open('POST', bot.options.discordWebhookReviewOfferURL);
+        request.open('POST', bot.options.discordWebhook.offerReview.url);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(JSON.stringify(webhookReview));
     });

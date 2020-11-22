@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es2018",
+        "target": "es2019",
         "module": "commonjs",
         "allowJs": false,
         "checkJs": false,
         "outDir": "./dist",
         "rootDir": "./src",
+        "lib": ["es2020"],
         "removeComments": true,
         "strict": true,
         "noImplicitAny": false,

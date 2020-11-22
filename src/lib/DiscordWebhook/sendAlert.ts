@@ -49,11 +49,11 @@ export default function sendAlert(
 
     /*eslint-disable */
     const webhook = JSON.stringify({
-        username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
-        avatar_url: bot.options.discordWebhookAvatarURL
-            ? bot.options.discordWebhookAvatarURL
+        username: bot.options.discordWebhook.username ? bot.options.discordWebhook.username : botInfo.name,
+        avatar_url: bot.options.discordWebhook.avatarURL
+            ? bot.options.discordWebhook.avatarURL
             : botInfo.avatarURL,
-        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordOwnerID}>` : '',
+        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -68,7 +68,7 @@ export default function sendAlert(
     /*eslint-enable */
 
     const request = new XMLHttpRequest();
-    request.open('POST', bot.options.discordWebhookSomethingWrongAlertURL);
+    request.open('POST', bot.options.discordWebhook.sendAlert.url);
     request.setRequestHeader('Content-type', 'application/json');
     request.send(webhook);
 }

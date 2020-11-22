@@ -13,10 +13,10 @@ afterAll(() => {
 
 test('Parsing Options', () => {
     // test defaults of each type
-    let result = Options.loadOptions();
-    expect(result.steamAccountName).toBe('');
-    expect(result.minimumKeys).toBe(3);
-    expect(result.normalizeFestivizedItems).toBeFalsy();
+    let result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.steamAccountName).toBe('abc123');
+    expect(result.autokeys.minKeys).toBe(3);
+    expect(result.normalize.festivized).toBeFalsy();
 
     // test loading a string variable
     process.env.STEAM_ACCOUNT_NAME = 'test123';
@@ -36,16 +36,10 @@ test('Parsing Options', () => {
     expect(result.admins).toEqual(['STEAM_0:1:7654321']);
 
     // test loading numbers
-    result = Options.loadOptions({ minimumKeys: 1 });
-    expect(result.minimumKeys).toEqual(1);
-    process.env.MINIMUM_KEYS = '9';
-    result = Options.loadOptions();
-    expect(result.minimumKeys).toEqual(9);
+    result = Options.loadOptions({ autokeys: { minKeys: 1 } });
+    expect(result.autokeys.minKeys).toEqual(1);
 
     // test loading booleans
-    result = Options.loadOptions({ normalizeFestivizedItems: true });
-    expect(result.normalizeFestivizedItems).toBeTruthy();
-    process.env.NORMALIZE_FESTIVIZED_ITEMS = 'true';
-    result = Options.loadOptions();
-    expect(result.normalizeFestivizedItems).toBeTruthy();
+    result = Options.loadOptions({ normalize: { festivized: true } });
+    expect(result.normalize.festivized).toBeTruthy();
 });

@@ -16,8 +16,8 @@ export default function createToBank(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 2,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
             }
         } as any;
     } else {
@@ -37,8 +37,8 @@ export default function createToBank(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 2,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
             }
         } as any;
     }

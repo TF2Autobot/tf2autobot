@@ -205,7 +205,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         } else {
             newPricelist = pricelist;
 
-            if (bot.options.enableAutokeys) {
+            if (bot.options.autokeys.enable) {
                 // Autokeys is a feature, so when updating multiple entry with
                 // "!update all=true", key entry will be removed from newPricelist.
                 // https://github.com/idinium96/tf2autobot/issues/131

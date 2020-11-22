@@ -8,6 +8,7 @@
     "enableGroupInvites": true,
     "enableOwnerCommand": true,
     "autoRemoveIntentSell": false,
+    "enableCraftweaponAsCurrency": true,
 
     "allowEscrow": false,
     "allowOverpay": true,
@@ -127,6 +128,7 @@
     "discordInviteLink": "",
     "discordWebhook": {
         "ownerID": "",
+        "username": "",
         "displayName": "",
         "avatarURL": "",
         "embedColor": "9171753",
@@ -169,5 +171,6 @@
             "enable": true,
             "url": ""
         }
-    }
+    },
+    "maxPriceAge": "28800"
 }

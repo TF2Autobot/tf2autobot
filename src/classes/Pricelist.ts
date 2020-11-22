@@ -556,8 +556,8 @@ export default class Pricelist extends EventEmitter {
             const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                this.options.enableAutokeys &&
-                !this.options.disableScrapAdjustment &&
+                this.options.autokeys.enable &&
+                this.options.autokeys.scrapAdjustment.enable &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
@@ -591,7 +591,7 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (!this.options.disableDiscordWebhookPriceUpdate && this.options.discordWebhookPriceUpdateURL) {
+            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url) {
                 const time = moment()
                     .tz(this.options.timezone ? this.options.timezone : 'UTC')
                     .format(
@@ -673,8 +673,8 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhookUsername,
-            avatar_url: this.options.discordWebhookAvatarURL,
+            username: this.options.discordWebhook.username,
+            avatar_url: this.options.discordWebhook.avatarURL,
             content: '',
             embeds: [
                 {
@@ -706,8 +706,8 @@ export default class Pricelist extends EventEmitter {
                             inline: true
                         }
                     ],
-                    description: this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
-                        ? this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
+                    description: this.options.discordWebhook.priceUpdate.note
+                        ? this.options.discordWebhook.priceUpdate.note
                         : '',
                     color: qualityColorPrint
                 }
@@ -716,7 +716,7 @@ export default class Pricelist extends EventEmitter {
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', this.options.discordWebhookPriceUpdateURL);
+        request.open('POST', this.options.discordWebhook.priceUpdate.url);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(priceUpdate);
     }
@@ -831,8 +831,8 @@ export default class Pricelist extends EventEmitter {
                         inline: true
                     }
                 ],
-                description: this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
-                    ? this.options.discordWebhookPriceUpdateAdditionalDescriptionNote
+                description: this.options.discordWebhook.priceUpdate.note
+                    ? this.options.discordWebhook.priceUpdate.note
                     : '',
                 color: qualityColorPrint
             });
@@ -841,15 +841,15 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhookUsername,
-            avatar_url: this.options.discordWebhookAvatarURL,
+            username: this.options.discordWebhook.username,
+            avatar_url: this.options.discordWebhook.avatarURL,
             content: '',
             embeds: embed
         });
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', this.options.discordWebhookPriceUpdateURL);
+        request.open('POST', this.options.discordWebhook.priceUpdate.url);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(priceUpdate);
     }

@@ -12,9 +12,9 @@ interface UserPure {
     maxRefs: number;
 }
 
-export function genScrapAdjustment(scrapAdjustmentValue?: number, disableScrapAdjustment?: boolean): ScrapAdjustment {
+export function genScrapAdjustment(scrapAdjustmentValue?: number, enabled?: boolean): ScrapAdjustment {
     return {
-        enabled: !disableScrapAdjustment,
+        enabled: enabled,
         value: isNaN(scrapAdjustmentValue) ? 0 : scrapAdjustmentValue
     };
 }
