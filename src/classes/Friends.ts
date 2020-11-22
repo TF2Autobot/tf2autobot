@@ -1,11 +1,10 @@
 import SteamUser from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
+import request from '@nicklason/request-retry';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-
-import request from '@nicklason/request-retry';
 import MyHandler from './MyHandler';
 
 export = class Friends {
@@ -90,7 +89,7 @@ export = class Friends {
                 const level = result.player_level;
 
                 const friendToKeep = (this.bot.handler as MyHandler).getFriendToKeep();
-                const disableAddFriends = process.env.DISABLE_ADD_FRIENDS === 'true';
+                const disableAddFriends = this.bot.options.disableAddFriends;
 
                 const base = 250;
                 const multiplier = 5;

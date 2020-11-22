@@ -1,10 +1,10 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionary } from '../../../types/common';
 import SchemaManager from 'tf2-schema-2';
-
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
+
+import { Currency } from '../../../types/TeamFortress2';
+import { UnknownDictionary } from '../../../types/common';
 
 export = function(schema: SchemaManager.Schema): string {
     // @ts-ignore

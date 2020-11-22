@@ -2,19 +2,19 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
+import { EconItem } from 'steam-tradeoffer-manager';
+// import { parseEconItem } from 'tf2-item-format';
+import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
+import { UnknownDictionary } from '../types/common';
 
 import Cart from './Cart';
 import Inventory from './Inventory';
 import TF2Inventory from './TF2Inventory';
 import MyHandler from './MyHandler';
-import { EconItem } from 'steam-tradeoffer-manager';
-import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
-import { UnknownDictionary } from '../types/common';
-
-import { craftAll, uncraftAll, noiseMakerSKU, noiseMakerNames, strangeParts, spMore1Keys } from '../lib/data';
-// import { parseEconItem } from 'tf2-item-format';
 
 import log from '../lib/logger';
+import { craftAll, uncraftAll, noiseMakerSKU } from '../lib/data';
+import { pure, check } from '../lib/tools/export';
 
 export = UserCart;
 
@@ -44,7 +44,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (process.env.DISABLE_CRAFTWEAPON_AS_CURRENCY !== 'true') {
+        if (!this.bot.options.disableCraftweaponAsCurrency) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
@@ -446,7 +446,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
@@ -463,205 +463,43 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (
-                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
-                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-            ) {
-                let hasNot5Uses = false;
-                let hasNot25Uses = false;
-
+            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                        const isNoiseMaker = noiseMakerNames.some(name => {
-                            return item.market_hash_name.includes(name);
-                        });
+                    const yes: {
+                        isNot5Uses: boolean;
+                        isNot25Uses: boolean;
+                    } = check.uses(offer, fetched, this.bot);
 
-                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
-                            for (let i = 0; i < item.descriptions.length; i++) {
-                                const descriptionValue = item.descriptions[i].value;
-                                const descriptionColor = item.descriptions[i].color;
+                    if (yes.isNot5Uses) {
+                        return Promise.reject(
+                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                        );
+                    }
 
-                                if (
-                                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                    descriptionColor === '00a000'
-                                ) {
-                                    hasNot5Uses = true;
-                                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                                    break;
-                                }
-                            }
-                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                            for (let i = 0; i < item.descriptions.length; i++) {
-                                const descriptionValue = item.descriptions[i].value;
-                                const descriptionColor = item.descriptions[i].color;
-
-                                if (
-                                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                                    descriptionColor === '00a000'
-                                ) {
-                                    hasNot25Uses = true;
-                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-
-                if (hasNot25Uses) {
-                    return Promise.reject(
-                        'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                    );
+                    if (yes.isNot25Uses) {
+                        return Promise.reject(
+                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                        );
+                    }
                 }
             }
 
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
+
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
+                has: boolean;
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = {
-                skus: [],
-                names: [],
-                isMention: false
-            };
-
-            const isEnabledDiscordWebhook =
-                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
-
-            fetched.forEach(item => {
-                // const parsed = parseEconItem(
-                //     {
-                //         ...item,
-                //         tradable: item.tradable ? 1 : 0,
-                //         commodity: item.commodity ? 1 : 0,
-                //         marketable: item.marketable ? 1 : 0,
-                //         amount: item.amount + ''
-                //     },
-                //     true,
-                //     true
-                // );
-
-                const itemSKU = item.getSKU(this.bot.schema);
-
-                if (sku === itemSKU) {
-                    // let hasSpelled = false;
-                    // if (parsed.spells.length > 0) {
-                    //     hasSpelled = true;
-                    // }
-
-                    // let hasStrangeParts = false;
-                    // if (parsed.parts.length > 0) {
-                    //     hasStrangeParts = true;
-                    // }
-
-                    let hasSpells = false;
-                    let hasStrangeParts = false;
-                    let hasKillstreaker = false;
-                    let hasSheen = false;
-
-                    const spellNames: string[] = [];
-                    const partsNames: string[] = [];
-                    const killstreakerName: string[] = [];
-                    const sheenName: string[] = [];
-
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const desc = item.descriptions[i].value;
-                        const parts = item.descriptions[i].value
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim();
-
-                        const color = item.descriptions[i].color;
-                        const strangePartNames = Object.keys(strangeParts);
-
-                        if (
-                            desc.startsWith('Halloween:') &&
-                            desc.endsWith('(spell only active during event)') &&
-                            color === '7ea9d1'
-                        ) {
-                            hasSpells = true;
-                            highValuedTheir.isMention = true;
-                            const spellName = desc.substring(10, desc.length - 32).trim();
-                            spellNames.push(spellName);
-                        } else if (
-                            (parts === 'Kills' || parts === 'Assists'
-                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : strangePartNames.includes(parts)) &&
-                            color === '756b5e'
-                        ) {
-                            hasStrangeParts = true;
-                            if (Object.keys(spMore1Keys).includes(parts)) {
-                                highValuedTheir.isMention = true;
-                                partsNames.push(parts + ' (>🔑)');
-                            } else {
-                                partsNames.push(parts);
-                            }
-                        } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                            const extractedName = desc.replace('Killstreaker: ', '').trim();
-                            hasKillstreaker = true;
-                            if (toMention.killstreakers.includes(extractedName.toLowerCase())) {
-                                highValuedTheir.isMention = true;
-                                killstreakerName.push(extractedName + ' (🌟)');
-                            } else {
-                                killstreakerName.push(extractedName);
-                            }
-                        } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                            const extractedName = desc.replace('Sheen: ', '').trim();
-                            hasSheen = true;
-                            if (toMention.sheens.includes(extractedName.toLowerCase())) {
-                                highValuedTheir.isMention = true;
-                                sheenName.push(extractedName + ' (🌟)');
-                            } else {
-                                sheenName.push(extractedName);
-                            }
-                        }
-                    }
-
-                    if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                        highValuedTheir.skus.push(itemSKU);
-                        const itemObj = SKU.fromString(itemSKU);
-                        const itemName =
-                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
-
-                        let itemDescriptions = '';
-
-                        if (hasSpells) {
-                            itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
-                        }
-
-                        if (hasStrangeParts) {
-                            itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
-                        }
-
-                        if (hasKillstreaker) {
-                            itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
-                        }
-
-                        if (hasSheen) {
-                            itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
-                        }
-
-                        log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
-
-                        if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
-                            );
-                        } else {
-                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
-                        }
-                    }
-                }
-            });
+            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
 
             offer.data('highValue', highValuedTheir);
 
@@ -733,7 +571,7 @@ class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -984,7 +822,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (this.bot.options.enableShowOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1994,7 +1832,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
@@ -2011,205 +1849,43 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (
-                process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false' ||
-                process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
-            ) {
-                let hasNot5Uses = false;
-                let hasNot25Uses = false;
-
+            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    fetched.forEach(item => {
-                        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-                        const isNoiseMaker = noiseMakerNames.some(name => {
-                            return item.market_hash_name.includes(name);
-                        });
+                    const yes: {
+                        isNot5Uses: boolean;
+                        isNot25Uses: boolean;
+                    } = check.uses(offer, fetched, this.bot);
 
-                        if (isDuelingMiniGame && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
-                            for (let i = 0; i < item.descriptions.length; i++) {
-                                const descriptionValue = item.descriptions[i].value;
-                                const descriptionColor = item.descriptions[i].color;
+                    if (yes.isNot5Uses) {
+                        return Promise.reject(
+                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                        );
+                    }
 
-                                if (
-                                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                    descriptionColor === '00a000'
-                                ) {
-                                    hasNot5Uses = true;
-                                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                                    break;
-                                }
-                            }
-                        } else if (isNoiseMaker && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
-                            for (let i = 0; i < item.descriptions.length; i++) {
-                                const descriptionValue = item.descriptions[i].value;
-                                const descriptionColor = item.descriptions[i].color;
-
-                                if (
-                                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                                    descriptionColor === '00a000'
-                                ) {
-                                    hasNot25Uses = true;
-                                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                }
-
-                if (hasNot5Uses) {
-                    return Promise.reject(
-                        'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                    );
-                }
-
-                if (hasNot25Uses) {
-                    return Promise.reject(
-                        'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                    );
+                    if (yes.isNot25Uses) {
+                        return Promise.reject(
+                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                        );
+                    }
                 }
             }
 
+            const filtered = fetched.filter(
+                item =>
+                    item.getSKU(
+                        this.bot.schema,
+                        this.bot.options.normalizeFestivizedItems,
+                        this.bot.options.normalizeStrangeUnusual
+                    ) === sku
+            );
+
             const toMention = (this.bot.handler as MyHandler).getToMention();
             const highValuedTheir: {
+                has: boolean;
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = {
-                skus: [],
-                names: [],
-                isMention: false
-            };
-
-            const isEnabledDiscordWebhook =
-                process.env.DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY === 'false' &&
-                process.env.DISCORD_WEBHOOK_TRADE_SUMMARY_URL;
-
-            fetched.forEach(item => {
-                // const parsed = parseEconItem(
-                //     {
-                //         ...item,
-                //         tradable: item.tradable ? 1 : 0,
-                //         commodity: item.commodity ? 1 : 0,
-                //         marketable: item.marketable ? 1 : 0,
-                //         amount: item.amount + ''
-                //     },
-                //     true,
-                //     true
-                // );
-
-                const itemSKU = item.getSKU(this.bot.schema);
-
-                if (sku === itemSKU) {
-                    // let hasSpelled = false;
-                    // if (parsed.spells.length > 0) {
-                    //     hasSpelled = true;
-                    // }
-
-                    // let hasStrangeParts = false;
-                    // if (parsed.parts.length > 0) {
-                    //     hasStrangeParts = true;
-                    // }
-
-                    let hasSpells = false;
-                    let hasStrangeParts = false;
-                    let hasKillstreaker = false;
-                    let hasSheen = false;
-
-                    const spellNames: string[] = [];
-                    const partsNames: string[] = [];
-                    const killstreakerName: string[] = [];
-                    const sheenName: string[] = [];
-
-                    for (let i = 0; i < item.descriptions.length; i++) {
-                        const desc = item.descriptions[i].value;
-                        const parts = item.descriptions[i].value
-                            .replace('(', '')
-                            .replace(/: \d+\)/g, '')
-                            .trim();
-
-                        const color = item.descriptions[i].color;
-                        const strangePartNames = Object.keys(strangeParts);
-
-                        if (
-                            desc.startsWith('Halloween:') &&
-                            desc.endsWith('(spell only active during event)') &&
-                            color === '7ea9d1'
-                        ) {
-                            hasSpells = true;
-                            highValuedTheir.isMention = true;
-                            const spellName = desc.substring(10, desc.length - 32).trim();
-                            spellNames.push(spellName);
-                        } else if (
-                            (parts === 'Kills' || parts === 'Assists'
-                                ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                                : strangePartNames.includes(parts)) &&
-                            color === '756b5e'
-                        ) {
-                            hasStrangeParts = true;
-                            if (Object.keys(spMore1Keys).includes(parts)) {
-                                highValuedTheir.isMention = true;
-                                partsNames.push(parts + ' (>🔑)');
-                            } else {
-                                partsNames.push(parts);
-                            }
-                        } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                            const extractedName = desc.replace('Killstreaker: ', '').trim();
-                            hasKillstreaker = true;
-                            if (toMention.killstreakers.includes(extractedName.toLowerCase())) {
-                                highValuedTheir.isMention = true;
-                                killstreakerName.push(extractedName + ' (🌟)');
-                            } else {
-                                killstreakerName.push(extractedName);
-                            }
-                        } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                            const extractedName = desc.replace('Sheen: ', '').trim();
-                            hasSheen = true;
-                            if (toMention.sheens.includes(extractedName.toLowerCase())) {
-                                highValuedTheir.isMention = true;
-                                sheenName.push(extractedName + ' (🌟)');
-                            } else {
-                                sheenName.push(extractedName);
-                            }
-                        }
-                    }
-
-                    if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
-                        highValuedTheir.skus.push(itemSKU);
-                        const itemObj = SKU.fromString(itemSKU);
-                        const itemName =
-                            itemObj.quality === 5 ? this.bot.schema.getName(itemObj, false) : item.market_hash_name;
-
-                        let itemDescriptions = '';
-
-                        if (hasSpells) {
-                            itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
-                        }
-
-                        if (hasStrangeParts) {
-                            itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
-                        }
-
-                        if (hasKillstreaker) {
-                            itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
-                        }
-
-                        if (hasSheen) {
-                            itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
-                        }
-
-                        log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
-
-                        if (isEnabledDiscordWebhook) {
-                            highValuedTheir.names.push(
-                                `[${itemName}](https://backpack.tf/item/${item.assetid})${itemDescriptions}`
-                            );
-                        } else {
-                            highValuedTheir.names.push(`${itemName} (${item.assetid})${itemDescriptions}`);
-                        }
-                    }
-                }
-            });
+            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
 
             offer.data('highValue', highValuedTheir);
 
@@ -2281,7 +1957,7 @@ class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = (this.bot.handler as MyHandler).pureStock();
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeysWithWeapons(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -2829,7 +2505,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (process.env.ENABLE_SHOW_ONLY_METAL === 'true') {
+        if (this.bot.options.enableShowOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

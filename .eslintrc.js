@@ -4,7 +4,7 @@ module.exports = {
     parserOptions: {
         project: './tsconfig.json'
     },
-    plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc', 'prettier'],
+    plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc', 'jest', 'prettier'],
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/eslint-recommended',

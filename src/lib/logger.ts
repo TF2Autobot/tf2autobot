@@ -2,7 +2,8 @@ import winston from 'winston';
 import 'winston-daily-rotate-file';
 import { FormatWrap } from 'logform';
 
-import paths from '../resources/paths';
+import { Paths } from '../resources/paths';
+import Options from '../classes/Options';
 
 const levels = {
     debug: 5,
@@ -77,79 +78,79 @@ const consoleFormat = winston.format.combine(
     })
 );
 
-const debugConsole = process.env.DEBUG === 'true';
-// Debug to file is enabled by default
-const debugFile = process.env.DEBUG_FILE === undefined ? true : process.env.DEBUG_FILE === 'true';
-
 const logger = winston.createLogger({
     levels: levels
 });
 
-// TODO: Populate transports through some sort of config / env variable
+export function init(paths: Paths, options: Options): void {
+    const debugConsole = options.debug;
+    // Debug to file is enabled by default
+    const debugFile = options.debugFile;
 
-const transports = [
-    {
-        type: 'DailyRotateFile',
-        filename: paths.logs.log,
-        level: debugFile ? 'debug' : 'verbose',
-        filter: 'private',
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxFiles: '14d'
-    },
-    {
-        type: 'File',
-        filename: paths.logs.trade,
-        level: 'trade',
-        filter: 'trade'
-    },
-    {
-        type: 'File',
-        filename: paths.logs.error,
-        level: 'error'
-    },
-    {
-        type: 'Console',
-        level: debugConsole ? 'debug' : 'verbose'
-    }
-];
-
-transports.forEach(transport => {
-    const type = transport.type;
-
-    delete transport.type;
-
-    if (type === 'File' || type === 'DailyRotateFile') {
-        // @ts-ignore
-        transport.format = fileFormat;
-    } else if (type === 'Console') {
-        // @ts-ignore
-        transport.format = consoleFormat;
-    }
-
-    const filter = transport.filter;
-
-    if (filter) {
-        delete transport.filter;
-
-        if (filter === 'trade') {
-            // @ts-ignore
-            transport.format = winston.format.combine(
-                levelFilter(filter)(),
-                // @ts-ignore
-                transport.format
-            );
-        } else if (filter === 'private') {
-            // @ts-ignore
-            transport.format = winston.format.combine(
-                privateFilter(),
-                // @ts-ignore
-                transport.format
-            );
+    const transports = [
+        {
+            type: 'DailyRotateFile',
+            filename: paths.logs.log,
+            level: debugFile ? 'debug' : 'verbose',
+            filter: 'private',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxFiles: '14d'
+        },
+        {
+            type: 'File',
+            filename: paths.logs.trade,
+            level: 'trade',
+            filter: 'trade'
+        },
+        {
+            type: 'File',
+            filename: paths.logs.error,
+            level: 'error'
+        },
+        {
+            type: 'Console',
+            level: debugConsole ? 'debug' : 'verbose'
         }
-    }
+    ];
 
-    logger.add(new winston.transports[type](transport));
-});
+    transports.forEach(transport => {
+        const type = transport.type;
 
-export = logger;
+        delete transport.type;
+
+        if (type === 'File' || type === 'DailyRotateFile') {
+            // @ts-ignore
+            transport.format = fileFormat;
+        } else if (type === 'Console') {
+            // @ts-ignore
+            transport.format = consoleFormat;
+        }
+
+        const filter = transport.filter;
+
+        if (filter) {
+            delete transport.filter;
+
+            if (filter === 'trade') {
+                // @ts-ignore
+                transport.format = winston.format.combine(
+                    levelFilter(filter)(),
+                    // @ts-ignore
+                    transport.format
+                );
+            } else if (filter === 'private') {
+                // @ts-ignore
+                transport.format = winston.format.combine(
+                    privateFilter(),
+                    // @ts-ignore
+                    transport.format
+                );
+            }
+        }
+
+        logger.add(new winston.transports[type](transport));
+    });
+}
+
+export default logger;

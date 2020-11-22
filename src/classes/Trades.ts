@@ -1,9 +1,9 @@
 import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
 
@@ -448,7 +448,7 @@ export = class Trades {
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
-            this.bot.community.acceptConfirmationForObject(process.env.STEAM_IDENTITY_SECRET, offer.id, err => {
+            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 const confirmationTime = moment().valueOf() - start;
                 offer.data('confirmationTime', confirmationTime);
 

@@ -61,8 +61,8 @@
                 "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
 
                 "DISABLE_HIGH_VALUE_HOLD": false,
-                "HIGH_VALUE_SHEENS": ["Fire Horns", "Tornado"],
-                "HIGH_VALUE_KILLSTREAKERS": ["Team Shine"],
+                "HIGH_VALUE_SHEENS": ["Team Shine"],
+                "HIGH_VALUE_KILLSTREAKERS": ["Fire Horns", "Tornado"],
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
@@ -232,8 +232,8 @@
                 "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
 
                 "DISABLE_HIGH_VALUE_HOLD": false,
-                "HIGH_VALUE_SHEENS": ["Fire Horns", "Tornado"],
-                "HIGH_VALUE_KILLSTREAKERS": ["Team Shine"],
+                "HIGH_VALUE_SHEENS": ["Team Shine"],
+                "HIGH_VALUE_KILLSTREAKERS": ["Fire Horns", "Tornado"],
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,
@@ -403,8 +403,8 @@
                 "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
 
                 "DISABLE_HIGH_VALUE_HOLD": false,
-                "HIGH_VALUE_SHEENS": ["Fire Horns", "Tornado"],
-                "HIGH_VALUE_KILLSTREAKERS": ["Team Shine"],
+                "HIGH_VALUE_SHEENS": ["Team Shine"],
+                "HIGH_VALUE_KILLSTREAKERS": ["Fire Horns", "Tornado"],
 
                 "NORMALIZE_FESTIVIZED_ITEMS": false,
                 "NORMALIZE_STRANGE_UNUSUAL": false,

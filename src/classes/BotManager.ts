@@ -1,13 +1,14 @@
-import Bot from './Bot';
-
 import async from 'async';
 import SteamUser from 'steam-user';
 import SchemaManager from 'tf2-schema-2';
 import io from 'socket.io-client';
 import pm2 from 'pm2';
 
+import Bot from './Bot';
+
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
+import Options from './Options';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -26,7 +27,7 @@ export = class BotManager {
 
     private exiting = false;
 
-    constructor() {
+    constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
         this.socket = io('https://api.prices.tf', {
             forceNew: true,
@@ -35,7 +36,7 @@ export = class BotManager {
 
         this.socket.on('connect', () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', process.env.PRICESTF_API_TOKEN || undefined);
+            this.socket.emit('authentication', pricestfApiToken);
         });
 
         this.socket.on('authenticated', () => {
@@ -73,7 +74,7 @@ export = class BotManager {
         return this.bot !== null && this.bot.isReady();
     }
 
-    start(): Promise<void> {
+    start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {
                 if (!process.env[optName]) {
@@ -93,7 +94,7 @@ export = class BotManager {
                     },
                     (callback): void => {
                         log.info('Starting bot...');
-                        this.bot = new Bot(this);
+                        this.bot = new Bot(this, options);
 
                         this.bot.start().asCallback(callback);
                     }

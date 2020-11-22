@@ -3,13 +3,13 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from '@nicklason/request-retry';
 import async from 'async';
+import moment from 'moment';
 
 import Bot = require('./Bot');
+import { Entry } from './Pricelist';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { Entry } from './Pricelist';
-import moment from 'moment';
 import { noiseMakerSKU } from '../lib/data';
 
 export = class Listings {
@@ -25,19 +25,20 @@ export = class Listings {
 
     private autoRelistTimeout;
 
-    private templates: { buy: string; sell: string } = {
-        buy:
-            process.env.BPTF_DETAILS_BUY ||
-            'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-        sell: process.env.BPTF_DETAILS_SELL || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
-    };
+    private templates: { buy: string; sell: string };
 
     constructor(bot: Bot) {
         this.bot = bot;
+        this.templates = {
+            buy:
+                this.bot.options.bptfDetailsBuy ||
+                'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
+            sell: this.bot.options.bptfDetailsSell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+        };
     }
 
     setupAutorelist(): void {
-        if (process.env.AUTOBUMP !== 'true' || process.env.DISABLE_LISTINGS === 'true') {
+        if (!this.bot.options.autobump || this.bot.options.disableListings) {
             // Autobump is not enabled
             return;
         }
@@ -52,7 +53,7 @@ export = class Listings {
     }
 
     private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || process.env.DISABLE_LISTINGS === 'true') {
+        if (this.autoRelistEnabled || this.bot.options.disableListings) {
             return;
         }
 
@@ -128,7 +129,7 @@ export = class Listings {
                 url: 'https://backpack.tf/api/users/info/v1',
                 method: 'GET',
                 qs: {
-                    key: process.env.BPTF_API_KEY,
+                    key: this.bot.options.bptfAPIKey,
                     steamids: steamID64
                 },
                 gzip: true,
@@ -146,7 +147,7 @@ export = class Listings {
     }
 
     checkBySKU(sku: string, data?: Entry | null): void {
-        if (process.env.DISABLE_LISTINGS === 'true') {
+        if (this.bot.options.disableListings) {
             return;
         }
 
@@ -228,7 +229,7 @@ export = class Listings {
 
     checkAll(): Promise<void> {
         return new Promise(resolve => {
-            if (process.env.DISABLE_LISTINGS === 'true') {
+            if (this.bot.options.disableListings) {
                 return resolve();
             }
 
@@ -297,7 +298,7 @@ export = class Listings {
 
     checkAllWithDelay(): Promise<void> {
         return new Promise(resolve => {
-            if (process.env.DISABLE_LISTINGS === 'true') {
+            if (this.bot.options.disableListings) {
                 return resolve();
             }
 
@@ -507,9 +508,9 @@ export = class Listings {
             // 5x uses, then replace %uses% with (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
             // else just empty string.
             details =
-                entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
+                entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    : noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
@@ -526,12 +527,12 @@ export = class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
             details =
-                entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false'
+                entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false'
+                    : noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
-        } else if (entry.sku === '241;6' && process.env.DISABLE_CHECK_USES_DUELING_MINI_GAME === 'false') {
+        } else if (entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame) {
             // else if note.buy or note.sell are both null, use template/in config file.
             // this part checks if the item is Dueling Mini-Game.
             details = this.templates[key]
@@ -545,7 +546,7 @@ export = class Listings {
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
-        } else if (noiseMakerSKU.includes(entry.sku) && process.env.DISABLE_CHECK_USES_NOISE_MAKER === 'false') {
+        } else if (noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker) {
             // this part checks if the item is Noise Maker.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
