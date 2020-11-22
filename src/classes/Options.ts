@@ -131,7 +131,6 @@ const DEFAULTS = {
     discordInviteLink: '',
     discordWebhook: {
         ownerID: '',
-        username: '',
         displayName: '',
         avatarURL: '',
         embedColor: '9171753',
