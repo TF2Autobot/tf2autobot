@@ -8,6 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import log from '../lib/logger';
 import request from 'request';
 import Inventory from './Inventory';
+import MyHandler from './MyHandler';
 
 import Bot from './Bot';
 
@@ -507,10 +508,13 @@ abstract class Cart {
     }
 
     private sendWebhookFullAlert(msg: string): void {
+        const username = this.bot.options.discordWebhook.username;
+        const avatarURL = this.bot.options.discordWebhook.avatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         /*eslint-disable */
         const fullBackpack = JSON.stringify({
-            username: this.bot.options.discordWebhook.username,
-            avatar_url: this.bot.options.discordWebhook.avatarURL,
+            username: username ? username : botInfo.name,
+            avatar_url: avatarURL ? avatarURL : botInfo.avatarURL,
             content: `<@!${this.bot.options.discordWebhook.ownerID}>`,
             embeds: [
                 {
