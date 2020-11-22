@@ -117,7 +117,7 @@ export default function sendTradeSummary(
 
         /*eslint-disable */
         const acceptedTradeSummary = {
-            username: bot.options.discordWebhook.username ? bot.options.discordWebhook.username : botInfo.name,
+            username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
             avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [

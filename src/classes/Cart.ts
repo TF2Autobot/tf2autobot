@@ -508,7 +508,7 @@ abstract class Cart {
     }
 
     private sendWebhookFullAlert(msg: string): void {
-        const username = this.bot.options.discordWebhook.username;
+        const username = this.bot.options.discordWebhook.displayName;
         const avatarURL = this.bot.options.discordWebhook.avatarURL;
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         /*eslint-disable */

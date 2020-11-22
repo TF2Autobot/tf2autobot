@@ -371,7 +371,6 @@ export interface SendAlert {
 
 export interface DiscordWebhook {
     ownerID?: string;
-    username?: string;
     displayName?: string;
     avatarURL?: string;
     embedColor?: string;

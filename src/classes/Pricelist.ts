@@ -673,7 +673,7 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhook.username,
+            username: this.options.discordWebhook.displayName,
             avatar_url: this.options.discordWebhook.avatarURL,
             content: '',
             embeds: [
@@ -841,7 +841,7 @@ export default class Pricelist extends EventEmitter {
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
-            username: this.options.discordWebhook.username,
+            username: this.options.discordWebhook.displayName,
             avatar_url: this.options.discordWebhook.avatarURL,
             content: '',
             embeds: embed

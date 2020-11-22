@@ -49,7 +49,7 @@ export default function sendAlert(
 
     /*eslint-disable */
     const webhook = JSON.stringify({
-        username: bot.options.discordWebhook.username ? bot.options.discordWebhook.username : botInfo.name,
+        username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
         avatar_url: bot.options.discordWebhook.avatarURL
             ? bot.options.discordWebhook.avatarURL
             : botInfo.avatarURL,
