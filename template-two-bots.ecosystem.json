@@ -28,53 +28,6 @@
 
                 "PRICESTF_API_TOKEN": "",
 
-                "AUTOBUMP": false,
-
-                "MINIMUM_SCRAP": 9,
-                "MINIMUM_RECLAIMED": 9,
-                "METAL_THRESHOLD": 9,
-                "DISABLE_CRAFTING_METAL": false,
-                "DISABLE_CRAFTING_WEAPONS": false,
-                "ENABLE_SHOW_ONLY_METAL": true,
-
-                "ENABLE_AUTOKEYS": false,
-                "ENABLE_AUTOKEYS_BANKING": false,
-                "MINIMUM_KEYS": 3,
-                "MAXIMUM_KEYS": 15,
-                "MINIMUM_REFINED_TO_START_SELL_KEYS": 30,
-                "MAXIMUM_REFINED_TO_STOP_SELL_KEYS": 150,
-                "DISABLE_SCRAP_ADJUSTMENT": true,
-                "SCRAP_ADJUSTMENT_VALUE": 1,
-                "AUTOKEYS_ACCEPT_UNDERSTOCKED": false,
-
-                "DISABLE_INVENTORY_SORT": false,
-                "DISABLE_LISTINGS": false,
-                "DISABLE_MESSAGES": false,
-                "DISABLE_SOMETHING_WRONG_ALERT": false,
-                "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
-                "DISABLE_GIVE_PRICE_TO_INVALID_ITEMS": false,
-                "DISABLE_ADD_FRIENDS": false,
-                "DISABLE_GROUPS_INVITE": false,
-                "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
-                "DISABLE_CHECK_USES_NOISE_MAKER": false,
-                "DISABLE_OWNER_COMMAND": false,
-                "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
-
-                "DISABLE_HIGH_VALUE_HOLD": false,
-                "HIGH_VALUE_SHEENS": ["Team Shine"],
-                "HIGH_VALUE_KILLSTREAKERS": ["Fire Horns", "Tornado"],
-
-                "NORMALIZE_FESTIVIZED_ITEMS": false,
-                "NORMALIZE_STRANGE_UNUSUAL": false,
-
-                "TRADES_MADE_STARTER_VALUE": 0,
-                "LAST_TOTAL_TRADES": 0,
-                "TRADING_STARTING_TIME_UNIX": 0,
-
-                "ENABLE_DUPE_CHECK": true,
-                "DECLINE_DUPES": false,
-                "MINIMUM_KEYS_DUPE_CHECK": 10,
-
                 "SKIP_BPTF_TRADEOFFERURL": true,
                 "SKIP_ACCOUNT_LIMITATIONS": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
@@ -83,92 +36,10 @@
                 "CUSTOM_TIME_FORMAT": "",
                 "TIME_ADDITIONAL_NOTES": "",
 
-                "ALLOW_ESCROW": false,
-                "ALLOW_OVERPAY": true,
-                "ALLOW_GIFT_WITHOUT_NOTE": false,
-                "ALLOW_BANNED": false,
-
                 "MAX_PRICE_AGE": 28800,
 
                 "DEBUG": true,
-                "DEBUG_FILE": true,
-
-                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%, so I am buying %amount_trade%.",
-                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%.",
-
-                "OFFER_MESSAGE": "",
-
-                "DISCORD_SERVER_INVITE_LINK": "",
-
-                "DISCORD_OWNER_ID": "",
-                "DISCORD_WEBHOOK_USERNAME": "",
-                "DISCORD_WEBHOOK_AVATAR_URL": "",
-                "DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX": "9171753",
-
-                "DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT": false,
-                "DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL": "",
-
-                "DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE": false,
-                "DISCORD_WEBHOOK_PRICE_UPDATE_URL": "",
-                "DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE": "",
-
-                "DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY": false,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_URL": [""],
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE": "",
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER": false,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU": [";"],
-
-                "DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW": false,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_URL": "",
-                "DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE": false,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS": true,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE": true,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK": true,
-
-                "DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER": false,
-                "DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL": "",
-                "DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_SHOW_QUICK_LINKS": true,
-
-                "ENABLE_MANUAL_REVIEW": true,
-                "DISABLE_SHOW_REVIEW_OFFER_SUMMARY": false,
-                "DISABLE_REVIEW_OFFER_NOTE": false,
-                "DISABLE_SHOW_CURRENT_TIME": false,
-
-                "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
-                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
-
-                "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
-                "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
-                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
-                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
-
-                "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
-                "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
-
-                "INVALID_VALUE_NOTE": "",
-                "INVALID_ITEMS_NOTE": "",
-                "OVERSTOCKED_NOTE": "",
-                "UNDERSTOCKED_NOTE": "",
-                "DUPE_ITEMS_NOTE": "",
-                "DUPE_CHECK_FAILED_NOTE": "",
-                "ADDITIONAL_NOTE": "",
-
-                "ENABLE_ONLY_PLAY_TF2": false,
-                "CUSTOM_PLAYING_GAME_NAME": "",
-
-                "CUSTOM_WELCOME_MESSAGE": "",
-                "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",
-                "CUSTOM_HOW2TRADE_MESSAGE": "",
-
-                "CUSTOM_SUCCESS_MESSAGE": "",
-                "CUSTOM_DECLINED_MESSAGE": "",
-                "CUSTOM_TRADED_AWAY_MESSAGE": "",
-                "CUSTOM_CLEARING_FRIENDS_MESSAGE": ""
+                "DEBUG_FILE": true
             }
         },
         {
@@ -199,53 +70,6 @@
 
                 "PRICESTF_API_TOKEN": "",
 
-                "AUTOBUMP": false,
-
-                "MINIMUM_SCRAP": 9,
-                "MINIMUM_RECLAIMED": 9,
-                "METAL_THRESHOLD": 9,
-                "DISABLE_CRAFTING_METAL": false,
-                "DISABLE_CRAFTING_WEAPONS": false,
-                "ENABLE_SHOW_ONLY_METAL": true,
-
-                "ENABLE_AUTOKEYS": false,
-                "ENABLE_AUTOKEYS_BANKING": false,
-                "MINIMUM_KEYS": 3,
-                "MAXIMUM_KEYS": 15,
-                "MINIMUM_REFINED_TO_START_SELL_KEYS": 30,
-                "MAXIMUM_REFINED_TO_STOP_SELL_KEYS": 150,
-                "DISABLE_SCRAP_ADJUSTMENT": true,
-                "SCRAP_ADJUSTMENT_VALUE": 1,
-                "AUTOKEYS_ACCEPT_UNDERSTOCKED": false,
-
-                "DISABLE_INVENTORY_SORT": false,
-                "DISABLE_LISTINGS": false,
-                "DISABLE_MESSAGES": false,
-                "DISABLE_SOMETHING_WRONG_ALERT": false,
-                "DISABLE_CRAFTWEAPON_AS_CURRENCY": false,
-                "DISABLE_GIVE_PRICE_TO_INVALID_ITEMS": false,
-                "DISABLE_ADD_FRIENDS": false,
-                "DISABLE_GROUPS_INVITE": false,
-                "DISABLE_CHECK_USES_DUELING_MINI_GAME": false,
-                "DISABLE_CHECK_USES_NOISE_MAKER": false,
-                "DISABLE_OWNER_COMMAND": false,
-                "DISABLE_AUTO_REMOVE_INTENT_SELL": false,
-
-                "DISABLE_HIGH_VALUE_HOLD": false,
-                "HIGH_VALUE_SHEENS": ["Team Shine"],
-                "HIGH_VALUE_KILLSTREAKERS": ["Fire Horns", "Tornado"],
-
-                "NORMALIZE_FESTIVIZED_ITEMS": false,
-                "NORMALIZE_STRANGE_UNUSUAL": false,
-
-                "TRADES_MADE_STARTER_VALUE": 0,
-                "LAST_TOTAL_TRADES": 0,
-                "TRADING_STARTING_TIME_UNIX": 0,
-
-                "ENABLE_DUPE_CHECK": true,
-                "DECLINE_DUPES": false,
-                "MINIMUM_KEYS_DUPE_CHECK": 10,
-
                 "SKIP_BPTF_TRADEOFFERURL": true,
                 "SKIP_ACCOUNT_LIMITATIONS": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
@@ -254,92 +78,10 @@
                 "CUSTOM_TIME_FORMAT": "",
                 "TIME_ADDITIONAL_NOTES": "",
 
-                "ALLOW_ESCROW": false,
-                "ALLOW_OVERPAY": true,
-                "ALLOW_GIFT_WITHOUT_NOTE": false,
-                "ALLOW_BANNED": false,
-
                 "MAX_PRICE_AGE": 28800,
 
                 "DEBUG": true,
-                "DEBUG_FILE": true,
-
-                "BPTF_DETAILS_BUY": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%, so I am buying %amount_trade%.",
-                "BPTF_DETAILS_SELL": "I am selling my %name% for %price%, I am selling %amount_trade%.",
-
-                "OFFER_MESSAGE": "",
-
-                "DISCORD_SERVER_INVITE_LINK": "",
-
-                "DISCORD_OWNER_ID": "",
-                "DISCORD_WEBHOOK_USERNAME": "",
-                "DISCORD_WEBHOOK_AVATAR_URL": "",
-                "DISCORD_WEBHOOK_EMBED_COLOR_IN_DECIMAL_INDEX": "9171753",
-
-                "DISABLE_DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT": false,
-                "DISCORD_WEBHOOK_SOMETHING_WRONG_ALERT_URL": "",
-
-                "DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE": false,
-                "DISCORD_WEBHOOK_PRICE_UPDATE_URL": "",
-                "DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE": "",
-
-                "DISABLE_DISCORD_WEBHOOK_TRADE_SUMMARY": false,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_URL": [""],
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_QUICK_LINKS": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_KEY_RATE": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_PURE_STOCK": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_SHOW_INVENTORY": true,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_ADDITIONAL_DESCRIPTION_NOTE": "",
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER": false,
-                "DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU": [";"],
-
-                "DISABLE_DISCORD_WEBHOOK_OFFER_REVIEW": false,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_URL": "",
-                "DISCORD_WEBHOOK_REVIEW_OFFER_DISABLE_MENTION_INVALID_VALUE": false,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_QUICK_LINKS": true,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_KEY_RATE": true,
-                "DISCORD_WEBHOOK_REVIEW_OFFER_SHOW_PURE_STOCK": true,
-
-                "DISABLE_DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER": false,
-                "DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_URL": "",
-                "DISCORD_WEBHOOK_MESSAGE_FROM_PARTNER_SHOW_QUICK_LINKS": true,
-
-                "ENABLE_MANUAL_REVIEW": true,
-                "DISABLE_SHOW_REVIEW_OFFER_SUMMARY": false,
-                "DISABLE_REVIEW_OFFER_NOTE": false,
-                "DISABLE_SHOW_CURRENT_TIME": false,
-
-                "DISABLE_ACCEPT_INVALID_ITEMS_OVERPAY": false,
-                "DISABLE_ACCEPT_OVERSTOCKED_OVERPAY": true,
-                "DISABLE_ACCEPT_UNDERSTOCKED_OVERPAY": true,
-
-                "DISABLE_AUTO_DECLINE_OVERSTOCKED": true,
-                "DISABLE_AUTO_DECLINE_UNDERSTOCKED": true,
-                "DISABLE_AUTO_DECLINE_INVALID_VALUE": false,
-                "AUTO_DECLINE_INVALID_VALUE_NOTE": "",
-
-                "INVALID_VALUE_EXCEPTION_SKUS": [";5;u", ";11;australium"],
-                "INVALID_VALUE_EXCEPTION_VALUE_IN_REF": 0,
-
-                "INVALID_VALUE_NOTE": "",
-                "INVALID_ITEMS_NOTE": "",
-                "OVERSTOCKED_NOTE": "",
-                "UNDERSTOCKED_NOTE": "",
-                "DUPE_ITEMS_NOTE": "",
-                "DUPE_CHECK_FAILED_NOTE": "",
-                "ADDITIONAL_NOTE": "",
-
-                "ENABLE_ONLY_PLAY_TF2": false,
-                "CUSTOM_PLAYING_GAME_NAME": "",
-
-                "CUSTOM_WELCOME_MESSAGE": "",
-                "CUSTOM_I_DONT_KNOW_WHAT_YOU_MEAN": "",
-                "CUSTOM_HOW2TRADE_MESSAGE": "",
-
-                "CUSTOM_SUCCESS_MESSAGE": "",
-                "CUSTOM_DECLINED_MESSAGE": "",
-                "CUSTOM_TRADED_AWAY_MESSAGE": "",
-                "CUSTOM_CLEARING_FRIENDS_MESSAGE": ""
+                "DEBUG_FILE": true
             }
         }
     ]
