@@ -1,8 +1,9 @@
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
+import { deepMerge } from '../lib/tools/deep-merge';
 
-export const DEFAULTS: Options = {
+export const DEFAULTS = {
     showOnlyMetal: true,
     sortInventory: true,
     createListings: true,
@@ -459,57 +460,51 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
     let fileOptions;
     const incomingOptions = options ? options : DEFAULTS;
     try {
-        fileOptions = JSON.parse(readFileSync(p, { encoding: 'utf8' }));
+        fileOptions = deepMerge(DEFAULTS, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
     } catch {
         if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
         writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
-        fileOptions = DEFAULTS;
+        fileOptions = deepMerge({}, DEFAULTS);
     }
-    return {
-        ...incomingOptions,
-        ...fileOptions
-    };
+    return deepMerge(fileOptions, incomingOptions);
 }
 
 export function loadOptions(options?: Options): Options {
-    const steamAccountName = getOption('steamAccountName', '', String, options);
+    const incomingOptions = options ? options : {};
+    const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     const envOptions = {
         steamAccountName: steamAccountName,
-        steamPassword: getOption('steamPassword', '', String, options),
-        steamSharedSecret: getOption('steamSharedSecret', '', String, options),
-        steamIdentitySecret: getOption('steamIdentitySecret', '', String, options),
+        steamPassword: getOption('steamPassword', '', String, incomingOptions),
+        steamSharedSecret: getOption('steamSharedSecret', '', String, incomingOptions),
+        steamIdentitySecret: getOption('steamIdentitySecret', '', String, incomingOptions),
 
-        bptfAccessToken: getOption('bptfAccessToken', '', String, options),
-        bptfAPIKey: getOption('bptfAPIKey', '', String, options),
+        bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
+        bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
 
-        admins: getOption('admins', [], JSON.parse, options),
-        keep: getOption('keep', [], JSON.parse, options),
-        groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, options),
-        alerts: getOption('alerts', ['trade'], JSON.parse, options),
+        admins: getOption('admins', [], JSON.parse, incomingOptions),
+        keep: getOption('keep', [], JSON.parse, incomingOptions),
+        groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, incomingOptions),
+        alerts: getOption('alerts', ['trade'], JSON.parse, incomingOptions),
 
-        pricestfAPIToken: getOption('pricestfAPIToken', '', String, options),
+        pricestfAPIToken: getOption('pricestfAPIToken', '', String, incomingOptions),
 
-        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, options),
-        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, options),
-        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, options),
+        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, incomingOptions),
+        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, incomingOptions),
+        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, incomingOptions),
 
-        timezone: getOption('timezone', '', String, options),
-        customTimeFormat: getOption('customTimeFormat', '', String, options),
-        timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, options),
+        timezone: getOption('timezone', '', String, incomingOptions),
+        customTimeFormat: getOption('customTimeFormat', '', String, incomingOptions),
+        timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
-        debug: getOption('debug', true, JSON.parse, options),
-        debugFile: getOption('debugFile', true, JSON.parse, options),
+        debug: getOption('debug', true, JSON.parse, incomingOptions),
+        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions),
 
-        folderName: getOption('folderName', steamAccountName, String, options),
-        filePrefix: getOption('filePrefix', steamAccountName, String, options)
+        folderName: getOption('folderName', steamAccountName, String, incomingOptions),
+        filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
     };
     const jsonOptions = loadJsonOptions(
         path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
-        options
+        incomingOptions
     );
-    return {
-        ...jsonOptions,
-        ...envOptions,
-        ...options
-    };
+    return deepMerge(jsonOptions, envOptions, incomingOptions);
 }
