@@ -2,7 +2,7 @@ import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 
-const DEFAULTS = {
+export const DEFAULTS = {
     showOnlyMetal: true,
     sortInventory: true,
     createListings: true,
@@ -457,6 +457,7 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 
 function loadJsonOptions(p: string, options?: Options): JsonOptions {
     let fileOptions;
+    const incomingOptions = options ? options : DEFAULTS;
     try {
         fileOptions = JSON.parse(readFileSync(p, { encoding: 'utf8' }));
     } catch {
@@ -465,8 +466,8 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
         fileOptions = DEFAULTS;
     }
     return {
-        ...fileOptions,
-        ...options
+        ...incomingOptions,
+        ...fileOptions
     };
 }
 
