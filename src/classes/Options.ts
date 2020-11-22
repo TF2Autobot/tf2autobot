@@ -288,7 +288,7 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
         fileOptions = JSON.parse(readFileSync(p, { encoding: 'utf8' }));
     } catch {
         if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p));
-        writeFileSync(p, JSON.stringify(DEFAULTS), { encoding: 'utf8' });
+        writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
         fileOptions = DEFAULTS;
     }
     return {
