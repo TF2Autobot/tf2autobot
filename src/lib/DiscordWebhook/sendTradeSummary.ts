@@ -4,7 +4,6 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 
 import { getPartnerDetails, quickLinks } from './utils';
-import { genTradeSummaryLinks, genSkusToMention } from './userSettings';
 
 import log from '../logger';
 import { pure, stats, summarize, listItems, replace } from '../tools/export';
@@ -46,21 +45,19 @@ export default function sendTradeSummary(
     const itemList = listItems(itemsName, false);
 
     // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
-    const isMentionOurItems = genSkusToMention(bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU).some(
-        fromEnv => {
-            return ourItems.some(ourItemSKU => {
-                return ourItemSKU.includes(fromEnv);
-            });
-        }
-    );
+    const skuToMention = bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU;
 
-    const isMentionThierItems = genSkusToMention(bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU).some(
-        fromEnv => {
-            return theirItems.some(theirItemSKU => {
-                return theirItemSKU.includes(fromEnv);
-            });
-        }
-    );
+    const isMentionOurItems = skuToMention.some(fromEnv => {
+        return ourItems.some(ourItemSKU => {
+            return ourItemSKU.includes(fromEnv);
+        });
+    });
+
+    const isMentionThierItems = skuToMention.some(fromEnv => {
+        return theirItems.some(theirItemSKU => {
+            return theirItemSKU.includes(fromEnv);
+        });
+    });
 
     const IVAmount = itemsName.invalid.length;
     const HVAmount = itemsName.highValue.length;
@@ -81,7 +78,7 @@ export default function sendTradeSummary(
             ? `<@!${bot.options.discordOwnerID}>`
             : '';
 
-    const tradeLinks = genTradeSummaryLinks(bot.options.discordWebhookTradeSummaryURL);
+    const tradeLinks = bot.options.discordWebhookTradeSummaryURL;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
     const trades = stats(bot);
@@ -121,9 +118,7 @@ export default function sendTradeSummary(
         /*eslint-disable */
         const acceptedTradeSummary = {
             username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
-            avatar_url: bot.options.discordWebhookAvatarURL
-                ? bot.options.discordWebhookAvatarURL
-                : botInfo.avatarURL,
+            avatar_url: bot.options.discordWebhookAvatarURL ? bot.options.discordWebhookAvatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {

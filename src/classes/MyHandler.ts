@@ -26,7 +26,7 @@ import * as files from '../lib/files';
 import { exponentialBackoff } from '../lib/helpers';
 import { requestCheck } from '../lib/ptf-api';
 import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
-import { sendAlert, sendTradeSummary, sendOfferReview, genTradeSummaryLinks } from '../lib/DiscordWebhook/export';
+import { sendAlert, sendTradeSummary, sendOfferReview } from '../lib/DiscordWebhook/export';
 import { check, pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../lib/tools/export';
 import genPaths from '../resources/paths';
 
@@ -101,7 +101,7 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().unix();
-        this.tradeSummaryLinks = genTradeSummaryLinks(this.bot.options.discordWebhookTradeSummaryURL);
+        this.tradeSummaryLinks = this.bot.options.discordWebhookTradeSummaryURL;
         this.paths = genPaths(this.bot.options.folderName, this.bot.options.filePrefix);
 
         const minimumScrap = this.bot.options.minimumScrap;
