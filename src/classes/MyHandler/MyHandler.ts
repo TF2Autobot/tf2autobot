@@ -773,7 +773,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const includeCraftweapon = this.bot.options.enableCraftweaponAsCurrency
+                    const notIncludeCraftweapon = this.bot.options.enableCraftweaponAsCurrency
                         ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                         : true;
 
@@ -798,7 +798,7 @@ export = class MyHandler extends Handler {
                         const isBuying = diff > 0; // is buying if true.
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && !includeCraftweapon) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
                             // User is offering too many
                             hasOverstock = true;
 
@@ -818,7 +818,7 @@ export = class MyHandler extends Handler {
                             !isBuying &&
                             sku !== '5021;6' &&
                             amountCanTrade < Math.abs(diff) &&
-                            !includeCraftweapon
+                            notIncludeCraftweapon
                         ) {
                             // User is taking too many
                             hasUnderstock = true;
@@ -851,7 +851,7 @@ export = class MyHandler extends Handler {
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                     } else if (
-                        (match === null && !includeCraftweapon) ||
+                        (match === null && notIncludeCraftweapon) ||
                         (match !== null && match.intent === (buying ? 1 : 0))
                     ) {
                         // Offer contains an item that we are not trading
