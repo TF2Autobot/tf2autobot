@@ -83,7 +83,7 @@ export default function processAccepted(
             }
         }
 
-        if (offerReceived.meta && offerReceived.meta.highValue.has) {
+        if (offerReceived.meta && offerReceived.meta.highValue) {
             if (offerReceived.meta.highValue.has.their) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                 offerReceived.meta.highValue.items.their.names.forEach(name => {
