@@ -16,7 +16,7 @@ import AdminCart from '../AdminCart';
 import UserCart from '../UserCart';
 import MyHandler from '../MyHandler';
 import CartQueue from '../CartQueue';
-import Autokeys from '../Autokeys/main';
+import Autokeys from '../Autokeys/Autokeys';
 
 import { fixItem } from '../../lib/items';
 import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';

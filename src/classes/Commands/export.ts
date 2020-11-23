@@ -1,4 +1,4 @@
-import * as botStatus from './botStatusCommands';
+import * as botStatus from './statusCommands';
 import * as help from './helpCommands';
 import messageCommand from './messageCommand';
 import * as misc from './miscCommands';

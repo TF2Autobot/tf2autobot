@@ -12,11 +12,11 @@ import { UnknownDictionary } from '../types/common';
 import Handler from './Handler';
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
-import Commands from './Commands/main';
+import Commands from './Commands/Commands';
 import CartQueue from './CartQueue';
 import Inventory from './Inventory';
 import TF2Inventory from './TF2Inventory';
-import Autokeys from './Autokeys/main';
+import Autokeys from './Autokeys/Autokeys';
 
 import { Paths } from '../resources/paths';
 import log from '../lib/logger';
