@@ -141,12 +141,14 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
 
 export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot): void {
     const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerId = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
+    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
 
-    if (isNaN(+offerId) || !offerId) {
+    if (isNaN(+offerIdRegex) || !offerIdRegex) {
         bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
         return;
     }
+
+    const offerId = offerIdRegex[0];
 
     const state = bot.manager.pollData.received[offerId];
 
@@ -314,12 +316,14 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
 
 export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): void {
     const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerId = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
+    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
 
-    if (isNaN(+offerId) || !offerId) {
+    if (isNaN(+offerIdRegex) || !offerIdRegex) {
         bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
         return;
     }
+
+    const offerId = offerIdRegex[0];
 
     const state = bot.manager.pollData.received[offerId];
 
