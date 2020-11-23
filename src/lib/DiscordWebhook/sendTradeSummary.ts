@@ -2,6 +2,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
+import moment from 'moment';
 
 import { getPartnerDetails, quickLinks } from './utils';
 
@@ -28,7 +29,8 @@ export default function sendTradeSummary(
     items: { their: string[]; our: string[] },
     links: { steam: string; bptf: string; steamrep: string },
     time: string,
-    bot: Bot
+    bot: Bot,
+    processTime: number
 ): void {
     const ourItems = items.our;
     const theirItems = items.their;
@@ -166,6 +168,7 @@ export default function sendTradeSummary(
                                     ? `\n🎒 Total items: ${currentItems +
                                           (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
                                     : '') +
+                                `\n⏱ Time taken: ${moment.unix(Math.round(processTime / 1000)).fromNow(true)}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes
@@ -178,25 +181,8 @@ export default function sendTradeSummary(
         };
         /*eslint-enable */
 
-        let removeStatus = false;
-
-        if (!(isShowKeyRate || isShowPureStock || isShowInventory || AdditionalNotes)) {
-            // If everything here is false, then it will be true and the last element (__Status__) of the
-            // fields array will be removed
-            acceptedTradeSummary.embeds[0].fields.pop();
-            removeStatus = true;
-        }
-
         if (itemList === '-') {
-            // if __Item list__ field is empty OR contains more than 1024 characters, then remove it
-            // to prevent the webhook from failing on POST request
-            if (removeStatus) {
-                // if __Status__ fields was removed, then delete the entire fields properties
-                delete acceptedTradeSummary.embeds[0].fields;
-            } else {
-                // else just remove the __Item list__
-                acceptedTradeSummary.embeds[0].fields.shift();
-            }
+            acceptedTradeSummary.embeds[0].fields.shift();
         } else if (itemList.length >= 1024) {
             // first get __Status__ element
             const statusElement = acceptedTradeSummary.embeds[0].fields.pop();

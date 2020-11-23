@@ -711,6 +711,10 @@ export = class Trades {
                     : '')
         );
 
+        const finishTimestamp = moment().valueOf();
+
+        const processTime = finishTimestamp - offer.data('handleTimestamp');
+
         if (
             offer.state === TradeOfferManager.ETradeOfferState.Active ||
             offer.state === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation
@@ -734,11 +738,7 @@ export = class Trades {
             // Unset items
             offer.data('_ourItems', undefined);
 
-            const finishTimestamp = moment().valueOf();
-
             offer.data('finishTimestamp', finishTimestamp);
-
-            const processTime = finishTimestamp - offer.data('handleTimestamp');
 
             log.debug('Took ' + (isNaN(processTime) ? 'unknown' : processTime) + ' ms to process offer', {
                 offerId: offer.id,
@@ -775,7 +775,7 @@ export = class Trades {
                     this.bot.listings.checkBySKU(sku);
                 }
 
-                this.bot.handler.onTradeOfferChanged(offer, oldState);
+                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
 

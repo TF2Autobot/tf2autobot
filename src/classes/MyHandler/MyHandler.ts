@@ -1376,7 +1376,7 @@ export = class MyHandler extends Handler {
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
 
-    onTradeOfferChanged(offer: TradeOffer, oldState: number): void {
+    onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState.Accepted) {
             offer.data('switchedState', oldState);
@@ -1439,7 +1439,8 @@ export = class MyHandler extends Handler {
                     this.bot,
                     this.isTradingKeys,
                     this.tradeSummaryLinks,
-                    this.backpackSlots
+                    this.backpackSlots,
+                    processTime
                 );
 
                 this.isTradingKeys = false; // reset

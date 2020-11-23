@@ -1,5 +1,6 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
+import moment from 'moment';
 import { UnknownDictionary } from '../../../../types/common';
 
 import { itemList } from '../../utils/export-utils';
@@ -15,7 +16,8 @@ export default function processAccepted(
     bot: Bot,
     isTradingKeys: boolean,
     tradeSummaryLinks: string[],
-    backpackSlots: number
+    backpackSlots: number,
+    processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
@@ -140,7 +142,8 @@ export default function processAccepted(
             itemsList,
             links,
             timeWithEmojis.time,
-            bot
+            bot,
+            processTime
         );
     } else {
         bot.messageAdmins(
@@ -181,7 +184,8 @@ export default function processAccepted(
                         : ''
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                `\n🎒 Total items: ${currentItems}`,
+                `\n🎒 Total items: ${currentItems}` +
+                `\n⏱ Time taken: ${moment.unix(Math.round(processTime / 1000)).fromNow(true)}`,
             []
         );
     }
