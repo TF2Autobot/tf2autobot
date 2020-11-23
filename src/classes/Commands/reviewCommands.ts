@@ -316,7 +316,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
 
 export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): void {
     const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage)[0];
+    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
 
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
         bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
