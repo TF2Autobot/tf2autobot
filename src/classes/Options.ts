@@ -25,7 +25,7 @@ export const DEFAULTS = {
     autobump: false,
 
     highValue: {
-        disableHold: false,
+        enableHold: true,
         sheens: ['Team Shine'],
         killstreakers: ['Fire Horns', 'Tornado']
     },
@@ -179,7 +179,7 @@ export const DEFAULTS = {
 };
 
 export interface HighValue {
-    disableHold?: boolean;
+    enableHold?: boolean;
     sheens?: string[];
     killstreakers?: string[];
 }

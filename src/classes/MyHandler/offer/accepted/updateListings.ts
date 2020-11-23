@@ -97,7 +97,7 @@ export default function updateListings(
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
             isNotPureOrWeapons &&
-            !bot.options.highValue.disableHold
+            bot.options.highValue.enableHold
         ) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const entry = {
