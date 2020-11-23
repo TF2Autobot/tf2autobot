@@ -10,7 +10,7 @@ import { UnknownDictionary } from '../types/common';
 import Cart from './Cart';
 import Inventory from './Inventory';
 import TF2Inventory from './TF2Inventory';
-import MyHandler from './MyHandler';
+import MyHandler from './MyHandler/MyHandler';
 
 import log from '../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../lib/data';

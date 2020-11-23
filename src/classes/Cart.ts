@@ -8,7 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import log from '../lib/logger';
 import request from 'request';
 import Inventory from './Inventory';
-import MyHandler from './MyHandler';
+import MyHandler from './MyHandler/MyHandler';
 
 import Bot from './Bot';
 

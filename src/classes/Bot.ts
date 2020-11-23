@@ -21,7 +21,7 @@ import Listings from './Listings';
 import TF2GC from './TF2GC';
 import Inventory from './Inventory';
 import BotManager from './BotManager';
-import MyHandler from './MyHandler';
+import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
 
 import log from '../lib/logger';

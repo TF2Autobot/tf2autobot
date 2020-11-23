@@ -7,26 +7,30 @@ import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import moment from 'moment-timezone';
-import { UnknownDictionary } from '../types/common';
+import { UnknownDictionary } from '../../types/common';
 
-import Handler from './Handler';
-import Bot from './Bot';
-import { Entry, EntryData } from './Pricelist';
-import Commands from './Commands/Commands';
-import CartQueue from './CartQueue';
-import Inventory from './Inventory';
-import TF2Inventory from './TF2Inventory';
-import Autokeys from './Autokeys/Autokeys';
+import { accepted, declined, cancelled, acceptEscrow, invalid } from './export-notify';
+import { processAccepted, updateListings } from './export-process';
+import { sendReview } from './offer/review/export-review';
+import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
-import { Paths } from '../resources/paths';
-import log from '../lib/logger';
-import * as files from '../lib/files';
-import { exponentialBackoff } from '../lib/helpers';
-import { requestCheck } from '../lib/ptf-api';
-import { craftWeapons, craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../lib/data';
-import { sendAlert, sendTradeSummary, sendOfferReview } from '../lib/DiscordWebhook/export';
-import { check, pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../lib/tools/export';
-import genPaths from '../resources/paths';
+import Handler from '../Handler';
+import Bot from '../Bot';
+import { Entry, EntryData } from '../Pricelist';
+import Commands from '../Commands/Commands';
+import CartQueue from '../CartQueue';
+import Inventory from '../Inventory';
+import TF2Inventory from '../TF2Inventory';
+import Autokeys from '../Autokeys/Autokeys';
+
+import { Paths } from '../../resources/paths';
+import log from '../../lib/logger';
+import * as files from '../../lib/files';
+import { exponentialBackoff } from '../../lib/helpers';
+import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../../lib/data';
+import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { check } from '../../lib/tools/export';
+import genPaths from '../../resources/paths';
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -305,15 +309,15 @@ export = class MyHandler extends Handler {
         this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
-        this.keepMetalSupply();
+        keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
         // Craft duplicate weapons
-        this.craftDuplicateWeapons();
+        craftDuplicateWeapons(this.bot);
 
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
             // called after 2 minutes to craft metals and duplicated weapons first.
-            this.craftClassWeapons();
+            craftClassWeapons(this.bot);
         }, 2 * 60 * 1000);
 
         // Auto sell and buy keys if ref < minimum
@@ -846,7 +850,10 @@ export = class MyHandler extends Handler {
                         // Offer contains keys and we are not trading keys, add key value
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
-                    } else if ((match === null && !includeCraftweapon) || match.intent === (buying ? 1 : 0)) {
+                    } else if (
+                        (match === null && !includeCraftweapon) ||
+                        (match !== null && match.intent === (buying ? 1 : 0))
+                    ) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
@@ -997,7 +1004,7 @@ export = class MyHandler extends Handler {
         }
 
         const exceptionSKU = this.invalidValueExceptionSKU;
-        const itemsList = MyHandler.itemList(offer);
+        const itemsList = itemList(offer);
         const ourItemsSKU = itemsList.our;
         const theirItemsSKU = itemsList.their;
 
@@ -1375,8 +1382,13 @@ export = class MyHandler extends Handler {
             offer.data('switchedState', oldState);
         }
 
-        const isDisableSKU: string[] = [];
-        const theirHighValuedItems: string[] = [];
+        const highValue: {
+            isDisableSKU: string[];
+            theirItems: string[];
+        } = {
+            isDisableSKU: [],
+            theirItems: []
+        };
 
         const handledByUs = offer.data('handledByUs') === true;
         const notify = offer.data('notify') === true;
@@ -1384,134 +1396,16 @@ export = class MyHandler extends Handler {
         if (handledByUs && offer.data('switchedState') !== offer.state) {
             if (notify) {
                 if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        this.bot.options.customMessage.success
-                            ? this.bot.options.customMessage.success
-                            : '/pre ✅ Success! The offer went through successfully.'
-                    );
+                    accepted(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        '✅ Success! The offer has gone through successfully, but you will receive your items after several days. ' +
-                            'To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.' +
-                            '\nRead:\n' +
-                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
-                    );
+                    acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
-                    const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                    const keyPrices = this.bot.pricelist.getKeyPrices();
-                    const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.showOnlyMetal);
+                    declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                    const manualReviewDisabled = !this.bot.options.manualReview.enable;
-
-                    let reasonForInvalidValue = false;
-                    let reason: string;
-                    if (!offerReason) {
-                        reason = '';
-                    } else if (offerReason.reason === 'GIFT_NO_NOTE') {
-                        reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
-                    } else if (offerReason.reason === 'CRIME_ATTEMPT') {
-                        reason = "you're taking free items. No.";
-                    } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
-                        reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
-                    } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
-                        reason = 'your offer contains a Noise Maker that does not have 25 uses.';
-                    } else if (offerReason.reason === 'HIGH_VALUE_ITEMS_NOT_SELLING') {
-                        reason = `you're attempting to purchase ${offerReason.meta.highValueName.join(
-                            ', '
-                        )}, but I am not selling it right now.`;
-                    } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
-                        reason =
-                            'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
-                    } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
-                        reason =
-                            'I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
-                    } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
-                        reason =
-                            'I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
-                    } else if (offerReason.reason === 'BANNED') {
-                        reason =
-                            "you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community.";
-                    } else if (offerReason.reason === 'ESCROW') {
-                        reason =
-                            'I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.' +
-                            '\nRead:\n' +
-                            '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                            '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
-                    } else if (
-                        offerReason.reason === 'ONLY_INVALID_VALUE' ||
-                        (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
-                    ) {
-                        reasonForInvalidValue = true;
-                        reason =
-                            "you've sent a trade with an invalid value (your side and my side do not hold equal value).";
-                    } else if (
-                        offerReason.reason === 'ONLY_OVERSTOCKED' ||
-                        (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
-                    ) {
-                        reasonForInvalidValue = value.diffRef !== 0;
-                        reason = "you're attempting to sell item(s) that I can't buy more of.";
-                    } else if (
-                        offerReason.reason === 'ONLY_UNDERSTOCKED' ||
-                        (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
-                    ) {
-                        reasonForInvalidValue = value.diffRef !== 0;
-                        reason = "you're attempting to purchase item(s) that I can't sell more of.";
-                    } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
-                        reason = "I don't accept duped items.";
-                    } else {
-                        reason = '';
-                    }
-
-                    const invalidValueSummary =
-                        '\n\nSummary:\n' +
-                        offer
-                            .summarize(this.bot.schema)
-                            .replace('Asked', '  My side')
-                            .replace('Offered', 'Your side') +
-                        "\n[You're missing: " +
-                        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
-                        `${
-                            this.bot.options.manualReview.invalidValue.autoDecline.note
-                                ? '\n\nNote from owner: ' + this.bot.options.manualReview.invalidValue.autoDecline.note
-                                : ''
-                        }`;
-
-                    this.bot.sendMessage(
-                        offer.partner,
-                        this.bot.options.customMessage.decline
-                            ? this.bot.options.customMessage.decline
-                                  .replace(/%reason%/g, reason)
-                                  .replace(/%invalid_value_summary%/g, invalidValueSummary)
-                            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
-                                  reason ? ` because ${reason}` : '.'
-                              }` + (reasonForInvalidValue ? invalidValueSummary : '')
-                    );
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
-                    let reason: string;
-
-                    if (offer.data('canceledByUser') === true) {
-                        reason = 'Offer was canceled by user';
-                    } else if (oldState === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation) {
-                        reason = 'Failed to accept mobile confirmation';
-                    } else {
-                        reason =
-                            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again.";
-                    }
-
-                    this.bot.sendMessage(
-                        offer.partner,
-                        '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: ' + reason + '.'
-                    );
+                    cancelled(offer, oldState, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState.InvalidItems) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        this.bot.options.customMessage.tradedAway
-                            ? this.bot.options.customMessage.tradedAway
-                            : '/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade).'
-                    );
+                    invalid(offer, this.bot);
                 }
             }
 
@@ -1539,190 +1433,19 @@ export = class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const pureStock = pure.stock(this.bot);
-                const timeWithEmojis = timeNow(
-                    this.bot.options.timezone,
-                    this.bot.options.customTimeFormat,
-                    this.bot.options.timeAdditionalNotes
+                const result = processAccepted(
+                    offer,
+                    autokeys,
+                    this.bot,
+                    this.isTradingKeys,
+                    this.tradeSummaryLinks,
+                    this.backpackSlots
                 );
-                const links = generateLinks(offer.partner.toString());
-                const itemsList = MyHandler.itemList(offer);
-                const currentItems = this.bot.inventoryManager.getInventory().getTotalItems();
 
-                const accepted: {
-                    invalidItems: string[];
-                    overstocked: string[];
-                    understocked: string[];
-                    highValue: string[];
-                    isMention: boolean;
-                } = {
-                    invalidItems: [],
-                    overstocked: [],
-                    understocked: [],
-                    highValue: [],
-                    isMention: false
-                };
-
-                const offerReceived: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-                const offerSent: { skus: string[]; names: string[]; isMention: boolean } = offer.data('highValue');
-
-                if (offerReceived) {
-                    // doing this because if an offer is being made by bot (from command), then this is undefined
-                    if (offerReceived.reason === 'VALID_WITH_OVERPAY' || offerReceived.reason === 'MANUAL') {
-                        // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
-                        if (offerReceived.meta) {
-                            // doing this because if an offer needs a manual review because of the failed for checking
-                            // for banned and escrow, then this is undefined.
-                            if (offerReceived.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
-                                // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
-
-                                const invalid = offerReceived.meta.reasons.filter(el =>
-                                    el.reason.includes('🟨_INVALID_ITEMS')
-                                );
-                                invalid.forEach(el => {
-                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                    accepted.invalidItems.push(name + ' - ' + el.price);
-                                });
-                            }
-
-                            if (offerReceived.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
-                                // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
-
-                                const invalid = offerReceived.meta.reasons.filter(el =>
-                                    el.reason.includes('🟦_OVERSTOCKED')
-                                );
-                                invalid.forEach(el => {
-                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                    accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
-                                });
-                            }
-
-                            if (offerReceived.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
-                                // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
-
-                                const invalid = offerReceived.meta.reasons.filter(el =>
-                                    el.reason.includes('🟩_UNDERSTOCKED')
-                                );
-                                invalid.forEach(el => {
-                                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                                    accepted.understocked.push(
-                                        name + ' (amount can sell was ' + el.amountCanTrade + ')'
-                                    );
-                                });
-                            }
-                        }
-                    }
-
-                    if (offerReceived.meta && offerReceived.meta.highValue.has) {
-                        if (offerReceived.meta.highValue.has.their) {
-                            // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                            offerReceived.meta.highValue.items.their.names.forEach(name => {
-                                accepted.highValue.push(name);
-                                theirHighValuedItems.push(name);
-                            });
-
-                            if (offerReceived.meta.highValue.isMention.their) {
-                                offerReceived.meta.highValue.items.their.skus.forEach(sku => isDisableSKU.push(sku));
-
-                                if (!this.bot.isAdmin(offer.partner)) {
-                                    accepted.isMention = true;
-                                }
-                            }
-                        }
-
-                        if (offerReceived.meta.highValue.has.our) {
-                            // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                            offerReceived.meta.highValue.items.our.names.forEach(name => accepted.highValue.push(name));
-
-                            if (offerReceived.meta.highValue.isMention.our) {
-                                if (!this.bot.isAdmin(offer.partner)) {
-                                    accepted.isMention = true;
-                                }
-                            }
-                        }
-                    }
-                } else if (offerSent) {
-                    // This is for offer that bot created from commands
-                    if (offerSent.names.length > 0) {
-                        offerSent.names.forEach(name => {
-                            accepted.highValue.push(name);
-                            theirHighValuedItems.push(name);
-                        });
-                    }
-
-                    if (offerSent.isMention) {
-                        offerSent.skus.forEach(sku => isDisableSKU.push(sku));
-                        accepted.isMention = true;
-                    }
-                }
-
-                const keyPrices = this.bot.pricelist.getKeyPrices();
-                const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.showOnlyMetal);
                 this.isTradingKeys = false; // reset
 
-                if (this.bot.options.discordWebhook.tradeSummary.enable && this.tradeSummaryLinks.length !== 0) {
-                    sendTradeSummary(
-                        offer,
-                        autokeys,
-                        currentItems,
-                        this.backpackSlots,
-                        accepted,
-                        keyPrices,
-                        value,
-                        itemsList,
-                        links,
-                        timeWithEmojis.time,
-                        this.bot
-                    );
-                } else {
-                    this.bot.messageAdmins(
-                        'trade',
-                        `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                            summarize(offer.summarize(this.bot.schema), value, keyPrices, true) +
-                            (accepted.invalidItems.length !== 0
-                                ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
-                                : '') +
-                            (accepted.overstocked.length !== 0
-                                ? (accepted.invalidItems.length !== 0 ? '\n\n' : '') +
-                                  '🟦_OVERSTOCKED:\n- ' +
-                                  accepted.overstocked.join(',\n- ')
-                                : '') +
-                            (accepted.understocked.length !== 0
-                                ? (accepted.overstocked.length !== 0 || accepted.invalidItems.length !== 0
-                                      ? '\n\n'
-                                      : '') +
-                                  '🟩_UNDERSTOCKED:\n- ' +
-                                  accepted.understocked.join(',\n- ')
-                                : '') +
-                            (accepted.highValue.length !== 0
-                                ? (accepted.overstocked.length !== 0 ||
-                                  accepted.invalidItems.length !== 0 ||
-                                  accepted.understocked.length !== 0
-                                      ? '\n\n'
-                                      : '') +
-                                  '🔶_HIGH_VALUE_ITEMS:\n- ' +
-                                  accepted.highValue.join('\n- ')
-                                : '') +
-                            `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                            ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                            `${
-                                autokeys.isEnabled
-                                    ? ' | Autokeys: ' +
-                                      (autokeys.isActive
-                                          ? '✅' +
-                                            (autokeys.isBanking
-                                                ? ' (banking)'
-                                                : autokeys.isBuying
-                                                ? ' (buying)'
-                                                : ' (selling)')
-                                          : '🛑')
-                                    : ''
-                            }` +
-                            `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                            `\n🎒 Total items: ${currentItems}`,
-                        []
-                    );
-                }
+                highValue.isDisableSKU.concat(result.isDisableSKU);
+                highValue.theirItems.concat(result.theirHighValuedItems);
             }
         }
 
@@ -1730,14 +1453,14 @@ export = class MyHandler extends Handler {
             // Offer is accepted
 
             // Smelt / combine metal
-            this.keepMetalSupply();
+            keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicated weapons
-            this.craftDuplicateWeapons();
+            craftDuplicateWeapons(this.bot);
 
             this.classWeaponsTimeout = setTimeout(() => {
                 // called after 2 minutes to craft metals and duplicated weapons first.
-                this.craftClassWeapons();
+                craftClassWeapons(this.bot);
             }, 2 * 60 * 1000);
 
             // Sort inventory
@@ -1761,150 +1484,9 @@ export = class MyHandler extends Handler {
             }
 
             // Update listings
-            const diff = offer.getDiff() || {};
+            updateListings(offer, this.bot, highValue);
 
-            for (const sku in diff) {
-                if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
-                    continue;
-                }
-
-                // Update listings
-                this.bot.listings.checkBySKU(sku);
-
-                const item = SKU.fromString(sku);
-                const name = this.bot.schema.getName(item, false);
-
-                const isNotPureOrWeapons = !(
-                    craftAll.includes(sku) ||
-                    uncraftAll.includes(sku) ||
-                    ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                );
-
-                // Request priceheck on each sku involved in the trade, except craft weapons,
-                // and pure.
-                if (isNotPureOrWeapons) {
-                    requestCheck(sku, 'bptf').asCallback((err, body) => {
-                        if (err) {
-                            log.debug(
-                                '❌ Failed to request pricecheck for ' +
-                                    `${name} (${sku})` +
-                                    ': ' +
-                                    (err.body && err.body.message ? err.body.message : err.message)
-                            );
-                        } else {
-                            log.debug(
-                                `✅ Requested pricecheck for ${
-                                    body.name.includes('War Paint') ||
-                                    body.name.includes('Mann Co. Supply Crate Series #') ||
-                                    body.name.includes('Salvaged Mann Co. Supply Crate #')
-                                        ? name
-                                        : body.name
-                                } (${sku}).`
-                            );
-                        }
-                    });
-                }
-
-                // Automatically add any INVALID_ITEMS to sell, excluding any item name
-                // that have War Paint (could be skins)
-
-                const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku);
-                const inPrice = this.bot.pricelist.getPrice(sku, false);
-
-                if (
-                    inPrice === null &&
-                    isNotPureOrWeapons &&
-                    item.wear === null &&
-                    !isDisableSKU.includes(sku) &&
-                    !this.bot.isAdmin(offer.partner)
-                ) {
-                    // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
-                    // from ADMINS, then add INVALID_ITEMS to the pricelist.
-                    const entry = {
-                        sku: sku,
-                        enabled: true,
-                        autoprice: true,
-                        min: 0,
-                        max: 1,
-                        intent: 1,
-                        group: 'invalidItem'
-                    } as any;
-
-                    this.bot.pricelist
-                        .addPrice(entry as EntryData, false)
-                        .then(data => {
-                            log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                            this.bot.listings.checkBySKU(data.sku, data);
-                        })
-                        .catch(err => {
-                            log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
-                        });
-                } else if (
-                    inPrice !== null &&
-                    isDisableSKU.includes(sku) &&
-                    isNotPureOrWeapons &&
-                    !this.bot.options.highValue.disableHold
-                ) {
-                    // If item received is high value, temporarily disable that item so it will not be sellable.
-                    const entry = {
-                        sku: sku,
-                        enabled: false,
-                        autoprice: inPrice.autoprice,
-                        min: inPrice.min,
-                        max: inPrice.max,
-                        intent: inPrice.intent,
-                        group: 'highValue'
-                    } as any;
-
-                    this.bot.pricelist
-                        .updatePrice(entry as EntryData, true)
-                        .then(() => {
-                            log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
-
-                            let msg =
-                                `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
-                                `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
-                                ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
-                                '\n\nItem information:\n\n- ';
-
-                            for (let i = 0; i < theirHighValuedItems.length; i++) {
-                                if (theirHighValuedItems[i].includes(name)) {
-                                    msg += theirHighValuedItems[i];
-                                }
-                            }
-
-                            if (
-                                this.bot.options.discordWebhook.sendAlert.enable &&
-                                this.bot.options.discordWebhook.sendAlert.url
-                            ) {
-                                sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null, this.bot);
-                            } else {
-                                this.bot.messageAdmins(msg, []);
-                            }
-                        })
-                        .catch(err => {
-                            log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
-                        });
-                } else if (
-                    this.bot.options.autoRemoveIntentSell &&
-                    inPrice !== null &&
-                    inPrice.intent === 1 &&
-                    currentStock < 1 &&
-                    isNotPureOrWeapons
-                ) {
-                    // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
-                    // then remove the item entry from pricelist.
-                    this.bot.pricelist
-                        .removePrice(sku, true)
-                        .then(() => {
-                            log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
-                        })
-                        .catch(err => {
-                            log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
-                        });
-                }
-            }
-
+            // Invite to group
             this.inviteToGroups(offer.partner);
         }
     }
@@ -1920,199 +1502,9 @@ export = class MyHandler extends Handler {
             return;
         }
 
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-        const pureStock = pure.stock(this.bot);
-        const value = valueDiff(offer, keyPrices, this.isTradingKeys, this.bot.options.showOnlyMetal);
-        this.isTradingKeys = false; // reset
-        const timeWithEmojis = timeNow(
-            this.bot.options.timezone,
-            this.bot.options.customTimeFormat,
-            this.bot.options.timeAdditionalNotes
-        );
-        const links = generateLinks(offer.partner.toString());
-
         if (action === 'skip') {
-            // Offer review note
-            let note: string;
-            const reviewReasons: string[] = [];
-
-            // for INVALID_VALUE
-            let missingPureNote: string;
-
             const reasons = meta.uniqueReasons;
             const wrong = meta.reasons;
-
-            // for 🟨_INVALID_ITEMS
-            const invalidForTheir: string[] = []; // Display for trade partner
-            const invalidForOur: string[] = []; // Display for owner
-
-            if (reasons.includes('🟨_INVALID_ITEMS')) {
-                const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
-
-                invalid.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    invalidForTheir.push(name); // only show to trade partner the item name
-                    invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
-                });
-
-                note = this.bot.options.manualReview.invalidItems.note
-                    ? `🟨_INVALID_ITEMS - ${this.bot.options.manualReview.invalidItems.note}`
-                          .replace(/%name%/g, invalidForTheir.join(', '))
-                          .replace(/%isName%/, pluralize('is', invalidForTheir.length))
-                    : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
-                          'is',
-                          invalidForTheir.length
-                      )} not in my pricelist.`;
-                // Default note: %name% is|are not in my pricelist.
-
-                reviewReasons.push(note);
-            }
-
-            // for 🟦_OVERSTOCKED
-            const overstockedForTheir: string[] = [];
-            const overstockedForOur: string[] = [];
-
-            if (reasons.includes('🟦_OVERSTOCKED')) {
-                const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
-
-                overstock.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    overstockedForTheir.push(el.amountCanTrade + ' - ' + name);
-                    overstockedForOur.push(name + ' (can only buy ' + el.amountCanTrade + ')');
-                });
-
-                note = this.bot.options.manualReview.overstocked.note
-                    ? `🟦_OVERSTOCKED - ${this.bot.options.manualReview.overstocked.note}`
-                          .replace(/%name%/g, overstockedForTheir.join(', ')) // %name% here will include amountCanTrade value
-                          .replace(/%isName%/, pluralize('is', overstockedForTheir.length))
-                    : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
-                // Default note: I can only buy %amountCanTrade% - %name% right now.
-
-                reviewReasons.push(note);
-            }
-
-            // for 🟩_UNDERSTOCKED
-            const understockedForTheir: string[] = [];
-            const understockedForOur: string[] = [];
-
-            if (reasons.includes('🟩_UNDERSTOCKED')) {
-                const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
-
-                understocked.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    understockedForTheir.push(el.amountCanTrade + ' - ' + name);
-                    understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
-                });
-
-                note = this.bot.options.manualReview.understocked.note
-                    ? `🟩_UNDERSTOCKED - ${this.bot.options.manualReview.understocked.note}`
-                          .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
-                          .replace(/%isName%/, pluralize('is', understockedForTheir.length))
-                    : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
-                // Default note: I can only sell %amountCanTrade% - %name% right now.
-
-                reviewReasons.push(note);
-            }
-
-            // for 🟫_DUPED_ITEMS
-            const dupedItemsName: string[] = [];
-
-            if (reasons.includes('🟫_DUPED_ITEMS')) {
-                const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
-
-                duped.forEach(el => {
-                    const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-                    if (
-                        this.bot.options.discordWebhook.offerReview.enable &&
-                        this.bot.options.discordWebhook.offerReview.url
-                    ) {
-                        // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                        dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
-                    } else {
-                        // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                        dupedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
-                    }
-                });
-
-                note = this.bot.options.manualReview.duped.note
-                    ? `🟫_DUPED_ITEMS - ${this.bot.options.manualReview.duped.note}`
-                          .replace(/%name%/g, dupedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedItemsName.length))
-                    : `🟫_DUPED_ITEMS - ${dupedItemsName.join(', ')} ${pluralize(
-                          'is',
-                          dupedItemsName.length
-                      )} appeared to be duped.`;
-                // Default note: %name% is|are appeared to be duped.
-
-                reviewReasons.push(note);
-            }
-
-            // for 🟪_DUPE_CHECK_FAILED
-            const dupedFailedItemsName: string[] = [];
-
-            if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-                const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED'));
-
-                dupedFailed.forEach(el => {
-                    if (el.withError === false) {
-                        // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
-                        const name = this.bot.schema.getName(SKU.fromString(el.sku), false);
-
-                        if (
-                            this.bot.options.discordWebhook.offerReview.enable &&
-                            this.bot.options.discordWebhook.offerReview.url
-                        ) {
-                            // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                            dupedFailedItemsName.push(
-                                `${name} - [history page](https://backpack.tf/item/${el.assetid})`
-                            );
-                        } else {
-                            // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                            dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
-                        }
-                    } else {
-                        // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
-                        for (let i = 0; i < el.sku.length; i++) {
-                            const name = this.bot.schema.getName(SKU.fromString(el.sku[i]), false);
-
-                            if (
-                                this.bot.options.discordWebhook.offerReview.enable &&
-                                this.bot.options.discordWebhook.offerReview.url
-                            ) {
-                                // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                                dupedFailedItemsName.push(
-                                    `${name} - [history page](https://backpack.tf/item/${el.assetid})`
-                                );
-                            } else {
-                                // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                                dupedFailedItemsName.push(
-                                    `${name}, history page: https://backpack.tf/item/${el.assetid}`
-                                );
-                            }
-                        }
-                    }
-                });
-
-                note = this.bot.options.manualReview.dupedCheckFailed.note
-                    ? `🟪_DUPE_CHECK_FAILED - ${this.bot.options.manualReview.dupedCheckFailed.note}`
-                          .replace(/%name%/g, dupedFailedItemsName.join(', '))
-                          .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-                    : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
-                // Default note: I failed to check for duped on %name%.
-
-                reviewReasons.push(note);
-            }
-
-            if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
-                note = this.bot.options.manualReview.invalidValue.note
-                    ? `🟥_INVALID_VALUE - ${this.bot.options.manualReview.invalidValue.note}`
-                    : "🟥_INVALID_VALUE - You're taking too much in value.";
-
-                reviewReasons.push(note);
-                missingPureNote =
-                    "\n[You're missing: " +
-                    (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
-            }
 
             const highValueItems: string[] = [];
             if (meta) {
@@ -2127,225 +1519,9 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            const hasCustomNote = !!(
-                this.bot.options.manualReview.invalidItems.note ||
-                this.bot.options.manualReview.overstocked.note ||
-                this.bot.options.manualReview.understocked.note ||
-                this.bot.options.manualReview.duped.note ||
-                this.bot.options.manualReview.dupedCheckFailed.note
-            );
-
-            // Notify partner and admin that the offer is waiting for manual review
-            if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
-                this.bot.sendMessage(
-                    offer.partner,
-                    (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
-                        ' is down and I failed to check your ' +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow (Trade holds)') +
-                        ' status, please wait for my owner to manually accept/decline your offer.'
-                );
-            } else {
-                this.bot.sendMessage(
-                    offer.partner,
-                    `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
-                        (this.bot.options.manualReview.showOfferSummary
-                            ? '\n\nOffer Summary:\n' +
-                              offer
-                                  .summarize(this.bot.schema)
-                                  .replace('Asked', '  My side')
-                                  .replace('Offered', 'Your side') +
-                              (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
-                                  ? missingPureNote
-                                  : '') +
-                              (this.bot.options.manualReview.showReviewOfferNote
-                                  ? `\n\nNote:\n${reviewReasons.join('\n') +
-                                        (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
-                                  : '')
-                            : '') +
-                        (this.bot.options.manualReview.additionalNotes
-                            ? '\n\n' +
-                              this.bot.options.manualReview.additionalNotes
-                                  .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
-                                  .replace(/%pureStock%/g, pureStock.join(', ').toString())
-                            : '') +
-                        (this.bot.options.manualReview.showOwnerCurrentTime
-                            ? `\n\nIt is currently the following time in my owner's timezone: ${
-                                  timeWithEmojis.emoji
-                              } ${timeWithEmojis.time +
-                                  (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
-                            : '')
-                );
-            }
-
-            const items = {
-                invalid: invalidForOur,
-                overstock: overstockedForOur,
-                understock: understockedForOur,
-                duped: dupedItemsName,
-                dupedFailed: dupedFailedItemsName,
-                highValue: highValueItems
-            };
-
-            const list = listItems(items, true);
-
-            if (this.bot.options.discordWebhook.offerReview.enable && this.bot.options.discordWebhook.offerReview.url) {
-                sendOfferReview(
-                    offer,
-                    reasons.join(', '),
-                    timeWithEmojis.time,
-                    keyPrices,
-                    value,
-                    links,
-                    items,
-                    this.bot
-                );
-            } else {
-                const offerMessage = offer.message;
-                this.bot.messageAdmins(
-                    `⚠️ Offer #${offer.id} from ${offer.partner} is pending review.` +
-                        `\nReasons: ${meta.uniqueReasons.join(', ')}` +
-                        (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
-                            : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-                            ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
-                            : '') +
-                        summarize(offer.summarize(this.bot.schema), value, keyPrices, true) +
-                        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
-                        (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
-                        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-                        `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                        ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                        `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
-                    []
-                );
-            }
+            sendReview(offer, this.bot, reasons, wrong, this.isTradingKeys, highValueItems);
+            this.isTradingKeys = false; // reset
         }
-    }
-
-    private keepMetalSupply(): void {
-        if (!this.bot.options.crafting.metals.enable) {
-            return;
-        }
-        const pureNow = pure.currPure(this.bot);
-
-        // let refined = pure.ref;
-        let reclaimed = pureNow.rec * 3; // Because it was divided by 3
-        let scrap = pureNow.scrap * 9; // Because it was divided by 9
-
-        // const maxRefined = this.maximumRefined;
-        const maxReclaimed = this.minimumReclaimed + this.combineThreshold;
-        const maxScrap = this.minimumScrap + this.combineThreshold;
-        // const minRefined = this.minimumRefined;
-        const minReclaimed = this.minimumReclaimed;
-        const minScrap = this.minimumScrap;
-
-        let smeltReclaimed = 0;
-        let smeltRefined = 0;
-        let combineScrap = 0;
-        let combineReclaimed = 0;
-
-        if (reclaimed > maxReclaimed) {
-            combineReclaimed = Math.ceil((reclaimed - maxReclaimed) / 3);
-            // refined += combineReclaimed;
-            reclaimed -= combineReclaimed * 3;
-        } else if (minReclaimed > reclaimed) {
-            smeltRefined = Math.ceil((minReclaimed - reclaimed) / 3);
-            reclaimed += smeltRefined * 3;
-            // refined -= smeltRefined;
-        }
-
-        if (scrap > maxScrap) {
-            combineScrap = Math.ceil((scrap - maxScrap) / 3);
-            reclaimed += combineScrap;
-            scrap -= combineScrap * 3;
-        } else if (minScrap > scrap) {
-            smeltReclaimed = Math.ceil((minScrap - scrap) / 3);
-            scrap += smeltReclaimed * 3;
-            reclaimed -= smeltReclaimed;
-        }
-
-        // TODO: When smelting metal mark the item as being used, then we won't use it when sending offers
-
-        for (let i = 0; i < combineScrap; i++) {
-            this.bot.tf2gc.combineMetal(5000);
-        }
-
-        for (let i = 0; i < combineReclaimed; i++) {
-            this.bot.tf2gc.combineMetal(5001);
-        }
-
-        for (let i = 0; i < smeltRefined; i++) {
-            this.bot.tf2gc.smeltMetal(5002);
-        }
-
-        for (let i = 0; i < smeltReclaimed; i++) {
-            this.bot.tf2gc.smeltMetal(5001);
-        }
-    }
-
-    private craftDuplicateWeapons(): Promise<void> {
-        if (!this.bot.options.crafting.weapons.enable) {
-            return;
-        }
-        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-
-        for (const sku of craftAll) {
-            const weapon = currencies[sku].length;
-
-            if (weapon >= 2 && this.bot.pricelist.getPrice(sku, true) === null) {
-                // Only craft if duplicated and not exist in pricelist
-                const combineWeapon = Math.trunc(weapon / 2);
-
-                for (let i = 0; i < combineWeapon; i++) {
-                    // give a little time between each craft job
-                    this.bot.tf2gc.combineWeapon(sku);
-                }
-            }
-        }
-    }
-
-    private craftEachClassWeapons(weapons: string[], currencies: { [key: string]: string[] }): void {
-        weapons.forEach((sku1, i) => {
-            // first loop
-            const wep1 = currencies[sku1].length;
-
-            // check if that weapon1 only have 1 in inventory AND it's not in pricelist
-            const isWep1 = wep1 === 1 && this.bot.pricelist.getPrice(sku1, true) === null;
-
-            weapons.forEach((sku2, j) => {
-                // second loop inside first loop, but ignore same index (same weapons)
-                if (j !== i) {
-                    const wep2 = currencies[sku2].length;
-
-                    // check if that weapon2 only have 1 in inventory AND it's not in pricelist
-                    const isWep2 = wep2 === 1 && this.bot.pricelist.getPrice(sku2, true) === null;
-                    if (isWep1 && isWep2) {
-                        // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
-                        this.bot.tf2gc.combineClassWeapon([sku1, sku2]);
-                        // break
-                        return;
-                    }
-                }
-            });
-        });
-    }
-
-    private craftClassWeapons(): Promise<void> {
-        if (!this.bot.options.crafting.weapons.enable) {
-            return;
-        }
-        const currencies = this.bot.inventoryManager.getInventory().getCurrencies();
-
-        this.craftEachClassWeapons(craftWeapons.scout, currencies);
-        this.craftEachClassWeapons(craftWeapons.soldier, currencies);
-        this.craftEachClassWeapons(craftWeapons.pyro, currencies);
-        this.craftEachClassWeapons(craftWeapons.demoman, currencies);
-        this.craftEachClassWeapons(craftWeapons.heavy, currencies);
-        this.craftEachClassWeapons(craftWeapons.engineer, currencies);
-        this.craftEachClassWeapons(craftWeapons.medic, currencies);
-        this.craftEachClassWeapons(craftWeapons.sniper, currencies);
-        this.craftEachClassWeapons(craftWeapons.spy, currencies);
     }
 
     private sortInventory(): void {
@@ -2615,26 +1791,6 @@ export = class MyHandler extends Handler {
                 }
             );
         });
-    }
-
-    private static itemList(offer: TradeOffer): { their: string[]; our: string[] } {
-        const items: { our: {}; their: {} } = offer.data('dict');
-        const their: string[] = [];
-        for (const theirItemsSku in items.their) {
-            if (!Object.prototype.hasOwnProperty.call(items.their, theirItemsSku)) {
-                continue;
-            }
-            their.push(theirItemsSku);
-        }
-
-        const our: string[] = [];
-        for (const ourItemsSku in items.our) {
-            if (!Object.prototype.hasOwnProperty.call(items.our, ourItemsSku)) {
-                continue;
-            }
-            our.push(ourItemsSku);
-        }
-        return { their, our };
     }
 
     private checkGroupInvites(): void {

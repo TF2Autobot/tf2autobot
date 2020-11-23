@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
 import Bot from '../Bot';
-import MyHandler from '../MyHandler';
+import MyHandler from '../MyHandler/MyHandler';
 
 import { stats } from '../../lib/tools/export';
 

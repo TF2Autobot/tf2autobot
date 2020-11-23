@@ -5,7 +5,7 @@ import request from '@nicklason/request-retry';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-import MyHandler from './MyHandler';
+import MyHandler from './MyHandler/MyHandler';
 
 export = class Friends {
     private readonly bot: Bot;

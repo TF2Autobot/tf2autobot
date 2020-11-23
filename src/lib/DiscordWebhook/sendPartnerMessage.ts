@@ -3,7 +3,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { quickLinks } from './utils';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler';
+import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendPartnerMessage(
     steamID: string,

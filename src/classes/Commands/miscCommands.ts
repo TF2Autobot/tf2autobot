@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 import { craftWeapons, uncraftWeapons } from './utils';
 
 import Bot from '../Bot';
-import MyHandler from '../MyHandler';
+import MyHandler from '../MyHandler/MyHandler';
 
 import { pure, timeNow } from '../../lib/tools/export';
 

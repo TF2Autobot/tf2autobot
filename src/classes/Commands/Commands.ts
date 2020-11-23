@@ -14,7 +14,7 @@ import CommandParser from '../CommandParser';
 import Cart from '../Cart';
 import AdminCart from '../AdminCart';
 import UserCart from '../UserCart';
-import MyHandler from '../MyHandler';
+import MyHandler from '../MyHandler/MyHandler';
 import CartQueue from '../CartQueue';
 import Autokeys from '../Autokeys/Autokeys';
 

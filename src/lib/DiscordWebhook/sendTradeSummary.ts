@@ -9,7 +9,7 @@ import log from '../logger';
 import { pure, stats, summarize, listItems, replace } from '../tools/export';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler';
+import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendTradeSummary(
     offer: TradeOffer,

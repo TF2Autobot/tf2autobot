@@ -8,7 +8,7 @@ import { pure, summarize, listItems, replace } from '../tools/export';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler';
+import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendOfferReview(
     offer: TradeOffer,
