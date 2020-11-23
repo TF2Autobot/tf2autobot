@@ -2,7 +2,6 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
-import moment from 'moment';
 
 import { getPartnerDetails, quickLinks } from './utils';
 
@@ -28,7 +27,7 @@ export default function sendTradeSummary(
     value: { diff: number; diffRef: number; diffKey: string },
     items: { their: string[]; our: string[] },
     links: { steam: string; bptf: string; steamrep: string },
-    time: { timeUnix: number; time: string },
+    time: string,
     bot: Bot,
     processTime: number
 ): void {
@@ -168,9 +167,7 @@ export default function sendTradeSummary(
                                     ? `\n🎒 Total items: ${currentItems +
                                           (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
                                     : '') +
-                                `\n⏱ Time taken: ${moment
-                                    .unix(time.timeUnix - Math.round(processTime / 1000))
-                                    .fromNow(true)}` +
+                                `\n⏱ Time taken: ${processTime} ms` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes

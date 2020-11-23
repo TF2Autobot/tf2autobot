@@ -1,6 +1,5 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import moment from 'moment';
 import { UnknownDictionary } from '../../../../types/common';
 
 import { itemList } from '../../utils/export-utils';
@@ -141,7 +140,7 @@ export default function processAccepted(
             value,
             itemsList,
             links,
-            timeWithEmojis,
+            timeWithEmojis.time,
             bot,
             processTime
         );
@@ -185,9 +184,7 @@ export default function processAccepted(
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                 `\n🎒 Total items: ${currentItems}` +
-                `\n⏱ Time taken: ${moment
-                    .unix(timeWithEmojis.timeUnix - Math.round(processTime / 1000))
-                    .fromNow(true)}`,
+                `\n⏱ Time taken: ${processTime} ms`,
             []
         );
     }
