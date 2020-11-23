@@ -695,19 +695,6 @@ export = class Autokeys {
             });
     }
 
-    private remove(): void {
-        this.bot.pricelist
-            .removePrice('5021;6', false)
-            .then(() => {
-                log.debug(`✅ Automatically remove Mann Co. Supply Crate Key.`);
-                this.bot.listings.checkBySKU('5021;6');
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to remove Mann Co. Supply Crate Key automatically: ${err.message}`);
-                this.isActive = true;
-            });
-    }
-
     refresh(): void {
         this.status = {
             isBuyingKeys: false,

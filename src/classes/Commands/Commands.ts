@@ -29,24 +29,9 @@ export = class Commands {
 
     readonly autokeys: Autokeys;
 
-    private first30Minutes = true;
-
-    private first30MinutesTimeout;
-
-    private executed: boolean;
-
-    private lastExecutedTime: number | null = null;
-
-    private executeTimeout;
-
     constructor(bot: Bot) {
         this.bot = bot;
         this.autokeys = new Autokeys(bot);
-
-        this.first30MinutesTimeout = setTimeout(() => {
-            this.first30Minutes = false;
-            clearTimeout(this.first30MinutesTimeout);
-        }, 30 * 60 * 1000);
     }
 
     get cartQueue(): CartQueue {
@@ -1257,42 +1242,6 @@ export = class Commands {
 
         this.autokeys.refresh();
         this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
-    }
-
-    private relistCommand(steamID: SteamID): void {
-        if (this.first30Minutes) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ I've started only recently, please wait 30 minutes before running this command.`
-            );
-            return;
-        }
-
-        const newExecutedTime = moment().valueOf();
-        const timeDiff = newExecutedTime - this.lastExecutedTime;
-
-        if (this.executed === true) {
-            this.bot.sendMessage(
-                steamID,
-                '⚠️ You need to wait ' +
-                    Math.trunc((30 * 60 * 1000 - timeDiff) / (1000 * 60)) +
-                    ' minutes before you can relist again.'
-            );
-            return;
-        } else {
-            clearTimeout(this.executeTimeout);
-            this.lastExecutedTime = moment().valueOf();
-
-            this.bot.listings.redoListingsWithDelay();
-            this.bot.sendMessage(steamID, `✅ Relisting executed.`);
-
-            this.executed = true;
-            this.executeTimeout = setTimeout(() => {
-                this.lastExecutedTime = null;
-                this.executed = false;
-                clearTimeout(this.executeTimeout);
-            }, 30 * 60 * 1000);
-        }
     }
 
     private resetQueueCommand(steamID: SteamID): void {
