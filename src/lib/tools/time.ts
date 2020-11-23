@@ -4,7 +4,9 @@ export default function timeNow(
     timezone?: string,
     customTimeFormat?: string,
     timeAdditionalNotes?: string
-): { time: string; emoji: string; note: string } {
+): { timeUnix: number; time: string; emoji: string; note: string } {
+    const timeUnix = moment().unix();
+
     const time = moment()
         .tz(timezone ? timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
         .format(customTimeFormat ? customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
@@ -42,6 +44,7 @@ export default function timeNow(
     const timeNote = timeAdditionalNotes ? timeAdditionalNotes : '';
 
     const timeWithEmoji = {
+        timeUnix: timeUnix,
         time: time,
         emoji: emoji,
         note: timeNote

@@ -28,7 +28,7 @@ export default function sendTradeSummary(
     value: { diff: number; diffRef: number; diffKey: string },
     items: { their: string[]; our: string[] },
     links: { steam: string; bptf: string; steamrep: string },
-    time: string,
+    time: { timeUnix: number; time: string },
     bot: Bot,
     processTime: number
 ): void {
@@ -168,7 +168,9 @@ export default function sendTradeSummary(
                                     ? `\n🎒 Total items: ${currentItems +
                                           (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
                                     : '') +
-                                `\n⏱ Time taken: ${moment.unix(Math.round(processTime / 1000)).fromNow(true)}` +
+                                `\n⏱ Time taken: ${moment
+                                    .unix(time.timeUnix - Math.round(processTime / 1000))
+                                    .fromNow(true)}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes

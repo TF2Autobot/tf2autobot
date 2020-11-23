@@ -141,7 +141,7 @@ export default function processAccepted(
             value,
             itemsList,
             links,
-            timeWithEmojis.time,
+            timeWithEmojis,
             bot,
             processTime
         );
@@ -185,7 +185,9 @@ export default function processAccepted(
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                 `\n🎒 Total items: ${currentItems}` +
-                `\n⏱ Time taken: ${moment.unix(Math.round(processTime / 1000)).fromNow(true)}`,
+                `\n⏱ Time taken: ${moment
+                    .unix(timeWithEmojis.timeUnix - Math.round(processTime / 1000))
+                    .fromNow(true)}`,
             []
         );
     }
