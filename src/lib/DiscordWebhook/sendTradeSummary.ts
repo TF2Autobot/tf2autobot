@@ -45,7 +45,7 @@ export default function sendTradeSummary(
     const itemList = listItems(itemsName, false);
 
     // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
-    const skuToMention = bot.options.discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU;
+    const skuToMention = bot.options.discordWebhook.tradeSummary.mentionOwner.itemSkus;
 
     const isMentionOurItems = skuToMention.some(fromEnv => {
         return ourItems.some(ourItemSKU => {
@@ -65,7 +65,7 @@ export default function sendTradeSummary(
 
     const mentionOwner =
         IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${bot.options.discordOwnerID}> - Accepted ${
+            ? `<@!${bot.options.discordWebhook.ownerID}> - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -74,16 +74,16 @@ export default function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : bot.options.discordWebhookTradeSummaryMentionOwner && (isMentionOurItems || isMentionThierItems)
-            ? `<@!${bot.options.discordOwnerID}>`
+            : bot.options.discordWebhook.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
+            ? `<@!${bot.options.discordWebhook.ownerID}>`
             : '';
 
-    const tradeLinks = bot.options.discordWebhookTradeSummaryURL;
+    const tradeLinks = bot.options.discordWebhook.tradeSummary.url;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
     const trades = stats(bot);
 
-    const tradeNumbertoShowStarter = bot.options.tradesMadeStarterValue;
+    const tradeNumbertoShowStarter = bot.options.statistics.starter;
 
     const tradesMade =
         tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
@@ -109,16 +109,16 @@ export default function sendTradeSummary(
 
         const partnerNameNoFormat = replace.specialChar(personaName);
 
-        const isShowQuickLinks = bot.options.discordWebhookTradeSummaryShowQuickLinks;
-        const isShowKeyRate = bot.options.discordWebhookTradeSummaryShowKeyRate;
-        const isShowPureStock = bot.options.discordWebhookTradeSummaryShowPureStock;
-        const isShowInventory = bot.options.discordWebhookTradeSummaryShowInventory;
-        const AdditionalNotes = bot.options.discordWebhookTradeSummaryAdditionalDescriptionNote;
+        const isShowQuickLinks = bot.options.discordWebhook.tradeSummary.misc.showQuickLinks;
+        const isShowKeyRate = bot.options.discordWebhook.tradeSummary.misc.showKeyRate;
+        const isShowPureStock = bot.options.discordWebhook.tradeSummary.misc.showPureStock;
+        const isShowInventory = bot.options.discordWebhook.tradeSummary.misc.showInventory;
+        const AdditionalNotes = bot.options.discordWebhook.tradeSummary.misc.note;
 
         /*eslint-disable */
         const acceptedTradeSummary = {
-            username: bot.options.discordWebhookUsername ? bot.options.discordWebhookUsername : botInfo.name,
-            avatar_url: bot.options.discordWebhookAvatarURL ? bot.options.discordWebhookAvatarURL : botInfo.avatarURL,
+            username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
+            avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {
@@ -172,7 +172,7 @@ export default function sendTradeSummary(
                                     : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                         }
                     ],
-                    color: bot.options.discordWebhookEmdedColorInDecimalIndex
+                    color: bot.options.discordWebhook.embedColor
                 }
             ]
         };

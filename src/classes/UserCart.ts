@@ -44,7 +44,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (!this.bot.options.disableCraftweaponAsCurrency) {
+        if (this.bot.options.enableCraftweaponAsCurrency) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
@@ -463,7 +463,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
+            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -488,8 +488,8 @@ class UserCart extends Cart {
                 item =>
                     item.getSKU(
                         this.bot.schema,
-                        this.bot.options.normalizeFestivizedItems,
-                        this.bot.options.normalizeStrangeUnusual
+                        this.bot.options.normalize.festivized,
+                        this.bot.options.normalize.strangeUnusual
                     ) === sku
             );
 
@@ -822,7 +822,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.bot.options.enableShowOnlyMetal) {
+        if (this.bot.options.showOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1849,7 +1849,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (!this.bot.options.disableCheckUsesDuelingMiniGame || !this.bot.options.disableCheckUsesNoiseMaker) {
+            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -1874,8 +1874,8 @@ class UserCart extends Cart {
                 item =>
                     item.getSKU(
                         this.bot.schema,
-                        this.bot.options.normalizeFestivizedItems,
-                        this.bot.options.normalizeStrangeUnusual
+                        this.bot.options.normalize.festivized,
+                        this.bot.options.normalize.strangeUnusual
                     ) === sku
             );
 
@@ -2505,7 +2505,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.bot.options.enableShowOnlyMetal) {
+        if (this.bot.options.showOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

@@ -31,14 +31,14 @@ export = class Listings {
         this.bot = bot;
         this.templates = {
             buy:
-                this.bot.options.bptfDetailsBuy ||
+                this.bot.options.details.buy ||
                 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-            sell: this.bot.options.bptfDetailsSell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+            sell: this.bot.options.details.sell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
         };
     }
 
     setupAutorelist(): void {
-        if (!this.bot.options.autobump || this.bot.options.disableListings) {
+        if (!this.bot.options.autobump || !this.bot.options.createListings) {
             // Autobump is not enabled
             return;
         }
@@ -53,7 +53,7 @@ export = class Listings {
     }
 
     private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || this.bot.options.disableListings) {
+        if (this.autoRelistEnabled || !this.bot.options.createListings) {
             return;
         }
 
@@ -147,7 +147,7 @@ export = class Listings {
     }
 
     checkBySKU(sku: string, data?: Entry | null): void {
-        if (this.bot.options.disableListings) {
+        if (!this.bot.options.createListings) {
             return;
         }
 
@@ -229,7 +229,7 @@ export = class Listings {
 
     checkAll(): Promise<void> {
         return new Promise(resolve => {
-            if (this.bot.options.disableListings) {
+            if (!this.bot.options.createListings) {
                 return resolve();
             }
 
@@ -298,7 +298,7 @@ export = class Listings {
 
     checkAllWithDelay(): Promise<void> {
         return new Promise(resolve => {
-            if (this.bot.options.disableListings) {
+            if (!this.bot.options.createListings) {
                 return resolve();
             }
 
@@ -508,9 +508,9 @@ export = class Listings {
             // 5x uses, then replace %uses% with (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
             // else just empty string.
             details =
-                entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame
+                entry.sku === '241;6' && this.bot.options.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker
+                    : noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
@@ -527,12 +527,12 @@ export = class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
             details =
-                entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame
+                entry.sku === '241;6' && this.bot.options.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker
+                    : noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
-        } else if (entry.sku === '241;6' && !this.bot.options.disableCheckUsesDuelingMiniGame) {
+        } else if (entry.sku === '241;6' && this.bot.options.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
             // this part checks if the item is Dueling Mini-Game.
             details = this.templates[key]
@@ -546,7 +546,7 @@ export = class Listings {
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
-        } else if (noiseMakerSKU.includes(entry.sku) && !this.bot.options.disableCheckUsesNoiseMaker) {
+        } else if (noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())

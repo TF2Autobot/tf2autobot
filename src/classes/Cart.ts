@@ -8,6 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import log from '../lib/logger';
 import request from 'request';
 import Inventory from './Inventory';
+import MyHandler from './MyHandler';
 
 import Bot from './Bot';
 
@@ -373,7 +374,8 @@ abstract class Cart {
         this.offer.data('handleTimestamp', moment().valueOf());
 
         this.offer.setMessage(
-            'Powered by TF2Autobot' + (this.bot.options.offerMessage ? '. ' + this.bot.options.offerMessage : '')
+            'Powered by TF2Autobot' +
+                (this.bot.options.sendOfferMessage ? '. ' + this.bot.options.sendOfferMessage : '')
         );
 
         if (this.notify === true) {
@@ -431,10 +433,10 @@ abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (!this.bot.options.disableSomethingWrongAlert) {
+                    if (this.bot.options.sendAlert) {
                         if (
-                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
-                            this.bot.options.discordWebhookSomethingWrongAlertURL
+                            this.bot.options.discordWebhook.sendAlert.enable &&
+                            this.bot.options.discordWebhook.sendAlert.url
                         ) {
                             this.sendWebhookFullAlert(msg);
                         } else {
@@ -471,10 +473,10 @@ abstract class Cart {
                             theirNumItems} / ${ourTotalSlots} slots used` +
                         `\n➡️ They would have received ${ourNumItems} item(s) → ${theirUsedSlots +
                             ourNumItems} / ${theirTotalSlots} slots used`;
-                    if (!this.bot.options.disableSomethingWrongAlert) {
+                    if (this.bot.options.sendAlert) {
                         if (
-                            !this.bot.options.disableDiscordWebhookSomethingWrongAlert &&
-                            this.bot.options.discordWebhookSomethingWrongAlertURL
+                            this.bot.options.discordWebhook.sendAlert.enable &&
+                            this.bot.options.discordWebhook.sendAlert.url
                         ) {
                             this.sendWebhookFullAlert(msg);
                         } else {
@@ -506,11 +508,14 @@ abstract class Cart {
     }
 
     private sendWebhookFullAlert(msg: string): void {
+        const username = this.bot.options.discordWebhook.displayName;
+        const avatarURL = this.bot.options.discordWebhook.avatarURL;
+        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
         /*eslint-disable */
         const fullBackpack = JSON.stringify({
-            username: this.bot.options.discordWebhookUsername,
-            avatar_url: this.bot.options.discordWebhookAvatarURL,
-            content: `<@!${this.bot.options.discordOwnerID}>`,
+            username: username ? username : botInfo.name,
+            avatar_url: avatarURL ? avatarURL : botInfo.avatarURL,
+            content: `<@!${this.bot.options.discordWebhook.ownerID}>`,
             embeds: [
                 {
                     title: 'Something Wrong',
@@ -527,7 +532,7 @@ abstract class Cart {
         /*eslint-enable */
 
         const request = new XMLHttpRequest();
-        request.open('POST', this.bot.options.discordWebhookSomethingWrongAlertURL);
+        request.open('POST', this.bot.options.discordWebhook.sendAlert.url);
         request.setRequestHeader('Content-type', 'application/json');
         request.send(fullBackpack);
     }
@@ -614,14 +619,14 @@ abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, disableCraftweaponAsCurrency: boolean): string {
+    static stringify(steamID: SteamID, enableCraftweaponAsCurrency: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
             return '❌ Your cart is empty.';
         }
 
-        if (!disableCraftweaponAsCurrency) {
+        if (enableCraftweaponAsCurrency) {
             return cart.toStringWithWeapons();
         } else {
             return cart.toString();

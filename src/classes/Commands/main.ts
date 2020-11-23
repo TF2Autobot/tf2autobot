@@ -81,7 +81,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, this.bot.options.disableCraftweaponAsCurrency);
+            this.cartCommand(steamID, this.bot.options.enableCraftweaponAsCurrency);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -177,8 +177,8 @@ export = class Commands {
         } else {
             this.bot.sendMessage(
                 steamID,
-                this.bot.options.customIDontKnowWhatYouMean
-                    ? this.bot.options.customIDontKnowWhatYouMean
+                this.bot.options.customMessage.iDontKnowWhatYouMean
+                    ? this.bot.options.customMessage.iDontKnowWhatYouMean
                     : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }
@@ -440,8 +440,8 @@ export = class Commands {
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, disableCraftweaponAsCurrency: boolean): void {
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, disableCraftweaponAsCurrency));
+    private cartCommand(steamID: SteamID, enableCraftweaponAsCurrency: boolean): void {
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponAsCurrency));
     }
 
     private clearCartCommand(steamID: SteamID): void {

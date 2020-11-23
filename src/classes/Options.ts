@@ -1,7 +1,419 @@
 import { snakeCase } from 'change-case';
-// import log from '../lib/logger';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import * as path from 'path';
+import { deepMerge } from '../lib/tools/deep-merge';
 
-export default interface Options {
+export const DEFAULTS = {
+    showOnlyMetal: true,
+    sortInventory: true,
+    createListings: true,
+    enableMessages: true,
+    sendAlert: true,
+    enableAddFriends: true,
+    enableGroupInvites: true,
+    enableOwnerCommand: true,
+    autoRemoveIntentSell: false,
+    enableCraftweaponAsCurrency: true,
+
+    allowEscrow: false,
+    allowOverpay: true,
+    allowGiftNoMessage: false,
+    allowBanned: false,
+
+    sendOfferMessage: 'Thank you',
+
+    autobump: false,
+
+    highValue: {
+        disableHold: false,
+        sheens: ['Team Shine'],
+        killstreakers: ['Fire Horns', 'Tornado']
+    },
+    checkUses: {
+        duel: true,
+        noiseMaker: true
+    },
+    game: {
+        playOnlyTF2: false,
+        customName: ''
+    },
+    normalize: {
+        festivized: false,
+        strangeUnusual: false
+    },
+    details: {
+        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+    },
+    customMessage: {
+        welcome: '',
+        iDontKnowWhatYouMean: '',
+        how2trade: '',
+        success: '',
+        decline: '',
+        tradedAway: '',
+        clearFriends: ''
+    },
+    statistics: {
+        starter: 0,
+        lastTotalTrades: 0,
+        startingTimeInUnix: 0
+    },
+    autokeys: {
+        enable: false,
+        minKeys: 3,
+        maxKeys: 15,
+        minRefined: 30,
+        maxRefined: 150,
+        banking: {
+            enable: false
+        },
+        scrapAdjustment: {
+            enable: false,
+            value: 1
+        },
+        accept: {
+            understock: false
+        }
+    },
+    crafting: {
+        weapons: {
+            enable: true
+        },
+        metals: {
+            enable: true,
+            minScrap: 9,
+            minRec: 9,
+            threshold: 9
+        }
+    },
+    manualReview: {
+        enable: true,
+        showOfferSummary: true,
+        showReviewOfferNote: true,
+        showOwnerCurrentTime: true,
+        invalidValue: {
+            note: '',
+            autoDecline: {
+                enable: true,
+                note: ''
+            },
+            exceptionValue: {
+                skus: [';5;u', ';11;australium'],
+                valueInRef: 0
+            }
+        },
+        invalidItems: {
+            note: '',
+            givePrice: true,
+            autoAcceptOverpay: true
+        },
+        overstocked: {
+            note: '',
+            autoAcceptOverpay: false,
+            autoDecline: false
+        },
+        understocked: {
+            note: '',
+            autoAcceptOverpay: false,
+            autoDecline: false
+        },
+        duped: {
+            enable: true,
+            declineDuped: false,
+            minKeys: 10,
+            note: ''
+        },
+        dupedCheckFailed: {
+            note: ''
+        },
+        additionalNotes: ''
+    },
+    discordInviteLink: '',
+    discordWebhook: {
+        ownerID: '',
+        displayName: '',
+        avatarURL: '',
+        embedColor: '9171753',
+        tradeSummary: {
+            enable: true,
+            url: [''],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            },
+            mentionOwner: {
+                enable: true,
+                itemSkus: [';5;u', ';11;australium']
+            }
+        },
+        offerReview: {
+            enable: true,
+            url: '',
+            mentionInvalidValue: false,
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true
+            }
+        },
+        messages: {
+            enable: true,
+            url: '',
+            showQuickLinks: true
+        },
+        priceUpdate: {
+            enable: true,
+            url: '',
+            note: ''
+        },
+        sendAlert: {
+            enable: true,
+            url: ''
+        }
+    },
+    maxPriceAge: 28800
+};
+
+export interface HighValue {
+    disableHold?: boolean;
+    sheens?: string[];
+    killstreakers?: string[];
+}
+
+export interface CheckUses {
+    duel?: boolean;
+    noiseMaker?: boolean;
+}
+
+export interface Game {
+    playOnlyTF2?: boolean;
+    customName?: string;
+}
+
+export interface Normalize {
+    festivized?: boolean;
+    strangeUnusual?: boolean;
+}
+
+export interface Details {
+    buy?: string;
+    sell?: string;
+}
+
+export interface CustomMessage {
+    welcome?: string;
+    iDontKnowWhatYouMean?: string;
+    how2trade?: string;
+    success?: string;
+    decline?: string;
+    tradedAway?: string;
+    clearFriends?: string;
+}
+
+export interface Statistics {
+    starter?: number;
+    lastTotalTrades?: number;
+    startingTimeInUnix?: number;
+}
+
+export interface Banking {
+    enable?: boolean;
+}
+
+export interface ScrapAdjustment {
+    enable?: boolean;
+    value?: number;
+}
+
+export interface Accept {
+    understock?: boolean;
+}
+
+export interface Autokeys {
+    enable?: boolean;
+    minKeys?: number;
+    maxKeys?: number;
+    minRefined?: number;
+    maxRefined?: number;
+    banking?: Banking;
+    scrapAdjustment?: ScrapAdjustment;
+    accept?: Accept;
+}
+
+export interface Weapons {
+    enable?: boolean;
+}
+
+export interface Metals {
+    enable?: boolean;
+    minScrap?: number;
+    minRec?: number;
+    threshold?: number;
+}
+
+export interface Crafting {
+    weapons?: Weapons;
+    metals?: Metals;
+}
+
+export interface AutoDecline {
+    enable?: boolean;
+    note?: string;
+}
+
+export interface ExceptionValue {
+    skus?: string[];
+    valueInRef?: number;
+}
+
+export interface InvalidValue {
+    note?: string;
+    autoDecline?: AutoDecline;
+    exceptionValue?: ExceptionValue;
+}
+
+export interface InvalidItems {
+    note?: string;
+    givePrice?: boolean;
+    autoAcceptOverpay?: boolean;
+}
+
+export interface Overstocked {
+    note?: string;
+    autoAcceptOverpay?: boolean;
+    autoDecline?: boolean;
+}
+
+export interface Understocked {
+    note?: string;
+    autoAcceptOverpay?: boolean;
+    autoDecline?: boolean;
+}
+
+export interface Duped {
+    enable?: boolean;
+    declineDuped?: boolean;
+    minKeys?: number;
+    note?: string;
+}
+
+export interface DupedCheckFailed {
+    note?: string;
+}
+
+export interface ManualReview {
+    enable?: boolean;
+    showOfferSummary?: boolean;
+    showReviewOfferNote?: boolean;
+    showOwnerCurrentTime?: boolean;
+    invalidValue?: InvalidValue;
+    invalidItems?: InvalidItems;
+    overstocked?: Overstocked;
+    understocked?: Understocked;
+    duped?: Duped;
+    dupedCheckFailed?: DupedCheckFailed;
+    additionalNotes?: string;
+}
+
+export interface Misc {
+    showQuickLinks?: boolean;
+    showKeyRate?: boolean;
+    showPureStock?: boolean;
+    showInventory?: boolean;
+    note?: string;
+}
+
+export interface MentionOwner {
+    enable?: boolean;
+    itemSkus?: string[];
+}
+
+export interface TradeSummary {
+    enable?: boolean;
+    url?: string[];
+    misc?: Misc;
+    mentionOwner?: MentionOwner;
+}
+
+export interface Misc2 {
+    showQuickLinks?: boolean;
+    showKeyRate?: boolean;
+    showPureStock?: boolean;
+}
+
+export interface OfferReview {
+    enable?: boolean;
+    url?: string;
+    mentionInvalidValue?: boolean;
+    misc?: Misc2;
+}
+
+export interface Messages {
+    enable?: boolean;
+    url?: string;
+    showQuickLinks?: boolean;
+}
+
+export interface PriceUpdate {
+    enable?: boolean;
+    url?: string;
+    note?: string;
+}
+
+export interface SendAlert {
+    enable?: boolean;
+    url?: string;
+}
+
+export interface DiscordWebhook {
+    ownerID?: string;
+    displayName?: string;
+    avatarURL?: string;
+    embedColor?: string;
+    tradeSummary?: TradeSummary;
+    offerReview?: OfferReview;
+    messages?: Messages;
+    priceUpdate?: PriceUpdate;
+    sendAlert?: SendAlert;
+}
+
+export interface JsonOptions {
+    showOnlyMetal?: boolean;
+    sortInventory?: boolean;
+    createListings?: boolean;
+    enableMessages?: boolean;
+    sendAlert?: boolean;
+    enableAddFriends?: boolean;
+    enableCraftweaponAsCurrency?: boolean;
+    enableGroupInvites?: boolean;
+    enableOwnerCommand?: boolean;
+    autoRemoveIntentSell?: boolean;
+    allowEscrow?: boolean;
+    allowOverpay?: boolean;
+    allowGiftNoMessage?: boolean;
+    allowBanned?: boolean;
+    sendOfferMessage?: string;
+    autobump?: boolean;
+    highValue?: HighValue;
+    checkUses?: CheckUses;
+    game?: Game;
+    normalize?: Normalize;
+    details?: Details;
+    customMessage?: CustomMessage;
+    statistics?: Statistics;
+    autokeys?: Autokeys;
+    crafting?: Crafting;
+    manualReview?: ManualReview;
+    discordInviteLink?: string;
+    discordWebhook?: DiscordWebhook;
+    maxPriceAge?: number;
+}
+
+export default interface Options extends JsonOptions {
     steamAccountName?: string;
     steamPassword?: string;
     steamSharedSecret?: string;
@@ -17,53 +429,6 @@ export default interface Options {
 
     pricestfAPIToken?: string;
 
-    autobump?: boolean;
-
-    minimumScrap?: number;
-    minimumReclaimed?: number;
-    metalThreshold?: number;
-    disableCraftingMetal?: boolean;
-    disableCraftingWeapons?: boolean;
-    enableShowOnlyMetal?: boolean;
-
-    enableAutokeys?: boolean;
-    enableAutokeysBanking?: boolean;
-    minimumKeys?: number;
-    maximumKeys?: number;
-    minimumRefinedToStartSellKeys?: number;
-    maximumRefinedToStopSellKeys?: number;
-    disableScrapAdjustment?: boolean;
-    scrapAdjustmentValue?: number;
-    autokeysAcceptUnderstocked?: boolean;
-
-    disableInventorySort?: boolean;
-    disableListings?: boolean;
-    disableMessages?: boolean;
-    disableSomethingWrongAlert?: boolean;
-    disableCraftweaponAsCurrency?: boolean;
-    disableGivePriceToInvalidItems?: boolean;
-    disableAddFriends?: boolean;
-    disableGroupsInvite?: boolean;
-    disableCheckUsesDuelingMiniGame?: boolean;
-    disableCheckUsesNoiseMaker?: boolean;
-    disableOwnerCommand?: boolean;
-    disableAutoRemoveIntentSell?: boolean;
-
-    disableHighValueHold?: boolean;
-    highValueSheens?: Array<string>;
-    highValueKillstreakers?: Array<string>;
-
-    normalizeFestivizedItems?: boolean;
-    normalizeStrangeUnusual?: boolean;
-
-    tradesMadeStarterValue?: number;
-    lastTotalTrades?: number;
-    tradingStartingTimeUnix?: number;
-
-    enableDupeCheck?: boolean;
-    declineDupes?: boolean;
-    minimumKeysDupeCheck?: number;
-
     skipBPTFTradeofferURL?: boolean;
     skipAccountLimitations?: boolean;
     skipUpdateProfileSettings?: boolean;
@@ -72,92 +437,8 @@ export default interface Options {
     customTimeFormat?: string;
     timeAdditionalNotes?: string;
 
-    allowEscrow?: boolean;
-    allowOverpay?: boolean;
-    allowGiftWithoutNote?: boolean;
-    allowBanned?: boolean;
-
-    maxPriceAge?: number;
-
     debug?: boolean;
     debugFile?: boolean;
-
-    bptfDetailsBuy?: string;
-    bptfDetailsSell?: string;
-
-    offerMessage?: string;
-
-    discordServerInviteLink?: string;
-
-    discordOwnerID?: string;
-    discordWebhookUsername?: string;
-    discordWebhookAvatarURL?: string;
-    discordWebhookEmdedColorInDecimalIndex?: string;
-
-    disableDiscordWebhookSomethingWrongAlert?: boolean;
-    discordWebhookSomethingWrongAlertURL?: string;
-
-    disableDiscordWebhookPriceUpdate?: boolean;
-    discordWebhookPriceUpdateURL?: string;
-    discordWebhookPriceUpdateAdditionalDescriptionNote?: string;
-
-    disableDiscordWebhookTradeSummary?: boolean;
-    discordWebhookTradeSummaryURL?: Array<string>;
-    discordWebhookTradeSummaryShowQuickLinks?: boolean;
-    discordWebhookTradeSummaryShowKeyRate?: boolean;
-    discordWebhookTradeSummaryShowPureStock?: boolean;
-    discordWebhookTradeSummaryShowInventory?: boolean;
-    discordWebhookTradeSummaryAdditionalDescriptionNote?: string;
-    discordWebhookTradeSummaryMentionOwner?: boolean;
-    discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU?: Array<string>;
-
-    disableDiscordWebhookOfferReview?: boolean;
-    discordWebhookReviewOfferURL?: string;
-    discordWebhookReviewOfferDisableMentionInvalidValue?: boolean;
-    discordWebhookReviewOfferShowQuickLinks?: boolean;
-    discordWebhookReviewOfferShowKeyRate?: boolean;
-    discordWebhookReviewOfferShowPureStock?: boolean;
-
-    disableDiscordWebhookMessageFromPartner?: boolean;
-    discordWebhookMessageFromPartnerURL?: string;
-    discordWebhookMessageFromPartnerShowQuickLinks?: boolean;
-
-    enableManualReview?: boolean;
-    disableShowReviewOfferSummary?: boolean;
-    disableReviewOfferNote?: boolean;
-    disableShowCurrentTime?: boolean;
-
-    disableAcceptInvalidItemsOverpay?: boolean;
-    disableAcceptOverstockedOverpay?: boolean;
-    disableAcceptUnderstockedOverpay?: boolean;
-
-    disableAutoDeclineOverstocked?: boolean;
-    disableAutoDeclineUnderstocked?: boolean;
-    disableAutoDeclineInvalidValue?: boolean;
-    autoDeclineInvalidValueNote?: string;
-
-    invalidValueExceptionSKUS?: Array<string>;
-    invalidValueExceptionValueInRef?: number;
-
-    invalidValueNote?: string;
-    invalidItemsNote?: string;
-    overstockedNote?: string;
-    understockedNote?: string;
-    dupeItemsNote?: string;
-    dupeCheckFailedNote?: string;
-    additionalNote?: string;
-
-    enableOnlyPlayTF2?: boolean;
-    customPlayingGameName?: string;
-
-    customWelcomeMessage?: string;
-    customIDontKnowWhatYouMean?: string;
-    customHow2tradeMessage?: string;
-
-    customSuccessMessage?: string;
-    customDeclinedMessage?: string;
-    customTradedAwayMessage?: string;
-    customClearingFriendsMessage?: string;
 
     folderName?: string;
     filePrefix?: string;
@@ -175,266 +456,55 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
     }
 }
 
-export function loadOptions(rawOptions?: Options): Options {
-    const steamAccountName = getOption('steamAccountName', '', String, rawOptions);
-    return {
+function loadJsonOptions(p: string, options?: Options): JsonOptions {
+    let fileOptions;
+    const incomingOptions = options ? options : DEFAULTS;
+    try {
+        fileOptions = deepMerge(DEFAULTS, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
+    } catch {
+        if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
+        writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
+        fileOptions = deepMerge({}, DEFAULTS);
+    }
+    return deepMerge(fileOptions, incomingOptions);
+}
+
+export function loadOptions(options?: Options): Options {
+    const incomingOptions = options ? options : {};
+    const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
+    const envOptions = {
         steamAccountName: steamAccountName,
-        steamPassword: getOption('steamPassword', '', String, rawOptions),
-        steamSharedSecret: getOption('steamSharedSecret', '', String, rawOptions),
-        steamIdentitySecret: getOption('steamIdentitySecret', '', String, rawOptions),
+        steamPassword: getOption('steamPassword', '', String, incomingOptions),
+        steamSharedSecret: getOption('steamSharedSecret', '', String, incomingOptions),
+        steamIdentitySecret: getOption('steamIdentitySecret', '', String, incomingOptions),
 
-        bptfAccessToken: getOption('bptfAccessToken', '', String, rawOptions),
-        bptfAPIKey: getOption('bptfAPIKey', '', String, rawOptions),
-        admins: getOption('admins', [], JSON.parse, rawOptions),
-        keep: getOption('keep', [], JSON.parse, rawOptions),
-        groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, rawOptions),
-        alerts: getOption('alerts', ['trade'], JSON.parse, rawOptions),
+        bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
+        bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
 
-        pricestfAPIToken: getOption('pricestfAPIToken', '', String, rawOptions),
+        admins: getOption('admins', [], JSON.parse, incomingOptions),
+        keep: getOption('keep', [], JSON.parse, incomingOptions),
+        groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, incomingOptions),
+        alerts: getOption('alerts', ['trade'], JSON.parse, incomingOptions),
 
-        autobump: getOption('autobump', false, JSON.parse, rawOptions),
+        pricestfAPIToken: getOption('pricestfAPIToken', '', String, incomingOptions),
 
-        minimumScrap: getOption('minimumScrap', 9, parseInt, rawOptions),
-        minimumReclaimed: getOption('minimumReclaimed', 9, parseInt, rawOptions),
-        metalThreshold: getOption('metalThreshold', 9, parseInt, rawOptions),
-        disableCraftingMetal: getOption('disableCraftingMetal', false, JSON.parse, rawOptions),
-        disableCraftingWeapons: getOption('disableCraftingWeapons', false, JSON.parse, rawOptions),
-        enableShowOnlyMetal: getOption('enableShowOnlyMetal', true, JSON.parse, rawOptions),
+        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, incomingOptions),
+        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, incomingOptions),
+        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, incomingOptions),
 
-        enableAutokeys: getOption('enableAutokeys', false, JSON.parse, rawOptions),
-        enableAutokeysBanking: getOption('enableAutokeysBanking', false, JSON.parse, rawOptions),
-        minimumKeys: getOption('minimumKeys', 3, parseInt, rawOptions),
-        maximumKeys: getOption('maximumKeys', 15, parseInt, rawOptions),
-        minimumRefinedToStartSellKeys: getOption('minimumRefinedToStartSellKeys', 30, parseInt, rawOptions),
-        maximumRefinedToStopSellKeys: getOption('maximumRefinedToStopSellKeys', 150, parseInt, rawOptions),
-        disableScrapAdjustment: getOption('disableScrapAdjustment', true, JSON.parse, rawOptions),
-        scrapAdjustmentValue: getOption('scrapAdjustmentValue', 1, parseInt, rawOptions),
-        autokeysAcceptUnderstocked: getOption('autokeysAcceptUnderstocked', false, JSON.parse, rawOptions),
+        timezone: getOption('timezone', '', String, incomingOptions),
+        customTimeFormat: getOption('customTimeFormat', '', String, incomingOptions),
+        timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
-        disableInventorySort: getOption('disableInventorySort', false, JSON.parse, rawOptions),
-        disableListings: getOption('disableListings', false, JSON.parse, rawOptions),
-        disableMessages: getOption('disableMessages', false, JSON.parse, rawOptions),
-        disableSomethingWrongAlert: getOption('disableSomethingWrongAlert', false, JSON.parse, rawOptions),
-        disableCraftweaponAsCurrency: getOption('disableCraftweaponAsCurrency', false, JSON.parse, rawOptions),
-        disableGivePriceToInvalidItems: getOption('disableGivePriceToInvalidItems', false, JSON.parse, rawOptions),
-        disableAddFriends: getOption('disableAddFriends', false, JSON.parse, rawOptions),
-        disableGroupsInvite: getOption('disableGroupsInvite', false, JSON.parse, rawOptions),
-        disableCheckUsesDuelingMiniGame: getOption('disableCheckUsesDuelingMiniGame', false, JSON.parse, rawOptions),
-        disableCheckUsesNoiseMaker: getOption('disableCheckUsesNoiseMaker', false, JSON.parse, rawOptions),
-        disableOwnerCommand: getOption('disableOwnerCommand', false, JSON.parse, rawOptions),
-        disableAutoRemoveIntentSell: getOption('disableAutoRemoveIntentSell', false, JSON.parse, rawOptions),
+        debug: getOption('debug', true, JSON.parse, incomingOptions),
+        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions),
 
-        disableHighValueHold: getOption('disableHighValueHold', false, JSON.parse, rawOptions),
-        highValueSheens: getOption('highValueSheens', ['Team Shine'], JSON.parse, rawOptions),
-        highValueKillstreakers: getOption('highValueKillstreakers', ['Fire Horns', 'Tornado'], JSON.parse, rawOptions),
-
-        normalizeFestivizedItems: getOption('normalizeFestivizedItems', false, JSON.parse, rawOptions),
-        normalizeStrangeUnusual: getOption('normalizeStrangeUnusual', false, JSON.parse, rawOptions),
-
-        tradesMadeStarterValue: getOption('tradesMadeStarterValue', 0, parseInt, rawOptions),
-        lastTotalTrades: getOption('lastTotalTrades', 0, parseInt, rawOptions),
-        tradingStartingTimeUnix: getOption('tradingStartingTimeUnix', 0, parseInt, rawOptions),
-
-        enableDupeCheck: getOption('enableDupeCheck', true, JSON.parse, rawOptions),
-        declineDupes: getOption('declineDupes', false, JSON.parse, rawOptions),
-        minimumKeysDupeCheck: getOption('minimumKeysDupeCheck', 10, parseInt, rawOptions),
-
-        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, rawOptions),
-        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, rawOptions),
-        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, rawOptions),
-
-        timezone: getOption('timezone', '', String, rawOptions),
-        customTimeFormat: getOption('customTimeFormat', '', String, rawOptions),
-        timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, rawOptions),
-
-        allowEscrow: getOption('allowEscrow', false, JSON.parse, rawOptions),
-        allowOverpay: getOption('allowOverpay', true, JSON.parse, rawOptions),
-        allowGiftWithoutNote: getOption('allowGiftWithoutNote', false, JSON.parse, rawOptions),
-        allowBanned: getOption('allowBanned', false, JSON.parse, rawOptions),
-
-        maxPriceAge: getOption('maxPriceAge', 28800, parseInt, rawOptions),
-
-        debug: getOption('debug', true, JSON.parse, rawOptions),
-        debugFile: getOption('debugFile', true, JSON.parse, rawOptions),
-
-        bptfDetailsBuy: getOption(
-            'bptfDetailsBuy',
-            'I am buying your %name% for %price%, I have %current_stock% / %max_stock%, so I am buying %amount_trade%.',
-            String,
-            rawOptions
-        ),
-        bptfDetailsSell: getOption(
-            'bptfDetailsSell',
-            'I am selling my %name% for %price%, I am selling %amount_trade%.',
-            String,
-            rawOptions
-        ),
-
-        offerMessage: getOption('offerMessage', '', String, rawOptions),
-
-        discordServerInviteLink: getOption('discordServerInviteLink', '', String, rawOptions),
-
-        discordOwnerID: getOption('discordOwnerID', '', String, rawOptions),
-        discordWebhookUsername: getOption('discordWebhookUsername', '', String, rawOptions),
-        discordWebhookAvatarURL: getOption('discordWebhookAvatarURL', '', String, rawOptions),
-        discordWebhookEmdedColorInDecimalIndex: getOption(
-            'discordWebhookEmdedColorInDecimalIndex',
-            '9171753',
-            String,
-            rawOptions
-        ),
-
-        disableDiscordWebhookSomethingWrongAlert: getOption(
-            'disableDiscordWebhookSomethingWrongAlert',
-            false,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookSomethingWrongAlertURL: getOption('discordWebhookSomethingWrongAlertURL', '', String, rawOptions),
-
-        disableDiscordWebhookPriceUpdate: getOption('disableDiscordWebhookPriceUpdate', false, JSON.parse, rawOptions),
-        discordWebhookPriceUpdateURL: getOption('discordWebhookPriceUpdateURL', '', String, rawOptions),
-        discordWebhookPriceUpdateAdditionalDescriptionNote: getOption(
-            'discordWebhookPriceUpdateAdditionalDescriptionNote',
-            '',
-            String,
-            rawOptions
-        ),
-
-        disableDiscordWebhookTradeSummary: getOption(
-            'disableDiscordWebhookTradeSummary',
-            false,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryURL: getOption('discordWebhookTradeSummaryURL', [], JSON.parse, rawOptions),
-        discordWebhookTradeSummaryShowQuickLinks: getOption(
-            'discordWebhookTradeSummaryShowQuickLinks',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryShowKeyRate: getOption(
-            'discordWebhookTradeSummaryShowKeyRate',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryShowPureStock: getOption(
-            'discordWebhookTradeSummaryShowPureStock',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryShowInventory: getOption(
-            'discordWebhookTradeSummaryShowInventory',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryAdditionalDescriptionNote: getOption(
-            'discordWebhookTradeSummaryAdditionalDescriptionNote',
-            '',
-            String,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryMentionOwner: getOption(
-            'discordWebhookTradeSummaryMentionOwner',
-            false,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU: getOption(
-            'discordWebhookTradeSummaryMentionOwnerOnlyItemsSKU',
-            [],
-            JSON.parse,
-            rawOptions
-        ),
-
-        disableDiscordWebhookOfferReview: getOption('disableDiscordWebhookOfferReview', false, JSON.parse, rawOptions),
-        discordWebhookReviewOfferURL: getOption('discordWebhookReviewOfferURL', '', String, rawOptions),
-        discordWebhookReviewOfferDisableMentionInvalidValue: getOption(
-            'discordWebhookReviewOfferDisableMentionInvalidValue',
-            false,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookReviewOfferShowQuickLinks: getOption(
-            'discordWebhookReviewOfferShowQuickLinks',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookReviewOfferShowKeyRate: getOption(
-            'discordWebhookReviewOfferShowKeyRate',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookReviewOfferShowPureStock: getOption(
-            'discordWebhookReviewOfferShowPureStock',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-
-        disableDiscordWebhookMessageFromPartner: getOption(
-            'disableDiscordWebhookMessageFromPartner',
-            false,
-            JSON.parse,
-            rawOptions
-        ),
-        discordWebhookMessageFromPartnerURL: getOption('discordWebhookMessageFromPartnerURL', '', String, rawOptions),
-        discordWebhookMessageFromPartnerShowQuickLinks: getOption(
-            'discordWebhookMessageFromPartnerShowQuickLinks',
-            true,
-            JSON.parse,
-            rawOptions
-        ),
-
-        enableManualReview: getOption('enableManualReview', true, JSON.parse, rawOptions),
-        disableShowReviewOfferSummary: getOption('disableShowReviewOfferSummary', false, JSON.parse, rawOptions),
-        disableReviewOfferNote: getOption('disableReviewOfferNote', false, JSON.parse, rawOptions),
-        disableShowCurrentTime: getOption('disableShowCurrentTime', false, JSON.parse, rawOptions),
-
-        disableAcceptInvalidItemsOverpay: getOption('disableAcceptInvalidItemsOverpay', true, JSON.parse, rawOptions),
-        disableAcceptOverstockedOverpay: getOption('disableAcceptOverstockedOverpay', true, JSON.parse, rawOptions),
-        disableAcceptUnderstockedOverpay: getOption('disableAcceptUnderstockedOverpay', false, JSON.parse, rawOptions),
-
-        disableAutoDeclineOverstocked: getOption('disableAutoDeclineOverstocked', true, JSON.parse, rawOptions),
-        disableAutoDeclineUnderstocked: getOption('disableAutoDeclineUnderstocked', true, JSON.parse, rawOptions),
-        disableAutoDeclineInvalidValue: getOption('disableAutoDeclineInvalidValue', false, JSON.parse, rawOptions),
-        autoDeclineInvalidValueNote: getOption('autoDeclineInvalidValueNote', '', String, rawOptions),
-
-        invalidValueExceptionSKUS: getOption(
-            'invalidValueExceptionSKUS',
-            [';5;u', ';11;australium'],
-            JSON.parse,
-            rawOptions
-        ),
-        invalidValueExceptionValueInRef: getOption('invalidValueExceptionValueInRef', 0, parseInt, rawOptions),
-
-        invalidValueNote: getOption('invalidValueNote', '', String, rawOptions),
-        invalidItemsNote: getOption('invalidItemsNote', '', String, rawOptions),
-        overstockedNote: getOption('overstockedNote', '', String, rawOptions),
-        understockedNote: getOption('understockedNote', '', String, rawOptions),
-        dupeItemsNote: getOption('dupeItemsNote', '', String, rawOptions),
-        dupeCheckFailedNote: getOption('dupeCheckFailedNote', '', String, rawOptions),
-        additionalNote: getOption('additionalNote', '', String, rawOptions),
-
-        enableOnlyPlayTF2: getOption('enableOnlyPlayTF2', false, JSON.parse, rawOptions),
-        customPlayingGameName: getOption('customPlayingGameName', 'trading', String, rawOptions),
-
-        customWelcomeMessage: getOption('customWelcomeMessage', '', String, rawOptions),
-        customIDontKnowWhatYouMean: getOption('customIDontKnowWhatYouMean', '', String, rawOptions),
-        customHow2tradeMessage: getOption('customHow2tradeMessage', '', String, rawOptions),
-
-        customSuccessMessage: getOption('customSuccessMessage', '', String, rawOptions),
-        customDeclinedMessage: getOption('customDeclinedMessage', '', String, rawOptions),
-        customTradedAwayMessage: getOption('customTradedAwayMessage', '', String, rawOptions),
-        customClearingFriendsMessage: getOption('customClearingFriendsMessage', '', String, rawOptions),
-
-        folderName: getOption('folderName', steamAccountName, String, rawOptions),
-        filePrefix: getOption('filePrefix', steamAccountName, String, rawOptions)
+        folderName: getOption('folderName', steamAccountName, String, incomingOptions),
+        filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
     };
+    const jsonOptions = loadJsonOptions(
+        path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
+        incomingOptions
+    );
+    return deepMerge(jsonOptions, envOptions, incomingOptions);
 }

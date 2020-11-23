@@ -10,7 +10,10 @@ import log from '../../lib/logger';
 export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot): void {
     const keyPrices = bot.pricelist.getKeyPrices();
     let entry;
-    const scrapAdjustment = genScrapAdjustment(bot.options.scrapAdjustmentValue, bot.options.disableScrapAdjustment);
+    const scrapAdjustment = genScrapAdjustment(
+        bot.options.autokeys.scrapAdjustment.value,
+        bot.options.autokeys.scrapAdjustment.enable
+    );
     if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {
         entry = {
             sku: '5021;6',
@@ -20,8 +23,8 @@ export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot):
             max: maxKeys,
             intent: 0,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
             }
         } as any;
     } else if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
@@ -41,8 +44,8 @@ export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot):
             max: maxKeys,
             intent: 0,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
             }
         } as any;
     } else if (scrapAdjustment.enabled) {
@@ -62,8 +65,8 @@ export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot):
             max: maxKeys,
             intent: 0,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsBuy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.bptfDetailsSell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
             }
         } as any;
     }

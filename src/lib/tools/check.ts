@@ -23,7 +23,7 @@ export function uses(
             return item.market_hash_name.includes(name);
         });
 
-        if (isDuelingMiniGame && !bot.options.disableCheckUsesDuelingMiniGame) {
+        if (isDuelingMiniGame && bot.options.checkUses.duel) {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -37,7 +37,7 @@ export function uses(
                     break;
                 }
             }
-        } else if (isNoiseMaker && !bot.options.disableCheckUsesNoiseMaker) {
+        } else if (isNoiseMaker && bot.options.checkUses.noiseMaker) {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -48,11 +48,7 @@ export function uses(
                 ) {
                     ex.isNot25Uses = true;
                     ex.noiseMakerSKU.push(
-                        item.getSKU(
-                            bot.schema,
-                            bot.options.normalizeFestivizedItems,
-                            bot.options.normalizeStrangeUnusual
-                        )
+                        item.getSKU(bot.schema, bot.options.normalize.festivized, bot.options.normalize.strangeUnusual)
                     );
                     offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
                     break;
@@ -202,8 +198,8 @@ export function highValue(
         if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
             const itemSKU = item.getSKU(
                 bot.schema,
-                bot.options.normalizeFestivizedItems,
-                bot.options.normalizeStrangeUnusual
+                bot.options.normalize.festivized,
+                bot.options.normalize.strangeUnusual
             );
             highValued.skus.push(itemSKU);
 
@@ -237,7 +233,7 @@ export function highValue(
             log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
             // parsed.fullName  - tf2-items-format module
 
-            if (!bot.options.disableDiscordWebhookTradeSummary && bot.options.discordWebhookTradeSummaryURL) {
+            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url) {
                 highValued.names.push(`_${itemName}_${itemDescriptions}`);
             } else {
                 highValued.names.push(`${itemName}${itemDescriptions}`);

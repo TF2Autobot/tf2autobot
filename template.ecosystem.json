@@ -36,8 +36,6 @@
                 "CUSTOM_TIME_FORMAT": "",
                 "TIME_ADDITIONAL_NOTES": "",
 
-                "MAX_PRICE_AGE": 28800,
-
                 "DEBUG": true,
                 "DEBUG_FILE": true
             }

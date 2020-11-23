@@ -134,14 +134,14 @@ export = class Inventory {
         this.tradable = Inventory.createDictionary(
             tradable,
             this.schema,
-            this.options.normalizeFestivizedItems,
-            this.options.normalizeStrangeUnusual
+            this.options.normalize.festivized,
+            this.options.normalize.strangeUnusual
         );
         this.nonTradable = Inventory.createDictionary(
             nonTradable,
             this.schema,
-            this.options.normalizeFestivizedItems,
-            this.options.normalizeStrangeUnusual
+            this.options.normalize.festivized,
+            this.options.normalize.strangeUnusual
         );
     }
 

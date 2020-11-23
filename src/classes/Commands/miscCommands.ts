@@ -163,7 +163,7 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function ownerCommand(steamID: SteamID, bot: Bot): void {
-    if (bot.options.disableOwnerCommand) {
+    if (!bot.options.enableOwnerCommand) {
         bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
         return;
     }
@@ -179,8 +179,8 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
 
 export function discordCommand(steamID: SteamID, bot: Bot): void {
     let reply = '';
-    if (bot.options.discordServerInviteLink) {
-        reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${bot.options.discordServerInviteLink}`;
+    if (bot.options.discordInviteLink) {
+        reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${bot.options.discordInviteLink}`;
     } else {
         reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
     }
