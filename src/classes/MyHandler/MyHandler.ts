@@ -112,54 +112,40 @@ export = class MyHandler extends Handler {
 
         const exceptionRef = this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef;
 
-        let invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
-        if (invalidValueExceptionSKU !== null && Array.isArray(invalidValueExceptionSKU)) {
-            invalidValueExceptionSKU.forEach((sku: string) => {
-                if (sku === '' || !sku) {
-                    invalidValueExceptionSKU = ['Not Set'];
-                }
-            });
-            this.invalidValueExceptionSKU = invalidValueExceptionSKU;
-        } else {
+        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
+        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
+        if (invalidValueExceptionSKU === []) {
             log.warn(
-                'You did not set INVALID_VALUE_EXCEPTION_SKUS array, resetting to apply only for Unusual and Australium'
+                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
             );
             this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
+        } else {
+            this.invalidValueExceptionSKU = invalidValueExceptionSKU;
         }
 
-        let sheens = this.bot.options.highValue.sheens;
-        if (sheens !== null && Array.isArray(sheens)) {
-            sheens.forEach(sheen => {
-                if (sheen === '' || !sheen) {
-                    // if HIGH_VALUE_SHEENS was set as [''] (empty string), then mention/disable on all sheens.
-                    sheens = sheensData;
-                }
-            });
-            this.sheens = sheens.map(sheen => sheen.toLowerCase().trim());
-        } else {
-            // if HIGH_VALUE_SHEENS undefined (not exist in env), then set to all.
+        // check if highValue.sheens is an empty array
+        const sheens = this.bot.options.highValue.sheens;
+        if (sheens === []) {
             log.warn(
-                'You did not set HIGH_VALUE_SHEENS array in your environmental file, will mention/disable all sheens.'
+                'You did not set highValue.sheens array in your environmental file, will mention/disable all sheens.'
             );
             this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
+        } else {
+            this.sheens = sheens.map(sheen => sheen.toLowerCase().trim());
         }
 
-        let killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers !== null && Array.isArray(killstreakers)) {
-            killstreakers.forEach(killstreaker => {
-                if (killstreaker === '' || !killstreaker) {
-                    // if HIGH_VALUE_KILLSTREAKERS was set as [''], then mention/disable on all killstreakers.
-                    killstreakers = killstreakersData;
-                }
-            });
-            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
-        } else {
+        // check if highValue.killstreakers is an empty array
+        const killstreakers = this.bot.options.highValue.killstreakers;
+        if (killstreakers === []) {
             log.warn(
                 'You did not set HIGH_VALUE_KILLSTREAKERS array in your environmental file, will mention/disable all killstreakers.'
             );
             this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
+        } else {
+            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
         }
 
+        // check if game.customName is more than 60 characters.
         const customGameName = this.bot.options.game.customName;
 
         if (!customGameName || customGameName === 'TF2Autobot') {

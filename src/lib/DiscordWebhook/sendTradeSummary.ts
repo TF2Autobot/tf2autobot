@@ -45,20 +45,25 @@ export default function sendTradeSummary(
 
     const itemList = listItems(itemsName, false);
 
-    // Mention owner on the sku(s) specified in DISCORD_WEBHOOK_TRADE_SUMMARY_MENTION_OWNER_ONLY_ITEMS_SKU
+    // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
+    const enableMentionOnSpecificSKU = bot.options.discordWebhook.tradeSummary.mentionOwner.enable;
     const skuToMention = bot.options.discordWebhook.tradeSummary.mentionOwner.itemSkus;
 
-    const isMentionOurItems = skuToMention.some(fromEnv => {
-        return ourItems.some(ourItemSKU => {
-            return ourItemSKU.includes(fromEnv);
-        });
-    });
+    const isMentionOurItems = enableMentionOnSpecificSKU
+        ? skuToMention.some(fromEnv => {
+              return ourItems.some(ourItemSKU => {
+                  return ourItemSKU.includes(fromEnv);
+              });
+          })
+        : false;
 
-    const isMentionThierItems = skuToMention.some(fromEnv => {
-        return theirItems.some(theirItemSKU => {
-            return theirItemSKU.includes(fromEnv);
-        });
-    });
+    const isMentionThierItems = enableMentionOnSpecificSKU
+        ? skuToMention.some(fromEnv => {
+              return theirItems.some(theirItemSKU => {
+                  return theirItemSKU.includes(fromEnv);
+              });
+          })
+        : false;
 
     const IVAmount = itemsName.invalid.length;
     const HVAmount = itemsName.highValue.length;
