@@ -5,8 +5,6 @@ import { deepMerge } from '../lib/tools/deep-merge';
 
 import validator from '../lib/validator';
 
-import log from '../lib/logger';
-
 export const DEFAULTS = {
     showOnlyMetal: true,
     sortInventory: true,
@@ -511,8 +509,6 @@ export function loadOptions(options?: Options): Options {
         path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
         incomingOptions
     );
-
-    log.debug('jsonOptions', jsonOptions);
 
     const errors = validator(jsonOptions, 'options');
     if (errors !== null) {
