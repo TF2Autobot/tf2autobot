@@ -1,4 +1,6 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
+import { UnknownDictionary } from '../../../../types/common';
+
 import Bot from '../../../Bot';
 
 import processReview from './process-review';
@@ -9,8 +11,7 @@ import { pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '.
 export default function sendReview(
     offer: TradeOffer,
     bot: Bot,
-    reasons: any,
-    wrong: any,
+    meta: UnknownDictionary<any>,
     isTradingKeys: boolean,
     highValueItems: string[]
 ): void {
@@ -21,7 +22,7 @@ export default function sendReview(
     const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
     const links = generateLinks(offer.partner.toString());
 
-    const content = processReview(offer, reasons, wrong, bot, isTradingKeys);
+    const content = processReview(offer, meta, bot, isTradingKeys);
 
     const hasCustomNote = !!(
         bot.options.manualReview.invalidItems.note ||
@@ -30,6 +31,8 @@ export default function sendReview(
         bot.options.manualReview.duped.note ||
         bot.options.manualReview.dupedCheckFailed.note
     );
+
+    const reasons = meta.uniqueReasons;
 
     // Notify partner and admin that the offer is waiting for manual review
     if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {

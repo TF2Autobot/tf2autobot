@@ -1,5 +1,6 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
+import { UnknownDictionary } from '../../../../types/common';
 
 import Bot from '../../../Bot';
 import {
@@ -15,8 +16,7 @@ import { valueDiff } from '../../../../lib/tools/export';
 
 export default function processReview(
     offer: TradeOffer,
-    reasons: any,
-    wrong: any,
+    meta: UnknownDictionary<any>,
     bot: Bot,
     isTradingKeys: boolean
 ): {
@@ -34,6 +34,9 @@ export default function processReview(
 } {
     const keyPrices = bot.pricelist.getKeyPrices();
     const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
+
+    const reasons = meta.uniqueReasons;
+    const wrong = meta.reasons;
 
     const reviewReasons: string[] = [];
 

@@ -1490,9 +1490,6 @@ export = class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            const reasons = meta.uniqueReasons;
-            const wrong = meta.reasons;
-
             const highValueItems: string[] = [];
             if (meta) {
                 if (meta.hasHighValueItems) {
@@ -1506,7 +1503,7 @@ export = class MyHandler extends Handler {
                 }
             }
 
-            sendReview(offer, this.bot, reasons, wrong, this.isTradingKeys, highValueItems);
+            sendReview(offer, this.bot, meta, this.isTradingKeys, highValueItems);
             this.isTradingKeys = false; // reset
         }
     }
