@@ -2,7 +2,10 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-export default function dupedCheckFailed(wrong: any, bot: Bot): { note: string; name: string[] } {
+import { UnknownDictionary } from '../../../../../types/common';
+
+export default function dupedCheckFailed(meta: UnknownDictionary<any>, bot: Bot): { note: string; name: string[] } {
+    const wrong = meta.reasons;
     const dupedFailedItemsName: string[] = [];
     const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED'));
 

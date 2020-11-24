@@ -96,6 +96,7 @@ declare module 'bptf-listings-2' {
             sku?: string;
             intent: 0 | 1;
             details?: string;
+            promoted?: 0 | 1;
             currencies: object;
             time: number;
         }
@@ -135,6 +136,7 @@ declare module 'bptf-listings-2' {
                 details?: string;
                 offers?: boolean;
                 buyout?: boolean;
+                promoted?: 0 | 1;
             }): void;
 
             remove(): void;

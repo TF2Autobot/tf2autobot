@@ -36,13 +36,12 @@ export default function processReview(
     const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
 
     const reasons = meta.uniqueReasons;
-    const wrong = meta.reasons;
 
     const reviewReasons: string[] = [];
 
     const invalidForOur: string[] = []; // Display for owner
     if (reasons.includes('🟨_INVALID_ITEMS')) {
-        const invalid = invalidItems(wrong, bot);
+        const invalid = invalidItems(meta, bot);
 
         reviewReasons.push(invalid.note);
         invalidForOur.concat(invalid.name);
@@ -50,7 +49,7 @@ export default function processReview(
 
     const overstockedForOur: string[] = [];
     if (reasons.includes('🟦_OVERSTOCKED')) {
-        const overstock = overstocked(wrong, bot);
+        const overstock = overstocked(meta, bot);
 
         reviewReasons.push(overstock.note);
         overstockedForOur.concat(overstock.name);
@@ -58,7 +57,7 @@ export default function processReview(
 
     const understockedForOur: string[] = [];
     if (reasons.includes('🟩_UNDERSTOCKED')) {
-        const understock = understocked(wrong, bot);
+        const understock = understocked(meta, bot);
 
         reviewReasons.push(understock.note);
         understockedForOur.concat(understock.name);
@@ -66,7 +65,7 @@ export default function processReview(
 
     const dupedItemsName: string[] = [];
     if (reasons.includes('🟫_DUPED_ITEMS')) {
-        const dupe = duped(wrong, bot);
+        const dupe = duped(meta, bot);
 
         reviewReasons.push(dupe.note);
         dupedItemsName.concat(dupe.name);
@@ -75,7 +74,7 @@ export default function processReview(
     // for 🟪_DUPE_CHECK_FAILED
     const dupedFailedItemsName: string[] = [];
     if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-        const dupeFail = dupedCheckFailed(wrong, bot);
+        const dupeFail = dupedCheckFailed(meta, bot);
 
         reviewReasons.push(dupeFail.note);
         dupedFailedItemsName.concat(dupeFail.name);
@@ -83,7 +82,7 @@ export default function processReview(
 
     let missingPureNote = '';
     if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
-        const invalidV = invalidValue(offer, bot, isTradingKeys, value);
+        const invalidV = invalidValue(bot, value);
 
         reviewReasons.push(invalidV.note);
         missingPureNote = invalidV.missing;

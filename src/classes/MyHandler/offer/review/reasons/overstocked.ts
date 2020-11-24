@@ -2,7 +2,10 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-export default function overstocked(wrong: any, bot: Bot): { note: string; name: string[] } {
+import { UnknownDictionary } from '../../../../../types/common';
+
+export default function overstocked(meta: UnknownDictionary<any>, bot: Bot): { note: string; name: string[] } {
+    const wrong = meta.reasons;
     const overstockedForTheir: string[] = [];
     const overstockedForOur: string[] = [];
 

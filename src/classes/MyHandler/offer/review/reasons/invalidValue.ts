@@ -1,10 +1,7 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
 import Bot from '../../../../Bot';
 
 export default function invalidValue(
-    offer: TradeOffer,
     bot: Bot,
-    isTradingKeys: boolean,
     value: { diff: number; diffRef: number; diffKey: string }
 ): { note: string; missing: string } {
     const keyPrices = bot.pricelist.getKeyPrices();
