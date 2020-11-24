@@ -7,7 +7,8 @@ export const listingSchema: jsonschema.Schema = {
         buy: {
             anyOf: [
                 {
-                    type: 'string'
+                    type: 'string',
+                    maxLength: 200
                 },
                 {
                     type: 'null'
@@ -17,7 +18,8 @@ export const listingSchema: jsonschema.Schema = {
         sell: {
             anyOf: [
                 {
-                    type: 'string'
+                    type: 'string',
+                    maxLength: 200
                 },
                 {
                     type: 'null'

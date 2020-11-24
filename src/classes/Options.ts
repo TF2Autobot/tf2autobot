@@ -3,6 +3,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 
+import validator from '../lib/validator';
+
+import log from '../lib/logger';
+
 export const DEFAULTS = {
     showOnlyMetal: true,
     sortInventory: true,
@@ -459,6 +463,7 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 function loadJsonOptions(p: string, options?: Options): JsonOptions {
     let fileOptions;
     const incomingOptions = options ? options : DEFAULTS;
+
     try {
         fileOptions = deepMerge(DEFAULTS, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
     } catch {
@@ -506,5 +511,12 @@ export function loadOptions(options?: Options): Options {
         path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
         incomingOptions
     );
+
+    log.debug('jsonOptions', jsonOptions);
+
+    const errors = validator(jsonOptions, 'options');
+    if (errors !== null) {
+        throw new Error(errors.join(', '));
+    }
     return deepMerge(jsonOptions, envOptions, incomingOptions);
 }
