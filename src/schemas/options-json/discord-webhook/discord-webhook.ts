@@ -6,7 +6,7 @@ export const discordWebhookSchema: jsonschema.Schema = {
     properties: {
         ownerID: {
             type: 'string',
-            pattern: '[0-9]+'
+            pattern: '^[0-9]+$'
         },
         displayName: {
             type: 'string'
@@ -16,7 +16,7 @@ export const discordWebhookSchema: jsonschema.Schema = {
         },
         embedColor: {
             type: 'string',
-            pattern: '[0-9]+'
+            pattern: '^[0-9]+$'
         },
         tradeSummary: {
             $ref: 'trade-summary'
