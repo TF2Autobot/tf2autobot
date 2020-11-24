@@ -20,14 +20,14 @@ export const DEFAULTS = {
     allowGiftNoMessage: false,
     allowBanned: false,
 
-    sendOfferMessage: 'Thank you',
+    sendOfferMessage: '',
 
     autobump: false,
 
     highValue: {
         enableHold: true,
-        sheens: ['Team Shine'],
-        killstreakers: ['Fire Horns', 'Tornado']
+        sheens: [],
+        killstreakers: []
     },
     checkUses: {
         duel: true,
@@ -99,7 +99,7 @@ export const DEFAULTS = {
                 note: ''
             },
             exceptionValue: {
-                skus: [';5;u', ';11;australium'],
+                skus: [],
                 valueInRef: 0
             }
         },
@@ -137,7 +137,7 @@ export const DEFAULTS = {
         embedColor: '9171753',
         tradeSummary: {
             enable: true,
-            url: [''],
+            url: [],
             misc: {
                 showQuickLinks: true,
                 showKeyRate: true,
@@ -147,7 +147,7 @@ export const DEFAULTS = {
             },
             mentionOwner: {
                 enable: true,
-                itemSkus: [';5;u', ';11;australium']
+                itemSkus: []
             }
         },
         offerReview: {
