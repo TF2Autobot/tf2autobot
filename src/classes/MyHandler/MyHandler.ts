@@ -9,8 +9,8 @@ import async from 'async';
 import moment from 'moment-timezone';
 import { UnknownDictionary } from '../../types/common';
 
-import { accepted, declined, cancelled, acceptEscrow, invalid } from './export-notify';
-import { processAccepted, updateListings } from './export-process';
+import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
+import { processAccepted, updateListings } from './offer/accepted/export-process';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
@@ -127,7 +127,7 @@ export = class MyHandler extends Handler {
         const sheens = this.bot.options.highValue.sheens;
         if (sheens === []) {
             log.warn(
-                'You did not set highValue.sheens array in your environmental file, will mention/disable all sheens.'
+                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
             );
             this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
         } else {
@@ -138,7 +138,7 @@ export = class MyHandler extends Handler {
         const killstreakers = this.bot.options.highValue.killstreakers;
         if (killstreakers === []) {
             log.warn(
-                'You did not set HIGH_VALUE_KILLSTREAKERS array in your environmental file, will mention/disable all killstreakers.'
+                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
             );
             this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
         } else {
