@@ -460,10 +460,11 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 
 function loadJsonOptions(p: string, options?: Options): JsonOptions {
     let fileOptions;
-    const incomingOptions = options ? options : DEFAULTS;
+    const workingDefault = deepMerge({}, DEFAULTS);
+    const incomingOptions = options ? deepMerge({}, options) : deepMerge({}, DEFAULTS);
 
     try {
-        fileOptions = deepMerge(DEFAULTS, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
+        fileOptions = deepMerge({}, workingDefault, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
     } catch {
         if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
         writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
@@ -473,7 +474,7 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
 }
 
 export function loadOptions(options?: Options): Options {
-    const incomingOptions = options ? options : {};
+    const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -505,6 +506,16 @@ export function loadOptions(options?: Options): Options {
         folderName: getOption('folderName', steamAccountName, String, incomingOptions),
         filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
     };
+    if (!envOptions.folderName) {
+        throw new Error('STEAM_ACCOUNT_NAME or FOLDER_NAME must be set in the environment');
+    }
+    const findNonEnv = validator(incomingOptions, 'options');
+    if (findNonEnv) {
+        findNonEnv
+            .filter(e => e.includes('unknown property'))
+            .map(e => e.slice(18, -1))
+            .map(e => delete incomingOptions[e]);
+    }
     const jsonOptions = loadJsonOptions(
         path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
         incomingOptions
