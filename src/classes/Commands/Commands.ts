@@ -6,8 +6,7 @@ import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 
-import { getItemFromParams, getItemAndAmount, removeLinkProtocol, testSKU } from './utils';
-import { botStatus, help, messageCommand, misc, pricelist, review } from './export';
+import { botStatus, help, messageCommand, misc, pricelist, review, utils, options } from './export';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -157,6 +156,8 @@ export = class Commands {
             this.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
             pricelist.findCommand(steamID, message, this.bot);
+        } else if (command === 'options' && isAdmin) {
+            options.optionsCommand(steamID, this.bot);
         } else if (isNoReply) {
             return null;
         } else {
@@ -170,7 +171,7 @@ export = class Commands {
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -255,7 +256,7 @@ export = class Commands {
     // Instant item trade
 
     private buyCommand(steamID: SteamID, message: string): void {
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -273,7 +274,7 @@ export = class Commands {
     }
 
     private sellCommand(steamID: SteamID, message: string): void {
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -302,7 +303,7 @@ export = class Commands {
             return;
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -370,7 +371,7 @@ export = class Commands {
             return;
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -573,11 +574,11 @@ export = class Commands {
     // under !more command
 
     private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
-        message = removeLinkProtocol(message);
+        message = utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -684,13 +685,13 @@ export = class Commands {
             return;
         }
 
-        message = removeLinkProtocol(message);
+        message = utils.removeLinkProtocol(message);
         const paramStr = CommandParser.removeCommand(message);
 
         const params = CommandParser.parseParams(paramStr);
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -728,13 +729,13 @@ export = class Commands {
             return;
         }
 
-        message = removeLinkProtocol(message);
+        message = utils.removeLinkProtocol(message);
         const paramStr = CommandParser.removeCommand(message);
 
         const params = CommandParser.parseParams(paramStr);
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -832,7 +833,7 @@ export = class Commands {
     private deleteCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
             this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
@@ -1274,16 +1275,16 @@ export = class Commands {
     // Request commands
 
     private pricecheckCommand(steamID: SteamID, message: string): void {
-        message = removeLinkProtocol(message);
+        message = utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
             this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -1375,16 +1376,16 @@ export = class Commands {
     }
 
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
-        message = removeLinkProtocol(message);
+        message = utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
             this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
