@@ -136,7 +136,7 @@ export = class MyHandler extends Handler {
 
         this.uptime = moment().unix();
         this.tradeSummaryLinks = this.bot.options.discordWebhook.tradeSummary.url;
-        this.paths = genPaths(this.bot.options.folderName, this.bot.options.filePrefix);
+        this.paths = genPaths(this.bot.options.steamAccountName);
 
         // check if manualReview.invalidValue.exceptionValue.skus is an empty array
         const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;

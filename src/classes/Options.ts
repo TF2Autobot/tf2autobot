@@ -501,14 +501,8 @@ export function loadOptions(options?: Options): Options {
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
         debug: getOption('debug', true, JSON.parse, incomingOptions),
-        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions),
-
-        folderName: getOption('folderName', steamAccountName, String, incomingOptions),
-        filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
+        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions)
     };
-    if (!envOptions.folderName) {
-        throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
-    }
     const findNonEnv = validator(incomingOptions, 'options');
     if (findNonEnv) {
         findNonEnv
@@ -517,7 +511,7 @@ export function loadOptions(options?: Options): Options {
             .map(e => delete incomingOptions[e]);
     }
     const jsonOptions = loadJsonOptions(
-        path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
+        path.resolve(__dirname, '..', '..', 'files', envOptions.steamAccountName, 'options.json'),
         incomingOptions
     );
 
