@@ -72,33 +72,107 @@ export = class MyHandler extends Handler {
 
     readonly cartQueue: CartQueue;
 
-    private groups: string[] = [];
+    private get groups(): string[] {
+        const groups = this.bot.options.groups;
+        if (groups !== null && Array.isArray(groups)) {
+            groups.forEach(groupID64 => {
+                if (!new SteamID(groupID64).isValid()) {
+                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
+                }
+            });
+            return groups;
+        }
+    }
 
-    private friendsToKeep: string[] = [];
+    private get friendsToKeep(): string[] {
+        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
+        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
+            friendsToKeep.forEach(steamID64 => {
+                if (!new SteamID(steamID64).isValid()) {
+                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
+                }
+            });
+            return friendsToKeep;
+        }
+    }
 
-    private minimumScrap = 9;
+    private get minimumScrap(): number {
+        return this.bot.options.crafting.metals.minScrap;
+    }
 
-    private minimumReclaimed = 9;
+    private get minimumReclaimed(): number {
+        return this.bot.options.crafting.metals.minRec;
+    }
 
-    private combineThreshold = 9;
+    private get combineThreshold(): number {
+        return this.bot.options.crafting.metals.threshold;
+    }
 
-    private dupeCheckEnabled = false;
+    private get dupeCheckEnabled(): boolean {
+        return this.bot.options.manualReview.duped.enable;
+    }
 
-    private minimumKeysDupeCheck = 0;
+    private get minimumKeysDupeCheck(): number {
+        return this.bot.options.manualReview.duped.minKeys;
+    }
 
-    private invalidValueException: number;
+    private get invalidValueException(): number {
+        return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
+    }
 
-    private invalidValueExceptionSKU: string[] = [];
+    private get invalidValueExceptionSKU(): string[] {
+        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
+        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
+        if (invalidValueExceptionSKU === []) {
+            log.warn(
+                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
+            );
+            return [';5;u', ';11;australium'];
+        } else {
+            return invalidValueExceptionSKU;
+        }
+    }
 
     private hasInvalidValueException = false;
 
-    private sheens: string[] = [];
+    private get sheens(): string[] {
+        // check if highValue.sheens is an empty array
+        const sheens = this.bot.options.highValue.sheens;
+        if (sheens === []) {
+            log.warn(
+                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
+            );
+            return sheensData.map(sheen => sheen.toLowerCase().trim());
+        } else {
+            return sheens.map(sheen => sheen.toLowerCase().trim());
+        }
+    }
 
-    private killstreakers: string[] = [];
+    private get killstreakers(): string[] {
+        // check if highValue.killstreakers is an empty array
+        const killstreakers = this.bot.options.highValue.killstreakers;
+        if (killstreakers === []) {
+            log.warn(
+                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
+            );
+            return killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
+        } else {
+            return killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
+        }
+    }
 
     private isTradingKeys = false;
 
-    private customGameName: string;
+    private get customGameName(): string {
+        // check if game.customName is more than 60 characters.
+        const customGameName = this.bot.options.game.customName;
+
+        if (!customGameName || customGameName === 'TF2Autobot') {
+            return `TF2Autobot v${process.env.BOT_VERSION}`;
+        } else {
+            return customGameName;
+        }
+    }
 
     private backpackSlots = 0;
 
@@ -124,7 +198,9 @@ export = class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
-    private tradeSummaryLinks: Array<string>;
+    private get tradeSummaryLinks(): Array<string> {
+        return this.bot.options.discordWebhook.tradeSummary.url;
+    }
 
     private paths: Paths;
 
@@ -136,82 +212,7 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().unix();
-        this.tradeSummaryLinks = this.bot.options.discordWebhook.tradeSummary.url;
         this.paths = genPaths(this.bot.options.steamAccountName);
-
-        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
-        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
-        if (invalidValueExceptionSKU === []) {
-            log.warn(
-                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
-            );
-            this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
-        } else {
-            this.invalidValueExceptionSKU = invalidValueExceptionSKU;
-        }
-
-        // check if highValue.sheens is an empty array
-        const sheens = this.bot.options.highValue.sheens;
-        if (sheens === []) {
-            log.warn(
-                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
-            );
-            this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
-        } else {
-            this.sheens = sheens.map(sheen => sheen.toLowerCase().trim());
-        }
-
-        // check if highValue.killstreakers is an empty array
-        const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === []) {
-            log.warn(
-                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
-            );
-            this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
-        } else {
-            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
-        }
-
-        // check if game.customName is more than 60 characters.
-        const customGameName = this.bot.options.game.customName;
-
-        if (!customGameName || customGameName === 'TF2Autobot') {
-            this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
-        } else {
-            this.customGameName = customGameName;
-        }
-
-        this.invalidValueException = Currencies.toScrap(
-            this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef
-        );
-
-        this.minimumScrap = this.bot.options.crafting.metals.minScrap;
-        this.minimumReclaimed = this.bot.options.crafting.metals.minRec;
-        this.combineThreshold = this.bot.options.crafting.metals.threshold;
-        this.dupeCheckEnabled = this.bot.options.manualReview.duped.enable;
-        this.minimumKeysDupeCheck = this.bot.options.manualReview.duped.minKeys;
-
-        const groups = this.bot.options.groups;
-        if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(groupID64 => {
-                if (!new SteamID(groupID64).isValid()) {
-                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
-                }
-            });
-
-            this.groups = groups;
-        }
-
-        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
-        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(steamID64 => {
-                if (!new SteamID(steamID64).isValid()) {
-                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
-                }
-            });
-
-            this.friendsToKeep = friendsToKeep;
-        }
 
         setInterval(() => {
             this.recentlySentMessage = {};
