@@ -473,6 +473,16 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
     return deepMerge(fileOptions, incomingOptions);
 }
 
+export function removeCliOptions(incomingOptions: Options): void {
+    const findNonEnv = validator(incomingOptions, 'options');
+    if (findNonEnv) {
+        findNonEnv
+            .filter(e => e.includes('unknown property'))
+            .map(e => e.slice(18, -1))
+            .map(e => delete incomingOptions[e]);
+    }
+}
+
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
@@ -503,13 +513,7 @@ export function loadOptions(options?: Options): Options {
         debug: getOption('debug', true, JSON.parse, incomingOptions),
         debugFile: getOption('debugFile', true, JSON.parse, incomingOptions)
     };
-    const findNonEnv = validator(incomingOptions, 'options');
-    if (findNonEnv) {
-        findNonEnv
-            .filter(e => e.includes('unknown property'))
-            .map(e => e.slice(18, -1))
-            .map(e => delete incomingOptions[e]);
-    }
+    removeCliOptions(incomingOptions);
     const jsonOptions = loadJsonOptions(
         path.resolve(__dirname, '..', '..', 'files', envOptions.steamAccountName, 'options.json'),
         incomingOptions
