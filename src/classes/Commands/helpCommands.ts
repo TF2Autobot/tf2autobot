@@ -71,8 +71,9 @@ const ADMIN_COMMANDS: string[] = [
     "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
     '!sales (sku|name|defindex)=<a> - Get the sales history for an item 🔍',
     '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍',
-    '!options - Get options.json content (current bot option settings)',
-    '!updateoptions <Options>=<value>[&OtherOptions]'
+    '!options - Get options.json content (current bot option settings) 🔧',
+    '!updateoptions <Options>=<value>[&OtherOptions] 🔧',
+    '!donatebptf (sku|name|defindex)=<a>&amount=<number> - Donate to backpack.tf (https://backpack.tf/donate) 💰'
 ];
 
 export function helpCommand(steamID: SteamID, bot: Bot): void {
