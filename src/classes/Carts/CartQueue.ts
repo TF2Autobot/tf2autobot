@@ -192,6 +192,10 @@ class CartQueue {
                             '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
                         );
 
+                        if (isDonating) {
+                            cart.sendNotification('✅ Success! Your donation has been sent and received!');
+                        }
+
                         log.debug('Accepting mobile confirmation...');
 
                         // Wait for confirmation to be accepted
