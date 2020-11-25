@@ -74,7 +74,7 @@ export default function sendReview(
     }
 
     const highValueItems: string[] = [];
-    if (meta) {
+    if (meta && meta.highValue) {
         if (meta.highValue.has) {
             const hasHighValue = meta.highValue.has.their;
 
