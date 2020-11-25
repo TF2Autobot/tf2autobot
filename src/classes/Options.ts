@@ -507,7 +507,7 @@ export function loadOptions(options?: Options): Options {
         filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
     };
     if (!envOptions.folderName) {
-        throw new Error('STEAM_ACCOUNT_NAME or FOLDER_NAME must be set in the environment');
+        throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
     }
     const findNonEnv = validator(incomingOptions, 'options');
     if (findNonEnv) {
