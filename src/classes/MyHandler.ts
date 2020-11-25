@@ -2576,12 +2576,12 @@ export = class MyHandler extends Handler {
             }
 
             const highValueItems: string[] = [];
-            if (meta) {
-                if (meta.hasHighValueItems) {
-                    const hasHighValue = meta.hasHighValueItems.their;
+            if (meta && meta.highValue) {
+                if (meta.highValue.has) {
+                    const hasHighValue = meta.highValue.has.their;
 
                     if (hasHighValue) {
-                        meta.highValueItems.their.names.forEach(name => {
+                        meta.highValue.items.their.names.forEach(name => {
                             highValueItems.push(name);
                         });
                     }
