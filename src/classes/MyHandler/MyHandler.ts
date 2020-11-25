@@ -14,6 +14,8 @@ import { processAccepted, updateListings } from './offer/accepted/export-process
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
+import { WrongAboutOffer, HighValueInput, HighValueOutput } from './interfaces';
+
 import Handler from '../Handler';
 import Bot from '../Bot';
 import { Entry, EntryData } from '../Pricelist';
@@ -60,39 +62,6 @@ interface GetAutokeysStatus {
     isActive: boolean;
     isBuying: boolean;
     isBanking: boolean;
-}
-
-interface HighValue {
-    has: boolean;
-    skus: string[];
-    names: string[];
-    isMention: boolean;
-}
-
-interface HighValueInput {
-    our: HighValue;
-    their: HighValue;
-}
-
-interface HighValueBoolean {
-    our: boolean;
-    their: boolean;
-}
-
-interface HighValueItems {
-    skus: string[];
-    names: string[];
-}
-
-interface HighValueItemsWhich {
-    our: HighValueItems;
-    their: HighValueItems;
-}
-
-interface HighValueOutput {
-    has: HighValueBoolean;
-    items: HighValueItemsWhich;
-    isMention: HighValueBoolean;
 }
 
 export = class MyHandler extends Handler {
@@ -702,54 +671,7 @@ export = class MyHandler extends Handler {
         let hasUnderstock = false;
 
         // A list of things that is wrong about the offer and other information
-        const wrongAboutOffer: (
-            | {
-                  reason: '🟦_OVERSTOCKED';
-                  sku: string;
-                  buying: boolean;
-                  diff: number;
-                  amountCanTrade: number;
-              }
-            | {
-                  reason: '🟩_UNDERSTOCKED';
-                  sku: string;
-                  selling: boolean;
-                  diff: number;
-                  amountCanTrade: number;
-              }
-            | {
-                  reason: '🟨_INVALID_ITEMS';
-                  sku: string;
-                  buying: boolean;
-                  amount: number;
-                  price: string;
-              }
-            | {
-                  reason: '🟥_INVALID_VALUE';
-                  our: number;
-                  their: number;
-              }
-            | {
-                  reason: '🟪_DUPE_CHECK_FAILED';
-                  withError: boolean;
-                  assetid: string | string[];
-                  sku: string | string[];
-                  error?: string;
-              }
-            | {
-                  reason: '🟫_DUPED_ITEMS';
-                  assetid: string;
-                  sku: string;
-              }
-            | {
-                  reason: '⬜_ESCROW_CHECK_FAILED';
-                  error?: string;
-              }
-            | {
-                  reason: '⬜_BANNED_CHECK_FAILED';
-                  error?: string;
-              }
-        )[] = [];
+        const wrongAboutOffer: WrongAboutOffer[] = [];
 
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
