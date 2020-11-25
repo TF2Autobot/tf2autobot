@@ -12,8 +12,7 @@ export default function sendReview(
     offer: TradeOffer,
     bot: Bot,
     meta: UnknownDictionary<any>,
-    isTradingKeys: boolean,
-    highValueItems: string[]
+    isTradingKeys: boolean
 ): void {
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
     const pureStock = pure.stock(bot);
@@ -72,6 +71,19 @@ export default function sendReview(
                           (time.note !== '' ? `. ${time.note}.` : '.')}`
                     : '')
         );
+    }
+
+    const highValueItems: string[] = [];
+    if (meta) {
+        if (meta.highValue.has) {
+            const hasHighValue = meta.highValue.has.their;
+
+            if (hasHighValue) {
+                meta.highValue.items.their.names.forEach(name => {
+                    highValueItems.push(name);
+                });
+            }
+        }
     }
 
     const items = {

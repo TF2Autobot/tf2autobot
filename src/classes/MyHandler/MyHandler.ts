@@ -1520,19 +1520,7 @@ export = class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            const highValueItems: string[] = [];
-            if (meta) {
-                if (meta.hasHighValueItems) {
-                    const hasHighValue = meta.hasHighValueItems.their;
-
-                    if (hasHighValue) {
-                        meta.highValueItems.their.names.forEach(name => {
-                            highValueItems.push(name);
-                        });
-                    }
-                }
-            }
-            sendReview(offer, this.bot, meta, this.isTradingKeys, highValueItems);
+            sendReview(offer, this.bot, meta, this.isTradingKeys);
             this.isTradingKeys = false; // reset
         }
     }
