@@ -158,6 +158,8 @@ export = class Commands {
             pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
             options.optionsCommand(steamID, this.bot);
+        } else if (command === 'updateoptions' && isAdmin) {
+            options.updateOptionsCommand(steamID, message, this.bot);
         } else if (isNoReply) {
             return null;
         } else {
