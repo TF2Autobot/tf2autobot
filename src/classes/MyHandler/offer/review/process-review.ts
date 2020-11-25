@@ -39,45 +39,45 @@ export default function processReview(
 
     const reviewReasons: string[] = [];
 
-    const invalidForOur: string[] = []; // Display for owner
+    let invalidForOur: string[] = []; // Display for owner
     if (reasons.includes('🟨_INVALID_ITEMS')) {
         const invalid = invalidItems(meta, bot);
 
         reviewReasons.push(invalid.note);
-        invalidForOur.concat(invalid.name);
+        invalidForOur = invalid.name;
     }
 
-    const overstockedForOur: string[] = [];
+    let overstockedForOur: string[] = [];
     if (reasons.includes('🟦_OVERSTOCKED')) {
         const overstock = overstocked(meta, bot);
 
         reviewReasons.push(overstock.note);
-        overstockedForOur.concat(overstock.name);
+        overstockedForOur = overstock.name;
     }
 
-    const understockedForOur: string[] = [];
+    let understockedForOur: string[] = [];
     if (reasons.includes('🟩_UNDERSTOCKED')) {
         const understock = understocked(meta, bot);
 
         reviewReasons.push(understock.note);
-        understockedForOur.concat(understock.name);
+        understockedForOur = understock.name;
     }
 
-    const dupedItemsName: string[] = [];
+    let dupedItemsName: string[] = [];
     if (reasons.includes('🟫_DUPED_ITEMS')) {
         const dupe = duped(meta, bot);
 
         reviewReasons.push(dupe.note);
-        dupedItemsName.concat(dupe.name);
+        dupedItemsName = dupe.name;
     }
 
     // for 🟪_DUPE_CHECK_FAILED
-    const dupedFailedItemsName: string[] = [];
+    let dupedFailedItemsName: string[] = [];
     if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
         const dupeFail = dupedCheckFailed(meta, bot);
 
         reviewReasons.push(dupeFail.note);
-        dupedFailedItemsName.concat(dupeFail.name);
+        dupedFailedItemsName = dupeFail.name;
     }
 
     let missingPureNote = '';
