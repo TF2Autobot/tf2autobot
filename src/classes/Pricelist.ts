@@ -28,6 +28,7 @@ export interface EntryData {
     intent: 0 | 1 | 2;
     buy?: Currency | null;
     sell?: Currency | null;
+    promoted?: 0 | 1;
     group?: string | null;
     note?: { buy: string | null; sell: string | null };
     time?: number | null;
@@ -51,6 +52,8 @@ export class Entry {
     buy: Currencies | null;
 
     sell: Currencies | null;
+
+    promoted: 0 | 1;
 
     group: string | null;
 
@@ -82,6 +85,12 @@ export class Entry {
             this.time = null;
         }
 
+        if (entry.promoted) {
+            this.promoted = entry.promoted;
+        } else {
+            this.promoted = 0;
+        }
+
         if (entry.group) {
             this.group = entry.group;
         } else {
@@ -110,6 +119,7 @@ export class Entry {
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
+            promoted: this.promoted,
             group: this.group,
             note: this.note,
             time: this.time
@@ -426,6 +436,7 @@ export default class Pricelist extends EventEmitter {
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
+                    promoted: prices[0].promoted,
                     group: prices[0].group,
                     note: prices[0].note,
                     time: prices[0].time

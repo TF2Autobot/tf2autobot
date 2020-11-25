@@ -51,6 +51,7 @@ interface BotInfo {
     name: string;
     avatarURL: string;
     steamID: string;
+    premium: boolean;
 }
 
 interface GetToMention {
@@ -245,7 +246,8 @@ export = class MyHandler extends Handler {
         const name = this.botName;
         const avatarURL = this.botAvatarURL;
         const steamID = this.botSteamID.getSteamID64();
-        return { name, avatarURL, steamID };
+        const premium = this.isPremium;
+        return { name, avatarURL, steamID, premium };
     }
 
     getToMention(): GetToMention {

@@ -190,6 +190,7 @@ export = class Listings {
                     listing.update({
                         time: match.time || moment().unix(),
                         currencies: currencies,
+                        promoted: listing.intent === 0 ? 0 : match.promoted,
                         details: newDetails
                     });
                 }
@@ -220,6 +221,7 @@ export = class Listings {
                     time: matchNew.time || moment().unix(),
                     id: assetids[assetids.length - 1],
                     intent: 1,
+                    promoted: matchNew.promoted,
                     details: this.getDetails(1, matchNew),
                     currencies: matchNew.sell
                 });
