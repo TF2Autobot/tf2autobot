@@ -7,22 +7,23 @@ import Bot from '../Bot';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const optionsPath = path.join(__dirname, `../../../files/${bot.options.steamAccountName}/options.json`);
-    try {
-        const optionJson = fs.readFileSync(optionsPath, { encoding: 'utf8' });
 
-        const data = JSON.parse(optionJson);
+    fs.readFile(optionsPath, { encoding: 'utf8' }, (err, data) => {
+        if (err) {
+            bot.sendMessage(steamID, '❌ Error reading options.json file from disk: ' + err);
+            return;
+        }
+        const options = JSON.parse(data);
 
         // remove Discord Webhook URLs
-        delete data.discordWebhook.tradeSummary.url;
-        delete data.discordWebhook.offerReview.url;
-        delete data.discordWebhook.messages.url;
-        delete data.discordWebhook.priceUpdate.url;
-        delete data.discordWebhook.sendAlert.url;
+        delete options.discordWebhook.tradeSummary.url;
+        delete options.discordWebhook.offerReview.url;
+        delete options.discordWebhook.messages.url;
+        delete options.discordWebhook.priceUpdate.url;
+        delete options.discordWebhook.sendAlert.url;
 
-        bot.sendMessage(steamID, `/code ${JSON.stringify(data, null, 4)}`);
-    } catch (err) {
-        bot.sendMessage(steamID, '❌ Error reading options.json file from disk. Please try again.');
-    }
+        bot.sendMessage(steamID, `/code ${JSON.stringify(options, null, 4)}`);
+    });
 }
 
 // export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
