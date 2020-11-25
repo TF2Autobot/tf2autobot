@@ -82,8 +82,6 @@ export = class Bot {
 
     private admins: SteamID[] = [];
 
-    private alertTypes: string[] = [];
-
     private ready = false;
 
     constructor(botManager: BotManager, public options: Options) {
@@ -130,8 +128,6 @@ export = class Bot {
                 throw new Error('Invalid admin steamID');
             }
         });
-
-        this.alertTypes = this.options.alerts;
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
@@ -180,6 +176,10 @@ export = class Bot {
         }
 
         return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
+    }
+
+    get alertTypes(): Array<string> {
+        return this.options.alerts;
     }
 
     checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
