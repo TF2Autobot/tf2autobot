@@ -34,6 +34,8 @@ abstract class Cart {
 
     protected notify = false;
 
+    protected donation = false;
+
     protected offer: TradeOfferManager.TradeOffer | null = null;
 
     protected readonly bot: Bot;
@@ -87,6 +89,10 @@ abstract class Cart {
 
     setNotify(allowed: boolean): void {
         this.notify = allowed;
+    }
+
+    isDonating(isDonation: boolean): void {
+        this.donation = isDonation;
     }
 
     sendNotification(message: string): void {
@@ -359,11 +365,9 @@ abstract class Cart {
             return Promise.reject(new Error('❌ Offer has not yet been constructed'));
         }
 
-        if (
-            this.offer.itemsToGive.length > 0 &&
-            this.offer.itemsToReceive.length === 0 &&
-            !this.bot.isAdmin(this.offer.partner)
-        ) {
+        const pass = this.donation ? false : !this.bot.isAdmin(this.offer.partner);
+
+        if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
             return Promise.reject('Offer was mistakenly created to give free items to trade partner');
         }
 
@@ -396,11 +400,7 @@ abstract class Cart {
                     return Promise.reject('Offer was canceled');
                 }
 
-                if (
-                    this.offer.itemsToGive.length > 0 &&
-                    this.offer.itemsToReceive.length === 0 &&
-                    !this.bot.isAdmin(this.offer.partner)
-                ) {
+                if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
                     return Promise.reject('Offer was mistakenly created to give free items to trade partner');
                 }
 
@@ -410,12 +410,16 @@ abstract class Cart {
                 // Offer finished, remove cart
                 Cart.removeCart(this.partner);
 
+                this.donation = false;
+
                 return status;
             })
             .catch(async err => {
                 if (!(err instanceof Error)) {
                     return Promise.reject(err);
                 }
+
+                this.donation = false;
 
                 const error = err as TradeOfferManager.CustomError;
 
@@ -537,14 +541,14 @@ abstract class Cart {
         request.send(fullBackpack);
     }
 
-    toString(): string {
+    toString(isDonating: boolean): string {
         if (this.isEmpty()) {
             return '❌ Your cart is empty.';
         }
 
-        let str = '🛒== YOUR CART ==🛒';
+        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
 
-        str += '\n\nMy side (items you will receive):';
+        str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
                 continue;
@@ -554,28 +558,33 @@ abstract class Cart {
             str += `\n- ${this.our[sku]}x ${name}`;
         }
 
-        str += '\n\nYour side (items you will lose):';
-        for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                continue;
-            }
+        if (!isDonating) {
+            str += '\n\nYour side (items you will lose):';
+            for (const sku in this.their) {
+                if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                    continue;
+                }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]}x ${name}`;
+                const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                str += `\n- ${this.their[sku]}x ${name}`;
+            }
         }
-        str += '\n\nType !checkout to checkout and proceed trade, or !clearcart to cancel.';
+
+        str += `\n\nType ${isDonating ? '"!donatenow"' : '"!checkout"'} to ${
+            isDonating ? 'donate' : 'checkout'
+        } and proceed trade, or "!clearcart" to cancel.`;
 
         return str;
     }
 
-    toStringWithWeapons(): string {
+    toStringWithWeapons(isDonating: boolean): string {
         if (this.isEmpty()) {
             return '❌ Your cart is empty.';
         }
 
-        let str = '🛒== YOUR CART ==🛒';
+        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
 
-        str += '\n\nMy side (items you will receive):';
+        str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
                 continue;
@@ -585,16 +594,21 @@ abstract class Cart {
             str += `\n- ${this.our[sku]}x ${name}`;
         }
 
-        str += '\n\nYour side (items you will lose):';
-        for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                continue;
-            }
+        if (!isDonating) {
+            str += '\n\nYour side (items you will lose):';
+            for (const sku in this.their) {
+                if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                    continue;
+                }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]}x ${name}`;
+                const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                str += `\n- ${this.their[sku]}x ${name}`;
+            }
         }
-        str += '\n\nType !checkout to checkout and proceed trade, or !clearcart to cancel.';
+
+        str += `\n\nType ${isDonating ? '"!donatenow"' : '"!checkout"'} to ${
+            isDonating ? 'donate' : 'checkout'
+        } and proceed trade, or "!clearcart" to cancel.`;
 
         return str;
     }
@@ -619,7 +633,7 @@ abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, enableCraftweaponAsCurrency: boolean): string {
+    static stringify(steamID: SteamID, enableCraftweaponAsCurrency: boolean, isDonating: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
@@ -627,9 +641,9 @@ abstract class Cart {
         }
 
         if (enableCraftweaponAsCurrency) {
-            return cart.toStringWithWeapons();
+            return cart.toStringWithWeapons(isDonating);
         } else {
-            return cart.toString();
+            return cart.toString(isDonating);
         }
     }
 
