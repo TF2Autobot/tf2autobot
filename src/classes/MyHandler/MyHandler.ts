@@ -20,7 +20,7 @@ import Handler from '../Handler';
 import Bot from '../Bot';
 import { Entry, EntryData } from '../Pricelist';
 import Commands from '../Commands/Commands';
-import CartQueue from '../CartQueue';
+import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';

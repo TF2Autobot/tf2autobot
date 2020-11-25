@@ -10,11 +10,11 @@ import { botStatus, help, messageCommand, misc, pricelist, review, utils, option
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
-import Cart from '../Cart';
-import AdminCart from '../AdminCart';
-import UserCart from '../UserCart';
+import Cart from '../Carts/Cart';
+import AdminCart from '../Carts/AdminCart';
+import UserCart from '../Carts/UserCart';
 import MyHandler from '../MyHandler/MyHandler';
-import CartQueue from '../CartQueue';
+import CartQueue from '../Carts/CartQueue';
 import Autokeys from '../Autokeys/Autokeys';
 
 import { fixItem } from '../../lib/items';

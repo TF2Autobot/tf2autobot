@@ -4,13 +4,13 @@ import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { UnknownDictionary } from '../types/common';
-import log from '../lib/logger';
+import { UnknownDictionary } from '../../types/common';
+import log from '../../lib/logger';
 import request from 'request';
-import Inventory from './Inventory';
-import MyHandler from './MyHandler/MyHandler';
+import Inventory from '../Inventory';
+import MyHandler from '../MyHandler/MyHandler';
 
-import Bot from './Bot';
+import Bot from '../Bot';
 
 export = Cart;
 

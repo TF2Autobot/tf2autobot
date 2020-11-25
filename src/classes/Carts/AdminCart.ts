@@ -2,7 +2,7 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 
 import Cart from './Cart';
-import Inventory from './Inventory';
+import Inventory from '../Inventory';
 
 export = AdminCart;
 
