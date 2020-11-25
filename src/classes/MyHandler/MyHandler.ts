@@ -32,6 +32,69 @@ import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 
+interface OnRun {
+    loginAttempts?: number[];
+    pricelist?: EntryData[];
+    loginKey?: string;
+    pollData?: PollData;
+}
+
+interface OnNewTradeOffer {
+    action: 'accept' | 'decline' | 'skip';
+    reason: string;
+    meta?: UnknownDictionary<any>;
+}
+
+interface BotInfo {
+    name: string;
+    avatarURL: string;
+    steamID: string;
+}
+
+interface GetToMention {
+    sheens: string[];
+    killstreakers: string[];
+}
+
+interface GetAutokeysStatus {
+    isActive: boolean;
+    isBuying: boolean;
+    isBanking: boolean;
+}
+
+interface HighValue {
+    has: boolean;
+    skus: string[];
+    names: string[];
+    isMention: boolean;
+}
+
+interface HighValueInput {
+    our: HighValue;
+    their: HighValue;
+}
+
+interface HighValueBoolean {
+    our: boolean;
+    their: boolean;
+}
+
+interface HighValueItems {
+    skus: string[];
+    names: string[];
+}
+
+interface HighValueItemsWhich {
+    our: HighValueItems;
+    their: HighValueItems;
+}
+
+interface HighValueOutput {
+    has: HighValueBoolean;
+    items: HighValueItemsWhich;
+    isMention: HighValueBoolean;
+}
+
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
 
@@ -106,12 +169,6 @@ export = class MyHandler extends Handler {
         this.tradeSummaryLinks = this.bot.options.discordWebhook.tradeSummary.url;
         this.paths = genPaths(this.bot.options.folderName, this.bot.options.filePrefix);
 
-        const minimumScrap = this.bot.options.crafting.metals.minScrap;
-        const minimumReclaimed = this.bot.options.crafting.metals.minRec;
-        const combineThreshold = this.bot.options.crafting.metals.threshold;
-
-        const exceptionRef = this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef;
-
         // check if manualReview.invalidValue.exceptionValue.skus is an empty array
         const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
         if (invalidValueExceptionSKU === []) {
@@ -151,39 +208,18 @@ export = class MyHandler extends Handler {
         if (!customGameName || customGameName === 'TF2Autobot') {
             this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
         } else {
-            if (customGameName.length <= 60) {
-                this.customGameName = customGameName;
-            } else {
-                log.warn(
-                    `Your custom game playing name is more than 60 characters, resetting to only "TF2Autobot v${process.env.BOT_VERSION}"...`
-                );
-                this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
-            }
+            this.customGameName = customGameName;
         }
 
-        const exceptionRefFromEnv = exceptionRef === 0 || isNaN(exceptionRef) ? 0 : exceptionRef;
-        this.invalidValueException = Currencies.toScrap(exceptionRefFromEnv);
+        this.invalidValueException = Currencies.toScrap(
+            this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef
+        );
 
-        if (!isNaN(minimumScrap)) {
-            this.minimumScrap = minimumScrap;
-        }
-
-        if (!isNaN(minimumReclaimed)) {
-            this.minimumReclaimed = minimumReclaimed;
-        }
-
-        if (!isNaN(combineThreshold)) {
-            this.combineThreshold = combineThreshold;
-        }
-
-        if (this.bot.options.manualReview.duped.enable) {
-            this.dupeCheckEnabled = true;
-        }
-
-        const minimumKeysDupeCheck = this.bot.options.manualReview.duped.minKeys;
-        if (!isNaN(minimumKeysDupeCheck)) {
-            this.minimumKeysDupeCheck = minimumKeysDupeCheck;
-        }
+        this.minimumScrap = this.bot.options.crafting.metals.minScrap;
+        this.minimumReclaimed = this.bot.options.crafting.metals.minRec;
+        this.combineThreshold = this.bot.options.crafting.metals.threshold;
+        this.dupeCheckEnabled = this.bot.options.manualReview.duped.enable;
+        this.minimumKeysDupeCheck = this.bot.options.manualReview.duped.minKeys;
 
         const groups = this.bot.options.groups;
         if (groups !== null && Array.isArray(groups)) {
@@ -236,20 +272,20 @@ export = class MyHandler extends Handler {
         return this.backpackSlots;
     }
 
-    getBotInfo(): { name: string; avatarURL: string; steamID: string } {
+    getBotInfo(): BotInfo {
         const name = this.botName;
         const avatarURL = this.botAvatarURL;
         const steamID = this.botSteamID.getSteamID64();
         return { name, avatarURL, steamID };
     }
 
-    getToMention(): { sheens: string[]; killstreakers: string[] } {
+    getToMention(): GetToMention {
         const sheens = this.sheens;
         const killstreakers = this.killstreakers;
         return { sheens, killstreakers };
     }
 
-    getAutokeysStatus(): { isActive: boolean; isBuying: boolean; isBanking: boolean } {
+    getAutokeysStatus(): GetAutokeysStatus {
         return this.autokeysStatus;
     }
 
@@ -257,12 +293,7 @@ export = class MyHandler extends Handler {
         return this.uptime;
     }
 
-    onRun(): Promise<{
-        loginAttempts?: number[];
-        pricelist?: EntryData[];
-        loginKey?: string;
-        pollData?: PollData;
-    }> {
+    onRun(): Promise<OnRun> {
         return Promise.all([
             files.readFile(this.paths.files.loginKey, false),
             files.readFile(this.paths.files.pricelist, true),
@@ -461,13 +492,7 @@ export = class MyHandler extends Handler {
         }, 15 * 60 * 1000);
     }
 
-    async onNewTradeOffer(
-        offer: TradeOffer
-    ): Promise<null | {
-        action: 'accept' | 'decline' | 'skip';
-        reason: string;
-        meta?: UnknownDictionary<any>;
-    }> {
+    async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
         offer.log('info', 'is being processed...');
 
         // Allow sending notifications
@@ -553,13 +578,18 @@ export = class MyHandler extends Handler {
         const highValueOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
         const highValueTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
 
+        const input: HighValueInput = {
+            our: highValueOur,
+            their: highValueTheir
+        };
+
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
             offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
             return {
                 action: 'accept',
                 reason: 'ADMIN',
-                meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
+                meta: { highValue: highValueMeta(input) }
             };
         }
 
@@ -582,7 +612,7 @@ export = class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'GIFT',
-                meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
+                meta: { highValue: highValueMeta(input) }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
             if (this.bot.options.allowGiftNoMessage) {
@@ -593,7 +623,7 @@ export = class MyHandler extends Handler {
                 return {
                     action: 'accept',
                     reason: 'GIFT',
-                    meta: { highValue: highValueMeta(highValueOur, highValueTheir) }
+                    meta: { highValue: highValueMeta(input) }
                 };
             } else {
                 offer.log('info', 'is a gift offer without any offer message, declining...');
@@ -1290,7 +1320,7 @@ export = class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
-                        highValue: highValueMeta(highValueOur, highValueTheir)
+                        highValue: highValueMeta(input)
                     }
                 };
             } else if (
@@ -1320,7 +1350,7 @@ export = class MyHandler extends Handler {
                 const reviewMeta = {
                     uniqueReasons: uniqueReasons,
                     reasons: wrongAboutOffer,
-                    highValue: highValueMeta(highValueOur, highValueTheir)
+                    highValue: highValueMeta(input)
                 };
 
                 offer.data('reviewMeta', reviewMeta);
@@ -1355,7 +1385,7 @@ export = class MyHandler extends Handler {
             action: 'accept',
             reason: 'VALID',
             meta: {
-                highValue: highValueMeta(highValueOur, highValueTheir)
+                highValue: highValueMeta(input)
             }
         };
     }
@@ -1502,7 +1532,6 @@ export = class MyHandler extends Handler {
                     }
                 }
             }
-
             sendReview(offer, this.bot, meta, this.isTradingKeys, highValueItems);
             this.isTradingKeys = false; // reset
         }
@@ -1866,57 +1895,25 @@ function filterReasons(reasons: string[]): string[] {
     return filtered;
 }
 
-function highValueMeta(
-    infoOur: {
-        has: boolean;
-        skus: string[];
-        names: string[];
-        isMention: boolean;
-    },
-    infoTheir: {
-        has: boolean;
-        skus: string[];
-        names: string[];
-        isMention: boolean;
-    }
-): {
-    has: {
-        our: boolean;
-        their: boolean;
-    };
-    items: {
-        our: {
-            skus: string[];
-            names: string[];
-        };
-        their: {
-            skus: string[];
-            names: string[];
-        };
-    };
-    isMention: {
-        our: boolean;
-        their: boolean;
-    };
-} {
+function highValueMeta(info: HighValueInput): HighValueOutput {
     return {
         has: {
-            our: infoOur.has,
-            their: infoTheir.has
+            our: info.our.has,
+            their: info.their.has
         },
         items: {
             our: {
-                skus: infoOur.skus,
-                names: infoOur.names
+                skus: info.our.skus,
+                names: info.our.names
             },
             their: {
-                skus: infoTheir.skus,
-                names: infoTheir.names
+                skus: info.their.skus,
+                names: info.their.names
             }
         },
         isMention: {
-            our: infoOur.isMention,
-            their: infoTheir.isMention
+            our: info.our.isMention,
+            their: info.their.isMention
         }
     };
 }
