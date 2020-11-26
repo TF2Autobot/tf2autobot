@@ -497,7 +497,7 @@ export const noiseMakerNames = [
     'Noise Maker - Vuvuzela'
 ];
 
-export const strangeParts = {
+export const strangePartsData = {
     // Most Strange Parts name will change once applied/attached.
     'Robots Destroyed': 6026, //              checked               ----- more than 1 keys ↓
     Kills: 6060, //                           checked
@@ -551,31 +551,6 @@ export const strangeParts = {
     'Robot Spies Destroyed': 6048, //         checked
     'Kills Under A Full Moon': 6015, //       was "Full Moon Kills"
     'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
-};
-
-export const spMore1Keys = {
-    'Robots Destroyed': 6026,
-    Kills: 6060,
-    'Damage Dealt': 6056,
-    'Airborne Enemy Kills': 6012,
-    Dominations: 6016,
-    'Snipers Killed': 6005,
-    'Buildings Destroyed': 6009,
-    'Projectiles Reflected': 6010,
-    'Headshot Kills': 6011,
-    'Medics Killed': 6007,
-    'Fires Survived': 6057,
-    'Teammates Extinguished': 6020,
-    'Freezecam Taunt Appearances': 6055,
-    'Spies Killed': 6008,
-    'Allied Healing Done': 6058,
-    'Sappers Removed': 6025,
-    'Players Hit': 6064,
-    'Gib Kills': 6013,
-    'Scouts Killed': 6003,
-    'Point Blank Kills': 6059,
-    'Soldiers Killed': 6002,
-    'Taunt Kills': 6051
 };
 
 export const sheensData = [
