@@ -57,12 +57,21 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     if (typeof params.highValue === 'object') {
         if (params.highValue.sheens !== undefined) {
             params.highValue.sheens = new Array(saveOptions.highValue.sheens.push(params.highValue.sheens));
+
+            saveOptions.highValue.sheens.length = 0;
         }
         if (params.highValue.killstreakers !== undefined) {
             params.highValue.killstreakers = new Array(
                 saveOptions.highValue.killstreakers.push(params.highValue.killstreakers)
             );
             saveOptions.highValue.killstreakers.length = 0;
+        }
+        if (params.highValue.strangeParts !== undefined) {
+            params.highValue.strangeParts = new Array(
+                saveOptions.highValue.strangeParts.push(params.highValue.strangeParts)
+            );
+
+            saveOptions.highValue.strangeParts.length = 0;
         }
     }
 
