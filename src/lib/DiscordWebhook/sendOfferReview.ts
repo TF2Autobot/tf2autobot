@@ -83,9 +83,7 @@ export default function sendOfferReview(
         /*eslint-disable */
         const webhookReview: Webhook = {
             username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-            avatar_url: bot.options.discordWebhook.avatarURL
-                ? bot.options.discordWebhook.avatarURL
-                : botInfo.avatarURL,
+            avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {
@@ -181,6 +179,12 @@ export default function sendOfferReview(
             });
         }
 
-        sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview, 'offer-review');
+        sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview, 'offer-review')
+            .then(() => {
+                log.debug(`✅ Successfully sent offer-review webhook to Discord!`);
+            })
+            .catch(err => {
+                log.debug(`❌ Failed to send offer-review webhook to Discord: `, err);
+            });
     });
 }

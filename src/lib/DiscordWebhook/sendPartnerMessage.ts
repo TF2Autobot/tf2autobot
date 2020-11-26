@@ -1,6 +1,8 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
+import log from '../logger';
+
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
@@ -17,9 +19,7 @@ export default function sendPartnerMessage(
     /*eslint-disable */
     const discordPartnerMsg: Webhook = {
         username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL
-            ? bot.options.discordWebhook.avatarURL
-            : botInfo.avatarURL,
+        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
         content: `<@!${bot.options.discordWebhook.ownerID}>, new message! - ${steamID}`,
         embeds: [
             {
@@ -39,5 +39,11 @@ export default function sendPartnerMessage(
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message');
+    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message')
+        .then(() => {
+            log.debug(`✅ Successfully sent trade summary webhook to Discord!`);
+        })
+        .catch(err => {
+            log.debug(`❌ Failed to send trade-summary webhook to Discord: `, err);
+        });
 }

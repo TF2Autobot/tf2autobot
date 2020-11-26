@@ -1,7 +1,6 @@
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
-import log from '../../lib/logger';
 import Bot from '../../classes/Bot';
 
 import { Webhook } from './interfaces';
@@ -37,6 +36,17 @@ export function quickLinks(name: string, links: { steam: string; bptf: string; s
 export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
+
+        request.onreadystatechange = function(): void {
+            if (request.readyState === 4) {
+                if (request.status === 200) {
+                    resolve();
+                } else {
+                    reject(request.responseText);
+                }
+            }
+        };
+
         request.open('POST', url);
         request.setRequestHeader('Content-type', 'application/json');
 
@@ -46,13 +56,5 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
                 ? JSON.stringify(webhook).replace(/<@!\d+>/g, '')
                 : JSON.stringify(webhook)
         );
-
-        if (request.status === 200) {
-            log.debug(`✅ Successfully sent ${event} webhook to Discord!`);
-            resolve();
-        } else {
-            log.debug(`❌ Failed to send ${event} webhook to Discord`);
-            reject(request.responseText);
-        }
     });
 }

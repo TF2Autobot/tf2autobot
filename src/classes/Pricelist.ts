@@ -727,7 +727,13 @@ export default class Pricelist extends EventEmitter {
         };
         /*eslint-enable */
 
-        sendWebhook(this.options.discordWebhook.priceUpdate.url, priceUpdate, 'pricelist-update');
+        sendWebhook(this.options.discordWebhook.priceUpdate.url, priceUpdate, 'pricelist-update')
+            .then(() => {
+                log.debug(`✅ Successfully sent pricelist-update webhook to Discord!`);
+            })
+            .catch(err => {
+                log.debug(`❌ Failed to send pricelist-update webhook to Discord: `, err);
+            });
     }
 
     private getOld(): Entry[] {

@@ -5,6 +5,8 @@ import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 import { sendWebhook } from './utils';
 
+import log from '../logger';
+
 export default function sendAlert(
     type: string,
     msg: string | null,
@@ -66,5 +68,11 @@ export default function sendAlert(
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert');
+    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert')
+        .then(() => {
+            log.debug(`✅ Successfully sent trade summary webhook to Discord!`);
+        })
+        .catch(err => {
+            log.debug(`❌ Failed to send trade-summary webhook to Discord: `, err);
+        });
 }
