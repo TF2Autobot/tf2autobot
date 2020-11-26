@@ -41,7 +41,7 @@ export default function sendPartnerMessage(
 
     sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message')
         .then(() => {
-            log.debug(`✅ Successfully sent partner-message webhook to Discord!`);
+            log.debug(`✅ Sent partner-message webhook to Discord.`);
         })
         .catch(err => {
             log.debug(`❌ Failed to send partner-message webhook to Discord: `, err);

@@ -74,7 +74,7 @@ export default function sendAlert(
 
     sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => {
-            log.debug(`✅ Successfully sent alert webhook to Discord!`);
+            log.debug(`✅ Sent alert webhook to Discord.`);
         })
         .catch(err => {
             log.debug(`❌ Failed to send alert webhook to Discord: `, err);
