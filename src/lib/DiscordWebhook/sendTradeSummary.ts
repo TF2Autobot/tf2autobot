@@ -1,9 +1,10 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 
-import { getPartnerDetails, quickLinks } from './utils';
+import { getPartnerDetails, quickLinks, sendWebhookTradeSummary } from './utils';
+
+import { Webhook } from './interfaces';
 
 import log from '../logger';
 import { pure, stats, summarize, listItems, replace } from '../tools/export';
@@ -122,24 +123,18 @@ export default function sendTradeSummary(
         const AdditionalNotes = bot.options.discordWebhook.tradeSummary.misc.note;
 
         /*eslint-disable */
-        const acceptedTradeSummary = {
+        const acceptedTradeSummary: Webhook = {
             username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
             avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {
+                    color: bot.options.discordWebhook.embedColor,
                     author: {
                         name: `Trade from: ${personaName} #${tradesMade.toString()}`,
                         url: links.steam,
                         icon_url: avatarFull
                     },
-                    footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
-                    },
-                    thumbnail: {
-                        url: ''
-                    },
-                    title: '',
                     description:
                         summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
@@ -179,7 +174,9 @@ export default function sendTradeSummary(
                                     : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                         }
                     ],
-                    color: bot.options.discordWebhook.embedColor
+                    footer: {
+                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
+                    }
                 }
             ]
         };
@@ -218,15 +215,7 @@ export default function sendTradeSummary(
         }
 
         tradeLinks.forEach((link, i) => {
-            const request = new XMLHttpRequest();
-            request.open('POST', link);
-            request.setRequestHeader('Content-type', 'application/json');
-            // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-            request.send(
-                i > 0
-                    ? JSON.stringify(acceptedTradeSummary).replace(/<@!\d+>/g, '')
-                    : JSON.stringify(acceptedTradeSummary)
-            );
+            sendWebhookTradeSummary(link, i, acceptedTradeSummary);
         });
     });
 }

@@ -3,10 +3,11 @@ import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+
 import { Currency } from '../types/TeamFortress2';
 import { UnknownDictionary } from '../types/common';
 
+import { Webhook, sendWebhook } from '../lib/DiscordWebhook/export';
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
@@ -683,7 +684,7 @@ export default class Pricelist extends EventEmitter {
         const qualityColorPrint = qualityColor[qualityItem].toString();
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate: Webhook = {
             username: this.options.discordWebhook.displayName,
             avatar_url: this.options.discordWebhook.avatarURL,
             content: '',
@@ -723,13 +724,10 @@ export default class Pricelist extends EventEmitter {
                     color: qualityColorPrint
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', this.options.discordWebhook.priceUpdate.url);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
+        sendWebhook(this.options.discordWebhook.priceUpdate.url, priceUpdate);
     }
 
     private getOld(): Entry[] {

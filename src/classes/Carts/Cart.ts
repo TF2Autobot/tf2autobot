@@ -3,12 +3,14 @@ import moment from 'moment';
 import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { UnknownDictionary } from '../../types/common';
-import log from '../../lib/logger';
 import request from 'request';
+import { UnknownDictionary } from '../../types/common';
+
 import Inventory from '../Inventory';
 import MyHandler from '../MyHandler/MyHandler';
+
+import log from '../../lib/logger';
+import { Webhook, sendWebhook } from '../../lib/DiscordWebhook/export';
 
 import Bot from '../Bot';
 
@@ -515,8 +517,9 @@ abstract class Cart {
         const username = this.bot.options.discordWebhook.displayName;
         const avatarURL = this.bot.options.discordWebhook.avatarURL;
         const botInfo = (this.bot.handler as MyHandler).getBotInfo();
+
         /*eslint-disable */
-        const fullBackpack = JSON.stringify({
+        const fullBackpack: Webhook = {
             username: username ? username : botInfo.name,
             avatar_url: avatarURL ? avatarURL : botInfo.avatarURL,
             content: `<@!${this.bot.options.discordWebhook.ownerID}>`,
@@ -532,13 +535,10 @@ abstract class Cart {
                     }
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
-        const request = new XMLHttpRequest();
-        request.open('POST', this.bot.options.discordWebhook.sendAlert.url);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(fullBackpack);
+        sendWebhook(this.bot.options.discordWebhook.sendAlert.url, fullBackpack);
     }
 
     toString(isDonating: boolean): string {

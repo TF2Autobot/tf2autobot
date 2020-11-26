@@ -1,9 +1,9 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
-
 import timeNow from '../tools/time';
+import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
+import { sendWebhook } from './utils';
 
 export default function sendAlert(
     type: string,
@@ -48,12 +48,11 @@ export default function sendAlert(
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
     /*eslint-disable */
-    const webhook = JSON.stringify({
+    const sendAlertWebhook: Webhook = {
         username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL
-            ? bot.options.discordWebhook.avatarURL
-            : botInfo.avatarURL,
-        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
+        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
+        content:
+            type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -64,11 +63,8 @@ export default function sendAlert(
                 }
             }
         ]
-    });
+    };
     /*eslint-enable */
 
-    const request = new XMLHttpRequest();
-    request.open('POST', bot.options.discordWebhook.sendAlert.url);
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(webhook);
+    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook);
 }

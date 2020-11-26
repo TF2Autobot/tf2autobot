@@ -1,8 +1,8 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 
-import { quickLinks } from './utils';
+import { quickLinks, sendWebhook } from './utils';
+import { Webhook } from './interfaces';
 
 import { pure, summarize, listItems, replace } from '../tools/export';
 import log from '../logger';
@@ -81,7 +81,7 @@ export default function sendOfferReview(
         const isShowPureStock = bot.options.discordWebhook.tradeSummary.misc.showPureStock;
 
         /*eslint-disable */
-        const webhookReview = {
+        const webhookReview: Webhook = {
             username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
             avatar_url: bot.options.discordWebhook.avatarURL
                 ? bot.options.discordWebhook.avatarURL
@@ -181,9 +181,6 @@ export default function sendOfferReview(
             });
         }
 
-        const request = new XMLHttpRequest();
-        request.open('POST', bot.options.discordWebhook.offerReview.url);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(JSON.stringify(webhookReview));
+        sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview);
     });
 }

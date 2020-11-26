@@ -1,6 +1,5 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
-
-import { quickLinks } from './utils';
+import { quickLinks, sendWebhook } from './utils';
+import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
@@ -16,7 +15,7 @@ export default function sendPartnerMessage(
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
     /*eslint-disable */
-    const discordPartnerMsg = JSON.stringify({
+    const discordPartnerMsg: Webhook = {
         username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
         avatar_url: bot.options.discordWebhook.avatarURL
             ? bot.options.discordWebhook.avatarURL
@@ -37,11 +36,8 @@ export default function sendPartnerMessage(
                 color: bot.options.discordWebhook.embedColor
             }
         ]
-    });
+    };
     /*eslint-enable */
 
-    const request = new XMLHttpRequest();
-    request.open('POST', bot.options.discordWebhook.messages.url);
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(discordPartnerMsg);
+    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg);
 }
