@@ -17,9 +17,9 @@ export default function sendAlert(
 ): void {
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
-    let title;
-    let description;
-    let color;
+    let title: string;
+    let description: string;
+    let color: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
