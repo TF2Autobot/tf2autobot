@@ -28,6 +28,24 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     const saveOptions = deepMerge({}, bot.options);
     removeCliOptions(saveOptions);
 
+    if (typeof params.game === 'object') {
+        if (params.game.playOnlyTF2 !== undefined && params.game.playOnlyTF2 === true) {
+            bot.client.gamesPlayed([]);
+            bot.client.gamesPlayed(440);
+        }
+
+        if (params.game.customName !== undefined && typeof params.game.customName === 'string') {
+            bot.client.gamesPlayed([]);
+            bot.client.gamesPlayed(
+                (params.game.playOnlyTF2 !== undefined
+                  ? params.game.playOnlyTF2
+                  : bot.options.game.playOnlyTF2)
+                    ? 440
+                    : [params.game.customName, 440]
+            );
+        }
+    }
+
     if (typeof params.highValue === 'object') {
         if (params.highValue.sheens !== undefined) {
             params.highValue.sheens = new Array(saveOptions.highValue.sheens.push(params.highValue.sheens));
