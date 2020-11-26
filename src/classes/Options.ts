@@ -513,6 +513,11 @@ export function loadOptions(options?: Options): Options {
         debug: getOption('debug', true, JSON.parse, incomingOptions),
         debugFile: getOption('debugFile', true, JSON.parse, incomingOptions)
     };
+
+    if (!envOptions.steamAccountName) {
+        throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
+    }
+
     removeCliOptions(incomingOptions);
     const jsonOptions = loadJsonOptions(
         path.resolve(__dirname, '..', '..', 'files', envOptions.steamAccountName, 'options.json'),
