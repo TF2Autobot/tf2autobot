@@ -161,7 +161,7 @@ export = class Commands {
             pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
             options.optionsCommand(steamID, this.bot);
-        } else if (command === 'updateoptions' && isAdmin) {
+        } else if (command === 'config' && isAdmin) {
             options.updateOptionsCommand(steamID, message, this.bot);
         } else if (command === 'donatebptf' && isAdmin) {
             this.donateBPTFCommand(steamID, message);
