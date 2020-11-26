@@ -70,9 +70,9 @@ export default function sendAlert(
 
     sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => {
-            log.debug(`✅ Successfully sent trade summary webhook to Discord!`);
+            log.debug(`✅ Successfully sent alert webhook to Discord!`);
         })
         .catch(err => {
-            log.debug(`❌ Failed to send trade-summary webhook to Discord: `, err);
+            log.debug(`❌ Failed to send alert webhook to Discord: `, err);
         });
 }
