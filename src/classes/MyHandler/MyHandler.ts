@@ -720,7 +720,11 @@ export = class MyHandler extends Handler {
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
-                    if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
+                    if (
+                        match !== null &&
+                        (sku !== '5021;6' || !exchange.contains.items) &&
+                        match.intent === (buying ? 0 : 1)
+                    ) {
                         // If we found a matching price and the item is not a key, or the we are not trading items (meaning that we are trading keys) then add the price of the item
 
                         // Add value of items
