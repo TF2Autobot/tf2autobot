@@ -39,7 +39,7 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
 
         request.onreadystatechange = function(): void {
             if (request.readyState === 4) {
-                if (request.status === 200) {
+                if (request.status === 204) {
                     resolve();
                 } else {
                     reject(request.responseText);
