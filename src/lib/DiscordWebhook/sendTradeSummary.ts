@@ -219,14 +219,14 @@ export default function sendTradeSummary(
                 .then(() => {
                     log.debug(
                         `✅ Successfully sent trade-summary webhook to Discord${
-                            tradeLinks.length > 1 ? ` (${i})` : ''
+                            tradeLinks.length > 1 ? ` (${i + 1})` : ''
                         }!`
                     );
                 })
                 .catch(err => {
                     log.debug(
                         `❌ Failed to send trade-summary webhook to Discord ${
-                            tradeLinks.length > 1 ? ` (${i})` : ''
+                            tradeLinks.length > 1 ? ` (${i + 1})` : ''
                         }: `,
                         err
                     );
