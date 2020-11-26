@@ -56,20 +56,18 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     if (typeof params.highValue === 'object') {
         if (params.highValue.sheens !== undefined) {
-            params.highValue.sheens = new Array(saveOptions.highValue.sheens.push(params.highValue.sheens));
+            params.highValue.sheens = saveOptions.highValue.sheens.concat([params.highValue.sheens]);
 
             saveOptions.highValue.sheens.length = 0;
         }
         if (params.highValue.killstreakers !== undefined) {
-            params.highValue.killstreakers = new Array(
-                saveOptions.highValue.killstreakers.push(params.highValue.killstreakers)
-            );
+            params.highValue.killstreakers = saveOptions.highValue.killstreakers.concat([
+                params.highValue.killstreakers
+            ]);
             saveOptions.highValue.killstreakers.length = 0;
         }
         if (params.highValue.strangeParts !== undefined) {
-            params.highValue.strangeParts = new Array(
-                saveOptions.highValue.strangeParts.push(params.highValue.strangeParts)
-            );
+            params.highValue.strangeParts = saveOptions.highValue.strangeParts.concat([params.highValue.strangeParts]);
 
             saveOptions.highValue.strangeParts.length = 0;
         }
@@ -77,10 +75,8 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     if (typeof params.manualReview === 'object') {
         if (params.manualReview.invalidValue.exceptionValue.skus !== undefined) {
-            params.manualReview.invalidValue.exceptionValue.skus = new Array(
-                saveOptions.manualReview.invalidValue.exceptionValue.skus.push(
-                    params.manualReview.invalidValue.exceptionValue.skus
-                )
+            params.manualReview.invalidValue.exceptionValue.skus = saveOptions.manualReview.invalidValue.exceptionValue.skus.concat(
+                [params.manualReview.invalidValue.exceptionValue.skus]
             );
             saveOptions.manualReview.invalidValue.exceptionValue.skus.length = 0;
         }
@@ -88,17 +84,15 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     if (typeof params.discordWebhook === 'object') {
         if (params.discordWebhook.tradeSummary.url !== undefined) {
-            params.discordWebhook.tradeSummary.url = new Array(
-                saveOptions.discordWebhook.tradeSummary.url.push(params.discordWebhook.tradeSummary.url)
-            );
+            params.discordWebhook.tradeSummary.url = saveOptions.discordWebhook.tradeSummary.url.concat([
+                params.discordWebhook.tradeSummary.url
+            ]);
             saveOptions.discordWebhook.tradeSummary.url.length = 0;
         }
 
         if (params.discordWebhook.tradeSummary.mentionOwner.itemSkus !== undefined) {
-            params.discordWebhook.tradeSummary.mentionOwner.itemSkus = new Array(
-                saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.push(
-                    params.discordWebhook.tradeSummary.mentionOwner.itemSkus
-                )
+            params.discordWebhook.tradeSummary.mentionOwner.itemSkus = saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.concat(
+                [params.discordWebhook.tradeSummary.mentionOwner.itemSkus]
             );
             saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
         }
