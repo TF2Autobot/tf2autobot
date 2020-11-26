@@ -389,7 +389,7 @@ export = class Autokeys {
                         this.bot.options.discordWebhook.sendAlert.enable &&
                         this.bot.options.discordWebhook.sendAlert.url
                     ) {
-                        sendAlert('lowPure', msg, null, null, null, this.bot);
+                        sendAlert('lowPure', this.bot, msg);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -492,7 +492,7 @@ export = class Autokeys {
                             this.bot.options.discordWebhook.sendAlert.enable &&
                             this.bot.options.discordWebhook.sendAlert.url
                         ) {
-                            sendAlert('lowPure', msg, null, null, null, this.bot);
+                            sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -616,7 +616,7 @@ export = class Autokeys {
                             this.bot.options.discordWebhook.sendAlert.enable &&
                             this.bot.options.discordWebhook.sendAlert.url
                         ) {
-                            sendAlert('lowPure', msg, null, null, null, this.bot);
+                            sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }

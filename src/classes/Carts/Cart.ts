@@ -7,10 +7,9 @@ import request from 'request';
 import { UnknownDictionary } from '../../types/common';
 
 import Inventory from '../Inventory';
-import MyHandler from '../MyHandler/MyHandler';
 
 import log from '../../lib/logger';
-import { Webhook, sendWebhook } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../../lib/DiscordWebhook/export';
 
 import Bot from '../Bot';
 
@@ -444,7 +443,7 @@ abstract class Cart {
                             this.bot.options.discordWebhook.sendAlert.enable &&
                             this.bot.options.discordWebhook.sendAlert.url
                         ) {
-                            this.sendWebhookFullAlert(msg);
+                            sendAlert('full-backpack', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -484,7 +483,7 @@ abstract class Cart {
                             this.bot.options.discordWebhook.sendAlert.enable &&
                             this.bot.options.discordWebhook.sendAlert.url
                         ) {
-                            this.sendWebhookFullAlert(msg);
+                            sendAlert('full-backpack', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -510,40 +509,6 @@ abstract class Cart {
                 }
 
                 return Promise.reject(err);
-            });
-    }
-
-    private sendWebhookFullAlert(msg: string): void {
-        const username = this.bot.options.discordWebhook.displayName;
-        const avatarURL = this.bot.options.discordWebhook.avatarURL;
-        const botInfo = (this.bot.handler as MyHandler).getBotInfo();
-
-        /*eslint-disable */
-        const fullBackpack: Webhook = {
-            username: username ? username : botInfo.name,
-            avatar_url: avatarURL ? avatarURL : botInfo.avatarURL,
-            content: `<@!${this.bot.options.discordWebhook.ownerID}>`,
-            embeds: [
-                {
-                    title: 'Something Wrong',
-                    description: msg,
-                    color: '16711680',
-                    footer: {
-                        text: moment()
-                            .tz(this.bot.options.timezone ? this.bot.options.timezone : 'UTC')
-                            .format('MMMM Do YYYY, HH:mm:ss ZZ')
-                    }
-                }
-            ]
-        };
-        /*eslint-enable */
-
-        sendWebhook(this.bot.options.discordWebhook.sendAlert.url, fullBackpack, 'full-backpack-alert')
-            .then(() => {
-                log.debug(`✅ Successfully sent full-backpack-alert webhook to Discord!`);
-            })
-            .catch(err => {
-                log.debug(`❌ Failed to send full-backpack-alert webhook to Discord: `, err);
             });
     }
 

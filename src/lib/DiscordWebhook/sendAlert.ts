@@ -9,11 +9,11 @@ import log from '../logger';
 
 export default function sendAlert(
     type: string,
-    msg: string | null,
-    position: number | null,
-    err: any | null,
-    items: string[] | null,
-    bot: Bot
+    bot: Bot,
+    msg: string | null = null,
+    position: number | null = null,
+    err: any | null = null,
+    items: string[] | null = null
 ): void {
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
@@ -36,6 +36,10 @@ export default function sendAlert(
     } else if (type === 'failedError') {
         title = 'Automatic restart failed - Error';
         description = `❌ An error occurred while trying to restart: ${err.message}`;
+        color = '16711680'; // red
+    } else if (type === 'full-backpack') {
+        title = 'Full backpack error';
+        description = msg;
         color = '16711680'; // red
     } else if (type === 'highValuedDisabled') {
         title = 'Temporarily disabled items with High value attachments';

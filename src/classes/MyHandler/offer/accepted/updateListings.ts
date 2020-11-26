@@ -128,7 +128,7 @@ export default function updateListings(
                     }
 
                     if (bot.options.discordWebhook.sendAlert.enable && bot.options.discordWebhook.sendAlert.url) {
-                        sendAlert('highValuedDisabled', msg.replace(/"/g, '`'), null, null, null, bot);
+                        sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
                     } else {
                         bot.messageAdmins(msg, []);
                     }
