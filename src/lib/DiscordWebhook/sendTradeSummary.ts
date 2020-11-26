@@ -2,7 +2,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 
-import { getPartnerDetails, quickLinks, sendWebhookTradeSummary } from './utils';
+import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 
 import { Webhook } from './interfaces';
 
@@ -215,7 +215,7 @@ export default function sendTradeSummary(
         }
 
         tradeLinks.forEach((link, i) => {
-            sendWebhookTradeSummary(link, i, acceptedTradeSummary);
+            sendWebhook(link, acceptedTradeSummary, 'trade-summary', i);
         });
     });
 }

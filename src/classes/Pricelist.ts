@@ -727,7 +727,7 @@ export default class Pricelist extends EventEmitter {
         };
         /*eslint-enable */
 
-        sendWebhook(this.options.discordWebhook.priceUpdate.url, priceUpdate);
+        sendWebhook(this.options.discordWebhook.priceUpdate.url, priceUpdate, 'pricelist-update');
     }
 
     private getOld(): Entry[] {

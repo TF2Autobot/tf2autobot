@@ -34,39 +34,24 @@ export function quickLinks(name: string, links: { steam: string; bptf: string; s
     return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [steamREP](${links.steamrep})`;
 }
 
-export function sendWebhookTradeSummary(url: string, i: number, webhook: Webhook): Promise<void> {
+export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
         request.open('POST', url);
         request.setRequestHeader('Content-type', 'application/json');
 
         // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-        request.send(i > 0 ? JSON.stringify(webhook).replace(/<@!\d+>/g, '') : JSON.stringify(webhook));
+        request.send(
+            i > 0 && event === 'trade-summary'
+                ? JSON.stringify(webhook).replace(/<@!\d+>/g, '')
+                : JSON.stringify(webhook)
+        );
 
         if (request.status === 200) {
-            log.debug('✅ Successfully sent trade summary webhook to Discord!');
+            log.debug(`✅ Successfully sent ${event} webhook to Discord!`);
             resolve();
         } else {
-            log.debug('❌ Failed to send trade summary webhook to Discord');
-            reject();
-        }
-    });
-}
-
-export function sendWebhook(url: string, webhook: Webhook): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = new XMLHttpRequest();
-        request.open('POST', url);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-        request.send(JSON.stringify(webhook));
-
-        if (request.status === 200) {
-            log.debug('✅ Successfully sent webhook to Discord!');
-            resolve();
-        } else {
-            log.debug('❌ Failed to send webhook to Discord');
+            log.debug(`❌ Failed to send ${event} webhook to Discord`);
             reject(request.responseText);
         }
     });

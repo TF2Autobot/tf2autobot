@@ -538,7 +538,7 @@ abstract class Cart {
         };
         /*eslint-enable */
 
-        sendWebhook(this.bot.options.discordWebhook.sendAlert.url, fullBackpack);
+        sendWebhook(this.bot.options.discordWebhook.sendAlert.url, fullBackpack, 'full-backpack-alert');
     }
 
     toString(isDonating: boolean): string {

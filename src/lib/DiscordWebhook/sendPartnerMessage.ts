@@ -39,5 +39,5 @@ export default function sendPartnerMessage(
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg);
+    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message');
 }

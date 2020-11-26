@@ -181,6 +181,6 @@ export default function sendOfferReview(
             });
         }
 
-        sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview);
+        sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview, 'offer-review');
     });
 }

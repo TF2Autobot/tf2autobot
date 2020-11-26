@@ -66,5 +66,5 @@ export default function sendAlert(
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook);
+    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert');
 }
