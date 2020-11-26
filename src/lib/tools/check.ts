@@ -233,7 +233,7 @@ export function highValue(
             log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
             // parsed.fullName  - tf2-items-format module
 
-            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url) {
+            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url !== []) {
                 highValued.names.push(`_${itemName}_${itemDescriptions}`);
             } else {
                 highValued.names.push(`${itemName}${itemDescriptions}`);

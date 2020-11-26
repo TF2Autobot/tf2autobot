@@ -603,7 +603,7 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url) {
+            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
                 const time = moment()
                     .tz(this.options.timezone ? this.options.timezone : 'UTC')
                     .format(

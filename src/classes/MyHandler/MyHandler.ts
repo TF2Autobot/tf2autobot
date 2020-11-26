@@ -116,6 +116,12 @@ export = class MyHandler extends Handler {
         return this.bot.options.manualReview.duped.minKeys;
     }
 
+    private get isPriceUpdateWebhook(): boolean {
+        return (
+            this.bot.options.discordWebhook.priceUpdate.enable && this.bot.options.discordWebhook.priceUpdate.url !== ''
+        );
+    }
+
     private get invalidValueException(): number {
         return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
     }
@@ -198,7 +204,7 @@ export = class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
-    private get tradeSummaryLinks(): Array<string> {
+    private get tradeSummaryLinks(): string[] {
         return this.bot.options.discordWebhook.tradeSummary.url;
     }
 
@@ -643,7 +649,10 @@ export = class MyHandler extends Handler {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
-            if (this.bot.options.discordWebhook.sendAlert.enable && this.bot.options.discordWebhook.sendAlert.url) {
+            if (
+                this.bot.options.discordWebhook.sendAlert.enable &&
+                this.bot.options.discordWebhook.sendAlert.url !== ''
+            ) {
                 sendAlert('highValue', this.bot, null, null, null, highValueOur.names);
             } else {
                 this.bot.messageAdmins(
@@ -1763,7 +1772,9 @@ export = class MyHandler extends Handler {
     }
 
     onPricelist(pricelist: Entry[]): void {
-        log.debug('Pricelist changed');
+        if (!this.isPriceUpdateWebhook) {
+            log.debug('Pricelist changed');
+        }
 
         if (pricelist.length === 0) {
             // Ignore errors

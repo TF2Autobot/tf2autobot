@@ -387,7 +387,7 @@ export = class Autokeys {
                 if (this.bot.options.sendAlert) {
                     if (
                         this.bot.options.discordWebhook.sendAlert.enable &&
-                        this.bot.options.discordWebhook.sendAlert.url
+                        this.bot.options.discordWebhook.sendAlert.url !== ''
                     ) {
                         sendAlert('lowPure', this.bot, msg);
                     } else {
@@ -490,7 +490,7 @@ export = class Autokeys {
                     if (this.bot.options.sendAlert) {
                         if (
                             this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url
+                            this.bot.options.discordWebhook.sendAlert.url !== ''
                         ) {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
@@ -614,7 +614,7 @@ export = class Autokeys {
                     if (this.bot.options.sendAlert) {
                         if (
                             this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url
+                            this.bot.options.discordWebhook.sendAlert.url !== ''
                         ) {
                             sendAlert('lowPure', this.bot, msg);
                         } else {

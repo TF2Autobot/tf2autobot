@@ -108,7 +108,7 @@ export default function sendWebHookPriceUpdateV1(
 
     sendWebhook(options.discordWebhook.priceUpdate.url, priceUpdate, 'pricelist-update')
         .then(() => {
-            log.debug(`✅ Sent ${sku} update to Discord.`);
+            log.debug(`Sent ${sku} update to Discord.`);
         })
         .catch(err => {
             log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
