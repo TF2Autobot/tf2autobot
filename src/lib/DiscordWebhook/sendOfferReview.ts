@@ -181,10 +181,10 @@ export default function sendOfferReview(
 
         sendWebhook(bot.options.discordWebhook.offerReview.url, webhookReview, 'offer-review')
             .then(() => {
-                log.debug(`✅ Sent offer-review webhook to Discord.`);
+                log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`);
             })
             .catch(err => {
-                log.debug(`❌ Failed to send offer-review webhook to Discord: `, err);
+                log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
             });
     });
 }

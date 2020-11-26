@@ -217,11 +217,15 @@ export default function sendTradeSummary(
         tradeLinks.forEach((link, i) => {
             sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
                 .then(() => {
-                    log.debug(`✅ Sent trade-summary webhook to Discord${tradeLinks.length > 1 ? ` (${i + 1})` : ''}!`);
+                    log.debug(
+                        `✅ Sent trade-summary webhook (#${offer.id}) to Discord${
+                            tradeLinks.length > 1 ? ` (${i + 1})` : ''
+                        }!`
+                    );
                 })
                 .catch(err => {
                     log.debug(
-                        `❌ Failed to send trade-summary webhook to Discord ${
+                        `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                             tradeLinks.length > 1 ? ` (${i + 1})` : ''
                         }: `,
                         err
