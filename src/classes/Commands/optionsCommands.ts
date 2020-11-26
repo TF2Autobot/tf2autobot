@@ -46,6 +46,14 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         }
     }
 
+    if (params.autobump !== undefined) {
+        if (params.autobump === true) {
+            bot.listings.setupAutorelist();
+        } else {
+            bot.listings.disableAutorelist();
+        }
+    }
+
     if (typeof params.highValue === 'object') {
         if (params.highValue.sheens !== undefined) {
             params.highValue.sheens = new Array(saveOptions.highValue.sheens.push(params.highValue.sheens));

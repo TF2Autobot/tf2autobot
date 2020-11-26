@@ -52,6 +52,12 @@ export = class Listings {
         this.checkAccountInfo();
     }
 
+    disableAutorelist(): void {
+        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
+        this.autoRelistEnabled = false;
+        clearTimeout(this.autoRelistTimeout);
+    }
+
     private enableAutoRelist(): void {
         if (this.autoRelistEnabled || !this.bot.options.createListings) {
             return;
