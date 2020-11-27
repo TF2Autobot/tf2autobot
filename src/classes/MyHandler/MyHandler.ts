@@ -456,8 +456,8 @@ export = class MyHandler extends Handler {
             const inventory = this.bot.inventoryManager.getInventory();
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                 // Filter our pricelist to only the items that the bot currently have.
-                return inventory.findBySKU(entry.sku).length > 0;
-            });
+                return inventory.findBySKU(entry.sku).length > 0 && !entry.sku.includes(';6;c');
+            }); //                                                  ^ Temporary fix for crates problem
 
             if (pricelist.length > 0) {
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
