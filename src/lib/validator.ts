@@ -54,7 +54,7 @@ import { EntryData } from '../classes/Pricelist';
 import Options from '../classes/Options';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export = function(data: EntryData | Options, schema: string): string[] | null {
+export = function (data: EntryData | Options, schema: string): string[] | null {
     const putSchema =
         schema === 'pricelist-add'
             ? pl.addSchema

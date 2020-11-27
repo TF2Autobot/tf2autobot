@@ -1,7 +1,7 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import { UnknownDictionary } from '../../../types/common';
 
-export = function(): string {
+export = function (): string {
     const self = this as TradeOffer;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

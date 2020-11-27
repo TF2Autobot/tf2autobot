@@ -20,12 +20,7 @@ export = class CommandParser {
 
     static parseParams(paramString: string): UnknownDictionaryKnownValues {
         const params: UnknownDictionaryKnownValues = parseJSON(
-            '{"' +
-                paramString
-                    .replace(/"/g, '\\"')
-                    .replace(/&/g, '","')
-                    .replace(/=/g, '":"') +
-                '"}'
+            '{"' + paramString.replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}'
         );
 
         const parsed: UnknownDictionaryKnownValues = {};

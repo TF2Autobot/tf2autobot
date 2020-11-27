@@ -2,7 +2,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 
 import log from '../../logger';
 
-export = function(level: string, message: string): void {
+export = function (level: string, message: string): void {
     const self = this as TradeOffer;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call

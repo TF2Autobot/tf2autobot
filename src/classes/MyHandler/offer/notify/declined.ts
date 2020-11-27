@@ -76,10 +76,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
 
     const invalidValueSummary =
         '\n\nSummary:\n' +
-        offer
-            .summarize(bot.schema)
-            .replace('Asked', '  My side')
-            .replace('Offered', 'Your side') +
+        offer.summarize(bot.schema).replace('Asked', '  My side').replace('Offered', 'Your side') +
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
         `${

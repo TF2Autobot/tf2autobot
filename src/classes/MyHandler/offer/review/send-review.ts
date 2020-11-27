@@ -55,16 +55,15 @@ export default function sendReview(
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
-                      offer
-                          .summarize(bot.schema)
-                          .replace('Asked', '  My side')
-                          .replace('Offered', 'Your side') +
+                      offer.summarize(bot.schema).replace('Asked', '  My side').replace('Offered', 'Your side') +
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                           ? content.missing
                           : '') +
                       (opt.manualReview.showReviewOfferNote
-                          ? `\n\nNote:\n${content.notes.join('\n') +
-                                (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
+                          ? `\n\nNote:\n${
+                                content.notes.join('\n') +
+                                (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')
+                            }`
                           : '')
                     : '') +
                 (opt.manualReview.additionalNotes
@@ -74,8 +73,9 @@ export default function sendReview(
                           .replace(/%pureStock%/g, pureStock.join(', ').toString())
                     : '') +
                 (opt.manualReview.showOwnerCurrentTime
-                    ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${time.time +
-                          (time.note !== '' ? `. ${time.note}.` : '.')}`
+                    ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
+                          time.time + (time.note !== '' ? `. ${time.note}.` : '.')
+                      }`
                     : '')
         );
     }

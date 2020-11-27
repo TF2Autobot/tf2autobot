@@ -6,7 +6,7 @@
  * Gets an action by name
  * @param action - Action to search for
  */
-export = function(action: string): string | null {
+export = function (action: string): string | null {
     if (!Array.isArray(this.actions)) {
         return null;
     }

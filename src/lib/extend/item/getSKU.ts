@@ -14,7 +14,7 @@ import { crates } from '../../data';
 
 let isCrate = false;
 
-export = function(
+export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
     normalizeStrangeUnusual: boolean
@@ -191,10 +191,7 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
         if (!hasCaseCollection && description.endsWith('Collection')) {
             hasCaseCollection = true;
         } else if (hasCaseCollection && (description.startsWith('✔') || description.startsWith('★'))) {
-            skin = description
-                .substring(1)
-                .replace(' War Paint', '')
-                .trim();
+            skin = description.substring(1).replace(' War Paint', '').trim();
             break;
         }
     }

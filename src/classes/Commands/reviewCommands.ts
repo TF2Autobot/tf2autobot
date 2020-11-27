@@ -365,7 +365,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         const reply = offerIdAndMessage.substr(offerId.length);
         const adminDetails = bot.friends.getFriend(steamID);
 
-        void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback((err) => {
+        void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
             if (err) {
                 bot.sendMessage(
                     steamID,

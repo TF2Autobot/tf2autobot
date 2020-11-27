@@ -37,7 +37,7 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
 
-        request.onreadystatechange = function(): void {
+        request.onreadystatechange = (): void => {
             if (request.readyState === 4) {
                 if (request.status === 204) {
                     resolve();

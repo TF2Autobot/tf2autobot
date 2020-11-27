@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -360,7 +361,6 @@ export = class TF2GC {
         iterator: (...args: any[]) => { success: boolean; clearTimeout?: boolean },
         onSuccess: (...args: any[]) => void,
         onFail: (err: Error) => void
-        // eslint-disable-next-line @typescript-eslint/ban-types
     ): Function;
 
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -369,7 +369,7 @@ export = class TF2GC {
         const iterator =
             args.length === 4
                 ? args[1]
-                : function(): {
+                : function (): {
                       success: boolean;
                       clearTimeout?: boolean;
                   } {

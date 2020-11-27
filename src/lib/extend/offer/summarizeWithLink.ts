@@ -9,7 +9,7 @@ import { UnknownDictionary } from '../../../types/common';
 
 import { replace } from '../../tools/export';
 
-export = function(schema: SchemaManager.Schema): string {
+export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
 
     const value: { our: Currency; their: Currency } = self.data('value');

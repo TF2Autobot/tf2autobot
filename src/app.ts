@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
@@ -44,7 +50,7 @@ import { getSchema } from './lib/ptf-api';
 // Make the schema manager request the schema from PricesTF
 
 /* eslint-disable-next-line @typescript-eslint/unbound-method */
-SchemaManager.prototype.getSchema = function(callback): void {
+SchemaManager.prototype.getSchema = function (callback): void {
     getSchema()
         .then(schema => {
             this.setSchema(schema, true);
@@ -61,6 +67,7 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // This error is a false positive.
 // The signal and err are being created dynamically.
@@ -125,7 +132,7 @@ import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
-botManager.start(options).asCallback(err => {
+void botManager.start(options).asCallback(err => {
     if (err) {
         throw err;
     }

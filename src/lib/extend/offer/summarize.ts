@@ -8,7 +8,7 @@ import SKU from 'tf2-sku-2';
 import { Currency } from '../../../types/TeamFortress2';
 import { UnknownDictionary } from '../../../types/common';
 
-export = function(schema: SchemaManager.Schema): string {
+export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
 
     const value: { our: Currency; their: Currency } = self.data('value');

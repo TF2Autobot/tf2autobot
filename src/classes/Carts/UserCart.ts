@@ -69,7 +69,7 @@ class UserCart extends Cart {
 
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
 
-            const requests = assetidsToCheck.map((assetid) => {
+            const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug(`Dupe checking ${assetid}...`);
                     void Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
@@ -80,7 +80,7 @@ class UserCart extends Cart {
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback((callback) => {
+                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
 
@@ -497,7 +497,7 @@ class UserCart extends Cart {
             }
 
             const filtered = fetched.filter(
-                (item) => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
+                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
             );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
@@ -1010,7 +1010,7 @@ class UserCart extends Cart {
             '5000;6': 1
         };
 
-        shuffled.forEach((sku) => {
+        shuffled.forEach(sku => {
             currencyValues[sku] = 0.5;
         });
 
@@ -1033,7 +1033,7 @@ class UserCart extends Cart {
             '5000;6': 0
         };
 
-        shuffled.forEach((sku) => {
+        shuffled.forEach(sku => {
             pickedCurrencies[sku] = 0;
         });
 

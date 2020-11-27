@@ -22,7 +22,8 @@ module.exports = {
         'no-console': 'error',
         'tsdoc/syntax': 'error',
         'prettier/prettier': ['error', {
-            'endOfLine': 'auto'
+            'endOfLine': 'auto',
+            'arrowParens': 'avoid'
         }]
     }
 };

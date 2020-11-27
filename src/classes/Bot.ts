@@ -427,10 +427,7 @@ export = class Bot {
                             [
                                 (callback): void => {
                                     log.debug('Getting inventory...');
-                                    void this.inventoryManager
-                                        .getInventory()
-                                        .fetch()
-                                        .asCallback(callback);
+                                    void this.inventoryManager.getInventory().fetch().asCallback(callback);
                                 },
                                 (callback): void => {
                                     log.debug('Initializing bptf-listings...');

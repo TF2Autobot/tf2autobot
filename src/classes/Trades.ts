@@ -697,8 +697,9 @@ export = class Trades {
 
         offer.log(
             'verbose',
-            `state changed: ${TradeOfferManager.ETradeOfferState[oldState] as string} -> ${TradeOfferManager
-                .ETradeOfferState[offer.state] as string}${
+            `state changed: ${TradeOfferManager.ETradeOfferState[oldState] as string} -> ${
+                TradeOfferManager.ETradeOfferState[offer.state] as string
+            }${
                 (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
                 (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
                     ? ' (reason: ' + action.reason + ')'
