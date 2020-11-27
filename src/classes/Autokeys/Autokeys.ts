@@ -13,18 +13,25 @@ import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 export = class Autokeys {
     private readonly bot: Bot;
 
-    isEnabled = false;
-
-    isKeyBankingEnabled = false;
+    get isKeyBankingEnabled(): boolean {
+        return this.bot.options.autokeys.banking.enable;
+    }
 
     isActive = false;
 
-    userPure: {
+    get userPure(): {
         minKeys: number;
         maxKeys: number;
         minRefs: number;
         maxRefs: number;
-    };
+    } {
+        return genUserPure(
+            this.bot.options.autokeys.minKeys,
+            this.bot.options.autokeys.maxKeys,
+            this.bot.options.autokeys.minRefined,
+            this.bot.options.autokeys.maxRefined
+        );
+    }
 
     status = {
         isBuyingKeys: false,
@@ -45,33 +52,26 @@ export = class Autokeys {
 
     private OldKeyPrices: { buy: Currencies; sell: Currencies };
 
-    isEnableScrapAdjustment = false;
+    get isEnableScrapAdjustment(): boolean {
+        return genScrapAdjustment(
+            this.bot.options.autokeys.scrapAdjustment.value,
+            this.bot.options.autokeys.scrapAdjustment.enable
+        ).enabled;
+    }
 
-    scrapAdjustmentValue = 0;
+    get scrapAdjustmentValue(): number {
+        return genScrapAdjustment(
+            this.bot.options.autokeys.scrapAdjustment.value,
+            this.bot.options.autokeys.scrapAdjustment.enable
+        ).value;
+    }
+
+    get isEnabled(): boolean {
+        return this.bot.options.autokeys.enable;
+    }
 
     constructor(bot: Bot) {
         this.bot = bot;
-
-        this.userPure = genUserPure(
-            bot.options.autokeys.minKeys,
-            bot.options.autokeys.maxKeys,
-            bot.options.autokeys.minRefined,
-            bot.options.autokeys.maxRefined
-        );
-        const scrapAdjustment = genScrapAdjustment(
-            bot.options.autokeys.scrapAdjustment.value,
-            bot.options.autokeys.scrapAdjustment.enable
-        );
-        this.isEnableScrapAdjustment = scrapAdjustment.enabled;
-        this.scrapAdjustmentValue = scrapAdjustment.value;
-
-        if (bot.options.autokeys.enable) {
-            this.isEnabled = true;
-        }
-
-        if (bot.options.autokeys.banking.enable) {
-            this.isKeyBankingEnabled = true;
-        }
     }
 
     check(): void {
@@ -387,9 +387,9 @@ export = class Autokeys {
                 if (this.bot.options.sendAlert) {
                     if (
                         this.bot.options.discordWebhook.sendAlert.enable &&
-                        this.bot.options.discordWebhook.sendAlert.url
+                        this.bot.options.discordWebhook.sendAlert.url !== ''
                     ) {
-                        sendAlert('lowPure', msg, null, null, null, this.bot);
+                        sendAlert('lowPure', this.bot, msg);
                     } else {
                         this.bot.messageAdmins(msg, []);
                     }
@@ -490,9 +490,9 @@ export = class Autokeys {
                     if (this.bot.options.sendAlert) {
                         if (
                             this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url
+                            this.bot.options.discordWebhook.sendAlert.url !== ''
                         ) {
-                            sendAlert('lowPure', msg, null, null, null, this.bot);
+                            sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -614,9 +614,9 @@ export = class Autokeys {
                     if (this.bot.options.sendAlert) {
                         if (
                             this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url
+                            this.bot.options.discordWebhook.sendAlert.url !== ''
                         ) {
-                            sendAlert('lowPure', msg, null, null, null, this.bot);
+                            sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }

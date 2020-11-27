@@ -98,7 +98,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const links = generateLinks(steamID.toString());
         const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
-        if (bot.options.discordWebhook.messages.enable && bot.options.discordWebhook.messages.url) {
+        if (bot.options.discordWebhook.messages.enable && bot.options.discordWebhook.messages.url !== '') {
             sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(

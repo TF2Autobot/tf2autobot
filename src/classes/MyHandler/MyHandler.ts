@@ -20,7 +20,7 @@ import Handler from '../Handler';
 import Bot from '../Bot';
 import { Entry, EntryData } from '../Pricelist';
 import Commands from '../Commands/Commands';
-import CartQueue from '../CartQueue';
+import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
@@ -51,6 +51,7 @@ interface BotInfo {
     name: string;
     avatarURL: string;
     steamID: string;
+    premium: boolean;
 }
 
 interface GetToMention {
@@ -71,33 +72,113 @@ export = class MyHandler extends Handler {
 
     readonly cartQueue: CartQueue;
 
-    private groups: string[] = [];
+    private get groups(): string[] {
+        const groups = this.bot.options.groups;
+        if (groups !== null && Array.isArray(groups)) {
+            groups.forEach(groupID64 => {
+                if (!new SteamID(groupID64).isValid()) {
+                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
+                }
+            });
+            return groups;
+        }
+    }
 
-    private friendsToKeep: string[] = [];
+    private get friendsToKeep(): string[] {
+        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
+        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
+            friendsToKeep.forEach(steamID64 => {
+                if (!new SteamID(steamID64).isValid()) {
+                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
+                }
+            });
+            return friendsToKeep;
+        }
+    }
 
-    private minimumScrap = 9;
+    private get minimumScrap(): number {
+        return this.bot.options.crafting.metals.minScrap;
+    }
 
-    private minimumReclaimed = 9;
+    private get minimumReclaimed(): number {
+        return this.bot.options.crafting.metals.minRec;
+    }
 
-    private combineThreshold = 9;
+    private get combineThreshold(): number {
+        return this.bot.options.crafting.metals.threshold;
+    }
 
-    private dupeCheckEnabled = false;
+    private get dupeCheckEnabled(): boolean {
+        return this.bot.options.manualReview.duped.enable;
+    }
 
-    private minimumKeysDupeCheck = 0;
+    private get minimumKeysDupeCheck(): number {
+        return this.bot.options.manualReview.duped.minKeys;
+    }
 
-    private invalidValueException: number;
+    private get isPriceUpdateWebhook(): boolean {
+        return (
+            this.bot.options.discordWebhook.priceUpdate.enable && this.bot.options.discordWebhook.priceUpdate.url !== ''
+        );
+    }
 
-    private invalidValueExceptionSKU: string[] = [];
+    private get invalidValueException(): number {
+        return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
+    }
+
+    private get invalidValueExceptionSKU(): string[] {
+        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
+        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
+        if (invalidValueExceptionSKU === []) {
+            log.warn(
+                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
+            );
+            return [';5;u', ';11;australium'];
+        } else {
+            return invalidValueExceptionSKU;
+        }
+    }
 
     private hasInvalidValueException = false;
 
-    private sheens: string[] = [];
+    private get sheens(): string[] {
+        // check if highValue.sheens is an empty array
+        const sheens = this.bot.options.highValue.sheens;
+        if (sheens === []) {
+            log.warn(
+                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
+            );
+            return sheensData.map(sheen => sheen.toLowerCase().trim());
+        } else {
+            return sheens.map(sheen => sheen.toLowerCase().trim());
+        }
+    }
 
-    private killstreakers: string[] = [];
+    private get killstreakers(): string[] {
+        // check if highValue.killstreakers is an empty array
+        const killstreakers = this.bot.options.highValue.killstreakers;
+        if (killstreakers === []) {
+            log.warn(
+                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
+            );
+            return killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
+        } else {
+            return killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
+        }
+    }
 
     private isTradingKeys = false;
 
-    private customGameName: string;
+    private get customGameName(): string {
+        // check if game.customName is more than 60 characters.
+        const customGameName = this.bot.options.game.customName;
+
+        if (!customGameName || customGameName === 'TF2Autobot') {
+            return `TF2Autobot v${process.env.BOT_VERSION}`;
+        } else {
+            return customGameName;
+        }
+    }
 
     private backpackSlots = 0;
 
@@ -123,7 +204,9 @@ export = class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
-    private tradeSummaryLinks: Array<string>;
+    private get tradeSummaryLinks(): string[] {
+        return this.bot.options.discordWebhook.tradeSummary.url;
+    }
 
     private paths: Paths;
 
@@ -135,82 +218,7 @@ export = class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.uptime = moment().unix();
-        this.tradeSummaryLinks = this.bot.options.discordWebhook.tradeSummary.url;
-        this.paths = genPaths(this.bot.options.folderName, this.bot.options.filePrefix);
-
-        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
-        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
-        if (invalidValueExceptionSKU === []) {
-            log.warn(
-                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
-            );
-            this.invalidValueExceptionSKU = [';5;u', ';11;australium'];
-        } else {
-            this.invalidValueExceptionSKU = invalidValueExceptionSKU;
-        }
-
-        // check if highValue.sheens is an empty array
-        const sheens = this.bot.options.highValue.sheens;
-        if (sheens === []) {
-            log.warn(
-                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
-            );
-            this.sheens = sheensData.map(sheen => sheen.toLowerCase().trim());
-        } else {
-            this.sheens = sheens.map(sheen => sheen.toLowerCase().trim());
-        }
-
-        // check if highValue.killstreakers is an empty array
-        const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === []) {
-            log.warn(
-                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
-            );
-            this.killstreakers = killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
-        } else {
-            this.killstreakers = killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
-        }
-
-        // check if game.customName is more than 60 characters.
-        const customGameName = this.bot.options.game.customName;
-
-        if (!customGameName || customGameName === 'TF2Autobot') {
-            this.customGameName = `TF2Autobot v${process.env.BOT_VERSION}`;
-        } else {
-            this.customGameName = customGameName;
-        }
-
-        this.invalidValueException = Currencies.toScrap(
-            this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef
-        );
-
-        this.minimumScrap = this.bot.options.crafting.metals.minScrap;
-        this.minimumReclaimed = this.bot.options.crafting.metals.minRec;
-        this.combineThreshold = this.bot.options.crafting.metals.threshold;
-        this.dupeCheckEnabled = this.bot.options.manualReview.duped.enable;
-        this.minimumKeysDupeCheck = this.bot.options.manualReview.duped.minKeys;
-
-        const groups = this.bot.options.groups;
-        if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(groupID64 => {
-                if (!new SteamID(groupID64).isValid()) {
-                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
-                }
-            });
-
-            this.groups = groups;
-        }
-
-        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
-        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(steamID64 => {
-                if (!new SteamID(steamID64).isValid()) {
-                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
-                }
-            });
-
-            this.friendsToKeep = friendsToKeep;
-        }
+        this.paths = genPaths(this.bot.options.steamAccountName);
 
         setInterval(() => {
             this.recentlySentMessage = {};
@@ -245,7 +253,8 @@ export = class MyHandler extends Handler {
         const name = this.botName;
         const avatarURL = this.botAvatarURL;
         const steamID = this.botSteamID.getSteamID64();
-        return { name, avatarURL, steamID };
+        const premium = this.isPremium;
+        return { name, avatarURL, steamID, premium };
     }
 
     getToMention(): GetToMention {
@@ -640,8 +649,11 @@ export = class MyHandler extends Handler {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
-            if (this.bot.options.discordWebhook.sendAlert.enable && this.bot.options.discordWebhook.sendAlert.url) {
-                sendAlert('highValue', null, null, null, highValueOur.names, this.bot);
+            if (
+                this.bot.options.discordWebhook.sendAlert.enable &&
+                this.bot.options.discordWebhook.sendAlert.url !== ''
+            ) {
+                sendAlert('highValue', this.bot, null, null, null, highValueOur.names);
             } else {
                 this.bot.messageAdmins(
                     `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOur.names.join(
@@ -1760,7 +1772,9 @@ export = class MyHandler extends Handler {
     }
 
     onPricelist(pricelist: Entry[]): void {
-        log.debug('Pricelist changed');
+        if (!this.isPriceUpdateWebhook) {
+            log.debug('Pricelist changed');
+        }
 
         if (pricelist.length === 0) {
             // Ignore errors

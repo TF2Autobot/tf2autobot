@@ -1,6 +1,7 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { quickLinks, sendWebhook } from './utils';
+import { Webhook } from './interfaces';
 
-import { quickLinks } from './utils';
+import log from '../logger';
 
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
@@ -16,11 +17,9 @@ export default function sendPartnerMessage(
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
     /*eslint-disable */
-    const discordPartnerMsg = JSON.stringify({
+    const discordPartnerMsg: Webhook = {
         username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL
-            ? bot.options.discordWebhook.avatarURL
-            : botInfo.avatarURL,
+        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
         content: `<@!${bot.options.discordWebhook.ownerID}>, new message! - ${steamID}`,
         embeds: [
             {
@@ -37,11 +36,14 @@ export default function sendPartnerMessage(
                 color: bot.options.discordWebhook.embedColor
             }
         ]
-    });
+    };
     /*eslint-enable */
 
-    const request = new XMLHttpRequest();
-    request.open('POST', bot.options.discordWebhook.messages.url);
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(discordPartnerMsg);
+    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message')
+        .then(() => {
+            log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`);
+        })
+        .catch(err => {
+            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err);
+        });
 }

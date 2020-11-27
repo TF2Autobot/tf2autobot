@@ -1,9 +1,9 @@
 import SteamID from 'steamid';
 
-import Bot from './Bot';
+import Bot from '../Bot';
 import Cart from './Cart';
 
-import log from '../lib/logger';
+import log from '../../lib/logger';
 
 export = CartQueue;
 
@@ -20,7 +20,7 @@ class CartQueue {
         this.bot = bot;
     }
 
-    enqueue(cart: Cart): number {
+    enqueue(cart: Cart, isDonating: boolean): number {
         // TODO: Priority queueing
 
         log.debug('Enqueueing cart');
@@ -39,7 +39,7 @@ class CartQueue {
 
         setImmediate(() => {
             // Using set immediate so that the queue will first be handled when done with this event loop cycle
-            this.handleQueue();
+            this.handleQueue(isDonating);
         });
 
         clearTimeout(this.queuePositionCheck);
@@ -96,7 +96,7 @@ class CartQueue {
         return this.carts[index];
     }
 
-    private handleQueue(): void {
+    private handleQueue(isDonating: boolean): void {
         log.debug('Handling queue...');
 
         if (this.busy || this.carts.length === 0) {
@@ -134,6 +134,10 @@ class CartQueue {
 
                         log.debug('Accepting mobile confirmation...');
 
+                        if (isDonating) {
+                            cart.sendNotification('✅ Success! Your donation has been sent and received!');
+                        }
+
                         // Wait for confirmation to be accepted
                         return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
                     }
@@ -166,7 +170,7 @@ class CartQueue {
                     this.busy = false;
 
                     // Handle the queue
-                    this.handleQueue();
+                    this.handleQueue(false);
                 });
         } else {
             Promise.resolve(cart.constructOffer())
@@ -187,6 +191,10 @@ class CartQueue {
                         cart.sendNotification(
                             '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
                         );
+
+                        if (isDonating) {
+                            cart.sendNotification('✅ Success! Your donation has been sent and received!');
+                        }
 
                         log.debug('Accepting mobile confirmation...');
 
@@ -222,7 +230,7 @@ class CartQueue {
                     this.busy = false;
 
                     // Handle the queue
-                    this.handleQueue();
+                    this.handleQueue(false);
                 });
         }
     }

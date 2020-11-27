@@ -74,6 +74,10 @@ export = class BotManager {
         return this.bot !== null && this.bot.isReady();
     }
 
+    // reloadOptions(options: Options): void {
+    //     this.bot = new Bot(this, options);
+    // }
+
     start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {

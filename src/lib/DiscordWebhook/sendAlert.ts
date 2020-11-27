@@ -1,23 +1,25 @@
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
-
 import timeNow from '../tools/time';
+import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
+import { sendWebhook } from './utils';
+
+import log from '../logger';
 
 export default function sendAlert(
     type: string,
-    msg: string | null,
-    position: number | null,
-    err: any | null,
-    items: string[] | null,
-    bot: Bot
+    bot: Bot,
+    msg: string | null = null,
+    position: number | null = null,
+    err: any | null = null,
+    items: string[] | null = null
 ): void {
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
-    let title;
-    let description;
-    let color;
+    let title: string;
+    let description: string;
+    let color: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
@@ -35,6 +37,10 @@ export default function sendAlert(
         title = 'Automatic restart failed - Error';
         description = `❌ An error occurred while trying to restart: ${err.message}`;
         color = '16711680'; // red
+    } else if (type === 'full-backpack') {
+        title = 'Full backpack error';
+        description = msg;
+        color = '16711680'; // red
     } else if (type === 'highValuedDisabled') {
         title = 'Temporarily disabled items with High value attachments';
         description = msg;
@@ -48,12 +54,11 @@ export default function sendAlert(
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
     /*eslint-disable */
-    const webhook = JSON.stringify({
+    const sendAlertWebhook: Webhook = {
         username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL
-            ? bot.options.discordWebhook.avatarURL
-            : botInfo.avatarURL,
-        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
+        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
+        content:
+            type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -64,11 +69,14 @@ export default function sendAlert(
                 }
             }
         ]
-    });
+    };
     /*eslint-enable */
 
-    const request = new XMLHttpRequest();
-    request.open('POST', bot.options.discordWebhook.sendAlert.url);
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(webhook);
+    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert')
+        .then(() => {
+            log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
+        })
+        .catch(err => {
+            log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err);
+        });
 }

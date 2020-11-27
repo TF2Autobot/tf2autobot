@@ -533,7 +533,7 @@ export = class Trades {
 
             log.debug('Sending offer...');
 
-            this.sendOfferRetry(offer).asCallback((err, status) => {
+            this.sendOfferRetry(offer, 0).asCallback((err, status) => {
                 const actionTime = moment().valueOf() - start;
                 offer.data('actionTime', actionTime);
 

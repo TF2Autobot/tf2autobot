@@ -11,7 +11,7 @@ export default function duped(meta: UnknownDictionary<any>, bot: Bot): { note: s
 
     duped.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-        if (bot.options.discordWebhook.offerReview.enable && bot.options.discordWebhook.offerReview.url) {
+        if (bot.options.discordWebhook.offerReview.enable && bot.options.discordWebhook.offerReview.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
             dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
         } else {

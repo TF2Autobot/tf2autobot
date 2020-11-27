@@ -14,6 +14,9 @@ export const highValueSchema: jsonschema.Schema = {
         killstreakers: {
             $ref: 'array-string',
             maxItems: 7
+        },
+        strangeParts: {
+            $ref: 'array-string'
         }
     },
     additionalProperties: false,

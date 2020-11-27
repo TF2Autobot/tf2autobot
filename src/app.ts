@@ -26,7 +26,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 const options = loadOptions();
-const paths = genPaths(options.folderName, options.filePrefix);
+const paths = genPaths(options.steamAccountName);
 
 import log, { init } from './lib/logger';
 init(paths, options);

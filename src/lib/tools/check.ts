@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
 
 import log from '../logger';
-import { strangeParts, spMore1Keys, noiseMakerNames } from '../data';
+import { strangePartsData, noiseMakerNames } from '../data';
 
 import Bot from '../../classes/Bot';
 
@@ -129,7 +129,7 @@ export function highValue(
             const color = item.descriptions[i].color;
 
             // Get strangePartObject and strangePartNames
-            const strangePartNames = Object.keys(strangeParts);
+            const strangePartNames = Object.keys(strangePartsData);
 
             if (
                 desc.startsWith('Halloween:') &&
@@ -161,11 +161,11 @@ export function highValue(
                 hasStrangeParts = true;
                 highValued.has = true;
 
-                if (Object.keys(spMore1Keys).includes(parts)) {
-                    // if the particular strange part is one of the parts that are more than 1 key,
-                    // then mention and put "(>🔑)"
+                if (bot.options.highValue.strangeParts.includes(parts)) {
+                    // if the particular strange part is one of the parts that the user wants,
+                    // then mention and put "(🌟)"
                     highValued.isMention = true;
-                    partsNames.push(parts + ' (>🔑)');
+                    partsNames.push(parts + ' (🌟)');
                 } else {
                     // else no mention and just the name.
                     partsNames.push(parts);
@@ -233,7 +233,7 @@ export function highValue(
             log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
             // parsed.fullName  - tf2-items-format module
 
-            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url) {
+            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url !== []) {
                 highValued.names.push(`_${itemName}_${itemDescriptions}`);
             } else {
                 highValued.names.push(`${itemName}${itemDescriptions}`);

@@ -97,7 +97,7 @@ export default function sendReview(
 
     const list = listItems(items, true);
 
-    if (bot.options.discordWebhook.offerReview.enable && bot.options.discordWebhook.offerReview.url) {
+    if (bot.options.discordWebhook.offerReview.enable && bot.options.discordWebhook.offerReview.url !== '') {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, value, links, items, bot);
     } else {
         const offerMessage = offer.message;

@@ -29,7 +29,8 @@ export const DEFAULTS = {
     highValue: {
         enableHold: true,
         sheens: [],
-        killstreakers: []
+        killstreakers: [],
+        strangeParts: []
     },
     checkUses: {
         duel: true,
@@ -184,6 +185,7 @@ export interface HighValue {
     enableHold?: boolean;
     sheens?: string[];
     killstreakers?: string[];
+    strangeParts?: string[];
 }
 
 export interface CheckUses {
@@ -473,6 +475,16 @@ function loadJsonOptions(p: string, options?: Options): JsonOptions {
     return deepMerge(fileOptions, incomingOptions);
 }
 
+export function removeCliOptions(incomingOptions: Options): void {
+    const findNonEnv = validator(incomingOptions, 'options');
+    if (findNonEnv) {
+        findNonEnv
+            .filter(e => e.includes('unknown property'))
+            .map(e => e.slice(18, -1))
+            .map(e => delete incomingOptions[e]);
+    }
+}
+
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
@@ -501,23 +513,16 @@ export function loadOptions(options?: Options): Options {
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
         debug: getOption('debug', true, JSON.parse, incomingOptions),
-        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions),
-
-        folderName: getOption('folderName', steamAccountName, String, incomingOptions),
-        filePrefix: getOption('filePrefix', steamAccountName, String, incomingOptions)
+        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions)
     };
-    if (!envOptions.folderName) {
+
+    if (!envOptions.steamAccountName) {
         throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
     }
-    const findNonEnv = validator(incomingOptions, 'options');
-    if (findNonEnv) {
-        findNonEnv
-            .filter(e => e.includes('unknown property'))
-            .map(e => e.slice(18, -1))
-            .map(e => delete incomingOptions[e]);
-    }
+
+    removeCliOptions(incomingOptions);
     const jsonOptions = loadJsonOptions(
-        path.resolve(__dirname, '..', '..', 'files', envOptions.folderName, 'options.json'),
+        path.resolve(__dirname, '..', '..', 'files', envOptions.steamAccountName, 'options.json'),
         incomingOptions
     );
 

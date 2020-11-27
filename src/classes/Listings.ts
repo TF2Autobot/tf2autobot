@@ -52,6 +52,12 @@ export = class Listings {
         this.checkAccountInfo();
     }
 
+    disableAutorelist(): void {
+        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
+        this.autoRelistEnabled = false;
+        clearTimeout(this.autoRelistTimeout);
+    }
+
     private enableAutoRelist(): void {
         if (this.autoRelistEnabled || !this.bot.options.createListings) {
             return;
@@ -190,6 +196,7 @@ export = class Listings {
                     listing.update({
                         time: match.time || moment().unix(),
                         currencies: currencies,
+                        promoted: listing.intent === 0 ? 0 : match.promoted,
                         details: newDetails
                     });
                 }
@@ -220,6 +227,7 @@ export = class Listings {
                     time: matchNew.time || moment().unix(),
                     id: assetids[assetids.length - 1],
                     intent: 1,
+                    promoted: matchNew.promoted,
                     details: this.getDetails(1, matchNew),
                     currencies: matchNew.sell
                 });

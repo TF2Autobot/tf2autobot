@@ -4,17 +4,17 @@ import Currencies from 'tf2-currencies';
 import async from 'async';
 import { EconItem } from 'steam-tradeoffer-manager';
 // import { parseEconItem } from 'tf2-item-format';
-import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../types/TeamFortress2';
-import { UnknownDictionary } from '../types/common';
+import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../../types/TeamFortress2';
+import { UnknownDictionary } from '../../types/common';
 
 import Cart from './Cart';
-import Inventory from './Inventory';
-import TF2Inventory from './TF2Inventory';
-import MyHandler from './MyHandler/MyHandler';
+import Inventory from '../Inventory';
+import TF2Inventory from '../TF2Inventory';
+import MyHandler from '../MyHandler/MyHandler';
 
-import log from '../lib/logger';
-import { craftAll, uncraftAll, noiseMakerSKU } from '../lib/data';
-import { pure, check } from '../lib/tools/export';
+import log from '../../lib/logger';
+import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
+import { pure, check } from '../../lib/tools/export';
 
 export = UserCart;
 

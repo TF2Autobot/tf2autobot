@@ -11,12 +11,15 @@ import { Entry, EntryData, PricelistChangedSource } from '../Pricelist';
 
 import validator from '../../lib/validator';
 import log from '../../lib/logger';
+import MyHandler from '../MyHandler/MyHandler';
 
 // Pricelist manager
 
 export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as any;
+
+    const isPremium = (bot.handler as MyHandler).getBotInfo().premium;
 
     if (params.enabled === undefined) {
         params.enabled = true;
@@ -51,6 +54,32 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
         if (params.autoprice === undefined) {
             params.autoprice = false;
         }
+    }
+
+    if (params.promoted !== undefined) {
+        if (!isPremium) {
+            bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`);
+            return;
+        }
+
+        if (typeof params.promoted === 'boolean') {
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
+        } else {
+            if (typeof params.promoted !== 'number') {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+            if (params.promoted < 0 || params.promoted > 1) {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+        }
+    } else if (params.promoted === undefined) {
+        params['promoted'] = 0;
     }
 
     if (typeof params.note === 'object') {
@@ -104,6 +133,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
                     `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
                     `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
                     `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+                    (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
                     `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
                     `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
                     `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
@@ -117,6 +147,8 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
 export function updateCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+    const isPremium = (bot.handler as MyHandler).getBotInfo().premium;
 
     if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
@@ -132,6 +164,11 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         let targetedPricelist: Entry[];
         let unTargetedPricelist: Entry[];
         let newPricelist: Entry[];
+
+        if (params.promoted) {
+            bot.sendMessage(steamID, `❌ Parameter "promoted" can't be used with "!update all=true".`);
+            return;
+        }
 
         if (params.withgroup && params.withoutgroup) {
             bot.sendMessage(
@@ -316,6 +353,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
                         autoprice: entry.autoprice,
                         buy: entry.buy.toJSON(),
                         sell: entry.sell.toJSON(),
+                        promoted: entry.promoted,
                         group: entry.group,
                         note: entry.note,
                         time: entry.time
@@ -409,6 +447,30 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
 
         // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
         delete params.resetgroup;
+    }
+
+    if (params.promoted !== undefined) {
+        if (!isPremium) {
+            bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`);
+            return;
+        }
+
+        if (typeof params.promoted === 'boolean') {
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
+        } else {
+            if (typeof params.promoted !== 'number') {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+            if (params.promoted < 0 || params.promoted > 1) {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+        }
     }
 
     if (params.item !== undefined) {
@@ -562,6 +624,13 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
                             ? `${itemEntry.autoprice ? '✅' : '❌'} → ${entry.autoprice ? '✅' : '❌'}`
                             : `${entry.autoprice ? '✅' : '❌'}`
                     }` +
+                    (isPremium
+                        ? `\n📢 Promoted: ${
+                              itemEntry.promoted !== entry.promoted
+                                  ? `${itemEntry.promoted === 1 ? '✅' : '❌'} → ${entry.promoted === 1 ? '✅' : '❌'}`
+                                  : `${entry.promoted === 1 ? '✅' : '❌'}`
+                          }`
+                        : '') +
                     `${
                         entry.group !== 'all'
                             ? `\n🔰 Group: ${
@@ -803,12 +872,13 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
             params.min !== undefined ||
             params.intent !== undefined ||
             params.autoprice !== undefined ||
-            params.group !== undefined
+            params.group !== undefined ||
+            params.promoted !== undefined
         )
     ) {
         bot.sendMessage(
             steamID,
-            '⚠️ Only parameters available for !find command: enabled, max, min, intent, autoprice or group\nExample: !find intent=bank&max=2'
+            '⚠️ Only parameters available for !find command: enabled, max, min, intent, promoted, autoprice or group\nExample: !find intent=bank&max=2'
         );
         return;
     }
@@ -838,6 +908,27 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
             return;
         }
         filter = filter.filter(entry => entry.min === params.min);
+    }
+
+    if (params.promoted !== undefined) {
+        if (typeof params.promoted === 'boolean') {
+            if (params.promoted === true) {
+                filter = filter.filter(entry => entry.promoted === 1);
+            } else {
+                filter = filter.filter(entry => entry.promoted === 0);
+            }
+        } else {
+            if (typeof params.promoted !== 'number') {
+                bot.sendMessage(steamID, '⚠️ promoted parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+
+            if (params.promoted < 0 || params.promoted > 1) {
+                bot.sendMessage(steamID, '⚠️ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+            filter = filter.filter(entry => entry.promoted === params.promoted);
+        }
     }
 
     if (params.intent !== undefined) {
@@ -880,6 +971,7 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
         max: params.max !== undefined ? 'max=' + params.max.toString() : '',
         min: params.min !== undefined ? 'min=' + params.min.toString() : '',
         intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : '',
+        promoted: params.promoted !== undefined ? 'promoted=' + params.promoted.toString() : '',
         group: params.group !== undefined ? 'group=' + params.group.toString() : ''
     };
 
