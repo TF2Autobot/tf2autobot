@@ -5,8 +5,8 @@
 
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
-import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
-import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
+import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
+import TradeOfferManager, { TradeOffer, PollData, CustomError } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
@@ -402,7 +402,7 @@ export = class MyHandler extends Handler {
         });
     }
 
-    onLoginError(err: Error): void {
+    onLoginError(err: CustomError): void {
         if (err.eresult === EResult.InvalidPassword) {
             files.deleteFile(this.paths.files.loginKey).catch(err => {
                 log.warn('Failed to delete login key: ', err);
