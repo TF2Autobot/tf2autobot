@@ -1,15 +1,15 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
-import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionary } from '../../../types/common';
-import SchemaManager from 'tf2-schema-2';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
+import { TradeOffer } from 'steam-tradeoffer-manager';
+import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
+import { Currency } from '../../../types/TeamFortress2';
+import { UnknownDictionary } from '../../../types/common';
+
 export = function(schema: SchemaManager.Schema): string {
-    // @ts-ignore
     const self = this as TradeOffer;
-    // @ts-ignore
 
     const value: { our: Currency; their: Currency } = self.data('value');
 
@@ -50,7 +50,7 @@ function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.S
         const amount = dict[sku];
         const name = schema.getName(SKU.fromString(sku), false);
 
-        summary.push(name + (amount > 1 ? ' x' + amount : ''));
+        summary.push(name + (amount > 1 ? ` x${amount}` : ''));
     }
 
     if (summary.length === 0) {

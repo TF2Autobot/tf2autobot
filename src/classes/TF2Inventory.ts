@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import SteamID from 'steamid';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import request from '@nicklason/request-retry';

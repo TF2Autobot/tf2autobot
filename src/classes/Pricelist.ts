@@ -1,21 +1,22 @@
-import { Currency } from '../types/TeamFortress2';
-import { UnknownDictionary } from '../types/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
+import { Currency } from '../types/TeamFortress2';
+import { UnknownDictionary } from '../types/common';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import Options from './Options';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
 
-import { paintCan, australiumImageURL, qualityColor } from '../lib/data';
-
-const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
+import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -32,6 +33,7 @@ export interface EntryData {
     intent: 0 | 1 | 2;
     buy?: Currency | null;
     sell?: Currency | null;
+    promoted?: 0 | 1;
     group?: string | null;
     note?: { buy: string | null; sell: string | null };
     time?: number | null;
@@ -55,6 +57,8 @@ export class Entry {
     buy: Currencies | null;
 
     sell: Currencies | null;
+
+    promoted: 0 | 1;
 
     group: string | null;
 
@@ -86,6 +90,12 @@ export class Entry {
             this.time = null;
         }
 
+        if (entry.promoted) {
+            this.promoted = entry.promoted;
+        } else {
+            this.promoted = 0;
+        }
+
         if (entry.group) {
             this.group = entry.group;
         } else {
@@ -114,6 +124,7 @@ export class Entry {
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
+            promoted: this.promoted,
             group: this.group,
             note: this.note,
             time: this.time
@@ -132,20 +143,16 @@ export default class Pricelist extends EventEmitter {
 
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
-    // private priceChanges: {
-    //     sku: string;
-    //     name: string;
-    //     newPrice: Entry;
-    //     time: string;
-    // }[] = [];
+    private maxAge: number;
 
-    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
+    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket, private options?: Options) {
         super();
         this.schema = schema;
         this.socket = socket;
 
         this.socket.removeListener('price', this.handlePriceChange.bind(this));
         this.socket.on('price', this.handlePriceChange.bind(this));
+        this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
     }
 
     getKeyPrices(): { buy: Currencies; sell: Currencies; src: string; time: number } {
@@ -357,7 +364,7 @@ export default class Pricelist extends EventEmitter {
         await this.validateEntry(entry, src);
 
         // Remove old price
-        this.removePrice(entry.sku, false);
+        await this.removePrice(entry.sku, false);
 
         // Add new price
         this.prices.push(entry);
@@ -427,6 +434,7 @@ export default class Pricelist extends EventEmitter {
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
+                    promoted: prices[0].promoted,
                     group: prices[0].group,
                     note: prices[0].note,
                     time: prices[0].time
@@ -439,7 +447,6 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        // @ts-ignore
         this.prices = prices.map(entry => new Entry(entry, this.schema));
 
         return this.setupPricelist();
@@ -458,9 +465,6 @@ export default class Pricelist extends EventEmitter {
                 buy: new Currencies(keyPricesPTF.buy),
                 sell: new Currencies(keyPricesPTF.sell)
             };
-
-            // const isEnabledScrapAdjustment =
-            //     process.env.ENABLE_AUTOKEYS === 'true' && process.env.DISABLE_SCRAP_ADJUSTMENT === 'false';
 
             if (entryKey !== null && !entryKey.autoprice) {
                 this.globalKeyPrices = {
@@ -547,6 +551,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: any): void {
+        const opt = this.options;
+
         if (data.source !== 'bptf') {
             return;
         }
@@ -560,8 +566,8 @@ export default class Pricelist extends EventEmitter {
             const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                process.env.ENABLE_AUTOKEYS === 'true' &&
-                process.env.DISABLE_SCRAP_ADJUSTMENT === 'false' &&
+                opt.autokeys.enable &&
+                opt.autokeys.scrapAdjustment.enable &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
@@ -595,21 +601,18 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (
-                process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
-                process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
-            ) {
+            if (opt.discordWebhook.priceUpdate.enable && opt.discordWebhook.priceUpdate.url !== '') {
                 const time = moment()
-                    .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
-                    .format(
-                        process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
-                    );
+                    .tz(opt.timezone ? opt.timezone : 'UTC')
+                    .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
-                this.sendWebHookPriceUpdateV1(
+                sendWebHookPriceUpdateV1(
                     data.sku,
                     this.schema.getName(SKU.fromString(match.sku), false),
                     match,
-                    time
+                    time,
+                    this.schema,
+                    opt
                 );
                 // this.priceChanges.push({
                 //     sku: data.sku,
@@ -631,244 +634,14 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdateV1(sku: string, name: string, newPrice: Entry, time: string): void {
-        const parts = sku.split(';');
-        const newSku = parts[0] + ';6';
-        const newItem = SKU.fromString(newSku);
-        const newName = this.schema.getName(newItem, false);
-
-        const itemImageUrl = this.schema.getItemByItemName(newName);
-
-        let itemImageUrlPrint: string;
-
-        const item = SKU.fromString(sku);
-
-        if (!itemImageUrl || !item) {
-            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-        } else if (Object.keys(paintCan).includes(newSku)) {
-            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
-        } else if (item.australium === true) {
-            const australiumSKU = parts[0] + ';11;australium';
-            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
-        } else if (item.defindex === 266) {
-            itemImageUrlPrint =
-                'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
-        } else if (item.paintkit !== null) {
-            itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${item.paintkit}_${
-                item.wear
-            }_${item.festive === true ? 1 : 0}.png`;
-        } else {
-            itemImageUrlPrint = itemImageUrl.image_url_large;
-        }
-
-        let effectsId: string;
-
-        if (parts[2]) {
-            effectsId = parts[2].replace('u', '');
-        }
-
-        let effectURL: string;
-
-        if (!effectsId) {
-            effectURL = '';
-        } else {
-            effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
-        }
-
-        const qualityItem = parts[1];
-        const qualityColorPrint = qualityColor[qualityItem].toString();
-
-        /*eslint-disable */
-        const priceUpdate = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: '',
-            embeds: [
-                {
-                    author: {
-                        name: name,
-                        url: `https://www.prices.tf/items/${sku}`,
-                        icon_url:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                    },
-                    footer: {
-                        text: `${sku} • ${time}`
-                    },
-                    thumbnail: {
-                        url: itemImageUrlPrint
-                    },
-                    image: {
-                        url: effectURL
-                    },
-                    title: '',
-                    fields: [
-                        {
-                            name: 'Buying for',
-                            value: newPrice.buy.toString(),
-                            inline: true
-                        },
-                        {
-                            name: 'Selling for',
-                            value: newPrice.sell.toString(),
-                            inline: true
-                        }
-                    ],
-                    description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        : '',
-                    color: qualityColorPrint
-                }
-            ]
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
-    }
-
-    private sendWebHookPriceUpdateV2(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
-        const embed: {
-            author: {
-                name: string;
-                url: string;
-                icon_url: string;
-            };
-            footer: {
-                text: string;
-            };
-            thumbnail: {
-                url: string;
-            };
-            image: {
-                url: string;
-            };
-            title: string;
-            fields: [
-                {
-                    name: string;
-                    value: string;
-                    inline: boolean;
-                },
-                {
-                    name: string;
-                    value: string;
-                    inline: boolean;
-                }
-            ];
-            description: string;
-            color: string;
-        }[] = [];
-
-        data.forEach(data => {
-            const parts = data.sku.split(';');
-            const newSku = parts[0] + ';6';
-            const newItem = SKU.fromString(newSku);
-            const newName = this.schema.getName(newItem, false);
-
-            const itemImageUrl = this.schema.getItemByItemName(newName);
-
-            let itemImageUrlPrint: string;
-
-            const item = SKU.fromString(data.sku);
-
-            if (!itemImageUrl || !item) {
-                itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-            } else if (Object.keys(paintCan).includes(newSku)) {
-                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
-            } else if (item.australium === true) {
-                const australiumSKU = parts[0] + ';11;australium';
-                itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
-            } else if (item.defindex === 266) {
-                itemImageUrlPrint =
-                    'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
-            } else if (item.paintkit !== null) {
-                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
-                    item.paintkit
-                }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
-            } else {
-                itemImageUrlPrint = itemImageUrl.image_url_large;
-            }
-
-            let effectsId: string;
-
-            if (parts[2]) {
-                effectsId = parts[2].replace('u', '');
-            }
-
-            let effectURL: string;
-
-            if (!effectsId) {
-                effectURL = '';
-            } else {
-                effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
-            }
-
-            const qualityItem = parts[1];
-            const qualityColorPrint = qualityColor[qualityItem].toString();
-
-            /*eslint-disable */
-            embed.push({
-                author: {
-                    name: data.name,
-                    url: `https://www.prices.tf/items/${data.sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                },
-                footer: {
-                    text: `Item's SKU: ${data.sku} • ${data.time}`
-                },
-                thumbnail: {
-                    url: itemImageUrlPrint
-                },
-                image: {
-                    url: effectURL
-                },
-                title: '',
-                fields: [
-                    {
-                        name: 'Buying for',
-                        value: data.newPrice.buy.toString(),
-                        inline: true
-                    },
-                    {
-                        name: 'Selling for',
-                        value: data.newPrice.sell.toString(),
-                        inline: true
-                    }
-                ],
-                description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                    ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                    : '',
-                color: qualityColorPrint
-            });
-            /*eslint-enable */
-        });
-
-        /*eslint-disable */
-        const priceUpdate = JSON.stringify({
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: '',
-            embeds: embed
-        });
-        /*eslint-enable */
-
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
-    }
-
     private getOld(): Entry[] {
-        if (maxAge <= 0) {
+        if (this.maxAge <= 0) {
             return this.prices;
         }
 
         const now = moment().unix();
 
-        return this.prices.filter(entry => entry.time + maxAge <= now);
+        return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
     static groupPrices(prices: any[]): UnknownDictionary<UnknownDictionary<any[]>> {

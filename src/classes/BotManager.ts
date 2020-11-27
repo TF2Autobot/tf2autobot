@@ -1,13 +1,14 @@
-import Bot from './Bot';
-
 import async from 'async';
 import SteamUser from 'steam-user';
 import SchemaManager from 'tf2-schema-2';
 import io from 'socket.io-client';
 import pm2 from 'pm2';
 
+import Bot from './Bot';
+
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
+import Options from './Options';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -26,7 +27,7 @@ export = class BotManager {
 
     private exiting = false;
 
-    constructor() {
+    constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
         this.socket = io('https://api.prices.tf', {
             forceNew: true,
@@ -35,7 +36,7 @@ export = class BotManager {
 
         this.socket.on('connect', () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', process.env.PRICESTF_API_TOKEN || undefined);
+            this.socket.emit('authentication', pricestfApiToken);
         });
 
         this.socket.on('authenticated', () => {
@@ -44,6 +45,7 @@ export = class BotManager {
 
         this.socket.on('unauthorized', err => {
             log.debug('Failed to authenticate with socket server', {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 error: err
             });
         });
@@ -73,7 +75,7 @@ export = class BotManager {
         return this.bot !== null && this.bot.isReady();
     }
 
-    start(): Promise<void> {
+    start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {
                 if (!process.env[optName]) {
@@ -85,17 +87,17 @@ export = class BotManager {
                 [
                     (callback): void => {
                         log.debug('Connecting to PM2...');
-                        this.connectToPM2().asCallback(callback);
+                        void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Getting TF2 schema...');
-                        this.initializeSchema().asCallback(callback);
+                        void this.initializeSchema().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Starting bot...');
-                        this.bot = new Bot(this);
+                        this.bot = new Bot(this, options);
 
-                        this.bot.start().asCallback(callback);
+                        void this.bot.start().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
@@ -212,7 +214,7 @@ export = class BotManager {
     private cleanup(): void {
         if (this.bot !== null) {
             // Make the bot snooze on Steam, that way people will know it is not running
-            this.bot.client.setPersona(SteamUser.EPersonaState.Snooze);
+            this.bot.client.setPersona(SteamUser.EPersonaState['Snooze']);
             this.bot.client.autoRelogin = false;
 
             // Stop polling offers
@@ -245,7 +247,7 @@ export = class BotManager {
         }
 
         log.debug('Waiting for files to be saved');
-        waitForWriting().then(() => {
+        void waitForWriting().then(() => {
             log.debug('Done waiting for files');
 
             log.on('finish', () => {

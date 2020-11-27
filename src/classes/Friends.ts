@@ -1,12 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 import SteamUser from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
+import request from '@nicklason/request-retry';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-
-import request from '@nicklason/request-retry';
-import MyHandler from './MyHandler';
+import MyHandler from './MyHandler/MyHandler';
 
 export = class Friends {
     private readonly bot: Bot;
@@ -46,7 +49,7 @@ export = class Friends {
 
         const relation = this.bot.client.myFriends[steamID64];
 
-        return relation === SteamUser.EFriendRelationship.Friend;
+        return relation === SteamUser.EFriendRelationship['Friend'];
     }
 
     getFriends(): string[] {
@@ -81,6 +84,7 @@ export = class Friends {
         };
 
         return new Promise((resolve, reject) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
                 if (err) {
                     return reject(err);
@@ -90,12 +94,12 @@ export = class Friends {
                 const level = result.player_level;
 
                 const friendToKeep = (this.bot.handler as MyHandler).getFriendToKeep();
-                const disableAddFriends = process.env.DISABLE_ADD_FRIENDS === 'true';
+                const enableAddFriends = this.bot.options.enableAddFriends;
 
                 const base = 250;
                 const multiplier = 5;
 
-                this.maxFriends = disableAddFriends ? friendToKeep : base + level * multiplier;
+                this.maxFriends = enableAddFriends ? base + level * multiplier : friendToKeep;
 
                 resolve(this.maxFriends);
             });

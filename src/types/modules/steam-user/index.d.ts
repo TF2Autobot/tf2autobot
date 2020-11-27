@@ -6,6 +6,7 @@ declare module 'steam-user' {
         [key: string]: T;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
         loggedOn: () => void;
         webSession: (sessionID: string, cookies: string) => void;
@@ -24,13 +25,13 @@ declare module 'steam-user' {
     }
 
     class SteamUser extends EventEmitter {
-        static EResult: any;
+        static EResult: Map<string, number>;
 
-        static EPersonaState: any;
+        static EPersonaState: Map<string, number>;
 
-        static EClanRelationship: any;
+        static EClanRelationship: Map<string, number>;
 
-        static EFriendRelationship: any;
+        static EFriendRelationship: Map<string, number>;
 
         steamID: SteamID | null;
 
@@ -73,7 +74,7 @@ declare module 'steam-user' {
 
         setPersona(state: number, name?: string): void;
 
-        gamesPlayed(apps: any[] | object | string | number, force?: boolean): void;
+        gamesPlayed(apps: any[] | string | number, force?: boolean): void;
 
         chatMessage(recipient: SteamID | string, message: string): void;
 

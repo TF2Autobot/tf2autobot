@@ -1,9 +1,12 @@
-import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
+import TradeOfferManager, { EconItem, CustomError } from 'steam-tradeoffer-manager';
 import moment from 'moment';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
 
@@ -40,8 +43,8 @@ export = class Trades {
             const state = pollData.sent[id];
 
             if (
-                state === TradeOfferManager.ETradeOfferState.Active ||
-                state === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation
+                state === TradeOfferManager.ETradeOfferState['Active'] ||
+                state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
             ) {
                 activeOrCreatedNeedsConfirmation.push(id);
             }
@@ -54,7 +57,7 @@ export = class Trades {
 
             const state = pollData.received[id];
 
-            if (state === TradeOfferManager.ETradeOfferState.Active) {
+            if (state === TradeOfferManager.ETradeOfferState['Active']) {
                 activeOrCreatedNeedsConfirmation.push(id);
             }
         }
@@ -92,7 +95,7 @@ export = class Trades {
         this.pollCount++;
 
         received.concat(sent).forEach(offer => {
-            if (offer.state !== TradeOfferManager.ETradeOfferState.Active) {
+            if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
                 const ourItems = offer.data('_ourItems');
                 if (ourItems !== undefined) {
                     // Make sure that offers that are not active does not have items saved
@@ -101,33 +104,30 @@ export = class Trades {
             }
         });
 
-        const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState.Active);
+        const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
 
         if (
-            filter === TradeOfferManager.EOfferFilter.ActiveOnly &&
+            filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
             (this.pollCount * this.bot.manager.pollInterval) / (2 * 60 * 1000) >= 1
         ) {
             this.pollCount = 0;
 
-            const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState.Active);
+            const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
 
-            const receivedOnHold = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState.InEscrow)
+            const receivedOnHold = received.filter(
+                offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
+            ).length;
+            const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow'])
                 .length;
-            const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState.InEscrow).length;
 
             log.verbose(
-                activeReceived.length +
-                    ' incoming ' +
-                    pluralize('offer', activeReceived.length) +
-                    ' (' +
-                    receivedOnHold +
-                    ' on hold), ' +
-                    activeSent.length +
-                    ' outgoing ' +
-                    pluralize('offer', activeSent.length) +
-                    ' (' +
-                    sentOnHold +
-                    ' on hold)'
+                `${activeReceived.length} incoming ${pluralize(
+                    'offer',
+                    activeReceived.length
+                )} (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
+                    'offer',
+                    activeSent.length
+                )} (${sentOnHold} on hold)`
             );
         }
 
@@ -152,7 +152,7 @@ export = class Trades {
                 continue;
             }
 
-            if (pollData.sent[id] !== TradeOfferManager.ETradeOfferState.Active) {
+            if (pollData.sent[id] !== TradeOfferManager.ETradeOfferState['Active']) {
                 continue;
             }
 
@@ -172,7 +172,7 @@ export = class Trades {
     getTradesWithPeople(steamIDs: SteamID[] | string[]): UnknownDictionary<number> {
         const tradesBySteamID = {};
 
-        steamIDs.forEach(steamID => {
+        steamIDs.forEach((steamID: SteamID | string) => {
             tradesBySteamID[steamID.toString()] = 0;
         });
 
@@ -183,11 +183,11 @@ export = class Trades {
 
             const offerData = this.bot.manager.pollData.offerData[offerID];
 
-            if (!offerData.partner || tradesBySteamID[offerData.partner] === undefined) {
+            if (!(offerData.partner as string) || tradesBySteamID[offerData.partner as string] === undefined) {
                 continue;
             }
 
-            tradesBySteamID[offerData.partner]++;
+            tradesBySteamID[offerData.partner as string]++;
         }
 
         return tradesBySteamID;
@@ -201,7 +201,7 @@ export = class Trades {
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
-                includeInactive ? TradeOfferManager.EOfferFilter.All : TradeOfferManager.EOfferFilter.ActiveOnly,
+                includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
                 (err, sent, received) => {
                     if (err) {
                         return reject(err);
@@ -262,7 +262,7 @@ export = class Trades {
 
         offer.data('handleTimestamp', start);
 
-        Promise.resolve(this.bot.handler.onNewTradeOffer(offer)).asCallback((err, response) => {
+        void Promise.resolve(this.bot.handler.onNewTradeOffer(offer)).asCallback((err, response) => {
             if (err) {
                 log.debug('Error occurred while handler was processing offer: ', err);
                 throw err;
@@ -315,6 +315,7 @@ export = class Trades {
             return Promise.resolve();
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
@@ -345,7 +346,7 @@ export = class Trades {
 
         log.verbose(`Handling offer #${offerId}...`);
 
-        this.getOffer(offerId).asCallback((err, offer) => {
+        void this.getOffer(offerId).asCallback((err, offer) => {
             if (err) {
                 log.warn(`Failed to get offer #${offerId}: `, err);
                 // After many retries we could not get the offer data
@@ -385,22 +386,22 @@ export = class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.getOffer(offerId, attempts));
                         });
                         return;
                     }
 
-                    this.bot.getWebSession(true).asCallback(err => {
+                    void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.getOffer(offerId, attempts));
                         });
                     });
                     return;
                 }
 
-                if (offer.state !== TradeOfferManager.ETradeOfferState.Active) {
+                if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
                     // Offer is not active
                     return resolve(null);
                 }
@@ -416,7 +417,7 @@ export = class Trades {
             const start = moment().valueOf();
             offer.data('actionTimestamp', start);
 
-            this.acceptOfferRetry(offer).asCallback((err, status) => {
+            void this.acceptOfferRetry(offer).asCallback((err, status) => {
                 const actionTime = moment().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
@@ -448,7 +449,7 @@ export = class Trades {
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
-            this.bot.community.acceptConfirmationForObject(process.env.STEAM_IDENTITY_SECRET, offer.id, err => {
+            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 const confirmationTime = moment().valueOf() - start;
                 offer.data('confirmationTime', confirmationTime);
 
@@ -464,26 +465,25 @@ export = class Trades {
 
     private acceptOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
-            offer.accept((err, status) => {
+            offer.accept((err: CustomError, status) => {
                 attempts++;
 
                 if (err) {
-                    // @ts-ignore
                     if (attempts > 5 || err.eresult !== undefined || err.cause !== undefined) {
                         return reject(err);
                     }
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.acceptOfferRetry(offer, attempts));
                         });
                         return;
                     }
 
-                    this.bot.getWebSession(true).asCallback(err => {
+                    void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.acceptOfferRetry(offer, attempts));
                         });
                     });
@@ -533,7 +533,7 @@ export = class Trades {
 
             log.debug('Sending offer...');
 
-            this.sendOfferRetry(offer).asCallback((err, status) => {
+            void this.sendOfferRetry(offer, 0).asCallback((err, status) => {
                 const actionTime = moment().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
@@ -551,7 +551,7 @@ export = class Trades {
 
     private sendOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
-            offer.send((err, status) => {
+            offer.send((err: CustomError, status) => {
                 attempts++;
 
                 if (err) {
@@ -564,27 +564,24 @@ export = class Trades {
                         return reject(err);
                     }
 
-                    // @ts-ignore
                     if (err.cause !== undefined) {
                         return reject(err);
                     }
 
-                    // @ts-ignore
-                    if (err.eresult === TradeOfferManager.EResult.Revoked) {
+                    if (err.eresult === TradeOfferManager.EResult['Revoked']) {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
-                        this.bot.inventoryManager
+                        void this.bot.inventoryManager
                             .getInventory()
                             .fetch()
                             .asCallback(() => {
                                 reject(err);
                             });
                         return;
-                        // @ts-ignore
-                    } else if (err.eresult === TradeOfferManager.EResult.Timeout) {
+                    } else if (err.eresult === TradeOfferManager.EResult['Timeout']) {
                         // The offer may or may not have been made, will wait some time and check if if we can find a matching offer
-                        Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
+                        void Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
                             // Done waiting, try and find matching offer
-                            this.findMatchingOffer(offer, true).asCallback((err, match) => {
+                            void this.findMatchingOffer(offer, true).asCallback((err, match) => {
                                 if (err) {
                                     // Failed to get offers, return error
                                     return reject(err);
@@ -592,7 +589,7 @@ export = class Trades {
 
                                 if (match === null) {
                                     // Did not find a matching offer, retry sending the offer
-                                    this.sendOfferRetry(offer, attempts);
+                                    void this.sendOfferRetry(offer, attempts);
                                     return;
                                 }
 
@@ -619,29 +616,28 @@ export = class Trades {
                                 offer.manager.emit('pollData', offer.manager.pollData);
 
                                 return resolve(
-                                    offer.state === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation
+                                    offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
                                         ? 'pending'
                                         : 'sent'
                                 );
                             });
                         });
                         return;
-                        // @ts-ignore
                     } else if (err.eresult !== undefined) {
                         return reject(err);
                     }
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.sendOfferRetry(offer, attempts));
                         });
                         return;
                     }
 
-                    this.bot.getWebSession(true).asCallback(err => {
+                    void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.sendOfferRetry(offer, attempts));
                         });
                     });
@@ -687,7 +683,7 @@ export = class Trades {
                     operation.reset();
 
                     // Wait for bot to sign in to retry
-                    this.bot.getWebSession(true).asCallback(() => {
+                    void this.bot.getWebSession(true).asCallback(() => {
                         // Callback was called, ignore error from callback and retry
                         operation.retry(err);
                     });
@@ -701,19 +697,22 @@ export = class Trades {
 
         offer.log(
             'verbose',
-            'state changed: ' +
-                TradeOfferManager.ETradeOfferState[oldState] +
-                ' -> ' +
-                TradeOfferManager.ETradeOfferState[offer.state] +
-                ((action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState.Accepted) ||
-                (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState.Declined)
+            `state changed: ${TradeOfferManager.ETradeOfferState[oldState] as string} -> ${TradeOfferManager
+                .ETradeOfferState[offer.state] as string}${
+                (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
+                (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
                     ? ' (reason: ' + action.reason + ')'
-                    : '')
+                    : ''
+            }`
         );
 
+        const finishTimestamp = moment().valueOf();
+
+        const processTime = finishTimestamp - offer.data('handleTimestamp');
+
         if (
-            offer.state === TradeOfferManager.ETradeOfferState.Active ||
-            offer.state === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation
+            offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
+            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
         ) {
             // Offer is active
 
@@ -734,13 +733,9 @@ export = class Trades {
             // Unset items
             offer.data('_ourItems', undefined);
 
-            const finishTimestamp = moment().valueOf();
-
             offer.data('finishTimestamp', finishTimestamp);
 
-            const processTime = finishTimestamp - offer.data('handleTimestamp');
-
-            log.debug('Took ' + (isNaN(processTime) ? 'unknown' : processTime) + ' ms to process offer', {
+            log.debug(`Took ${isNaN(processTime) ? 'unknown' : processTime} ms to process offer`, {
                 offerId: offer.id,
                 state: offer.state,
                 finishTime: processTime
@@ -748,8 +743,8 @@ export = class Trades {
         }
 
         if (
-            offer.state !== TradeOfferManager.ETradeOfferState.Accepted &&
-            offer.state !== TradeOfferManager.ETradeOfferState.InEscrow
+            offer.state !== TradeOfferManager.ETradeOfferState['Accepted'] &&
+            offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
             this.bot.handler.onTradeOfferChanged(offer, oldState);
@@ -760,7 +755,7 @@ export = class Trades {
 
         offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory().removeItem(item.assetid));
 
-        this.bot.inventoryManager
+        void this.bot.inventoryManager
             .getInventory()
             .fetch()
             .asCallback(() => {
@@ -775,7 +770,7 @@ export = class Trades {
                     this.bot.listings.checkBySKU(sku);
                 }
 
-                this.bot.handler.onTradeOfferChanged(offer, oldState);
+                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
 

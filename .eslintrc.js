@@ -21,6 +21,8 @@ module.exports = {
         '@typescript-eslint/no-use-before-define': [0],
         'no-console': 'error',
         'tsdoc/syntax': 'error',
-        'prettier/prettier': 'error'
+        'prettier/prettier': ['error', {
+            'endOfLine': 'auto'
+        }]
     }
 };

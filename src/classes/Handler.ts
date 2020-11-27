@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import Bot from './Bot';
-import { Entry, EntryData } from './Pricelist';
-
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData } from 'steam-tradeoffer-manager';
 
 import { UnknownDictionary } from '../types/common';
 
+import Bot from './Bot';
+import { Entry, EntryData } from './Pricelist';
+
 abstract class Handler {
     readonly bot: Bot;
 
-    constructor(bot: Bot) {
+    protected constructor(bot: Bot) {
         this.bot = bot;
     }
 
@@ -148,7 +148,7 @@ abstract class Handler {
      * @param offer - The offer that changed
      * @param oldState - The old state of the offer
      */
-    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number): void {
+    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, processTime?: number): void {
         // empty function
     }
 
