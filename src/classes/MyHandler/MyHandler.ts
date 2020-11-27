@@ -5,7 +5,7 @@
 
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
-import SteamUser from 'steam-user';
+import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
@@ -295,7 +295,7 @@ export = class MyHandler extends Handler {
         );
 
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
-        this.bot.client.setPersona(SteamUser.EPersonaState['Online']);
+        this.bot.client.setPersona(EPersonaState.Online);
 
         this.botSteamID = this.bot.client.steamID;
 
@@ -365,7 +365,7 @@ export = class MyHandler extends Handler {
 
     onLoggedOn(): void {
         if (this.bot.isReady()) {
-            this.bot.client.setPersona(SteamUser.EPersonaState['Online']);
+            this.bot.client.setPersona(EPersonaState.Online);
             this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
@@ -402,10 +402,8 @@ export = class MyHandler extends Handler {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    onLoginError(err): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (err.eresult === SteamUser.EResult['InvalidPassword']) {
+    onLoginError(err: Error): void {
+        if (err.eresult === EResult.InvalidPassword) {
             files.deleteFile(this.paths.files.loginKey).catch(err => {
                 log.warn('Failed to delete login key: ', err);
             });
@@ -419,22 +417,22 @@ export = class MyHandler extends Handler {
     }
 
     onFriendRelationship(steamID: SteamID, relationship: number): void {
-        if (relationship === SteamUser.EFriendRelationship['Friend']) {
+        if (relationship === EFriendRelationship.Friend) {
             this.onNewFriend(steamID);
             this.checkFriendsCount(steamID);
-        } else if (relationship === SteamUser.EFriendRelationship['RequestRecipient']) {
+        } else if (relationship === EFriendRelationship.RequestRecipient) {
             this.respondToFriendRequest(steamID);
         }
     }
 
     onGroupRelationship(groupID: SteamID, relationship: number): void {
         log.debug('Group relation changed', { steamID: groupID, relationship: relationship });
-        if (relationship === SteamUser.EClanRelationship['Invited']) {
+        if (relationship === EClanRelationship.Invited) {
             const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
             this.bot.client.respondToGroupInvite(groupID, this.groups.includes(groupID.getSteamID64()));
-        } else if (relationship === SteamUser.EClanRelationship['Member']) {
+        } else if (relationship === EClanRelationship.Member) {
             log.info(`Joined group ${groupID.getSteamID64()}`);
         }
     }
@@ -1469,7 +1467,7 @@ export = class MyHandler extends Handler {
             }
 
             const relation = this.bot.client.myFriends[steamID64];
-            if (relation === SteamUser.EFriendRelationship['RequestRecipient']) {
+            if (relation === EFriendRelationship.RequestRecipient) {
                 this.respondToFriendRequest(steamID64);
             }
         }
@@ -1721,15 +1719,15 @@ export = class MyHandler extends Handler {
 
             const relationship = this.bot.client.myGroups[groupID64];
 
-            if (relationship === SteamUser.EClanRelationship['Invited']) {
+            if (relationship === EClanRelationship.Invited) {
                 this.bot.client.respondToGroupInvite(groupID64, false);
             }
         }
 
         this.groups.forEach(steamID => {
             if (
-                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship['Member'] &&
-                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship['Blocked']
+                this.bot.client.myGroups[steamID] !== EClanRelationship.Member &&
+                this.bot.client.myGroups[steamID] !== EClanRelationship.Blocked
             ) {
                 this.bot.community.getSteamGroup(new SteamID(steamID), (err, group) => {
                     if (err) {

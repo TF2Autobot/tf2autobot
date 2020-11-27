@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 
-import SteamUser from 'steam-user';
+import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
 import request from '@nicklason/request-retry';
@@ -49,7 +49,7 @@ export = class Friends {
 
         const relation = this.bot.client.myFriends[steamID64];
 
-        return relation === SteamUser.EFriendRelationship['Friend'];
+        return relation === EFriendRelationship.Friend;
     }
 
     getFriends(): string[] {
