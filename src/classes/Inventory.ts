@@ -203,14 +203,11 @@ export = class Inventory {
             [key: string]: string[];
         } = {};
 
-        const currencies = Object.create(toObject);
-
         combine.forEach(sku => {
-            currencies[sku] = this.findBySKU(sku);
+            toObject[sku] = this.findBySKU(sku);
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return currencies;
+        return toObject;
     }
 
     private static createDictionary(
