@@ -1007,7 +1007,7 @@ export = class Commands {
                     return;
                 }
 
-                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                this.bot.tf2gc.deleteItem(params.assetid as string, err => {
                     if (err) {
                         log.warn(`Error trying to delete ${params.assetid}: `, err);
                         this.bot.sendMessage(steamID, `❌ Failed to delete ${params.assetid}: ${err.message}`);
@@ -1030,7 +1030,7 @@ export = class Commands {
                     return;
                 }
 
-                this.bot.tf2gc.deleteItem(params.assetid, err => {
+                this.bot.tf2gc.deleteItem(params.assetid as string, err => {
                     if (err) {
                         log.warn(`Error trying to delete ${name}: `, err);
                         this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
