@@ -28,8 +28,6 @@ abstract class Cart {
 
     private theirInventoryCount = 0;
 
-    private theirBackpackSlots = 0;
-
     readonly partner: SteamID;
 
     protected token: string | null = null;
@@ -122,10 +120,6 @@ abstract class Cart {
 
     getTheirInventoryCount(count: number): void {
         this.theirInventoryCount = count;
-    }
-
-    getTheirBackpackSlots(slots: number): void {
-        this.theirBackpackSlots = slots;
     }
 
     getOurCount(sku: string): number {
