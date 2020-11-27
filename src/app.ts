@@ -2,6 +2,7 @@
 const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
 process.env.BOT_VERSION = BOT_VERSION;
+
 import fs from 'fs';
 import path from 'path';
 import genPaths from './resources/paths';
