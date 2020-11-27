@@ -28,7 +28,7 @@
         "async": "^3.2.0",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
-        "bptf-listings-2": "^1.0.6",
+        "bptf-listings-2": "^1.0.7",
         "bptf-login": "^1.0.3",
         "callback-queue": "^3.0.0",
         "cheerio": "^1.0.0-rc.3",
@@ -65,8 +65,8 @@
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
-        "@babel/preset-typescript": "^7.12.1",
-        "@types/async": "^3.2.3",
+        "@babel/preset-typescript": "^7.12.7",
+        "@types/async": "^3.2.4",
         "@types/bluebird-global": "^3.5.12",
         "@types/death": "^1.1.0",
         "@types/graceful-fs": "^4.1.4",
