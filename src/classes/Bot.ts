@@ -829,10 +829,10 @@ export = class Bot {
     }
 
     private onError(err: CustomError): void {
-        if (err.eresult === SteamUser.EResult['LoggedInElsewhere']) {
+        if (err.eresult === EResult.LoggedInElsewhere) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
-        } else if (err.eresult === SteamUser.EResult['LogonSessionReplaced']) {
+        } else if (err.eresult === EResult.LogonSessionReplaced) {
             this.sessionReplaceCount++;
 
             if (this.sessionReplaceCount > 0) {
