@@ -242,14 +242,6 @@ export = class MyHandler extends Handler {
         return this.minimumKeysDupeCheck;
     }
 
-    getCustomGame(): string {
-        return this.customGameName;
-    }
-
-    getBackpackSlots(): number {
-        return this.backpackSlots;
-    }
-
     getBotInfo(): BotInfo {
         const name = this.botName;
         const avatarURL = this.botAvatarURL;
