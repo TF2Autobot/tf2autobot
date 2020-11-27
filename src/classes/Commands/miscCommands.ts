@@ -12,8 +12,9 @@ export function timeCommand(steamID: SteamID, bot: Bot): void {
     const timeWithEmojis = timeNow(bot.options.timezone, bot.options.timezone, bot.options.timeAdditionalNotes);
     bot.sendMessage(
         steamID,
-        `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${timeWithEmojis.time +
-            (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')}`
+        `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${
+            timeWithEmojis.time + (timeWithEmojis.note !== '' ? `. ${timeWithEmojis.note}.` : '.')
+        }`
     );
 }
 
@@ -109,7 +110,7 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
         if (stock.length > 20) {
             left += parsed[i].amount;
         } else {
-            stock.push(parsed[i].name + ': ' + parsed[i].amount);
+            stock.push(`${parsed[i].name}: ${parsed[i].amount}`);
         }
     }
 

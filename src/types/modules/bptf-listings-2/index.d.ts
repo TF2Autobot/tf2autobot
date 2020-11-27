@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 declare module 'bptf-listings-2' {
     import { EventEmitter } from 'events';
     import SchemaManager from 'tf2-schema-2';
     import SteamID from 'steamid';
     import TF2Currencies from 'tf2-currencies';
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
         ready: () => void;
         listings: (listings: ListingManager.Listing[]) => void;
@@ -49,10 +52,13 @@ declare module 'bptf-listings-2' {
 
         _inventoryInterval: ReturnType<typeof setInterval>;
 
+        // eslint-disable-next-line @typescript-eslint/ban-types
         init(callback: Function): void;
 
+        // eslint-disable-next-line @typescript-eslint/ban-types
         sendHeartbeat(callback: Function): void;
 
+        // eslint-disable-next-line @typescript-eslint/ban-types
         getListings(callback: Function): void;
 
         findListing(search: string | number): ListingManager.Listing | null;
@@ -97,7 +103,7 @@ declare module 'bptf-listings-2' {
             intent: 0 | 1;
             details?: string;
             promoted?: 0 | 1;
-            currencies: object;
+            currencies: TF2Currencies;
             time: number;
         }
 
@@ -132,7 +138,7 @@ declare module 'bptf-listings-2' {
 
             update(properties: {
                 time: number;
-                currencies?: { keys: number; metal: number };
+                currencies?: TF2Currencies;
                 details?: string;
                 promoted?: 0 | 1;
                 offers?: boolean;

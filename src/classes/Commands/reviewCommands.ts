@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import TradeOfferManager from 'steam-tradeoffer-manager';
@@ -27,7 +32,7 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
             continue;
         }
 
-        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState.Active) {
+        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState['Active']) {
             continue;
         }
 
@@ -78,7 +83,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         return;
     }
 
-    if (state !== TradeOfferManager.ETradeOfferState.Active) {
+    if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
         bot.sendMessage(steamID, 'Offer is not active. ❌');
         return;
@@ -157,7 +162,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         return;
     }
 
-    if (state !== TradeOfferManager.ETradeOfferState.Active) {
+    if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
         bot.sendMessage(steamID, 'Offer is not active. ❌');
         return;
@@ -170,7 +175,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         return;
     }
 
-    bot.trades.getOffer(offerId).asCallback((err, offer) => {
+    void bot.trades.getOffer(offerId).asCallback((err, offer) => {
         if (err) {
             bot.sendMessage(
                 steamID,
@@ -246,7 +251,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         } = offer.data('reviewMeta');
 
         if (declineTrade === false) {
-            bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
+            void bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
                 if (err) {
                     bot.sendMessage(
                         steamID,
@@ -279,7 +284,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 }
             });
         } else {
-            bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
+            void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
                 if (err) {
                     bot.sendMessage(
                         steamID,
@@ -332,7 +337,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         return;
     }
 
-    if (state !== TradeOfferManager.ETradeOfferState.Active) {
+    if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
         bot.sendMessage(steamID, 'Offer is not active. ❌');
         return;
@@ -345,7 +350,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         return;
     }
 
-    bot.trades.getOffer(offerId).asCallback((err, offer) => {
+    void bot.trades.getOffer(offerId).asCallback((err, offer) => {
         if (err) {
             bot.sendMessage(
                 steamID,
@@ -360,7 +365,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         const reply = offerIdAndMessage.substr(offerId.length);
         const adminDetails = bot.friends.getFriend(steamID);
 
-        bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
+        void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback((err) => {
             if (err) {
                 bot.sendMessage(
                     steamID,

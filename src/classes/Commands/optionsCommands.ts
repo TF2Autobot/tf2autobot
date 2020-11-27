@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
@@ -39,9 +42,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         if (params.game.customName !== undefined && typeof params.game.customName === 'string') {
             bot.client.gamesPlayed([]);
             bot.client.gamesPlayed(
-                (params.game.playOnlyTF2 !== undefined
-                  ? params.game.playOnlyTF2
-                  : opt.game.playOnlyTF2)
+                (params.game.playOnlyTF2 !== undefined ? params.game.playOnlyTF2 : opt.game.playOnlyTF2)
                     ? 440
                     : [params.game.customName, 440]
             );
@@ -135,7 +136,8 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             return bot.sendMessage(steamID, '✅ Updated options!');
         })
         .catch(err => {
-            bot.sendMessage(steamID, '❌ Error saving options file to disk: ' + err);
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            bot.sendMessage(steamID, `❌ Error saving options file to disk: ${err}`);
             return;
         });
 }

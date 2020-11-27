@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import winston from 'winston';
 import 'winston-daily-rotate-file';
 import { FormatWrap } from 'logform';
@@ -62,15 +65,13 @@ const consoleFormat = winston.format.combine(
     winston.format.printf(info => {
         let msg = `${info.timestamp} ${info.level}: ${info.message}`;
 
-        // @ts-ignore
-        const splat = info[Symbol.for('splat')];
+        const splat = info[(Symbol.for('splat') as unknown) as string];
 
         if (splat) {
             if (splat.length === 1) {
                 msg += ` ${JSON.stringify(splat[0])}`;
             } else if (splat.length > 1) {
-                // @ts-ignore
-                msg += ` ${JSON.stringify(info[Symbol.for('splat')])}`;
+                msg += ` ${JSON.stringify(info[(Symbol.for('splat') as unknown) as string])}`;
             }
         }
 
@@ -120,11 +121,9 @@ export function init(paths: Paths, options: Options): void {
         delete transport.type;
 
         if (type === 'File' || type === 'DailyRotateFile') {
-            // @ts-ignore
-            transport.format = fileFormat;
+            transport['format'] = fileFormat;
         } else if (type === 'Console') {
-            // @ts-ignore
-            transport.format = consoleFormat;
+            transport['format'] = consoleFormat;
         }
 
         const filter = transport.filter;
@@ -133,22 +132,13 @@ export function init(paths: Paths, options: Options): void {
             delete transport.filter;
 
             if (filter === 'trade') {
-                // @ts-ignore
-                transport.format = winston.format.combine(
-                    levelFilter(filter)(),
-                    // @ts-ignore
-                    transport.format
-                );
+                transport['format'] = winston.format.combine(levelFilter(filter)(), transport['format']);
             } else if (filter === 'private') {
-                // @ts-ignore
-                transport.format = winston.format.combine(
-                    privateFilter(),
-                    // @ts-ignore
-                    transport.format
-                );
+                transport['format'] = winston.format.combine(privateFilter(), transport['format']);
             }
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         logger.add(new winston.transports[type](transport));
     });
 }

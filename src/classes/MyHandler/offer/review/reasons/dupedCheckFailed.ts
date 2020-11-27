@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
@@ -17,10 +22,10 @@ export default function dupedCheckFailed(meta: UnknownDictionary<any>, bot: Bot)
 
             if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                dupedFailedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
+                dupedFailedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid as string})`);
             } else {
                 // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
+                dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid as string}`);
             }
         } else {
             // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
@@ -29,10 +34,14 @@ export default function dupedCheckFailed(meta: UnknownDictionary<any>, bot: Bot)
 
                 if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
                     // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                    dupedFailedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
+                    dupedFailedItemsName.push(
+                        `${name} - [history page](https://backpack.tf/item/${el.assetid as string})`
+                    );
                 } else {
                     // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                    dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
+                    dupedFailedItemsName.push(
+                        `${name}, history page: https://backpack.tf/item/${el.assetid as string}`
+                    );
                 }
             }
         }

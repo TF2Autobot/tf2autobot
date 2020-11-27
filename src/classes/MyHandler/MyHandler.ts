@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
 import SteamUser from 'steam-user';
@@ -9,7 +14,7 @@ import async from 'async';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings } from './offer/accepted/export-process';
+import { processAccepted, updateListings } from './offer/accepted/exportAccepted';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
@@ -270,12 +275,14 @@ export = class MyHandler extends Handler {
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
         ]).then(([loginKey, pricelist, loginAttempts, pollData]) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
 
     onReady(): void {
         log.info(
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             'TF2Autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
@@ -288,12 +295,12 @@ export = class MyHandler extends Handler {
         );
 
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
-        this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+        this.bot.client.setPersona(SteamUser.EPersonaState['Online']);
 
         this.botSteamID = this.bot.client.steamID;
 
         // Get Backpack slots and Premium info from backpack.tf
-        this.getBPTFAccountInfo();
+        void this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
         keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
@@ -304,7 +311,7 @@ export = class MyHandler extends Handler {
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
             // called after 2 minutes to craft metals and duplicated weapons first.
-            craftClassWeapons(this.bot);
+            void craftClassWeapons(this.bot);
         }, 2 * 60 * 1000);
 
         // Auto sell and buy keys if ref < minimum
@@ -346,7 +353,7 @@ export = class MyHandler extends Handler {
                 return resolve();
             }
 
-            this.bot.listings.removeAll().asCallback(err => {
+            void this.bot.listings.removeAll().asCallback(err => {
                 if (err) {
                     log.warn('Failed to remove all listings: ', err);
                 }
@@ -358,7 +365,7 @@ export = class MyHandler extends Handler {
 
     onLoggedOn(): void {
         if (this.bot.isReady()) {
-            this.bot.client.setPersona(SteamUser.EPersonaState.Online);
+            this.bot.client.setPersona(SteamUser.EPersonaState['Online']);
             this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
@@ -395,9 +402,10 @@ export = class MyHandler extends Handler {
         });
     }
 
-    onLoginError(err: Error): void {
-        // @ts-ignore
-        if (err.eresult === SteamUser.EResult.InvalidPassword) {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    onLoginError(err): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (err.eresult === SteamUser.EResult['InvalidPassword']) {
             files.deleteFile(this.paths.files.loginKey).catch(err => {
                 log.warn('Failed to delete login key: ', err);
             });
@@ -411,22 +419,22 @@ export = class MyHandler extends Handler {
     }
 
     onFriendRelationship(steamID: SteamID, relationship: number): void {
-        if (relationship === SteamUser.EFriendRelationship.Friend) {
+        if (relationship === SteamUser.EFriendRelationship['Friend']) {
             this.onNewFriend(steamID);
             this.checkFriendsCount(steamID);
-        } else if (relationship === SteamUser.EFriendRelationship.RequestRecipient) {
+        } else if (relationship === SteamUser.EFriendRelationship['RequestRecipient']) {
             this.respondToFriendRequest(steamID);
         }
     }
 
     onGroupRelationship(groupID: SteamID, relationship: number): void {
         log.debug('Group relation changed', { steamID: groupID, relationship: relationship });
-        if (relationship === SteamUser.EClanRelationship.Invited) {
+        if (relationship === SteamUser.EClanRelationship['Invited']) {
             const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
             this.bot.client.respondToGroupInvite(groupID, this.groups.includes(groupID.getSteamID64()));
-        } else if (relationship === SteamUser.EClanRelationship.Member) {
+        } else if (relationship === SteamUser.EClanRelationship['Member']) {
             log.info(`Joined group ${groupID.getSteamID64()}`);
         }
     }
@@ -453,7 +461,7 @@ export = class MyHandler extends Handler {
 
             if (pricelist.length > 0) {
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-                this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
                     log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
                 });
             } else {
@@ -1103,7 +1111,7 @@ export = class MyHandler extends Handler {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
+                    void Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -1148,13 +1156,15 @@ export = class MyHandler extends Handler {
                     }
                 }
             } catch (err) {
-                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + err.message);
+                const theErr = err as Error;
+
+                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + theErr.message);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
                     withError: true,
                     assetid: assetidsToCheck,
                     sku: skuToCheck,
-                    error: err.message
+                    error: theErr.message
                 });
             }
         }
@@ -1315,7 +1325,7 @@ export = class MyHandler extends Handler {
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
         // Not sure if it can go from other states to active
-        if (oldState === TradeOfferManager.ETradeOfferState.Accepted) {
+        if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
         }
 
@@ -1332,21 +1342,21 @@ export = class MyHandler extends Handler {
 
         if (handledByUs && offer.data('switchedState') !== offer.state) {
             if (notify) {
-                if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
+                if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
                     accepted(offer, this.bot);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState.InEscrow) {
+                } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
                     acceptEscrow(offer, this.bot);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
+                } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
+                } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState.InvalidItems) {
+                } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     invalid(offer, this.bot);
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
+            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
                 // Only run this if the bot handled the offer
 
                 offer.data('isAccepted', true);
@@ -1387,7 +1397,7 @@ export = class MyHandler extends Handler {
             }
         }
 
-        if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
+        if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
 
             // Smelt / combine metal
@@ -1398,7 +1408,7 @@ export = class MyHandler extends Handler {
 
             this.classWeaponsTimeout = setTimeout(() => {
                 // called after 2 minutes to craft metals and duplicated weapons first.
-                craftClassWeapons(this.bot);
+                void craftClassWeapons(this.bot);
             }, 2 * 60 * 1000);
 
             // Sort inventory
@@ -1459,14 +1469,14 @@ export = class MyHandler extends Handler {
             }
 
             const relation = this.bot.client.myFriends[steamID64];
-            if (relation === SteamUser.EFriendRelationship.RequestRecipient) {
+            if (relation === SteamUser.EFriendRelationship['RequestRecipient']) {
                 this.respondToFriendRequest(steamID64);
             }
         }
 
         this.bot.getAdmins().forEach(steamID => {
             if (!this.bot.friends.isFriend(steamID)) {
-                log.info(`Not friends with admin ${steamID}, sending friend request...`);
+                log.info(`Not friends with admin ${steamID.toString()}, sending friend request...`);
                 this.bot.client.addFriend(steamID, err => {
                     if (err) {
                         log.warn('Failed to send friend request: ', err);
@@ -1626,7 +1636,7 @@ export = class MyHandler extends Handler {
                         log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
+                            void this.requestBackpackSlots();
                         }, 10 * 60 * 1000);
 
                         return reject();
@@ -1640,14 +1650,14 @@ export = class MyHandler extends Handler {
                         log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
                         clearTimeout(this.retryRequest);
                         this.retryRequest = setTimeout(() => {
-                            this.requestBackpackSlots();
+                            void this.requestBackpackSlots();
                         }, 10 * 60 * 1000);
 
                         return reject();
                     }
 
                     clearTimeout(this.retryRequest);
-                    this.backpackSlots = body.result.num_backpack_slots;
+                    this.backpackSlots = body.result.num_backpack_slots as number;
 
                     return resolve();
                 }
@@ -1676,23 +1686,23 @@ export = class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            this.getBPTFAccountInfo();
+                            void this.getBPTFAccountInfo();
                         }, 5 * 60 * 1000);
 
                         return reject();
                     }
 
                     const user = body.users[steamID64];
-                    this.botName = user.name;
-                    this.botAvatarURL = user.avatar;
+                    this.botName = user.name as string;
+                    this.botAvatarURL = user.avatar as string;
 
                     const isPremium = user.premium ? user.premium === 1 : false;
                     this.isPremium = isPremium;
 
-                    const backpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
+                    const backpackSlots = user.inventory ? (user.inventory['440'].slots.total as number) : 0;
                     if (backpackSlots === 0) {
                         // If user.inventory not available, then request backpack slots from Steam API.
-                        this.requestBackpackSlots();
+                        void this.requestBackpackSlots();
                     }
                     this.backpackSlots = backpackSlots;
                     return resolve();
@@ -1711,15 +1721,15 @@ export = class MyHandler extends Handler {
 
             const relationship = this.bot.client.myGroups[groupID64];
 
-            if (relationship === SteamUser.EClanRelationship.Invited) {
+            if (relationship === SteamUser.EClanRelationship['Invited']) {
                 this.bot.client.respondToGroupInvite(groupID64, false);
             }
         }
 
         this.groups.forEach(steamID => {
             if (
-                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Member &&
-                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship.Blocked
+                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship['Member'] &&
+                this.bot.client.myGroups[steamID] !== SteamUser.EClanRelationship['Blocked']
             ) {
                 this.bot.community.getSteamGroup(new SteamID(steamID), (err, group) => {
                     if (err) {
@@ -1751,7 +1761,7 @@ export = class MyHandler extends Handler {
 
         if (pricelist.length === 0) {
             // Ignore errors
-            this.bot.listings.removeAll().asCallback();
+            void this.bot.listings.removeAll().asCallback();
         }
 
         files
@@ -1770,7 +1780,7 @@ export = class MyHandler extends Handler {
     }
 
     onLoginThrottle(wait: number): void {
-        log.warn('Waiting ' + wait + ' ms before trying to sign in...');
+        log.warn(`Waiting ${wait} ms before trying to sign in...`);
     }
 
     onTF2QueueCompleted(): void {

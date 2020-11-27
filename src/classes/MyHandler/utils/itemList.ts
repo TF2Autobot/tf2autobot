@@ -1,7 +1,8 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 
 export default function itemList(offer: TradeOffer): { their: string[]; our: string[] } {
-    const items: { our: {}; their: {} } = offer.data('dict');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const items: { our: Record<string, unknown>; their: Record<string, unknown> } = offer.data('dict');
     const their: string[] = [];
     for (const theirItemsSku in items.their) {
         if (!Object.prototype.hasOwnProperty.call(items.their, theirItemsSku)) {

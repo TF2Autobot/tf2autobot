@@ -652,7 +652,7 @@ export = class Autokeys {
                     buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
                 }
-            } as any;
+            } as EntryData;
         } else {
             entry = {
                 sku: '5021;6',
@@ -673,17 +673,17 @@ export = class Autokeys {
                     buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
                     sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
                 }
-            } as any;
+            } as EntryData;
         }
         this.bot.pricelist
-            .updatePrice(entry as EntryData, onShutdown, PricelistChangedSource.Autokeys)
+            .updatePrice(entry, onShutdown, PricelistChangedSource.Autokeys)
             .then(data => {
                 log.debug('✅ Automatically disabled Autokeys.', data);
                 if (!onShutdown) {
                     this.bot.listings.checkBySKU(data.sku, data);
                 }
             })
-            .catch(err => {
+            .catch((err: Error) => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
                 this.isActive = true;
             });

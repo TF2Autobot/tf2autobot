@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -450,6 +452,7 @@ export default interface Options extends JsonOptions {
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         if (options && options[option]) return options[option];
         const envVar = snakeCase(option).toUpperCase();
         // log.debug('envVar: ', envVar);

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
@@ -14,6 +17,7 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
 
     bot.sendMessage(
         steamID,
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         'All trades are recorded from ' +
             pluralize('day', trades.totalDays, true) +
             ' ago 📊\n\n Total: ' +
@@ -31,6 +35,7 @@ export function inventoryCommand(steamID: SteamID, bot: Bot): void {
 
     bot.sendMessage(
         steamID,
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         `🎒 My current items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
     );
 }

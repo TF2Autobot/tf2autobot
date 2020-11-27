@@ -8,6 +8,7 @@ export default function valueDiff(
     isTradingKeys: boolean,
     enableShowOnlyMetal: boolean
 ): { diff: number; diffRef: number; diffKey: string } {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value: { our: Currency; their: Currency } = offer.data('value');
 
     let diff: number;

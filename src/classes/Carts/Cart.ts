@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import SteamID from 'steamid';
 import moment from 'moment';
 import SKU from 'tf2-sku-2';
@@ -55,6 +58,7 @@ abstract class Cart {
 
     constructor(partner: SteamID, token: string, bot: Bot);
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     constructor(...args) {
         this.partner = args[0];
 
@@ -103,7 +107,7 @@ abstract class Cart {
     }
 
     isMade(): boolean {
-        return this.offer?.state !== TradeOfferManager.ETradeOfferState.Invalid;
+        return this.offer?.state !== TradeOfferManager.ETradeOfferState['Invalid'];
     }
 
     getOffer(): TradeOffer | null {
@@ -414,7 +418,7 @@ abstract class Cart {
 
                 return status;
             })
-            .catch(async err => {
+            .catch(async (err) => {
                 if (!(err instanceof Error)) {
                     return Promise.reject(err);
                 }
@@ -465,10 +469,12 @@ abstract class Cart {
 
                     const msg =
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
-                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots +
-                            theirNumItems} / ${ourTotalSlots} slots used` +
-                        `\n➡️ They would have received ${ourNumItems} item(s) → ${theirUsedSlots +
-                            ourNumItems} / ${theirTotalSlots} slots used`;
+                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                            ourUsedSlots + theirNumItems
+                        } / ${ourTotalSlots} slots used` +
+                        `\n➡️ They would have received ${ourNumItems} item(s) → ${
+                            theirUsedSlots + ourNumItems
+                        } / ${theirTotalSlots} slots used`;
                     if (opt.sendAlert) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
@@ -480,10 +486,12 @@ abstract class Cart {
                         `It appears as if ${
                             ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
                         } backpack is full!` +
-                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots +
-                                theirNumItems} / ${ourTotalSlots} slots used` +
-                            `\n➡️ You would have received ${ourNumItems} item(s) → ${theirUsedSlots +
-                                ourNumItems} / ${theirTotalSlots} slots used` +
+                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                                ourUsedSlots + theirNumItems
+                            } / ${ourTotalSlots} slots used` +
+                            `\n➡️ You would have received ${ourNumItems} item(s) → ${
+                                theirUsedSlots + ourNumItems
+                            } / ${theirTotalSlots} slots used` +
                             `\nIf this is in error, please give Steam time to refresh our backpacks`
                     );
                 } else if (error.eresult == 20) {
@@ -492,7 +500,9 @@ abstract class Cart {
                     );
                 } else if (error.eresult !== undefined) {
                     return Promise.reject(
-                        `An error occurred while sending the offer (${TradeOfferManager.EResult[error.eresult]})`
+                        `An error occurred while sending the offer (${
+                            TradeOfferManager.EResult[error.eresult] as string
+                        })`
                     );
                 }
 
@@ -607,7 +617,7 @@ abstract class Cart {
     }
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',

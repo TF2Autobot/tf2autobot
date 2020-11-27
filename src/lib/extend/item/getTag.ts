@@ -5,7 +5,6 @@ import { EconItem } from 'steam-tradeoffer-manager';
  * @param category - Category to search for
  */
 export = function(category: string): string | null {
-    // @ts-ignore
     const self = this as EconItem;
 
     if (!Array.isArray(self.tags)) {

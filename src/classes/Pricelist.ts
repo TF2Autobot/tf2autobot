@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
@@ -443,7 +447,6 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        // @ts-ignore
         this.prices = prices.map(entry => new Entry(entry, this.schema));
 
         return this.setupPricelist();

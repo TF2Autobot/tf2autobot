@@ -75,10 +75,13 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
 
         // Send message to all other admins that an admin replied
         bot.messageAdmins(
-            (adminDetails ? adminDetails.player_name + ` (${steamID})` : steamID) +
-                ' sent a message to ' +
-                (recipentDetails ? recipentDetails.player_name + ` (${recipientSteamID})` : recipientSteamID) +
-                ` with "${reply}".`,
+            `${
+                adminDetails ? `${adminDetails.player_name} (${steamID.toString()})` : steamID.toString()
+            } sent a message to ${
+                recipentDetails
+                    ? recipentDetails.player_name + ` (${recipientSteamID.toString()})`
+                    : recipientSteamID.toString()
+            } with "${reply}".`,
             [steamID]
         );
         return;
@@ -103,7 +106,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(
-                `/quote 💬 You've got a message from #${steamID} (${adminDetails.player_name}):` +
+                `/quote 💬 You've got a message from #${steamID.toString()} (${adminDetails.player_name}):` +
                     `"${msg}". ` +
                     `\nSteam: ${links.steam}` +
                     `\nBackpack.tf: ${links.bptf}` +

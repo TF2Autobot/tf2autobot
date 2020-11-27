@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
@@ -12,9 +17,9 @@ export default function invalidItems(meta: UnknownDictionary<any>, bot: Bot): { 
     const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
 
     invalid.forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+        const name = bot.schema.getName(SKU.fromString(el.sku as string), false);
         invalidForTheir.push(name); // only show to trade partner the item name
-        invalidForOur.push(name + ' - ' + el.price); // show both item name and prices.tf price
+        invalidForOur.push(`${name} - ${el.price as string}`); // show both item name and prices.tf price
     });
 
     const note = bot.options.manualReview.invalidItems.note

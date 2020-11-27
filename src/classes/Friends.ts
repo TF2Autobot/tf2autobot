@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 import SteamUser from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
@@ -45,7 +49,7 @@ export = class Friends {
 
         const relation = this.bot.client.myFriends[steamID64];
 
-        return relation === SteamUser.EFriendRelationship.Friend;
+        return relation === SteamUser.EFriendRelationship['Friend'];
     }
 
     getFriends(): string[] {
@@ -80,6 +84,7 @@ export = class Friends {
         };
 
         return new Promise((resolve, reject) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
                 if (err) {
                     return reject(err);

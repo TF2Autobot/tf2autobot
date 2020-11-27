@@ -28,7 +28,7 @@ export function requestCheck(sku: string, source: string): Promise<UnknownDictio
 }
 
 function apiRequest(httpMethod: string, path: string, input: UnknownDictionary<any>): Promise<UnknownDictionary<any>> {
-    const options: OptionsWithUrl & { headers: {} } = {
+    const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
         method: httpMethod,
         url: `https://api.prices.tf${path}`,
         headers: {
@@ -46,6 +46,7 @@ function apiRequest(httpMethod: string, path: string, input: UnknownDictionary<a
     options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
 
     return new Promise((resolve, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         request(options, (err: Error | null, response: ResponseAsJSON, body: UnknownDictionary<any>) => {
             if (err) {
                 return reject(err);

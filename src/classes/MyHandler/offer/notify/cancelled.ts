@@ -6,7 +6,7 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
 
     if (offer.data('canceledByUser') === true) {
         reason = 'Offer was canceled by user';
-    } else if (oldState === TradeOfferManager.ETradeOfferState.CreatedNeedsConfirmation) {
+    } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
         reason = 'Failed to accept mobile confirmation';
     } else {
         reason =

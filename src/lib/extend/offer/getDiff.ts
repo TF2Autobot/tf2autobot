@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { TradeOffer } from 'steam-tradeoffer-manager';
 
 import { UnknownDictionary } from '../../../types/common';
 
 export = function(): UnknownDictionary<number> | null {
-    // @ts-ignore
     const self = this as TradeOffer;
 
     const dict = self.data('dict');
@@ -19,7 +21,7 @@ export = function(): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) - dict.our[sku];
+        diff[sku] = (diff[sku] || 0) - (dict.our[sku] as number);
     }
 
     for (const sku in dict.their) {
@@ -27,7 +29,7 @@ export = function(): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) + dict.their[sku];
+        diff[sku] = (diff[sku] || 0) + (dict.their[sku] as number);
     }
 
     return diff;

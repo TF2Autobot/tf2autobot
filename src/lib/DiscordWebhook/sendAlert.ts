@@ -12,7 +12,7 @@ export default function sendAlert(
     bot: Bot,
     msg: string | null = null,
     position: number | null = null,
-    err: any | null = null,
+    err: Error | null = null,
     items: string[] | null = null
 ): void {
     const opt = bot.options;

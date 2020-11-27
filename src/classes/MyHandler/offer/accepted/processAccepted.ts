@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import { UnknownDictionary } from '../../../../types/common';
@@ -59,7 +64,7 @@ export default function processAccepted(
                     const invalid = offerReceived.meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS'));
                     invalid.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.invalidItems.push(name + ' - ' + el.price);
+                        accepted.invalidItems.push(`${name} - ${el.price as string}`);
                     });
                 }
 
@@ -69,7 +74,7 @@ export default function processAccepted(
                     const invalid = offerReceived.meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED'));
                     invalid.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.overstocked.push(name + ' (amount can buy was ' + el.amountCanTrade + ')');
+                        accepted.overstocked.push(`${name} (amount can buy was ${el.amountCanTrade as number})`);
                     });
                 }
 
@@ -79,7 +84,7 @@ export default function processAccepted(
                     const invalid = offerReceived.meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED'));
                     invalid.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.understocked.push(name + ' (amount can sell was ' + el.amountCanTrade + ')');
+                        accepted.understocked.push(`${name} (amount can sell was ${el.amountCanTrade as number})`);
                     });
                 }
             }

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Item } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
@@ -75,7 +77,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
                 itemsGameItem.static_attrs !== undefined &&
                 itemsGameItem.static_attrs['set supply crate series'] !== undefined
             ) {
-                // @ts-ignore
                 if (isObject(itemsGameItem.static_attrs['set supply crate series'])) {
                     series = itemsGameItem.static_attrs['set supply crate series'].value;
                 } else {
@@ -85,12 +86,13 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         }
 
         if (series !== null) {
-            // @ts-ignore
             // @TODO We are parsing a number from a number.
             // If you meant to floor the int, use Math.floor()
             // If you are expecting a string here,
             // SchemaManager.attributes might be wrong.
-            item.crateseries = parseInt(series);
+
+            // IdiNium: I don't parse it.
+            item.crateseries = series;
         }
     }
 

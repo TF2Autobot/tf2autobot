@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 
@@ -38,13 +42,12 @@ export default function updateListings(
         // Request priceheck on each sku involved in the trade, except craft weapons,
         // and pure.
         if (isNotPureOrWeapons) {
-            requestCheck(sku, 'bptf').asCallback((err, body) => {
+            void requestCheck(sku, 'bptf').asCallback((err, body) => {
                 if (err) {
                     log.debug(
-                        '❌ Failed to request pricecheck for ' +
-                            `${name} (${sku})` +
-                            ': ' +
-                            (err.body && err.body.message ? err.body.message : err.message)
+                        `❌ Failed to request pricecheck for ${name} (${sku}): ${
+                            err.body && err.body.message ? err.body.message : err.message
+                        }`
                     );
                 } else {
                     log.debug(
@@ -83,15 +86,15 @@ export default function updateListings(
                 max: 1,
                 intent: 1,
                 group: 'invalidItem'
-            } as any;
+            } as EntryData;
 
             bot.pricelist
-                .addPrice(entry as EntryData, false)
+                .addPrice(entry, false)
                 .then(data => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     bot.listings.checkBySKU(data.sku, data);
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                     log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                 });
         } else if (
@@ -109,10 +112,10 @@ export default function updateListings(
                 max: inPrice.max,
                 intent: inPrice.intent,
                 group: 'highValue'
-            } as any;
+            } as EntryData;
 
             bot.pricelist
-                .updatePrice(entry as EntryData, true)
+                .updatePrice(entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
 
@@ -134,7 +137,7 @@ export default function updateListings(
                         bot.messageAdmins(msg, []);
                     }
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                     log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
                 });
         } else if (
@@ -151,7 +154,7 @@ export default function updateListings(
                 .then(() => {
                     log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                     log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
                 });
         }

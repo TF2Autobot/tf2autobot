@@ -36,6 +36,7 @@ export = class CommandParser {
                     continue;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 let value = params[key];
 
                 if (key !== 'sku') {

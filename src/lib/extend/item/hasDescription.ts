@@ -5,7 +5,6 @@ import { EconItem } from 'steam-tradeoffer-manager';
  * @param description - Description to search for
  */
 export = function(description: string): boolean {
-    // @ts-ignore
     const self = this as EconItem;
 
     if (!Array.isArray(self.descriptions)) {

@@ -45,6 +45,7 @@ export = class BotManager {
 
         this.socket.on('unauthorized', err => {
             log.debug('Failed to authenticate with socket server', {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 error: err
             });
         });
@@ -86,17 +87,17 @@ export = class BotManager {
                 [
                     (callback): void => {
                         log.debug('Connecting to PM2...');
-                        this.connectToPM2().asCallback(callback);
+                        void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Getting TF2 schema...');
-                        this.initializeSchema().asCallback(callback);
+                        void this.initializeSchema().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Starting bot...');
                         this.bot = new Bot(this, options);
 
-                        this.bot.start().asCallback(callback);
+                        void this.bot.start().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
@@ -213,7 +214,7 @@ export = class BotManager {
     private cleanup(): void {
         if (this.bot !== null) {
             // Make the bot snooze on Steam, that way people will know it is not running
-            this.bot.client.setPersona(SteamUser.EPersonaState.Snooze);
+            this.bot.client.setPersona(SteamUser.EPersonaState['Snooze']);
             this.bot.client.autoRelogin = false;
 
             // Stop polling offers
@@ -246,7 +247,7 @@ export = class BotManager {
         }
 
         log.debug('Waiting for files to be saved');
-        waitForWriting().then(() => {
+        void waitForWriting().then(() => {
             log.debug('Done waiting for files');
 
             log.on('finish', () => {

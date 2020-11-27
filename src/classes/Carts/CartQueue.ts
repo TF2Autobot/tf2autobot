@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import SteamID from 'steamid';
 
 import Bot from '../Bot';
 import Cart from './Cart';
 
 import log from '../../lib/logger';
+
+import * as inspect from 'util';
 
 export = CartQueue;
 
@@ -33,7 +36,7 @@ class CartQueue {
 
         const position = this.carts.length;
 
-        log.debug('Added cart to queue at position ' + position);
+        log.debug(`Added cart to queue at position ${position}`);
 
         this.carts.push(cart);
 
@@ -147,7 +150,7 @@ class CartQueue {
                         cart.sendNotification(`❌ I failed to make the offer! Reason: ${err}.`);
                     } else {
                         log.warn('Failed to make offer');
-                        log.error(require('util').inspect(err));
+                        log.error(inspect.inspect(err));
 
                         if (err.message.includes("cause: 'TargetCannotTrade'")) {
                             cart.sendNotification(
@@ -207,7 +210,7 @@ class CartQueue {
                         cart.sendNotification(`❌ I failed to make the offer! Reason: ${err}.`);
                     } else {
                         log.warn('Failed to make offer');
-                        log.error(require('util').inspect(err));
+                        log.error(inspect.inspect(err));
 
                         if (err.message.includes("cause: 'TargetCannotTrade'")) {
                             cart.sendNotification(

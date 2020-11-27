@@ -50,17 +50,19 @@ v.addSchema(op.dw.messagesSchema);
 v.addSchema(op.dw.priceUpdateSchema);
 v.addSchema(op.dw.sendAlertSchema);
 
-export = function(data: any, schema: string): string[] | null {
+import { EntryData } from '../classes/Pricelist';
+import Options from '../classes/Options';
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export = function(data: EntryData | Options, schema: string): string[] | null {
     const putSchema =
         schema === 'pricelist-add'
             ? pl.addSchema
             : schema === 'pricelist'
             ? pl.pricelistSchema
-            : schema === 'tf2-currencies'
-            ? pl.currenciesSchema
             : schema === 'options'
             ? op.optionsSchema
-            : pl.listingSchema;
+            : {};
 
     const validated = v.validate(data, putSchema);
     if (validated.valid === true) {
@@ -84,6 +86,7 @@ function errorParser(validated: jsonschema.ValidatorResult): string[] {
 
         let message = error.stack;
         if (error.name === 'additionalProperties') {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             message = `unknown property "${error.argument}"`;
         } else if (property) {
             if (error.name === 'anyOf') {

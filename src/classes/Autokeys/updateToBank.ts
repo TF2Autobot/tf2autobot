@@ -20,7 +20,7 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
                 buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
                 sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
-        } as any;
+        } as EntryData;
     } else {
         entry = {
             sku: '5021;6',
@@ -41,15 +41,15 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
                 buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
                 sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
-        } as any;
+        } as EntryData;
     }
     bot.pricelist
-        .updatePrice(entry as EntryData, false, PricelistChangedSource.Autokeys)
+        .updatePrice(entry, false, PricelistChangedSource.Autokeys)
         .then(data => {
             log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
             bot.listings.checkBySKU(data.sku, data);
         })
-        .catch(err => {
+        .catch((err: Error) => {
             log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
         });
 }

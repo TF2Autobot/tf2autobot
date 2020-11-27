@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
@@ -17,7 +20,7 @@ import MyHandler from '../MyHandler/MyHandler';
 
 export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as any;
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
     const isPremium = (bot.handler as MyHandler).getBotInfo().premium;
 
@@ -94,7 +97,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
 
     if (params.group && typeof params.group !== 'string') {
         // if group parameter is defined, convert anything to string
-        params.group = params.group.toString();
+        params.group = (params.group as string).toString();
     }
 
     if (params.group === undefined) {
@@ -128,7 +131,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
             bot.sendMessage(
                 steamID,
                 `✅ Added "${entry.name}"` +
-                    `\n💲 Buy: ${entry.buy} | Sell: ${entry.sell}` +
+                    `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
                     `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
                     `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
                     `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
@@ -139,7 +142,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
                     `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
             );
         })
-        .catch(err => {
+        .catch((err: Error) => {
             bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${err.message}`);
         });
 }
@@ -180,16 +183,16 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
 
         if (params.withgroup) {
             targetedPricelist = pricelist.filter(entry =>
-                entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                entry.group ? [(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase()) : false
             );
             unTargetedPricelist = pricelist.filter(entry =>
-                entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                entry.group ? ![(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase()) : true
             );
 
             if (targetedPricelist.length === 0) {
                 bot.sendMessage(
                     steamID,
-                    `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
                 );
                 return;
             }
@@ -211,16 +214,20 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         } else if (params.withoutgroup) {
             // reverse of withgroup
             targetedPricelist = pricelist.filter(entry =>
-                entry.group ? ![params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                entry.group
+                    ? ![(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
+                    : true
             );
             unTargetedPricelist = pricelist.filter(entry =>
-                entry.group ? [params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                entry.group
+                    ? [(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
+                    : false
             );
 
             if (targetedPricelist.length === 0) {
                 bot.sendMessage(
                     steamID,
-                    `❌ There is no entry other than "${params.withoutgroup}" group found in your pricelist.`
+                    `❌ There is no entry other than "${params.withoutgroup as string}" group found in your pricelist.`
                 );
                 return;
             }
@@ -284,11 +291,11 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
             }
 
             if (params.min === 0 || typeof params.min === 'number') {
-                entry.min = params.min;
+                entry.min = params.min as number;
             }
 
             if (params.max === 0 || typeof params.max === 'number') {
-                entry.max = params.max;
+                entry.max = params.max as number;
             }
 
             if (typeof params.enabled === 'boolean') {
@@ -296,7 +303,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
             }
 
             if (params.group) {
-                entry.group = params.group.toString();
+                entry.group = (params.withgroup as string).toString();
             }
 
             if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
@@ -388,7 +395,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         if (params.autoprice !== true) {
             bot.getHandler().onPricelist(newPricelist);
             bot.sendMessage(steamID, '✅ Updated pricelist!');
-            bot.listings.redoListings().asCallback();
+            void bot.listings.redoListings().asCallback();
             return;
         }
 
@@ -398,9 +405,9 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
             .setupPricelist()
             .then(() => {
                 bot.sendMessage(steamID, '✅ Updated pricelist!');
-                bot.listings.redoListings().asCallback();
+                void bot.listings.redoListings().asCallback();
             })
-            .catch(err => {
+            .catch((err: Error) => {
                 log.warn('Failed to update prices: ', err);
                 bot.sendMessage(steamID, `❌ Failed to update prices: ${err.message}`);
                 return;
@@ -478,7 +485,10 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         let match = bot.pricelist.searchByName(params.item as string, false);
 
         if (match === null) {
-            bot.sendMessage(steamID, `❌ I could not find any items in my pricelist that contain "${params.item}"`);
+            bot.sendMessage(
+                steamID,
+                `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
+            );
             return;
         } else if (Array.isArray(match)) {
             const matchCount = match.length;
@@ -583,6 +593,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
             continue;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         entryData[property] = params[property];
     }
 
@@ -590,18 +601,18 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         .updatePrice(entryData, true, PricelistChangedSource.Command)
         .then(entry => {
             const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
-            const keyPrice = bot.pricelist.getKeyPrice();
+            const keyPrice = bot.pricelist.getKeyPrice().metal;
             bot.sendMessage(
                 steamID,
                 `✅ Updated "${entry.name}"` +
                     `\n💲 Buy: ${
-                        itemEntry.buy.toValue(keyPrice.metal) !== entry.buy.toValue(keyPrice.metal)
-                            ? `${itemEntry.buy} → ${entry.buy}`
-                            : entry.buy
+                        itemEntry.buy.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                            ? `${itemEntry.buy.toString()} → ${entry.buy.toString()}`
+                            : entry.buy.toString()
                     } | Sell: ${
-                        itemEntry.sell.toValue(keyPrice.metal) !== entry.sell.toValue(keyPrice.metal)
-                            ? `${itemEntry.sell} → ${entry.sell}`
-                            : entry.sell
+                        itemEntry.sell.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                            ? `${itemEntry.sell.toString()} → ${entry.sell.toString()}`
+                            : entry.sell.toString()
                     }` +
                     `\n📦 Stock: ${amount}` +
                     ` | Min: ${itemEntry.min !== entry.min ? `${itemEntry.min} → ${entry.min}` : entry.min} | Max: ${
@@ -645,6 +656,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         .catch(err => {
             bot.sendMessage(
                 steamID,
+                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                 '❌ Failed to update pricelist entry: ' +
                     (err.body && err.body.message ? err.body.message : err.message)
             );
@@ -680,37 +692,41 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
         if (params.withgroup) {
             // first filter out pricelist with ONLY "withgroup" value.
             newPricelistCount = pricelist.filter(entry =>
-                entry.group ? [params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                entry.group ? [(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase()) : false
             );
 
             if (newPricelistCount.length === 0) {
                 bot.sendMessage(
                     steamID,
-                    `❌ There is no entry with "${params.withgroup}" group found in your pricelist.`
+                    `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
                 );
                 return;
             }
 
             // then filter out pricelist with NOT "withgroup" value.
             newPricelist = pricelist.filter(entry =>
-                entry.group ? ![params.withgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                entry.group ? ![(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase()) : true
             );
         } else if (params.withoutgroup) {
             // reverse of withgroup
             newPricelistCount = pricelist.filter(entry =>
-                entry.group ? ![params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : true
+                entry.group
+                    ? ![(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
+                    : true
             );
 
             if (newPricelistCount.length === 0) {
                 bot.sendMessage(
                     steamID,
-                    `❌ There is no entry other than "${params.withoutgroup}" group found in your pricelist.`
+                    `❌ There is no entry other than "${params.withoutgroup as string}" group found in your pricelist.`
                 );
                 return;
             }
 
             newPricelist = pricelist.filter(entry =>
-                entry.group ? [params.withoutgroup.toLowerCase()].includes(entry.group.toLowerCase()) : false
+                entry.group
+                    ? [(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
+                    : false
             );
         } else {
             newPricelistCount = pricelist;
@@ -731,9 +747,10 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
                 .removeByGroup(newPricelist)
                 .then(() => {
                     bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
-                    bot.listings.redoListings().asCallback();
+                    void bot.listings.redoListings().asCallback();
                 })
-                .catch(err => {
+                .catch((err: Error) => {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
                 });
             return;
@@ -743,7 +760,8 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
                 .then(() => {
                     bot.sendMessage(steamID, '✅ Cleared pricelist!');
                 })
-                .catch(err => {
+                .catch((err: Error) => {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
                 });
             return;
@@ -760,7 +778,10 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
         let match = bot.pricelist.searchByName(params.item as string, false);
 
         if (match === null) {
-            bot.sendMessage(steamID, `❌ I could not find any items in my pricelist that contain "${params.item}"`);
+            bot.sendMessage(
+                steamID,
+                `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
+            );
             return;
         } else if (Array.isArray(match)) {
             const matchCount = match.length;
@@ -797,7 +818,7 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
         .then(entry => {
             bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
         })
-        .catch(err => {
+        .catch((err: Error) => {
             bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${err.message}`);
         });
 }
@@ -816,7 +837,10 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
         let match = bot.pricelist.searchByName(params.item as string, false);
 
         if (match === null) {
-            bot.sendMessage(steamID, `❌ I could not find any items in my pricelist that contain "${params.item}"`);
+            bot.sendMessage(
+                steamID,
+                `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
+            );
             return;
         } else if (Array.isArray(match)) {
             const matchCount = match.length;
@@ -856,7 +880,7 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
     const match = bot.pricelist.getPrice(params.sku as string);
 
     if (match === null) {
-        bot.sendMessage(steamID, `❌ Could not find item "${params.sku}" in the pricelist`);
+        bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
     } else {
         bot.sendMessage(steamID, `/code ${JSON.stringify(match, null, 4)}`);
     }
@@ -966,13 +990,19 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
     }
 
     const parametersUsed = {
-        enabled: params.enabled !== undefined ? 'enabled=' + params.enabled.toString() : '',
-        autoprice: params.autoprice !== undefined ? 'autoprice=' + params.autoprice.toString() : '',
-        max: params.max !== undefined ? 'max=' + params.max.toString() : '',
-        min: params.min !== undefined ? 'min=' + params.min.toString() : '',
-        intent: params.intent !== undefined ? 'intent=' + params.intent.toString() : '',
-        promoted: params.promoted !== undefined ? 'promoted=' + params.promoted.toString() : '',
-        group: params.group !== undefined ? 'group=' + params.group.toString() : ''
+        enabled: params.enabled !== undefined ? `enabled=${(params.enabled as boolean).toString()}` : '',
+        autoprice: params.autoprice !== undefined ? `autoprice=${(params.autoprice as boolean).toString()}` : '',
+        max: params.max !== undefined ? `max=${params.max as number}` : '',
+        min: params.min !== undefined ? `min=${params.min as number}` : '',
+        intent:
+            params.intent !== undefined
+                ? `intent=${
+                      (params.intent as number) === 0 ? 'buy' : (params.intent as number) === 1 ? 'sell' : 'bank'
+                  }`
+                : '',
+        promoted:
+            params.promoted !== undefined ? `promoted=${(params.promoted as number) === 1 ? 'true' : 'false'}` : '',
+        group: params.group !== undefined ? `group=${params.group as string}` : ''
     };
 
     const parameters = Object.values(parametersUsed);

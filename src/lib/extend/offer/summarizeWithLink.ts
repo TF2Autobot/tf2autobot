@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
@@ -9,7 +10,6 @@ import { UnknownDictionary } from '../../../types/common';
 import { replace } from '../../tools/export';
 
 export = function(schema: SchemaManager.Schema): string {
-    // @ts-ignore
     const self = this as TradeOffer;
 
     const value: { our: Currency; their: Currency } = self.data('value');
@@ -56,7 +56,7 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         const amount = dict[sku];
         const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
 
-        summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ' x' + amount : ''));
+        summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
     }
 
     if (summary.length === 0) {
@@ -70,5 +70,5 @@ function summarizeItemsWithLink(dict: UnknownDictionary<number>, schema: SchemaM
         summary.splice(15);
     }
 
-    return summary.join(', ') + (left !== 0 ? ' and ' + left + ' more items.' : '');
+    return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
 }

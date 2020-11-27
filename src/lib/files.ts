@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import fs from 'graceful-fs';
 import path from 'path';
 
@@ -37,6 +39,7 @@ export function readFile(p: string, json: boolean): Promise<any> {
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function writeFile(p: string, data: any, json: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
         let write;
@@ -105,7 +108,7 @@ export function waitForWriting(checks = 0): Promise<void> {
     }
 
     return new Promise(resolve => {
-        Promise.delay(exponentialBackoff(checks, 100)).then(() => {
+        void Promise.delay(exponentialBackoff(checks, 100)).then(() => {
             resolve(waitForWriting(checks + 1));
         });
     });

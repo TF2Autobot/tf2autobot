@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
@@ -13,8 +18,8 @@ export default function understocked(meta: UnknownDictionary<any>, bot: Bot): { 
 
     understocked.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-        understockedForTheir.push(el.amountCanTrade + ' - ' + name);
-        understockedForOur.push(name + ' (can only sell ' + el.amountCanTrade + ')');
+        understockedForTheir.push(`${el.amountCanTrade as number} - ${name}`);
+        understockedForOur.push(`${name} (can only sell ${el.amountCanTrade as number})`);
     });
 
     const note = bot.options.manualReview.understocked.note

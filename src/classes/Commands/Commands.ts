@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
@@ -104,7 +110,7 @@ export = class Commands {
         } else if (command === 'uncraftweapon') {
             misc.uncraftweaponCommand(steamID, this.bot);
         } else if (command === 'sales') {
-            this.getSalesCommand(steamID, message);
+            void this.getSalesCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
@@ -156,9 +162,9 @@ export = class Commands {
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            this.pricecheckAllCommand(steamID);
+            void this.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
-            this.checkCommand(steamID, message);
+            void this.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
             pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
@@ -208,7 +214,7 @@ export = class Commands {
             reply = '💲 I am buying ';
 
             if (amount !== 1) {
-                reply += amount + ' ';
+                reply += `${amount} `;
             }
 
             // If the amount is 1, then don't convert to value and then to currencies. If it is for keys, then don't use conversion rate
@@ -236,7 +242,7 @@ export = class Commands {
                 reply = '💲 I am selling ';
 
                 if (amount !== 1) {
-                    reply += amount + ' ';
+                    reply += `${amount} `;
                 } else {
                     reply += 'a ';
                 }
@@ -521,7 +527,7 @@ export = class Commands {
                 return;
             }
 
-            this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
+            void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
                 if (err) {
                     this.bot.sendMessage(
                         steamID,
@@ -628,7 +634,8 @@ export = class Commands {
         } catch (err) {
             this.bot.sendMessage(
                 steamID,
-                `❌ Error getting sell snapshots for ${name === null ? params.sku : name}: ${
+                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     err.body && err.body.message ? err.body.message : err.message
                 }`
             );
@@ -636,12 +643,18 @@ export = class Commands {
         }
 
         if (!salesData) {
-            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            this.bot.sendMessage(
+                steamID,
+                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
+            );
             return;
         }
 
         if (salesData.sales.length === 0) {
-            this.bot.sendMessage(steamID, `❌ No recorded snapshots found for ${name === null ? params.sku : name}.`);
+            this.bot.sendMessage(
+                steamID,
+                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
+            );
             return;
         }
 
@@ -677,10 +690,7 @@ export = class Commands {
                 SalesList.push(
                     `Listed #${i + 1}-----` +
                         '\n• Date: ' +
-                        moment
-                            .unix(sales[i].date)
-                            .utc()
-                            .toString() +
+                        moment.unix(sales[i].date).utc().toString() +
                         '\n• Item: ' +
                         sales[i].itemHistory +
                         '\n• Seller: ' +
@@ -996,26 +1006,28 @@ export = class Commands {
         if (params.assetid !== undefined && params.sku === undefined) {
             // This most likely not working with Non-Tradable items.
             const ourInventory = this.bot.inventoryManager.getInventory();
-            const sku = ourInventory.findByAssetid(params.assetid);
+
+            const targetedAssetId = params.assetid as string;
+            const sku = ourInventory.findByAssetid(targetedAssetId);
 
             if (sku === null) {
                 if (params.i_am_sure !== 'yes_i_am') {
                     this.bot.sendMessage(
                         steamID,
-                        `/pre ⚠️ Are you sure that you want to delete the item with asset ID ${params.assetid}?` +
+                        `/pre ⚠️ Are you sure that you want to delete the item with asset ID ${targetedAssetId}?` +
                             `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
                             `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
                     );
                     return;
                 }
 
-                this.bot.tf2gc.deleteItem(params.assetid as string, err => {
+                this.bot.tf2gc.deleteItem(targetedAssetId, err => {
                     if (err) {
-                        log.warn(`Error trying to delete ${params.assetid}: `, err);
-                        this.bot.sendMessage(steamID, `❌ Failed to delete ${params.assetid}: ${err.message}`);
+                        log.warn(`Error trying to delete ${targetedAssetId}: `, err);
+                        this.bot.sendMessage(steamID, `❌ Failed to delete ${targetedAssetId}: ${err.message}`);
                         return;
                     }
-                    this.bot.sendMessage(steamID, `✅ Deleted ${params.assetid}!`);
+                    this.bot.sendMessage(steamID, `✅ Deleted ${targetedAssetId}!`);
                 });
                 return;
             } else {
@@ -1032,13 +1044,16 @@ export = class Commands {
                     return;
                 }
 
-                this.bot.tf2gc.deleteItem(params.assetid as string, err => {
+                this.bot.tf2gc.deleteItem(targetedAssetId, err => {
                     if (err) {
                         log.warn(`Error trying to delete ${name}: `, err);
-                        this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${params.assetid}): ${err.message}`);
+                        this.bot.sendMessage(
+                            steamID,
+                            `❌ Failed to delete ${name}(${targetedAssetId}): ${err.message}`
+                        );
                         return;
                     }
-                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${params.assetid})!`);
+                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${targetedAssetId})!`);
                 });
                 return;
             }
@@ -1090,12 +1105,14 @@ export = class Commands {
             return;
         }
 
-        const uncraft = params.sku.includes(';uncraftable');
-        const untrade = params.sku.includes(';untradable');
+        const targetedSKU = params.sku as string;
 
-        params.sku = params.sku.replace(';uncraftable', '');
-        params.sku = params.sku.replace(';untradable', '');
-        const item = SKU.fromString(params.sku);
+        const uncraft = targetedSKU.includes(';uncraftable');
+        const untrade = targetedSKU.includes(';untradable');
+
+        params.sku = targetedSKU.replace(';uncraftable', '');
+        params.sku = targetedSKU.replace(';untradable', '');
+        const item = SKU.fromString(targetedSKU);
 
         if (uncraft) {
             item.craftable = !uncraft;
@@ -1117,12 +1134,14 @@ export = class Commands {
 
         let assetid: string;
         if (params.assetid !== undefined) {
-            if (assetids.includes(params.assetid)) {
-                assetid = params.assetid;
+            const targetedAssetId = params.assetid as string;
+
+            if (assetids.includes(targetedAssetId)) {
+                assetid = targetedAssetId;
             } else {
                 this.bot.sendMessage(
                     steamID,
-                    `❌ Looks like an assetid ${params.assetid} did not match any assetids associated with ${name}(${params.sku}) in my inventory. Try using the sku to delete a random assetid.`
+                    `❌ Looks like an assetid ${targetedAssetId} did not match any assetids associated with ${name}(${targetedSKU}) in my inventory. Try using the sku to delete a random assetid.`
                 );
                 return;
             }
@@ -1224,11 +1243,14 @@ export = class Commands {
 
         this.bot.client.blockUser(targetSteamID64, err => {
             if (err) {
-                log.warn(`Failed to block user ${targetSteamID64}: `, err);
-                sendMessage.sendMessage(steamID, `❌ Failed to block user ${targetSteamID64}: ${err}`);
+                log.warn(`Failed to block user ${targetSteamID64.getSteamID64()}: `, err);
+                sendMessage.sendMessage(
+                    steamID,
+                    `❌ Failed to block user ${targetSteamID64.getSteamID64()}: ${err.message}`
+                );
                 return;
             }
-            sendMessage.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64}`);
+            sendMessage.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64.getSteamID64()}`);
         });
     }
 
@@ -1251,19 +1273,23 @@ export = class Commands {
 
         this.bot.client.unblockUser(targetSteamID64, err => {
             if (err) {
-                log.warn(`Failed to unblock user ${targetSteamID64}: `, err);
-                sendMessage.sendMessage(steamID, `❌ Failed to unblock user ${targetSteamID64}: ${err}`);
+                log.warn(`Failed to unblock user ${targetSteamID64.getSteamID64()}: `, err);
+                sendMessage.sendMessage(
+                    steamID,
+                    `❌ Failed to unblock user ${targetSteamID64.getSteamID64()}: ${err.message}`
+                );
                 return;
             }
-            sendMessage.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64}`);
+            sendMessage.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64.getSteamID64()}`);
         });
     }
 
     private stopCommand(steamID: SteamID): void {
         this.bot.sendMessage(steamID, '⌛ Stopping...');
 
-        this.bot.botManager.stopProcess().catch(err => {
+        this.bot.botManager.stopProcess().catch((err: Error) => {
             log.warn('Error occurred while trying to stop: ', err);
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             this.bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${err.message}`);
         });
     }
@@ -1281,8 +1307,9 @@ export = class Commands {
                     );
                 }
             })
-            .catch(err => {
+            .catch((err: Error) => {
                 log.warn('Error occurred while trying to restart: ', err);
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 this.bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
             });
     }
@@ -1353,7 +1380,7 @@ export = class Commands {
         let reply =
             (isAdmin ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n       Key price: ${keyPrices.buy.metal + '/' + keyPrices.sell} (${
+        reply += `\n       Key price: ${keyPrices.buy.metal}/${keyPrices.sell.toString()} (${
             keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
         })`;
         reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
@@ -1367,16 +1394,16 @@ export = class Commands {
                       Currencies.toRefined(
                           keyPrices.buy.toValue() +
                               (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                      ) +
+                      ).toString() +
                       ' ref' +
-                      (autokeys.isEnableScrapAdjustment ? ' (+' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                      (autokeys.isEnableScrapAdjustment ? ` (+${autokeys.scrapAdjustmentValue} scrap)` : '')
                     : 'Selling for ' +
                       Currencies.toRefined(
                           keyPrices.sell.toValue() -
                               (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                      ) +
+                      ).toString() +
                       ' ref' +
-                      (autokeys.isEnableScrapAdjustment ? ' (-' + autokeys.scrapAdjustmentValue + ' scrap)' : '')
+                      (autokeys.isEnableScrapAdjustment ? ` (-${autokeys.scrapAdjustmentValue} scrap)` : '')
                 : 'Not active'
         }`;
         /*
@@ -1418,7 +1445,7 @@ export = class Commands {
                 steamID,
                 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
             );
-            this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+            void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
                 log.debug('Done checking ' + pluralize('item', pricelist.length, true));
                 this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
             });
@@ -1451,12 +1478,13 @@ export = class Commands {
         params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
-        requestCheck(params.sku, 'bptf').asCallback((err, body) => {
+        void requestCheck(params.sku, 'bptf').asCallback((err, body) => {
             if (err) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ Error while requesting price check: ' +
-                        (err.body && err.body.message ? err.body.message : err.message)
+                    `❌ Error while requesting price check: ${
+                        err.body && err.body.message ? err.body.message : err.message
+                    }`
                 );
                 return;
             }
@@ -1500,15 +1528,12 @@ export = class Commands {
         let failed = 0;
         for (const sku of skus) {
             await sleepasync().Promise.sleep(2 * 1000);
-            requestCheck(sku, 'bptf').asCallback(err => {
+            void requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
                     failed++;
                     log.warn(
-                        'pricecheck failed for ' +
-                            sku +
-                            ': ' +
-                            (err.body && err.body.message ? err.body.message : err.message)
+                        `pricecheck failed for ${sku}: ${err.body && err.body.message ? err.body.message : err.message}`
                     );
                     log.debug(
                         `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
@@ -1560,7 +1585,8 @@ export = class Commands {
         } catch (err) {
             this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name === null ? params.sku : name}: ${
+                `Error getting price for ${name === null ? (params.sku as string) : name}: ${
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     err.body && err.body.message ? err.body.message : err.message
                 }`
             );
@@ -1575,7 +1601,9 @@ export = class Commands {
 
         this.bot.sendMessage(
             steamID,
-            `🔎 ${name}:\n• Buy  : ${currBuy}\n• Sell : ${currSell}\n\nPrices.TF: https://prices.tf/items/${params.sku}`
+            `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
+                params.sku as string
+            }`
         );
     }
 };

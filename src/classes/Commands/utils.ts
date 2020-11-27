@@ -55,7 +55,7 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
     if (match === null) {
         // Search the item by Levenshtein distance to find a close match (if one exists)
         let lowestDistance = 999;
-        let closestMatch = null;
+        let closestMatch: Entry = null;
         for (const pricedItem of bot.pricelist.getPrices()) {
             const itemDistance = levenshtein(pricedItem.name, name);
             if (itemDistance < lowestDistance) {
@@ -140,12 +140,15 @@ export function getItemFromParams(
         }
 
         if (match.length === 0) {
-            bot.sendMessage(steamID, `❌ Could not find an item in the schema with the name "${params.name}".`);
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an item in the schema with the name "${params.name as string}".`
+            );
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
 
-            const parsed = match.splice(0, 20).map(schemaItem => schemaItem.defindex + ` (${schemaItem.name})`);
+            const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
                 ',\n'
@@ -170,6 +173,7 @@ export function getItemFromParams(
 
         if (item[key] !== undefined) {
             foundSomething = true;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             item[key] = params[key];
             break;
         }
@@ -187,7 +191,10 @@ export function getItemFromParams(
         const schemaItem = bot.schema.getItemByDefindex(params.defindex as number);
 
         if (schemaItem === null) {
-            bot.sendMessage(steamID, `❌ Could not find an item in the schema with the defindex "${params.defindex}".`);
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an item in the schema with the defindex "${params.defindex as number}".`
+            );
             return null;
         }
 
@@ -201,7 +208,10 @@ export function getItemFromParams(
     if (params.quality !== undefined) {
         const quality = bot.schema.getQualityIdByName(params.quality as string);
         if (quality === null) {
-            bot.sendMessage(steamID, `❌ Could not find a quality in the schema with the name "${params.quality}".`);
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find a quality in the schema with the name "${params.quality as number}".`
+            );
             return null;
         }
 
@@ -229,7 +239,9 @@ export function getItemFromParams(
         if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
             bot.sendMessage(
                 steamID,
-                `Unknown killstreak "${params.killstreak}", it must either be 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS).`
+                `Unknown killstreak "${
+                    params.killstreak as number
+                }", it must either be 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS).`
             );
             return null;
         }
@@ -252,7 +264,7 @@ export function getItemFromParams(
         if (effect === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find an unusual effect in the schema with the name "${params.effect}".`
+                `❌ Could not find an unusual effect in the schema with the name "${params.effect as number}".`
             );
             return null;
         }
@@ -268,7 +280,7 @@ export function getItemFromParams(
         if (schemaItem === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find an item in the schema with a defindex of "${params.defindex}".`
+                `❌ Could not find an item in the schema with a defindex of "${params.defindex as number}".`
             );
             return null;
         }
@@ -289,12 +301,15 @@ export function getItemFromParams(
         }
 
         if (match.length === 0) {
-            bot.sendMessage(steamID, `❌ Could not find an item in the schema with the name "${params.name}".`);
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an item in the schema with the name "${params.name as string}".`
+            );
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
 
-            const parsed = match.splice(0, 20).map(schemaItem => schemaItem.defindex + ` (${schemaItem.name})`);
+            const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
                 ',\n'
@@ -321,7 +336,7 @@ export function getItemFromParams(
         if (quality === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find a quality in the schema with the name "${params.outputQuality}".`
+                `❌ Could not find a quality in the schema with the name "${params.outputQuality as string}".`
             );
             return null;
         }
@@ -374,7 +389,7 @@ export function craftWeapons(bot: Bot): string[] {
 
     if (items.length > 0) {
         for (let i = 0; i < items.length; i++) {
-            craftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
         }
     }
     return craftWeaponsStock;
@@ -410,7 +425,7 @@ export function uncraftWeapons(bot: Bot): string[] {
 
     if (items.length > 0) {
         for (let i = 0; i < items.length; i++) {
-            uncraftWeaponsStock.push(items[i].name + ': ' + items[i].amount);
+            uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
         }
     }
     return uncraftWeaponsStock;
@@ -441,7 +456,7 @@ export function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaMa
         const amount = dict[sku];
         const name = schema.getName(SKU.fromString(sku), false);
 
-        summary.push(name + (amount > 1 ? ' x' + amount : ''));
+        summary.push(name + (amount > 1 ? `x${amount}` : ''));
     }
 
     if (summary.length === 0) {

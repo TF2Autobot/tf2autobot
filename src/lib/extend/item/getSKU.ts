@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
 
@@ -16,7 +19,6 @@ export = function(
     normalizeFestivizedItems: boolean,
     normalizeStrangeUnusual: boolean
 ): string {
-    // @ts-ignore
     const self = this as EconItem;
 
     if (self.appid != 440) {

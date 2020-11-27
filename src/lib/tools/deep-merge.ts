@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 // https://gist.github.com/mir4ef/c172583bdb968951d9e57fb50d44c3f7
 interface O {
     (item: any): boolean;

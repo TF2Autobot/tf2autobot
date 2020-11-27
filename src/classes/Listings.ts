@@ -73,10 +73,10 @@ export = class Listings {
             async.eachSeries(
                 [
                     (callback): void => {
-                        this.redoListings().asCallback(callback);
+                        void this.redoListings().asCallback(callback);
                     },
                     (callback): void => {
-                        this.waitForListings().asCallback(callback);
+                        void this.waitForListings().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
@@ -102,15 +102,17 @@ export = class Listings {
     private checkAccountInfo(): void {
         log.debug('Checking account info');
 
-        this.getAccountInfo().asCallback((err, info) => {
+        void this.getAccountInfo().asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
                 return;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (this.autoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
                 this.disableAutoRelist();
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             } else if (!this.autoRelistEnabled && info.premium !== 1) {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
@@ -142,11 +144,13 @@ export = class Listings {
                 json: true
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             request(options, (err, reponse, body) => {
                 if (err) {
                     return reject(err);
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 return resolve(body.users[steamID64]);
             });
         });
@@ -262,7 +266,7 @@ export = class Listings {
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
-                this.recursiveCheckPricelist(pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -331,7 +335,7 @@ export = class Listings {
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
-                this.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                void this.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -395,7 +399,7 @@ export = class Listings {
                 return;
             }
 
-            this.removeAllListings().asCallback(next);
+            void this.removeAllListings().asCallback(next);
         });
     }
 
@@ -407,7 +411,7 @@ export = class Listings {
             this.bot.listingManager.actions.create = [];
 
             // Wait for backpack.tf to finish creating / removing listings
-            this.waitForListings().then(() => {
+            void this.waitForListings().then(() => {
                 if (this.bot.listingManager.listings.length === 0) {
                     log.debug('We have no listings');
                     this.removingAllListings = false;
@@ -464,11 +468,7 @@ export = class Listings {
 
                     if (this.bot.listingManager.listings.length !== prevCount) {
                         log.debug(
-                            'Count changed: ' +
-                                this.bot.listingManager.listings.length +
-                                ' listed, ' +
-                                prevCount +
-                                ' previously'
+                            `Count changed: ${this.bot.listingManager.listings.length} listed, ${prevCount} previously`
                         );
 
                         setTimeout(() => {

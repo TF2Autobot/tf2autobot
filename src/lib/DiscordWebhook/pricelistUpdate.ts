@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 
@@ -62,7 +65,7 @@ export default function sendWebHookPriceUpdateV1(
     }
 
     const qualityItem = parts[1];
-    const qualityColorPrint = qualityColor[qualityItem].toString();
+    const qualityColorPrint = qualityColor[qualityItem];
 
     const opt = options.discordWebhook;
 

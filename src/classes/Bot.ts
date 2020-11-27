@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import SteamID from 'steamid';
 import SteamUser from 'steam-user';
-import TradeOfferManager from 'steam-tradeoffer-manager';
+import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
@@ -192,8 +197,9 @@ export = class Bot {
 
     messageAdmins(message: string, exclude: string[] | SteamID[]): void;
 
-    messageAdmins(type: string, message: string, exclude: string[] | SteamID[]);
+    messageAdmins(type: string, message: string, exclude: string[] | SteamID[]): void;
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     messageAdmins(...args): void {
         const type: string | null = args.length === 2 ? null : args[0];
 
@@ -218,6 +224,7 @@ export = class Bot {
         return this.ready;
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     private addListener(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
@@ -229,7 +236,7 @@ export = class Bot {
     }
 
     startVersionChecker(): void {
-        this.checkForUpdates();
+        void this.checkForUpdates();
 
         // Check for updates every 10 minutes
         setInterval(() => {
@@ -293,7 +300,7 @@ export = class Bot {
                 [
                     (callback): void => {
                         log.debug('Calling onRun');
-                        this.handler.onRun().asCallback((err, v) => {
+                        void this.handler.onRun().asCallback((err, v) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -316,7 +323,7 @@ export = class Bot {
                     (callback): void => {
                         log.info('Setting up pricelist...');
 
-                        this.pricelist
+                        void this.pricelist
                             .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist)
                             .asCallback(callback);
                     },
@@ -329,7 +336,7 @@ export = class Bot {
                             'Checking account limitations - Please disable this in the config by setting `SKIP_ACCOUNT_LIMITATIONS` to true'
                         );
 
-                        this.getAccountLimitations().asCallback((err, limitations) => {
+                        void this.getAccountLimitations().asCallback((err, limitations) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -352,14 +359,14 @@ export = class Bot {
 
                         let lastLoginFailed = false;
 
-                        const loginResponse = (err): void => {
+                        const loginResponse = (err: CustomError): void => {
                             if (err) {
                                 this.handler.onLoginError(err);
-                                if (!lastLoginFailed && err.eresult === SteamUser.EResult.InvalidPassword) {
+                                if (!lastLoginFailed && err.eresult === SteamUser.EResult['InvalidPassword']) {
                                     lastLoginFailed = true;
                                     // Try and sign in without login key
                                     log.warn('Failed to sign in to Steam, retrying without login key...');
-                                    this.login(null).asCallback(loginResponse);
+                                    void this.login(null).asCallback(loginResponse);
                                     return;
                                 } else {
                                     log.warn('Failed to sign in to Steam: ', err);
@@ -381,11 +388,11 @@ export = class Bot {
                             return callback(null);
                         };
 
-                        this.login(data.loginKey || null).asCallback(loginResponse);
+                        void this.login(data.loginKey || null).asCallback(loginResponse);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');
-                        this.getWebSession().asCallback((err, v) => {
+                        void this.getWebSession().asCallback((err, v) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -406,7 +413,7 @@ export = class Bot {
                             'You have not included the backpack.tf API key or access token in the environment variables'
                         );
 
-                        this.getBptfAPICredentials().asCallback(err => {
+                        void this.getBptfAPICredentials().asCallback(err => {
                             if (err) {
                                 return callback(err);
                             }
@@ -420,7 +427,7 @@ export = class Bot {
                             [
                                 (callback): void => {
                                     log.debug('Getting inventory...');
-                                    this.inventoryManager
+                                    void this.inventoryManager
                                         .getInventory()
                                         .fetch()
                                         .asCallback(callback);
@@ -454,15 +461,15 @@ export = class Bot {
                     },
                     (callback): void => {
                         log.info('Getting Steam API key...');
-                        this.setCookies(cookies).asCallback(callback);
+                        void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
-                        this.friends.getMaxFriends().asCallback(callback);
+                        void this.friends.getMaxFriends().asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Creating listings...');
-                        this.listings.redoListings().asCallback(callback);
+                        void this.listings.redoListings().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
@@ -642,8 +649,7 @@ export = class Bot {
 
     private bptfLogin(): Promise<void> {
         return new Promise((resolve, reject) => {
-            // @ts-ignore
-            if (this.bptf.loggedIn) {
+            if (this.bptf['loggedIn']) {
                 return resolve();
             }
 
@@ -656,8 +662,7 @@ export = class Bot {
 
                 log.verbose('Logged in to backpack.tf!');
 
-                // @ts-ignore
-                this.bptf.loggedIn = true;
+                this.bptf['loggedIn'] = true;
 
                 return resolve();
             });
@@ -706,10 +711,9 @@ export = class Bot {
                 this.client.logOn(details);
 
                 const gotEvent = (): void => {
-                    listeners.forEach(listener => {
-                        // @ts-ignore
-                        this.client.on('error', listener);
-                    });
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    listeners.forEach(listener => this.client.on('error', listener));
                 };
 
                 const loggedOnEvent = (): void => {
@@ -757,7 +761,7 @@ export = class Bot {
         this.client.chatMessage(steamID, message);
 
         if (friend === null) {
-            log.info(`Message sent to ${steamID}: ${message}`);
+            log.info(`Message sent to ${steamID.toString()}: ${message}`);
         } else {
             log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
         }
@@ -778,7 +782,7 @@ export = class Bot {
     private onWebSession(sessionID: string, cookies: string[]): void {
         log.debug('New web session');
 
-        this.setCookies(cookies);
+        void this.setCookies(cookies);
     }
 
     private onSessionExpired(): void {
@@ -790,7 +794,7 @@ export = class Bot {
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
         log.debug('Conf key needed');
 
-        this.getTimeOffset().asCallback((err, offset) => {
+        void this.getTimeOffset().asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
             const confKey = SteamTotp.getConfirmationKey(this.options.steamIdentitySecret, time, tag);
 
@@ -818,7 +822,7 @@ export = class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
-        Promise.delay(wait)
+        void Promise.delay(wait)
             .then(this.generateAuthCode.bind(this))
             .then(authCode => {
                 this.newLoginAttempt();
@@ -827,13 +831,11 @@ export = class Bot {
             });
     }
 
-    private onError(err: Error): void {
-        // @ts-ignore
-        if (err.eresult === SteamUser.EResult.LoggedInElsewhere) {
+    private onError(err: CustomError): void {
+        if (err.eresult === SteamUser.EResult['LoggedInElsewhere']) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
-            // @ts-ignore
-        } else if (err.eresult === SteamUser.EResult.LogonSessionReplaced) {
+        } else if (err.eresult === SteamUser.EResult['LogonSessionReplaced']) {
             this.sessionReplaceCount++;
 
             if (this.sessionReplaceCount > 0) {
@@ -844,7 +846,7 @@ export = class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            this.login().asCallback(err => {
+            void this.login().asCallback(err => {
                 if (err) {
                     throw err;
                 }

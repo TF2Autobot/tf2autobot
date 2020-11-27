@@ -75,7 +75,7 @@ class AdminCart extends Cart {
 
             const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
 
-            theirInventory.fetch().asCallback(err => {
+            void theirInventory.fetch().asCallback(err => {
                 if (err) {
                     return reject('Failed to load inventories (Steam might be down)');
                 }
@@ -196,7 +196,7 @@ class AdminCart extends Cart {
 
             const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
 
-            theirInventory.fetch().asCallback(err => {
+            void theirInventory.fetch().asCallback(err => {
                 if (err) {
                     return reject('Failed to load inventories (Steam might be down)');
                 }
