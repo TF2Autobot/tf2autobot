@@ -300,6 +300,7 @@ export = class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Backpack slots and Premium info from backpack.tf
+        this.backpackSlots = this.bot.tf2.backpackSlots;
         void this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
@@ -1614,57 +1615,6 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private requestBackpackSlots(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            request(
-                {
-                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
-                    method: 'GET',
-                    qs: {
-                        key: this.bot.manager.apiKey,
-                        steamid: (this.bot.client.steamID === null
-                            ? this.botSteamID
-                            : this.bot.client.steamID
-                        ).getSteamID64()
-                    },
-                    json: true,
-                    gzip: true
-                },
-                (err, response, body) => {
-                    if (err) {
-                        // if failed, retry after 10 minutes.
-                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
-                        clearTimeout(this.retryRequest);
-                        this.retryRequest = setTimeout(() => {
-                            void this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-
-                        return reject();
-                    }
-
-                    if (body.result.status != 1) {
-                        // err = new Error(body.result.statusDetail);
-                        // err.status = body.result.status;
-
-                        // if failed, retry after 10 minutes.
-                        log.debug('Failed to obtain backpack slots, retry in 10 minutes: ', err);
-                        clearTimeout(this.retryRequest);
-                        this.retryRequest = setTimeout(() => {
-                            void this.requestBackpackSlots();
-                        }, 10 * 60 * 1000);
-
-                        return reject();
-                    }
-
-                    clearTimeout(this.retryRequest);
-                    this.backpackSlots = body.result.num_backpack_slots as number;
-
-                    return resolve();
-                }
-            );
-        });
-    }
-
     private getBPTFAccountInfo(): Promise<void> {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
@@ -1688,7 +1638,6 @@ export = class MyHandler extends Handler {
                         this.retryRequest = setTimeout(() => {
                             void this.getBPTFAccountInfo();
                         }, 5 * 60 * 1000);
-
                         return reject();
                     }
 
@@ -1698,13 +1647,6 @@ export = class MyHandler extends Handler {
 
                     const isPremium = user.premium ? user.premium === 1 : false;
                     this.isPremium = isPremium;
-
-                    const backpackSlots = user.inventory ? (user.inventory['440'].slots.total as number) : 0;
-                    if (backpackSlots === 0) {
-                        // If user.inventory not available, then request backpack slots from Steam API.
-                        void this.requestBackpackSlots();
-                    }
-                    this.backpackSlots = backpackSlots;
                     return resolve();
                 }
             );

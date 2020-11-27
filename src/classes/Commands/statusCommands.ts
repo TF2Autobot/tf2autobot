@@ -5,7 +5,6 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
 import Bot from '../Bot';
-import MyHandler from '../MyHandler/MyHandler';
 
 import { stats } from '../../lib/tools/export';
 
@@ -31,7 +30,7 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
-    const backpackSlots = (bot.handler as MyHandler).getBackpackSlots();
+    const backpackSlots = bot.tf2.backpackSlots;
 
     bot.sendMessage(
         steamID,
