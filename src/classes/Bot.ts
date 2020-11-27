@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
-import SteamUser from 'steam-user';
+import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -362,7 +362,7 @@ export = class Bot {
                         const loginResponse = (err: CustomError): void => {
                             if (err) {
                                 this.handler.onLoginError(err);
-                                if (!lastLoginFailed && err.eresult === SteamUser.EResult['InvalidPassword']) {
+                                if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
                                     lastLoginFailed = true;
                                     // Try and sign in without login key
                                     log.warn('Failed to sign in to Steam, retrying without login key...');
@@ -829,10 +829,10 @@ export = class Bot {
     }
 
     private onError(err: CustomError): void {
-        if (err.eresult === SteamUser.EResult['LoggedInElsewhere']) {
+        if (err.eresult === EResult.LoggedInElsewhere) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
-        } else if (err.eresult === SteamUser.EResult['LogonSessionReplaced']) {
+        } else if (err.eresult === EResult.LogonSessionReplaced) {
             this.sessionReplaceCount++;
 
             if (this.sessionReplaceCount > 0) {

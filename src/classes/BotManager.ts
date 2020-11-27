@@ -1,5 +1,4 @@
 import async from 'async';
-import SteamUser from 'steam-user';
 import SchemaManager from 'tf2-schema-2';
 import io from 'socket.io-client';
 import pm2 from 'pm2';
@@ -9,6 +8,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
+import { EPersonaState } from 'steam-user';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -214,7 +214,7 @@ export = class BotManager {
     private cleanup(): void {
         if (this.bot !== null) {
             // Make the bot snooze on Steam, that way people will know it is not running
-            this.bot.client.setPersona(SteamUser.EPersonaState['Snooze']);
+            this.bot.client.setPersona(EPersonaState.Snooze);
             this.bot.client.autoRelogin = false;
 
             // Stop polling offers
