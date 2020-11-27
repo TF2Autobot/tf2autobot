@@ -19,6 +19,19 @@ declare module 'steam-user' {
         error: (err: Error) => void;
     }
 
+    interface GameIdAndExtra {
+        game_id: number;
+        game_extra_info: string;
+    }
+
+    type GameId = number;
+    type GameInfo = string;
+    type GamePlayed = GameId | GameInfo | GameIdAndExtra;
+
+    type GamesPlayed = Array<GamePlayed>;
+
+    type Apps = GamePlayed | GamesPlayed;
+
     export enum EResult {
         Invalid = 0,
 
@@ -178,6 +191,34 @@ declare module 'steam-user' {
         Max = 8
     }
 
+    export enum EGameIdType {
+        App = '0',
+        GameMod = '1',
+        Shortcut = '2',
+        P2P = '3'
+    }
+
+    export interface RichPresenceEntry {
+        key: string;
+        value: string;
+    }
+
+    export enum EPersonaStateFlag {
+        HasRichPresence = 1,
+        InJoinableGame = 2,
+        Golden = 4, // removed "no longer has any effect"
+
+        OnlineUsingWeb = 256, // removed "renamed to ClientTypeWeb"
+        ClientTypeWeb = 256,
+        OnlineUsingMobile = 512, // removed "renamed to ClientTypeMobile"
+        ClientTypeMobile = 512,
+        OnlineUsingBigPicture = 1024, // removed "renamed to ClientTypeTenfoot"
+        ClientTypeTenfoot = 1024,
+        OnlineUsingVR = 2048, // removed "renamed to ClientTypeVR"
+        ClientTypeVR = 2048,
+        LaunchTypeGamepad = 4096
+    }
+
     export default class SteamUser extends EventEmitter {
         steamID: SteamID;
 
@@ -191,7 +232,7 @@ declare module 'steam-user' {
         users: Map<
             SteamID,
             {
-                rich_precense: any[];
+                rich_presence: [RichPresenceEntry];
                 player_name: string;
                 avater_hash: Buffer;
                 last_logoff: Date;
@@ -200,6 +241,20 @@ declare module 'steam-user' {
                 avatar_url_icon: string;
                 avatar_url_medium: string;
                 avatar_url_full: string;
+                persona_state: EPersonaState;
+                games_played_app_id: number;
+                game_server_ip: number;
+                game_server_port: number;
+                persona_state_flags: number;
+                online_session_instances: number;
+                query_port: number;
+                steamid_source: string;
+                game_name: string;
+                gameid: string;
+                game_data_blob: Buffer;
+                breadcast_id: string;
+                game_lobby_id: string;
+                rich_presence_string: string;
             }
         >;
 
@@ -223,17 +278,17 @@ declare module 'steam-user' {
 
         setPersona(state: number, name?: string): void;
 
-        gamesPlayed(apps: any[] | string | number, force?: boolean): void;
+        gamesPlayed(apps: Apps, force?: boolean): void;
 
         chatMessage(recipient: SteamID | string, message: string): void;
 
-        addFriend(steamID: SteamID | string, callback?: (err: Error | null, personaName?: string) => void): void;
+        addFriend(steamID: SteamID | string, callback?: (err?: Error, personaName?: string) => void): void;
 
         removeFriend(steamID: SteamID | string): void;
 
-        blockUser(steamID: SteamID | string, callback?: (err: Error | null) => void): void;
+        blockUser(steamID: SteamID | string, callback?: (err?: Error) => void): void;
 
-        unblockUser(steamID: SteamID | string, callback?: (err: Error | null) => void): void;
+        unblockUser(steamID: SteamID | string, callback?: (err?: Error) => void): void;
 
         respondToGroupInvite(groupSteamID: SteamID | string, accept: boolean): void;
 
