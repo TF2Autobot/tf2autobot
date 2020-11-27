@@ -15,7 +15,9 @@ export default function sendAlert(
     err: any | null = null,
     items: string[] | null = null
 ): void {
-    const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
+    const opt = bot.options;
+
+    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
 
     let title: string;
     let description: string;
@@ -53,12 +55,14 @@ export default function sendAlert(
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
+    const webhook = opt.discordWebhook;
+
     /*eslint-disable */
     const sendAlertWebhook: Webhook = {
-        username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
+        username: webhook.displayName ? webhook.displayName : botInfo.name,
+        avatar_url: webhook.avatarURL ? webhook.avatarURL : botInfo.avatarURL,
         content:
-            type === 'highValue' || type === 'highValuedDisabled' ? `<@!${bot.options.discordWebhook.ownerID}>` : '',
+            type === 'highValue' || type === 'highValuedDisabled' ? `<@!${webhook.ownerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -72,7 +76,7 @@ export default function sendAlert(
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.sendAlert.url, sendAlertWebhook, 'alert')
+    sendWebhook(webhook.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => {
             log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
         })

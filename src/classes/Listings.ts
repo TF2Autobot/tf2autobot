@@ -486,6 +486,7 @@ export = class Listings {
     }
 
     private getDetails(intent: 0 | 1, entry: Entry): string {
+        const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
         const keyPrice = this.bot.pricelist.getKeyPrice().toString();
@@ -516,9 +517,9 @@ export = class Listings {
             // 5x uses, then replace %uses% with (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
             // else just empty string.
             details =
-                entry.sku === '241;6' && this.bot.options.checkUses.duel
+                entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker
+                    : noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
@@ -535,12 +536,12 @@ export = class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
             details =
-                entry.sku === '241;6' && this.bot.options.checkUses.duel
+                entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker
+                    : noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
-        } else if (entry.sku === '241;6' && this.bot.options.checkUses.duel) {
+        } else if (entry.sku === '241;6' && opt.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
             // this part checks if the item is Dueling Mini-Game.
             details = this.templates[key]
@@ -554,7 +555,7 @@ export = class Listings {
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
-        } else if (noiseMakerSKU.includes(entry.sku) && this.bot.options.checkUses.noiseMaker) {
+        } else if (noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())

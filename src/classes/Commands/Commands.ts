@@ -45,6 +45,8 @@ export = class Commands {
 
         const isAdmin = this.bot.isAdmin(steamID);
 
+        const opt = this.bot.options;
+
         const isNoReply =
             ignoreWords.startsWith.some(word => {
                 return message.startsWith(word);
@@ -68,7 +70,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, this.bot.options.enableCraftweaponAsCurrency);
+            this.cartCommand(steamID, opt.enableCraftweaponAsCurrency);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -168,14 +170,14 @@ export = class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, this.bot.options.enableCraftweaponAsCurrency);
+            this.donateCartCommand(steamID, opt.enableCraftweaponAsCurrency);
         } else if (isNoReply) {
             return null;
         } else {
             this.bot.sendMessage(
                 steamID,
-                this.bot.options.customMessage.iDontKnowWhatYouMean
-                    ? this.bot.options.customMessage.iDontKnowWhatYouMean
+                opt.customMessage.iDontKnowWhatYouMean
+                    ? opt.customMessage.iDontKnowWhatYouMean
                     : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }

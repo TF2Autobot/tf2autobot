@@ -15,6 +15,7 @@ export default function updateListings(
     bot: Bot,
     highValue: { isDisableSKU: string[]; theirItems: string[] }
 ): void {
+    const opt = bot.options;
     const diff = offer.getDiff() || {};
 
     for (const sku in diff) {
@@ -97,7 +98,7 @@ export default function updateListings(
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
             isNotPureOrWeapons &&
-            bot.options.highValue.enableHold
+            opt.highValue.enableHold
         ) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const entry = {
@@ -127,7 +128,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (bot.options.discordWebhook.sendAlert.enable && bot.options.discordWebhook.sendAlert.url) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url) {
                         sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
                     } else {
                         bot.messageAdmins(msg, []);
@@ -137,7 +138,7 @@ export default function updateListings(
                     log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
                 });
         } else if (
-            bot.options.autoRemoveIntentSell &&
+            opt.autoRemoveIntentSell &&
             inPrice !== null &&
             inPrice.intent === 1 &&
             currentStock < 1 &&

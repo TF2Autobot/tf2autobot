@@ -64,10 +64,12 @@ export default function sendWebHookPriceUpdateV1(
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor[qualityItem].toString();
 
+    const opt = options.discordWebhook;
+
     /*eslint-disable */
     const priceUpdate: Webhook = {
-        username: options.discordWebhook.displayName,
-        avatar_url: options.discordWebhook.avatarURL,
+        username: opt.displayName,
+        avatar_url: opt.avatarURL,
         content: '',
         embeds: [
             {
@@ -99,14 +101,14 @@ export default function sendWebHookPriceUpdateV1(
                         inline: true
                     }
                 ],
-                description: options.discordWebhook.priceUpdate.note ? options.discordWebhook.priceUpdate.note : '',
+                description: opt.priceUpdate.note ? opt.priceUpdate.note : '',
                 color: qualityColorPrint
             }
         ]
     };
     /*eslint-enable */
 
-    sendWebhook(options.discordWebhook.priceUpdate.url, priceUpdate, 'pricelist-update')
+    sendWebhook(opt.priceUpdate.url, priceUpdate, 'pricelist-update')
         .then(() => {
             log.debug(`Sent ${sku} update to Discord.`);
         })

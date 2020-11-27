@@ -32,6 +32,8 @@ export default function sendTradeSummary(
     bot: Bot,
     processTime: number
 ): void {
+    const opt = bot.options.discordWebhook;
+
     const ourItems = items.our;
     const theirItems = items.their;
 
@@ -47,8 +49,8 @@ export default function sendTradeSummary(
     const itemList = listItems(itemsName, false);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
-    const enableMentionOnSpecificSKU = bot.options.discordWebhook.tradeSummary.mentionOwner.enable;
-    const skuToMention = bot.options.discordWebhook.tradeSummary.mentionOwner.itemSkus;
+    const enableMentionOnSpecificSKU = opt.tradeSummary.mentionOwner.enable;
+    const skuToMention = opt.tradeSummary.mentionOwner.itemSkus;
 
     const isMentionOurItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
@@ -72,7 +74,7 @@ export default function sendTradeSummary(
 
     const mentionOwner =
         IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${bot.options.discordWebhook.ownerID}> - Accepted ${
+            ? `<@!${opt.ownerID}> - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -81,11 +83,12 @@ export default function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : bot.options.discordWebhook.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
-            ? `<@!${bot.options.discordWebhook.ownerID}>`
+            : opt.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
+            ? `<@!${opt.ownerID}>`
             : '';
 
-    const tradeLinks = bot.options.discordWebhook.tradeSummary.url;
+    const url = opt.tradeSummary.url;
+
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
     const trades = stats(bot);
@@ -116,20 +119,22 @@ export default function sendTradeSummary(
 
         const partnerNameNoFormat = replace.specialChar(personaName);
 
-        const isShowQuickLinks = bot.options.discordWebhook.tradeSummary.misc.showQuickLinks;
-        const isShowKeyRate = bot.options.discordWebhook.tradeSummary.misc.showKeyRate;
-        const isShowPureStock = bot.options.discordWebhook.tradeSummary.misc.showPureStock;
-        const isShowInventory = bot.options.discordWebhook.tradeSummary.misc.showInventory;
-        const AdditionalNotes = bot.options.discordWebhook.tradeSummary.misc.note;
+        const misc = opt.tradeSummary.misc;
+
+        const isShowQuickLinks = misc.showQuickLinks;
+        const isShowKeyRate = misc.showKeyRate;
+        const isShowPureStock = misc.showPureStock;
+        const isShowInventory = misc.showInventory;
+        const AdditionalNotes = misc.note;
 
         /*eslint-disable */
         const acceptedTradeSummary: Webhook = {
-            username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-            avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
+            username: opt.displayName ? opt.displayName : botInfo.name,
+            avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {
-                    color: bot.options.discordWebhook.embedColor,
+                    color: opt.embedColor,
                     author: {
                         name: `Trade from: ${personaName} #${tradesMade.toString()}`,
                         url: links.steam,
@@ -214,15 +219,15 @@ export default function sendTradeSummary(
             });
         }
 
-        tradeLinks.forEach((link, i) => {
+        url.forEach((link, i) => {
             sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
                 .then(() => {
-                    log.debug(`✅ Sent summary (#${offer.id}) to Discord${tradeLinks.length > 1 ? `(${i + 1})` : ''}.`);
+                    log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`);
                 })
                 .catch(err => {
                     log.debug(
                         `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
-                            tradeLinks.length > 1 ? ` (${i + 1})` : ''
+                            url.length > 1 ? ` (${i + 1})` : ''
                         }: `,
                         err
                     );

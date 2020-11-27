@@ -3,7 +3,6 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
 import { EconItem } from 'steam-tradeoffer-manager';
-// import { parseEconItem } from 'tf2-item-format';
 import { CurrencyObject, CurrencyObjectWithWeapons, Currency } from '../../types/TeamFortress2';
 import { UnknownDictionary } from '../../types/common';
 
@@ -444,9 +443,11 @@ class UserCart extends Cart {
             }
         }
 
+        const opt = this.bot.options;
+
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
         let fetched: EconItem[];
 
         try {
@@ -463,7 +464,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
+            if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -485,12 +486,7 @@ class UserCart extends Cart {
             }
 
             const filtered = fetched.filter(
-                item =>
-                    item.getSKU(
-                        this.bot.schema,
-                        this.bot.options.normalize.festivized,
-                        this.bot.options.normalize.strangeUnusual
-                    ) === sku
+                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
             );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
@@ -822,7 +818,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.bot.options.showOnlyMetal) {
+        if (opt.showOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1830,9 +1826,11 @@ class UserCart extends Cart {
             }
         }
 
+        const opt = this.bot.options;
+
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
         let fetched: EconItem[];
 
         try {
@@ -1849,7 +1847,7 @@ class UserCart extends Cart {
                 continue;
             }
 
-            if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
+            if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
                     const yes: {
                         isNot5Uses: boolean;
@@ -1871,12 +1869,7 @@ class UserCart extends Cart {
             }
 
             const filtered = fetched.filter(
-                item =>
-                    item.getSKU(
-                        this.bot.schema,
-                        this.bot.options.normalize.festivized,
-                        this.bot.options.normalize.strangeUnusual
-                    ) === sku
+                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
             );
 
             const toMention = (this.bot.handler as MyHandler).getToMention();
@@ -2505,7 +2498,7 @@ class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.bot.options.showOnlyMetal) {
+        if (opt.showOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

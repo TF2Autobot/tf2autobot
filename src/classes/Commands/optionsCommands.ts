@@ -23,9 +23,11 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
-    const optionsPath = path.join(__dirname, `../../../files/${bot.options.steamAccountName}/options.json`);
+    const opt = bot.options;
+
+    const optionsPath = path.join(__dirname, `../../../files/${opt.steamAccountName}/options.json`);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-    const saveOptions = deepMerge({}, bot.options);
+    const saveOptions = deepMerge({}, opt);
     removeCliOptions(saveOptions);
 
     if (typeof params.game === 'object') {
@@ -39,7 +41,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             bot.client.gamesPlayed(
                 (params.game.playOnlyTF2 !== undefined
                   ? params.game.playOnlyTF2
-                  : bot.options.game.playOnlyTF2)
+                  : opt.game.playOnlyTF2)
                     ? 440
                     : [params.game.customName, 440]
             );
@@ -54,46 +56,63 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         }
     }
 
-    if (typeof params.highValue === 'object') {
-        if (params.highValue.sheens !== undefined) {
-            params.highValue.sheens = saveOptions.highValue.sheens.concat([params.highValue.sheens]);
+    let newValue: string;
+    let current: string[];
 
+    if (typeof params.highValue === 'object') {
+        const hvNew = params.highValue;
+        const hvCurrent = saveOptions.highValue;
+
+        if (hvNew.sheens !== undefined) {
+            newValue = hvNew.sheens;
+            current = hvCurrent.sheens;
+
+            params.highValue.sheens = current.concat([newValue]);
             saveOptions.highValue.sheens.length = 0;
         }
         if (params.highValue.killstreakers !== undefined) {
-            params.highValue.killstreakers = saveOptions.highValue.killstreakers.concat([
-                params.highValue.killstreakers
-            ]);
+            newValue = hvNew.killstreakers;
+            current = hvCurrent.killstreakers;
+
+            params.highValue.killstreakers = current.concat([newValue]);
             saveOptions.highValue.killstreakers.length = 0;
         }
         if (params.highValue.strangeParts !== undefined) {
-            params.highValue.strangeParts = saveOptions.highValue.strangeParts.concat([params.highValue.strangeParts]);
+            newValue = hvNew.strangeParts;
+            current = hvCurrent.strangeParts;
 
+            params.highValue.strangeParts = current.concat([newValue]);
             saveOptions.highValue.strangeParts.length = 0;
         }
     }
 
     if (typeof params.manualReview === 'object') {
         if (params.manualReview.invalidValue.exceptionValue.skus !== undefined) {
-            params.manualReview.invalidValue.exceptionValue.skus = saveOptions.manualReview.invalidValue.exceptionValue.skus.concat(
-                [params.manualReview.invalidValue.exceptionValue.skus]
-            );
+            newValue = params.manualReview.invalidValue.exceptionValue.skus;
+            current = saveOptions.manualReview.invalidValue.exceptionValue.skus;
+
+            params.manualReview.invalidValue.exceptionValue.skus = current.concat([newValue]);
             saveOptions.manualReview.invalidValue.exceptionValue.skus.length = 0;
         }
     }
 
     if (typeof params.discordWebhook === 'object') {
-        if (params.discordWebhook.tradeSummary.url !== undefined) {
-            params.discordWebhook.tradeSummary.url = saveOptions.discordWebhook.tradeSummary.url.concat([
-                params.discordWebhook.tradeSummary.url
-            ]);
+        const webhookNew = params.discordWebhook.tradeSummary;
+        const webhookCurrent = saveOptions.discordWebhook.tradeSummary;
+
+        if (webhookNew.url !== undefined) {
+            newValue = webhookNew.url;
+            current = webhookCurrent.url;
+
+            params.discordWebhook.tradeSummary.url = current.concat([newValue]);
             saveOptions.discordWebhook.tradeSummary.url.length = 0;
         }
 
-        if (params.discordWebhook.tradeSummary.mentionOwner.itemSkus !== undefined) {
-            params.discordWebhook.tradeSummary.mentionOwner.itemSkus = saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.concat(
-                [params.discordWebhook.tradeSummary.mentionOwner.itemSkus]
-            );
+        if (webhookNew.mentionOwner.itemSkus !== undefined) {
+            newValue = webhookNew.mentionOwner.itemSkus;
+            current = webhookCurrent.mentionOwner.itemSkus;
+
+            params.discordWebhook.tradeSummary.mentionOwner.itemSkus = current.concat([newValue]);
             saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
         }
     }
@@ -112,7 +131,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     }
     fsp.writeFile(optionsPath, JSON.stringify(saveOptions, null, 4), { encoding: 'utf8' })
         .then(() => {
-            deepMerge(bot.options, saveOptions);
+            deepMerge(opt, saveOptions);
             return bot.sendMessage(steamID, '✅ Updated options!');
         })
         .catch(err => {

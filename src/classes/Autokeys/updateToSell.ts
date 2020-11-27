@@ -9,12 +9,10 @@ import log from '../../lib/logger';
 
 export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot): void {
     const keyPrices = bot.pricelist.getKeyPrices();
+    const opt = bot.options;
     let entry;
 
-    const scrapAdjustment = genScrapAdjustment(
-        bot.options.autokeys.scrapAdjustment.value,
-        bot.options.autokeys.scrapAdjustment.enable
-    );
+    const scrapAdjustment = genScrapAdjustment(opt.autokeys.scrapAdjustment.value, opt.autokeys.scrapAdjustment.enable);
     if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {
         entry = {
             sku: '5021;6',
@@ -24,8 +22,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
         } as any;
     } else if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
@@ -45,8 +43,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
         } as any;
     } else if (scrapAdjustment.enabled) {
@@ -66,8 +64,8 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 1,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
         } as any;
     }

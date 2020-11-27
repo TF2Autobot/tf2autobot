@@ -471,12 +471,14 @@ export = class MyHandler extends Handler {
         // If crafting class weapons still waiting, cancel it.
         clearTimeout(this.classWeaponsTimeout);
 
+        const opt = this.bot.options;
+
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            opt
         );
 
         const theirItems = Inventory.fromItems(
@@ -484,7 +486,7 @@ export = class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            opt
         );
 
         const items = {
@@ -585,7 +587,7 @@ export = class MyHandler extends Handler {
                 meta: { highValue: highValueMeta(input) }
             };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            if (this.bot.options.allowGiftNoMessage) {
+            if (opt.allowGiftNoMessage) {
                 offer.log(
                     'info',
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
@@ -609,7 +611,7 @@ export = class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (this.bot.options.checkUses.duel || this.bot.options.checkUses.noiseMaker) {
+        if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
             const im = check.uses(offer, offer.itemsToReceive, this.bot);
 
             if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
@@ -641,10 +643,7 @@ export = class MyHandler extends Handler {
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
-            if (
-                this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== ''
-            ) {
+            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                 sendAlert('highValue', this.bot, null, null, null, highValueOur.names);
             } else {
                 this.bot.messageAdmins(
@@ -664,7 +663,7 @@ export = class MyHandler extends Handler {
             };
         }
 
-        const manualReviewEnabled = this.bot.options.manualReview.enable;
+        const manualReviewEnabled = opt.manualReview.enable;
 
         const itemPrices = {};
 
@@ -707,7 +706,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
-                    this.bot.options.enableCraftweaponAsCurrency &&
+                    opt.enableCraftweaponAsCurrency &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -715,7 +714,7 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = this.bot.options.enableCraftweaponAsCurrency
+                    const notIncludeCraftweapon = opt.enableCraftweaponAsCurrency
                         ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
                         : true;
 
@@ -821,11 +820,7 @@ export = class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (
-                                this.bot.options.manualReview.invalidItems.givePrice &&
-                                item.wear === null &&
-                                isCanBePriced
-                            ) {
+                            if (opt.manualReview.invalidItems.givePrice && item.wear === null && isCanBePriced) {
                                 // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
                                 // and the item is not enabled=false,
                                 // then give that item price and include in exchange
@@ -858,7 +853,7 @@ export = class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (this.bot.options.showOnlyMetal) {
+        if (opt.showOnlyMetal) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -926,7 +921,7 @@ export = class MyHandler extends Handler {
                     this.bot.listings.checkBySKU('5021;6');
                 }
 
-                const acceptUnderstock = this.bot.options.autokeys.accept.understock;
+                const acceptUnderstock = opt.autokeys.accept.understock;
 
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
                     // User is taking too many
@@ -1040,7 +1035,7 @@ export = class MyHandler extends Handler {
             }
         }
 
-        if (exchange.our.value < exchange.their.value && !this.bot.options.allowOverpay) {
+        if (exchange.our.value < exchange.their.value && !opt.allowOverpay) {
             offer.log('info', 'is offering more than needed, declining...');
             return { action: 'decline', reason: 'OVERPAY' };
         }
@@ -1122,7 +1117,7 @@ export = class MyHandler extends Handler {
 
                 log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
-                const declineDupes = this.bot.options.manualReview.duped.declineDuped;
+                const declineDupes = opt.manualReview.duped.declineDuped;
 
                 for (let i = 0; i < result.length; i++) {
                     if (result[i] === true) {
@@ -1177,9 +1172,9 @@ export = class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
-            const canAcceptInvalidItemsOverpay = this.bot.options.manualReview.invalidItems.autoAcceptOverpay;
-            const canAcceptOverstockedOverpay = this.bot.options.manualReview.overstocked.autoAcceptOverpay;
-            const canAcceptUnderstockedOverpay = this.bot.options.manualReview.understocked.autoAcceptOverpay;
+            const canAcceptInvalidItemsOverpay = opt.manualReview.invalidItems.autoAcceptOverpay;
+            const canAcceptOverstockedOverpay = opt.manualReview.overstocked.autoAcceptOverpay;
+            const canAcceptUnderstockedOverpay = opt.manualReview.understocked.autoAcceptOverpay;
 
             // accepting 🟨_INVALID_ITEMS overpay
 
@@ -1250,7 +1245,7 @@ export = class MyHandler extends Handler {
                     }
                 };
             } else if (
-                this.bot.options.manualReview.invalidValue.autoDecline.enable &&
+                opt.manualReview.invalidValue.autoDecline.enable &&
                 isInvalidValue &&
                 !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
@@ -1258,14 +1253,14 @@ export = class MyHandler extends Handler {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
-                this.bot.options.manualReview.overstocked.autoDecline &&
+                opt.manualReview.overstocked.autoDecline &&
                 isOverstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
-                this.bot.options.manualReview.understocked.autoDecline &&
+                opt.manualReview.understocked.autoDecline &&
                 isUnderstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {

@@ -14,21 +14,23 @@ export default function sendReview(
     meta: UnknownDictionary<any>,
     isTradingKeys: boolean
 ): void {
-    const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
+    const opt = bot.options;
+
+    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
     const pureStock = pure.stock(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
+    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
     const links = generateLinks(offer.partner.toString());
 
     const content = processReview(offer, meta, bot, isTradingKeys);
 
     const hasCustomNote = !!(
-        bot.options.manualReview.invalidItems.note ||
-        bot.options.manualReview.overstocked.note ||
-        bot.options.manualReview.understocked.note ||
-        bot.options.manualReview.duped.note ||
-        bot.options.manualReview.dupedCheckFailed.note
+        opt.manualReview.invalidItems.note ||
+        opt.manualReview.overstocked.note ||
+        opt.manualReview.understocked.note ||
+        opt.manualReview.duped.note ||
+        opt.manualReview.dupedCheckFailed.note
     );
 
     const reasons = meta.uniqueReasons;
@@ -46,7 +48,7 @@ export default function sendReview(
         bot.sendMessage(
             offer.partner,
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
-                (bot.options.manualReview.showOfferSummary
+                (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
                       offer
                           .summarize(bot.schema)
@@ -55,18 +57,18 @@ export default function sendReview(
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
                           ? content.missing
                           : '') +
-                      (bot.options.manualReview.showReviewOfferNote
+                      (opt.manualReview.showReviewOfferNote
                           ? `\n\nNote:\n${content.notes.join('\n') +
                                 (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')}`
                           : '')
                     : '') +
-                (bot.options.manualReview.additionalNotes
+                (opt.manualReview.additionalNotes
                     ? '\n\n' +
-                      bot.options.manualReview.additionalNotes
+                      opt.manualReview.additionalNotes
                           .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
                           .replace(/%pureStock%/g, pureStock.join(', ').toString())
                     : '') +
-                (bot.options.manualReview.showOwnerCurrentTime
+                (opt.manualReview.showOwnerCurrentTime
                     ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${time.time +
                           (time.note !== '' ? `. ${time.note}.` : '.')}`
                     : '')
@@ -97,7 +99,7 @@ export default function sendReview(
 
     const list = listItems(items, true);
 
-    if (bot.options.discordWebhook.offerReview.enable && bot.options.discordWebhook.offerReview.url !== '') {
+    if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, value, links, items, bot);
     } else {
         const offerMessage = offer.message;

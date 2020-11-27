@@ -358,6 +358,8 @@ abstract class Cart {
     abstract constructOfferWithWeapons(): Promise<string>;
 
     sendOffer(): Promise<string | void> {
+        const opt = this.bot.options;
+
         if (this.isEmpty()) {
             return Promise.reject("❌ I don't or you don't have enough items for this trade");
         }
@@ -378,10 +380,7 @@ abstract class Cart {
 
         this.offer.data('handleTimestamp', moment().valueOf());
 
-        this.offer.setMessage(
-            'Powered by TF2Autobot' +
-                (this.bot.options.sendOfferMessage ? '. ' + this.bot.options.sendOfferMessage : '')
-        );
+        this.offer.setMessage('Powered by TF2Autobot' + (opt.sendOfferMessage ? '. ' + opt.sendOfferMessage : ''));
 
         if (this.notify === true) {
             this.offer.data('notify', true);
@@ -438,11 +437,8 @@ abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (this.bot.options.sendAlert) {
-                        if (
-                            this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url !== ''
-                        ) {
+                    if (opt.sendAlert) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -459,12 +455,7 @@ abstract class Cart {
                         this.bot.tf2.backpackSlots
                     ];
 
-                    const theirInventory = new Inventory(
-                        this.partner,
-                        this.bot.manager,
-                        this.bot.schema,
-                        this.bot.options
-                    );
+                    const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
                     this.getTheirInventoryCount(await theirInventory.fetchWithReturn());
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
@@ -478,11 +469,8 @@ abstract class Cart {
                             theirNumItems} / ${ourTotalSlots} slots used` +
                         `\n➡️ They would have received ${ourNumItems} item(s) → ${theirUsedSlots +
                             ourNumItems} / ${theirTotalSlots} slots used`;
-                    if (this.bot.options.sendAlert) {
-                        if (
-                            this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url !== ''
-                        ) {
+                    if (opt.sendAlert) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);

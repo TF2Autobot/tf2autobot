@@ -247,6 +247,8 @@ export = class Autokeys {
         const isAlreadyRunningAutokeys = this.isActive;
         const isKeysAlreadyExist = keyEntry !== null;
 
+        const opt = this.bot.options;
+
         if (isAlreadyRunningAutokeys) {
             // if Autokeys already running
             if (
@@ -384,11 +386,8 @@ export = class Autokeys {
                 };
                 this.isActive = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (this.bot.options.sendAlert) {
-                    if (
-                        this.bot.options.discordWebhook.sendAlert.enable &&
-                        this.bot.options.discordWebhook.sendAlert.url !== ''
-                    ) {
+                if (opt.sendAlert) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                         sendAlert('lowPure', this.bot, msg);
                     } else {
                         this.bot.messageAdmins(msg, []);
@@ -487,11 +486,8 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (this.bot.options.sendAlert) {
-                        if (
-                            this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url !== ''
-                        ) {
+                    if (opt.sendAlert) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -611,11 +607,8 @@ export = class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (this.bot.options.sendAlert) {
-                        if (
-                            this.bot.options.discordWebhook.sendAlert.enable &&
-                            this.bot.options.discordWebhook.sendAlert.url !== ''
-                        ) {
+                    if (opt.sendAlert) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -645,6 +638,7 @@ export = class Autokeys {
 
     disable(onShutdown = false): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
+        const opt = this.bot.options;
         let entry;
         if (keyPrices.src !== 'manual') {
             entry = {
@@ -655,8 +649,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.buy,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.sell
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
                 }
             } as any;
         } else {
@@ -676,8 +670,8 @@ export = class Autokeys {
                 max: 1,
                 intent: 2,
                 note: {
-                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.buy,
-                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + this.bot.options.details.sell
+                    buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                    sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
                 }
             } as any;
         }
@@ -705,7 +699,6 @@ export = class Autokeys {
             alreadyUpdatedToSell: false
         };
         this.isActive = false;
-        // this.sleep(2 * 1000);
         this.check();
     }
 };

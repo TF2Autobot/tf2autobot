@@ -139,13 +139,6 @@ export default class Pricelist extends EventEmitter {
 
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
-    // private priceChanges: {
-    //     sku: string;
-    //     name: string;
-    //     newPrice: Entry;
-    //     time: string;
-    // }[] = [];
-
     private maxAge: number;
 
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket, private options?: Options) {
@@ -555,6 +548,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: any): void {
+        const opt = this.options;
+
         if (data.source !== 'bptf') {
             return;
         }
@@ -568,8 +563,8 @@ export default class Pricelist extends EventEmitter {
             const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                this.options.autokeys.enable &&
-                this.options.autokeys.scrapAdjustment.enable &&
+                opt.autokeys.enable &&
+                opt.autokeys.scrapAdjustment.enable &&
                 currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
                 currentGlobalKeySellingPrice === currentPTFSellingPrice;
 
@@ -603,12 +598,10 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
+            if (opt.discordWebhook.priceUpdate.enable && opt.discordWebhook.priceUpdate.url !== '') {
                 const time = moment()
-                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
-                    .format(
-                        this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
-                    );
+                    .tz(opt.timezone ? opt.timezone : 'UTC')
+                    .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
                 sendWebHookPriceUpdateV1(
                     data.sku,
@@ -616,7 +609,7 @@ export default class Pricelist extends EventEmitter {
                     match,
                     time,
                     this.schema,
-                    this.options
+                    opt
                 );
                 // this.priceChanges.push({
                 //     sku: data.sku,

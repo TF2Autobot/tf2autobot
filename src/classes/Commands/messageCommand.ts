@@ -7,9 +7,10 @@ import { generateLinks, timeNow } from '../../lib/tools/export';
 import { sendPartnerMessage } from '../../lib/DiscordWebhook/export';
 
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
+    const opt = bot.options;
     const isAdmin = bot.isAdmin(steamID);
 
-    if (!bot.options.enableMessages) {
+    if (!opt.enableMessages) {
         if (isAdmin) {
             bot.sendMessage(
                 steamID,
@@ -96,9 +97,9 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         }
 
         const links = generateLinks(steamID.toString());
-        const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
+        const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
 
-        if (bot.options.discordWebhook.messages.enable && bot.options.discordWebhook.messages.url !== '') {
+        if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
             sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(

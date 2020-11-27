@@ -14,13 +14,14 @@ export default function sendPartnerMessage(
     time: string,
     bot: Bot
 ): void {
+    const opt = bot.options.discordWebhook;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
     /*eslint-disable */
     const discordPartnerMsg: Webhook = {
-        username: bot.options.discordWebhook.displayName ? bot.options.discordWebhook.displayName : botInfo.name,
-        avatar_url: bot.options.discordWebhook.avatarURL ? bot.options.discordWebhook.avatarURL : botInfo.avatarURL,
-        content: `<@!${bot.options.discordWebhook.ownerID}>, new message! - ${steamID}`,
+        username: opt.displayName ? opt.displayName : botInfo.name,
+        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        content: `<@!${opt.ownerID}>, new message! - ${steamID}`,
         embeds: [
             {
                 author: {
@@ -33,13 +34,13 @@ export default function sendPartnerMessage(
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
-                color: bot.options.discordWebhook.embedColor
+                color: opt.embedColor
             }
         ]
     };
     /*eslint-enable */
 
-    sendWebhook(bot.options.discordWebhook.messages.url, discordPartnerMsg, 'partner-message')
+    sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message')
         .then(() => {
             log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`);
         })

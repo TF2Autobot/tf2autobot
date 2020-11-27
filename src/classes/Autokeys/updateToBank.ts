@@ -5,6 +5,7 @@ import log from '../../lib/logger';
 
 export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot): void {
     const keyPrices = bot.pricelist.getKeyPrices();
+    const opt = bot.options;
     let entry;
 
     if (keyPrices.src !== 'manual') {
@@ -16,8 +17,8 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 2,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
         } as any;
     } else {
@@ -37,8 +38,8 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
             max: maxKeys,
             intent: 2,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + bot.options.details.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
             }
         } as any;
     }

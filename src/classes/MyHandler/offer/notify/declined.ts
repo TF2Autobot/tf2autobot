@@ -5,10 +5,12 @@ import { valueDiff } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 
 export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+    const opt = bot.options;
+
     const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
     const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
-    const manualReviewDisabled = !bot.options.manualReview.enable;
+    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
+    const manualReviewDisabled = !opt.manualReview.enable;
 
     let reasonForInvalidValue = false;
     let reason: string;
@@ -76,15 +78,15 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
         `${
-            bot.options.manualReview.invalidValue.autoDecline.note
-                ? '\n\nNote from owner: ' + bot.options.manualReview.invalidValue.autoDecline.note
+            opt.manualReview.invalidValue.autoDecline.note
+                ? '\n\nNote from owner: ' + opt.manualReview.invalidValue.autoDecline.note
                 : ''
         }`;
 
     bot.sendMessage(
         offer.partner,
-        bot.options.customMessage.decline
-            ? bot.options.customMessage.decline
+        opt.customMessage.decline
+            ? opt.customMessage.decline
                   .replace(/%reason%/g, reason)
                   .replace(/%invalid_value_summary%/g, invalidValueSummary)
             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${

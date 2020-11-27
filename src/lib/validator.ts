@@ -3,103 +3,64 @@ const Validator = jsonschema.Validator;
 
 const v = new Validator();
 
-import { currenciesSchema } from '../schemas/pricelist-json/tf2-currencies';
-import { pricelistSchema } from '../schemas/pricelist-json/pricelist';
-import { addSchema } from '../schemas/pricelist-json/pricelist-add';
-import { listingSchema } from '../schemas/pricelist-json/listing-note';
+import * as pl from '../schemas/pricelist-json/export';
 
-v.addSchema(currenciesSchema);
-v.addSchema(pricelistSchema);
-v.addSchema(addSchema);
-v.addSchema(listingSchema);
+v.addSchema(pl.currenciesSchema);
+v.addSchema(pl.pricelistSchema);
+v.addSchema(pl.addSchema);
+v.addSchema(pl.listingSchema);
 
-import { stringArraySchema } from '../schemas/options-json/array-string';
-import { optionsSchema } from '../schemas/options-json/options';
-import { highValueSchema } from '../schemas/options-json/high-value/high-value';
-import { checkUsesSchema } from '../schemas/options-json/check-uses/check-uses';
-import { gameSchema } from '../schemas/options-json/game/game';
-import { normalizeSchema } from '../schemas/options-json/normalize/normalize';
-import { detailsSchema } from '../schemas/options-json/details/details';
-import { customMessageSchema } from '../schemas/options-json/custom-message/custom-message';
-import { statisticsSchema } from '../schemas/options-json/statistics/statistics';
+import * as op from '../schemas/options-json/export';
 
-v.addSchema(stringArraySchema);
-v.addSchema(optionsSchema);
-v.addSchema(highValueSchema);
-v.addSchema(checkUsesSchema);
-v.addSchema(gameSchema);
-v.addSchema(normalizeSchema);
-v.addSchema(detailsSchema);
-v.addSchema(customMessageSchema);
-v.addSchema(statisticsSchema);
+v.addSchema(op.stringArraySchema);
+v.addSchema(op.optionsSchema);
+v.addSchema(op.highValueSchema);
+v.addSchema(op.checkUsesSchema);
+v.addSchema(op.gameSchema);
+v.addSchema(op.normalizeSchema);
+v.addSchema(op.detailsSchema);
+v.addSchema(op.customMessageSchema);
+v.addSchema(op.statisticsSchema);
 
-import { autokeysSchema } from '../schemas/options-json/autokeys/autokeys';
-import { bankingSchema } from '../schemas/options-json/autokeys/banking';
-import { scrapAdjustmentSchema } from '../schemas/options-json/autokeys/scrapAdjustment';
-import { acceptSchema } from '../schemas/options-json/autokeys/accept';
+v.addSchema(op.a.autokeysSchema);
+v.addSchema(op.a.bankingSchema);
+v.addSchema(op.a.scrapAdjustmentSchema);
+v.addSchema(op.a.acceptSchema);
 
-v.addSchema(autokeysSchema);
-v.addSchema(bankingSchema);
-v.addSchema(scrapAdjustmentSchema);
-v.addSchema(acceptSchema);
+v.addSchema(op.c.craftingSchema);
+v.addSchema(op.c.weaponsSchema);
+v.addSchema(op.c.metalsSchema);
 
-import { craftingSchema } from '../schemas/options-json/crafting/crafting';
-import { weaponsSchema } from '../schemas/options-json/crafting/weapons';
-import { metalsSchema } from '../schemas/options-json/crafting/metals';
+v.addSchema(op.mv.manualReviewSchema);
+v.addSchema(op.mv.invalidValueSchema);
+v.addSchema(op.mv.autoDeclineIVSchema);
+v.addSchema(op.mv.exceptionValueIVSchema);
+v.addSchema(op.mv.invalidItemsSchema);
+v.addSchema(op.mv.overUnderstockedSchema);
+v.addSchema(op.mv.dupedSchema);
+v.addSchema(op.mv.dupedCheckFailedSchema);
 
-v.addSchema(craftingSchema);
-v.addSchema(weaponsSchema);
-v.addSchema(metalsSchema);
-
-import { manualReviewSchema } from '../schemas/options-json/manual-review/manual-review';
-import { invalidValueSchema } from '../schemas/options-json/manual-review/invalid-value/invalid-value';
-import { autoDeclineIVSchema } from '../schemas/options-json/manual-review/invalid-value/auto-decline';
-import { exceptionValueIVSchema } from '../schemas/options-json/manual-review/invalid-value/exception-value';
-import { invalidItemsSchema } from '../schemas/options-json/manual-review/invalid-items/invalid-items';
-import { overUnderstockedSchema } from '../schemas/options-json/manual-review/overstocked-understocked/overstocked-understocked';
-import { dupedSchema } from '../schemas/options-json/manual-review/duped/duped';
-import { dupedCheckFailedSchema } from '../schemas/options-json/manual-review/duped-check-failed/duped-check-failed';
-
-v.addSchema(manualReviewSchema);
-v.addSchema(invalidValueSchema);
-v.addSchema(autoDeclineIVSchema);
-v.addSchema(exceptionValueIVSchema);
-v.addSchema(invalidItemsSchema);
-v.addSchema(overUnderstockedSchema);
-v.addSchema(dupedSchema);
-v.addSchema(dupedCheckFailedSchema);
-
-import { discordWebhookSchema } from '../schemas/options-json/discord-webhook/discord-webhook';
-import { tradeSummarySchema } from '../schemas/options-json/discord-webhook/trade-summary/trade-summary';
-import { miscTradeSummarySchema } from '../schemas/options-json/discord-webhook/trade-summary/misc-trade-summary';
-import { mentionOwnerSchema } from '../schemas/options-json/discord-webhook/trade-summary/mention-owner';
-import { offerReviewSchema } from '../schemas/options-json/discord-webhook/offer-review/offer-review';
-import { miscOfferReviewSchema } from '../schemas/options-json/discord-webhook/offer-review/misc-offer-review';
-import { messagesSchema } from '../schemas/options-json/discord-webhook/messages/messages';
-import { priceUpdateSchema } from '../schemas/options-json/discord-webhook/price-update/price-update';
-import { sendAlertSchema } from '../schemas/options-json/discord-webhook/send-alert/send-alert';
-
-v.addSchema(discordWebhookSchema);
-v.addSchema(tradeSummarySchema);
-v.addSchema(miscTradeSummarySchema);
-v.addSchema(mentionOwnerSchema);
-v.addSchema(offerReviewSchema);
-v.addSchema(miscOfferReviewSchema);
-v.addSchema(messagesSchema);
-v.addSchema(priceUpdateSchema);
-v.addSchema(sendAlertSchema);
+v.addSchema(op.dw.discordWebhookSchema);
+v.addSchema(op.dw.tradeSummarySchema);
+v.addSchema(op.dw.miscTradeSummarySchema);
+v.addSchema(op.dw.mentionOwnerSchema);
+v.addSchema(op.dw.offerReviewSchema);
+v.addSchema(op.dw.miscOfferReviewSchema);
+v.addSchema(op.dw.messagesSchema);
+v.addSchema(op.dw.priceUpdateSchema);
+v.addSchema(op.dw.sendAlertSchema);
 
 export = function(data: any, schema: string): string[] | null {
     const putSchema =
         schema === 'pricelist-add'
-            ? addSchema
+            ? pl.addSchema
             : schema === 'pricelist'
-            ? pricelistSchema
+            ? pl.pricelistSchema
             : schema === 'tf2-currencies'
-            ? currenciesSchema
+            ? pl.currenciesSchema
             : schema === 'options'
-            ? optionsSchema
-            : listingSchema;
+            ? op.optionsSchema
+            : pl.listingSchema;
 
     const validated = v.validate(data, putSchema);
     if (validated.valid === true) {

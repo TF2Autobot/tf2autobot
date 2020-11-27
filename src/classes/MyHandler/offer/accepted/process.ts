@@ -18,11 +18,13 @@ export default function processAccepted(
     backpackSlots: number,
     processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
+    const opt = bot.options;
+
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
 
     const pureStock = pure.stock(bot);
-    const timeWithEmojis = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
+    const timeWithEmojis = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
     const links = generateLinks(offer.partner.toString());
     const itemsList = itemList(offer);
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
@@ -127,9 +129,9 @@ export default function processAccepted(
     }
 
     const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
+    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
 
-    if (bot.options.discordWebhook.tradeSummary.enable && tradeSummaryLinks.length !== 0) {
+    if (opt.discordWebhook.tradeSummary.enable && tradeSummaryLinks.length !== 0) {
         sendTradeSummary(
             offer,
             autokeys,
