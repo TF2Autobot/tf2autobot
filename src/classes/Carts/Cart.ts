@@ -13,7 +13,6 @@ import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 
 import Bot from '../Bot';
-import MyHandler from '../MyHandler/MyHandler';
 
 export = Cart;
 
@@ -454,7 +453,7 @@ abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const ourUsedSlots = this.ourInventoryCount;
-                    const ourTotalSlots = (this.bot.handler as MyHandler).getBackpackSlots();
+                    const ourTotalSlots = this.bot.tf2.backpackSlots;
 
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
