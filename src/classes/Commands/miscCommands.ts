@@ -1,14 +1,12 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import moment from 'moment-timezone';
 
 import { craftWeapons, uncraftWeapons } from './utils';
 
 import Bot from '../Bot';
-import MyHandler from '../MyHandler/MyHandler';
 
-import { pure, timeNow } from '../../lib/tools/export';
+import { pure, timeNow, uptime } from '../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
     const timeWithEmojis = timeNow(bot.options.timezone, bot.options.timezone, bot.options.timeAdditionalNotes);
@@ -20,23 +18,8 @@ export function timeCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function uptimeCommand(steamID: SteamID, bot: Bot): void {
-    const uptime = (bot.handler as MyHandler).getUptime();
-
-    const currentTime = moment();
-    const uptimeAsMoment = moment.unix(uptime);
-    const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
-    const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
-
-    // If the bot has been up for ~1 day, show the exact amount of hours
-    // If the bot has been up for ~1 month, show the exact amount of days
-    // Otherwise, show the uptime as it is
-    if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
-        bot.sendMessage(steamID, `Bot has been up for a day (${hoursDiff} hours).`);
-    } else if (daysDiff >= 25.5) {
-        bot.sendMessage(steamID, `Bot has been up for a month (${daysDiff} days).`);
-    } else {
-        bot.sendMessage(steamID, `Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
-    }
+    const botUptime = uptime();
+    bot.sendMessage(steamID, botUptime);
 }
 
 export function pureCommand(steamID: SteamID, bot: Bot): void {

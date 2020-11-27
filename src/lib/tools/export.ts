@@ -7,5 +7,6 @@ import timeNow from './time';
 import valueDiff from './valueDiff';
 import listItems from './summarizeItems';
 import summarize from './summarizeOffer';
+import uptime from './uptime';
 
-export { check, generateLinks, pure, replace, stats, timeNow, valueDiff, listItems, summarize };
+export { check, generateLinks, pure, replace, stats, timeNow, valueDiff, listItems, summarize, uptime };

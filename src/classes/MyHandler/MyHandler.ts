@@ -6,7 +6,6 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import moment from 'moment-timezone';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -31,7 +30,7 @@ import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { check } from '../../lib/tools/export';
+import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 
 interface OnRun {
@@ -198,8 +197,6 @@ export = class MyHandler extends Handler {
 
     private classWeaponsTimeout;
 
-    private uptime: number;
-
     private botSteamID: SteamID;
 
     recentlySentMessage: UnknownDictionary<number> = {};
@@ -217,7 +214,6 @@ export = class MyHandler extends Handler {
         this.cartQueue = new CartQueue(bot);
         this.autokeys = new Autokeys(bot);
 
-        this.uptime = moment().unix();
         this.paths = genPaths(this.bot.options.steamAccountName);
 
         setInterval(() => {
@@ -265,10 +261,6 @@ export = class MyHandler extends Handler {
 
     getAutokeysStatus(): GetAutokeysStatus {
         return this.autokeysStatus;
-    }
-
-    getUptime(): number {
-        return this.uptime;
     }
 
     onRun(): Promise<OnRun> {
@@ -1418,21 +1410,7 @@ export = class MyHandler extends Handler {
             this.sortInventory();
 
             // Tell bot uptime
-            const currentTime = moment();
-            const uptimeAsMoment = moment.unix(this.uptime);
-            const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
-            const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
-
-            // If the bot has been up for ~1 day, show the exact amount of hours
-            // If the bot has been up for ~1 month, show the exact amount of days
-            // Otherwise, show the uptime as it is
-            if (hoursDiff >= 21.5 && hoursDiff < 35.5) {
-                log.debug(`Bot has been up for a day (${hoursDiff} hours).`);
-            } else if (daysDiff >= 25.5) {
-                log.debug(`Bot has been up for a month (${daysDiff} days).`);
-            } else {
-                log.debug(`Bot has been up for ${uptimeAsMoment.from(currentTime, true)}.`);
-            }
+            log.debug(uptime());
 
             // Update listings
             updateListings(offer, this.bot, highValue);
