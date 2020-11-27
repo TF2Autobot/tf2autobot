@@ -402,6 +402,7 @@ class UserCart extends Cart {
 
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
+        this.getOurInventoryCount(ourInventory.getTotalItems());
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -467,6 +468,8 @@ class UserCart extends Cart {
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
+
+        this.getTheirInventoryCount(fetched.length);
 
         // Add their items
 

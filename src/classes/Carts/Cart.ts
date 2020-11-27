@@ -4,17 +4,16 @@
 import SteamID from 'steamid';
 import moment from 'moment';
 import SKU from 'tf2-sku-2';
-import TradeOfferManager, { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import request from 'request';
 import { UnknownDictionary } from '../../types/common';
-
-import Inventory from '../Inventory';
 
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 
 import Bot from '../Bot';
+import MyHandler from '../MyHandler/MyHandler';
 
 export = Cart;
 
@@ -122,8 +121,8 @@ abstract class Cart {
         this.ourInventoryCount = count;
     }
 
-    getTheirInventoryCount(econ: EconItem[]): void {
-        this.theirInventoryCount = econ.length;
+    getTheirInventoryCount(count: number): void {
+        this.theirInventoryCount = count;
     }
 
     getTheirBackpackSlots(slots: number): void {
@@ -418,7 +417,7 @@ abstract class Cart {
 
                 return status;
             })
-            .catch(async (err) => {
+            .catch(async err => {
                 if (!(err instanceof Error)) {
                     return Promise.reject(err);
                 }
@@ -454,18 +453,18 @@ abstract class Cart {
                         "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
                     );
                 } else if (error.eresult == 15) {
-                    const [ourUsedSlots, ourTotalSlots] = [
-                        this.bot.inventoryManager.getInventory().getTotalItems(),
-                        this.bot.tf2.backpackSlots
-                    ];
+                    const ourUsedSlots = this.ourInventoryCount;
+                    const ourTotalSlots = (this.bot.handler as MyHandler).getBackpackSlots();
 
-                    const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
-                    this.getTheirInventoryCount(await theirInventory.fetchWithReturn());
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
 
-                    const ourNumItems = this.summarizeOur().length;
-                    const theirNumItems = this.summarizeTheir().length;
+                    const ourNumItems = this.bot.options.enableCraftweaponAsCurrency
+                        ? this.summarizeOurWithWeapons().length
+                        : this.summarizeOur().length;
+                    const theirNumItems = this.bot.options.enableCraftweaponAsCurrency
+                        ? this.summarizeTheirWithWeapons().length
+                        : this.summarizeTheir().length;
 
                     const msg =
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
@@ -617,7 +616,7 @@ abstract class Cart {
     }
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
