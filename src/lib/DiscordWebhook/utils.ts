@@ -53,7 +53,9 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
         // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
         request.send(
             i > 0 && event === 'trade-summary'
-                ? JSON.stringify(webhook).replace(/<@!\d+>/g, '')
+                ? JSON.stringify(webhook) // this is for second and subsequent servers
+                      .replace(/<@!\d+>/g, '') // remove mention
+                      .replace(/ \(\d+(\/\d+)?\)/g, '') // remove current/max stock
                 : JSON.stringify(webhook)
         );
     });
