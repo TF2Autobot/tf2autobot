@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
@@ -8,34 +9,44 @@ import SKU from 'tf2-sku-2';
 import { Currency } from '../../../types/TeamFortress2';
 import { UnknownDictionary } from '../../../types/common';
 
-export = function (schema: SchemaManager.Schema): string {
+export = function (schema: SchemaManager.Schema, type: string): string {
     const self = this as TradeOffer;
 
     const value: { our: Currency; their: Currency } = self.data('value');
 
     const items: {
-        our: UnknownDictionary<number>;
-        their: UnknownDictionary<number>;
+        our: UnknownDictionary<any>;
+        their: UnknownDictionary<any>;
     } = self.data('dict') || { our: null, their: null };
 
     if (!value) {
-        return 'Asked: ' + summarizeItems(items.our, schema) + '\nOffered: ' + summarizeItems(items.their, schema);
+        return (
+            'Asked: ' +
+            summarizeItems(items.our, schema, 'our', type) +
+            '\nOffered: ' +
+            summarizeItems(items.their, schema, 'their', type)
+        );
     } else {
         return (
             'Asked: ' +
             new Currencies(value.our).toString() +
-            ' (' +
-            summarizeItems(items.our, schema) +
-            ')\nOffered: ' +
+            ' [' +
+            summarizeItems(items.our, schema, 'our', type) +
+            ']\nOffered: ' +
             new Currencies(value.their).toString() +
-            ' (' +
-            summarizeItems(items.their, schema) +
-            ')'
+            ' [' +
+            summarizeItems(items.their, schema, 'their', type) +
+            ']'
         );
     }
 };
 
-function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.Schema): string {
+function summarizeItems(
+    dict: UnknownDictionary<any>,
+    schema: SchemaManager.Schema,
+    which: string,
+    type: string
+): string {
     if (dict === null) {
         return 'unknown items';
     }
@@ -47,10 +58,32 @@ function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.S
             continue;
         }
 
-        const amount = dict[sku];
+        const isDefined = (dict[sku]['amount'] as number) !== undefined;
+
+        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
+
         const name = schema.getName(SKU.fromString(sku), false);
 
-        summary.push(name + (amount > 1 ? ` x${amount}` : ''));
+        let stock = 0;
+        let maxStock = 0;
+
+        if (type === 'summary') {
+            stock =
+                which === 'our'
+                    ? (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) - amount
+                    : (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) + amount;
+        } else {
+            stock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
+        }
+
+        maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
+        summary.push(
+            `${name}${amount > 1 ? ` x${amount}` : ''}${
+                type === 'review-partner' || type === 'declined'
+                    ? ''
+                    : ` (${stock}${maxStock !== 0 ? `/${maxStock}` : ''})`
+            }`
+        );
     }
 
     if (summary.length === 0) {

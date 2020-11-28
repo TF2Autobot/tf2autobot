@@ -19,7 +19,6 @@ export default function processAccepted(
     autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
     bot: Bot,
     isTradingKeys: boolean,
-    tradeSummaryLinks: string[],
     backpackSlots: number,
     processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
@@ -136,7 +135,7 @@ export default function processAccepted(
     const keyPrices = bot.pricelist.getKeyPrices();
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
 
-    if (opt.discordWebhook.tradeSummary.enable && tradeSummaryLinks.length !== 0) {
+    if (opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0) {
         sendTradeSummary(
             offer,
             autokeys,
@@ -155,7 +154,7 @@ export default function processAccepted(
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                summarize(offer.summarize(bot.schema), value, keyPrices, true) +
+                summarize(offer.summarize(bot.schema, 'summary'), value, keyPrices, true) +
                 (accepted.invalidItems.length !== 0
                     ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
                     : '') +

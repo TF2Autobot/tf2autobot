@@ -265,10 +265,10 @@ declare module 'steam-tradeoffer-manager' {
             log(level: string, message: string, ...meta: any[]);
 
             // Custom function added to prototype
-            summarize(schema: SchemaManager.Schema): string;
+            summarize(schema: SchemaManager.Schema, type: string): string;
 
             // Custom function added to prototype
-            summarizeWithLink(schema: SchemaManager.Schema): string;
+            summarizeWithLink(schema: SchemaManager.Schema, type: string): string;
 
             // Custom function added to prototype
             summarizeSKU(): string;

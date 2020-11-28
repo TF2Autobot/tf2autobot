@@ -173,10 +173,6 @@ export = class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
-    private get tradeSummaryLinks(): string[] {
-        return this.bot.options.discordWebhook.tradeSummary.url;
-    }
-
     private paths: Paths;
 
     constructor(bot: Bot) {
@@ -466,7 +462,7 @@ export = class MyHandler extends Handler {
             their: { value: 0, keys: 0, scrap: 0, contains: { items: false, metal: false, keys: false } }
         };
 
-        const itemsDict = { our: {}, their: {} };
+        const itemsDict: ItemsDict = { our: {}, their: {} };
 
         const states = [false, true];
 
@@ -505,7 +501,38 @@ export = class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                itemsDict[which][sku] = amount;
+                const itemEntry = this.bot.pricelist.getPrice(sku, true);
+                const stock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
+
+                if (itemEntry !== null) {
+                    if (which === 'our') {
+                        itemsDict.our[sku] = {
+                            amount: amount,
+                            stock: stock,
+                            maxStock: itemEntry.max
+                        };
+                    } else {
+                        itemsDict.their[sku] = {
+                            amount: amount,
+                            stock: stock,
+                            maxStock: itemEntry.max
+                        };
+                    }
+                } else {
+                    if (which === 'our') {
+                        itemsDict.our[sku] = {
+                            amount: amount,
+                            stock: stock,
+                            maxStock: 0
+                        };
+                    } else {
+                        itemsDict.their[sku] = {
+                            amount: amount,
+                            stock: stock,
+                            maxStock: 0
+                        };
+                    }
+                }
             }
         }
 
@@ -523,7 +550,7 @@ export = class MyHandler extends Handler {
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
-            offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
+            offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
             return {
                 action: 'accept',
                 reason: 'ADMIN',
@@ -546,7 +573,7 @@ export = class MyHandler extends Handler {
         });
 
         if (offer.itemsToGive.length === 0 && isGift) {
-            offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
+            offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
             return {
                 action: 'accept',
                 reason: 'GIFT',
@@ -1183,7 +1210,8 @@ export = class MyHandler extends Handler {
                 offer.log(
                     'trade',
                     `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${offer.summarize(
-                        this.bot.schema
+                        this.bot.schema,
+                        'summary'
                     )}`
                 );
 
@@ -1252,7 +1280,7 @@ export = class MyHandler extends Handler {
             }
         }
 
-        offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema)}`);
+        offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
@@ -1343,7 +1371,6 @@ export = class MyHandler extends Handler {
                     autokeys,
                     this.bot,
                     this.isTradingKeys,
-                    this.tradeSummaryLinks,
                     this.backpackSlots,
                     processTime
                 );
@@ -1723,6 +1750,21 @@ function highValueMeta(info: HighValueInput): HighValueOutput {
             their: info.their.isMention
         }
     };
+}
+
+interface ItemsDict {
+    our: ItemDictSKU;
+    their: ItemDictSKU;
+}
+
+interface ItemDictSKU {
+    sku?: ItemDictContent;
+}
+
+interface ItemDictContent {
+    amount?: number;
+    stock?: number;
+    maxStock?: number;
 }
 
 interface OnRun {
