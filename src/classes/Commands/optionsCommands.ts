@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
@@ -13,7 +12,7 @@ import { deepMerge } from '../../lib/tools/deep-merge';
 import validator from '../../lib/validator';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
-    const liveOptions = deepMerge({}, bot.options);
+    const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
     // remove Discord Webhook URLs
@@ -28,9 +27,10 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
 
-    const optionsPath = path.join(__dirname, `../../../files/${opt.steamAccountName}/options.json`);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-    const saveOptions = deepMerge({}, opt);
+
+    const optionsPath = path.join(__dirname, `../../../files/${opt.steamAccountName}/options.json`);
+    const saveOptions = deepMerge({}, opt) as JsonOptions;
     removeCliOptions(saveOptions);
 
     if (typeof params.game === 'object') {

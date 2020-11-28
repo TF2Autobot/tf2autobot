@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SKU from 'tf2-sku-2';
 import request from '@nicklason/request-retry';
@@ -37,37 +35,6 @@ import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
-
-interface OnRun {
-    loginAttempts?: number[];
-    pricelist?: EntryData[];
-    loginKey?: string;
-    pollData?: PollData;
-}
-
-interface OnNewTradeOffer {
-    action: 'accept' | 'decline' | 'skip';
-    reason: string;
-    meta?: UnknownDictionary<any>;
-}
-
-interface BotInfo {
-    name: string;
-    avatarURL: string;
-    steamID: string;
-    premium: boolean;
-}
-
-interface GetToMention {
-    sheens: string[];
-    killstreakers: string[];
-}
-
-interface GetAutokeysStatus {
-    isActive: boolean;
-    isBuying: boolean;
-    isBanking: boolean;
-}
 
 export = class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -798,7 +765,7 @@ export = class MyHandler extends Handler {
                         hasInvalidItems = true;
 
                         // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = await this.bot.pricelist.getPricesTF(sku);
+                        const price = (await this.bot.pricelist.getPricesTF(sku)) as GetPrices;
 
                         const item = SKU.fromString(sku);
 
@@ -810,7 +777,7 @@ export = class MyHandler extends Handler {
                         // else means the item is truly not in pricelist and make "isCanBePriced" true
                         const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
 
-                        let itemSuggestedValue;
+                        let itemSuggestedValue: string;
 
                         if (price === null) {
                             itemSuggestedValue = 'No price';
@@ -1609,6 +1576,7 @@ export = class MyHandler extends Handler {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
@@ -1755,4 +1723,47 @@ function highValueMeta(info: HighValueInput): HighValueOutput {
             their: info.their.isMention
         }
     };
+}
+
+interface OnRun {
+    loginAttempts?: number[];
+    pricelist?: EntryData[];
+    loginKey?: string;
+    pollData?: PollData;
+}
+
+interface OnNewTradeOffer {
+    action: 'accept' | 'decline' | 'skip';
+    reason: string;
+    meta?: UnknownDictionary<any>;
+}
+
+interface BotInfo {
+    name: string;
+    avatarURL: string;
+    steamID: string;
+    premium: boolean;
+}
+
+interface GetToMention {
+    sheens: string[];
+    killstreakers: string[];
+}
+
+interface GetAutokeysStatus {
+    isActive: boolean;
+    isBuying: boolean;
+    isBanking: boolean;
+}
+
+interface GetPrices {
+    success: boolean;
+    sku?: string;
+    name?: string;
+    currency?: number | string;
+    source?: string;
+    time?: string;
+    buy?: Currencies;
+    sell?: Currencies;
+    message?: string;
 }

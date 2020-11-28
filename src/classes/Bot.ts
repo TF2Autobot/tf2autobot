@@ -240,7 +240,7 @@ export = class Bot {
 
         // Check for updates every 10 minutes
         setInterval(() => {
-            this.checkForUpdates().catch(err => {
+            this.checkForUpdates().catch((err: Error) => {
                 log.warn('Failed to check for updates: ', err);
             });
         }, 10 * 60 * 1000);

@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
@@ -627,16 +621,16 @@ export = class Commands {
         const item = SKU.fromString(params.sku);
         const name = this.bot.schema.getName(item);
 
-        let salesData;
+        let salesData: getSalesData;
 
         try {
-            salesData = await getSales(params.sku, 'bptf');
+            salesData = (await getSales(params.sku, 'bptf')) as getSalesData;
         } catch (err) {
+            const thisErr = err as ErrorRequest;
             this.bot.sendMessage(
                 steamID,
                 `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    err.body && err.body.message ? err.body.message : err.message
+                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
                 }`
             );
             return;
@@ -688,17 +682,11 @@ export = class Commands {
                 left += 1;
             } else {
                 SalesList.push(
-                    `Listed #${i + 1}-----` +
-                        '\n• Date: ' +
-                        moment.unix(sales[i].date).utc().toString() +
-                        '\n• Item: ' +
-                        sales[i].itemHistory +
-                        '\n• Seller: ' +
-                        sales[i].seller +
-                        '\n• Was selling for: ' +
-                        (sales[i].keys > 0 ? sales[i].keys + ' keys, ' : '') +
-                        sales[i].metal +
-                        ' ref'
+                    `Listed #${i + 1}-----\n• Date: ${moment.unix(sales[i].date).utc().toString()}\n• Item: ${
+                        sales[i].itemHistory
+                    }\n• Seller: ${sales[i].seller}\n• Was selling for: ${
+                        sales[i].keys > 0 ? `${sales[i].keys} keys,` : ''
+                    } ${sales[i].metal} ref`
                 );
             }
         }
@@ -1478,12 +1466,13 @@ export = class Commands {
         params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
-        void requestCheck(params.sku, 'bptf').asCallback((err, body) => {
+        void requestCheck(params.sku, 'bptf').asCallback((err, body: PriceCheckRequest) => {
             if (err) {
+                const thisErr = err as ErrorRequest;
                 this.bot.sendMessage(
                     steamID,
                     `❌ Error while requesting price check: ${
-                        err.body && err.body.message ? err.body.message : err.message
+                        thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
                     }`
                 );
                 return;
@@ -1530,10 +1519,13 @@ export = class Commands {
             await sleepasync().Promise.sleep(2 * 1000);
             void requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
+                    const thisErr = err as ErrorRequest;
                     submitted++;
                     failed++;
                     log.warn(
-                        `pricecheck failed for ${sku}: ${err.body && err.body.message ? err.body.message : err.message}`
+                        `pricecheck failed for ${sku}: ${
+                            thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
+                        }`
                     );
                     log.debug(
                         `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
@@ -1578,16 +1570,16 @@ export = class Commands {
         const item = SKU.fromString(params.sku);
         const name = this.bot.schema.getName(item);
 
-        let price;
+        let price: GetPrices;
 
         try {
-            price = await getPrice(params.sku, 'bptf');
+            price = (await getPrice(params.sku, 'bptf')) as GetPrices;
         } catch (err) {
+            const thisErr = err as ErrorRequest;
             this.bot.sendMessage(
                 steamID,
                 `Error getting price for ${name === null ? (params.sku as string) : name}: ${
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    err.body && err.body.message ? err.body.message : err.message
+                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
                 }`
             );
             return;
@@ -1607,3 +1599,48 @@ export = class Commands {
         );
     }
 };
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
+}
+
+interface getSalesData {
+    success: boolean;
+    sku: string;
+    name: string;
+    sales: Sales[];
+}
+
+interface Sales {
+    id: string;
+    steamid: string;
+    automatic: boolean;
+    attributes: Record<string, unknown>;
+    intent: number;
+    currencies: Currencies;
+    time: number;
+}
+
+interface PriceCheckRequest {
+    success: boolean;
+    sku?: string;
+    name?: string;
+    message?: string;
+}
+
+interface GetPrices {
+    success: boolean;
+    sku?: string;
+    name?: string;
+    currency?: number | string;
+    source?: string;
+    time?: number;
+    buy?: Currencies;
+    sell?: Currencies;
+    message?: string;
+}

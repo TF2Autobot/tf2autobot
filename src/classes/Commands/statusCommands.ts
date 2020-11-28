@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
@@ -56,7 +53,7 @@ export function versionCommand(steamID: SteamID, bot: Bot): void {
                 );
             }
         })
-        .catch(err => {
+        .catch((err: Error) => {
             bot.sendMessage(steamID, `❌ Failed to check for updates: ${err.message}`);
         });
 }

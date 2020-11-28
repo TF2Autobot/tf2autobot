@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
@@ -263,12 +259,13 @@ export default class Pricelist extends EventEmitter {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
-            let pricePTF;
+            let pricePTF: GetPrices;
 
             try {
-                pricePTF = await getPrice(entry.sku, 'bptf');
+                pricePTF = (await getPrice(entry.sku, 'bptf')) as GetPrices;
             } catch (err) {
-                throw new Error(err.body && err.body.message ? err.body.message : err.message);
+                const thisErr = err as ErrorRequest;
+                throw new Error(thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message);
             }
 
             entry.buy = new Currencies(pricePTF.buy);
@@ -310,9 +307,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     async getPricesTF(sku: string): Promise<any> {
-        let price;
+        let price: GetPrices;
         try {
-            price = await getPrice(sku, 'bptf');
+            price = (await getPrice(sku, 'bptf')) as GetPrices;
         } catch (err) {
             price = null;
         }
@@ -455,11 +452,13 @@ export default class Pricelist extends EventEmitter {
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
 
-        return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
+        return getPrice('5021;6', 'bptf').then(keyPrices => {
             log.debug('Got key price');
 
+            const keyPricesPTF = keyPrices as GetPrices;
+
             const entryKey = this.getPrice('5021;6', false);
-            const timePTF = keyPricesPTF.time as number;
+            const timePTF = keyPricesPTF.time;
 
             this.currentPTFKeyPrices = {
                 buy: new Currencies(keyPricesPTF.buy),
@@ -524,7 +523,7 @@ export default class Pricelist extends EventEmitter {
 
                 // Go through pricestf prices
                 for (let j = 0; j < groupedPrices[item.quality][item.killstreak].length; j++) {
-                    const newestPrice = groupedPrices[item.quality][item.killstreak][j];
+                    const newestPrice = groupedPrices[item.quality][item.killstreak][j] as GetPrices;
 
                     if (name === newestPrice.name) {
                         // Found matching items
@@ -550,7 +549,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private handlePriceChange(data: any): void {
+    private handlePriceChange(data: GetPrices): void {
         const opt = this.options;
 
         if (data.source !== 'bptf') {
@@ -644,7 +643,7 @@ export default class Pricelist extends EventEmitter {
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
-    static groupPrices(prices: any[]): UnknownDictionary<UnknownDictionary<any[]>> {
+    static groupPrices(prices: GetPrices[]): UnknownDictionary<UnknownDictionary<any[]>> {
         const sorted: UnknownDictionary<UnknownDictionary<any[]>> = {};
 
         for (let i = 0; i < prices.length; i++) {
@@ -668,4 +667,25 @@ export default class Pricelist extends EventEmitter {
 
         return sorted;
     }
+}
+
+interface GetPrices {
+    success?: boolean;
+    sku?: string;
+    name?: string;
+    currency?: number | string;
+    source?: string;
+    time?: number;
+    buy?: Currencies;
+    sell?: Currencies;
+    message?: string;
+}
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }

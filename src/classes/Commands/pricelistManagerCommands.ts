@@ -653,7 +653,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
                     `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
             );
         })
-        .catch(err => {
+        .catch((err: ErrorRequest) => {
             bot.sendMessage(
                 steamID,
                 // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -1037,4 +1037,13 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
         bot.sendMessage(steamID, `Found ${pluralize('item', filter.length, true)} with ${display.join('&')}`);
         bot.sendMessage(steamID, `/code ${JSON.stringify(filter, null, 4)}`);
     }
+}
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }

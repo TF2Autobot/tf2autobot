@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { UnknownDictionary } from '../types/common';
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';

@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 
@@ -42,7 +38,7 @@ export default function updateListings(
         // Request priceheck on each sku involved in the trade, except craft weapons,
         // and pure.
         if (isNotPureOrWeapons) {
-            void requestCheck(sku, 'bptf').asCallback((err, body) => {
+            void requestCheck(sku, 'bptf').asCallback((err: ErrorRequest, body: PriceCheckRequest) => {
                 if (err) {
                     log.debug(
                         `❌ Failed to request pricecheck for ${name} (${sku}): ${
@@ -159,4 +155,20 @@ export default function updateListings(
                 });
         }
     }
+}
+
+interface PriceCheckRequest {
+    success: boolean;
+    sku?: string;
+    name?: string;
+    message?: string;
+}
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }
