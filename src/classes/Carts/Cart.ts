@@ -24,9 +24,9 @@ export = Cart;
 abstract class Cart {
     private static carts: UnknownDictionary<Cart> = {};
 
-    private ourInventoryCount = 0;
+    ourInventoryCount = 0;
 
-    private theirInventoryCount = 0;
+    theirInventoryCount = 0;
 
     readonly partner: SteamID;
 
@@ -112,14 +112,6 @@ abstract class Cart {
 
     getCancelReason(): string | undefined {
         return this.cancelReason;
-    }
-
-    getOurInventoryCount(count: number): void {
-        this.ourInventoryCount = count;
-    }
-
-    getTheirInventoryCount(count: number): void {
-        this.theirInventoryCount = count;
     }
 
     getOurCount(sku: string): number {
