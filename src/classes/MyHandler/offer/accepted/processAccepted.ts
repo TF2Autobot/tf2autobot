@@ -149,6 +149,7 @@ export default function processAccepted(
             processTime
         );
     } else {
+        const slots = bot.tf2.backpackSlots;
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
@@ -187,7 +188,7 @@ export default function processAccepted(
                         : ''
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                `\n🎒 Total items: ${currentItems}` +
+                `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
                 `\n⏱ Time taken: ${processTime} ms`,
             []
         );
