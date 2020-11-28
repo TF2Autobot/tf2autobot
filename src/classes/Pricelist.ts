@@ -373,6 +373,15 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
+    shufflePricelist(newEntry: Entry[]): Promise<any> {
+        return new Promise(resolve => {
+            this.prices = newEntry;
+            this.emit('pricelist', newEntry);
+
+            return resolve();
+        });
+    }
+
     removeByGroup(newEntry: Entry[]): Promise<any> {
         return new Promise(resolve => {
             this.prices = newEntry;

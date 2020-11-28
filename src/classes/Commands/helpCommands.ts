@@ -38,6 +38,7 @@ const ADMIN_COMMANDS: string[] = [
     '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
     '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
     '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
+    '!shuffle - Shuffle pricelist entries.',
     '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
     "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
     "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",

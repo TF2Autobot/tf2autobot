@@ -465,3 +465,7 @@ export function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaMa
 
     return summary.join(', ');
 }
+
+export function shufflePricelist(arr: Entry[]): Entry[] {
+    return arr.sort(() => Math.random() - 0.5);
+}

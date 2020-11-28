@@ -5,8 +5,9 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
+import moment from 'moment-timezone';
 
-import { removeLinkProtocol, testSKU, getItemFromParams } from './utils';
+import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -661,6 +662,46 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
                     (err.body && err.body.message ? err.body.message : err.message)
             );
         });
+}
+
+let executed = false;
+let lastExecutedTime: number | null = null;
+let executeTimeout;
+
+export function shuffleCommand(steamID: SteamID, bot: Bot): void {
+    const newExecutedTime = moment().valueOf();
+    const timeDiff = newExecutedTime - lastExecutedTime;
+
+    const pricelist = bot.pricelist.getPrices();
+
+    if (pricelist.length === 0) {
+        bot.sendMessage(steamID, '❌ Pricelist is empty!');
+        return;
+    }
+
+    if (executed === true) {
+        bot.sendMessage(
+            steamID,
+            `⚠️ You need to wait ${Math.trunc(
+                (10 * 60 * 1000 - timeDiff) / (1000 * 60)
+            )} minutes before you can shuffle pricelist/shuffle again.`
+        );
+        return;
+    } else {
+        clearTimeout(executeTimeout);
+        lastExecutedTime = moment().valueOf();
+
+        bot.getHandler().onPricelist(shufflePricelist(pricelist));
+        bot.sendMessage(steamID, '✅ Pricelist shuffled!');
+        void bot.listings.redoListings().asCallback();
+
+        executed = true;
+        executeTimeout = setTimeout(() => {
+            lastExecutedTime = null;
+            executed = false;
+            clearTimeout(executeTimeout);
+        }, 10 * 60 * 1000);
+    }
 }
 
 export function removeCommand(steamID: SteamID, message: string, bot: Bot): void {

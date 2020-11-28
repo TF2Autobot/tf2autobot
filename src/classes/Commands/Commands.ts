@@ -117,6 +117,8 @@ export = class Commands {
             pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
             pricelist.getCommand(steamID, message, this.bot);
+        } else if (command === 'shuffle' && isAdmin) {
+            pricelist.shuffleCommand(steamID, this.bot);
         } else if (command === 'expand' && isAdmin) {
             this.expandCommand(steamID, message);
         } else if (command === 'delete' && isAdmin) {
