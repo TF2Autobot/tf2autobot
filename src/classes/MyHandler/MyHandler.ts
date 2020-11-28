@@ -151,8 +151,6 @@ export = class MyHandler extends Handler {
         }
     }
 
-    private backpackSlots = 0;
-
     private isPremium = false;
 
     private botName = '';
@@ -254,8 +252,7 @@ export = class MyHandler extends Handler {
 
         this.botSteamID = this.bot.client.steamID;
 
-        // Get Backpack slots and Premium info from backpack.tf
-        this.backpackSlots = this.bot.tf2.backpackSlots;
+        // Get Premium info from backpack.tf
         void this.getBPTFAccountInfo();
 
         // Smelt / combine metal if needed
@@ -1366,14 +1363,7 @@ export = class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const result = processAccepted(
-                    offer,
-                    autokeys,
-                    this.bot,
-                    this.isTradingKeys,
-                    this.backpackSlots,
-                    processTime
-                );
+                const result = processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
 
                 this.isTradingKeys = false; // reset
 

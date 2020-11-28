@@ -19,7 +19,6 @@ export default function sendTradeSummary(
     offer: TradeOffer,
     autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
     currentItems: number,
-    backpackSlots: number,
     accepted: {
         invalidItems: string[];
         overstocked: string[];
@@ -130,7 +129,8 @@ export default function sendTradeSummary(
         const isShowInventory = misc.showInventory;
         const AdditionalNotes = misc.note;
 
-        /*eslint-disable */
+        const slots = bot.tf2.backpackSlots;
+
         const acceptedTradeSummary: Webhook = {
             username: opt.displayName ? opt.displayName : botInfo.name,
             avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
@@ -172,8 +172,7 @@ export default function sendTradeSummary(
                                     : '') +
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
                                 (isShowInventory
-                                    ? `\n🎒 Total items: ${currentItems +
-                                          (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+                                    ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
                                 `\n⏱ Time taken: ${processTime} ms` +
                                 (AdditionalNotes

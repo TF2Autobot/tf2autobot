@@ -19,7 +19,6 @@ export default function processAccepted(
     autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
     bot: Bot,
     isTradingKeys: boolean,
-    backpackSlots: number,
     processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
     const opt = bot.options;
@@ -140,7 +139,6 @@ export default function processAccepted(
             offer,
             autokeys,
             currentItems,
-            backpackSlots,
             accepted,
             keyPrices,
             value,
