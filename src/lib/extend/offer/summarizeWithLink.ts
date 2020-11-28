@@ -66,23 +66,25 @@ function summarizeItemsWithLink(
 
         const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
 
-        let stock = 0;
+        let oldStock = 0;
+        let currentStock = 0;
         let maxStock = 0;
 
         if (type === 'summary') {
-            stock =
+            currentStock =
                 which === 'our'
                     ? (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) - amount
                     : (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) + amount;
         } else {
-            stock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
+            currentStock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
         }
 
+        oldStock = dict[sku]['stock'] as number;
         maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
         summary.push(
-            `[${name}](https://www.prices.tf/items/'${sku})${amount > 1 ? ` x${amount}` : ''} (${stock}${
-                maxStock !== 0 ? `/${maxStock}` : ''
-            })`
+            `[${name}](https://www.prices.tf/items/'${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                type === 'summary' ? `${oldStock} → ` : ''
+            }${currentStock}${maxStock !== 0 ? `/${maxStock}` : ''})`
         );
     }
 
