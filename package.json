@@ -6,8 +6,9 @@
     "scripts": {
         "release": "np --no-cleanup --no-publish",
         "build": "tsc -p .",
-        "pretest": "npm run eslint-check",
+        "pretest": "npm run lint",
         "test": "jest",
+        "prelint": "npm run eslint-check",
         "lint": "eslint \"src/**/*\"",
         "prettier": "prettier --check src/**/*",
         "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check"
