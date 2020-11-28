@@ -32,13 +32,13 @@ export = function (schema: SchemaManager.Schema, type: string): string {
         return (
             'Asked: ' +
             new Currencies(value.our).toString() +
-            ' [' +
+            '〚' +
             summarizeItemsWithLink(items.our, schema, 'our', type) +
-            ']\nOffered: ' +
+            '〛\nOffered: ' +
             new Currencies(value.their).toString() +
-            ' [' +
+            '〚' +
             summarizeItemsWithLink(items.their, schema, 'their', type) +
-            ']'
+            '〛'
         );
     }
 };
