@@ -230,7 +230,7 @@ declare module 'steam-user' {
         };
 
         users: Map<
-            SteamID,
+            SteamID | string,
             {
                 rich_presence: [RichPresenceEntry];
                 player_name: string;
@@ -258,9 +258,9 @@ declare module 'steam-user' {
             }
         >;
 
-        myGroups: Map<SteamID, EClanRelationship>;
+        myGroups: Map<SteamID | string, EClanRelationship>;
 
-        myFriends: Map<SteamID, EFriendRelationship>;
+        myFriends: Map<SteamID | string, EFriendRelationship>;
 
         autoRelogin: boolean;
 

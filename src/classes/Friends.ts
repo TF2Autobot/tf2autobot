@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 
 import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
@@ -41,6 +40,7 @@ export = class Friends {
             return null;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return friend;
     }
 
