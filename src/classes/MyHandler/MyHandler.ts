@@ -465,6 +465,7 @@ export = class MyHandler extends Handler {
 
         let hasInvalidItems = false;
 
+        const entry = this.bot.pricelist;
         const stock = this.bot.inventoryManager.getInventory();
 
         for (let i = 0; i < states.length; i++) {
@@ -500,7 +501,7 @@ export = class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                const itemEntry = this.bot.pricelist.getPrice(sku, false);
+                const itemEntry = entry.getPrice(sku, false);
                 const currentStock = stock.getAmount(sku, true);
 
                 if (itemEntry !== null) {
