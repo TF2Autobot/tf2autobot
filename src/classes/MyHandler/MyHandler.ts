@@ -465,6 +465,8 @@ export = class MyHandler extends Handler {
 
         let hasInvalidItems = false;
 
+        const stock = this.bot.inventoryManager.getInventory();
+
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
@@ -498,20 +500,20 @@ export = class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                const itemEntry = this.bot.pricelist.getPrice(sku, true);
-                const stock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
+                const itemEntry = this.bot.pricelist.getPrice(sku, false);
+                const currentStock = stock.getAmount(sku, true);
 
                 if (itemEntry !== null) {
                     if (which === 'our') {
                         itemsDict.our[sku] = {
                             amount: amount,
-                            stock: stock,
+                            stock: currentStock,
                             maxStock: itemEntry.max
                         };
                     } else {
                         itemsDict.their[sku] = {
                             amount: amount,
-                            stock: stock,
+                            stock: currentStock,
                             maxStock: itemEntry.max
                         };
                     }
@@ -519,13 +521,13 @@ export = class MyHandler extends Handler {
                     if (which === 'our') {
                         itemsDict.our[sku] = {
                             amount: amount,
-                            stock: stock,
+                            stock: currentStock,
                             maxStock: 0
                         };
                     } else {
                         itemsDict.their[sku] = {
                             amount: amount,
-                            stock: stock,
+                            stock: currentStock,
                             maxStock: 0
                         };
                     }
