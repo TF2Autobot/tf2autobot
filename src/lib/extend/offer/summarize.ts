@@ -77,13 +77,13 @@ function summarizeItems(
             currentStock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
         }
 
-        oldStock = dict[sku]['stock'] as number;
+        oldStock = isDefined ? (dict[sku]['stock'] as number) : null;
         maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
         summary.push(
             `${name}${amount > 1 ? ` x${amount}` : ''}${
                 type === 'review-partner' || type === 'declined'
                     ? ''
-                    : ` (${type === 'summary' ? `${oldStock} → ` : ''}${currentStock}${
+                    : ` (${type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
                           maxStock !== 0 ? `/${maxStock}` : ''
                       })`
             }`
