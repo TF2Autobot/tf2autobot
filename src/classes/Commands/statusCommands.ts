@@ -27,12 +27,10 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
-    const backpackSlots = bot.tf2.backpackSlots;
-
     bot.sendMessage(
         steamID,
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        `🎒 My current items in my inventory: ${currentItems + (backpackSlots !== 0 ? '/' + backpackSlots : '')}`
+        `🎒 My current items in my inventory: ${currentItems + '/' + bot.tf2.backpackSlots}`
     );
 }
 

@@ -447,7 +447,6 @@ abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const ourUsedSlots = this.ourInventoryCount;
-                    const ourTotalSlots = this.bot.tf2.backpackSlots;
 
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
@@ -461,9 +460,9 @@ abstract class Cart {
 
                     const msg =
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
-                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${
-                            ourUsedSlots + theirNumItems
-                        } / ${ourTotalSlots} slots used` +
+                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots + theirNumItems} / ${
+                            this.bot.tf2.backpackSlots
+                        } slots used` +
                         `\n➡️ They would have received ${ourNumItems} item(s) → ${
                             theirUsedSlots + ourNumItems
                         } / ${theirTotalSlots} slots used`;
@@ -476,11 +475,11 @@ abstract class Cart {
                     }
                     return Promise.reject(
                         `It appears as if ${
-                            ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
+                            ourUsedSlots + theirNumItems > this.bot.tf2.backpackSlots ? 'my' : 'your'
                         } backpack is full!` +
-                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${
-                                ourUsedSlots + theirNumItems
-                            } / ${ourTotalSlots} slots used` +
+                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${ourUsedSlots + theirNumItems} / ${
+                                this.bot.tf2.backpackSlots
+                            } slots used` +
                             `\n➡️ You would have received ${ourNumItems} item(s) → ${
                                 theirUsedSlots + ourNumItems
                             } / ${theirTotalSlots} slots used` +
