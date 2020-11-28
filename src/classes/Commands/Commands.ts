@@ -174,7 +174,7 @@ export = class Commands {
         } else if (command === 'donatecart' && isAdmin) {
             this.donateCartCommand(steamID, opt.enableCraftweaponAsCurrency);
         } else if (isNoReply) {
-            return null;
+            return;
         } else {
             this.bot.sendMessage(
                 steamID,
