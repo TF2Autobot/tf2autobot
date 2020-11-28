@@ -55,7 +55,7 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
             i > 0 && event === 'trade-summary'
                 ? JSON.stringify(webhook) // this is for second and subsequent servers
                       .replace(/<@!\d+>/g, '') // remove mention
-                      .replace(/ \(\d+(\/\d+)?\)/g, '') // remove current/max stock
+                      .replace(/ \(\d+ → \d+(\/\d+)?\)/g, '') // remove current/max stock
                 : JSON.stringify(webhook)
         );
     });
