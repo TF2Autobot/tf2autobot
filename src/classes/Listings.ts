@@ -3,7 +3,7 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from '@nicklason/request-retry';
 import async from 'async';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import Bot = require('./Bot');
 import { Entry } from './Pricelist';

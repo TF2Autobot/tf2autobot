@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';

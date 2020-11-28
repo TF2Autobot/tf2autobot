@@ -12,7 +12,7 @@ import ListingManager from 'bptf-listings-2';
 import SchemaManager from 'tf2-schema-2';
 import BptfLogin from 'bptf-login';
 import TF2 from 'tf2';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import async from 'async';
 import semver from 'semver';
 import request from '@nicklason/request-retry';

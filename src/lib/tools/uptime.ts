@@ -1,4 +1,5 @@
 import moment from 'moment-timezone';
+
 export default function uptime(): string {
     const currentTime = moment();
     const uptimeAsMoment = moment.unix(currentTime.unix() - process.uptime());

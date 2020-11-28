@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import TradeOfferManager, { EconItem, CustomError } from 'steam-tradeoffer-manager';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
