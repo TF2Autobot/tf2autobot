@@ -1,18 +1,11 @@
-import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
-import Handler from './Handler';
-import Friends from './Friends';
-import Trades from './Trades';
-import Listings from './Listings';
-import TF2GC from './TF2GC';
-import Inventory from './Inventory';
-import BotManager from './BotManager';
-import MyHandler from './MyHandler';
-import Groups from './Groups';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
-import SteamUser from 'steam-user';
-import TradeOfferManager from 'steam-tradeoffer-manager';
+import SteamUser, { EResult } from 'steam-user';
+import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
@@ -24,8 +17,21 @@ import async from 'async';
 import semver from 'semver';
 import request from '@nicklason/request-retry';
 
+import InventoryManager from './InventoryManager';
+import Pricelist, { EntryData } from './Pricelist';
+import Handler from './Handler';
+import Friends from './Friends';
+import Trades from './Trades';
+import Listings from './Listings';
+import TF2GC from './TF2GC';
+import Inventory from './Inventory';
+import BotManager from './BotManager';
+import MyHandler from './MyHandler/MyHandler';
+import Groups from './Groups';
+
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
+import Options from './Options';
 
 export = class Bot {
     // Modules and classes
@@ -81,11 +87,9 @@ export = class Bot {
 
     private admins: SteamID[] = [];
 
-    private alertTypes: string[] = [];
-
     private ready = false;
 
-    constructor(botManager: BotManager) {
+    constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema();
@@ -103,7 +107,7 @@ export = class Bot {
         });
 
         this.listingManager = new ListingManager({
-            token: process.env.BPTF_ACCESS_TOKEN,
+            token: this.options.bptfAccessToken,
             batchSize: 25,
             waitTime: 100,
             schema: this.schema
@@ -119,20 +123,16 @@ export = class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.socket);
+        this.pricelist = new Pricelist(this.schema, this.socket, this.options);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
-        this.admins = (process.env.ADMINS === undefined ? [] : JSON.parse(process.env.ADMINS)).map(
-            (steamID: string) => new SteamID(steamID)
-        );
+        this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
         this.admins.forEach(steamID => {
             if (!steamID.isValid()) {
                 throw new Error('Invalid admin steamID');
             }
         });
-
-        this.alertTypes = process.env.ALERTS === undefined ? [] : JSON.parse(process.env.ALERTS);
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
@@ -176,15 +176,19 @@ export = class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
-        if (process.env.ALLOW_BANNED === 'true') {
+        if (this.options.allowBanned) {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID));
+        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
+    }
+
+    get alertTypes(): Array<string> {
+        return this.options.alerts;
     }
 
     checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
-        if (process.env.ALLOW_ESCROW === 'true') {
+        if (this.options.allowEscrow) {
             return Promise.resolve(false);
         }
 
@@ -193,8 +197,9 @@ export = class Bot {
 
     messageAdmins(message: string, exclude: string[] | SteamID[]): void;
 
-    messageAdmins(type: string, message: string, exclude: string[] | SteamID[]);
+    messageAdmins(type: string, message: string, exclude: string[] | SteamID[]): void;
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     messageAdmins(...args): void {
         const type: string | null = args.length === 2 ? null : args[0];
 
@@ -219,6 +224,7 @@ export = class Bot {
         return this.ready;
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     private addListener(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
@@ -230,11 +236,11 @@ export = class Bot {
     }
 
     startVersionChecker(): void {
-        this.checkForUpdates();
+        void this.checkForUpdates();
 
         // Check for updates every 10 minutes
         setInterval(() => {
-            this.checkForUpdates().catch(err => {
+            this.checkForUpdates().catch((err: Error) => {
                 log.warn('Failed to check for updates: ', err);
             });
         }, 10 * 60 * 1000);
@@ -250,7 +256,7 @@ export = class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
-                        `\n\nNavigate to your bot folder and run [git checkout master && git reset HEAD --hard && git pull && npm install && npm run build] and then restart your bot.` +
+                        `\n\nNavigate to your bot folder and run [git stash && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                         `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                         '\nContact IdiNium if you have any other problem. Thank you.',
                     []
@@ -294,7 +300,7 @@ export = class Bot {
                 [
                     (callback): void => {
                         log.debug('Calling onRun');
-                        this.handler.onRun().asCallback((err, v) => {
+                        void this.handler.onRun().asCallback((err, v) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -317,12 +323,12 @@ export = class Bot {
                     (callback): void => {
                         log.info('Setting up pricelist...');
 
-                        this.pricelist
+                        void this.pricelist
                             .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist)
                             .asCallback(callback);
                     },
                     (callback): void => {
-                        if (process.env.SKIP_ACCOUNT_LIMITATIONS === 'true') {
+                        if (this.options.skipAccountLimitations) {
                             return callback(null);
                         }
 
@@ -330,7 +336,7 @@ export = class Bot {
                             'Checking account limitations - Please disable this in the config by setting `SKIP_ACCOUNT_LIMITATIONS` to true'
                         );
 
-                        this.getAccountLimitations().asCallback((err, limitations) => {
+                        void this.getAccountLimitations().asCallback((err, limitations) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -353,14 +359,14 @@ export = class Bot {
 
                         let lastLoginFailed = false;
 
-                        const loginResponse = (err): void => {
+                        const loginResponse = (err: CustomError): void => {
                             if (err) {
                                 this.handler.onLoginError(err);
-                                if (!lastLoginFailed && err.eresult === SteamUser.EResult.InvalidPassword) {
+                                if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
                                     lastLoginFailed = true;
                                     // Try and sign in without login key
                                     log.warn('Failed to sign in to Steam, retrying without login key...');
-                                    this.login(null).asCallback(loginResponse);
+                                    void this.login(null).asCallback(loginResponse);
                                     return;
                                 } else {
                                     log.warn('Failed to sign in to Steam: ', err);
@@ -371,17 +377,22 @@ export = class Bot {
                             log.info('Signed in to Steam!');
 
                             // We now know our SteamID, but we still don't have our Steam API key
-                            const inventory = new Inventory(this.client.steamID, this.manager, this.schema);
+                            const inventory = new Inventory(
+                                this.client.steamID,
+                                this.manager,
+                                this.schema,
+                                this.options
+                            );
                             this.inventoryManager.setInventory(inventory);
 
                             return callback(null);
                         };
 
-                        this.login(data.loginKey || null).asCallback(loginResponse);
+                        void this.login(data.loginKey || null).asCallback(loginResponse);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');
-                        this.getWebSession().asCallback((err, v) => {
+                        void this.getWebSession().asCallback((err, v) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -394,7 +405,7 @@ export = class Bot {
                         });
                     },
                     (callback): void => {
-                        if (process.env.BPTF_API_KEY && process.env.BPTF_ACCESS_TOKEN) {
+                        if (this.options.bptfAPIKey && this.options.bptfAccessToken) {
                             return callback(null);
                         }
 
@@ -402,7 +413,7 @@ export = class Bot {
                             'You have not included the backpack.tf API key or access token in the environment variables'
                         );
 
-                        this.getBptfAPICredentials().asCallback(err => {
+                        void this.getBptfAPICredentials().asCallback(err => {
                             if (err) {
                                 return callback(err);
                             }
@@ -416,20 +427,17 @@ export = class Bot {
                             [
                                 (callback): void => {
                                     log.debug('Getting inventory...');
-                                    this.inventoryManager
-                                        .getInventory()
-                                        .fetch()
-                                        .asCallback(callback);
+                                    void this.inventoryManager.getInventory().fetch().asCallback(callback);
                                 },
                                 (callback): void => {
                                     log.debug('Initializing bptf-listings...');
-                                    this.listingManager.token = process.env.BPTF_ACCESS_TOKEN;
+                                    this.listingManager.token = this.options.bptfAccessToken;
                                     this.listingManager.steamid = this.client.steamID;
 
                                     this.listingManager.init(callback);
                                 },
                                 (callback): void => {
-                                    if (process.env.SKIP_UPDATE_PROFILE_SETTINGS === 'true') {
+                                    if (this.options.skipUpdateProfileSettings) {
                                         return callback(null);
                                     }
 
@@ -450,15 +458,15 @@ export = class Bot {
                     },
                     (callback): void => {
                         log.info('Getting Steam API key...');
-                        this.setCookies(cookies).asCallback(callback);
+                        void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
-                        this.friends.getMaxFriends().asCallback(callback);
+                        void this.friends.getMaxFriends().asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Creating listings...');
-                        this.listings.redoListings().asCallback(callback);
+                        void this.listings.redoListings().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
@@ -585,8 +593,8 @@ export = class Bot {
                 ([apiKey, accessToken]) => {
                     log.verbose('Got backpack.tf API key and access token!');
 
-                    process.env.BPTF_API_KEY = apiKey;
-                    process.env.BPTF_ACCESS_TOKEN = accessToken;
+                    this.options.bptfAPIKey = apiKey;
+                    this.options.bptfAccessToken = accessToken;
 
                     this.handler.onBptfAuth({ apiKey, accessToken });
 
@@ -638,8 +646,7 @@ export = class Bot {
 
     private bptfLogin(): Promise<void> {
         return new Promise((resolve, reject) => {
-            // @ts-ignore
-            if (this.bptf.loggedIn) {
+            if (this.bptf['loggedIn']) {
                 return resolve();
             }
 
@@ -652,8 +659,7 @@ export = class Bot {
 
                 log.verbose('Logged in to backpack.tf!');
 
-                // @ts-ignore
-                this.bptf.loggedIn = true;
+                this.bptf['loggedIn'] = true;
 
                 return resolve();
             });
@@ -684,7 +690,7 @@ export = class Bot {
                     password?: string;
                     loginKey?: string;
                 } = {
-                    accountName: process.env.STEAM_ACCOUNT_NAME,
+                    accountName: this.options.steamAccountName,
                     logonID: 69420,
                     rememberPassword: true
                 };
@@ -694,7 +700,7 @@ export = class Bot {
                     details.loginKey = loginKey;
                 } else {
                     log.debug('Signing in using password');
-                    details.password = process.env.STEAM_PASSWORD;
+                    details.password = this.options.steamPassword;
                 }
 
                 this.newLoginAttempt();
@@ -702,10 +708,9 @@ export = class Bot {
                 this.client.logOn(details);
 
                 const gotEvent = (): void => {
-                    listeners.forEach(listener => {
-                        // @ts-ignore
-                        this.client.on('error', listener);
-                    });
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    listeners.forEach(listener => this.client.on('error', listener));
                 };
 
                 const loggedOnEvent = (): void => {
@@ -753,7 +758,7 @@ export = class Bot {
         this.client.chatMessage(steamID, message);
 
         if (friend === null) {
-            log.info(`Message sent to ${steamID}: ${message}`);
+            log.info(`Message sent to ${steamID.toString()}: ${message}`);
         } else {
             log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
         }
@@ -774,7 +779,7 @@ export = class Bot {
     private onWebSession(sessionID: string, cookies: string[]): void {
         log.debug('New web session');
 
-        this.setCookies(cookies);
+        void this.setCookies(cookies);
     }
 
     private onSessionExpired(): void {
@@ -786,9 +791,9 @@ export = class Bot {
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
         log.debug('Conf key needed');
 
-        this.getTimeOffset().asCallback((err, offset) => {
+        void this.getTimeOffset().asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
-            const confKey = SteamTotp.getConfirmationKey(process.env.STEAM_IDENTITY_SECRET, time, tag);
+            const confKey = SteamTotp.getConfirmationKey(this.options.steamIdentitySecret, time, tag);
 
             return callback(null, time, confKey);
         });
@@ -814,7 +819,7 @@ export = class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
-        Promise.delay(wait)
+        void Promise.delay(wait)
             .then(this.generateAuthCode.bind(this))
             .then(authCode => {
                 this.newLoginAttempt();
@@ -823,13 +828,11 @@ export = class Bot {
             });
     }
 
-    private onError(err: Error): void {
-        // @ts-ignore
-        if (err.eresult === SteamUser.EResult.LoggedInElsewhere) {
+    private onError(err: CustomError): void {
+        if (err.eresult === EResult.LoggedInElsewhere) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
-            // @ts-ignore
-        } else if (err.eresult === SteamUser.EResult.LogonSessionReplaced) {
+        } else if (err.eresult === EResult.LogonSessionReplaced) {
             this.sessionReplaceCount++;
 
             if (this.sessionReplaceCount > 0) {
@@ -840,7 +843,7 @@ export = class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            this.login().asCallback(err => {
+            void this.login().asCallback(err => {
                 if (err) {
                     throw err;
                 }
@@ -858,7 +861,7 @@ export = class Bot {
             // ignore error
         }
 
-        return SteamTotp.generateAuthCode(process.env.STEAM_SHARED_SECRET, offset);
+        return SteamTotp.generateAuthCode(this.options.steamSharedSecret, offset);
     }
 
     private getTimeOffset(): Promise<number> {

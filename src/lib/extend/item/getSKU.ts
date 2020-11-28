@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
 
@@ -11,8 +14,11 @@ import { crates } from '../../data';
 
 let isCrate = false;
 
-export = function(schema: SchemaManager.Schema): string {
-    // @ts-ignore
+export = function (
+    schema: SchemaManager.Schema,
+    normalizeFestivizedItems: boolean,
+    normalizeStrangeUnusual: boolean
+): string {
     const self = this as EconItem;
 
     if (self.appid != 440) {
@@ -26,11 +32,11 @@ export = function(schema: SchemaManager.Schema): string {
             craftable: isCraftable(self),
             killstreak: getKillstreak(self),
             australium: isAustralium(self),
-            festive: isFestive(self),
+            festive: isFestive(self, normalizeFestivizedItems),
             effect: getEffect(self, schema),
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self),
+            quality2: getElevatedQuality(self, normalizeStrangeUnusual),
             crateseries: getCrateSeries(self)
         },
         getOutput(self, schema)
@@ -124,11 +130,13 @@ function isAustralium(item: EconItem): boolean {
 }
 
 /**
- * Determines if thje item is festivized
+ * Determines if the item is festivized
  * @param item - Item object
+ * @param normalizeFestivizedItems - toggle normalize festivized
+ *
  */
-function isFestive(item: EconItem): boolean {
-    return process.env.NORMALIZE_FESTIVIZED_ITEMS !== 'true' && item.market_hash_name.includes('Festivized ');
+function isFestive(item: EconItem, normalizeFestivizedItems: boolean): boolean {
+    return !normalizeFestivizedItems && item.market_hash_name.includes('Festivized ');
 }
 
 /**
@@ -183,10 +191,7 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
         if (!hasCaseCollection && description.endsWith('Collection')) {
             hasCaseCollection = true;
         } else if (hasCaseCollection && (description.startsWith('✔') || description.startsWith('★'))) {
-            skin = description
-                .substring(1)
-                .replace(' War Paint', '')
-                .trim();
+            skin = description.substring(1).replace(' War Paint', '').trim();
             break;
         }
     }
@@ -210,9 +215,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
 /**
  * Gets the elevated quality of an item
  * @param item - Item object
+ * @param normalizeStrangeUnusual - toggle strange unusual normalization
  */
-function getElevatedQuality(item: EconItem): number | null {
-    const isNotNormalized = process.env.NORMALIZE_STRANGE_UNUSUAL !== 'true';
+function getElevatedQuality(item: EconItem, normalizeStrangeUnusual: boolean): number | null {
+    const isNotNormalized = !normalizeStrangeUnusual;
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||

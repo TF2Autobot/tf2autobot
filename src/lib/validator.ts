@@ -3,25 +3,66 @@ const Validator = jsonschema.Validator;
 
 const v = new Validator();
 
-import { currenciesSchema } from '../schemas/tf2-currencies';
-import { pricelistSchema } from '../schemas/pricelist';
-import { addSchema } from '../schemas/pricelist-add';
-import { listingSchema } from '../schemas/listing-note';
+import * as pl from '../schemas/pricelist-json/export';
 
-v.addSchema(currenciesSchema);
-v.addSchema(pricelistSchema);
-v.addSchema(addSchema);
-v.addSchema(listingSchema);
+v.addSchema(pl.currenciesSchema);
+v.addSchema(pl.pricelistSchema);
+v.addSchema(pl.addSchema);
+v.addSchema(pl.listingSchema);
 
-export = function(data: any, schema: string): string[] | null {
+import * as op from '../schemas/options-json/export';
+
+v.addSchema(op.stringArraySchema);
+v.addSchema(op.optionsSchema);
+v.addSchema(op.highValueSchema);
+v.addSchema(op.checkUsesSchema);
+v.addSchema(op.gameSchema);
+v.addSchema(op.normalizeSchema);
+v.addSchema(op.detailsSchema);
+v.addSchema(op.customMessageSchema);
+v.addSchema(op.statisticsSchema);
+
+v.addSchema(op.a.autokeysSchema);
+v.addSchema(op.a.bankingSchema);
+v.addSchema(op.a.scrapAdjustmentSchema);
+v.addSchema(op.a.acceptSchema);
+
+v.addSchema(op.c.craftingSchema);
+v.addSchema(op.c.weaponsSchema);
+v.addSchema(op.c.metalsSchema);
+
+v.addSchema(op.mv.manualReviewSchema);
+v.addSchema(op.mv.invalidValueSchema);
+v.addSchema(op.mv.autoDeclineIVSchema);
+v.addSchema(op.mv.exceptionValueIVSchema);
+v.addSchema(op.mv.invalidItemsSchema);
+v.addSchema(op.mv.overUnderstockedSchema);
+v.addSchema(op.mv.dupedSchema);
+v.addSchema(op.mv.dupedCheckFailedSchema);
+
+v.addSchema(op.dw.discordWebhookSchema);
+v.addSchema(op.dw.tradeSummarySchema);
+v.addSchema(op.dw.miscTradeSummarySchema);
+v.addSchema(op.dw.mentionOwnerSchema);
+v.addSchema(op.dw.offerReviewSchema);
+v.addSchema(op.dw.miscOfferReviewSchema);
+v.addSchema(op.dw.messagesSchema);
+v.addSchema(op.dw.priceUpdateSchema);
+v.addSchema(op.dw.sendAlertSchema);
+
+import { EntryData } from '../classes/Pricelist';
+import Options from '../classes/Options';
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export = function (data: EntryData | Options, schema: string): string[] | null {
     const putSchema =
         schema === 'pricelist-add'
-            ? addSchema
+            ? pl.addSchema
             : schema === 'pricelist'
-            ? pricelistSchema
-            : schema === 'tf2-currencies'
-            ? currenciesSchema
-            : listingSchema;
+            ? pl.pricelistSchema
+            : schema === 'options'
+            ? op.optionsSchema
+            : {};
 
     const validated = v.validate(data, putSchema);
     if (validated.valid === true) {
@@ -45,6 +86,7 @@ function errorParser(validated: jsonschema.ValidatorResult): string[] {
 
         let message = error.stack;
         if (error.name === 'additionalProperties') {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             message = `unknown property "${error.argument}"`;
         } else if (property) {
             if (error.name === 'anyOf') {

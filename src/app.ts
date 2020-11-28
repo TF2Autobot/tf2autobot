@@ -1,8 +1,17 @@
-// TODO: Update version for each release
-process.env.BOT_VERSION = '1.7.0';
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version: BOT_VERSION } = require('../package.json');
+import { loadOptions } from './classes/Options';
+process.env.BOT_VERSION = BOT_VERSION;
 
 import fs from 'fs';
 import path from 'path';
+import genPaths from './resources/paths';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
@@ -23,8 +32,11 @@ import 'bluebird-global';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
+const options = loadOptions();
+const paths = genPaths(options.steamAccountName);
 
-import log from './lib/logger';
+import log, { init } from './lib/logger';
+init(paths, options);
 
 if (process.env.pm_id === undefined) {
     log.warn(
@@ -38,7 +50,7 @@ import { getSchema } from './lib/ptf-api';
 // Make the schema manager request the schema from PricesTF
 
 /* eslint-disable-next-line @typescript-eslint/unbound-method */
-SchemaManager.prototype.getSchema = function(callback): void {
+SchemaManager.prototype.getSchema = function (callback): void {
     getSchema()
         .then(schema => {
             this.setSchema(schema, true);
@@ -55,6 +67,7 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // This error is a false positive.
 // The signal and err are being created dynamically.
@@ -119,7 +132,7 @@ import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
-botManager.start().asCallback(err => {
+void botManager.start(options).asCallback(err => {
     if (err) {
         throw err;
     }

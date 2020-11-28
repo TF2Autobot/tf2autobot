@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 declare module 'steam-tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
@@ -7,6 +8,7 @@ declare module 'steam-tradeoffer-manager' {
         [key: string]: T;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
         newOffer: (offer: SteamTradeOfferManager.TradeOffer) => void;
         receivedOfferChanged: (offer: SteamTradeOfferManager.TradeOffer, oldState: number) => void;
@@ -69,11 +71,11 @@ declare module 'steam-tradeoffer-manager' {
 
         shutdown(): void;
 
-        static EOfferFilter: any;
+        static EOfferFilter: Map<string, number>;
 
-        static EResult: any;
+        static EResult: Map<string, number>;
 
-        static ETradeOfferState: any;
+        static ETradeOfferState: Map<string, number>;
     }
 
     namespace SteamTradeOfferManager {
@@ -172,7 +174,11 @@ declare module 'steam-tradeoffer-manager' {
             getTag(category: string): string | null;
 
             // Custom function added to prototype
-            getSKU(schema: SchemaManager.Schema): string | null;
+            getSKU(
+                schema: SchemaManager.Schema,
+                normalizeFestivizedItems: boolean,
+                normalizeStrangeUnusual: boolean
+            ): string | null;
         }
 
         type TradeOfferItem = {

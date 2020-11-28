@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+
 import Bot from './Bot';
 
 import log from '../lib/logger';
@@ -122,7 +128,7 @@ export = class TF2GC {
 
         log.debug('Ensuring TF2 GC connection...');
 
-        this.connectToGC().asCallback(err => {
+        void this.connectToGC().asCallback(err => {
             if (err) {
                 return this.finishedProcessingJob(err);
             }
@@ -142,6 +148,7 @@ export = class TF2GC {
             }
 
             if (func) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 func();
             } else {
                 this.finishedProcessingJob(new Error('Unknown job type'));
@@ -273,6 +280,7 @@ export = class TF2GC {
         this.listenForEvent(
             'itemRemoved',
             item => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 return { success: item.id === job.assetid };
             },
             () => {
@@ -332,6 +340,7 @@ export = class TF2GC {
      *
      * @returns Call this function to cancel
      */
+    // eslint-disable-next-line @typescript-eslint/ban-types
     private listenForEvent(event: string, onSuccess: (...args: any[]) => void, onFail: (err: Error) => void): Function;
 
     /**
@@ -354,12 +363,13 @@ export = class TF2GC {
         onFail: (err: Error) => void
     ): Function;
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     private listenForEvent(...args: any[]): Function {
         const event = args[0];
         const iterator =
             args.length === 4
                 ? args[1]
-                : function(): {
+                : function (): {
                       success: boolean;
                       clearTimeout?: boolean;
                   } {

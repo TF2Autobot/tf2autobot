@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 declare module 'steamcommunity' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import { CookieJar } from 'request';
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
         sessionExpired: () => void;
         confKeyNeeded: (tag: string, callback: (err?: Error, time?: number, confKey?: string) => void) => void;
@@ -19,6 +22,7 @@ declare module 'steamcommunity' {
 
         getSessionID(): string;
 
+        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
         getWebAPIKey(domain: string, callback: (err?: Error, key?: string) => void);
 
         setCookies(cookies: string[]): void;

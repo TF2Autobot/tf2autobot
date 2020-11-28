@@ -1,3 +1,4 @@
 local
 dist
 *.json
+jest.config.js
