@@ -8,14 +8,25 @@ export function stock(bot: Bot): string[] {
     const totalKeys = pure.key;
     const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
 
+    const keysPrefix = pluralize('key', totalKeys);
+    const refinedPrefix = pluralize('ref', Math.trunc(totalRefs));
+
     const pureCombine = [
         {
-            name: pluralize('key', totalKeys),
+            name: keysPrefix,
             amount: totalKeys
         },
         {
-            name: pluralize('ref', Math.trunc(totalRefs)),
-            amount: totalRefs
+            name: '',
+            amount: `${totalRefs}${
+                totalRefs > 0
+                    ? ` ${refinedPrefix} (${
+                          pure.ref > 0 ? `${pure.ref} ref${pure.rec > 0 || pure.scrap > 0 ? ',' : ''}` : ''
+                      }${pure.rec > 0 ? `${pure.ref > 0 ? ' ' : ''}${pure.rec} rec${pure.scrap > 0 ? ',' : ''}` : ''}${
+                          pure.scrap > 0 ? `${pure.ref > 0 || pure.rec > 0 ? ' ' : ''}${pure.scrap} scrap` : ''
+                      })`
+                    : ''
+            }`
         }
     ];
     for (let i = 0; i < pureCombine.length; i++) {
@@ -28,10 +39,15 @@ export function currPure(bot: Bot): { key: number; scrap: number; rec: number; r
     const currencies = bot.inventoryManager.getInventory().getCurrencies();
 
     const currKeys = currencies['5021;6'].length;
-    const currScrap = currencies['5000;6'].length * (1 / 9);
-    const currRec = currencies['5001;6'].length * (1 / 3);
+    const currScrap = currencies['5000;6'].length;
+    const currScrapValue = currScrap * (1 / 9);
+
+    const currRec = currencies['5001;6'].length;
+    const currRecValue = currRec * (1 / 3);
+
     const currRef = currencies['5002;6'].length;
-    const currReftoScrap = Currencies.toScrap(currRef + currRec + currScrap);
+
+    const currReftoScrap = Currencies.toScrap(currRef + currRecValue + currScrapValue);
 
     const pure = {
         key: currKeys,
