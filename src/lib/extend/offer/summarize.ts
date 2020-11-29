@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
+import { Currency } from '../../../types/TeamFortress2';
+import { UnknownDictionary } from '../../../types/common';
 import SchemaManager from 'tf2-schema-2';
+
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
-import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionary } from '../../../types/common';
-
-export = function (schema: SchemaManager.Schema, type: string): string {
+export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
 
     const value: { our: Currency; their: Currency } = self.data('value');
@@ -20,33 +20,23 @@ export = function (schema: SchemaManager.Schema, type: string): string {
     } = self.data('dict') || { our: null, their: null };
 
     if (!value) {
-        return (
-            'Asked: ' +
-            summarizeItems(items.our, schema, 'our', type) +
-            '\nOffered: ' +
-            summarizeItems(items.their, schema, 'their', type)
-        );
+        return 'Asked: ' + summarizeItems(items.our, schema) + '\nOffered: ' + summarizeItems(items.their, schema);
     } else {
         return (
             'Asked: ' +
             new Currencies(value.our).toString() +
-            '〚' +
-            summarizeItems(items.our, schema, 'our', type) +
-            '〛\nOffered: ' +
+            ' (' +
+            summarizeItems(items.our, schema) +
+            ')\nOffered: ' +
             new Currencies(value.their).toString() +
-            '〚' +
-            summarizeItems(items.their, schema, 'their', type) +
-            '〛'
+            ' (' +
+            summarizeItems(items.their, schema) +
+            ')'
         );
     }
 };
 
-function summarizeItems(
-    dict: UnknownDictionary<any>,
-    schema: SchemaManager.Schema,
-    which: string,
-    type: string
-): string {
+function summarizeItems(dict: UnknownDictionary<any>, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }
@@ -58,36 +48,10 @@ function summarizeItems(
             continue;
         }
 
-        const isDefined = (dict[sku]['amount'] as number) !== undefined;
-
-        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
-
+        const amount = dict[sku]['amount'];
         const name = schema.getName(SKU.fromString(sku), false);
 
-        let oldStock = 0;
-        let currentStock = 0;
-        let maxStock = 0;
-
-        if (type === 'summary') {
-            currentStock =
-                which === 'our'
-                    ? (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) - amount
-                    : (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) + amount;
-        } else {
-            currentStock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
-        }
-
-        oldStock = isDefined ? (dict[sku]['stock'] as number) : null;
-        maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
-        summary.push(
-            `${name}${amount > 1 ? ` x${amount}` : ''}${
-                type === 'review-partner' || type === 'declined'
-                    ? ''
-                    : ` (${type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
-                          maxStock !== 0 ? `/${maxStock}` : ''
-                      })`
-            }`
-        );
+        summary.push(name + (amount > 1 ? ` x${amount as number}` : ''));
     }
 
     if (summary.length === 0) {

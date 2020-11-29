@@ -1,7 +1,7 @@
 import jsonschema from 'jsonschema';
 
-export const tradeSummarySchema: jsonschema.Schema = {
-    id: 'trade-summary',
+export const tradeSummaryDWSchema: jsonschema.Schema = {
+    id: 'trade-summary-dw',
     type: 'object',
     properties: {
         enable: {
@@ -11,7 +11,7 @@ export const tradeSummarySchema: jsonschema.Schema = {
             $ref: 'array-string'
         },
         misc: {
-            $ref: 'misc-trade-summary'
+            $ref: 'misc-trade-summary-dw'
         },
         mentionOwner: {
             $ref: 'mention-owner'

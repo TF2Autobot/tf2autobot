@@ -149,11 +149,19 @@ export default function processAccepted(
             processTime
         );
     } else {
+        const isShowChanges = bot.options.tradeSummary.showStockChanges;
         const slots = bot.tf2.backpackSlots;
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                summarize(offer.summarize(bot.schema, 'summary'), value, keyPrices, true) +
+                summarize(
+                    isShowChanges
+                        ? offer.summarizeWithStockChanges(bot.schema, 'summary')
+                        : offer.summarize(bot.schema),
+                    value,
+                    keyPrices,
+                    true
+                ) +
                 (accepted.invalidItems.length !== 0
                     ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
                     : '') +

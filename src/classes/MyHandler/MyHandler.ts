@@ -87,6 +87,10 @@ export = class MyHandler extends Handler {
         return this.bot.options.manualReview.duped.minKeys;
     }
 
+    private get isShowChanges(): boolean {
+        return this.bot.options.tradeSummary.showStockChanges;
+    }
+
     private get isPriceUpdateWebhook(): boolean {
         return (
             this.bot.options.discordWebhook.priceUpdate.enable && this.bot.options.discordWebhook.priceUpdate.url !== ''
@@ -550,7 +554,14 @@ export = class MyHandler extends Handler {
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
-            offer.log('trade', `is from an admin, accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
+            offer.log(
+                'trade',
+                `is from an admin, accepting. Summary:\n${
+                    this.isShowChanges
+                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
+                        : offer.summarize(this.bot.schema)
+                }`
+            );
             return {
                 action: 'accept',
                 reason: 'ADMIN',
@@ -573,7 +584,14 @@ export = class MyHandler extends Handler {
         });
 
         if (offer.itemsToGive.length === 0 && isGift) {
-            offer.log('trade', `is a gift offer, accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
+            offer.log(
+                'trade',
+                `is a gift offer, accepting. Summary:\n${
+                    this.isShowChanges
+                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
+                        : offer.summarize(this.bot.schema)
+                }`
+            );
             return {
                 action: 'accept',
                 reason: 'GIFT',
@@ -1209,10 +1227,11 @@ export = class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${offer.summarize(
-                        this.bot.schema,
-                        'summary'
-                    )}`
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${
+                        this.isShowChanges
+                            ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
+                            : offer.summarize(this.bot.schema)
+                    }`
                 );
 
                 const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
@@ -1280,7 +1299,14 @@ export = class MyHandler extends Handler {
             }
         }
 
-        offer.log('trade', `accepting. Summary:\n${offer.summarize(this.bot.schema, 'summary')}`);
+        offer.log(
+            'trade',
+            `accepting. Summary:\n${
+                this.isShowChanges
+                    ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
+                    : offer.summarize(this.bot.schema)
+            }`
+        );
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 

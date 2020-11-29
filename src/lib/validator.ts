@@ -14,6 +14,7 @@ import * as op from '../schemas/options-json/export';
 
 v.addSchema(op.stringArraySchema);
 v.addSchema(op.optionsSchema);
+v.addSchema(op.tradeSummarySchema);
 v.addSchema(op.highValueSchema);
 v.addSchema(op.checkUsesSchema);
 v.addSchema(op.gameSchema);
@@ -41,8 +42,8 @@ v.addSchema(op.mv.dupedSchema);
 v.addSchema(op.mv.dupedCheckFailedSchema);
 
 v.addSchema(op.dw.discordWebhookSchema);
-v.addSchema(op.dw.tradeSummarySchema);
-v.addSchema(op.dw.miscTradeSummarySchema);
+v.addSchema(op.dw.tradeSummaryDWSchema);
+v.addSchema(op.dw.miscTradeSummaryDWSchema);
 v.addSchema(op.dw.mentionOwnerSchema);
 v.addSchema(op.dw.offerReviewSchema);
 v.addSchema(op.dw.miscOfferReviewSchema);

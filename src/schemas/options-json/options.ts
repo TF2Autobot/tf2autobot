@@ -52,6 +52,9 @@ export const optionsSchema: jsonschema.Schema = {
         autobump: {
             type: 'boolean'
         },
+        tradeSummary: {
+            $ref: 'trade-summary'
+        },
         highValue: {
             $ref: 'high-value'
         },

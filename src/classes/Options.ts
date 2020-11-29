@@ -28,6 +28,10 @@ export const DEFAULTS = {
 
     autobump: false,
 
+    tradeSummary: {
+        showStockChanges: false
+    },
+
     highValue: {
         enableHold: true,
         sheens: [],
@@ -182,6 +186,10 @@ export const DEFAULTS = {
     },
     maxPriceAge: 28800
 };
+
+export interface TradeSummary {
+    showStockChanges?: boolean;
+}
 
 export interface HighValue {
     enableHold?: boolean;
@@ -338,7 +346,7 @@ export interface MentionOwner {
     itemSkus?: string[];
 }
 
-export interface TradeSummary {
+export interface TradeSummaryDW {
     enable?: boolean;
     url?: string[];
     misc?: Misc;
@@ -380,7 +388,7 @@ export interface DiscordWebhook {
     displayName?: string;
     avatarURL?: string;
     embedColor?: string;
-    tradeSummary?: TradeSummary;
+    tradeSummary?: TradeSummaryDW;
     offerReview?: OfferReview;
     messages?: Messages;
     priceUpdate?: PriceUpdate;
@@ -404,6 +412,7 @@ export interface JsonOptions {
     allowBanned?: boolean;
     sendOfferMessage?: string;
     autobump?: boolean;
+    tradeSummary?: TradeSummary;
     highValue?: HighValue;
     checkUses?: CheckUses;
     game?: Game;

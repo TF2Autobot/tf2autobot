@@ -74,9 +74,12 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         reason = '';
     }
 
+    const isShowChanges = bot.options.tradeSummary.showStockChanges;
     const invalidValueSummary =
         '\n\nSummary:\n' +
-        offer.summarize(bot.schema, 'declined').replace('Asked', '  My side').replace('Offered', 'Your side') +
+        (isShowChanges ? offer.summarizeWithStockChanges(bot.schema, 'declined') : offer.summarize(bot.schema))
+            .replace('Asked', '  My side')
+            .replace('Offered', 'Your side') +
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
         `${

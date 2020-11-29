@@ -102,7 +102,15 @@ export default function sendTradeSummary(
             ? tradeNumbertoShowStarter + trades.tradesTotal
             : trades.tradesTotal;
 
-    const summary = summarize(offer.summarizeWithLink(bot.schema, 'summary'), value, keyPrices, false);
+    const isShowChanges = bot.options.tradeSummary.showStockChanges;
+    const summary = summarize(
+        isShowChanges
+            ? offer.summarizeWithLinkWithStockChanges(bot.schema, 'summary')
+            : offer.summarizeWithLink(bot.schema),
+        value,
+        keyPrices,
+        false
+    );
 
     let personaName: string;
     let avatarFull: string;

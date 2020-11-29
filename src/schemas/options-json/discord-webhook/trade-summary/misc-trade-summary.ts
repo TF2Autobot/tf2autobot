@@ -1,7 +1,7 @@
 import jsonschema from 'jsonschema';
 
-export const miscTradeSummarySchema: jsonschema.Schema = {
-    id: 'misc-trade-summary',
+export const miscTradeSummaryDWSchema: jsonschema.Schema = {
+    id: 'misc-trade-summary-dw',
     type: 'object',
     properties: {
         showQuickLinks: {

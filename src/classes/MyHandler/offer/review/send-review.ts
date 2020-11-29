@@ -40,6 +40,8 @@ export default function sendReview(
 
     const reasons = meta.uniqueReasons;
 
+    const isShowChanges = bot.options.tradeSummary.showStockChanges;
+
     // Notify partner and admin that the offer is waiting for manual review
     if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
         bot.sendMessage(
@@ -55,8 +57,10 @@ export default function sendReview(
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
-                      offer
-                          .summarize(bot.schema, 'review-partner')
+                      (isShowChanges
+                          ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
+                          : offer.summarize(bot.schema)
+                      )
                           .replace('Asked', '  My side')
                           .replace('Offered', 'Your side') +
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -119,7 +123,14 @@ export default function sendReview(
                     : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                     ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                     : '') +
-                summarize(offer.summarize(bot.schema, 'review'), value, keyPrices, true) +
+                summarize(
+                    isShowChanges
+                        ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
+                        : offer.summarize(bot.schema),
+                    value,
+                    keyPrices,
+                    true
+                ) +
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +

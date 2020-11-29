@@ -19,7 +19,7 @@ export const discordWebhookSchema: jsonschema.Schema = {
             pattern: '^[0-9]+$'
         },
         tradeSummary: {
-            $ref: 'trade-summary'
+            $ref: 'trade-summary-dw'
         },
         offerReview: {
             $ref: 'offer-review'

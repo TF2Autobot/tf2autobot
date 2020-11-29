@@ -5,6 +5,7 @@ import * as dw from './discord-webhook/export';
 
 import { stringArraySchema } from './array-string';
 import { optionsSchema } from './options';
+import { tradeSummarySchema } from './trade-summary/trade-summary';
 import { highValueSchema } from './high-value/high-value';
 import { checkUsesSchema } from './check-uses/check-uses';
 import { gameSchema } from './game/game';
@@ -20,6 +21,7 @@ export {
     c,
     mv,
     dw,
+    tradeSummarySchema,
     highValueSchema,
     checkUsesSchema,
     gameSchema,

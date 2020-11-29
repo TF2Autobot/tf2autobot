@@ -56,7 +56,15 @@ export default function sendOfferReview(
         highValue: items.highValue.map(name => replace.itemName(name))
     };
 
-    const summary = summarize(offer.summarizeWithLink(bot.schema, 'review'), value, keyPrices, false);
+    const isShowChanges = bot.options.tradeSummary.showStockChanges;
+    const summary = summarize(
+        isShowChanges
+            ? offer.summarizeWithLinkWithStockChanges(bot.schema, 'review')
+            : offer.summarizeWithLink(bot.schema),
+        value,
+        keyPrices,
+        false
+    );
     const itemList = listItems(itemsName, false);
 
     let partnerAvatar: string;

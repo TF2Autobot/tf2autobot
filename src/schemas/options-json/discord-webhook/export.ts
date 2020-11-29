@@ -4,8 +4,8 @@ import { offerReviewSchema } from './offer-review/offer-review';
 import { miscOfferReviewSchema } from './offer-review/misc-offer-review';
 import { priceUpdateSchema } from './price-update/price-update';
 import { sendAlertSchema } from './send-alert/send-alert';
-import { tradeSummarySchema } from './trade-summary/trade-summary';
-import { miscTradeSummarySchema } from './trade-summary/misc-trade-summary';
+import { tradeSummaryDWSchema } from './trade-summary/trade-summary';
+import { miscTradeSummaryDWSchema } from './trade-summary/misc-trade-summary';
 import { mentionOwnerSchema } from './trade-summary/mention-owner';
 
 export {
@@ -15,7 +15,7 @@ export {
     miscOfferReviewSchema,
     priceUpdateSchema,
     sendAlertSchema,
-    tradeSummarySchema,
-    miscTradeSummarySchema,
+    tradeSummaryDWSchema,
+    miscTradeSummaryDWSchema,
     mentionOwnerSchema
 };
