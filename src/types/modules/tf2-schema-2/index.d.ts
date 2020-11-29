@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 declare module 'tf2-schema-2' {
     import { EventEmitter } from 'events';
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
         schema: (schema: SchemaManager.Schema) => void;
     }

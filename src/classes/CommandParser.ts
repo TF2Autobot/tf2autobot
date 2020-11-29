@@ -1,6 +1,6 @@
 import dotProp from 'dot-prop';
-
 import { UnknownDictionaryKnownValues } from '../types/common';
+
 import { parseJSON } from '../lib/helpers';
 
 export = class CommandParser {
@@ -20,12 +20,7 @@ export = class CommandParser {
 
     static parseParams(paramString: string): UnknownDictionaryKnownValues {
         const params: UnknownDictionaryKnownValues = parseJSON(
-            '{"' +
-                paramString
-                    .replace(/"/g, '\\"')
-                    .replace(/&/g, '","')
-                    .replace(/=/g, '":"') +
-                '"}'
+            '{"' + paramString.replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}'
         );
 
         const parsed: UnknownDictionaryKnownValues = {};
@@ -36,6 +31,7 @@ export = class CommandParser {
                     continue;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 let value = params[key];
 
                 if (key !== 'sku') {

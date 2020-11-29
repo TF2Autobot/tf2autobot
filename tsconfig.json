@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2018",
-        "module": "commonjs",
+        "module": "CommonJS",
         "allowJs": false,
         "checkJs": false,
         "outDir": "./dist",
@@ -9,10 +9,10 @@
         "removeComments": true,
         "strict": true,
         "noImplicitAny": false,
+        "noImplicitThis": false,
         "strictNullChecks": false,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
-        "resolveJsonModule": true,
         "forceConsistentCasingInFileNames": true
     },
     "exclude": ["./node_modules"],

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import { Currency } from '../../../types/TeamFortress2';
 import { UnknownDictionary } from '../../../types/common';
@@ -6,16 +9,14 @@ import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
-export = function(schema: SchemaManager.Schema): string {
-    // @ts-ignore
+export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
-    // @ts-ignore
 
     const value: { our: Currency; their: Currency } = self.data('value');
 
     const items: {
-        our: UnknownDictionary<number>;
-        their: UnknownDictionary<number>;
+        our: UnknownDictionary<any>;
+        their: UnknownDictionary<any>;
     } = self.data('dict') || { our: null, their: null };
 
     if (!value) {
@@ -35,7 +36,7 @@ export = function(schema: SchemaManager.Schema): string {
     }
 };
 
-function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.Schema): string {
+function summarizeItems(dict: UnknownDictionary<any>, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }
@@ -47,10 +48,10 @@ function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.S
             continue;
         }
 
-        const amount = dict[sku];
+        const amount = dict[sku]['amount'];
         const name = schema.getName(SKU.fromString(sku), false);
 
-        summary.push(name + (amount > 1 ? ' x' + amount : ''));
+        summary.push(name + (amount > 1 ? ` x${amount as number}` : ''));
     }
 
     if (summary.length === 0) {
