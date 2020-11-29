@@ -98,23 +98,25 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     }
 
     if (typeof params.discordWebhook === 'object') {
-        const webhookNew = params.discordWebhook.tradeSummary;
-        const webhookCurrent = saveOptions.discordWebhook.tradeSummary;
+        if (params.discordWebhook.tradeSummary !== undefined) {
+            const webhookNew = params.discordWebhook.tradeSummary;
+            const webhookCurrent = saveOptions.discordWebhook.tradeSummary;
 
-        if (webhookNew.url !== undefined) {
-            newValue = webhookNew.url;
-            current = webhookCurrent.url;
+            if (webhookNew.url !== undefined) {
+                newValue = webhookNew.url;
+                current = webhookCurrent.url;
 
-            params.discordWebhook.tradeSummary.url = current.concat([newValue]);
-            saveOptions.discordWebhook.tradeSummary.url.length = 0;
-        }
+                params.discordWebhook.tradeSummary.url = current.concat([newValue]);
+                saveOptions.discordWebhook.tradeSummary.url.length = 0;
+            }
 
-        if (webhookNew.mentionOwner.itemSkus !== undefined) {
-            newValue = webhookNew.mentionOwner.itemSkus;
-            current = webhookCurrent.mentionOwner.itemSkus;
+            if (webhookNew.mentionOwner.itemSkus !== undefined) {
+                newValue = webhookNew.mentionOwner.itemSkus;
+                current = webhookCurrent.mentionOwner.itemSkus;
 
-            params.discordWebhook.tradeSummary.mentionOwner.itemSkus = current.concat([newValue]);
-            saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
+                params.discordWebhook.tradeSummary.mentionOwner.itemSkus = current.concat([newValue]);
+                saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
+            }
         }
     }
 
