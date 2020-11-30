@@ -441,7 +441,7 @@ export = class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            this.bot.options
         );
 
         const theirItems = Inventory.fromItems(
@@ -449,7 +449,7 @@ export = class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            this.bot.options
         );
 
         const items = {
