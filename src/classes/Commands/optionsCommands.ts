@@ -10,6 +10,7 @@ import { JsonOptions, removeCliOptions } from '../Options';
 
 import { deepMerge } from '../../lib/tools/deep-merge';
 import validator from '../../lib/validator';
+import log from '../../lib/logger';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
@@ -28,7 +29,9 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     removeCliOptions(saveOptions);
 
     if (Object.keys(params).length === 0) {
-        bot.sendMessage(steamID, '⚠️ Missing properties to update.');
+        const msg = '⚠️ Missing properties to update.';
+        if (steamID) bot.sendMessage(steamID, msg);
+        else log.warn(msg);
         return;
     }
 
@@ -36,7 +39,9 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     const errors = validator(result, 'options');
     if (errors !== null) {
-        bot.sendMessage(steamID, '❌ Error updating options: ' + errors.join(', '));
+        const msg = '❌ Error updating options: ' + errors.join(', ');
+        if (steamID) bot.sendMessage(steamID, msg);
+        else log.error(msg);
         return;
     }
 
@@ -67,11 +72,15 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     fsp.writeFile(optionsPath, JSON.stringify(saveOptions, null, 4), { encoding: 'utf8' })
         .then(() => {
             deepMerge(opt, saveOptions);
-            return bot.sendMessage(steamID, '✅ Updated options!');
+            const msg = '✅ Updated options!';
+            if (steamID) return bot.sendMessage(steamID, msg);
+            else return log.info(msg)
         })
         .catch(err => {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            bot.sendMessage(steamID, `❌ Error saving options file to disk: ${err}`);
+            const msg = `❌ Error saving options file to disk: ${err}`;
+            if (steamID) bot.sendMessage(steamID, msg);
+            else log.error(msg);
             return;
         });
 }

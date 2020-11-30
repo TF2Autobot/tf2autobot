@@ -11,6 +11,7 @@ import { Entry } from './Pricelist';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakerSKU } from '../lib/data';
+import { updateOptionsCommand } from './Commands/optionsCommands';
 
 export = class Listings {
     private readonly bot: Bot;
@@ -118,6 +119,10 @@ export = class Listings {
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
                 );
                 this.enableAutoRelist();
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            } else if (this.bot.options.autobump && info.premium === 1) {
+                log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
+                updateOptionsCommand(null, '!config autobump=false', this.bot);
             }
         });
     }
