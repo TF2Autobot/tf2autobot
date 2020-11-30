@@ -25,4 +25,8 @@ it('can parse arrays', () => {
     message = "!config highValue.sheens=['Team Shine', 'Hot Rod']";
     params = CommandParser.parseParams(CommandParser.removeCommand(message));
     expect(params).toEqual({ highValue: { sheens: ['Team Shine', 'Hot Rod'] } });
+
+    message = '!config highValue.sheens=[]';
+    params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    expect(params).toEqual({ highValue: { sheens: [] } });
 });
