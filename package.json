@@ -47,7 +47,7 @@
         "rand-token": "^1.0.1",
         "retry": "^0.12.0",
         "sleep-async": "^1.0.5",
-        "socket.io-client": "^3.0.3",
+        "socket.io-client": "^2.3.1",
         "steam-totp": "^2.1.1",
         "steam-tradeoffer-manager": "^2.10.2",
         "steam-user": "^4.18.0",

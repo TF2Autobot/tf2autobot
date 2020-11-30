@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
@@ -361,7 +364,7 @@ export default class Pricelist extends EventEmitter {
         await this.validateEntry(entry, src);
 
         // Remove old price
-        await this.removePrice(entry.sku, false);
+        void this.removePrice(entry.sku, false);
 
         // Add new price
         this.prices.push(entry);
@@ -532,7 +535,7 @@ export default class Pricelist extends EventEmitter {
 
                 // Go through pricestf prices
                 for (let j = 0; j < groupedPrices[item.quality][item.killstreak].length; j++) {
-                    const newestPrice = groupedPrices[item.quality][item.killstreak][j] as GetPrices;
+                    const newestPrice = groupedPrices[item.quality][item.killstreak][j];
 
                     if (name === newestPrice.name) {
                         // Found matching items
@@ -558,7 +561,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private handlePriceChange(data: GetPrices): void {
+    private handlePriceChange(data: any): void {
         const opt = this.options;
 
         if (data.source !== 'bptf') {
@@ -620,7 +623,7 @@ export default class Pricelist extends EventEmitter {
                     match,
                     time,
                     this.schema,
-                    opt
+                    this.options
                 );
                 // this.priceChanges.push({
                 //     sku: data.sku,
@@ -652,7 +655,7 @@ export default class Pricelist extends EventEmitter {
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
-    static groupPrices(prices: GetPrices[]): UnknownDictionary<UnknownDictionary<any[]>> {
+    static groupPrices(prices: any[]): UnknownDictionary<UnknownDictionary<any[]>> {
         const sorted: UnknownDictionary<UnknownDictionary<any[]>> = {};
 
         for (let i = 0; i < prices.length; i++) {

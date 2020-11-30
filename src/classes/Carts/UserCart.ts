@@ -459,7 +459,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
@@ -1293,7 +1293,7 @@ class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
         let fetched: EconItem[];
 
         try {
