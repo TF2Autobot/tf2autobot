@@ -19,14 +19,6 @@ import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
 import { pure, check } from '../../lib/tools/export';
 
-const weapons = craftAll.concat(uncraftAll);
-let shuffled = shuffleArray(weapons);
-
-// Shuffle weapons position every 11 minutes (prime number)
-setInterval(() => {
-    shuffled = shuffleArray(weapons);
-}, 11 * 60 * 1000);
-
 export = UserCart;
 
 class UserCart extends Cart {
@@ -55,7 +47,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (this.bot.options.enableCraftweaponAsCurrency) {
+        if (this.bot.options.weaponAsCurrency.enable) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
@@ -1013,7 +1005,9 @@ class UserCart extends Cart {
             '5000;6': 1
         };
 
-        shuffled.forEach(sku => {
+        const weapons = (this.bot.handler as MyHandler).getWeapons();
+
+        weapons.forEach(sku => {
             currencyValues[sku] = 0.5;
         });
 
@@ -1036,7 +1030,7 @@ class UserCart extends Cart {
             '5000;6': 0
         };
 
-        shuffled.forEach(sku => {
+        weapons.forEach(sku => {
             pickedCurrencies[sku] = 0;
         });
 
@@ -1439,9 +1433,10 @@ class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies();
+        const weapons = (this.bot.handler as MyHandler).getWeapons();
 
         const pures = ['5021;6', '5002;6', '5001;6', '5000;6'];
-        const combine = pures.concat(shuffled);
+        const combine = pures.concat(weapons);
 
         const buyerCurrenciesCount: {
             [key: string]: number;
@@ -1758,8 +1753,4 @@ class UserCart extends Cart {
 
         return str;
     }
-}
-
-function shuffleArray(arr: string[]): string[] {
-    return arr.sort(() => Math.random() - 0.5);
 }

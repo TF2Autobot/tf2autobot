@@ -17,7 +17,6 @@ export const DEFAULTS = {
     enableGroupInvites: true,
     enableOwnerCommand: true,
     autoRemoveIntentSell: false,
-    enableCraftweaponAsCurrency: true,
 
     allowEscrow: false,
     allowOverpay: true,
@@ -27,6 +26,11 @@ export const DEFAULTS = {
     sendOfferMessage: '',
 
     autobump: false,
+
+    weaponsAsCurrency: {
+        enable: true,
+        withUncraft: true
+    },
 
     tradeSummary: {
         showStockChanges: false
@@ -186,6 +190,11 @@ export const DEFAULTS = {
     },
     maxPriceAge: 28800
 };
+
+export interface WeaponsAsCurrency {
+    enable?: boolean;
+    withUncraft?: boolean;
+}
 
 export interface TradeSummary {
     showStockChanges?: boolean;
@@ -402,7 +411,7 @@ export interface JsonOptions {
     enableMessages?: boolean;
     sendAlert?: boolean;
     enableAddFriends?: boolean;
-    enableCraftweaponAsCurrency?: boolean;
+    weaponAsCurrency?: WeaponsAsCurrency;
     enableGroupInvites?: boolean;
     enableOwnerCommand?: boolean;
     autoRemoveIntentSell?: boolean;

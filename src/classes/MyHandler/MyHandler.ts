@@ -97,6 +97,13 @@ export = class MyHandler extends Handler {
         );
     }
 
+    private get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
+        return {
+            enable: this.bot.options.weaponAsCurrency.enable,
+            withUncraft: this.bot.options.weaponAsCurrency.withUncraft
+        };
+    }
+
     private get invalidValueException(): number {
         return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
     }
@@ -168,6 +175,10 @@ export = class MyHandler extends Handler {
         isBuying: boolean;
         isBanking: boolean;
     };
+
+    private weapons: string[] = [];
+
+    private shuffleWeaponsTimeout;
 
     private classWeaponsTimeout;
 
@@ -264,6 +275,9 @@ export = class MyHandler extends Handler {
 
         // Craft duplicate weapons
         craftDuplicateWeapons(this.bot);
+
+        // Shuffle weapons on start
+        this.shuffleWeapons();
 
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
@@ -423,6 +437,28 @@ export = class MyHandler extends Handler {
                 log.debug('❌ Nothing to refresh.');
             }
         }, 15 * 60 * 1000);
+    }
+
+    getWeapons(): string[] {
+        return this.weapons;
+    }
+
+    shuffleWeapons(): void {
+        if (!this.isWeaponsAsCurrency.enable) {
+            return;
+        }
+        const weapons = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+        this.weapons = shuffleArray(weapons);
+
+        // Shuffle weapons position every 11 minutes (prime number)
+        this.shuffleWeaponsTimeout = setInterval(() => {
+            this.weapons = shuffleArray(weapons);
+        }, 11 * 60 * 1000);
+    }
+
+    disableWeaponsAsCurrency(): void {
+        this.weapons.length = 0;
+        clearTimeout(this.shuffleWeaponsTimeout);
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -716,8 +752,8 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
-                    opt.enableCraftweaponAsCurrency &&
+                    this.isWeaponsAsCurrency.enable &&
+                    (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -725,8 +761,11 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = opt.enableCraftweaponAsCurrency
-                        ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
+                    const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
+                        ? !(
+                              craftAll.includes(sku) ||
+                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
+                          )
                         : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -1734,6 +1773,10 @@ export = class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 };
+
+function shuffleArray(arr: string[]): string[] {
+    return arr.sort(() => Math.random() - 0.5);
+}
 
 function filterReasons(reasons: string[]): string[] {
     const filtered: string[] = [];

@@ -14,6 +14,7 @@ import * as op from '../schemas/options-json/export';
 
 v.addSchema(op.stringArraySchema);
 v.addSchema(op.optionsSchema);
+v.addSchema(op.weaponsAsCurrencySchema);
 v.addSchema(op.tradeSummarySchema);
 v.addSchema(op.highValueSchema);
 v.addSchema(op.checkUsesSchema);

@@ -70,7 +70,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.cartCommand(steamID, opt.weaponAsCurrency.enable);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -172,7 +172,7 @@ export = class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.donateCartCommand(steamID, opt.weaponAsCurrency.enable);
         } else if (isNoReply) {
             return;
         } else {
