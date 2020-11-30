@@ -1155,9 +1155,12 @@ class UserCart extends Cart {
         craftAll.forEach(sku => {
             addWeapons += ourDict[sku] || 0;
         });
-        uncraftAll.forEach(sku => {
-            addWeapons += ourDict[sku] || 0;
-        });
+
+        if (this.bot.options.weaponAsCurrency.withUncraft) {
+            uncraftAll.forEach(sku => {
+                addWeapons += ourDict[sku] || 0;
+            });
+        }
 
         if (isBuyer) {
             const keys = this.canUseKeysWithWeapons() ? ourDict['5021;6'] || 0 : 0;
@@ -1194,9 +1197,12 @@ class UserCart extends Cart {
         craftAll.forEach(sku => {
             addWeapons += theirDict[sku] || 0;
         });
-        uncraftAll.forEach(sku => {
-            addWeapons += theirDict[sku] || 0;
-        });
+
+        if (this.bot.options.weaponAsCurrency.withUncraft) {
+            uncraftAll.forEach(sku => {
+                addWeapons += theirDict[sku] || 0;
+            });
+        }
 
         if (!isBuyer) {
             const keys = this.canUseKeysWithWeapons() ? theirDict['5021;6'] || 0 : 0;
@@ -1452,9 +1458,12 @@ class UserCart extends Cart {
         craftAll.forEach(sku => {
             addWeapons += required.currencies[sku] * 0.5;
         });
-        uncraftAll.forEach(sku => {
-            addWeapons += required.currencies[sku] * 0.5;
-        });
+
+        if (this.bot.options.weaponAsCurrency.withUncraft) {
+            uncraftAll.forEach(sku => {
+                addWeapons += required.currencies[sku] * 0.5;
+            });
+        }
 
         // Add the value that the buyer pays to the exchange
         exchange[isBuyer ? 'our' : 'their'].value += currencies.toValue(keyPrice.metal);
@@ -1577,7 +1586,7 @@ class UserCart extends Cart {
                 } else if (sku === '5000;6') {
                     value = 1;
                 } else if (
-                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
+                    (craftAll.includes(sku) || (opt.weaponAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
