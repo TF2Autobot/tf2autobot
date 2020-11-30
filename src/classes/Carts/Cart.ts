@@ -444,12 +444,8 @@ abstract class Cart {
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
 
-                    const ourNumItems = this.bot.options.enableCraftweaponAsCurrency
-                        ? this.summarizeOurWithWeapons().length
-                        : this.summarizeOur().length;
-                    const theirNumItems = this.bot.options.enableCraftweaponAsCurrency
-                        ? this.summarizeTheirWithWeapons().length
-                        : this.summarizeTheir().length;
+                    const ourNumItems = this.our.length;
+                    const theirNumItems = this.their.length;
 
                     const msg =
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
