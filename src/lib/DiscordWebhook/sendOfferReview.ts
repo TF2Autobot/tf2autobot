@@ -84,9 +84,9 @@ export default function sendOfferReview(
 
         const partnerNameNoFormat = replace.specialChar(partnerName);
 
-        const isShowQuickLinks = opt.tradeSummary.misc.showQuickLinks;
-        const isShowKeyRate = opt.tradeSummary.misc.showKeyRate;
-        const isShowPureStock = opt.tradeSummary.misc.showPureStock;
+        const isShowQuickLinks = opt.offerReview.misc.showQuickLinks;
+        const isShowKeyRate = opt.offerReview.misc.showKeyRate;
+        const isShowPureStock = opt.offerReview.misc.showPureStock;
 
         /*eslint-disable */
         const webhookReview: Webhook = {
