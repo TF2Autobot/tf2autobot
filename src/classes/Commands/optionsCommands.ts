@@ -32,67 +32,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         return;
     }
 
-    let newValue: string;
-    let current: string[];
-
-    if (typeof params.highValue === 'object') {
-        if (params.highValue.sheens !== undefined) {
-            newValue = params.highValue.sheens;
-            current = saveOptions.highValue.sheens;
-
-            params.highValue.sheens = current.concat([newValue]);
-            saveOptions.highValue.sheens.length = 0;
-        }
-        if (params.highValue.killstreakers !== undefined) {
-            newValue = params.highValue.killstreakers;
-            current = saveOptions.highValue.killstreakers;
-
-            params.highValue.killstreakers = current.concat([newValue]);
-            saveOptions.highValue.killstreakers.length = 0;
-        }
-        if (params.highValue.strangeParts !== undefined) {
-            newValue = params.highValue.strangeParts;
-            current = saveOptions.highValue.strangeParts;
-
-            params.highValue.strangeParts = current.concat([newValue]);
-            saveOptions.highValue.strangeParts.length = 0;
-        }
-    }
-
-    if (typeof params.manualReview === 'object') {
-        if (params.manualReview.invalidValue !== undefined) {
-            if (params.manualReview.invalidValue.exceptionValue.skus !== undefined) {
-                newValue = params.manualReview.invalidValue.exceptionValue.skus;
-                current = saveOptions.manualReview.invalidValue.exceptionValue.skus;
-
-                params.manualReview.invalidValue.exceptionValue.skus = current.concat([newValue]);
-                saveOptions.manualReview.invalidValue.exceptionValue.skus.length = 0;
-            }
-        }
-    }
-
-    if (typeof params.discordWebhook === 'object') {
-        if (params.discordWebhook.tradeSummary !== undefined) {
-            if (params.discordWebhook.tradeSummary.url !== undefined) {
-                newValue = params.discordWebhook.tradeSummary.url;
-                current = saveOptions.discordWebhook.tradeSummary.url;
-
-                params.discordWebhook.tradeSummary.url = current.concat([newValue]);
-                saveOptions.discordWebhook.tradeSummary.url.length = 0;
-            }
-
-            if (params.discordWebhook.tradeSummary.mentionOwner !== undefined) {
-                if (params.discordWebhook.tradeSummary.mentionOwner.itemSkus !== undefined) {
-                    newValue = params.discordWebhook.tradeSummary.mentionOwner.itemSkus;
-                    current = saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus;
-
-                    params.discordWebhook.tradeSummary.mentionOwner.itemSkus = current.concat([newValue]);
-                    saveOptions.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
-                }
-            }
-        }
-    }
-
     const result: JsonOptions = deepMerge(saveOptions, params);
 
     const errors = validator(result, 'options');

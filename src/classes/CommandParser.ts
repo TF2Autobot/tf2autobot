@@ -44,6 +44,11 @@ export = class CommandParser {
                         value = true;
                     } else if (lowerCase === 'false') {
                         value = false;
+                    } else if (typeof value === 'string' && value[0] === '[' && value[value.length - 1] === ']') {
+                        value = value
+                            .slice(1, -1)
+                            .split(',')
+                            .map(v => v.trim().replace(/["']/g, ''));
                     }
                 }
 
