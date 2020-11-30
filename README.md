@@ -18,7 +18,7 @@ Before you install the bot, there are a few things you will need:
 
 -   You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate the generation of 2FA codes and managment of mobile confirmations.
 -   NodeJS version 14 or above
--   Typescript 3.7 or above
+-   Typescript 4.1 or above
 
 ## Wiki
 
