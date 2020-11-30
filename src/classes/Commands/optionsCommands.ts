@@ -74,7 +74,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             deepMerge(opt, saveOptions);
             const msg = '✅ Updated options!';
             if (steamID) return bot.sendMessage(steamID, msg);
-            else return log.info(msg)
+            else return log.info(msg);
         })
         .catch(err => {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
