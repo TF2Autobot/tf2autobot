@@ -474,11 +474,14 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 
 function loadJsonOptions(p: string, options?: Options): JsonOptions {
     let fileOptions;
-    const workingDefault = deepMerge({}, DEFAULTS);
+    // const workingDefault = deepMerge({}, DEFAULTS);
+    // ^ When the options.json file is malformed, it will automatically correct the file
+    // And now will validate if inserted values are correct.
+
     const incomingOptions = options ? deepMerge({}, options) : deepMerge({}, DEFAULTS);
 
     try {
-        fileOptions = deepMerge({}, workingDefault, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
+        fileOptions = deepMerge({}, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
     } catch {
         if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
         writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
