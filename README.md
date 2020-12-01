@@ -25,7 +25,7 @@ Before you install the bot, there are a few things you will need:
 ### TF2Autobot is now officially supported by JetBrains! Click [Here](https://www.jetbrains.com/?from=TF2Autobot) to know more about it.
 
 <a href="https://www.jetbrains.com/?from=TF2Autobot">
-<div align="center"><img src="https://user-images.githubusercontent.com/47635037/100719260-5ae7a000-33f7-11eb-8f83-a9ac9ad51257.png" alt="JetBrains-logo" style="display: block; margin-left: auto; margin-right: auto;"></div>
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/100719260-5ae7a000-33f7-11eb-8f83-a9ac9ad51257.png" alt="JetBrains-logo" style="display: block; margin-left: auto; margin-right: auto; width: 300px; height: 325px;"></div>
 </a>
 
 ## Wiki
