@@ -20,6 +20,15 @@ Before you install the bot, there are a few things you will need:
 -   NodeJS version 14 or above
 -   Typescript 4.1 or above
 
+## JetBrains Support
+
+### TF2Autobot is now officially supported by JetBrains! Click [Here](https://www.jetbrains.com/?from=TF2Autobot) to know more about it.
+
+<a href="https://www.jetbrains.com/?from=TF2Autobot">
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/100720405-e877bf80-33f8-11eb-8929-adeddebd3435.png" alt="JetBrains-logo" style="display: block; margin-left: auto; margin-right: auto;"></div>
+</a>
+
+
 ## Wiki
 
 Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
