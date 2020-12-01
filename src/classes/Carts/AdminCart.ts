@@ -4,9 +4,7 @@ import SKU from 'tf2-sku-2';
 import Cart from './Cart';
 import Inventory from '../Inventory';
 
-export = AdminCart;
-
-class AdminCart extends Cart {
+export default class AdminCart extends Cart {
     protected preSendOffer(): Promise<void> {
         return Promise.resolve();
     }

@@ -10,7 +10,7 @@ import { currPure } from '../../lib/tools/pure';
 import log from '../../lib/logger';
 import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
-export = class Autokeys {
+export default class Autokeys {
     private readonly bot: Bot;
 
     get isKeyBankingEnabled(): boolean {
@@ -701,4 +701,4 @@ export = class Autokeys {
         this.isActive = false;
         this.check();
     }
-};
+}

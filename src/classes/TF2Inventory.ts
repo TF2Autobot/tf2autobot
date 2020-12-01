@@ -40,7 +40,7 @@ type TF2Item = {
     attributes?: TF2Attribute[];
 };
 
-export = class TF2Inventory {
+export default class TF2Inventory {
     private readonly steamID: SteamID;
 
     private readonly manager: TradeOfferManager;
@@ -177,4 +177,4 @@ export = class TF2Inventory {
             );
         });
     }
-};
+}

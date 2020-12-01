@@ -19,9 +19,7 @@ import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
 import { pure, check } from '../../lib/tools/export';
 
-export = UserCart;
-
-class UserCart extends Cart {
+export default class UserCart extends Cart {
     /**
      * If we should give keys and metal or only metal (should be able to change this on checkout)
      */

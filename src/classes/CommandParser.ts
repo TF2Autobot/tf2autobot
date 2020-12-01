@@ -3,7 +3,7 @@ import { UnknownDictionaryKnownValues } from '../types/common';
 
 import { parseJSON } from '../lib/helpers';
 
-export = class CommandParser {
+export default class CommandParser {
     static getCommand(message: string): string | null {
         if (message.startsWith('!')) {
             const index = message.indexOf(' ');
@@ -62,4 +62,4 @@ export = class CommandParser {
 
         return parsed;
     }
-};
+}

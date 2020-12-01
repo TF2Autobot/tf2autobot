@@ -3,9 +3,7 @@ import SKU from 'tf2-sku-2';
 
 import Cart from './Cart';
 
-export = DonateCart;
-
-class DonateCart extends Cart {
+export default class DonateCart extends Cart {
     protected preSendOffer(): Promise<void> {
         return Promise.resolve();
     }

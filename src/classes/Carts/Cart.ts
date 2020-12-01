@@ -14,14 +14,12 @@ import { sendAlert } from '../../lib/DiscordWebhook/export';
 
 import Bot from '../Bot';
 
-export = Cart;
-
 /**
  * An abstract class used for sending offers
  *
  * @remarks Add and remove specific types of items to an offer and send it
  */
-abstract class Cart {
+export default abstract class Cart {
     private static carts: UnknownDictionary<Cart> = {};
 
     ourInventoryCount = 0;

@@ -8,7 +8,7 @@ import { UnknownDictionary } from '../types/common';
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
 
-abstract class Handler {
+export default abstract class Handler {
     readonly bot: Bot;
 
     protected constructor(bot: Bot) {
@@ -196,5 +196,3 @@ abstract class Handler {
         // empty function
     }
 }
-
-export = Handler;

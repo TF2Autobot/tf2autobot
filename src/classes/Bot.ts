@@ -33,7 +33,7 @@ import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
 
-export = class Bot {
+export default class Bot {
     // Modules and classes
     readonly botManager: BotManager;
 
@@ -927,4 +927,4 @@ export = class Bot {
 
         this.handler.onLoginAttempts(this.loginAttempts.map(attempt => attempt.unix()));
     }
-};
+}

@@ -12,7 +12,7 @@ import { EPersonaState } from 'steam-user';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
-export = class BotManager {
+export default class BotManager {
     private readonly socket: SocketIOClient.Socket;
 
     private readonly schemaManager: SchemaManager;
@@ -285,4 +285,4 @@ export = class BotManager {
             });
         });
     }
-};
+}

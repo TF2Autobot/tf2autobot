@@ -32,7 +32,7 @@ import { ignoreWords } from '../../lib/data';
 import { pure } from '../../lib/tools/export';
 import DonateCart from '../Carts/DonateCart';
 
-export = class Commands {
+export default class Commands {
     private readonly bot: Bot;
 
     readonly autokeys: Autokeys;
@@ -1608,7 +1608,7 @@ export = class Commands {
             }`
         );
     }
-};
+}
 
 interface ErrorRequest {
     body?: ErrorBody;

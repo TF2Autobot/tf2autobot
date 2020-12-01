@@ -5,7 +5,7 @@ import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
 
-import Bot = require('./Bot');
+import Bot from './Bot';
 import { Entry } from './Pricelist';
 
 import log from '../lib/logger';
@@ -13,7 +13,7 @@ import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakerSKU } from '../lib/data';
 import { updateOptionsCommand } from './Commands/optionsCommands';
 
-export = class Listings {
+export default class Listings {
     private readonly bot: Bot;
 
     private checkingAllListings = false;
@@ -605,4 +605,4 @@ export = class Listings {
 
         return details;
     }
-};
+}

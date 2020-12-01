@@ -36,7 +36,7 @@ import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 
-export = class MyHandler extends Handler {
+export default class MyHandler extends Handler {
     private readonly commands: Commands;
 
     private readonly autokeys: Autokeys;
@@ -1785,7 +1785,7 @@ export = class MyHandler extends Handler {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
-};
+}
 
 function shuffleArray(arr: string[]): string[] {
     return arr.sort(() => Math.random() - 0.5);

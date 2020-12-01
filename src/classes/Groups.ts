@@ -4,7 +4,7 @@ import Bot from './Bot';
 
 import log from '../lib/logger';
 
-export = class Groups {
+export default class Groups {
     private readonly bot: Bot;
 
     constructor(bot: Bot) {
@@ -26,4 +26,4 @@ export = class Groups {
             });
         });
     }
-};
+}

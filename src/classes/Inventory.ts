@@ -9,7 +9,7 @@ import Options from './Options';
 
 import { craftAll, uncraftAll } from '../lib/data';
 
-export = class Inventory {
+export default class Inventory {
     private readonly steamID: SteamID;
 
     private readonly manager: TradeOfferManager;
@@ -227,4 +227,4 @@ export = class Inventory {
 
         return dict;
     }
-};
+}
