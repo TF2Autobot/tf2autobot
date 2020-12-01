@@ -10,12 +10,12 @@ import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
 import SchemaManager from 'tf2-schema-2';
-import BptfLogin from 'bptf-login';
+import BptfLogin from 'bptf-login-2';
 import TF2 from 'tf2';
-import moment from 'moment-timezone';
+import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData } from './Pricelist';
@@ -83,7 +83,7 @@ export = class Bot {
 
     private timeOffset: number = null;
 
-    private loginAttempts: moment.Moment[] = [];
+    private loginAttempts: Dayjs[] = [];
 
     private admins: SteamID[] = [];
 
@@ -891,10 +891,10 @@ export = class Bot {
             const oldest = attemptsWithinPeriod[0];
 
             // Time when we can make login attempt
-            const timeCanAttempt = moment().add(this.loginPeriodTime, 'milliseconds');
+            const timeCanAttempt = dayjs().add(this.loginPeriodTime, 'millisecond');
 
             // Get milliseconds till oldest till timeCanAttempt
-            wait = timeCanAttempt.diff(oldest, 'milliseconds');
+            wait = timeCanAttempt.diff(oldest, 'millisecond');
         }
 
         if (wait === 0 && this.consecutiveSteamGuardCodesWrong > 1) {
@@ -906,21 +906,21 @@ export = class Bot {
     }
 
     private setLoginAttempts(attempts: number[]): void {
-        this.loginAttempts = attempts.map(time => moment.unix(time));
+        this.loginAttempts = attempts.map(time => dayjs.unix(time));
     }
 
-    private getLoginAttemptsWithinPeriod(): moment.Moment[] {
-        const now = moment();
+    private getLoginAttemptsWithinPeriod(): dayjs.Dayjs[] {
+        const now = dayjs();
 
-        return this.loginAttempts.filter(attempt => now.diff(attempt, 'milliseconds') < this.loginPeriodTime);
+        return this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);
     }
 
     private newLoginAttempt(): void {
-        const now = moment();
+        const now = dayjs();
 
         // Clean up old login attempts
         this.loginAttempts = this.loginAttempts.filter(
-            attempt => now.diff(attempt, 'milliseconds') < this.loginPeriodTime
+            attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime
         );
 
         this.loginAttempts.push(now);

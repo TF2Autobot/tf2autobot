@@ -1,7 +1,7 @@
 import { UnknownDictionary } from '../types/common';
 import { OptionsWithUrl, ResponseAsJSON } from 'request';
 
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 
 export function getSchema(): Promise<UnknownDictionary<any>> {
     return apiRequest('GET', '/schema', { appid: 440 });

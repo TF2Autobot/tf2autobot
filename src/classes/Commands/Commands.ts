@@ -1,10 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
+
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
 import { botStatus, help, messageCommand, misc, pricelist, review, utils, options } from './export';
 
@@ -70,7 +78,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.cartCommand(steamID, opt.weaponsAsCurrency.enable);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -172,7 +180,7 @@ export = class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.donateCartCommand(steamID, opt.weaponsAsCurrency.enable);
         } else if (isNoReply) {
             return;
         } else {
@@ -262,7 +270,7 @@ export = class Commands {
         reply += '. ';
 
         if (match.autoprice && isAdmin) {
-            reply += ` (price last updated ${moment.unix(match.time).fromNow()})`;
+            reply += ` (price last updated ${dayjs.unix(match.time).fromNow()})`;
         }
 
         this.bot.sendMessage(steamID, reply);
@@ -441,7 +449,7 @@ export = class Commands {
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, enableCraftweaponAsCurrency: boolean): void {
+    private cartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
         if (this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -449,7 +457,7 @@ export = class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponAsCurrency, false));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, false));
     }
 
     private clearCartCommand(steamID: SteamID): void {
@@ -684,7 +692,7 @@ export = class Commands {
                 left += 1;
             } else {
                 SalesList.push(
-                    `Listed #${i + 1}-----\n• Date: ${moment.unix(sales[i].date).utc().toString()}\n• Item: ${
+                    `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sales[i].date).utc().toString()}\n• Item: ${
                         sales[i].itemHistory
                     }\n• Seller: ${sales[i].seller}\n• Was selling for: ${
                         sales[i].keys > 0 ? `${sales[i].keys} keys,` : ''
@@ -937,7 +945,7 @@ export = class Commands {
         this.addCartToQueue(cart, true);
     }
 
-    private donateCartCommand(steamID: SteamID, enableCraftweaponAsCurrency: boolean): void {
+    private donateCartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
         if (!this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -945,7 +953,7 @@ export = class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponAsCurrency, true));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
     }
 
     // Bot manager commands

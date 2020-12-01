@@ -115,7 +115,7 @@ class CartQueue {
 
         log.debug('Constructing offer');
 
-        if (this.bot.options.enableCraftweaponAsCurrency) {
+        if (this.bot.options.weaponsAsCurrency.enable) {
             Promise.resolve(cart.constructOfferWithWeapons())
                 .then(alteredMessage => {
                     log.debug('Constructed offer');

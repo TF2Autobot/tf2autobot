@@ -1,12 +1,12 @@
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 import Bot from '../../classes/Bot';
 
 export default function stats(
     bot: Bot
 ): { totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number } {
-    const now = moment();
-    const aDayAgo = moment().subtract(24, 'hour');
-    const startOfDay = moment().startOf('day');
+    const now = dayjs();
+    const aDayAgo = dayjs().subtract(24, 'hour');
+    const startOfDay = dayjs().startOf('day');
 
     let tradesToday = 0;
     let trades24Hours = 0;
@@ -18,7 +18,7 @@ export default function stats(
         +bot.options.statistics.startingTimeInUnix === 0
             ? pollData.timestamps[oldestId]
             : +bot.options.statistics.startingTimeInUnix;
-    const totalDays = !timeSince ? 0 : now.diff(moment.unix(timeSince), 'days');
+    const totalDays = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
     const offerData = bot.manager.pollData.offerData;
     for (const offerID in offerData) {

@@ -9,7 +9,8 @@ import Bot from '../Bot';
 import { pure, timeNow, uptime } from '../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
-    const timeWithEmojis = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
+    const opt = bot.options;
+    const timeWithEmojis = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
     bot.sendMessage(
         steamID,
         `It is currently the following time in my owner's timezone: ${timeWithEmojis.emoji} ${

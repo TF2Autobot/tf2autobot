@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SKU from 'tf2-sku-2';
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData, CustomError } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
@@ -97,6 +97,17 @@ export = class MyHandler extends Handler {
         );
     }
 
+    private get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
+        return {
+            enable: this.bot.options.weaponsAsCurrency.enable,
+            withUncraft: this.bot.options.weaponsAsCurrency.withUncraft
+        };
+    }
+
+    private get isAutoRelistEnabled(): boolean {
+        return this.bot.options.autobump;
+    }
+
     private get invalidValueException(): number {
         return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
     }
@@ -169,7 +180,13 @@ export = class MyHandler extends Handler {
         isBanking: boolean;
     };
 
+    private weapons: string[] = [];
+
+    private shuffleWeaponsTimeout;
+
     private classWeaponsTimeout;
+
+    private autoRefreshListingsTimeout;
 
     private botSteamID: SteamID;
 
@@ -265,6 +282,9 @@ export = class MyHandler extends Handler {
         // Craft duplicate weapons
         craftDuplicateWeapons(this.bot);
 
+        // Shuffle weapons on start
+        this.shuffleWeapons();
+
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
             // called after 2 minutes to craft metals and duplicated weapons first.
@@ -294,8 +314,8 @@ export = class MyHandler extends Handler {
 
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
-            this.autoRefreshListings();
-        }, 30 * 6 * 1000);
+            this.enableAutoRefreshListings();
+        }, 30 * 60 * 1000);
     }
 
     onShutdown(): Promise<void> {
@@ -400,13 +420,13 @@ export = class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    private autoRefreshListings(): void {
+    enableAutoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
-        if (this.bot.options.autobump && this.isPremium === false) {
+        if (this.isAutoRelistEnabled && this.isPremium === false) {
             return;
         }
 
-        setInterval(() => {
+        this.autoRefreshListingsTimeout = setInterval(() => {
             log.debug('Running automatic check for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
@@ -423,6 +443,35 @@ export = class MyHandler extends Handler {
                 log.debug('❌ Nothing to refresh.');
             }
         }, 15 * 60 * 1000);
+    }
+
+    disableAutoRefreshListings(): void {
+        if (this.isPremium) {
+            return;
+        }
+        clearTimeout(this.autoRefreshListingsTimeout);
+    }
+
+    getWeapons(): string[] {
+        return this.weapons;
+    }
+
+    shuffleWeapons(): void {
+        if (!this.isWeaponsAsCurrency.enable) {
+            return;
+        }
+        const weapons = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+        this.weapons = shuffleArray(weapons);
+
+        // Shuffle weapons position every 11 minutes (prime number)
+        this.shuffleWeaponsTimeout = setInterval(() => {
+            this.weapons = shuffleArray(weapons);
+        }, 11 * 60 * 1000);
+    }
+
+    disableWeaponsAsCurrency(): void {
+        this.weapons.length = 0;
+        clearTimeout(this.shuffleWeaponsTimeout);
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -716,8 +765,8 @@ export = class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else if (
-                    (craftAll.includes(sku) || uncraftAll.includes(sku)) &&
-                    opt.enableCraftweaponAsCurrency &&
+                    this.isWeaponsAsCurrency.enable &&
+                    (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -725,8 +774,11 @@ export = class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else {
                     const match = this.bot.pricelist.getPrice(sku, true);
-                    const notIncludeCraftweapon = opt.enableCraftweaponAsCurrency
-                        ? !(craftAll.includes(sku) || uncraftAll.includes(sku))
+                    const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
+                        ? !(
+                              craftAll.includes(sku) ||
+                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
+                          )
                         : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -1734,6 +1786,10 @@ export = class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 };
+
+function shuffleArray(arr: string[]): string[] {
+    return arr.sort(() => Math.random() - 0.5);
+}
 
 function filterReasons(reasons: string[]): string[] {
     const filtered: string[] = [];

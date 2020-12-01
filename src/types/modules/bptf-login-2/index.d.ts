@@ -1,4 +1,4 @@
-declare module 'bptf-login' {
+declare module 'bptf-login-2' {
     class BptfLogin {
         setCookies(cookies: string[]): void;
 

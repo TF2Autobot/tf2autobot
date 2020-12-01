@@ -4,7 +4,7 @@
 import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
 import { OptionsWithUri } from 'request';
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';

@@ -8,9 +8,15 @@ export default function keepMetalSupply(bot: Bot, minScraps: number, minRecs: nu
     }
     const pureNow = pure.currPure(bot);
 
+    if (pureNow.ref <= 0 && pureNow.rec <= 3 && pureNow.scrap <= 3) {
+        // If the bot don't have any refined and reclaimed and scrap are both less than
+        // three, then just don't execute to craft/smelt metals.
+        return;
+    }
+
     // let refined = pure.ref;
-    let reclaimed = pureNow.rec * 3; // Because it was divided by 3
-    let scrap = pureNow.scrap * 9; // Because it was divided by 9
+    let reclaimed = pureNow.rec;
+    let scrap = pureNow.scrap;
 
     // const maxRefined = maximumRefined;
     const maxReclaimed = minRecs + threshold;
