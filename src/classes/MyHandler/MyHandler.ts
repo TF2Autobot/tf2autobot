@@ -99,8 +99,8 @@ export = class MyHandler extends Handler {
 
     private get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
-            enable: this.bot.options.weaponAsCurrency.enable,
-            withUncraft: this.bot.options.weaponAsCurrency.withUncraft
+            enable: this.bot.options.weaponsAsCurrency.enable,
+            withUncraft: this.bot.options.weaponsAsCurrency.withUncraft
         };
     }
 

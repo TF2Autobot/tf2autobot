@@ -47,7 +47,7 @@ class UserCart extends Cart {
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
-        if (this.bot.options.weaponAsCurrency.enable) {
+        if (this.bot.options.weaponsAsCurrency.enable) {
             theirItemsValue = this.getTheirCurrenciesWithWeapons().toValue(keyPrice.metal);
         } else {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
@@ -1156,7 +1156,7 @@ class UserCart extends Cart {
             addWeapons += ourDict[sku] || 0;
         });
 
-        if (this.bot.options.weaponAsCurrency.withUncraft) {
+        if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
                 addWeapons += ourDict[sku] || 0;
             });
@@ -1198,7 +1198,7 @@ class UserCart extends Cart {
             addWeapons += theirDict[sku] || 0;
         });
 
-        if (this.bot.options.weaponAsCurrency.withUncraft) {
+        if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
                 addWeapons += theirDict[sku] || 0;
             });
@@ -1459,7 +1459,7 @@ class UserCart extends Cart {
             addWeapons += required.currencies[sku] * 0.5;
         });
 
-        if (this.bot.options.weaponAsCurrency.withUncraft) {
+        if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
                 addWeapons += required.currencies[sku] * 0.5;
             });
@@ -1586,7 +1586,7 @@ class UserCart extends Cart {
                 } else if (sku === '5000;6') {
                     value = 1;
                 } else if (
-                    (craftAll.includes(sku) || (opt.weaponAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
+                    (craftAll.includes(sku) || (opt.weaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
