@@ -49,7 +49,7 @@ export const optionsSchema: jsonschema.Schema = {
         autobump: {
             type: 'boolean'
         },
-        weaponAsCurrency: {
+        weaponsAsCurrency: {
             type: 'weapons-as-currency'
         },
         tradeSummary: {

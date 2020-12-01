@@ -411,7 +411,7 @@ export interface JsonOptions {
     enableMessages?: boolean;
     sendAlert?: boolean;
     enableAddFriends?: boolean;
-    weaponAsCurrency?: WeaponsAsCurrency;
+    weaponsAsCurrency?: WeaponsAsCurrency;
     enableGroupInvites?: boolean;
     enableOwnerCommand?: boolean;
     autoRemoveIntentSell?: boolean;
