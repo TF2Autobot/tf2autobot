@@ -5,7 +5,7 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 
 import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
 
@@ -669,7 +669,7 @@ let lastExecutedTime: number | null = null;
 let executeTimeout;
 
 export function shuffleCommand(steamID: SteamID, bot: Bot): void {
-    const newExecutedTime = moment().valueOf();
+    const newExecutedTime = dayjs().valueOf();
     const timeDiff = newExecutedTime - lastExecutedTime;
 
     const pricelist = bot.pricelist.getPrices();
@@ -689,7 +689,7 @@ export function shuffleCommand(steamID: SteamID, bot: Bot): void {
         return;
     } else {
         clearTimeout(executeTimeout);
-        lastExecutedTime = moment().valueOf();
+        lastExecutedTime = dayjs().valueOf();
 
         bot.getHandler().onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');

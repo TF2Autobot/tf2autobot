@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
 
 export async function isBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {

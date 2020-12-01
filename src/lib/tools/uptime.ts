@@ -1,10 +1,10 @@
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 
 export default function uptime(): string {
-    const currentTime = moment();
-    const uptimeAsMoment = moment.unix(currentTime.unix() - process.uptime());
-    const hoursDiff = currentTime.diff(uptimeAsMoment, 'hours');
-    const daysDiff = currentTime.diff(uptimeAsMoment, 'days');
+    const currentTime = dayjs();
+    const uptimeAsMoment = dayjs.unix(currentTime.unix() - process.uptime());
+    const hoursDiff = currentTime.diff(uptimeAsMoment, 'hour');
+    const daysDiff = currentTime.diff(uptimeAsMoment, 'day');
 
     // If the bot has been up for ~1 day, show the exact amount of hours
     // If the bot has been up for ~1 month, show the exact amount of days
