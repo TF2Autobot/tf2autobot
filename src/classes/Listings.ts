@@ -26,6 +26,14 @@ export = class Listings {
 
     private autoRelistTimeout;
 
+    private get isAutoRelistEnabled(): boolean {
+        return this.bot.options.autobump;
+    }
+
+    private get isCreateListing(): boolean {
+        return this.bot.options.createListings;
+    }
+
     private templates: { buy: string; sell: string };
 
     constructor(bot: Bot) {
@@ -39,7 +47,7 @@ export = class Listings {
     }
 
     setupAutorelist(): void {
-        if (!this.bot.options.autobump || !this.bot.options.createListings) {
+        if (!this.isAutoRelistEnabled || !this.isCreateListing) {
             // Autobump is not enabled
             return;
         }
@@ -53,14 +61,14 @@ export = class Listings {
         this.checkAccountInfo();
     }
 
-    disableAutorelist(): void {
+    disableAutorelistOption(): void {
         this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
         this.autoRelistEnabled = false;
         clearTimeout(this.autoRelistTimeout);
     }
 
     private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || !this.bot.options.createListings) {
+        if (this.autoRelistEnabled || !this.isCreateListing) {
             return;
         }
 
@@ -120,7 +128,7 @@ export = class Listings {
                 );
                 this.enableAutoRelist();
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            } else if (this.bot.options.autobump && info.premium === 1) {
+            } else if (this.isAutoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
                 updateOptionsCommand(null, '!config autobump=false', this.bot);
             }
@@ -162,7 +170,7 @@ export = class Listings {
     }
 
     checkBySKU(sku: string, data?: Entry | null): void {
-        if (!this.bot.options.createListings) {
+        if (!this.isCreateListing) {
             return;
         }
 
@@ -246,7 +254,7 @@ export = class Listings {
 
     checkAll(): Promise<void> {
         return new Promise(resolve => {
-            if (!this.bot.options.createListings) {
+            if (!this.isCreateListing) {
                 return resolve();
             }
 
@@ -315,7 +323,7 @@ export = class Listings {
 
     checkAllWithDelay(): Promise<void> {
         return new Promise(resolve => {
-            if (!this.bot.options.createListings) {
+            if (!this.isCreateListing) {
                 return resolve();
             }
 

@@ -46,48 +46,51 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         return;
     }
 
-    if (typeof params.game === 'object') {
-        if (params.game.playOnlyTF2 !== undefined && params.game.playOnlyTF2 === true) {
-            bot.client.gamesPlayed([]);
-            bot.client.gamesPlayed(440);
-        }
-
-        if (params.game.customName !== undefined && typeof params.game.customName === 'string') {
-            bot.client.gamesPlayed([]);
-            bot.client.gamesPlayed(
-                (params.game.playOnlyTF2 !== undefined ? params.game.playOnlyTF2 : opt.game.playOnlyTF2)
-                    ? 440
-                    : [params.game.customName, 440]
-            );
-        }
-    }
-
-    if (typeof params.weaponsAsCurrency === 'object') {
-        if (params.weaponsAsCurrency.enable !== undefined) {
-            if (params.weaponsAsCurrency.enable === true) {
-                (bot.handler as MyHandler).shuffleWeapons();
-            } else {
-                (bot.handler as MyHandler).disableWeaponsAsCurrency();
-            }
-        }
-
-        if (params.weaponsAsCurrency.withUncraft !== undefined) {
-            (bot.handler as MyHandler).shuffleWeapons();
-        }
-    }
-
-    if (params.autobump !== undefined) {
-        if (params.autobump === true) {
-            bot.listings.setupAutorelist();
-        } else {
-            bot.listings.disableAutorelist();
-        }
-    }
-
     fsp.writeFile(optionsPath, JSON.stringify(saveOptions, null, 4), { encoding: 'utf8' })
         .then(() => {
             deepMerge(opt, saveOptions);
             const msg = '✅ Updated options!';
+
+            if (typeof params.game === 'object') {
+                if (params.game.playOnlyTF2 !== undefined && params.game.playOnlyTF2 === true) {
+                    bot.client.gamesPlayed([]);
+                    bot.client.gamesPlayed(440);
+                }
+
+                if (params.game.customName !== undefined && typeof params.game.customName === 'string') {
+                    bot.client.gamesPlayed([]);
+                    bot.client.gamesPlayed(
+                        (params.game.playOnlyTF2 !== undefined ? params.game.playOnlyTF2 : opt.game.playOnlyTF2)
+                            ? 440
+                            : [params.game.customName, 440]
+                    );
+                }
+            }
+
+            if (typeof params.weaponsAsCurrency === 'object') {
+                if (params.weaponsAsCurrency.enable !== undefined) {
+                    if (params.weaponsAsCurrency.enable === true) {
+                        (bot.handler as MyHandler).shuffleWeapons();
+                    } else {
+                        (bot.handler as MyHandler).disableWeaponsAsCurrency();
+                    }
+                }
+
+                if (params.weaponsAsCurrency.withUncraft !== undefined) {
+                    (bot.handler as MyHandler).shuffleWeapons();
+                }
+            }
+
+            if (params.autobump !== undefined) {
+                if (params.autobump === true) {
+                    bot.listings.setupAutorelist();
+                    (bot.handler as MyHandler).disableAutoRefreshListings();
+                } else {
+                    bot.listings.disableAutorelistOption();
+                    (bot.handler as MyHandler).enableAutoRefreshListings();
+                }
+            }
+
             if (steamID) return bot.sendMessage(steamID, msg);
             else return log.info(msg);
         })

@@ -104,6 +104,10 @@ export = class MyHandler extends Handler {
         };
     }
 
+    private get isAutoRelistEnabled(): boolean {
+        return this.bot.options.autobump;
+    }
+
     private get invalidValueException(): number {
         return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
     }
@@ -181,6 +185,8 @@ export = class MyHandler extends Handler {
     private shuffleWeaponsTimeout;
 
     private classWeaponsTimeout;
+
+    private autoRefreshListingsTimeout;
 
     private botSteamID: SteamID;
 
@@ -308,8 +314,8 @@ export = class MyHandler extends Handler {
 
         // Check for missing sell listings every 5 minutes, 30 minutes after start
         setTimeout(() => {
-            this.autoRefreshListings();
-        }, 30 * 6 * 1000);
+            this.enableAutoRefreshListings();
+        }, 30 * 60 * 1000);
     }
 
     onShutdown(): Promise<void> {
@@ -414,13 +420,13 @@ export = class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    private autoRefreshListings(): void {
+    enableAutoRefreshListings(): void {
         // Automatically check for missing sell listings every 15 minutes
-        if (this.bot.options.autobump && this.isPremium === false) {
+        if (this.isAutoRelistEnabled && this.isPremium === false) {
             return;
         }
 
-        setInterval(() => {
+        this.autoRefreshListingsTimeout = setInterval(() => {
             log.debug('Running automatic check for missing sell listings...');
             const inventory = this.bot.inventoryManager.getInventory();
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
@@ -437,6 +443,13 @@ export = class MyHandler extends Handler {
                 log.debug('❌ Nothing to refresh.');
             }
         }, 15 * 60 * 1000);
+    }
+
+    disableAutoRefreshListings(): void {
+        if (this.isPremium) {
+            return;
+        }
+        clearTimeout(this.autoRefreshListingsTimeout);
     }
 
     getWeapons(): string[] {
