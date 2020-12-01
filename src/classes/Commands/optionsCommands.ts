@@ -11,6 +11,7 @@ import { JsonOptions, removeCliOptions } from '../Options';
 import { deepMerge } from '../../lib/tools/deep-merge';
 import validator from '../../lib/validator';
 import log from '../../lib/logger';
+import MyHandler from '../MyHandler/MyHandler';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
@@ -58,6 +59,20 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                     ? 440
                     : [params.game.customName, 440]
             );
+        }
+    }
+
+    if (typeof params.weaponsAsCurrency === 'object') {
+        if (params.weaponsAsCurrency.enable !== undefined) {
+            if (params.weaponsAsCurrency.enable === true) {
+                (bot.handler as MyHandler).shuffleWeapons();
+            } else {
+                (bot.handler as MyHandler).disableWeaponsAsCurrency();
+            }
+        }
+
+        if (params.weaponsAsCurrency.withUncraft !== undefined) {
+            (bot.handler as MyHandler).shuffleWeapons();
         }
     }
 

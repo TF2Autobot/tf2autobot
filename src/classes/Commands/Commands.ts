@@ -70,7 +70,7 @@ export = class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.cartCommand(steamID, opt.weaponsAsCurrency.enable);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -172,7 +172,7 @@ export = class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, opt.enableCraftweaponAsCurrency);
+            this.donateCartCommand(steamID, opt.weaponsAsCurrency.enable);
         } else if (isNoReply) {
             return;
         } else {
@@ -441,7 +441,7 @@ export = class Commands {
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, enableCraftweaponAsCurrency: boolean): void {
+    private cartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
         if (this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -449,7 +449,7 @@ export = class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponAsCurrency, false));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, false));
     }
 
     private clearCartCommand(steamID: SteamID): void {
@@ -937,7 +937,7 @@ export = class Commands {
         this.addCartToQueue(cart, true);
     }
 
-    private donateCartCommand(steamID: SteamID, enableCraftweaponAsCurrency: boolean): void {
+    private donateCartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
         if (!this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -945,7 +945,7 @@ export = class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponAsCurrency, true));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
     }
 
     // Bot manager commands

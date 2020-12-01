@@ -31,9 +31,6 @@ export const optionsSchema: jsonschema.Schema = {
         autoRemoveIntentSell: {
             type: 'boolean'
         },
-        enableCraftweaponAsCurrency: {
-            type: 'boolean'
-        },
         allowEscrow: {
             type: 'boolean'
         },
@@ -51,6 +48,9 @@ export const optionsSchema: jsonschema.Schema = {
         },
         autobump: {
             type: 'boolean'
+        },
+        weaponsAsCurrency: {
+            type: 'weapons-as-currency'
         },
         tradeSummary: {
             $ref: 'trade-summary'
