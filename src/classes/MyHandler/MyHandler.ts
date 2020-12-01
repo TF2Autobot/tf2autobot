@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SKU from 'tf2-sku-2';
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, { TradeOffer, PollData, CustomError } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';

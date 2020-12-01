@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { EventEmitter } from 'events';
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
@@ -613,7 +613,7 @@ export default class Pricelist extends EventEmitter {
             this.priceChanged(match.sku, match);
 
             if (opt.discordWebhook.priceUpdate.enable && opt.discordWebhook.priceUpdate.url !== '') {
-                const time = moment()
+                const time = dayjs()
                     .tz(opt.timezone ? opt.timezone : 'UTC')
                     .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
@@ -650,7 +650,7 @@ export default class Pricelist extends EventEmitter {
             return this.prices;
         }
 
-        const now = moment().unix();
+        const now = dayjs().unix();
 
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }

@@ -1,17 +1,22 @@
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timeZone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timeZone);
 
 export default function timeNow(
-    timezone?: string,
-    customTimeFormat?: string,
-    timeAdditionalNotes?: string
+    timezone: string,
+    customTimeFormat: string,
+    timeAdditionalNotes: string
 ): { timeUnix: number; time: string; emoji: string; note: string } {
-    const timeUnix = moment().unix();
+    const timeUnix = dayjs().unix();
 
-    const time = moment()
+    const time = dayjs()
         .tz(timezone ? timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-        .format(customTimeFormat ? customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+        .format(customTimeFormat ? customTimeFormat : 'MMMM DD YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
 
-    const timeEmoji = moment()
+    const timeEmoji = dayjs()
         .tz(timezone ? timezone : 'UTC')
         .format();
     const emoji =

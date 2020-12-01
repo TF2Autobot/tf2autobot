@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
@@ -366,7 +366,7 @@ abstract class Cart {
             throw new Error('dict not saved on offer');
         }
 
-        this.offer.data('handleTimestamp', moment().valueOf());
+        this.offer.data('handleTimestamp', dayjs().valueOf());
 
         this.offer.setMessage('Powered by TF2Autobot' + (opt.sendOfferMessage ? '. ' + opt.sendOfferMessage : ''));
 

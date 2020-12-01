@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import TradeOfferManager, { EconItem, CustomError } from 'steam-tradeoffer-manager';
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
@@ -258,7 +258,7 @@ export = class Trades {
     private handlerProcessOffer(offer: TradeOfferManager.TradeOffer): void {
         log.debug('Giving offer to handler');
 
-        const start = moment().valueOf();
+        const start = dayjs().valueOf();
 
         offer.data('handleTimestamp', start);
 
@@ -273,7 +273,7 @@ export = class Trades {
             }
 
             offer.data('handledByUs', true);
-            offer.data('handleTime', moment().valueOf() - start);
+            offer.data('handleTime', dayjs().valueOf() - start);
 
             offer.log('debug', 'handler is done with offer', {
                 response: response
@@ -414,11 +414,11 @@ export = class Trades {
 
     private acceptOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
-            const start = moment().valueOf();
+            const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
 
             void this.acceptOfferRetry(offer).asCallback((err, status) => {
-                const actionTime = moment().valueOf() - start;
+                const actionTime = dayjs().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
                 if (err) {
@@ -445,12 +445,12 @@ export = class Trades {
                 offerId: offer.id
             });
 
-            const start = moment().valueOf();
+            const start = dayjs().valueOf();
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
             this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
-                const confirmationTime = moment().valueOf() - start;
+                const confirmationTime = dayjs().valueOf() - start;
                 offer.data('confirmationTime', confirmationTime);
 
                 if (err) {
@@ -497,11 +497,11 @@ export = class Trades {
 
     private declineOffer(offer: TradeOfferManager.TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
-            const start = moment().valueOf();
+            const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
 
             offer.decline(err => {
-                const actionTime = moment().valueOf() - start;
+                const actionTime = dayjs().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
                 if (err) {
@@ -528,13 +528,13 @@ export = class Trades {
 
             offer.data('handledByUs', true);
 
-            const start = moment().valueOf();
+            const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
 
             log.debug('Sending offer...');
 
             void this.sendOfferRetry(offer, 0).asCallback((err, status) => {
-                const actionTime = moment().valueOf() - start;
+                const actionTime = dayjs().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
                 if (err) {
@@ -707,7 +707,7 @@ export = class Trades {
             }`
         );
 
-        const finishTimestamp = moment().valueOf();
+        const finishTimestamp = dayjs().valueOf();
 
         const processTime = finishTimestamp - offer.data('handleTimestamp');
 

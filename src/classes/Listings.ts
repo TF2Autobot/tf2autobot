@@ -1,9 +1,9 @@
 import callbackQueue from 'callback-queue';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import request from '@nicklason/request-retry';
+import request from 'request-retry-dayjs';
 import async from 'async';
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 
 import Bot = require('./Bot');
 import { Entry } from './Pricelist';
@@ -203,7 +203,7 @@ export = class Listings {
                     const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                     listing.update({
-                        time: match.time || moment().unix(),
+                        time: match.time || dayjs().unix(),
                         currencies: currencies,
                         promoted: listing.intent === 0 ? 0 : match.promoted,
                         details: newDetails
@@ -222,7 +222,7 @@ export = class Listings {
             if (!hasBuyListing && amountCanBuy > 0) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
-                    time: matchNew.time || moment().unix(),
+                    time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
                     details: this.getDetails(0, matchNew),
@@ -233,7 +233,7 @@ export = class Listings {
             if (!hasSellListing && amountCanSell > 0) {
                 // We have no sell order and we can sell items, create sell listing
                 this.bot.listingManager.createListing({
-                    time: matchNew.time || moment().unix(),
+                    time: matchNew.time || dayjs().unix(),
                     id: assetids[assetids.length - 1],
                     intent: 1,
                     promoted: matchNew.promoted,
