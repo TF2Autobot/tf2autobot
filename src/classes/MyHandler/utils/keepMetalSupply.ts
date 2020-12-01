@@ -9,8 +9,8 @@ export default function keepMetalSupply(bot: Bot, minScraps: number, minRecs: nu
     const pureNow = pure.currPure(bot);
 
     // let refined = pure.ref;
-    let reclaimed = pureNow.rec * 3; // Because it was divided by 3
-    let scrap = pureNow.scrap * 9; // Because it was divided by 9
+    let reclaimed = pureNow.rec;
+    let scrap = pureNow.scrap;
 
     // const maxRefined = maximumRefined;
     const maxReclaimed = minRecs + threshold;
