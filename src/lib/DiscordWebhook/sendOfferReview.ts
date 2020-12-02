@@ -127,7 +127,7 @@ export default function sendOfferReview(
                             value: itemList.replace(/@/g, '')
                         },
                         {
-                            name: '__Status__',
+                            name: `__Status (v${process.env.BOT_VERSION})__`,
                             value:
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +

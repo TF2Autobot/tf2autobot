@@ -197,7 +197,8 @@ export default function processAccepted(
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                 `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
-                `\n⏱ Time taken: ${processTime} ms`,
+                `\n⏱ Time taken: ${processTime} ms` +
+                `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );
     }

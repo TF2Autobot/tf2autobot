@@ -140,7 +140,8 @@ export default function sendReview(
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
+                `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
+                `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );
     }
