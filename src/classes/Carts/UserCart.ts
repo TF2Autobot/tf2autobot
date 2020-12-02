@@ -745,7 +745,7 @@ export default class UserCart extends Cart {
                                     (itemsDict[whose][sku] !== undefined
                                         ? (itemsDict[whose][sku]['amount'] as number)
                                         : 0) + 1,
-                                currentStock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                 maxStock: 0
                             };
                             change -= value;
@@ -773,7 +773,7 @@ export default class UserCart extends Cart {
 
             itemsDict[isBuyer ? 'our' : 'their'][sku] = {
                 amount: required.currencies[sku],
-                currentStock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                 maxStock: 0
             };
 
@@ -1630,7 +1630,7 @@ export default class UserCart extends Cart {
                                     (itemsDict[whose][sku] !== undefined
                                         ? (itemsDict[whose][sku]['amount'] as number)
                                         : 0) + 1,
-                                currentStock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                 maxStock: 0
                             };
                             change -= value;
