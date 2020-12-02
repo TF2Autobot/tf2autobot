@@ -5,7 +5,7 @@ import timeZone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timeZone);
 
-export default function timeNow(
+export function timeNow(
     timezone: string,
     customTimeFormat: string,
     timeAdditionalNotes: string
@@ -55,4 +55,14 @@ export default function timeNow(
         note: timeNote
     };
     return timeWithEmoji;
+}
+
+export function convertTime(time: number): string {
+    if (time < 10 * 1000) {
+        return `${time} ms`;
+    } else {
+        const now = dayjs();
+        const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
+        return `${timeTaken.fromNow()}`;
+    }
 }

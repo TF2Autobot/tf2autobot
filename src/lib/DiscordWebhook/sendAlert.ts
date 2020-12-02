@@ -1,4 +1,4 @@
-import timeNow from '../tools/time';
+import { timeNow } from '../tools/time';
 import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';

@@ -32,7 +32,7 @@ export default function sendTradeSummary(
     links: { steam: string; bptf: string; steamrep: string },
     time: string,
     bot: Bot,
-    processTime: number
+    timeTaken: string
 ): void {
     const opt = bot.options.discordWebhook;
 
@@ -182,7 +182,7 @@ export default function sendTradeSummary(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
-                                `\n⏱ Time taken: ${processTime} ms` +
+                                `\n⏱ Time taken: ${timeTaken}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes
