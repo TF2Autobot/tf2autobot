@@ -1182,12 +1182,12 @@ export default class UserCart extends Cart {
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
 
         craftAll.forEach(sku => {
-            addWeapons += ourDict[sku]['amount'] || 0;
+            addWeapons += ourDict[sku] !== undefined ? ourDict[sku]['amount'] : 0;
         });
 
         if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
-                addWeapons += ourDict[sku]['amount'] || 0;
+                addWeapons += ourDict[sku] !== undefined ? ourDict[sku]['amount'] : 0;
             });
         }
 
@@ -1229,12 +1229,12 @@ export default class UserCart extends Cart {
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
 
         craftAll.forEach(sku => {
-            addWeapons += theirDict[sku]['amount'] || 0;
+            addWeapons += theirDict[sku] !== undefined ? theirDict[sku]['amount'] : 0;
         });
 
         if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
-                addWeapons += theirDict[sku]['amount'] || 0;
+                addWeapons += theirDict[sku] !== undefined ? theirDict[sku]['amount'] : 0;
             });
         }
 
