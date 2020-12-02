@@ -53,7 +53,8 @@ function summarizeItemsWithLink(dict: UnknownDictionary<any>, schema: SchemaMana
             continue;
         }
 
-        const amount = dict[sku]['amount'];
+        const isDefined = (dict[sku]['amount'] as number) !== undefined;
+        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
         const name = schema
             .getName(SKU.fromString(sku), false)
             .replace(/Non-Craftable/g, 'NC')
@@ -61,9 +62,7 @@ function summarizeItemsWithLink(dict: UnknownDictionary<any>, schema: SchemaMana
             .replace(/Specialized Killstreak/g, 'Spec KS')
             .replace(/Killstreak/g, 'KS');
 
-        summary.push(
-            '[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount as number}` : '')
-        );
+        summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
     }
 
     if (summary.length === 0) {
