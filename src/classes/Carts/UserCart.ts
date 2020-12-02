@@ -1690,11 +1690,19 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            itemsDict[isBuyer ? 'our' : 'their'][sku] = {
-                amount: required.currencies[sku],
-                currentStock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                maxStock: 0
-            };
+            if (isBuyer) {
+                itemsDict.our[sku] = {
+                    amount: required.currencies[sku],
+                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                    maxStock: 0
+                };
+            } else {
+                itemsDict.their[sku] = {
+                    amount: required.currencies[sku],
+                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                    maxStock: 0
+                };
+            }
 
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
