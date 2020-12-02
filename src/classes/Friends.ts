@@ -10,7 +10,7 @@ import { UnknownDictionary } from '../types/common';
 import Bot from './Bot';
 import MyHandler from './MyHandler/MyHandler';
 
-export = class Friends {
+export default class Friends {
     private readonly bot: Bot;
 
     maxFriends: number | undefined;
@@ -105,4 +105,4 @@ export = class Friends {
             });
         });
     }
-};
+}

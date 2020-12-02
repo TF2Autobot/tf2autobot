@@ -3,7 +3,7 @@ import Currencies from 'tf2-currencies';
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
 
-export = class InventoryManager {
+export default class InventoryManager {
     private inventory: Inventory = null;
 
     private readonly pricelist: Pricelist;
@@ -84,4 +84,4 @@ export = class InventoryManager {
 
         return Math.floor(totalValue / value);
     }
-};
+}

@@ -13,7 +13,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 
-export = class Trades {
+export default class Trades {
     private readonly bot: Bot;
 
     private itemsInTrade: string[] = [];
@@ -835,4 +835,4 @@ export = class Trades {
             amount: item.amount
         };
     }
-};
+}

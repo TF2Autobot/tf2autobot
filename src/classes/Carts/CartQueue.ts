@@ -8,9 +8,7 @@ import log from '../../lib/logger';
 
 import * as inspect from 'util';
 
-export = CartQueue;
-
-class CartQueue {
+export default class CartQueue {
     private readonly bot: Bot;
 
     private carts: Cart[] = [];

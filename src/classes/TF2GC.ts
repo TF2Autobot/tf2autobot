@@ -19,7 +19,7 @@ type Job = {
     callback?: (err?: Error) => void;
 };
 
-export = class TF2GC {
+export default class TF2GC {
     private readonly bot: Bot;
 
     private processingQueue = false;
@@ -505,4 +505,4 @@ export = class TF2GC {
     private isConnectedToGC(): boolean {
         return this.bot.client._playingAppIds.some(game => game == 440);
     }
-};
+}
