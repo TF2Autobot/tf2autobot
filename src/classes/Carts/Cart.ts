@@ -40,9 +40,9 @@ export default abstract class Cart {
 
     // TODO: Make it possible to add specific items to the cart
 
-    protected our: ItemDictSKU = {};
+    protected our: { [sku: string]: ItemsDictContent } = {};
 
-    protected their: ItemDictSKU = {};
+    protected their: { [sku: string]: ItemsDictContent } = {};
 
     protected canceled = false;
 
@@ -114,12 +114,12 @@ export default abstract class Cart {
 
     getOurCount(sku: string): number {
         const isDefined = this.our[sku] !== undefined;
-        return isDefined ? (this.our[sku]['amount'] as number) : 0;
+        return isDefined ? this.our[sku]['amount'] : 0;
     }
 
     getTheirCount(sku: string): number {
         const isDefined = this.their[sku] !== undefined;
-        return isDefined ? (this.their[sku]['amount'] as number) : 0;
+        return isDefined ? this.their[sku]['amount'] : 0;
     }
 
     addOurItem(sku: string, amount = 1): void {
@@ -485,7 +485,7 @@ export default abstract class Cart {
                         if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                             continue;
                         }
-                        ourNumItems += this.our[sku] !== undefined ? (this.our[sku]['amount'] as number) : 0;
+                        ourNumItems += this.our[sku] !== undefined ? this.our[sku]['amount'] : 0;
                     }
 
                     let theirNumItems = 0;
@@ -493,7 +493,7 @@ export default abstract class Cart {
                         if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                             continue;
                         }
-                        theirNumItems += this.their[sku] !== undefined ? (this.their[sku]['amount'] as number) : 0;
+                        theirNumItems += this.their[sku] !== undefined ? this.their[sku]['amount'] : 0;
                     }
 
                     const msg =
@@ -553,7 +553,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount'] as number}x ${name}`;
+            str += `\n- ${this.our[sku]['amount']}x ${name}`;
         }
 
         if (!isDonating) {
@@ -564,7 +564,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku]['amount'] as number}x ${name}`;
+                str += `\n- ${this.their[sku]['amount']}x ${name}`;
             }
         }
 
@@ -589,7 +589,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount'] as number}x ${name}`;
+            str += `\n- ${this.our[sku]['amount']}x ${name}`;
         }
 
         if (!isDonating) {
@@ -600,7 +600,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku]['amount'] as number}x ${name}`;
+                str += `\n- ${this.their[sku]['amount']}x ${name}`;
             }
         }
 
@@ -674,11 +674,7 @@ export default abstract class Cart {
     }
 }
 
-interface ItemDictSKU {
-    sku?: ItemDictContent;
-}
-
-interface ItemDictContent {
+interface ItemsDictContent {
     amount?: number;
     stock?: number;
     maxStock?: number;
