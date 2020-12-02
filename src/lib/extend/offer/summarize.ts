@@ -48,10 +48,11 @@ function summarizeItems(dict: UnknownDictionary<any>, schema: SchemaManager.Sche
             continue;
         }
 
-        const amount = dict[sku]['amount'];
+        const isDefined = (dict[sku]['amount'] as number) !== undefined;
+        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
         const name = schema.getName(SKU.fromString(sku), false);
 
-        summary.push(name + (amount > 1 ? ` x${amount as number}` : ''));
+        summary.push(name + (amount > 1 ? ` x${amount}` : ''));
     }
 
     if (summary.length === 0) {
