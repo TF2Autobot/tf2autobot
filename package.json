@@ -1,7 +1,7 @@
 {
     "name": "tf2autobot",
     "version": "2.1.0",
-    "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf",
+    "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason",
     "main": "dist/app.js",
     "scripts": {
         "release": "np --no-cleanup --no-publish",
@@ -17,7 +17,7 @@
         "type": "git",
         "url": "git+https://github.com/idinium96/tf2autobot.git"
     },
-    "author": "IdiNium",
+    "author": "IdiNium/Nicklas Marc Pedersen",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/idinium96/tf2autobot/issues"
