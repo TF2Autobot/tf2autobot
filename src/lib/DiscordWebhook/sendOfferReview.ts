@@ -136,7 +136,8 @@ export default function sendOfferReview(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
-                                (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
+                                (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`
                         }
                     ],
                     color: opt.embedColor
