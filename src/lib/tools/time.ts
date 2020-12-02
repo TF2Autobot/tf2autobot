@@ -58,7 +58,9 @@ export function timeNow(
 }
 
 export function convertTime(time: number): string {
-    if (time < 10 * 1000) {
+    if (time < 44 * 1000) {
+        // Below 44 seconds it will only show "a few seconds",
+        // so just show in milliseconds.
         return `${time} ms`;
     } else {
         const now = dayjs();
