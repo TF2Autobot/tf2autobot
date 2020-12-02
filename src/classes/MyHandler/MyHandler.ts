@@ -557,34 +557,18 @@ export default class MyHandler extends Handler {
                 const itemEntry = entry.getPrice(sku, false);
                 const currentStock = stock.getAmount(sku, true);
 
-                if (itemEntry !== null) {
-                    if (which === 'our') {
-                        itemsDict.our[sku] = {
-                            amount: amount,
-                            stock: currentStock,
-                            maxStock: itemEntry.max
-                        };
-                    } else {
-                        itemsDict.their[sku] = {
-                            amount: amount,
-                            stock: currentStock,
-                            maxStock: itemEntry.max
-                        };
-                    }
+                if (which === 'our') {
+                    itemsDict.our[sku] = {
+                        amount: amount,
+                        stock: currentStock,
+                        maxStock: itemEntry !== null ? itemEntry.max : 0
+                    };
                 } else {
-                    if (which === 'our') {
-                        itemsDict.our[sku] = {
-                            amount: amount,
-                            stock: currentStock,
-                            maxStock: 0
-                        };
-                    } else {
-                        itemsDict.their[sku] = {
-                            amount: amount,
-                            stock: currentStock,
-                            maxStock: 0
-                        };
-                    }
+                    itemsDict.their[sku] = {
+                        amount: amount,
+                        stock: currentStock,
+                        maxStock: itemEntry !== null ? itemEntry.max : 0
+                    };
                 }
             }
         }
