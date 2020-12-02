@@ -21,7 +21,9 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) - (dict.our[sku] as number);
+        const isDefined = (dict.our[sku]['amount'] as number) !== undefined;
+
+        diff[sku] = (diff[sku] || 0) - (isDefined ? (dict.our[sku]['amount'] as number) : (dict.our[sku] as number));
     }
 
     for (const sku in dict.their) {
@@ -29,7 +31,10 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) + (dict.their[sku] as number);
+        const isDefined = (dict.their[sku]['amount'] as number) !== undefined;
+
+        diff[sku] =
+            (diff[sku] || 0) + (isDefined ? (dict.their[sku]['amount'] as number) : (dict.their[sku] as number));
     }
 
     return diff;
