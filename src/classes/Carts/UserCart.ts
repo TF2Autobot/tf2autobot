@@ -740,15 +740,28 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
-                            itemsDict[whose][sku] = {
-                                amount:
-                                    (itemsDict[whose][sku] !== undefined
-                                        ? (itemsDict[whose][sku]['amount'] as number)
-                                        : 0) + 1,
-                                stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                maxStock: 0
-                            };
+                            if (whose === 'our') {
+                                itemsDict.our[sku] = {
+                                    amount:
+                                        (itemsDict.our[sku] !== undefined
+                                            ? (itemsDict.our[sku]['amount'] as number)
+                                            : 0) + 1,
+                                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                    maxStock: 0
+                                };
+                            } else {
+                                itemsDict.their[sku] = {
+                                    amount:
+                                        (itemsDict.their[sku] !== undefined
+                                            ? (itemsDict.their[sku]['amount'] as number)
+                                            : 0) + 1,
+                                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                    maxStock: 0
+                                };
+                            }
+
                             change -= value;
+
                             if (change < value) {
                                 break;
                             }
@@ -1625,15 +1638,28 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
-                            itemsDict[whose][sku] = {
-                                amount:
-                                    (itemsDict[whose][sku] !== undefined
-                                        ? (itemsDict[whose][sku]['amount'] as number)
-                                        : 0) + 1,
-                                stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                maxStock: 0
-                            };
+                            if (whose === 'our') {
+                                itemsDict.our[sku] = {
+                                    amount:
+                                        (itemsDict.our[sku] !== undefined
+                                            ? (itemsDict.our[sku]['amount'] as number)
+                                            : 0) + 1,
+                                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                    maxStock: 0
+                                };
+                            } else {
+                                itemsDict.their[sku] = {
+                                    amount:
+                                        (itemsDict.their[sku] !== undefined
+                                            ? (itemsDict.their[sku]['amount'] as number)
+                                            : 0) + 1,
+                                    stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
+                                    maxStock: 0
+                                };
+                            }
+
                             change -= value;
+
                             if (change < value) {
                                 break;
                             }
