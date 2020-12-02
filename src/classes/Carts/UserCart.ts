@@ -565,8 +565,6 @@ export default class UserCart extends Cart {
             their: Object.assign({}, this.their)
         };
 
-        log.debug('itemsDict', itemsDict);
-
         // Done checking if buyer and seller has the items and if the bot wants to buy / sell more
 
         // Add values to the offer
@@ -1427,8 +1425,6 @@ export default class UserCart extends Cart {
             our: Object.assign({}, this.our),
             their: Object.assign({}, this.their)
         };
-
-        log.debug('itemsDict', itemsDict);
 
         // Done checking if buyer and seller has the items and if the bot wants to buy / sell more
 
