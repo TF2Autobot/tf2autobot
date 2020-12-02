@@ -51,16 +51,18 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
         return null;
     }
 
-    let match = bot.pricelist.searchByName(name);
+    let match = bot.pricelist.searchByName(name, true);
     if (match === null) {
         // Search the item by Levenshtein distance to find a close match (if one exists)
         let lowestDistance = 999;
         let closestMatch: Entry = null;
         for (const pricedItem of bot.pricelist.getPrices()) {
-            const itemDistance = levenshtein(pricedItem.name, name);
-            if (itemDistance < lowestDistance) {
-                lowestDistance = itemDistance;
-                closestMatch = pricedItem;
+            if (pricedItem.enabled) {
+                const itemDistance = levenshtein(pricedItem.name, name);
+                if (itemDistance < lowestDistance) {
+                    lowestDistance = itemDistance;
+                    closestMatch = pricedItem;
+                }
             }
         }
 
