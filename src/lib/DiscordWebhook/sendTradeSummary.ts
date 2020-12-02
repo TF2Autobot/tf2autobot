@@ -32,7 +32,7 @@ export default function sendTradeSummary(
     links: { steam: string; bptf: string; steamrep: string },
     time: string,
     bot: Bot,
-    processTime: number
+    timeTaken: string
 ): void {
     const opt = bot.options.discordWebhook;
 
@@ -159,7 +159,7 @@ export default function sendTradeSummary(
                             value: itemList.replace(/@/g, '')
                         },
                         {
-                            name: '__Status__',
+                            name: `__Status (v${process.env.BOT_VERSION})__`,
                             value:
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
@@ -182,7 +182,7 @@ export default function sendTradeSummary(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
-                                `\n⏱ Time taken: ${processTime} ms` +
+                                `\n⏱ Time taken: ${timeTaken}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes

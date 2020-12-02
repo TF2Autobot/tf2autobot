@@ -11,7 +11,7 @@ import { itemList } from '../../utils/export-utils';
 
 import Bot from '../../../Bot';
 
-import { pure, valueDiff, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
+import { pure, valueDiff, summarize, timeNow, convertTime, generateLinks } from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
 export default function processAccepted(
@@ -31,6 +31,8 @@ export default function processAccepted(
     const links = generateLinks(offer.partner.toString());
     const itemsList = itemList(offer);
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+
+    const timeTaken = convertTime(processTime);
 
     const accepted: {
         invalidItems: string[];
@@ -146,7 +148,7 @@ export default function processAccepted(
             links,
             timeWithEmojis.time,
             bot,
-            processTime
+            timeTaken
         );
     } else {
         const isShowChanges = bot.options.tradeSummary.showStockChanges;
@@ -197,7 +199,8 @@ export default function processAccepted(
                 }` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                 `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
-                `\n⏱ Time taken: ${processTime} ms`,
+                `\n⏱ Time taken: ${timeTaken}` +
+                `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );
     }

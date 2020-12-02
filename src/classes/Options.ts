@@ -170,7 +170,8 @@ export const DEFAULTS = {
             misc: {
                 showQuickLinks: true,
                 showKeyRate: true,
-                showPureStock: true
+                showPureStock: true,
+                showInventory: true
             }
         },
         messages: {
@@ -366,6 +367,7 @@ export interface Misc2 {
     showQuickLinks?: boolean;
     showKeyRate?: boolean;
     showPureStock?: boolean;
+    showInventory?: boolean;
 }
 
 export interface OfferReview {

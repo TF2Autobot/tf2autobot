@@ -82,7 +82,7 @@ function summarizeItemsWithLink(
         oldStock = isDefined ? (dict[sku]['stock'] as number) : null;
         maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
         summary.push(
-            `[${name}](https://www.prices.tf/items/'${sku})${amount > 1 ? ` x${amount}` : ''} (${
+            `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                 type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''
             }${currentStock}${maxStock !== 0 ? `/${maxStock}` : ''})`
         );

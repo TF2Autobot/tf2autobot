@@ -12,6 +12,9 @@ export const miscOfferReviewSchema: jsonschema.Schema = {
         },
         showPureStock: {
             type: 'boolean'
+        },
+        showInventory: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

@@ -80,6 +80,7 @@ Please make sure that you follow the [style guides](#styleguides).
 
 * Use the present tense ("add feature" not "added feature")
 * Keep the messages short and simple
+* Prefer to include [emojis](https://gist.github.com/parmentf/035de27d6ed1dce0b36a) (optional)
 * First line should:
   * contain a short description of the change (preferably 50 characters or less, and no more than 72 characters)
   * be entirely in lowercase with the exception of proper nouns, acronyms, and the words that refer to code, like function/variable names

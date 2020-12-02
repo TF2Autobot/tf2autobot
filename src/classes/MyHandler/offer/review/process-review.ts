@@ -43,45 +43,54 @@ export default function processReview(
 
     const reviewReasons: string[] = [];
 
-    let invalidForOur: string[] = []; // Display for owner
+    const names: {
+        invalidItems: string[];
+        overstocked: string[];
+        understocked: string[];
+        duped: string[];
+        dupedFailed: string[];
+    } = {
+        invalidItems: [],
+        overstocked: [],
+        understocked: [],
+        duped: [],
+        dupedFailed: []
+    };
+
     if (reasons.includes('🟨_INVALID_ITEMS')) {
         const invalid = invalidItems(meta, bot);
 
         reviewReasons.push(invalid.note);
-        invalidForOur = invalid.name;
+        names.invalidItems = invalid.name;
     }
 
-    let overstockedForOur: string[] = [];
     if (reasons.includes('🟦_OVERSTOCKED')) {
         const overstock = overstocked(meta, bot);
 
         reviewReasons.push(overstock.note);
-        overstockedForOur = overstock.name;
+        names.overstocked = overstock.name;
     }
 
-    let understockedForOur: string[] = [];
     if (reasons.includes('🟩_UNDERSTOCKED')) {
         const understock = understocked(meta, bot);
 
         reviewReasons.push(understock.note);
-        understockedForOur = understock.name;
+        names.understocked = understock.name;
     }
 
-    let dupedItemsName: string[] = [];
     if (reasons.includes('🟫_DUPED_ITEMS')) {
         const dupe = duped(meta, bot);
 
         reviewReasons.push(dupe.note);
-        dupedItemsName = dupe.name;
+        names.duped = dupe.name;
     }
 
     // for 🟪_DUPE_CHECK_FAILED
-    let dupedFailedItemsName: string[] = [];
     if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
         const dupeFail = dupedCheckFailed(meta, bot);
 
         reviewReasons.push(dupeFail.note);
-        dupedFailedItemsName = dupeFail.name;
+        names.dupedFailed = dupeFail.name;
     }
 
     let missingPureNote = '';
@@ -94,11 +103,11 @@ export default function processReview(
 
     const notes = reviewReasons;
     const itemNames = {
-        invalidItems: invalidForOur,
-        overstocked: overstockedForOur,
-        understocked: understockedForOur,
-        duped: dupedItemsName,
-        dupedCheckFailed: dupedFailedItemsName
+        invalidItems: names.invalidItems,
+        overstocked: names.overstocked,
+        understocked: names.understocked,
+        duped: names.duped,
+        dupedCheckFailed: names.dupedFailed
     };
     const missing = missingPureNote;
 
