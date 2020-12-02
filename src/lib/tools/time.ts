@@ -63,6 +63,6 @@ export function convertTime(time: number): string {
     } else {
         const now = dayjs();
         const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
-        return `${timeTaken.fromNow()}`;
+        return `${timeTaken.fromNow(true)}`;
     }
 }
