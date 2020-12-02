@@ -56,6 +56,9 @@ export default function sendOfferReview(
         highValue: items.highValue.map(name => replace.itemName(name))
     };
 
+    const slots = bot.tf2.backpackSlots;
+    const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+
     const isShowChanges = bot.options.tradeSummary.showStockChanges;
     const summary = summarize(
         isShowChanges
@@ -87,6 +90,7 @@ export default function sendOfferReview(
         const isShowQuickLinks = opt.offerReview.misc.showQuickLinks;
         const isShowKeyRate = opt.offerReview.misc.showKeyRate;
         const isShowPureStock = opt.offerReview.misc.showPureStock;
+        const isShowInventory = opt.offerReview.misc.showInventory;
 
         /*eslint-disable */
         const webhookReview: Webhook = {
@@ -128,6 +132,9 @@ export default function sendOfferReview(
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                       ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
+                                    : '') +
+                                (isShowInventory
+                                    ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '')
                         }

@@ -114,6 +114,8 @@ export default function sendReview(
     if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, value, links, items, bot);
     } else {
+        const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+        const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
         bot.messageAdmins(
             `⚠️ Offer #${offer.id} from ${offer.partner} is pending review.` +
@@ -136,6 +138,7 @@ export default function sendReview(
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
+                `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
                 `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.`,
             []
