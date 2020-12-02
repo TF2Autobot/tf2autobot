@@ -32,7 +32,7 @@
                 "SKIP_ACCOUNT_LIMITATIONS": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
 
-                "TIMEZONE": "Asia/Kuala_Lumpur",
+                "TIMEZONE": "Europe/London",
                 "CUSTOM_TIME_FORMAT": "MMMM DD YYYY, HH:mm:ss ZZ",
                 "TIME_ADDITIONAL_NOTES": "",
 
@@ -72,7 +72,7 @@
                 "SKIP_ACCOUNT_LIMITATIONS": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
 
-                "TIMEZONE": "Asia/Kuala_Lumpur",
+                "TIMEZONE": "Europe/London",
                 "CUSTOM_TIME_FORMAT": "MMMM DD YYYY, HH:mm:ss ZZ",
                 "TIME_ADDITIONAL_NOTES": "",
 
@@ -112,7 +112,7 @@
                 "SKIP_ACCOUNT_LIMITATIONS": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
 
-                "TIMEZONE": "Asia/Kuala_Lumpur",
+                "TIMEZONE": "Europe/London",
                 "CUSTOM_TIME_FORMAT": "MMMM DD YYYY, HH:mm:ss ZZ",
                 "TIME_ADDITIONAL_NOTES": "",
 
