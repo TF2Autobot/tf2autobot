@@ -113,32 +113,22 @@ export default abstract class Cart {
     }
 
     getOurCount(sku: string): number {
-        const isDefined = this.our[sku] !== undefined;
-        return isDefined ? this.our[sku]['amount'] : 0;
+        return this.our[sku] !== undefined ? this.our[sku]['amount'] : 0;
     }
 
     getTheirCount(sku: string): number {
-        const isDefined = this.their[sku] !== undefined;
-        return isDefined ? this.their[sku]['amount'] : 0;
+        return this.their[sku] !== undefined ? this.their[sku]['amount'] : 0;
     }
 
     addOurItem(sku: string, amount = 1): void {
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
         const entry = this.bot.pricelist.getPrice(sku, false);
 
-        if (entry !== null) {
-            this.our[sku] = {
-                amount: this.getOurCount(sku) + amount,
-                stock: currentStock,
-                maxStock: entry.max
-            };
-        } else {
-            this.our[sku] = {
-                amount: this.getOurCount(sku) + amount,
-                stock: currentStock,
-                maxStock: 0
-            };
-        }
+        this.our[sku] = {
+            amount: this.getOurCount(sku) + amount,
+            stock: currentStock,
+            maxStock: entry !== null ? entry.max : 0
+        };
 
         if (this.our[sku]['amount'] < 1) {
             delete this.our[sku];
@@ -149,19 +139,11 @@ export default abstract class Cart {
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
         const entry = this.bot.pricelist.getPrice(sku, false);
 
-        if (entry !== null) {
-            this.their[sku] = {
-                amount: this.getTheirCount(sku) + amount,
-                stock: currentStock,
-                maxStock: entry.max
-            };
-        } else {
-            this.their[sku] = {
-                amount: this.getTheirCount(sku) + amount,
-                stock: currentStock,
-                maxStock: 0
-            };
-        }
+        this.their[sku] = {
+            amount: this.getTheirCount(sku) + amount,
+            stock: currentStock,
+            maxStock: entry !== null ? entry.max : 0
+        };
 
         if (this.their[sku]['amount'] < 1) {
             delete this.their[sku];
@@ -482,7 +464,7 @@ export default abstract class Cart {
 
                     let ourNumItems = 0;
                     for (const sku in this.our) {
-                        if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                        if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
                             continue;
                         }
                         ourNumItems += this.our[sku] !== undefined ? this.our[sku]['amount'] : 0;
