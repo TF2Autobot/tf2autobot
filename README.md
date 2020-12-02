@@ -1,5 +1,8 @@
 # TF2Autobot
 
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/100915844-e05e7380-350f-11eb-96f1-6d61141c4a44.png" alt="TF2Autobot" style="display: block; margin-left: auto; margin-right: auto;"></div>
+
+
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf.
 **TF2Autobot** is an improved and feature rich version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more about the original repository [here](https://github.com/Nicklason/tf2-automatic).
 
@@ -12,7 +15,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
 
 **TF2Autobot made by IdiNium**
-[![profile](https://user-images.githubusercontent.com/47635037/88795331-708f5380-d1d2-11ea-8adf-92d94be581e9.PNG)](https://backpack.tf/profiles/76561198013127982)
+[![profile](https://user-images.githubusercontent.com/47635037/100916111-4945eb80-3510-11eb-8036-86c032cb6627.png)](https://backpack.tf/profiles/76561198013127982)
 
 Before you install the bot, there are a few things you will need:
 
