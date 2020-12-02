@@ -1448,8 +1448,8 @@ export default class MyHandler extends Handler {
 
                 this.isTradingKeys = false; // reset
 
-                highValue.isDisableSKU.concat(result.isDisableSKU);
-                highValue.theirItems.concat(result.theirHighValuedItems);
+                highValue.isDisableSKU = result.isDisableSKU;
+                highValue.theirItems = result.theirHighValuedItems;
             }
         }
 
