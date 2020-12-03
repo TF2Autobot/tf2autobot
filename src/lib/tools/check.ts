@@ -247,7 +247,7 @@ export function highValue(
 
             if (hasPaint) {
                 // same as Killstreaker
-                itemDescriptions += '\n🎨 Painted: ' + sheenName.join(' + ');
+                itemDescriptions += '\n🎨 Painted: ' + paintName.join(' + ');
             }
 
             log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
