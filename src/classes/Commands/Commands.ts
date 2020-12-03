@@ -10,9 +10,46 @@ import sleepasync from 'sleep-async';
 
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import updateLocale from 'dayjs/plugin/updateLocale';
 import utc from 'dayjs/plugin/utc';
-dayjs.extend(relativeTime);
+
+const dayJSConfig = {
+    thresholds: [
+        { l: 's', r: 1 },
+        { l: 'ss', r: 59, d: 'second' },
+        { l: 'm', r: 1 },
+        { l: 'mm', r: 59, d: 'minute' },
+        { l: 'h', r: 1 },
+        { l: 'hh', r: 23, d: 'hour' },
+        { l: 'd', r: 1 },
+        { l: 'dd', r: 29, d: 'day' },
+        { l: 'M', r: 1 },
+        { l: 'MM', r: 11, d: 'month' },
+        { l: 'y' },
+        { l: 'yy', d: 'year' }
+    ]
+};
+
 dayjs.extend(utc);
+dayjs.extend(relativeTime, dayJSConfig);
+dayjs.extend(updateLocale);
+
+dayjs.updateLocale('en', {
+    relativeTime: {
+        s: '%d second',
+        ss: '%d seconds',
+        m: '%d minute',
+        mm: '%d minutes',
+        h: '%d hour',
+        hh: '%d hours',
+        d: '%d day',
+        dd: '%d days',
+        M: '%d month',
+        MM: '%d months',
+        y: '%d year',
+        yy: '%d years'
+    }
+});
 
 import { botStatus, help, messageCommand, misc, pricelist, review, utils, options } from './export';
 

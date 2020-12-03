@@ -58,15 +58,9 @@ export function timeNow(
 }
 
 export function convertTime(time: number): string {
-    if (time < 44 * 1000) {
-        // Below 44 seconds it will only show "a few seconds",
-        // so just show in milliseconds.
-        return `${time} ms`;
-    } else {
-        const now = dayjs();
-        const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
-        return `${timeTaken.fromNow(true)}`;
-    }
+    const now = dayjs();
+    const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
+    return `${timeTaken.fromNow(true)}`;
 }
 
 export function uptime(): string {
