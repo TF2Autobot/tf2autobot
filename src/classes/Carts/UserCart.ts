@@ -502,7 +502,14 @@ export default class UserCart extends Cart {
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
+            } = check.highValue(
+                filtered,
+                toMention.sheens,
+                toMention.killstreakers,
+                toMention.strangeParts,
+                toMention.painted,
+                this.bot
+            );
 
             offer.data('highValue', highValuedTheir);
 
@@ -1381,7 +1388,14 @@ export default class UserCart extends Cart {
                 skus: string[];
                 names: string[];
                 isMention: boolean;
-            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
+            } = check.highValue(
+                filtered,
+                toMention.sheens,
+                toMention.killstreakers,
+                toMention.strangeParts,
+                toMention.painted,
+                this.bot
+            );
 
             offer.data('highValue', highValuedTheir);
 

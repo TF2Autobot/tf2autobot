@@ -153,6 +153,14 @@ export default class MyHandler extends Handler {
         }
     }
 
+    private get strangeParts(): string[] {
+        return this.bot.options.highValue.strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+    }
+
+    private get painted(): string[] {
+        return this.bot.options.highValue.painted.map(paint => paint.toLowerCase().trim());
+    }
+
     private isTradingKeys = false;
 
     private get customGameName(): string {
@@ -235,7 +243,9 @@ export default class MyHandler extends Handler {
     getToMention(): GetToMention {
         const sheens = this.sheens;
         const killstreakers = this.killstreakers;
-        return { sheens, killstreakers };
+        const strangeParts = this.strangeParts;
+        const painted = this.painted;
+        return { sheens, killstreakers, strangeParts, painted };
     }
 
     getAutokeysStatus(): GetAutokeysStatus {
@@ -577,8 +587,22 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
-        const highValueTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
+        const highValueOur = check.highValue(
+            offer.itemsToGive,
+            this.sheens,
+            this.killstreakers,
+            this.strangeParts,
+            this.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            offer.itemsToReceive,
+            this.sheens,
+            this.killstreakers,
+            this.strangeParts,
+            this.painted,
+            this.bot
+        );
 
         const input: HighValueInput = {
             our: highValueOur,
@@ -1849,6 +1873,8 @@ interface BotInfo {
 interface GetToMention {
     sheens: string[];
     killstreakers: string[];
+    strangeParts: string[];
+    painted: string[];
 }
 
 interface GetAutokeysStatus {
