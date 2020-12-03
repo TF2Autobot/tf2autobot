@@ -307,7 +307,7 @@ export default class Commands {
         reply += '. ';
 
         if (match.autoprice && isAdmin) {
-            reply += ` (price last updated ${dayjs.unix(match.time).fromNow()})`;
+            reply += ` (price last updated ${dayjs.unix(match.time).fromNow(true)})`;
         }
 
         this.bot.sendMessage(steamID, reply);
