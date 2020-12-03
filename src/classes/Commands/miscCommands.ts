@@ -165,9 +165,9 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
 export function discordCommand(steamID: SteamID, bot: Bot): void {
     let reply = '';
     if (bot.options.discordInviteLink) {
-        reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${bot.options.discordInviteLink}`;
+        reply += `Join Gladiator.tf! https://discord.gg/K6pUZEAz6e`;
     } else {
-        reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
+        reply += 'Join Gladiator.tf! https://discord.gg/K6pUZEAz6e';
     }
 
     bot.sendMessage(steamID, reply);
