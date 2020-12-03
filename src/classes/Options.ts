@@ -40,7 +40,8 @@ export const DEFAULTS = {
         enableHold: true,
         sheens: [],
         killstreakers: [],
-        strangeParts: []
+        strangeParts: [],
+        painted: []
     },
     checkUses: {
         duel: true,
@@ -206,6 +207,7 @@ export interface HighValue {
     sheens?: string[];
     killstreakers?: string[];
     strangeParts?: string[];
+    painted?: string[];
 }
 
 export interface CheckUses {
