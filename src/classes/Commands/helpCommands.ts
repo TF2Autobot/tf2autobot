@@ -16,7 +16,7 @@ const COMMANDS: string[] = [
     '!queue - Check your position in the queue\n\n✨=== Contact Owner ===✨',
     "!owner - Get the owner's Steam profile and Backpack.tf links",
     '!message <your message> - Send a message to the owner of the bot 💬',
-    "!discord - Get a link to join TF2Autobot and/or the owner's discord server\n\n✨=== Other Commands ===✨",
+    '!discord',
     '!more - Show the advanced commands list'
 ];
 
@@ -87,7 +87,7 @@ export function helpCommand(steamID: SteamID, bot: Bot): void {
                   '\n• [a] = Optionally add "a"' +
                   '\n• (a|b) = Directly input "a" OR "b"' +
                   '\n• <a> = Replace "a" with relevant content' +
-                  '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                  '\n\nDo not include characters <>, ( | ) nor [ ] when typing it.'
                 : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
         }\n\n📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
     );
