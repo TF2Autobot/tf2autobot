@@ -68,12 +68,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const reply = steamIdAndMessage.substr(steamIDString.length);
 
         // Send message to recipient
-        bot.sendMessage(
-            recipient,
-            `/quote 💬 Message from the owner: ${reply}` +
-                '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
-                '\nExample: !message Hi Thanks!'
-        );
+        bot.sendMessage(recipient, `${reply}` + '.' + '');
 
         // Send confirmation message to admin
         bot.sendMessage(steamID, '✅ Your message has been sent.');
