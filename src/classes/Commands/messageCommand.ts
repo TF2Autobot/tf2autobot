@@ -82,6 +82,13 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         // Send a notification to the admin with message contents & details
         if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
             sendAdminMessage(steamID.toString(), reply, adminDetails, links, time.time, bot);
+
+            // Send a confirmation message to the admin if they use discord webhooks (in case it isn't apparent enough)
+            bot.sendMessage(
+                steamID,
+                '✅ Your message has been sent.' +
+                    '\n🔍 Please view the channel associated with your "discordWebhook.messages.url" for more information'
+            );
         } else {
             bot.messageAdmins(
                 `/quote 💬 Message sent to #${steamID.toString()} (${adminDetails.player_name}):` +
