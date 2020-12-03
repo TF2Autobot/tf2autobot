@@ -11,7 +11,16 @@ import { itemList } from '../../utils/export-utils';
 
 import Bot from '../../../Bot';
 
-import { pure, valueDiff, summarize, timeNow, convertTime, generateLinks } from '../../../../lib/tools/export';
+import {
+    pure,
+    valueDiff,
+    summarize,
+    timeNow,
+    convertTime,
+    generateLinks,
+    listItems
+} from '../../../../lib/tools/export';
+
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
 export default function processAccepted(
@@ -153,6 +162,16 @@ export default function processAccepted(
     } else {
         const isShowChanges = bot.options.tradeSummary.showStockChanges;
         const slots = bot.tf2.backpackSlots;
+        const itemsName = {
+            invalid: accepted.invalidItems, // 🟨_INVALID_ITEMS
+            overstock: accepted.overstocked, // 🟦_OVERSTOCKED
+            understock: accepted.understocked, // 🟩_UNDERSTOCKED
+            duped: [],
+            dupedFailed: [],
+            highValue: accepted.highValue // 🔶_HIGH_VALUE_ITEMS
+        };
+        const itemList = listItems(itemsName, true);
+
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
@@ -164,28 +183,8 @@ export default function processAccepted(
                     keyPrices,
                     true
                 ) +
-                (accepted.invalidItems.length !== 0
-                    ? '\n\n🟨_INVALID_ITEMS:\n- ' + accepted.invalidItems.join(',\n- ')
-                    : '') +
-                (accepted.overstocked.length !== 0
-                    ? (accepted.invalidItems.length !== 0 ? '\n\n' : '') +
-                      '🟦_OVERSTOCKED:\n- ' +
-                      accepted.overstocked.join(',\n- ')
-                    : '') +
-                (accepted.understocked.length !== 0
-                    ? (accepted.overstocked.length !== 0 || accepted.invalidItems.length !== 0 ? '\n\n' : '') +
-                      '🟩_UNDERSTOCKED:\n- ' +
-                      accepted.understocked.join(',\n- ')
-                    : '') +
-                (accepted.highValue.length !== 0
-                    ? (accepted.overstocked.length !== 0 ||
-                      accepted.invalidItems.length !== 0 ||
-                      accepted.understocked.length !== 0
-                          ? '\n\n'
-                          : '') +
-                      '🔶_HIGH_VALUE_ITEMS:\n- ' +
-                      accepted.highValue.join('\n- ')
-                    : '') +
+                '\n\n' +
+                itemList +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `${
