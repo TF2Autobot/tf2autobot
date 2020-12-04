@@ -393,9 +393,20 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
+        let ourItemsToCheck: EconItem[] = [];
+        let theirItemsToCheck: EconItem[] = [];
+
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
+
+        let ourInventoryEcon: EconItem[];
+
+        try {
+            ourInventoryEcon = await ourInventory.fetchWithReturn();
+        } catch (err) {
+            return Promise.reject('Failed to load inventories (Steam might be down)');
+        }
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -453,16 +464,17 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let fetched: EconItem[];
+        let theirInventoryEcon: EconItem[];
 
         try {
             await theirInventory.fetch();
-            fetched = await theirInventory.fetchWithReturn();
+            theirInventoryEcon = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
-        this.theirInventoryCount = fetched.length;
+        this.theirInventoryCount = theirInventoryEcon.length;
+        let containsUses = false;
 
         // Add their items
 
@@ -473,45 +485,9 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    const yes: {
-                        isNot5Uses: boolean;
-                        isNot25Uses: boolean;
-                    } = check.uses(offer, fetched, this.bot);
-
-                    if (yes.isNot5Uses) {
-                        return Promise.reject(
-                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                        );
-                    }
-
-                    if (yes.isNot25Uses) {
-                        return Promise.reject(
-                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                        );
-                    }
+                    containsUses = true;
                 }
             }
-
-            const filtered = fetched.filter(
-                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
-            );
-
-            const toMention = (this.bot.handler as MyHandler).getToMention();
-            const highValuedTheir: {
-                has: boolean;
-                skus: string[];
-                names: string[];
-                isMention: boolean;
-            } = check.highValue(
-                filtered,
-                toMention.sheens,
-                toMention.killstreakers,
-                toMention.strangeParts,
-                toMention.painted,
-                this.bot
-            );
-
-            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 
@@ -556,6 +532,25 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
+            }
+        }
+
+        if (containsUses) {
+            const yes: {
+                isNot5Uses: boolean;
+                isNot25Uses: boolean;
+            } = check.uses(offer, theirInventoryEcon, this.bot);
+
+            if (yes.isNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
+            }
+
+            if (yes.isNot25Uses) {
+                return Promise.reject(
+                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                );
             }
         }
 
@@ -637,6 +632,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                ourItemsToCheck = ourInventoryEcon.filter(ourItem => {
+                    return ourItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     // The item was added to the offer
                     missing--;
@@ -683,6 +682,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                theirItemsToCheck = theirInventoryEcon.filter(theirItem => {
+                    return theirItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     missing--;
 
@@ -706,6 +709,25 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        const itemsToCheck = ourItemsToCheck.concat(theirItemsToCheck);
+
+        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const highValued: {
+            has: boolean;
+            skus: string[];
+            names: string[];
+            isMention: boolean;
+        } = check.highValue(
+            itemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+
+        offer.data('highValue', highValued);
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -1279,9 +1301,20 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
+        let ourItemsToCheck: EconItem[] = [];
+        let theirItemsToCheck: EconItem[] = [];
+
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
+
+        let ourInventoryEcon: EconItem[];
+
+        try {
+            ourInventoryEcon = await ourInventory.fetchWithReturn();
+        } catch (err) {
+            return Promise.reject('Failed to load inventories (Steam might be down)');
+        }
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -1339,16 +1372,17 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let fetched: EconItem[];
+        let theirInventoryEcon: EconItem[];
 
         try {
             await theirInventory.fetch();
-            fetched = await theirInventory.fetchWithReturn();
+            theirInventoryEcon = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
-        this.theirInventoryCount = fetched.length;
+        this.theirInventoryCount = theirInventoryEcon.length;
+        let containsUses = false;
 
         // Add their items
 
@@ -1359,45 +1393,9 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    const yes: {
-                        isNot5Uses: boolean;
-                        isNot25Uses: boolean;
-                    } = check.uses(offer, fetched, this.bot);
-
-                    if (yes.isNot5Uses) {
-                        return Promise.reject(
-                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                        );
-                    }
-
-                    if (yes.isNot25Uses) {
-                        return Promise.reject(
-                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                        );
-                    }
+                    containsUses = true;
                 }
             }
-
-            const filtered = fetched.filter(
-                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
-            );
-
-            const toMention = (this.bot.handler as MyHandler).getToMention();
-            const highValuedTheir: {
-                has: boolean;
-                skus: string[];
-                names: string[];
-                isMention: boolean;
-            } = check.highValue(
-                filtered,
-                toMention.sheens,
-                toMention.killstreakers,
-                toMention.strangeParts,
-                toMention.painted,
-                this.bot
-            );
-
-            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 
@@ -1442,6 +1440,25 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
+            }
+        }
+
+        if (containsUses) {
+            const yes: {
+                isNot5Uses: boolean;
+                isNot25Uses: boolean;
+            } = check.uses(offer, theirInventoryEcon, this.bot);
+
+            if (yes.isNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
+            }
+
+            if (yes.isNot25Uses) {
+                return Promise.reject(
+                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                );
             }
         }
 
@@ -1542,6 +1559,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                ourItemsToCheck = ourInventoryEcon.filter(ourItem => {
+                    return ourItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     // The item was added to the offer
                     missing--;
@@ -1588,6 +1609,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                theirItemsToCheck = theirInventoryEcon.filter(theirItem => {
+                    return theirItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     missing--;
 
@@ -1611,6 +1636,25 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        const itemsToCheck = ourItemsToCheck.concat(theirItemsToCheck);
+
+        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const highValued: {
+            has: boolean;
+            skus: string[];
+            names: string[];
+            isMention: boolean;
+        } = check.highValue(
+            itemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+
+        offer.data('highValue', highValued);
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
