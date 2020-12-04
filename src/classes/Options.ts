@@ -58,7 +58,14 @@ export const DEFAULTS = {
     },
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        highValue: {
+            showSpells: true,
+            showStrangeParts: false,
+            showKillstreaker: true,
+            showSheen: true,
+            showPainted: true
+        }
     },
     customMessage: {
         welcome: '',
@@ -230,6 +237,15 @@ export interface Normalize {
 export interface Details {
     buy?: string;
     sell?: string;
+    highValue?: ShowHighValue;
+}
+
+export interface ShowHighValue {
+    showSpells: boolean;
+    showStrangeParts: boolean;
+    showKillstreaker: boolean;
+    showSheen: boolean;
+    showPainted: boolean;
 }
 
 export interface CustomMessage {

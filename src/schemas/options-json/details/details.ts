@@ -11,6 +11,9 @@ export const detailsSchema: jsonschema.Schema = {
         sell: {
             type: 'string',
             maxLength: 200
+        },
+        highValue: {
+            $ref: 'show-high-value'
         }
     },
     additionalProperties: false,

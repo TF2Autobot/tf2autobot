@@ -21,6 +21,7 @@ v.addSchema(op.checkUsesSchema);
 v.addSchema(op.gameSchema);
 v.addSchema(op.normalizeSchema);
 v.addSchema(op.detailsSchema);
+v.addSchema(op.highValueDetailsSchema);
 v.addSchema(op.customMessageSchema);
 v.addSchema(op.statisticsSchema);
 
