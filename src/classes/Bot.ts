@@ -102,8 +102,8 @@ export default class Bot {
             community: this.community,
             language: 'en',
             pollInterval: -1,
-            cancelTime: 15 * 60 * 1000,
-            pendingCancelTime: 1.5 * 60 * 1000
+            cancelTime: 60 * 60 * 1000,
+            pendingCancelTime: 4 * 60 * 1000
         });
 
         this.listingManager = new ListingManager({
