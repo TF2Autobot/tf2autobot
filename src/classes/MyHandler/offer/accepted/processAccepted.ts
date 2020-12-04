@@ -183,8 +183,7 @@ export default function processAccepted(
                     keyPrices,
                     true
                 ) +
-                '\n\n' +
-                itemList +
+                (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `${
