@@ -7,6 +7,8 @@ import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfac
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
+import { replace } from '../../tools/export';
+
 export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
 
@@ -53,12 +55,8 @@ function summarizeItemsWithLink(dict: { [sku: string]: ItemsDictContent }, schem
         }
 
         const amount = dict[sku]['amount'];
-        const name = schema
-            .getName(SKU.fromString(sku), false)
-            .replace(/Non-Craftable/g, 'NC')
-            .replace(/Professional Killstreak/g, 'Pro KS')
-            .replace(/Specialized Killstreak/g, 'Spec KS')
-            .replace(/Killstreak/g, 'KS');
+        const generateName = schema.getName(SKU.fromString(sku), false);
+        const name = replace.itemName(generateName ? generateName : 'unknown');
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
     }

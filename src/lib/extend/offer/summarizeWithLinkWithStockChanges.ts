@@ -61,7 +61,8 @@ function summarizeItemsWithLink(
 
         const amount = dict[sku]['amount'];
 
-        const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
+        const generateName = schema.getName(SKU.fromString(sku), false);
+        const name = replace.itemName(generateName ? generateName : 'unknown');
 
         let oldStock = 0;
         let currentStock = 0;
