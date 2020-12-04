@@ -6,6 +6,9 @@ export const tradeSummarySchema: jsonschema.Schema = {
     properties: {
         showStockChanges: {
             type: 'boolean'
+        },
+        showTimeTakenInMS: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

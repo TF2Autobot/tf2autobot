@@ -41,7 +41,7 @@ export default function processAccepted(
     const itemsList = itemList(offer);
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
 
-    const timeTaken = convertTime(processTime);
+    const timeTaken = convertTime(processTime, bot.options.tradeSummary.showTimeTakenInMS);
 
     const accepted: {
         invalidItems: string[];

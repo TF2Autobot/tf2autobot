@@ -98,10 +98,10 @@ export function timeNow(
     return timeWithEmoji;
 }
 
-export function convertTime(time: number): string {
+export function convertTime(time: number, showInMS: boolean): string {
     const now = dayjs();
     // const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
-    return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}`;
+    return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${showInMS ? ` (${time} ms)` : ''}`;
 }
 
 export function uptime(): string {

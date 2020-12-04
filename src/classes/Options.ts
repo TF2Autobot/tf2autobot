@@ -33,7 +33,8 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
-        showStockChanges: false
+        showStockChanges: false,
+        showTimeTakenInMS: true
     },
 
     highValue: {
@@ -200,6 +201,7 @@ export interface WeaponsAsCurrency {
 
 export interface TradeSummary {
     showStockChanges?: boolean;
+    showTimeTakenInMS?: boolean;
 }
 
 export interface HighValue {
