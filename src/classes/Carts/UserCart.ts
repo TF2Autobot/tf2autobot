@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
@@ -13,6 +10,7 @@ import Cart from './Cart';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import MyHandler from '../MyHandler/MyHandler';
+import { ItemsDict, ItemsDictContent } from '../MyHandler/interfaces';
 
 import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
@@ -323,7 +321,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const ourDict: { [key: string]: { amount: number } } = this.offer.data('dict').our;
+        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
@@ -354,7 +352,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const theirDict: { [key: string]: { amount: number } } = this.offer.data('dict').their;
+        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
@@ -1205,7 +1203,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const ourDict: { [key: string]: { amount: number } } = this.offer.data('dict').our;
+        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
@@ -1252,7 +1250,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const theirDict: { [key: string]: { amount: number } } = this.offer.data('dict').their;
+        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
@@ -1885,10 +1883,4 @@ export default class UserCart extends Cart {
 
         return str;
     }
-}
-
-interface ItemsDictContent {
-    amount?: number;
-    stock?: number;
-    maxStock?: number;
 }

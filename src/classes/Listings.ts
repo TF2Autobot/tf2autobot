@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 
 import Bot from './Bot';
 import { Entry } from './Pricelist';
+import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -142,7 +143,7 @@ export default class Listings {
         log.debug('Disabled autorelist');
     }
 
-    private getAccountInfo(): Promise<any> {
+    private getAccountInfo(): Promise<UserSteamID> {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
@@ -163,8 +164,8 @@ export default class Listings {
                     return reject(err);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                return resolve(body.users[steamID64]);
+                const thisBody = body as BPTFGetUserInfo;
+                return resolve(thisBody.users[steamID64]);
             });
         });
     }

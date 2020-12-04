@@ -1,25 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 
 import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionary } from '../../../types/common';
+
+import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfaces';
 
 import { replace } from '../../tools/export';
 
 export = function (schema: SchemaManager.Schema, type: string): string {
     const self = this as TradeOffer;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value: { our: Currency; their: Currency } = self.data('value');
 
     const items: {
-        our: UnknownDictionary<any>;
-        their: UnknownDictionary<any>;
-    } = self.data('dict') || { our: null, their: null };
+        our: { [sku: string]: ItemsDictContent };
+        their: { [sku: string]: ItemsDictContent };
+    } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
         return (
@@ -44,7 +43,7 @@ export = function (schema: SchemaManager.Schema, type: string): string {
 };
 
 function summarizeItemsWithLink(
-    dict: UnknownDictionary<any>,
+    dict: { [sku: string]: ItemsDictContent },
     schema: SchemaManager.Schema,
     which: string,
     type: string
@@ -60,9 +59,9 @@ function summarizeItemsWithLink(
             continue;
         }
 
-        const isDefined = (dict[sku]['amount'] as number) !== undefined;
+        const isDefined = dict[sku]['amount'] !== undefined;
 
-        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
+        const amount = isDefined ? dict[sku]['amount'] : 0;
 
         const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
 
@@ -73,14 +72,14 @@ function summarizeItemsWithLink(
         if (type === 'summary') {
             currentStock =
                 which === 'our'
-                    ? (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) - amount
-                    : (isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number)) + amount;
+                    ? (isDefined ? dict[sku]['stock'] : 0) - amount
+                    : (isDefined ? dict[sku]['stock'] : 0) + amount;
         } else {
-            currentStock = isDefined ? (dict[sku]['stock'] as number) : (dict[sku] as number);
+            currentStock = isDefined ? dict[sku]['stock'] : 0;
         }
 
-        oldStock = isDefined ? (dict[sku]['stock'] as number) : null;
-        maxStock = isDefined ? (dict[sku]['maxStock'] as number) : 0;
+        oldStock = isDefined ? dict[sku]['stock'] : null;
+        maxStock = isDefined ? dict[sku]['maxStock'] : 0;
         summary.push(
             `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                 type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''

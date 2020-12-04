@@ -100,7 +100,6 @@ export function timeNow(
 
 export function convertTime(time: number, showInMS: boolean): string {
     const now = dayjs();
-    // const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
     return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${showInMS ? ` (${time} ms)` : ''}`;
 }
 

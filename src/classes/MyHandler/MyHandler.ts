@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SKU from 'tf2-sku-2';
 import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
@@ -16,7 +13,7 @@ import { processAccepted, updateListings } from './offer/accepted/exportAccepted
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
-import { WrongAboutOffer, HighValueInput, HighValueOutput } from './interfaces';
+import { WrongAboutOffer, HighValueInput, HighValueOutput, BPTFGetUserInfo, ItemsDict } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
@@ -805,7 +802,7 @@ export default class MyHandler extends Handler {
                         };
 
                         // Check stock limits (not for keys)
-                        const diff = itemsDiff[sku];
+                        const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
@@ -971,7 +968,7 @@ export default class MyHandler extends Handler {
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
-                const diff = itemsDiff['5021;6'];
+                const diff = itemsDiff['5021;6'] as number | null;
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
 
@@ -1532,7 +1529,7 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relation = this.bot.client.myFriends[steamID64];
+            const relation = this.bot.client.myFriends[steamID64] as number;
             if (relation === EFriendRelationship.RequestRecipient) {
                 this.respondToFriendRequest(steamID64);
             }
@@ -1705,9 +1702,11 @@ export default class MyHandler extends Handler {
                         return reject();
                     }
 
-                    const user = body.users[steamID64];
-                    this.botName = user.name as string;
-                    this.botAvatarURL = user.avatar as string;
+                    const thisBody = body as BPTFGetUserInfo;
+
+                    const user = thisBody.users[steamID64];
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
 
                     const isPremium = user.premium ? user.premium === 1 : false;
                     this.isPremium = isPremium;
@@ -1725,7 +1724,7 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relationship = this.bot.client.myGroups[groupID64];
+            const relationship = this.bot.client.myGroups[groupID64] as number;
 
             if (relationship === EClanRelationship.Invited) {
                 this.bot.client.respondToGroupInvite(groupID64, false);
@@ -1833,21 +1832,6 @@ function highValueMeta(info: HighValueInput): HighValueOutput {
             their: info.their.isMention
         }
     };
-}
-
-interface ItemsDict {
-    our: ItemDictSKU;
-    their: ItemDictSKU;
-}
-
-interface ItemDictSKU {
-    sku?: ItemDictContent;
-}
-
-interface ItemDictContent {
-    amount?: number;
-    stock?: number;
-    maxStock?: number;
 }
 
 interface OnRun {

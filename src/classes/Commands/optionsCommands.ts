@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import * as path from 'path';

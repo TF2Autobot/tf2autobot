@@ -1,19 +1,19 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import { UnknownDictionary } from '../../../types/common';
+
+import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfaces';
 
 export = function (): string {
     const self = this as TradeOffer;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const items: {
-        our: UnknownDictionary<number>;
-        their: UnknownDictionary<number>;
-    } = self.data('dict') || { our: null, their: null };
+        our: { [sku: string]: ItemsDictContent };
+        their: { [sku: string]: ItemsDictContent };
+    } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     return 'Asked: ' + summarizeSKU(items.our) + ')\nOffered: ' + summarizeSKU(items.their);
 };
 
-function summarizeSKU(dict: UnknownDictionary<number>): string {
+function summarizeSKU(dict: { [sku: string]: ItemsDictContent }): string {
     if (dict === null) {
         return 'unknown items';
     }
