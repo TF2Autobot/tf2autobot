@@ -1481,16 +1481,20 @@ export default class Commands {
                 return;
             }
 
-            this.bot.sendMessage(
-                steamID,
-                `⌛ Price check requested for ${
-                    body.name.includes('War Paint') ||
-                    body.name.includes('Mann Co. Supply Crate Series #') ||
-                    body.name.includes('Salvaged Mann Co. Supply Crate #')
-                        ? name
-                        : body.name
-                }, the item will be checked.`
-            );
+            if (!body) {
+                this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
+            } else {
+                this.bot.sendMessage(
+                    steamID,
+                    `⌛ Price check requested for ${
+                        body.name.includes('War Paint') ||
+                        body.name.includes('Mann Co. Supply Crate Series #') ||
+                        body.name.includes('Salvaged Mann Co. Supply Crate #')
+                            ? name
+                            : body.name
+                    }, the item will be checked.`
+                );
+            }
         });
     }
 
