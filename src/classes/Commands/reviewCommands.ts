@@ -177,10 +177,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
 
     void bot.trades.getOffer(offerId).asCallback((err, offer) => {
         if (err) {
-            bot.sendMessage(
-                steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
-            );
+            bot.sendMessage(steamID, `❌ Something went wrong while trying to accept the offer: ${err.message}`);
             return;
         }
 
@@ -255,7 +252,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 if (err) {
                     bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        `❌ Something went wrong while trying to accept the offer: ${err.message}`
                     );
                     return;
                 }
@@ -277,10 +274,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 }
                 // Send message to recipient if includes some messages
                 if (reply) {
-                    bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
+                    bot.sendMessage(partnerId, `${reply}`);
                 }
             });
         } else {
@@ -352,10 +346,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
 
     void bot.trades.getOffer(offerId).asCallback((err, offer) => {
         if (err) {
-            bot.sendMessage(
-                steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
-            );
+            bot.sendMessage(steamID, `❌ Something went wrong while trying to decline the offer: ${err.message}`);
             return;
         }
 
@@ -367,18 +358,12 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
 
         void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
             if (err) {
-                bot.sendMessage(
-                    steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
-                );
+                bot.sendMessage(steamID, `❌ Something went wrong while trying to decline the offer: ${err.message}`);
                 return;
             }
             // Send message to recipient if includes some messages
             if (reply) {
-                bot.sendMessage(
-                    partnerId,
-                    `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                );
+                bot.sendMessage(partnerId, `${reply}`);
             }
         });
     });
