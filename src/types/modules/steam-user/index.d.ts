@@ -198,11 +198,6 @@ declare module 'steam-user' {
         P2P = '3'
     }
 
-    export interface RichPresenceEntry {
-        key: string;
-        value: string;
-    }
-
     export enum EPersonaStateFlag {
         HasRichPresence = 1,
         InJoinableGame = 2,
@@ -232,7 +227,7 @@ declare module 'steam-user' {
         users: Map<
             SteamID | string,
             {
-                rich_presence: [RichPresenceEntry];
+                rich_presence: any[];
                 player_name: string;
                 avater_hash: Buffer;
                 last_logoff: Date;
