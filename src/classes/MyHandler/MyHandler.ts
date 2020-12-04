@@ -159,8 +159,8 @@ export default class MyHandler extends Handler {
         // check if game.customName is more than 60 characters.
         const customGameName = this.bot.options.game.customName;
 
-        if (!customGameName || customGameName === 'TF2Autobot') {
-            return `TF2Autobot v${process.env.BOT_VERSION}`;
+        if (!customGameName || customGameName === '') {
+            return ``;
         } else {
             return customGameName;
         }
@@ -257,7 +257,7 @@ export default class MyHandler extends Handler {
     onReady(): void {
         log.info(
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            'TF2Autobot v' +
+            'TF2Autobot' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
                 pluralize('item', this.bot.pricelist.getLength(), true) +
@@ -1566,11 +1566,10 @@ export default class MyHandler extends Handler {
                         this.bot.options.customMessage.welcome
                             ? this.bot.options.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
+                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') + ``
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  ``
                     );
                     return;
                 }
@@ -1591,11 +1590,10 @@ export default class MyHandler extends Handler {
                 this.bot.options.customMessage.welcome
                     ? this.bot.options.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                          ` - TF2Autobot v${process.env.BOT_VERSION}`
+                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') + ``
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          ``
             );
         });
     }
