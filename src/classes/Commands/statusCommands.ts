@@ -35,16 +35,16 @@ export function inventoryCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function versionCommand(steamID: SteamID, bot: Bot): void {
-    bot.sendMessage(steamID, `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`);
+    bot.sendMessage(steamID, `Currently running v${process.env.BOT_VERSION}. Checking for a new version...`);
 
     bot.checkForUpdates()
         .then(({ hasNewVersion, latestVersion }) => {
             if (!hasNewVersion) {
-                bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                bot.sendMessage(steamID, 'You are running the latest version!');
             } else if (bot.lastNotifiedVersion === latestVersion) {
                 bot.sendMessage(
                     steamID,
-                    `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
+                    `⚠️ Update available!` +
                         `\n\nNavigate to your bot folder and run [git stash && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                         `\nIf the update requires you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                         '\nContact IdiNium if you have any other problem. Thank you.'
