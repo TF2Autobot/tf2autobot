@@ -84,11 +84,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             sendAdminMessage(steamID.toString(), reply, adminDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(
-                `/quote 💬 Message sent to #${steamID.toString()} (${adminDetails.player_name}):` +
-                    `"${reply}". ` +
-                    `\nSteam: ${links.steam}` +
-                    `\nBackpack.tf: ${links.bptf}` +
-                    `\nSteamREP: ${links.steamrep}`,
+                `/quote 💬 Message sent to #${steamID.toString()} (${adminDetails.player_name}): "${reply}". `,
                 []
             );
         }

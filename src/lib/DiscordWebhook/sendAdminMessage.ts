@@ -21,7 +21,7 @@ export default function sendAdminMessage(
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: `Message sent! - ${steamID}`,
+        content: `Message sent!`,
         embeds: [
             {
                 author: {
