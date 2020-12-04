@@ -768,18 +768,19 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
                                     amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
                                     amount:
                                         (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             }
 
@@ -1702,18 +1703,19 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
                                     amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
                                     amount:
                                         (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             }
 
