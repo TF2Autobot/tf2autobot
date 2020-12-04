@@ -515,7 +515,7 @@ export default class Listings {
 
         let details: string;
 
-        let highValueString = '|';
+        let highValueString = ' |';
 
         if (intent === 1) {
             const highValue = {
