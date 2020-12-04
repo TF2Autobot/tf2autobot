@@ -59,9 +59,7 @@ function summarizeItemsWithLink(
             continue;
         }
 
-        const isDefined = dict[sku]['amount'] !== undefined;
-
-        const amount = isDefined ? dict[sku]['amount'] : 0;
+        const amount = dict[sku]['amount'];
 
         const name = replace.itemName(schema.getName(SKU.fromString(sku), false));
 
@@ -70,16 +68,13 @@ function summarizeItemsWithLink(
         let maxStock = 0;
 
         if (type === 'summary') {
-            currentStock =
-                which === 'our'
-                    ? (isDefined ? dict[sku]['stock'] : 0) - amount
-                    : (isDefined ? dict[sku]['stock'] : 0) + amount;
+            currentStock = which === 'our' ? dict[sku]['stock'] - amount : dict[sku]['stock'] + amount;
         } else {
-            currentStock = isDefined ? dict[sku]['stock'] : 0;
+            currentStock = dict[sku]['stock'];
         }
 
-        oldStock = isDefined ? dict[sku]['stock'] : null;
-        maxStock = isDefined ? dict[sku]['maxStock'] : 0;
+        oldStock = dict[sku]['stock'];
+        maxStock = dict[sku]['maxStock'];
         summary.push(
             `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                 type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''

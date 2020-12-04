@@ -52,8 +52,7 @@ function summarizeItemsWithLink(dict: { [sku: string]: ItemsDictContent }, schem
             continue;
         }
 
-        const isDefined = dict[sku]['amount'] !== undefined;
-        const amount = isDefined ? dict[sku]['amount'] : 0;
+        const amount = dict[sku]['amount'];
         const name = schema
             .getName(SKU.fromString(sku), false)
             .replace(/Non-Craftable/g, 'NC')

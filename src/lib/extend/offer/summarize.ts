@@ -50,8 +50,7 @@ function summarizeItems(dict: { [sku: string]: ItemsDictContent }, schema: Schem
             continue;
         }
 
-        const isDefined = dict[sku]['amount'] !== undefined;
-        const amount = isDefined ? dict[sku]['amount'] : 0;
+        const amount = dict[sku]['amount'];
         const name = schema.getName(SKU.fromString(sku), false);
 
         summary.push(name + (amount > 1 ? ` x${amount}` : ''));
