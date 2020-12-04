@@ -36,6 +36,8 @@ dayjs.extend(updateLocale);
 
 dayjs.updateLocale('en', {
     relativeTime: {
+        future: 'in %s',
+        past: '%s ago',
         s: '%d second',
         ss: '%d seconds',
         m: '%d minute',
