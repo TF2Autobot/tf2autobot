@@ -206,7 +206,14 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                const newDetails = this.getDetails(listing.intent, match);
+                const inventory = this.bot.inventoryManager.getInventory();
+                const itemsEcon = inventory.getItemsEcon();
+                let filtered: EconItem = undefined;
+                if (listing.intent === 1) {
+                    filtered = itemsEcon.filter(item => item.assetid === listing.id)[0];
+                }
+
+                const newDetails = this.getDetails(listing.intent, match, filtered);
 
                 if (listing.details !== newDetails) {
                     // Listing details don't match, update listing with new details and price
@@ -539,7 +546,7 @@ export default class Listings {
             const paintName: string[] = [];
 
             // if econ undefined, then skip because it will make your bot crashed.
-            if (econ !== undefined) {
+            if (econ) {
                 const descriptions = econ.descriptions;
 
                 descriptions.forEach(desc => {
