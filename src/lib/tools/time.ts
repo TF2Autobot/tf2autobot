@@ -101,7 +101,7 @@ export function timeNow(
 export function convertTime(time: number): string {
     const now = dayjs();
     // const timeTaken = dayjs.unix(now.unix() - Math.round(time / 1000));
-    return `${dayjs.unix(now.unix() - Math.round(time / 1000)).fromNow(true)}`;
+    return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}`;
 }
 
 export function uptime(): string {
