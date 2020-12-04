@@ -441,6 +441,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (amountCanTrade === 0) {
                     alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
@@ -517,6 +518,7 @@ export default class UserCart extends Cart {
                 if (amountCanTrade === 0) {
                     alteredMessage =
                         "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
@@ -1349,6 +1351,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (amountCanTrade === 0) {
                     alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
@@ -1425,6 +1428,7 @@ export default class UserCart extends Cart {
                 if (amountCanTrade === 0) {
                     alteredMessage =
                         "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
