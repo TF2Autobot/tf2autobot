@@ -515,7 +515,7 @@ export default class Listings {
 
         let details: string;
 
-        let highValueString = ' |';
+        let highValueString = '';
 
         if (intent === 1) {
             const highValue = {
@@ -668,16 +668,20 @@ export default class Listings {
 
             const opt = this.bot.options.details.highValue;
 
-            if (hasSpells && opt.showSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
-            if (hasStrangeParts && opt.showStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
-            if (hasKillstreaker && opt.showKillstreaker)
-                highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
-            if (hasSheen && opt.showSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
-            if (hasPaint && opt.showPainted) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
+            if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
+                highValueString = ' | ';
 
-            for (let i = 0; i < Object.keys(highValue).length; i++) {
-                if (Object.values(highValue)[i] !== '') {
-                    highValueString += Object.values(highValue)[i] + '|';
+                if (hasSpells && opt.showSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
+                if (hasStrangeParts && opt.showStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
+                if (hasKillstreaker && opt.showKillstreaker)
+                    highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
+                if (hasSheen && opt.showSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
+                if (hasPaint && opt.showPainted) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
+
+                for (let i = 0; i < Object.keys(highValue).length; i++) {
+                    if (Object.values(highValue)[i] !== '') {
+                        highValueString += Object.values(highValue)[i] + ' | ';
+                    }
                 }
             }
         }
