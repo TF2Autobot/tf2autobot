@@ -398,13 +398,7 @@ export default class UserCart extends Cart {
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
 
-        let ourInventoryEcon: EconItem[];
-
-        try {
-            ourInventoryEcon = await ourInventory.fetchWithReturn();
-        } catch (err) {
-            return Promise.reject('Failed to load inventories (Steam might be down)');
-        }
+        const ourInventoryEcon: EconItem[] = ourInventory.getItemsEcon();
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -463,15 +457,14 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let theirInventoryEcon: EconItem[];
 
         try {
             await theirInventory.fetch();
-            theirInventoryEcon = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
+        const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
         this.theirInventoryCount = theirInventoryEcon.length;
         let containsUses = false;
 
@@ -1309,13 +1302,7 @@ export default class UserCart extends Cart {
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
 
-        let ourInventoryEcon: EconItem[];
-
-        try {
-            ourInventoryEcon = await ourInventory.fetchWithReturn();
-        } catch (err) {
-            return Promise.reject('Failed to load inventories (Steam might be down)');
-        }
+        const ourInventoryEcon: EconItem[] = ourInventory.getItemsEcon();
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -1374,15 +1361,14 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let theirInventoryEcon: EconItem[];
 
         try {
             await theirInventory.fetch();
-            theirInventoryEcon = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
+        const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
         this.theirInventoryCount = theirInventoryEcon.length;
         let containsUses = false;
 

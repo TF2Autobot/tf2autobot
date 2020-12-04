@@ -20,6 +20,8 @@ export default class Inventory {
 
     private nonTradable: UnknownDictionary<string[]> = {};
 
+    private tradableEcon: EconItem[] = [];
+
     private options: Options;
 
     constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
@@ -50,6 +52,10 @@ export default class Inventory {
 
     getItems(): UnknownDictionary<string[]> {
         return this.tradable;
+    }
+
+    getItemsEcon(): EconItem[] {
+        return this.tradableEcon;
     }
 
     getTotalItems(): number {
@@ -110,20 +116,6 @@ export default class Inventory {
         });
     }
 
-    fetchWithReturn(): Promise<EconItem[]> {
-        return new Promise((resolve, reject) => {
-            this.manager.getUserInventoryContents(this.getSteamID(), 440, '2', false, (err, items) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                this.setItems(items);
-
-                resolve(items);
-            });
-        });
-    }
-
     private setItems(items: EconItem[]): void {
         const tradable: EconItem[] = [];
         const nonTradable: EconItem[] = [];
@@ -135,6 +127,8 @@ export default class Inventory {
                 nonTradable.push(item);
             }
         });
+
+        this.tradableEcon = tradable;
 
         this.tradable = Inventory.createDictionary(
             tradable,
