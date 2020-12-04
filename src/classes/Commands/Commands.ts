@@ -188,7 +188,7 @@ export default class Commands {
                 steamID,
                 opt.customMessage.iDontKnowWhatYouMean
                     ? opt.customMessage.iDontKnowWhatYouMean
-                    : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
+                    : ''
             );
         }
     }
