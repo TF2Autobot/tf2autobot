@@ -34,14 +34,11 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
             ', '
         )}, but I am not selling it right now.`;
     } else if (offerReason.reason === 'NOT_TRADING_KEYS') {
-        reason =
-            'I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+        reason = 'I am no longer trading keys.';
     } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
-        reason =
-            'I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+        reason = 'I am no longer selling keys.';
     } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
-        reason =
-            'I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+        reason = 'I am no longer buying keys.';
     } else if (offerReason.reason === 'BANNED') {
         reason = "you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community.";
     } else if (offerReason.reason === 'ESCROW') {
@@ -94,8 +91,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
             ? opt.customMessage.decline
                   .replace(/%reason%/g, reason)
                   .replace(/%invalid_value_summary%/g, invalidValueSummary)
-            : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined${
-                  reason ? ` because ${reason}` : '.'
-              }` + (reasonForInvalidValue ? invalidValueSummary : '')
+            : `/pre ❌ The offer has been declined❌${reason ? ` because ${reason}` : '.'}` +
+                  (reasonForInvalidValue ? invalidValueSummary : '')
     );
 }

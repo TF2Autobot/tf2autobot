@@ -5,13 +5,12 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
     let reason: string;
 
     if (offer.data('canceledByUser') === true) {
-        reason = 'Offer was canceled by user';
+        reason = 'by user';
     } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
-        reason = 'Failed to accept mobile confirmation';
+        reason = 'Because I Failed to accept mobile confirmation';
     } else {
-        reason =
-            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again.";
+        reason = 'Due to your input or a steam bug. Please try again';
     }
 
-    bot.sendMessage(offer.partner, '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: ' + reason + '.');
+    bot.sendMessage(offer.partner, '/pre ❌ Sorry your offer was cancelled ' + reason + '.');
 }
