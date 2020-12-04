@@ -237,7 +237,7 @@ export function highValue(
 
             if (hasKillstreaker) {
                 // well, this actually will just have one, but we don't know if there's any that have two 😅
-                itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                itemDescriptions += '\n🔥 Killstreaker: ' + killstreakerName.join(' + ');
             }
 
             if (hasSheen) {
