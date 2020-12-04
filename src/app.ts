@@ -134,8 +134,7 @@ import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
     'summarizeWithStockChanges',
     'getDiff',
     'summarizeWithLink',
-    'summarizeWithLinkWithStockChanges',
-    'summarizeSKU'
+    'summarizeWithLinkWithStockChanges'
 ].forEach(v => {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
