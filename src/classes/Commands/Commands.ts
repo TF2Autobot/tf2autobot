@@ -188,7 +188,7 @@ export default class Commands {
                 steamID,
                 opt.customMessage.iDontKnowWhatYouMean
                     ? opt.customMessage.iDontKnowWhatYouMean
-                    : ''
+                    : 'idk what you mean'
             );
         }
     }
