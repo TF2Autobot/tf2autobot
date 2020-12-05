@@ -105,7 +105,7 @@ export default function sendOfferReview(
                         icon_url: partnerAvatar
                     },
                     footer: {
-                        text: `v${process.env.BOT_VERSION} • #${offer.id} • ${offer.partner.toString()} • ${time}`
+                        text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
                     },
                     thumbnail: {
                         url: ''
