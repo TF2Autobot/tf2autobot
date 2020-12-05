@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SKU from 'tf2-sku-2';
 import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
@@ -16,7 +13,7 @@ import { processAccepted, updateListings } from './offer/accepted/exportAccepted
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
-import { WrongAboutOffer, HighValueInput, HighValueOutput } from './interfaces';
+import { HighValueInput, HighValueOutput, BPTFGetUserInfo, ItemsDict } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
@@ -39,7 +36,7 @@ import genPaths from '../../resources/paths';
 export default class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    private readonly autokeys: Autokeys;
+    public readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
 
@@ -153,6 +150,14 @@ export default class MyHandler extends Handler {
         }
     }
 
+    private get strangeParts(): string[] {
+        return this.bot.options.highValue.strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+    }
+
+    private get painted(): string[] {
+        return this.bot.options.highValue.painted.map(paint => paint.toLowerCase().trim());
+    }
+
     private isTradingKeys = false;
 
     private get customGameName(): string {
@@ -235,7 +240,9 @@ export default class MyHandler extends Handler {
     getToMention(): GetToMention {
         const sheens = this.sheens;
         const killstreakers = this.killstreakers;
-        return { sheens, killstreakers };
+        const strangeParts = this.strangeParts;
+        const painted = this.painted;
+        return { sheens, killstreakers, strangeParts, painted };
     }
 
     getAutokeysStatus(): GetAutokeysStatus {
@@ -256,7 +263,6 @@ export default class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             'TF2Autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
@@ -264,7 +270,7 @@ export default class MyHandler extends Handler {
                 ' in pricelist, ' +
                 pluralize('listing', this.bot.listingManager.listings.length, true) +
                 ' on www.backpack.tf (cap: ' +
-                this.bot.listingManager.cap +
+                String(this.bot.listingManager.cap) +
                 ')'
         );
 
@@ -366,7 +372,8 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        this.recentlySentMessage[steamID64] = this.recentlySentMessage[steamID64] + 1;
+        this.recentlySentMessage[steamID64] =
+            (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
         this.commands.processMessage(steamID, message);
     }
@@ -577,8 +584,22 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(offer.itemsToGive, this.sheens, this.killstreakers, this.bot);
-        const highValueTheir = check.highValue(offer.itemsToReceive, this.sheens, this.killstreakers, this.bot);
+        const highValueOur = check.highValue(
+            offer.itemsToGive,
+            this.sheens,
+            this.killstreakers,
+            this.strangeParts,
+            this.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            offer.itemsToReceive,
+            this.sheens,
+            this.killstreakers,
+            this.strangeParts,
+            this.painted,
+            this.bot
+        );
 
         const input: HighValueInput = {
             our: highValueOur,
@@ -781,7 +802,7 @@ export default class MyHandler extends Handler {
                         };
 
                         // Check stock limits (not for keys)
-                        const diff = itemsDiff[sku];
+                        const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
@@ -947,7 +968,7 @@ export default class MyHandler extends Handler {
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
-                const diff = itemsDiff['5021;6'];
+                const diff = itemsDiff['5021;6'] as number | null;
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
 
@@ -1465,12 +1486,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onOfferAction(
-        offer: TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
-        reason: string,
-        meta: UnknownDictionary<any>
-    ): void {
+    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
         const notify = offer.data('notify') === true;
         if (!notify) {
             return;
@@ -1508,7 +1524,7 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relation = this.bot.client.myFriends[steamID64];
+            const relation = this.bot.client.myFriends[steamID64] as number;
             if (relation === EFriendRelationship.RequestRecipient) {
                 this.respondToFriendRequest(steamID64);
             }
@@ -1681,9 +1697,11 @@ export default class MyHandler extends Handler {
                         return reject();
                     }
 
-                    const user = body.users[steamID64];
-                    this.botName = user.name as string;
-                    this.botAvatarURL = user.avatar as string;
+                    const thisBody = body as BPTFGetUserInfo;
+
+                    const user = thisBody.users[steamID64];
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
 
                     const isPremium = user.premium ? user.premium === 1 : false;
                     this.isPremium = isPremium;
@@ -1701,7 +1719,7 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relationship = this.bot.client.myGroups[groupID64];
+            const relationship = this.bot.client.myGroups[groupID64] as number;
 
             if (relationship === EClanRelationship.Invited) {
                 this.bot.client.respondToGroupInvite(groupID64, false);
@@ -1811,21 +1829,6 @@ function highValueMeta(info: HighValueInput): HighValueOutput {
     };
 }
 
-interface ItemsDict {
-    our: ItemDictSKU;
-    their: ItemDictSKU;
-}
-
-interface ItemDictSKU {
-    sku?: ItemDictContent;
-}
-
-interface ItemDictContent {
-    amount?: number;
-    stock?: number;
-    maxStock?: number;
-}
-
 interface OnRun {
     loginAttempts?: number[];
     pricelist?: EntryData[];
@@ -1836,7 +1839,7 @@ interface OnRun {
 interface OnNewTradeOffer {
     action: 'accept' | 'decline' | 'skip';
     reason: string;
-    meta?: UnknownDictionary<any>;
+    meta?: Meta;
 }
 
 interface BotInfo {
@@ -1849,6 +1852,8 @@ interface BotInfo {
 interface GetToMention {
     sheens: string[];
     killstreakers: string[];
+    strangeParts: string[];
+    painted: string[];
 }
 
 interface GetAutokeysStatus {
@@ -1867,4 +1872,78 @@ interface GetPrices {
     buy?: Currencies;
     sell?: Currencies;
     message?: string;
+}
+
+export interface Overstocked {
+    reason: '🟦_OVERSTOCKED';
+    sku: string;
+    buying: boolean;
+    diff: number;
+    amountCanTrade: number;
+}
+
+export interface Understocked {
+    reason: '🟩_UNDERSTOCKED';
+    sku: string;
+    selling: boolean;
+    diff: number;
+    amountCanTrade: number;
+}
+
+export interface InvalidItems {
+    reason: '🟨_INVALID_ITEMS';
+    sku: string;
+    buying: boolean;
+    amount: number;
+    price: string;
+}
+
+export interface InvalidValue {
+    reason: '🟥_INVALID_VALUE';
+    our: number;
+    their: number;
+}
+
+export interface DupeCheckFailed {
+    reason: '🟪_DUPE_CHECK_FAILED';
+    withError: boolean;
+    assetid: string | string[];
+    sku: string | string[];
+    error?: string;
+}
+
+export interface DupedItems {
+    reason: '🟫_DUPED_ITEMS';
+    assetid: string;
+    sku: string;
+}
+
+interface EscrowCheckFailed {
+    reason: '⬜_ESCROW_CHECK_FAILED';
+    error?: string;
+}
+
+interface BannedCheckFailed {
+    reason: '⬜_BANNED_CHECK_FAILED';
+    error?: string;
+}
+
+export type WrongAboutOffer =
+    | Overstocked
+    | Understocked
+    | InvalidItems
+    | InvalidValue
+    | DupeCheckFailed
+    | DupedItems
+    | EscrowCheckFailed
+    | BannedCheckFailed;
+
+export interface Meta {
+    highValue?: HighValueOutput;
+    highValueName?: string[];
+    uniqueReasons?: string[];
+    reasons?: WrongAboutOffer[];
+    assetids?: string[];
+    sku?: string[];
+    result?: boolean[];
 }

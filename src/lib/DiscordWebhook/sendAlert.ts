@@ -57,12 +57,10 @@ export default function sendAlert(
 
     const webhook = opt.discordWebhook;
 
-    /*eslint-disable */
     const sendAlertWebhook: Webhook = {
         username: webhook.displayName ? webhook.displayName : botInfo.name,
         avatar_url: webhook.avatarURL ? webhook.avatarURL : botInfo.avatarURL,
-        content:
-            type === 'highValue' || type === 'highValuedDisabled' ? `<@!${webhook.ownerID}>` : '',
+        content: type === 'highValue' || type === 'highValuedDisabled' ? `<@!${webhook.ownerID}>` : '',
         embeds: [
             {
                 title: title,
@@ -74,7 +72,6 @@ export default function sendAlert(
             }
         ]
     };
-    /*eslint-enable */
 
     sendWebhook(webhook.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => {

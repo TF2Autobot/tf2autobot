@@ -1,6 +1,4 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
-
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
@@ -8,23 +6,17 @@ import { pure, summarize, listItems, replace } from '../tools/export';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
+import { KeyPrices } from '../../classes/Pricelist';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendOfferReview(
     offer: TradeOffer,
     reasons: string,
     time: string,
-    keyPrices: { buy: Currencies; sell: Currencies; src: string },
-    value: { diff: number; diffRef: number; diffKey: string },
-    links: { steam: string; bptf: string; steamrep: string },
-    items: {
-        invalid: string[];
-        overstock: string[];
-        understock: string[];
-        duped: string[];
-        dupedFailed: string[];
-        highValue: string[];
-    },
+    keyPrices: KeyPrices,
+    value: ValueDiff,
+    links: Links,
+    items: Review,
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
@@ -92,7 +84,6 @@ export default function sendOfferReview(
         const isShowPureStock = opt.offerReview.misc.showPureStock;
         const isShowInventory = opt.offerReview.misc.showInventory;
 
-        /*eslint-disable */
         const webhookReview: Webhook = {
             username: opt.displayName ? opt.displayName : botInfo.name,
             avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
@@ -105,7 +96,7 @@ export default function sendOfferReview(
                         icon_url: partnerAvatar
                     },
                     footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
+                        text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
                     },
                     thumbnail: {
                         url: ''
@@ -127,7 +118,7 @@ export default function sendOfferReview(
                             value: itemList.replace(/@/g, '')
                         },
                         {
-                            name: `__Status (v${process.env.BOT_VERSION})__`,
+                            name: `__Status__`,
                             value:
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
@@ -144,8 +135,6 @@ export default function sendOfferReview(
                 }
             ]
         };
-
-        /*eslint-enable */
 
         let removeStatus = false;
 
@@ -203,4 +192,25 @@ export default function sendOfferReview(
                 log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
             });
     });
+}
+
+interface Review {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+    highValue: string[];
+}
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
 }

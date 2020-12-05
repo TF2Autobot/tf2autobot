@@ -2,16 +2,18 @@ import callbackQueue from 'callback-queue';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
+import { EconItem } from 'steam-tradeoffer-manager';
 import async from 'async';
 import dayjs from 'dayjs';
 
 import Bot from './Bot';
 import { Entry } from './Pricelist';
+import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakerSKU } from '../lib/data';
-import { updateOptionsCommand } from './Commands/optionsCommands';
+import { noiseMakerSKU, strangePartsData } from '../lib/data';
+import { updateOptionsCommand } from './Commands/functions/options';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -142,7 +144,7 @@ export default class Listings {
         log.debug('Disabled autorelist');
     }
 
-    private getAccountInfo(): Promise<any> {
+    private getAccountInfo(): Promise<UserSteamID> {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
@@ -163,8 +165,8 @@ export default class Listings {
                     return reject(err);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                return resolve(body.users[steamID64]);
+                const thisBody = body as BPTFGetUserInfo;
+                return resolve(thisBody.users[steamID64]);
             });
         });
     }
@@ -204,10 +206,17 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                const newDetails = this.getDetails(listing.intent, match);
+                const inventory = this.bot.inventoryManager.getInventory();
+                const itemsEcon = inventory.getItemsEcon();
+                let filtered: EconItem = undefined;
+                if (listing.intent === 1) {
+                    filtered = itemsEcon.filter(item => item.assetid === listing.id.replace('440_', ''))[0];
+                }
 
-                if (listing.details !== newDetails) {
-                    // Listing details don't match, update listing with new details and price
+                const newDetails = this.getDetails(listing.intent, match, filtered);
+
+                if (listing.details !== newDetails || listing.promoted !== match.promoted) {
+                    // Listing details or promoted don't match, update listing with new details and price
                     const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                     listing.update({
@@ -223,7 +232,11 @@ export default class Listings {
         const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true);
 
         if (matchNew !== null && matchNew.enabled === true) {
-            const assetids = this.bot.inventoryManager.getInventory().findBySKU(sku, true);
+            const inventory = this.bot.inventoryManager.getInventory();
+            const assetids = inventory.findBySKU(sku, true);
+            const itemsEcon = inventory.getItemsEcon();
+
+            const filtered = itemsEcon.filter(item => item.assetid === assetids[assetids.length - 1])[0];
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
@@ -245,7 +258,7 @@ export default class Listings {
                     id: assetids[assetids.length - 1],
                     intent: 1,
                     promoted: matchNew.promoted,
-                    details: this.getDetails(1, matchNew),
+                    details: this.getDetails(1, matchNew, filtered),
                     currencies: matchNew.sell
                 });
             }
@@ -498,7 +511,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, entry: Entry): string {
+    private getDetails(intent: 0 | 1, entry: Entry, econ?: EconItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -508,6 +521,172 @@ export default class Listings {
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
 
         let details: string;
+
+        let highValueString = '';
+
+        if (intent === 1) {
+            const highValue = {
+                spells: '',
+                parts: '',
+                killstreaker: '',
+                sheen: '',
+                painted: ''
+            };
+
+            let hasSpells = false;
+            let hasStrangeParts = false;
+            let hasKillstreaker = false;
+            let hasSheen = false;
+            let hasPaint = false;
+
+            const spellNames: string[] = [];
+            const partsNames: string[] = [];
+            const killstreakerName: string[] = [];
+            const sheenName: string[] = [];
+            const paintName: string[] = [];
+
+            // if econ undefined, then skip because it will make your bot crashed.
+            if (econ) {
+                const descriptions = econ.descriptions;
+
+                descriptions.forEach(desc => {
+                    const opt = this.bot.options.highValue;
+
+                    const value = desc.value;
+                    const color = desc.color;
+
+                    const part = value
+                        .replace('(', '')
+                        .replace(/: \d+\)/g, '')
+                        .trim();
+                    const strangePartNames = Object.keys(strangePartsData);
+
+                    if (
+                        value.startsWith('Halloween:') &&
+                        value.endsWith('(spell only active during event)') &&
+                        color === '7ea9d1'
+                    ) {
+                        // Show all
+                        hasSpells = true;
+                        const spellName = value.substring(10, value.length - 32).trim();
+                        spellNames.push(
+                            spellName
+                                .replace(/Putrescent Pigmentation/, 'PP 🍃')
+                                .replace(/Die Job/, 'DJ 🍐')
+                                .replace(/Chromatic Corruption/, 'CC 🪀')
+                                .replace(/Spectral Spectrum/, 'Spec 🔵🔴')
+                                .replace(/Sinister Staining/, 'Sin 🍈')
+                                .replace(/Voices From Below/, 'VFB 🗣️')
+                                .replace(/Team Spirit Footprints/, 'TS-FP 🔵🔴')
+                                .replace(/Gangreen Footprints/, 'GG-FP 🟡')
+                                .replace(/Corpse Gray Footprints/, 'CG-FP 👽')
+                                .replace(/Violent Violet Footprints/, 'VV-FP ♨️')
+                                .replace(/Rotten Orange Footprints/, 'RO-FP 🍊')
+                                .replace(/Bruised Purple Footprints/, 'BP-FP 🍷')
+                                .replace(/Headless Horseshoes/, 'HH 🍇')
+                                .replace(/Exorcism/, '👻')
+                                .replace(/Pumpkin Bomb/, '🎃💣')
+                                .replace(/Halloween Fire/, '🔥🟢')
+                        );
+                    } else if (
+                        (part === 'Kills' || part === 'Assists'
+                            ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
+                            : strangePartNames.includes(part)) &&
+                        color === '756b5e'
+                    ) {
+                        // Only user specified in highValue.strangeParts
+                        if (opt.strangeParts.includes(part)) {
+                            hasStrangeParts = true;
+                            partsNames.push(part);
+                        }
+                    } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                        const killstreaker = value.replace('Killstreaker: ', '').trim();
+
+                        hasKillstreaker = true;
+                        killstreakerName.push(
+                            killstreaker
+                                .replace(/Cerebral Discharge/, '⚡')
+                                .replace(/Fire Horns/, '🔥🐮')
+                                .replace(/Flames/, '🔥')
+                                .replace(/Hypno-Beam/, '😵💫')
+                                .replace(/Incinerator/, '🚬')
+                                .replace(/Singularity/, '🔆')
+                                .replace(/Tornado/, '🌪️')
+                        );
+                    } else if (value.startsWith('Sheen: ') && color === '7ea9d1') {
+                        const sheen = value.replace('Sheen: ', '').trim();
+
+                        hasSheen = true;
+                        sheenName.push(
+                            sheen
+                                .replace(/Team Shine/, '🔵🔴')
+                                .replace(/Hot Rod/, '🎗️')
+                                .replace(/Manndarin/, '🟠')
+                                .replace(/Deadly Daffodil/, '🟡')
+                                .replace(/Mean Green/, '🟢')
+                                .replace(/Agonizing Emerald/, '🟩')
+                                .replace(/Villainous Violet/, '🟣')
+                        );
+                    } else if (value.startsWith('Paint Color: ') && color === '756b5e') {
+                        const paint = value.replace('Paint Color: ', '').trim();
+
+                        hasPaint = true;
+                        paintName.push(
+                            paint
+                                .replace(/A Color Similar to Slate/, '🧪')
+                                .replace(/A Deep Commitment to Purple/, '🪀')
+                                .replace(/A Distinctive Lack of Hue/, '🎩')
+                                .replace(/A Mann's Mint/, '👽')
+                                .replace(/After Eight/, '🏴')
+                                .replace(/Aged Moustache Grey/, '👤')
+                                .replace(/An Extraordinary Abundance of Tinge/, '🏐')
+                                .replace(/Australium Gold/, '🏆')
+                                .replace(/Color No. 216-190-216/, '🧠')
+                                .replace(/Dark Salmon Injustice/, '🐚')
+                                .replace(/Drably Olive/, '🥝')
+                                .replace(/Indubitably Green/, '🥦')
+                                .replace(/Mann Co. Orange/, '🏀')
+                                .replace(/Muskelmannbraun/, '👜')
+                                .replace(/Noble Hatter's Violet/, '🍇')
+                                .replace(/Peculiarly Drab Tincture/, '🪑')
+                                .replace(/Pink as Hell/, '🎀')
+                                .replace(/Radigan Conagher Brown/, '🚪')
+                                .replace(/The Bitter Taste of Defeat and Lime/, '💚')
+                                .replace(/The Color of a Gentlemann's Business Pants/, '🧽')
+                                .replace(/Ye Olde Rustic Colour/, '🥔')
+                                .replace(/Zepheniah's Greed/, '🌳')
+                                .replace(/An Air of Debonair/, '👜🔷')
+                                .replace(/Balaclavas Are Forever/, '👜🔷')
+                                .replace(/Operator's Overalls/, '👜🔷')
+                                .replace(/Cream Spirit/, '🍘🥮')
+                                .replace(/Team Spirit/, '🔵🔴')
+                                .replace(/The Value of Teamwork/, '👨🏽‍🤝‍👨🏻')
+                                .replace(/Waterlogged Lab Coat/, '👨🏽‍🤝‍👨🏽')
+                        );
+                    }
+                });
+
+                const opt = this.bot.options.details.highValue;
+
+                if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
+                    highValueString = ' | ';
+
+                    if (hasSpells && opt.showSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
+                    if (hasStrangeParts && opt.showStrangeParts)
+                        highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
+                    if (hasKillstreaker && opt.showKillstreaker)
+                        highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
+                    if (hasSheen && opt.showSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
+                    if (hasPaint && opt.showPainted) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
+
+                    for (let i = 0; i < Object.keys(highValue).length; i++) {
+                        if (Object.values(highValue)[i] !== '') {
+                            highValueString += Object.values(highValue)[i] + ' | ';
+                        }
+                    }
+                }
+            }
+        }
 
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
@@ -603,6 +782,6 @@ export default class Listings {
                 .replace(/%uses%/g, '');
         }
 
-        return details;
+        return details + highValueString;
     }
 }

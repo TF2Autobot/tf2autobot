@@ -70,7 +70,6 @@ export default function sendWebHookPriceUpdateV1(
 
     const opt = options.discordWebhook;
 
-    /*eslint-disable */
     const priceUpdate: Webhook = {
         username: opt.displayName,
         avatar_url: opt.avatarURL,
@@ -84,7 +83,7 @@ export default function sendWebHookPriceUpdateV1(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${sku} • ${time}`
+                    text: `${sku} • ${time} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrlPrint
@@ -110,7 +109,6 @@ export default function sendWebHookPriceUpdateV1(
             }
         ]
     };
-    /*eslint-enable */
 
     sendWebhook(opt.priceUpdate.url, priceUpdate, 'pricelist-update')
         .then(() => {

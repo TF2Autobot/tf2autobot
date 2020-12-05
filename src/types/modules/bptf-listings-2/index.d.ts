@@ -114,6 +114,8 @@ declare module 'bptf-listings-2' {
 
             intent: 0 | 1;
 
+            promoted: 0 | 1;
+
             item: object;
 
             appid: number;

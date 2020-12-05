@@ -1,9 +1,9 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
-import Bot from '../Bot';
+import Bot from '../../Bot';
 
-import { stats } from '../../lib/tools/export';
+import { stats } from '../../../lib/tools/export';
 
 // Bot status
 
@@ -13,15 +13,14 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
 
     bot.sendMessage(
         steamID,
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         'All trades are recorded from ' +
             pluralize('day', trades.totalDays, true) +
             ' ago 📊\n\n Total: ' +
-            (tradesFromEnv !== 0 ? tradesFromEnv + trades.tradesTotal : trades.tradesTotal) +
+            (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
             ' \n Last 24 hours: ' +
-            trades.trades24Hours +
+            String(trades.trades24Hours) +
             ' \n Since beginning of today: ' +
-            trades.tradesToday
+            String(trades.tradesToday)
     );
 }
 
@@ -29,8 +28,7 @@ export function inventoryCommand(steamID: SteamID, bot: Bot): void {
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
     bot.sendMessage(
         steamID,
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        `🎒 My current items in my inventory: ${currentItems + '/' + bot.tf2.backpackSlots}`
+        `🎒 My current items in my inventory: ${String(currentItems) + '/' + String(bot.tf2.backpackSlots)}`
     );
 }
 

@@ -273,8 +273,6 @@ declare module 'steam-tradeoffer-manager' {
 
             summarizeWithLinkWithStockChanges(schema: SchemaManager.Schema, type: string): string;
 
-            summarizeSKU(): string;
-
             // Custom function added to prototype
             getDiff(): UnknownKeys<any> | null;
         }

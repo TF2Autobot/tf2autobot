@@ -6,7 +6,7 @@ import log from '../logger';
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
-export default function sendPartnerMessage(
+export default function sendAdminMessage(
     steamID: string,
     msg: string,
     their: Their,
@@ -17,10 +17,10 @@ export default function sendPartnerMessage(
     const opt = bot.options.discordWebhook;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
-    const discordPartnerMsg: Webhook = {
+    const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: `<@!${opt.ownerID}>, new message! - ${steamID}`,
+        content: `Message sent!`,
         embeds: [
             {
                 author: {
@@ -29,7 +29,7 @@ export default function sendPartnerMessage(
                     icon_url: their.avatar_url_full
                 },
                 footer: {
-                    text: `Partner SteamID: ${steamID} • ${time}`
+                    text: `v${process.env.BOT_VERSION} • ${steamID} • ${time}`
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
@@ -38,12 +38,12 @@ export default function sendPartnerMessage(
         ]
     };
 
-    sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message')
+    sendWebhook(opt.messages.url, discordAdminMsg, 'partner-message')
         .then(() => {
-            log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`);
+            log.debug(`✅ Sent admin-message webhook (to ${their.player_name}) on Discord.`);
         })
         .catch(err => {
-            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err);
+            log.debug(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
         });
 }
 

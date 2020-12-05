@@ -1,23 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionary } from '../../../types/common';
 import SchemaManager from 'tf2-schema-2';
+
+import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfaces';
 
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
+import { replace } from '../../tools/export';
+
 export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value: { our: Currency; their: Currency } = self.data('value');
 
     const items: {
-        our: UnknownDictionary<any>;
-        their: UnknownDictionary<any>;
-    } = self.data('dict') || { our: null, their: null };
+        our: { [sku: string]: ItemsDictContent };
+        their: { [sku: string]: ItemsDictContent };
+    } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
         return (
@@ -41,7 +42,7 @@ export = function (schema: SchemaManager.Schema): string {
     }
 };
 
-function summarizeItemsWithLink(dict: UnknownDictionary<any>, schema: SchemaManager.Schema): string {
+function summarizeItemsWithLink(dict: { [sku: string]: ItemsDictContent }, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }
@@ -53,14 +54,9 @@ function summarizeItemsWithLink(dict: UnknownDictionary<any>, schema: SchemaMana
             continue;
         }
 
-        const isDefined = (dict[sku]['amount'] as number) !== undefined;
-        const amount = isDefined ? (dict[sku]['amount'] as number) : (dict[sku] as number);
-        const name = schema
-            .getName(SKU.fromString(sku), false)
-            .replace(/Non-Craftable/g, 'NC')
-            .replace(/Professional Killstreak/g, 'Pro KS')
-            .replace(/Specialized Killstreak/g, 'Spec KS')
-            .replace(/Killstreak/g, 'KS');
+        const amount = dict[sku]['amount'];
+        const generateName = schema.getName(SKU.fromString(sku), false);
+        const name = replace.itemName(generateName ? generateName : 'unknown');
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
     }

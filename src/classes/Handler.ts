@@ -3,10 +3,9 @@
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData } from 'steam-tradeoffer-manager';
 
-import { UnknownDictionary } from '../types/common';
-
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
+import { Meta } from './MyHandler/MyHandler';
 
 export default abstract class Handler {
     readonly bot: Bot;
@@ -59,7 +58,7 @@ export default abstract class Handler {
     ): Promise<null | {
         action: 'accept' | 'decline' | 'skip';
         reason: string;
-        meta?: UnknownDictionary<any>;
+        meta?: Meta;
     }>;
 
     /**
@@ -72,7 +71,7 @@ export default abstract class Handler {
         offer: TradeOfferManager.TradeOffer,
         action: 'accept' | 'decline' | 'skip',
         reason: string,
-        meta: UnknownDictionary<any>
+        meta: Meta
     ): void;
 
     /**

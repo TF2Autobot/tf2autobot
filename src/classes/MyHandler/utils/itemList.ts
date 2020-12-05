@@ -1,6 +1,6 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 
-export default function itemList(offer: TradeOffer): { their: string[]; our: string[] } {
+export default function itemList(offer: TradeOffer): ItemSKUList {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const items: { our: Record<string, unknown>; their: Record<string, unknown> } = offer.data('dict');
     const their: string[] = [];
@@ -19,4 +19,9 @@ export default function itemList(offer: TradeOffer): { their: string[]; our: str
         our.push(ourItemsSku);
     }
     return { their, our };
+}
+
+interface ItemSKUList {
+    their: string[];
+    our: string[];
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
@@ -6,9 +5,10 @@ import dayjs from 'dayjs';
 import SKU from 'tf2-sku-2';
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-import request from 'request';
+import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../../types/common';
 
+import { BPTFGetUserInfo, ItemsDictContent } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 
@@ -629,6 +629,7 @@ export default abstract class Cart {
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
@@ -646,7 +647,9 @@ export default abstract class Cart {
                         return resolve(0);
                     }
 
-                    const user = body.users[steamID64];
+                    const thisBody = body as BPTFGetUserInfo;
+
+                    const user = thisBody.users[steamID64];
                     const totalBackpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
 
                     return resolve(totalBackpackSlots);
@@ -654,10 +657,4 @@ export default abstract class Cart {
             );
         });
     }
-}
-
-interface ItemsDictContent {
-    amount?: number;
-    stock?: number;
-    maxStock?: number;
 }

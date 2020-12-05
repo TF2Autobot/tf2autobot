@@ -63,6 +63,8 @@ export function highValue(
     econ: EconItem[],
     sheens: string[],
     killstreakers: string[],
+    strangeParts: string[],
+    painted: string[],
     bot: Bot
 ): {
     has: boolean;
@@ -107,11 +109,13 @@ export function highValue(
         let hasStrangeParts = false;
         let hasKillstreaker = false;
         let hasSheen = false;
+        let hasPaint = false;
 
         const spellNames: string[] = [];
         const partsNames: string[] = [];
         const killstreakerName: string[] = [];
         const sheenName: string[] = [];
+        const paintName: string[] = [];
 
         for (let i = 0; i < item.descriptions.length; i++) {
             // Item description value for Spells and Strange Parts.
@@ -161,7 +165,7 @@ export function highValue(
                 hasStrangeParts = true;
                 highValued.has = true;
 
-                if (bot.options.highValue.strangeParts.includes(parts)) {
+                if (strangeParts.includes(parts.toLowerCase())) {
                     // if the particular strange part is one of the parts that the user wants,
                     // then mention and put "(🌟)"
                     highValued.isMention = true;
@@ -192,10 +196,21 @@ export function highValue(
                 } else {
                     sheenName.push(extractedName);
                 }
+            } else if (desc.startsWith('Paint Color: ') && color === '756b5e') {
+                const extractedName = desc.replace('Paint Color: ', '').trim();
+                hasPaint = true;
+                highValued.has = true;
+
+                if (painted.includes(extractedName.toLowerCase())) {
+                    highValued.isMention = true;
+                    paintName.push(extractedName + ' (🌟)');
+                } else {
+                    paintName.push(extractedName);
+                }
             }
         }
 
-        if (hasSpells || hasStrangeParts || hasKillstreaker || hasSheen) {
+        if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
             const itemSKU = item.getSKU(
                 bot.schema,
                 bot.options.normalize.festivized,
@@ -222,7 +237,7 @@ export function highValue(
 
             if (hasKillstreaker) {
                 // well, this actually will just have one, but we don't know if there's any that have two 😅
-                itemDescriptions += '\n🔥 Killstreker: ' + killstreakerName.join(' + ');
+                itemDescriptions += '\n🔥 Killstreaker: ' + killstreakerName.join(' + ');
             }
 
             if (hasSheen) {
@@ -230,10 +245,18 @@ export function highValue(
                 itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
             }
 
+            if (hasPaint) {
+                // same as Killstreaker
+                itemDescriptions += '\n🎨 Painted: ' + paintName.join(' + ');
+            }
+
             log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
             // parsed.fullName  - tf2-items-format module
 
-            if (bot.options.discordWebhook.tradeSummary.enable && bot.options.discordWebhook.tradeSummary.url !== []) {
+            if (
+                bot.options.discordWebhook.tradeSummary.enable &&
+                bot.options.discordWebhook.tradeSummary.url.length > 0
+            ) {
                 highValued.names.push(`_${itemName}_${itemDescriptions}`);
             } else {
                 highValued.names.push(`${itemName}${itemDescriptions}`);

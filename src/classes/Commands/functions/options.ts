@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import * as path from 'path';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
-import { JsonOptions, removeCliOptions } from '../Options';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
+import { JsonOptions, removeCliOptions } from '../../Options';
 
-import { deepMerge } from '../../lib/tools/deep-merge';
-import validator from '../../lib/validator';
-import log from '../../lib/logger';
-import MyHandler from '../MyHandler/MyHandler';
+import { deepMerge } from '../../../lib/tools/deep-merge';
+import validator from '../../../lib/validator';
+import log from '../../../lib/logger';
+import MyHandler from '../../MyHandler/MyHandler';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
@@ -89,6 +90,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                     bot.listings.disableAutorelistOption();
                     (bot.handler as MyHandler).enableAutoRefreshListings();
                 }
+            }
+
+            if (params.autokeys !== undefined) {
+                (bot.handler as MyHandler).autokeys.check();
             }
 
             if (steamID) return bot.sendMessage(steamID, msg);

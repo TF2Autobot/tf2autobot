@@ -1,14 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
-
 import { UnknownDictionary } from '../../../types/common';
+
+import { ItemsDict } from '../../../classes/MyHandler/interfaces';
 
 export = function (): UnknownDictionary<number> | null {
     const self = this as TradeOffer;
 
-    const dict = self.data('dict');
+    const dict = self.data('dict') as ItemsDict;
 
     if (dict === undefined) {
         return null;
@@ -21,9 +19,7 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        const isDefined = (dict.our[sku]['amount'] as number) !== undefined;
-
-        diff[sku] = (diff[sku] || 0) - (isDefined ? (dict.our[sku]['amount'] as number) : (dict.our[sku] as number));
+        diff[sku] = (diff[sku] || 0) - dict.our[sku]['amount'];
     }
 
     for (const sku in dict.their) {
@@ -31,10 +27,7 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        const isDefined = (dict.their[sku]['amount'] as number) !== undefined;
-
-        diff[sku] =
-            (diff[sku] || 0) + (isDefined ? (dict.their[sku]['amount'] as number) : (dict.their[sku] as number));
+        diff[sku] = (diff[sku] || 0) + dict.their[sku]['amount'];
     }
 
     return diff;

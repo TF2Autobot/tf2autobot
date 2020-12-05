@@ -33,14 +33,16 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
-        showStockChanges: false
+        showStockChanges: false,
+        showTimeTakenInMS: true
     },
 
     highValue: {
         enableHold: true,
         sheens: [],
         killstreakers: [],
-        strangeParts: []
+        strangeParts: [],
+        painted: []
     },
     checkUses: {
         duel: true,
@@ -56,7 +58,14 @@ export const DEFAULTS = {
     },
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.'
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        highValue: {
+            showSpells: true,
+            showStrangeParts: false,
+            showKillstreaker: true,
+            showSheen: true,
+            showPainted: true
+        }
     },
     customMessage: {
         welcome: '',
@@ -199,6 +208,7 @@ export interface WeaponsAsCurrency {
 
 export interface TradeSummary {
     showStockChanges?: boolean;
+    showTimeTakenInMS?: boolean;
 }
 
 export interface HighValue {
@@ -206,6 +216,7 @@ export interface HighValue {
     sheens?: string[];
     killstreakers?: string[];
     strangeParts?: string[];
+    painted?: string[];
 }
 
 export interface CheckUses {
@@ -226,6 +237,15 @@ export interface Normalize {
 export interface Details {
     buy?: string;
     sell?: string;
+    highValue?: ShowHighValue;
+}
+
+export interface ShowHighValue {
+    showSpells: boolean;
+    showStrangeParts: boolean;
+    showKillstreaker: boolean;
+    showSheen: boolean;
+    showPainted: boolean;
 }
 
 export interface CustomMessage {

@@ -17,6 +17,9 @@ export const highValueSchema: jsonschema.Schema = {
         },
         strangeParts: {
             $ref: 'array-string'
+        },
+        painted: {
+            $ref: 'array-string'
         }
     },
     additionalProperties: false,

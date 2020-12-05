@@ -12,6 +12,7 @@ import { checkUsesSchema } from './check-uses/check-uses';
 import { gameSchema } from './game/game';
 import { normalizeSchema } from './normalize/normalize';
 import { detailsSchema } from './details/details';
+import { highValueDetailsSchema } from './details/show-high-value';
 import { customMessageSchema } from './custom-message/custom-message';
 import { statisticsSchema } from './statistics/statistics';
 
@@ -29,6 +30,7 @@ export {
     gameSchema,
     normalizeSchema,
     detailsSchema,
+    highValueDetailsSchema,
     customMessageSchema,
     statisticsSchema
 };

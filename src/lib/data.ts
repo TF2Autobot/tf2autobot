@@ -573,6 +573,38 @@ export const killstreakersData = [
     'Hypno-Beam'
 ];
 
+// export const paintedData = [
+//     'A Color Similar to Slate',
+//     'A Deep Commitment to Purple',
+//     'A Distinctive Lack of Hue',
+//     "A Mann's Mint",
+//     'After Eight',
+//     'Aged Moustache Grey',
+//     'An Extraordinary Abundance of Tinge',
+//     'Australium Gold',
+//     'Color No. 216-190-216',
+//     'Dark Salmon Injustice',
+//     'Drably Olive',
+//     'Indubitably Green',
+//     'Mann Co. Orange',
+//     'Muskelmannbraun',
+//     "Noble Hatter's Violet",
+//     'Peculiarly Drab Tincture',
+//     'Pink as Hell',
+//     'Radigan Conagher Brown',
+//     'The Bitter Taste of Defeat and Lime',
+//     "The Color of a Gentlemann's Business Pants",
+//     'Ye Olde Rustic Colour',
+//     "Zepheniah's Greed",
+//     'An Air of Debonair',
+//     'Balaclavas Are Forever',
+//     'Cream Spirit',
+//     "Operator's Overalls",
+//     'Team Spirit',
+//     'The Value of Teamwork',
+//     'Waterlogged Lab Coat'
+// ];
+
 export const giftWords = [
     'gift',
     'donat', // So that 'donate' or 'donation' will also be accepted

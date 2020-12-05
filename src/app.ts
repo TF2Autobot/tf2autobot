@@ -67,19 +67,10 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-// This error is a false positive.
-// The signal and err are being created dynamically.
-// Treat them as any for now.
-ON_DEATH({ uncaughtException: true })((signal, err) => {
-    const crashed = typeof err !== 'string';
+ON_DEATH({ uncaughtException: true })(signalOrErr => {
+    const crashed = typeof signalOrErr !== 'string';
 
     if (crashed) {
-        if (err.statusCode >= 500 || err.statusCode === 429) {
-            delete err.body;
-        }
-
         const botReady = botManager.isBotReady();
 
         log.error(
@@ -92,7 +83,7 @@ ON_DEATH({ uncaughtException: true })((signal, err) => {
                     process.platform
                 } ${process.arch}}`,
                 'Stack trace:',
-                require('util').inspect(err)
+                require('util').inspect(signalOrErr)
             ].join('\r\n')
         );
 
@@ -102,10 +93,10 @@ ON_DEATH({ uncaughtException: true })((signal, err) => {
             );
         }
     } else {
-        log.warn('Received kill signal `' + signal + '`');
+        log.warn('Received kill signal `' + signalOrErr + '`');
     }
 
-    botManager.stop(crashed ? err : null, true, signal === 'SIGKILL');
+    botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
 });
 
 process.on('message', message => {
@@ -134,8 +125,7 @@ import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
     'summarizeWithStockChanges',
     'getDiff',
     'summarizeWithLink',
-    'summarizeWithLinkWithStockChanges',
-    'summarizeSKU'
+    'summarizeWithLinkWithStockChanges'
 ].forEach(v => {
     TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });

@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
+import Currencies from 'tf2-currencies';
 
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 
@@ -17,19 +17,13 @@ import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendTradeSummary(
     offer: TradeOffer,
-    autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
+    autokeys: Autokeys,
     currentItems: number,
-    accepted: {
-        invalidItems: string[];
-        overstocked: string[];
-        understocked: string[];
-        highValue: string[];
-        isMention: boolean;
-    },
-    keyPrices: { buy: Currencies; sell: Currencies; src: string },
-    value: { diff: number; diffRef: number; diffKey: string },
-    items: { their: string[]; our: string[] },
-    links: { steam: string; bptf: string; steamrep: string },
+    accepted: Accepted,
+    keyPrices: KeyPrices,
+    value: ValueDiff,
+    items: ItemSKUList,
+    links: Links,
     time: string,
     bot: Bot,
     timeTaken: string
@@ -152,14 +146,16 @@ export default function sendTradeSummary(
                         icon_url: avatarFull
                     },
                     description:
-                        summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                        summary +
+                        `\n⏱ **Time taken:** ${timeTaken}\n\n` +
+                        (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {
                             name: '__Item list__',
                             value: itemList.replace(/@/g, '')
                         },
                         {
-                            name: `__Status (v${process.env.BOT_VERSION})__`,
+                            name: `__Status__`,
                             value:
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
@@ -182,7 +178,6 @@ export default function sendTradeSummary(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
-                                `\n⏱ Time taken: ${timeTaken}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes
@@ -190,12 +185,11 @@ export default function sendTradeSummary(
                         }
                     ],
                     footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
+                        text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
                     }
                 }
             ]
         };
-        /*eslint-enable */
 
         if (itemList === '-') {
             acceptedTradeSummary.embeds[0].fields.shift();
@@ -244,4 +238,43 @@ export default function sendTradeSummary(
                 });
         });
     });
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
+}
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
+}
+
+interface KeyPrices {
+    buy: Currencies;
+    sell: Currencies;
+    src: string;
+    time: number;
+}
+
+interface Accepted {
+    invalidItems: string[];
+    overstocked: string[];
+    understocked: string[];
+    highValue: string[];
+    isMention: boolean;
+}
+
+interface Autokeys {
+    isEnabled: boolean;
+    isActive: boolean;
+    isBuying: boolean;
+    isBanking: boolean;
+}
+
+export interface ItemSKUList {
+    their: string[];
+    our: string[];
 }

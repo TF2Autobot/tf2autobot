@@ -9,6 +9,7 @@ import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
+import { Meta } from './MyHandler/MyHandler';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -292,7 +293,7 @@ export default class Trades {
     applyActionToOffer(
         action: 'accept' | 'decline' | 'skip',
         reason: string,
-        meta: UnknownDictionary<any>,
+        meta: Meta,
         offer: TradeOfferManager.TradeOffer
     ): Promise<void> {
         this.bot.handler.onOfferAction(offer, action, reason, meta);
@@ -309,7 +310,7 @@ export default class Trades {
             action: action,
             reason: reason,
             meta: meta
-        });
+        } as Action);
 
         if (actionFunc === undefined) {
             return Promise.resolve();
@@ -835,4 +836,10 @@ export default class Trades {
             amount: item.amount
         };
     }
+}
+
+export interface Action {
+    action: string;
+    reason: string;
+    meta: Meta;
 }

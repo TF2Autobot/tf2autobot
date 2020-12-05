@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
@@ -13,6 +10,7 @@ import Cart from './Cart';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import MyHandler from '../MyHandler/MyHandler';
+import { HighValueInput, HighValueOutput, ItemsDict, ItemsDictContent } from '../MyHandler/interfaces';
 
 import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
@@ -323,7 +321,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const ourDict: { [key: string]: { amount: number } } = this.offer.data('dict').our;
+        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
@@ -354,7 +352,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const theirDict: { [key: string]: { amount: number } } = this.offer.data('dict').their;
+        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
@@ -393,9 +391,14 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
+        let ourItemsToCheck: EconItem[] = [];
+        let theirItemsToCheck: EconItem[] = [];
+
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
+
+        const ourInventoryEcon: EconItem[] = ourInventory.getItemsEcon();
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -432,6 +435,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (amountCanTrade === 0) {
                     alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
@@ -453,16 +457,16 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let fetched: EconItem[];
 
         try {
             await theirInventory.fetch();
-            fetched = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
-        this.theirInventoryCount = fetched.length;
+        const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
+        this.theirInventoryCount = theirInventoryEcon.length;
+        let containsUses = false;
 
         // Add their items
 
@@ -473,38 +477,9 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    const yes: {
-                        isNot5Uses: boolean;
-                        isNot25Uses: boolean;
-                    } = check.uses(offer, fetched, this.bot);
-
-                    if (yes.isNot5Uses) {
-                        return Promise.reject(
-                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                        );
-                    }
-
-                    if (yes.isNot25Uses) {
-                        return Promise.reject(
-                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                        );
-                    }
+                    containsUses = true;
                 }
             }
-
-            const filtered = fetched.filter(
-                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
-            );
-
-            const toMention = (this.bot.handler as MyHandler).getToMention();
-            const highValuedTheir: {
-                has: boolean;
-                skus: string[];
-                names: string[];
-                isMention: boolean;
-            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
-
-            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 
@@ -536,6 +511,7 @@ export default class UserCart extends Cart {
                 if (amountCanTrade === 0) {
                     alteredMessage =
                         "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
@@ -549,6 +525,25 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
+            }
+        }
+
+        if (containsUses) {
+            const yes: {
+                isNot5Uses: boolean;
+                isNot25Uses: boolean;
+            } = check.uses(offer, theirInventoryEcon, this.bot);
+
+            if (yes.isNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
+            }
+
+            if (yes.isNot25Uses) {
+                return Promise.reject(
+                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                );
             }
         }
 
@@ -630,6 +625,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                ourItemsToCheck = ourInventoryEcon.filter(ourItem => {
+                    return ourItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     // The item was added to the offer
                     missing--;
@@ -676,6 +675,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                theirItemsToCheck = theirInventoryEcon.filter(theirItem => {
+                    return theirItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     missing--;
 
@@ -699,6 +702,31 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const highValueOur = check.highValue(
+            ourItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            theirItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+
+        const input: HighValueInput = {
+            our: highValueOur,
+            their: highValueTheir
+        };
+
+        offer.data('highValue', highValue(input));
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -739,18 +767,19 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
                                     amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
                                     amount:
                                         (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             }
 
@@ -1176,7 +1205,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const ourDict: { [key: string]: { amount: number } } = this.offer.data('dict').our;
+        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
@@ -1223,7 +1252,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const theirDict: { [key: string]: { amount: number } } = this.offer.data('dict').their;
+        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
@@ -1272,9 +1301,14 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
+        let ourItemsToCheck: EconItem[] = [];
+        let theirItemsToCheck: EconItem[] = [];
+
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems();
+
+        const ourInventoryEcon: EconItem[] = ourInventory.getItemsEcon();
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -1311,6 +1345,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (amountCanTrade === 0) {
                     alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
@@ -1332,16 +1367,16 @@ export default class UserCart extends Cart {
         // Load their inventory
 
         const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-        let fetched: EconItem[];
 
         try {
             await theirInventory.fetch();
-            fetched = await theirInventory.fetchWithReturn();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
-        this.theirInventoryCount = fetched.length;
+        const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
+        this.theirInventoryCount = theirInventoryEcon.length;
+        let containsUses = false;
 
         // Add their items
 
@@ -1352,38 +1387,9 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
                 if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    const yes: {
-                        isNot5Uses: boolean;
-                        isNot25Uses: boolean;
-                    } = check.uses(offer, fetched, this.bot);
-
-                    if (yes.isNot5Uses) {
-                        return Promise.reject(
-                            'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                        );
-                    }
-
-                    if (yes.isNot25Uses) {
-                        return Promise.reject(
-                            'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                        );
-                    }
+                    containsUses = true;
                 }
             }
-
-            const filtered = fetched.filter(
-                item => item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual) === sku
-            );
-
-            const toMention = (this.bot.handler as MyHandler).getToMention();
-            const highValuedTheir: {
-                has: boolean;
-                skus: string[];
-                names: string[];
-                isMention: boolean;
-            } = check.highValue(filtered, toMention.sheens, toMention.killstreakers, this.bot);
-
-            offer.data('highValue', highValuedTheir);
 
             let alteredMessage: string;
 
@@ -1415,6 +1421,7 @@ export default class UserCart extends Cart {
                 if (amountCanTrade === 0) {
                     alteredMessage =
                         "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                    this.bot.listings.checkBySKU(sku);
                 } else {
                     amount = amountCanTrade;
                     alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
@@ -1428,6 +1435,25 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
+            }
+        }
+
+        if (containsUses) {
+            const yes: {
+                isNot5Uses: boolean;
+                isNot25Uses: boolean;
+            } = check.uses(offer, theirInventoryEcon, this.bot);
+
+            if (yes.isNot5Uses) {
+                return Promise.reject(
+                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
+                );
+            }
+
+            if (yes.isNot25Uses) {
+                return Promise.reject(
+                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
+                );
             }
         }
 
@@ -1528,6 +1554,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                ourItemsToCheck = ourInventoryEcon.filter(ourItem => {
+                    return ourItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     // The item was added to the offer
                     missing--;
@@ -1574,6 +1604,10 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
+                theirItemsToCheck = theirInventoryEcon.filter(theirItem => {
+                    return theirItem.assetid === assetids[i];
+                });
+
                 if (isAdded) {
                     missing--;
 
@@ -1597,6 +1631,31 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const highValueOur = check.highValue(
+            ourItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            theirItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+
+        const input: HighValueInput = {
+            our: highValueOur,
+            their: highValueTheir
+        };
+
+        offer.data('highValue', highValue(input));
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -1642,18 +1701,19 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
                                     amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
                                     amount:
                                         (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
-                                    maxStock: 0
+                                    maxStock: entry !== null ? entry.max : 0
                                 };
                             }
 
@@ -1829,8 +1889,25 @@ export default class UserCart extends Cart {
     }
 }
 
-interface ItemsDictContent {
-    amount?: number;
-    stock?: number;
-    maxStock?: number;
+function highValue(info: HighValueInput): HighValueOutput {
+    return {
+        has: {
+            our: info.our.has,
+            their: info.their.has
+        },
+        items: {
+            our: {
+                skus: info.our.skus,
+                names: info.our.names
+            },
+            their: {
+                skus: info.their.skus,
+                names: info.their.names
+            }
+        },
+        isMention: {
+            our: info.our.isMention,
+            their: info.their.isMention
+        }
+    };
 }

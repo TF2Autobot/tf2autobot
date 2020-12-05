@@ -9,13 +9,13 @@ import dayjs from 'dayjs';
 
 import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
-import { Entry, EntryData, PricelistChangedSource } from '../Pricelist';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
+import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
-import validator from '../../lib/validator';
-import log from '../../lib/logger';
-import MyHandler from '../MyHandler/MyHandler';
+import validator from '../../../lib/validator';
+import log from '../../../lib/logger';
+import MyHandler from '../../MyHandler/MyHandler';
 
 // Pricelist manager
 
@@ -657,7 +657,6 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         .catch((err: ErrorRequest) => {
             bot.sendMessage(
                 steamID,
-                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                 '❌ Failed to update pricelist entry: ' +
                     (err.body && err.body.message ? err.body.message : err.message)
             );

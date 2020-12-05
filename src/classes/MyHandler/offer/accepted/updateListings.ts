@@ -7,7 +7,6 @@ import { EntryData } from '../../../Pricelist';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { requestCheck } from '../../../../lib/ptf-api';
 import { craftAll, uncraftAll } from '../../../../lib/data';
-
 import log from '../../../../lib/logger';
 
 export default function updateListings(
@@ -100,7 +99,7 @@ export default function updateListings(
             opt.highValue.enableHold
         ) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
-            const entry = {
+            const entry: EntryData = {
                 sku: sku,
                 enabled: false,
                 autoprice: inPrice.autoprice,
@@ -109,6 +108,11 @@ export default function updateListings(
                 intent: inPrice.intent,
                 group: 'highValue'
             } as EntryData;
+
+            if (!inPrice.autoprice) {
+                entry['sell'] = inPrice.sell;
+                entry['buy'] = inPrice.buy;
+            }
 
             bot.pricelist
                 .updatePrice(entry, true)

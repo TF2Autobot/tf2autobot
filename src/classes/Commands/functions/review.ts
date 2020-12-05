@@ -7,16 +7,17 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import { Currency } from '../../types/TeamFortress2';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
+import { Currency } from '../../../types/TeamFortress2';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../../types/common';
 
 import { summarizeItems } from './utils';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
+import { Meta } from '../../MyHandler/MyHandler';
 
-import { check, generateLinks } from '../../lib/tools/export';
-import log from '../../lib/logger';
+import { check, generateLinks } from '../../../lib/tools/export';
+import log from '../../../lib/logger';
 
 // Manual review commands
 
@@ -225,30 +226,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
             }
         }
 
-        const reviewMeta: {
-            uniqueReasons: string[];
-            reasons: any;
-            highValue: {
-                has: {
-                    our: boolean;
-                    their: boolean;
-                };
-                items: {
-                    our: {
-                        skus: string[];
-                        names: string[];
-                    };
-                    their: {
-                        skus: string[];
-                        names: string[];
-                    };
-                };
-                isMention: {
-                    our: boolean;
-                    their: boolean;
-                };
-            };
-        } = offer.data('reviewMeta');
+        const reviewMeta = offer.data('reviewMeta') as Meta;
 
         if (declineTrade === false) {
             void bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {

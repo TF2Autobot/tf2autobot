@@ -4,9 +4,9 @@ import pluralize from 'pluralize';
 
 import { craftWeapons, uncraftWeapons } from './utils';
 
-import Bot from '../Bot';
+import Bot from '../../Bot';
 
-import { pure, timeNow, uptime } from '../../lib/tools/export';
+import { pure, timeNow, uptime } from '../../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options;

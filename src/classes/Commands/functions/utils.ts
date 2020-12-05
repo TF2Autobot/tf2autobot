@@ -2,15 +2,15 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
-import { Item } from '../../types/TeamFortress2';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../../types/common';
+import { Item } from '../../../types/TeamFortress2';
 import levenshtein from 'js-levenshtein';
 
-import Bot from '../Bot';
-import { Entry } from '../Pricelist';
+import Bot from '../../Bot';
+import { Entry } from '../../Pricelist';
 
-import { craftAll, uncraftAll } from '../../lib/data';
-import { fixItem } from '../../lib/items';
+import { craftAll, uncraftAll } from '../../../lib/data';
+import { fixItem } from '../../../lib/items';
 
 export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
     message = removeLinkProtocol(message);

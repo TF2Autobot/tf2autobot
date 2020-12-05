@@ -1,10 +1,11 @@
 import SteamID from 'steamid';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
 
-import { generateLinks, timeNow } from '../../lib/tools/export';
-import { sendPartnerMessage } from '../../lib/DiscordWebhook/export';
+import { generateLinks, timeNow } from '../../../lib/tools/export';
+import { sendPartnerMessage } from '../../../lib/DiscordWebhook/export';
+import sendAdminMessage from '../../../lib/DiscordWebhook/sendAdminMessage';
 
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
@@ -75,8 +76,18 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                 '\nExample: !message Hi Thanks!'
         );
 
-        // Send confirmation message to admin
-        bot.sendMessage(steamID, '✅ Your message has been sent.');
+        const links = generateLinks(steamID.toString());
+        const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
+
+        // Send a notification to the admin with message contents & details
+        if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
+            sendAdminMessage(steamID.toString(), reply, adminDetails, links, time.time, bot);
+        } else {
+            bot.messageAdmins(
+                `/quote 💬 Message sent to #${steamID.toString()} (${adminDetails.player_name}): "${reply}". `,
+                []
+            );
+        }
 
         // Send message to all other admins that an admin replied
         bot.messageAdmins(
