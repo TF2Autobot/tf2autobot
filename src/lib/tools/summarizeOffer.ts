@@ -4,8 +4,8 @@ export default function summarize(trade: string, value: ValueDiff, keyPrice: Key
     const summary =
         `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}\n` +
         trade
-            .replace('Asked:', isSteamChat ? '📤 Asked:' : '📤 **Asked:**')
-            .replace('Offered:', isSteamChat ? '📥 Offered:' : '📥 **Offered:**') +
+            .replace('Asked:', isSteamChat ? '• Asked:' : '**• Asked:**')
+            .replace('Offered:', isSteamChat ? '• Offered:' : '**• Offered:**') +
         '\n──────────────────────' +
         (value.diff > 0
             ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
