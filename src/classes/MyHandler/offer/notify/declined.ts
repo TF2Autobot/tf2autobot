@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { Action } from '../../../Trades';
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import { UnknownDictionary } from '../../../../types/common';
 import { valueDiff } from '../../../../lib/tools/export';
 
 import Bot from '../../../Bot';
@@ -12,7 +8,7 @@ import Bot from '../../../Bot';
 export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;
 
-    const offerReason: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
+    const offerReason = offer.data('action') as Action;
     const keyPrices = bot.pricelist.getKeyPrices();
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
     const manualReviewDisabled = !opt.manualReview.enable;
