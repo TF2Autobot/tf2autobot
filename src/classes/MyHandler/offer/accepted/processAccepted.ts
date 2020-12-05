@@ -7,6 +7,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import { UnknownDictionary } from '../../../../types/common';
 
+import { HighValueOutput } from '../../interfaces';
 import { itemList } from '../../utils/export-utils';
 
 import Bot from '../../../Bot';
@@ -58,7 +59,7 @@ export default function processAccepted(
     };
 
     const offerReceived: { reason: string; meta: UnknownDictionary<any> } = offer.data('action');
-    const offerSent: { skus: string[]; names: string[]; isMention: boolean } = offer.data('highValue');
+    const offerSent: HighValueOutput = offer.data('highValue');
 
     if (offerReceived) {
         // doing this because if an offer is being made by bot (from command), then this is undefined
@@ -129,16 +130,31 @@ export default function processAccepted(
         }
     } else if (offerSent) {
         // This is for offer that bot created from commands
-        if (offerSent.names.length > 0) {
-            offerSent.names.forEach(name => {
+        if (offerSent.has.their) {
+            offerSent.items.their.names.forEach(name => {
                 accepted.highValue.push(name);
                 theirHighValuedItems.push(name);
             });
+
+            if (offerSent.isMention.their) {
+                offerSent.items.their.skus.forEach(sku => isDisableSKU.push(sku));
+
+                if (!bot.isAdmin(offer.partner)) {
+                    accepted.isMention = true;
+                }
+            }
         }
 
-        if (offerSent.isMention) {
-            offerSent.skus.forEach(sku => isDisableSKU.push(sku));
-            accepted.isMention = true;
+        if (offerSent.has.our) {
+            offerSent.items.our.names.forEach(name => {
+                accepted.highValue.push(name);
+            });
+
+            if (offerSent.isMention.our) {
+                if (!bot.isAdmin(offer.partner)) {
+                    accepted.isMention = true;
+                }
+            }
         }
     }
 

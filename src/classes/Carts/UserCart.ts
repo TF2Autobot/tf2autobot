@@ -10,7 +10,7 @@ import Cart from './Cart';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import MyHandler from '../MyHandler/MyHandler';
-import { ItemsDict, ItemsDictContent } from '../MyHandler/interfaces';
+import { HighValueInput, HighValueOutput, ItemsDict, ItemsDictContent } from '../MyHandler/interfaces';
 
 import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
@@ -703,16 +703,17 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemsToCheck = ourItemsToCheck.concat(theirItemsToCheck);
-
         const toMention = (this.bot.handler as MyHandler).getToMention();
-        const highValued: {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
-        } = check.highValue(
-            itemsToCheck,
+        const highValueOur = check.highValue(
+            ourItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            theirItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,
             toMention.strangeParts,
@@ -720,7 +721,12 @@ export default class UserCart extends Cart {
             this.bot
         );
 
-        offer.data('highValue', highValued);
+        const input: HighValueInput = {
+            our: highValueOur,
+            their: highValueTheir
+        };
+
+        offer.data('highValue', highValue(input));
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -1626,16 +1632,17 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemsToCheck = ourItemsToCheck.concat(theirItemsToCheck);
-
         const toMention = (this.bot.handler as MyHandler).getToMention();
-        const highValued: {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
-        } = check.highValue(
-            itemsToCheck,
+        const highValueOur = check.highValue(
+            ourItemsToCheck,
+            toMention.sheens,
+            toMention.killstreakers,
+            toMention.strangeParts,
+            toMention.painted,
+            this.bot
+        );
+        const highValueTheir = check.highValue(
+            theirItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,
             toMention.strangeParts,
@@ -1643,7 +1650,12 @@ export default class UserCart extends Cart {
             this.bot
         );
 
-        offer.data('highValue', highValued);
+        const input: HighValueInput = {
+            our: highValueOur,
+            their: highValueTheir
+        };
+
+        offer.data('highValue', highValue(input));
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -1875,4 +1887,27 @@ export default class UserCart extends Cart {
 
         return str;
     }
+}
+
+function highValue(info: HighValueInput): HighValueOutput {
+    return {
+        has: {
+            our: info.our.has,
+            their: info.their.has
+        },
+        items: {
+            our: {
+                skus: info.our.skus,
+                names: info.our.names
+            },
+            their: {
+                skus: info.their.skus,
+                names: info.their.names
+            }
+        },
+        isMention: {
+            our: info.our.isMention,
+            their: info.their.isMention
+        }
+    };
 }
