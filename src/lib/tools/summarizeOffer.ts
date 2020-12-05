@@ -1,11 +1,6 @@
-import Currencies from 'tf2-currencies';
+import { KeyPrices } from '../../classes/Pricelist';
 
-export default function summarize(
-    trade: string,
-    value: { diff: number; diffRef: number; diffKey: string },
-    keyPrice: { buy: Currencies; sell: Currencies },
-    isSteamChat: boolean
-): string {
+export default function summarize(trade: string, value: ValueDiff, keyPrice: KeyPrices, isSteamChat: boolean): string {
     const summary =
         `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}\n` +
         trade
@@ -20,4 +15,10 @@ export default function summarize(
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : '');
     return summary;
+}
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
 }

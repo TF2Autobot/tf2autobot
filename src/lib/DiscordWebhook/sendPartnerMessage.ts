@@ -9,8 +9,8 @@ import MyHandler from '../../classes/MyHandler/MyHandler';
 export default function sendPartnerMessage(
     steamID: string,
     msg: string,
-    their: { player_name: string; avatar_url_full: string },
-    links: { steam: string; bptf: string; steamrep: string },
+    their: Their,
+    links: Links,
     time: string,
     bot: Bot
 ): void {
@@ -45,4 +45,15 @@ export default function sendPartnerMessage(
         .catch(err => {
             log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err);
         });
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
+}
+
+interface Their {
+    player_name: string;
+    avatar_url_full: string;
 }

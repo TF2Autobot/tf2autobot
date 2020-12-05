@@ -66,7 +66,7 @@ export default function valueDiff(
     return { diff, diffRef, diffKey };
 }
 
-export interface ValueDiff {
+interface ValueDiff {
     diff: number;
     diffRef: number;
     diffKey: string;

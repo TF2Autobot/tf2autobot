@@ -1,6 +1,4 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
-
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
@@ -8,23 +6,17 @@ import { pure, summarize, listItems, replace } from '../tools/export';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
+import { KeyPrices } from '../../classes/Pricelist';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendOfferReview(
     offer: TradeOffer,
     reasons: string,
     time: string,
-    keyPrices: { buy: Currencies; sell: Currencies; src: string },
-    value: { diff: number; diffRef: number; diffKey: string },
-    links: { steam: string; bptf: string; steamrep: string },
-    items: {
-        invalid: string[];
-        overstock: string[];
-        understock: string[];
-        duped: string[];
-        dupedFailed: string[];
-        highValue: string[];
-    },
+    keyPrices: KeyPrices,
+    value: ValueDiff,
+    links: Links,
+    items: Review,
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
@@ -200,4 +192,25 @@ export default function sendOfferReview(
                 log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
             });
     });
+}
+
+interface Review {
+    invalid: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+    highValue: string[];
+}
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
 }

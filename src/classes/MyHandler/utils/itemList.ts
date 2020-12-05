@@ -21,7 +21,7 @@ export default function itemList(offer: TradeOffer): ItemSKUList {
     return { their, our };
 }
 
-export interface ItemSKUList {
+interface ItemSKUList {
     their: string[];
     our: string[];
 }

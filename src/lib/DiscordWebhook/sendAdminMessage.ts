@@ -9,8 +9,8 @@ import MyHandler from '../../classes/MyHandler/MyHandler';
 export default function sendAdminMessage(
     steamID: string,
     msg: string,
-    their: { player_name: string; avatar_url_full: string },
-    links: { steam: string; bptf: string; steamrep: string },
+    their: Their,
+    links: Links,
     time: string,
     bot: Bot
 ): void {
@@ -45,4 +45,15 @@ export default function sendAdminMessage(
         .catch(err => {
             log.debug(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
         });
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
+}
+
+interface Their {
+    player_name: string;
+    avatar_url_full: string;
 }

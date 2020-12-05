@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
+import Currencies from 'tf2-currencies';
 
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 
@@ -17,19 +17,13 @@ import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendTradeSummary(
     offer: TradeOffer,
-    autokeys: { isEnabled: boolean; isActive: boolean; isBuying: boolean; isBanking: boolean },
+    autokeys: Autokeys,
     currentItems: number,
-    accepted: {
-        invalidItems: string[];
-        overstocked: string[];
-        understocked: string[];
-        highValue: string[];
-        isMention: boolean;
-    },
-    keyPrices: { buy: Currencies; sell: Currencies; src: string },
-    value: { diff: number; diffRef: number; diffKey: string },
-    items: { their: string[]; our: string[] },
-    links: { steam: string; bptf: string; steamrep: string },
+    accepted: Accepted,
+    keyPrices: KeyPrices,
+    value: ValueDiff,
+    items: ItemSKUList,
+    links: Links,
     time: string,
     bot: Bot,
     timeTaken: string
@@ -244,4 +238,43 @@ export default function sendTradeSummary(
                 });
         });
     });
+}
+
+interface Links {
+    steam: string;
+    bptf: string;
+    steamrep: string;
+}
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
+}
+
+interface KeyPrices {
+    buy: Currencies;
+    sell: Currencies;
+    src: string;
+    time: number;
+}
+
+interface Accepted {
+    invalidItems: string[];
+    overstocked: string[];
+    understocked: string[];
+    highValue: string[];
+    isMention: boolean;
+}
+
+interface Autokeys {
+    isEnabled: boolean;
+    isActive: boolean;
+    isBuying: boolean;
+    isBanking: boolean;
+}
+
+export interface ItemSKUList {
+    their: string[];
+    our: string[];
 }
