@@ -92,6 +92,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
+            if (params.autokeys !== undefined) {
+                (bot.handler as MyHandler).autokeys.check();
+            }
+
             if (steamID) return bot.sendMessage(steamID, msg);
             else return log.info(msg);
         })

@@ -75,6 +75,7 @@ export default class Autokeys {
     }
 
     check(): void {
+        log.debug(`checking autokeys (Enabled: ${String(this.isEnabled)})`);
         if (this.isEnabled === false) {
             return;
         }

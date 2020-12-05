@@ -36,7 +36,7 @@ import genPaths from '../../resources/paths';
 export default class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    private readonly autokeys: Autokeys;
+    public readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
 
