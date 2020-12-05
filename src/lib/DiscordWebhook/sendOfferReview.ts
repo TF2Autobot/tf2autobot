@@ -105,7 +105,9 @@ export default function sendOfferReview(
                         icon_url: partnerAvatar
                     },
                     footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • ${time}`
+                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • v${
+                            process.env.BOT_VERSION
+                        } • ${time}`
                     },
                     thumbnail: {
                         url: ''
@@ -127,7 +129,7 @@ export default function sendOfferReview(
                             value: itemList.replace(/@/g, '')
                         },
                         {
-                            name: `__Status (v${process.env.BOT_VERSION})__`,
+                            name: `__Status__`,
                             value:
                                 (isShowKeyRate
                                     ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
