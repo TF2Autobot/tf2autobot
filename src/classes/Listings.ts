@@ -210,7 +210,7 @@ export default class Listings {
                 const itemsEcon = inventory.getItemsEcon();
                 let filtered: EconItem = undefined;
                 if (listing.intent === 1) {
-                    filtered = itemsEcon.filter(item => item.assetid === listing.id)[0];
+                    filtered = itemsEcon.filter(item => item.assetid === listing.id.replace('440_', ''))[0];
                 }
 
                 const newDetails = this.getDetails(listing.intent, match, filtered);
