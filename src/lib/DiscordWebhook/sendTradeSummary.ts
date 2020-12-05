@@ -153,7 +153,7 @@ export default function sendTradeSummary(
                     },
                     description:
                         summary +
-                        `\n⏱ Time taken: ${timeTaken}\n\n` +
+                        `\n⏱ **Time taken:** ${timeTaken}\n\n` +
                         (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {
