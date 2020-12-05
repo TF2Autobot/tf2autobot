@@ -4,7 +4,7 @@
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import * as r from '../../MyHandler';
+import { Meta } from '../../MyHandler';
 
 import Bot from '../../../Bot';
 import * as re from './reasons/export-reasons';
@@ -13,7 +13,7 @@ import { valueDiff } from '../../../../lib/tools/export';
 
 export default function processReview(
     offer: TradeOffer,
-    meta: r.Meta,
+    meta: Meta,
     bot: Bot,
     isTradingKeys: boolean
 ): {

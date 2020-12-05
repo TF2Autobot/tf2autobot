@@ -2,13 +2,13 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import * as r from '../../../MyHandler';
+import { Meta, DupeCheckFailed } from '../../../MyHandler';
 
-export default function dupedCheckFailed(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
+export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options;
     const wrong = meta.reasons;
     const dupedFailedItemsName: string[] = [];
-    const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED')) as r.DupeCheckFailed[];
+    const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED')) as DupeCheckFailed[];
 
     dupedFailed.forEach(el => {
         if (el.withError === false) {

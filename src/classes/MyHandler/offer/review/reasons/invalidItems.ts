@@ -2,14 +2,14 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import * as r from '../../../MyHandler';
+import { Meta, InvalidItems } from '../../../MyHandler';
 
-export default function invalidItems(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
+export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const wrong = meta.reasons;
     const invalidForTheir: string[] = []; // Display for trade partner
     const invalidForOur: string[] = []; // Display for owner
 
-    const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as r.InvalidItems[];
+    const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[];
 
     invalid.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);

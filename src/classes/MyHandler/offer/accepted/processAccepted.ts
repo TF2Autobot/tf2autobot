@@ -3,14 +3,12 @@ import SKU from 'tf2-sku-2';
 
 import { HighValueOutput } from '../../interfaces';
 import * as r from '../../MyHandler';
-
 import { itemList } from '../../utils/export-utils';
 
 import Bot from '../../../Bot';
 import { Action } from '../../../Trades';
 
 import * as t from '../../../../lib/tools/export';
-
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
 export default function processAccepted(

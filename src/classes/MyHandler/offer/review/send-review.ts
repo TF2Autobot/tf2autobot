@@ -1,14 +1,14 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 
 import Bot from '../../../Bot';
-import * as r from '../../MyHandler';
+import { Meta } from '../../MyHandler';
 
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import { pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
 
-export default function sendReview(offer: TradeOffer, bot: Bot, meta: r.Meta, isTradingKeys: boolean): void {
+export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);

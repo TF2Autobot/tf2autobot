@@ -2,14 +2,14 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import * as r from '../../../MyHandler';
+import { Meta, DupedItems } from '../../../MyHandler';
 
-export default function duped(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
+export default function duped(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options;
 
     const wrong = meta.reasons;
     const dupedItemsName: string[] = [];
-    const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as r.DupedItems[];
+    const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[];
 
     duped.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);

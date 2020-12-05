@@ -2,14 +2,14 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import * as r from '../../../MyHandler';
+import { Meta, Understocked } from '../../../MyHandler';
 
-export default function understocked(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
+export default function understocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const wrong = meta.reasons;
     const understockedForTheir: string[] = [];
     const understockedForOur: string[] = [];
 
-    const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as r.Understocked[];
+    const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[];
 
     understocked.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);

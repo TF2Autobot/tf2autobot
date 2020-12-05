@@ -2,14 +2,14 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import * as r from '../../../MyHandler';
+import { Meta, Overstocked } from '../../../MyHandler';
 
-export default function overstocked(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
+export default function overstocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const wrong = meta.reasons;
     const overstockedForTheir: string[] = [];
     const overstockedForOur: string[] = [];
 
-    const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as r.Overstocked[];
+    const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[];
 
     overstock.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);
