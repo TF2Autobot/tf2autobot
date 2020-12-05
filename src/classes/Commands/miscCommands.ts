@@ -149,7 +149,7 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
 
 export function ownerCommand(steamID: SteamID, bot: Bot): void {
     if (!bot.options.enableOwnerCommand) {
-        bot.sendMessage(steamID, '❌ This command is disabled by the owner.');
+        bot.sendMessage(steamID, '');
         return;
     }
     const admins = bot.getAdmins();
