@@ -13,7 +13,7 @@ import { processAccepted, updateListings } from './offer/accepted/exportAccepted
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
-import { WrongAboutOffer, HighValueInput, HighValueOutput, BPTFGetUserInfo, ItemsDict } from './interfaces';
+import { HighValueInput, HighValueOutput, BPTFGetUserInfo, ItemsDict } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
@@ -1878,3 +1878,67 @@ interface GetPrices {
     sell?: Currencies;
     message?: string;
 }
+
+interface Overstocked {
+    reason: '🟦_OVERSTOCKED';
+    sku: string;
+    buying: boolean;
+    diff: number;
+    amountCanTrade: number;
+}
+
+interface Understocked {
+    reason: '🟩_UNDERSTOCKED';
+    sku: string;
+    selling: boolean;
+    diff: number;
+    amountCanTrade: number;
+}
+
+interface InvalidItems {
+    reason: '🟨_INVALID_ITEMS';
+    sku: string;
+    buying: boolean;
+    amount: number;
+    price: string;
+}
+
+interface InvalidValue {
+    reason: '🟥_INVALID_VALUE';
+    our: number;
+    their: number;
+}
+
+interface DupeCheckFailed {
+    reason: '🟪_DUPE_CHECK_FAILED';
+    withError: boolean;
+    assetid: string | string[];
+    sku: string | string[];
+    error?: string;
+}
+
+interface DupedItems {
+    reason: '🟫_DUPED_ITEMS';
+    assetid: string;
+    sku: string;
+}
+
+interface EscrowCheckFailed {
+    reason: '⬜_ESCROW_CHECK_FAILED';
+    error?: string;
+}
+
+interface BannedCheckFailed {
+    reason: '⬜_BANNED_CHECK_FAILED';
+    error?: string;
+}
+
+export type WrongAboutOffer =
+    | Overstocked
+    | Understocked
+    | InvalidItems
+    | InvalidValue
+    | DupeCheckFailed
+    | DupedItems
+    | EscrowCheckFailed
+    | BannedCheckFailed;
