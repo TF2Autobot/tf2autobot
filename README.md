@@ -50,7 +50,7 @@ Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over t
 
 ## Environmental Variables summary
 
-You can know more about each variable found in the `.env` and `ecosystem.json` file [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-using-the-environment-file#full-explanation-of-other-environment-variables).
+You can know more about each variable found in the `.env` or `ecosystem.json` and `options.json` files [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-(v2)).
 
 <!-- ## Useful Modules
 
