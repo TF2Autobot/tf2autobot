@@ -17,7 +17,6 @@ export default function sendAdminMessage(
     const opt = bot.options.discordWebhook;
     const botInfo = (bot.handler as MyHandler).getBotInfo();
 
-    /*eslint-disable */
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
@@ -38,7 +37,6 @@ export default function sendAdminMessage(
             }
         ]
     };
-    /*eslint-enable */
 
     sendWebhook(opt.messages.url, discordAdminMsg, 'partner-message')
         .then(() => {

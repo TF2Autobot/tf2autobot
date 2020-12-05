@@ -70,7 +70,6 @@ export default function sendWebHookPriceUpdateV1(
 
     const opt = options.discordWebhook;
 
-    /*eslint-disable */
     const priceUpdate: Webhook = {
         username: opt.displayName,
         avatar_url: opt.avatarURL,
@@ -110,7 +109,6 @@ export default function sendWebHookPriceUpdateV1(
             }
         ]
     };
-    /*eslint-enable */
 
     sendWebhook(opt.priceUpdate.url, priceUpdate, 'pricelist-update')
         .then(() => {

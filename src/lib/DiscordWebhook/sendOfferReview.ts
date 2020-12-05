@@ -92,7 +92,6 @@ export default function sendOfferReview(
         const isShowPureStock = opt.offerReview.misc.showPureStock;
         const isShowInventory = opt.offerReview.misc.showInventory;
 
-        /*eslint-disable */
         const webhookReview: Webhook = {
             username: opt.displayName ? opt.displayName : botInfo.name,
             avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
@@ -144,8 +143,6 @@ export default function sendOfferReview(
                 }
             ]
         };
-
-        /*eslint-enable */
 
         let removeStatus = false;
 

@@ -152,9 +152,7 @@ export default function sendTradeSummary(
                         icon_url: avatarFull
                     },
                     description:
-                        summary +
-                        (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n') +
-                        `\n⏱ Time taken: ${timeTaken}\n`,
+                        summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {
                             name: '__Item list__',
@@ -184,6 +182,7 @@ export default function sendTradeSummary(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
+                                `\n⏱ Time taken: ${timeTaken}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes
@@ -196,7 +195,6 @@ export default function sendTradeSummary(
                 }
             ]
         };
-        /*eslint-enable */
 
         if (itemList === '-') {
             acceptedTradeSummary.embeds[0].fields.shift();
