@@ -263,7 +263,6 @@ export default class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             'TF2Autobot v' +
                 process.env.BOT_VERSION +
                 ' is ready! ' +
@@ -271,7 +270,7 @@ export default class MyHandler extends Handler {
                 ' in pricelist, ' +
                 pluralize('listing', this.bot.listingManager.listings.length, true) +
                 ' on www.backpack.tf (cap: ' +
-                this.bot.listingManager.cap +
+                String(this.bot.listingManager.cap) +
                 ')'
         );
 

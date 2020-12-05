@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/ban-types */
 
 import Bot from './Bot';
 
@@ -37,7 +36,7 @@ export default class TF2GC {
             return;
         }
 
-        log.debug('Enqueueing smelt job for ' + defindex);
+        log.debug('Enqueueing smelt job for ' + String(defindex));
 
         this.newJob({ type: 'smelt', defindex: defindex, callback: callback });
     }
@@ -47,7 +46,7 @@ export default class TF2GC {
             return;
         }
 
-        log.debug('Enqueueing combine job for ' + defindex);
+        log.debug('Enqueueing combine job for ' + String(defindex));
 
         this.newJob({ type: 'combine', defindex: defindex, callback: callback });
     }
@@ -163,7 +162,7 @@ export default class TF2GC {
 
         const assetids = this.bot.inventoryManager
             .getInventory()
-            .findBySKU(job.defindex + ';6', true)
+            .findBySKU(String(job.defindex) + ';6', true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, job.type === 'smelt' ? 1 : 3);
@@ -173,7 +172,7 @@ export default class TF2GC {
         this.bot.tf2.craft(ids);
 
         const gainDefindex = job.defindex + (job.type === 'smelt' ? -1 : 1);
-        const gainSKU = gainDefindex + ';6';
+        const gainSKU = String(gainDefindex) + ';6';
 
         this.listenForEvent(
             'craftingComplete',
@@ -435,7 +434,7 @@ export default class TF2GC {
         if (job.type === 'smelt' || job.type === 'combine') {
             const assetids = this.bot.inventoryManager
                 .getInventory()
-                .findBySKU(job.defindex + ';6', true)
+                .findBySKU(String(job.defindex) + ';6', true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
             return (job.type === 'smelt' && assetids.length > 0) || (job.type === 'combine' && assetids.length >= 3);

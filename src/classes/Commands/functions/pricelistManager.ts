@@ -657,7 +657,6 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         .catch((err: ErrorRequest) => {
             bot.sendMessage(
                 steamID,
-                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                 '❌ Failed to update pricelist entry: ' +
                     (err.body && err.body.message ? err.body.message : err.message)
             );
