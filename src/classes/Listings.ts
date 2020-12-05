@@ -625,7 +625,7 @@ export default class Listings {
                             sheenName.push(
                                 sheen
                                     .replace(/Team Shine/, '🔵🔴')
-                                    .replace(/Hot-Rod/, '🎗️')
+                                    .replace(/Hot Rod/, '🎗️')
                                     .replace(/Manndarin/, '🟠')
                                     .replace(/Deadly Daffodil/, '🟡')
                                     .replace(/Mean Green/, '🟢')
