@@ -41,6 +41,7 @@ const ADMIN_COMMANDS: string[] = [
     '!shuffle - Shuffle pricelist entries.',
     '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry\n\n✨=== Bot manager ===✨',
     "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
+    '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
     "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',

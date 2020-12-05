@@ -53,6 +53,150 @@ export function expandCommand(steamID: SteamID, message: string, bot: Bot): void
     });
 }
 
+export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+    if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
+        bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+        return;
+    }
+
+    if (params.assetid !== undefined && params.sku === undefined) {
+        const ourInventory = bot.inventoryManager.getInventory();
+
+        const targetedAssetId = params.assetid as string;
+        const sku = ourInventory.findByAssetid(targetedAssetId);
+
+        if (sku === null) {
+            if (params.i_am_sure !== 'yes_i_am') {
+                bot.sendMessage(
+                    steamID,
+                    `⚠️ Are you sure that you want to use the item with asset ID ${targetedAssetId}?` +
+                        `\n- This process is irreversible and will use the item from your bot's backpack!` +
+                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                );
+                return;
+            }
+
+            bot.tf2gc.useItem(targetedAssetId, err => {
+                if (err) {
+                    log.warn(`Error trying to use ${targetedAssetId}: `, err);
+                    bot.sendMessage(steamID, `❌ Failed to use ${targetedAssetId}: ${err.message}`);
+                    return;
+                }
+                bot.sendMessage(steamID, `✅ Used ${targetedAssetId}!`);
+            });
+            return;
+        } else {
+            const item = SKU.fromString(sku);
+            const name = bot.schema.getName(item, false);
+
+            if (params.i_am_sure !== 'yes_i_am') {
+                bot.sendMessage(
+                    steamID,
+                    `⚠️ Are you sure that you want to use ${name}?` +
+                        `\n- This process is irreversible and will use the item from your bot's backpack!` +
+                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                );
+                return;
+            }
+
+            bot.tf2gc.useItem(targetedAssetId, err => {
+                if (err) {
+                    log.warn(`Error trying to use ${name}: `, err);
+                    bot.sendMessage(steamID, `❌ Failed to use ${name}(${targetedAssetId}): ${err.message}`);
+                    return;
+                }
+                bot.sendMessage(steamID, `✅ Used ${name}(${targetedAssetId})!`);
+            });
+            return;
+        }
+    }
+
+    if (params.name !== undefined || params.item !== undefined) {
+        bot.sendMessage(
+            steamID,
+            '⚠️ Please only use sku property.' +
+                '\n\nBelow are some common items to use:' +
+                '\n• Gift-Stuffed Stocking 2013: 5718;6;untradable' +
+                '\n• Gift-Stuffed Stocking 2017: 5886;6;untradable' +
+                '\n• Gift-Stuffed Stocking 2018: 5900;6;untradable' +
+                '\n• Gift-Stuffed Stocking 2019: 5910;6;untradable' +
+                '\n• Gift-Stuffed Stocking 2020: 5923;6;untradable'
+        );
+        return;
+    }
+
+    if (params.sku === undefined) {
+        bot.sendMessage(steamID, '⚠️ Missing sku property. Example: "!use sku=5923;6;untradable"');
+        return;
+    }
+
+    const targetedSKU = params.sku as string;
+
+    const uncraft = targetedSKU.includes(';uncraftable');
+    const untrade = targetedSKU.includes(';untradable');
+
+    params.sku = targetedSKU.replace(';uncraftable', '');
+    params.sku = targetedSKU.replace(';untradable', '');
+    const item = SKU.fromString(targetedSKU);
+
+    if (uncraft) {
+        item.craftable = !uncraft;
+    }
+
+    if (untrade) {
+        item.tradable = !untrade;
+    }
+
+    const assetids = bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
+
+    const name = bot.schema.getName(item, false);
+
+    if (assetids.length === 0) {
+        // Item not found
+        bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
+        return;
+    }
+
+    let assetid: string;
+    if (params.assetid !== undefined) {
+        const targetedAssetId = params.assetid as string;
+
+        if (assetids.includes(targetedAssetId)) {
+            assetid = targetedAssetId;
+        } else {
+            bot.sendMessage(
+                steamID,
+                `❌ Looks like an assetid ${targetedAssetId} did not match any assetids associated with ${name}(${targetedSKU}) in my inventory. Try using the sku to use a random assetid.`
+            );
+            return;
+        }
+    } else {
+        assetid = assetids[0];
+    }
+
+    if (params.i_am_sure !== 'yes_i_am') {
+        bot.sendMessage(
+            steamID,
+            `/pre ⚠️ Are you sure that you want to use ${name}?` +
+                `\n- This process is irreversible and will use the item from your bot's backpack!` +
+                `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+        );
+        return;
+    }
+
+    bot.tf2gc.useItem(assetid, err => {
+        if (err) {
+            log.warn(`Error trying to use ${name}: `, err);
+            bot.sendMessage(steamID, `❌ Failed to use ${name}(${assetid}): ${err.message}`);
+            return;
+        }
+
+        bot.sendMessage(steamID, `✅ Used ${name}(${assetid})!`);
+    });
+}
+
 export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void {
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
@@ -73,8 +217,8 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
                 bot.sendMessage(
                     steamID,
                     `/pre ⚠️ Are you sure that you want to delete the item with asset ID ${targetedAssetId}?` +
-                        `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                        `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                        `\n- This process is irreversible and will delete the item from your bot's backpack!` +
+                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
                 );
                 return;
             }
@@ -96,8 +240,8 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
                 bot.sendMessage(
                     steamID,
                     `/pre ⚠️ Are you sure that you want to delete ${name}?` +
-                        `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                        `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                        `\n- This process is irreversible and will delete the item from your bot's backpack!` +
+                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
                 );
                 return;
             }
@@ -149,8 +293,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
                 '\n• Skull Island Topper: 941;6;untradable' +
                 '\n• Spellbook Page: 8935;6;untradable' +
                 '\n• Gun Mettle Campaign Coin: 5809;6;untradable' +
-                '\n• MONOCULUS!: 581;6;untradable' +
-                '\n\nOr other items, please refer here: https://bit.ly/3gZQxFQ (defindex)'
+                '\n• MONOCULUS!: 581;6;untradable'
         );
         return;
     }
@@ -208,8 +351,8 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
         bot.sendMessage(
             steamID,
             `/pre ⚠️ Are you sure that you want to delete ${name}?` +
-                `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                `\n- This process is irreversible and will delete the item from your bot's backpack!` +
+                `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
         );
         return;
     }

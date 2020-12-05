@@ -122,6 +122,8 @@ export default class Commands {
             c.manager.expandCommand(steamID, message, this.bot);
         } else if (command === 'delete' && isAdmin) {
             c.manager.deleteCommand(steamID, message, this.bot);
+        } else if (command === 'use' && isAdmin) {
+            c.manager.useCommand(steamID, message, this.bot);
         } else if (command === 'name' && isAdmin) {
             c.manager.nameCommand(steamID, message, this.bot);
         } else if (command === 'avatar' && isAdmin) {
