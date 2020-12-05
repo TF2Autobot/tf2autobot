@@ -215,8 +215,8 @@ export default class Listings {
 
                 const newDetails = this.getDetails(listing.intent, match, filtered);
 
-                if (listing.details !== newDetails) {
-                    // Listing details don't match, update listing with new details and price
+                if (listing.details !== newDetails || listing.promoted !== match.promoted) {
+                    // Listing details or promoted don't match, update listing with new details and price
                     const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                     listing.update({
