@@ -190,9 +190,7 @@ export default function sendTradeSummary(
                         }
                     ],
                     footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • v${
-                            process.env.BOT_VERSION
-                        } • ${time}`
+                        text: `v${process.env.BOT_VERSION} • #${offer.id} • ${offer.partner.toString()} • ${time}`
                     }
                 }
             ]

@@ -105,9 +105,7 @@ export default function sendOfferReview(
                         icon_url: partnerAvatar
                     },
                     footer: {
-                        text: `Offer #${offer.id} • SteamID: ${offer.partner.toString()} • v${
-                            process.env.BOT_VERSION
-                        } • ${time}`
+                        text: `v${process.env.BOT_VERSION} • #${offer.id} • ${offer.partner.toString()} • ${time}`
                     },
                     thumbnail: {
                         url: ''
