@@ -373,7 +373,8 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        this.recentlySentMessage[steamID64] = this.recentlySentMessage[steamID64] + 1;
+        this.recentlySentMessage[steamID64] =
+            (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
         this.commands.processMessage(steamID, message);
     }
