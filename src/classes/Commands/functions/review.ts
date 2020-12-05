@@ -7,17 +7,17 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import { Currency } from '../../types/TeamFortress2';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../types/common';
+import { Currency } from '../../../types/TeamFortress2';
+import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../../types/common';
 
 import { summarizeItems } from './utils';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
-import { Meta } from '../MyHandler/MyHandler';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
+import { Meta } from '../../MyHandler/MyHandler';
 
-import { check, generateLinks } from '../../lib/tools/export';
-import log from '../../lib/logger';
+import { check, generateLinks } from '../../../lib/tools/export';
+import log from '../../../lib/logger';
 
 // Manual review commands
 

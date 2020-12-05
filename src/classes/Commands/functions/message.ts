@@ -1,11 +1,11 @@
 import SteamID from 'steamid';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
 
-import { generateLinks, timeNow } from '../../lib/tools/export';
-import { sendPartnerMessage } from '../../lib/DiscordWebhook/export';
-import sendAdminMessage from '../../lib/DiscordWebhook/sendAdminMessage';
+import { generateLinks, timeNow } from '../../../lib/tools/export';
+import { sendPartnerMessage } from '../../../lib/DiscordWebhook/export';
+import sendAdminMessage from '../../../lib/DiscordWebhook/sendAdminMessage';
 
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;

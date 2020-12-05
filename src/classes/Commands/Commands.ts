@@ -2,12 +2,11 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
-import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 
 import dayjs from 'dayjs';
 
-import { botStatus, help, messageCommand, misc, pricelist, review, utils, options } from './export';
+import * as c from './functions/export';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -22,7 +21,6 @@ import { fixItem } from '../../lib/items';
 import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';
 import log from '../../lib/logger';
 import { ignoreWords } from '../../lib/data';
-import { pure } from '../../lib/tools/export';
 import DonateCart from '../Carts/DonateCart';
 
 export default class Commands {
@@ -57,9 +55,9 @@ export default class Commands {
             });
 
         if (command === 'help') {
-            help.helpCommand(steamID, this.bot);
+            c.help.helpCommand(steamID, this.bot);
         } else if (command === 'how2trade') {
-            help.howToTradeCommand(steamID, this.bot);
+            c.help.howToTradeCommand(steamID, this.bot);
         } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
         } else if (['buy', 'b'].includes(command)) {
@@ -81,29 +79,29 @@ export default class Commands {
         } else if (command === 'queue') {
             this.queueCommand(steamID);
         } else if (command === 'owner') {
-            misc.ownerCommand(steamID, this.bot);
+            c.misc.ownerCommand(steamID, this.bot);
         } else if (command === 'discord') {
-            misc.discordCommand(steamID, this.bot);
+            c.misc.discordCommand(steamID, this.bot);
         } else if (command === 'more') {
-            help.moreCommand(steamID, this.bot);
+            c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
-            this.autoKeysCommand(steamID);
+            c.manager.autoKeysCommand(steamID, this.bot, this.autokeys);
         } else if (command === 'message') {
-            messageCommand(steamID, message, this.bot);
+            c.messageCommand(steamID, message, this.bot);
         } else if (command === 'time') {
-            misc.timeCommand(steamID, this.bot);
+            c.misc.timeCommand(steamID, this.bot);
         } else if (command === 'uptime') {
-            misc.uptimeCommand(steamID, this.bot);
+            c.misc.uptimeCommand(steamID, this.bot);
         } else if (command === 'pure') {
-            misc.pureCommand(steamID, this.bot);
+            c.misc.pureCommand(steamID, this.bot);
         } else if (command === 'rate') {
-            misc.rateCommand(steamID, this.bot);
+            c.misc.rateCommand(steamID, this.bot);
         } else if (command === 'stock') {
-            misc.stockCommand(steamID, this.bot);
+            c.misc.stockCommand(steamID, this.bot);
         } else if (command === 'craftweapon') {
-            misc.craftweaponCommand(steamID, this.bot);
+            c.misc.craftweaponCommand(steamID, this.bot);
         } else if (command === 'uncraftweapon') {
-            misc.uncraftweaponCommand(steamID, this.bot);
+            c.misc.uncraftweaponCommand(steamID, this.bot);
         } else if (command === 'sales') {
             void this.getSalesCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
@@ -111,51 +109,51 @@ export default class Commands {
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
-            pricelist.addCommand(steamID, message, this.bot);
+            c.pricelist.addCommand(steamID, message, this.bot);
         } else if (command === 'update' && isAdmin) {
-            pricelist.updateCommand(steamID, message, this.bot);
+            c.pricelist.updateCommand(steamID, message, this.bot);
         } else if (command === 'remove' && isAdmin) {
-            pricelist.removeCommand(steamID, message, this.bot);
+            c.pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
-            pricelist.getCommand(steamID, message, this.bot);
+            c.pricelist.getCommand(steamID, message, this.bot);
         } else if (command === 'shuffle' && isAdmin) {
-            pricelist.shuffleCommand(steamID, this.bot);
+            c.pricelist.shuffleCommand(steamID, this.bot);
         } else if (command === 'expand' && isAdmin) {
-            this.expandCommand(steamID, message);
+            c.manager.expandCommand(steamID, message, this.bot);
         } else if (command === 'delete' && isAdmin) {
-            this.deleteCommand(steamID, message);
+            c.manager.deleteCommand(steamID, message, this.bot);
         } else if (command === 'name' && isAdmin) {
-            this.nameCommand(steamID, message);
+            c.manager.nameCommand(steamID, message, this.bot);
         } else if (command === 'avatar' && isAdmin) {
-            this.avatarCommand(steamID, message);
+            c.manager.avatarCommand(steamID, message, this.bot);
         } else if (command === 'unblock' && isAdmin) {
-            this.unblockCommand(steamID, message);
+            c.manager.unblockCommand(steamID, message, this.bot);
         } else if (command === 'block' && isAdmin) {
-            this.blockCommand(steamID, message);
+            c.manager.blockCommand(steamID, message, this.bot);
         } else if (command === 'stop' && isAdmin) {
-            this.stopCommand(steamID);
+            c.manager.stopCommand(steamID, this.bot);
         } else if (command === 'restart' && isAdmin) {
-            this.restartCommand(steamID);
+            c.manager.restartCommand(steamID, this.bot);
         } else if (command === 'refreshautokeys' && isAdmin) {
-            this.refreshAutokeysCommand(steamID);
+            c.manager.refreshAutokeysCommand(steamID, this.bot, this.autokeys);
         } else if (command === 'refreshlist' && isAdmin) {
-            this.refreshListingsCommand(steamID);
+            c.manager.refreshListingsCommand(steamID, this.bot);
         } else if (command === 'resetqueue') {
-            this.resetQueueCommand(steamID);
+            c.manager.resetQueueCommand(steamID, this.bot, this.cartQueue);
         } else if (command === 'stats' && isAdmin) {
-            botStatus.statsCommand(steamID, this.bot);
+            c.botStatus.statsCommand(steamID, this.bot);
         } else if (command === 'inventory' && isAdmin) {
-            botStatus.inventoryCommand(steamID, this.bot);
+            c.botStatus.inventoryCommand(steamID, this.bot);
         } else if (command === 'version' && isAdmin) {
-            botStatus.versionCommand(steamID, this.bot);
+            c.botStatus.versionCommand(steamID, this.bot);
         } else if (command === 'trades' && isAdmin) {
-            review.tradesCommand(steamID, this.bot);
+            c.review.tradesCommand(steamID, this.bot);
         } else if (command === 'trade' && isAdmin) {
-            review.tradeCommand(steamID, message, this.bot);
+            c.review.tradeCommand(steamID, message, this.bot);
         } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
-            review.accepttradeCommand(steamID, message, this.bot);
+            c.review.accepttradeCommand(steamID, message, this.bot);
         } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
-            review.declinetradeCommand(steamID, message, this.bot);
+            c.review.declinetradeCommand(steamID, message, this.bot);
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
@@ -163,11 +161,11 @@ export default class Commands {
         } else if (command === 'check' && isAdmin) {
             void this.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
-            pricelist.findCommand(steamID, message, this.bot);
+            c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
-            options.optionsCommand(steamID, this.bot);
+            c.options.optionsCommand(steamID, this.bot);
         } else if (command === 'config' && isAdmin) {
-            options.updateOptionsCommand(steamID, message, this.bot);
+            c.options.updateOptionsCommand(steamID, message, this.bot);
         } else if (command === 'donatebptf' && isAdmin) {
             this.donateBPTFCommand(steamID, message);
         } else if (command === 'donatenow' && isAdmin) {
@@ -187,7 +185,7 @@ export default class Commands {
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
-        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -272,7 +270,7 @@ export default class Commands {
     // Instant item trade
 
     private buyCommand(steamID: SteamID, message: string): void {
-        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -290,7 +288,7 @@ export default class Commands {
     }
 
     private sellCommand(steamID: SteamID, message: string): void {
-        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -319,7 +317,7 @@ export default class Commands {
             return;
         }
 
-        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -387,7 +385,7 @@ export default class Commands {
             return;
         }
 
-        const info = utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
             return;
@@ -607,11 +605,11 @@ export default class Commands {
     // under !more command
 
     private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -716,13 +714,13 @@ export default class Commands {
             return;
         }
 
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const paramStr = CommandParser.removeCommand(message);
 
         const params = CommandParser.parseParams(paramStr);
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -760,13 +758,13 @@ export default class Commands {
             return;
         }
 
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const paramStr = CommandParser.removeCommand(message);
 
         const params = CommandParser.parseParams(paramStr);
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -834,13 +832,13 @@ export default class Commands {
             return;
         }
 
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const paramStr = CommandParser.removeCommand(message);
 
         const params = CommandParser.parseParams(paramStr);
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -949,515 +947,19 @@ export default class Commands {
         this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
     }
 
-    // Bot manager commands
-
-    private expandCommand(steamID: SteamID, message: string): void {
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (typeof params.craftable !== 'boolean') {
-            this.bot.sendMessage(steamID, '⚠️ Missing `craftable=true|false`');
-            return;
-        }
-
-        const item = SKU.fromString('5050;6');
-
-        if (params.craftable === false) {
-            item.craftable = false;
-        }
-
-        const assetids = this.bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
-
-        const name = this.bot.schema.getName(item);
-
-        if (assetids.length === 0) {
-            // No backpack expanders
-            this.bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
-            return;
-        }
-
-        this.bot.tf2gc.useItem(assetids[0], err => {
-            if (err) {
-                log.warn('Error trying to expand inventory: ', err);
-                this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
-                return;
-            }
-
-            this.bot.sendMessage(steamID, `✅ Used ${name}!`);
-        });
-    }
-
-    private deleteCommand(steamID: SteamID, message: string): void {
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
-            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-            return;
-        }
-
-        if (params.assetid !== undefined && params.sku === undefined) {
-            // This most likely not working with Non-Tradable items.
-            const ourInventory = this.bot.inventoryManager.getInventory();
-
-            const targetedAssetId = params.assetid as string;
-            const sku = ourInventory.findByAssetid(targetedAssetId);
-
-            if (sku === null) {
-                if (params.i_am_sure !== 'yes_i_am') {
-                    this.bot.sendMessage(
-                        steamID,
-                        `/pre ⚠️ Are you sure that you want to delete the item with asset ID ${targetedAssetId}?` +
-                            `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                            `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
-                    );
-                    return;
-                }
-
-                this.bot.tf2gc.deleteItem(targetedAssetId, err => {
-                    if (err) {
-                        log.warn(`Error trying to delete ${targetedAssetId}: `, err);
-                        this.bot.sendMessage(steamID, `❌ Failed to delete ${targetedAssetId}: ${err.message}`);
-                        return;
-                    }
-                    this.bot.sendMessage(steamID, `✅ Deleted ${targetedAssetId}!`);
-                });
-                return;
-            } else {
-                const item = SKU.fromString(sku);
-                const name = this.bot.schema.getName(item, false);
-
-                if (params.i_am_sure !== 'yes_i_am') {
-                    this.bot.sendMessage(
-                        steamID,
-                        `/pre ⚠️ Are you sure that you want to delete ${name}?` +
-                            `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                            `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
-                    );
-                    return;
-                }
-
-                this.bot.tf2gc.deleteItem(targetedAssetId, err => {
-                    if (err) {
-                        log.warn(`Error trying to delete ${name}: `, err);
-                        this.bot.sendMessage(
-                            steamID,
-                            `❌ Failed to delete ${name}(${targetedAssetId}): ${err.message}`
-                        );
-                        return;
-                    }
-                    this.bot.sendMessage(steamID, `✅ Deleted ${name}(${targetedAssetId})!`);
-                });
-                return;
-            }
-        }
-
-        if (params.name !== undefined || params.item !== undefined) {
-            this.bot.sendMessage(
-                steamID,
-                '⚠️ Please only use sku property.' +
-                    '\n\nBelow are some common items to delete:' +
-                    '\n• Smissamas Sweater: 16391;15;untradable;w1;pk391' +
-                    '\n• Soul Gargoyle: 5826;6;uncraftable;untradable' +
-                    '\n• Noice Maker - TF Birthday: 536;6;untradable' +
-                    '\n• Bronze Dueling Badge: 242;6;untradable' +
-                    '\n• Silver Dueling Badge: 243;6;untradable' +
-                    '\n• Gold Dueling Badge: 244;6;untradable' +
-                    '\n• Platinum Dueling Badge: 245;6;untradable' +
-                    '\n• Mercenary: 166;6;untradable' +
-                    '\n• Soldier of Fortune: 165;6;untradable' +
-                    '\n• Grizzled Veteran: 164;6;untradable' +
-                    '\n• Primeval Warrior: 170;6;untradable' +
-                    '\n• Professor Speks: 343;6;untradable' +
-                    '\n• Mann Co. Cap: 261;6;untradable' +
-                    '\n• Mann Co. Online Cap: 994;6;untradable' +
-                    '\n• Proof of Purchase: 471;6;untradable' +
-                    '\n• Mildly Disturbing Halloween Mask: 115;6;untradable' +
-                    '\n• Seal Mask: 582;6;untradable' +
-                    '\n• Pyrovision Goggles: 743;6;untradable' +
-                    '\n• Giftapult: 5083;6;untradable' +
-                    '\n• Spirit Of Giving: 655;11;untradable' +
-                    '\n• Party Hat: 537;6;untradable' +
-                    '\n• Name Tag: 5020;6;untradable' +
-                    '\n• Description Tag: 5044;6;untradable' +
-                    '\n• Ghastly Gibus: 584;6;untradable' +
-                    '\n• Ghastlier Gibus: 279;6;untradable' +
-                    '\n• Power Up Canteen: 489;6;untradable' +
-                    '\n• Bombinomicon: 583;6;untradable' +
-                    '\n• Skull Island Topper: 941;6;untradable' +
-                    '\n• Spellbook Page: 8935;6;untradable' +
-                    '\n• Gun Mettle Campaign Coin: 5809;6;untradable' +
-                    '\n• MONOCULUS!: 581;6;untradable' +
-                    '\n\nOr other items, please refer here: https://bit.ly/3gZQxFQ (defindex)'
-            );
-            return;
-        }
-
-        if (params.sku === undefined) {
-            this.bot.sendMessage(steamID, '⚠️ Missing sku property. Example: "!delete sku=536;6;untradable"');
-            return;
-        }
-
-        const targetedSKU = params.sku as string;
-
-        const uncraft = targetedSKU.includes(';uncraftable');
-        const untrade = targetedSKU.includes(';untradable');
-
-        params.sku = targetedSKU.replace(';uncraftable', '');
-        params.sku = targetedSKU.replace(';untradable', '');
-        const item = SKU.fromString(targetedSKU);
-
-        if (uncraft) {
-            item.craftable = !uncraft;
-        }
-
-        if (untrade) {
-            item.tradable = !untrade;
-        }
-
-        const assetids = this.bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
-
-        const name = this.bot.schema.getName(item, false);
-
-        if (assetids.length === 0) {
-            // Item not found
-            this.bot.sendMessage(steamID, `❌ I couldn't find any ${pluralize(name, 0)}`);
-            return;
-        }
-
-        let assetid: string;
-        if (params.assetid !== undefined) {
-            const targetedAssetId = params.assetid as string;
-
-            if (assetids.includes(targetedAssetId)) {
-                assetid = targetedAssetId;
-            } else {
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Looks like an assetid ${targetedAssetId} did not match any assetids associated with ${name}(${targetedSKU}) in my inventory. Try using the sku to delete a random assetid.`
-                );
-                return;
-            }
-        } else {
-            assetid = assetids[0];
-        }
-
-        if (params.i_am_sure !== 'yes_i_am') {
-            this.bot.sendMessage(
-                steamID,
-                `/pre ⚠️ Are you sure that you want to delete ${name}?` +
-                    `\n⚠️ This process is irreversible and will delete the item from your bot's backpack!` +
-                    `\n⚠️ If you are sure, try again with i_am_sure=yes_i_am as a parameter`
-            );
-            return;
-        }
-
-        this.bot.tf2gc.deleteItem(assetid, err => {
-            if (err) {
-                log.warn(`Error trying to delete ${name}: `, err);
-                this.bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
-                return;
-            }
-
-            this.bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
-        });
-    }
-
-    private nameCommand(steamID: SteamID, message: string): void {
-        const newName = CommandParser.removeCommand(message);
-
-        if (!newName || newName === '!name') {
-            this.bot.sendMessage(steamID, '❌ You forgot to add a name. Example: "!name IdiNium"');
-            return;
-        }
-
-        this.bot.community.editProfile(
-            {
-                name: newName
-            },
-            err => {
-                if (err) {
-                    log.warn('Error while changing name: ', err);
-                    this.bot.sendMessage(steamID, `❌ Error while changing name: ${err.message}`);
-                    return;
-                }
-
-                this.bot.sendMessage(steamID, '✅ Successfully changed name.');
-            }
-        );
-    }
-
-    private avatarCommand(steamID: SteamID, message: string): void {
-        const imageUrl = CommandParser.removeCommand(message);
-
-        if (!imageUrl || imageUrl === '!avatar') {
-            this.bot.sendMessage(
-                steamID,
-                '❌ You forgot to add an image url. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
-            );
-            return;
-        }
-
-        if (!validUrl.isUri(imageUrl)) {
-            this.bot.sendMessage(
-                steamID,
-                '❌ Your url is not valid. Example: "!avatar https://steamuserimages-a.akamaihd.net/ugc/949595415286366323/8FECE47652C9D77501035833E937584E30D0F5E7/"'
-            );
-            return;
-        }
-
-        this.bot.community.uploadAvatar(imageUrl, err => {
-            if (err) {
-                log.warn('Error while uploading new avatar: ', err);
-                this.bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${err.message}`);
-                return;
-            }
-
-            this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
-        });
-    }
-
-    private blockCommand(steamID: SteamID, message: string): void {
-        const steamid = CommandParser.removeCommand(message);
-
-        if (!steamid || steamid === '!block') {
-            this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
-            return;
-        }
-
-        const targetSteamID64 = new SteamID(steamid);
-
-        if (!targetSteamID64.isValid()) {
-            this.bot.sendMessage(steamID, '❌ SteamID is not valid. Example: 76561198798404909');
-            return;
-        }
-
-        const sendMessage = this.bot;
-
-        this.bot.client.blockUser(targetSteamID64, err => {
-            if (err) {
-                log.warn(`Failed to block user ${targetSteamID64.getSteamID64()}: `, err);
-                sendMessage.sendMessage(
-                    steamID,
-                    `❌ Failed to block user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
-                return;
-            }
-            sendMessage.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64.getSteamID64()}`);
-        });
-    }
-
-    private unblockCommand(steamID: SteamID, message: string): void {
-        const steamid = CommandParser.removeCommand(message);
-
-        if (!steamid || steamid === '!unblock') {
-            this.bot.sendMessage(steamID, '❌ You forgot to add their SteamID64. Example: 76561198798404909');
-            return;
-        }
-
-        const targetSteamID64 = new SteamID(steamid);
-
-        if (!targetSteamID64.isValid()) {
-            this.bot.sendMessage(steamID, '❌ SteamID is not valid. Example: 76561198798404909');
-            return;
-        }
-
-        const sendMessage = this.bot;
-
-        this.bot.client.unblockUser(targetSteamID64, err => {
-            if (err) {
-                log.warn(`Failed to unblock user ${targetSteamID64.getSteamID64()}: `, err);
-                sendMessage.sendMessage(
-                    steamID,
-                    `❌ Failed to unblock user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
-                return;
-            }
-            sendMessage.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64.getSteamID64()}`);
-        });
-    }
-
-    private stopCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '⌛ Stopping...');
-
-        this.bot.botManager.stopProcess().catch((err: Error) => {
-            log.warn('Error occurred while trying to stop: ', err);
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            this.bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${err.message}`);
-        });
-    }
-
-    private restartCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '⌛ Restarting...');
-
-        this.bot.botManager
-            .restartProcess()
-            .then(restarting => {
-                if (!restarting) {
-                    this.bot.sendMessage(
-                        steamID,
-                        '❌ You are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS'
-                    );
-                }
-            })
-            .catch((err: Error) => {
-                log.warn('Error occurred while trying to restart: ', err);
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                this.bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
-            });
-    }
-
-    private autoKeysCommand(steamID: SteamID): void {
-        if (this.autokeys.isEnabled === false) {
-            this.bot.sendMessage(steamID, `This feature is disabled.`);
-            return;
-        }
-
-        const autokeys = this.autokeys;
-
-        const pureNow = pure.currPure(this.bot);
-        const currKey = pureNow.key;
-        const currRef = pureNow.refTotalInScrap;
-
-        const keyPrices = this.bot.pricelist.getKeyPrices();
-
-        const userPure = autokeys.userPure;
-        const status = (this.bot.handler as MyHandler).getAutokeysStatus();
-
-        const keyBlMin = `       X`;
-        const keyAbMax = `                     X`;
-        const keyAtBet = `              X`;
-        const keyAtMin = `         X`;
-        const keyAtMax = `                   X`;
-        const keysLine = `Keys ————|—————————|————▶`;
-        const refBlMin = `       X`;
-        const refAbMax = `                     X`;
-        const refAtBet = `              X`;
-        const refAtMin = `         X`;
-        const refAtMax = `                   X`;
-        const refsLine = `Refs ————|—————————|————▶`;
-        const xAxisRef = `        min       max`;
-        const keysPosition =
-            currKey < userPure.minKeys
-                ? keyBlMin
-                : currKey > userPure.maxKeys
-                ? keyAbMax
-                : currKey > userPure.minKeys && currKey < userPure.maxKeys
-                ? keyAtBet
-                : currKey === userPure.minKeys
-                ? keyAtMin
-                : currKey === userPure.maxKeys
-                ? keyAtMax
-                : '';
-        const refsPosition =
-            currRef < userPure.minRefs
-                ? refBlMin
-                : currRef > userPure.maxRefs
-                ? refAbMax
-                : currRef > userPure.minRefs && currRef < userPure.maxRefs
-                ? refAtBet
-                : currRef === userPure.minRefs
-                ? refAtMin
-                : currRef === userPure.maxRefs
-                ? refAtMax
-                : '';
-        const summary = `\n• ${userPure.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
-            userPure.maxKeys
-        }\n• ${Currencies.toRefined(userPure.minRefs)} < ${pluralize(
-            'ref',
-            Currencies.toRefined(currRef)
-        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
-
-        const isAdmin = this.bot.isAdmin(steamID);
-
-        let reply =
-            (isAdmin ? 'Your ' : 'My ') +
-            `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-        reply += `\n       Key price: ${keyPrices.buy.metal}/${keyPrices.sell.toString()} (${
-            keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-        })`;
-        reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
-        reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
-        reply += `\n Autokeys status: ${
-            status.isActive
-                ? status.isBanking
-                    ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                    : status.isBuying
-                    ? 'Buying for ' +
-                      Currencies.toRefined(
-                          keyPrices.buy.toValue() +
-                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                      ).toString() +
-                      ' ref' +
-                      (autokeys.isEnableScrapAdjustment ? ` (+${autokeys.scrapAdjustmentValue} scrap)` : '')
-                    : 'Selling for ' +
-                      Currencies.toRefined(
-                          keyPrices.sell.toValue() -
-                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                      ).toString() +
-                      ' ref' +
-                      (autokeys.isEnableScrapAdjustment ? ` (-${autokeys.scrapAdjustmentValue} scrap)` : '')
-                : 'Not active'
-        }`;
-        /*
-        //        X
-        // Keys ————|—————————|————▶
-        //                       X
-        // Refs ————|—————————|————▶
-        //         min       max
-        */
-
-        this.bot.sendMessage(steamID, '/pre ' + reply);
-    }
-
-    private refreshAutokeysCommand(steamID: SteamID): void {
-        if (this.autokeys.isEnabled === false) {
-            this.bot.sendMessage(steamID, `This feature is disabled.`);
-            return;
-        }
-
-        this.autokeys.refresh();
-        this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
-    }
-
-    private resetQueueCommand(steamID: SteamID): void {
-        this.cartQueue.resetQueue();
-        this.bot.sendMessage(steamID, '✅ Sucessfully reset queue!');
-    }
-
-    private refreshListingsCommand(steamID: SteamID): void {
-        const inventory = this.bot.inventoryManager.getInventory();
-        const pricelist = this.bot.pricelist.getPrices().filter(entry => {
-            // Filter our pricelist to only the items that the bot currently have.
-            return inventory.findBySKU(entry.sku).length > 0;
-        });
-
-        if (pricelist.length > 0) {
-            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-            this.bot.sendMessage(
-                steamID,
-                'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
-            );
-            void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-                this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
-            });
-        } else {
-            this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
-        }
-    }
-
     // Request commands
 
     private pricecheckCommand(steamID: SteamID, message: string): void {
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
             this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;
@@ -1555,16 +1057,16 @@ export default class Commands {
     }
 
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
-        message = utils.removeLinkProtocol(message);
+        message = c.utils.removeLinkProtocol(message);
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.sku !== undefined && !utils.testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
             this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             return;
         }
 
         if (params.sku === undefined) {
-            const item = utils.getItemFromParams(steamID, params, this.bot);
+            const item = c.utils.getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
                 return;

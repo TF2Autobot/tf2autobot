@@ -13,7 +13,7 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakerSKU, strangePartsData } from '../lib/data';
-import { updateOptionsCommand } from './Commands/optionsCommands';
+import { updateOptionsCommand } from './Commands/functions/options';
 
 export default class Listings {
     private readonly bot: Bot;

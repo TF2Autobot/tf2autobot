@@ -1,9 +1,9 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 
-import Bot from '../Bot';
+import Bot from '../../Bot';
 
-import { stats } from '../../lib/tools/export';
+import { stats } from '../../../lib/tools/export';
 
 // Bot status
 

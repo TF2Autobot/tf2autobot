@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import Bot from '../Bot';
+import Bot from '../../Bot';
 
 const COMMANDS: string[] = [
     '!help - Get a list of commands',

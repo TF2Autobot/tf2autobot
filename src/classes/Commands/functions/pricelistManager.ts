@@ -9,13 +9,13 @@ import dayjs from 'dayjs';
 
 import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
-import { Entry, EntryData, PricelistChangedSource } from '../Pricelist';
+import Bot from '../../Bot';
+import CommandParser from '../../CommandParser';
+import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
-import validator from '../../lib/validator';
-import log from '../../lib/logger';
-import MyHandler from '../MyHandler/MyHandler';
+import validator from '../../../lib/validator';
+import log from '../../../lib/logger';
+import MyHandler from '../../MyHandler/MyHandler';
 
 // Pricelist manager
 
