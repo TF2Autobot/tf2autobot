@@ -4,23 +4,16 @@
 
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import { UnknownDictionary } from '../../../../types/common';
+import * as r from '../../MyHandler';
 
 import Bot from '../../../Bot';
-import {
-    invalidItems,
-    overstocked,
-    understocked,
-    duped,
-    dupedCheckFailed,
-    invalidValue
-} from './reasons/export-reasons';
+import * as re from './reasons/export-reasons';
 
 import { valueDiff } from '../../../../lib/tools/export';
 
 export default function processReview(
     offer: TradeOffer,
-    meta: UnknownDictionary<any>,
+    meta: r.Meta,
     bot: Bot,
     isTradingKeys: boolean
 ): {
@@ -58,28 +51,28 @@ export default function processReview(
     };
 
     if (reasons.includes('🟨_INVALID_ITEMS')) {
-        const invalid = invalidItems(meta, bot);
+        const invalid = re.invalidItems(meta, bot);
 
         reviewReasons.push(invalid.note);
         names.invalidItems = invalid.name;
     }
 
     if (reasons.includes('🟦_OVERSTOCKED')) {
-        const overstock = overstocked(meta, bot);
+        const overstock = re.overstocked(meta, bot);
 
         reviewReasons.push(overstock.note);
         names.overstocked = overstock.name;
     }
 
     if (reasons.includes('🟩_UNDERSTOCKED')) {
-        const understock = understocked(meta, bot);
+        const understock = re.understocked(meta, bot);
 
         reviewReasons.push(understock.note);
         names.understocked = understock.name;
     }
 
     if (reasons.includes('🟫_DUPED_ITEMS')) {
-        const dupe = duped(meta, bot);
+        const dupe = re.duped(meta, bot);
 
         reviewReasons.push(dupe.note);
         names.duped = dupe.name;
@@ -87,7 +80,7 @@ export default function processReview(
 
     // for 🟪_DUPE_CHECK_FAILED
     if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
-        const dupeFail = dupedCheckFailed(meta, bot);
+        const dupeFail = re.dupedCheckFailed(meta, bot);
 
         reviewReasons.push(dupeFail.note);
         names.dupedFailed = dupeFail.name;
@@ -95,7 +88,7 @@ export default function processReview(
 
     let missingPureNote = '';
     if (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')) {
-        const invalidV = invalidValue(bot, value);
+        const invalidV = re.invalidValue(bot, value);
 
         reviewReasons.push(invalidV.note);
         missingPureNote = invalidV.missing;

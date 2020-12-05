@@ -1,24 +1,14 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import { UnknownDictionary } from '../../../../types/common';
 
 import Bot from '../../../Bot';
+import * as r from '../../MyHandler';
 
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import { pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
 
-export default function sendReview(
-    offer: TradeOffer,
-    bot: Bot,
-    meta: UnknownDictionary<any>,
-    isTradingKeys: boolean
-): void {
+export default function sendReview(offer: TradeOffer, bot: Bot, meta: r.Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
@@ -118,7 +108,7 @@ export default function sendReview(
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
         bot.messageAdmins(
-            `⚠️ Offer #${offer.id} from ${offer.partner} is pending review.` +
+            `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
                 `\nReasons: ${reasons.join(', ')}` +
                 (reasons.includes('⬜_BANNED_CHECK_FAILED')
                     ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'

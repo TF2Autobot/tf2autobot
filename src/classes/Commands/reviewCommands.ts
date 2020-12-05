@@ -14,6 +14,7 @@ import { summarizeItems } from './utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
+import { Meta } from '../MyHandler/MyHandler';
 
 import { check, generateLinks } from '../../lib/tools/export';
 import log from '../../lib/logger';
@@ -225,30 +226,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
             }
         }
 
-        const reviewMeta: {
-            uniqueReasons: string[];
-            reasons: any;
-            highValue: {
-                has: {
-                    our: boolean;
-                    their: boolean;
-                };
-                items: {
-                    our: {
-                        skus: string[];
-                        names: string[];
-                    };
-                    their: {
-                        skus: string[];
-                        names: string[];
-                    };
-                };
-                isMention: {
-                    our: boolean;
-                    their: boolean;
-                };
-            };
-        } = offer.data('reviewMeta');
+        const reviewMeta = offer.data('reviewMeta') as Meta;
 
         if (declineTrade === false) {
             void bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {

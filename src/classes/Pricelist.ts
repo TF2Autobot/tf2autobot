@@ -138,7 +138,7 @@ export default class Pricelist extends EventEmitter {
 
     private prices: Entry[] = [];
 
-    private globalKeyPrices: { buy: Currencies; sell: Currencies; src: string; time: number };
+    private globalKeyPrices: KeyPrices;
 
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
@@ -154,7 +154,7 @@ export default class Pricelist extends EventEmitter {
         this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
     }
 
-    getKeyPrices(): { buy: Currencies; sell: Currencies; src: string; time: number } {
+    getKeyPrices(): KeyPrices {
         return this.globalKeyPrices;
     }
 
@@ -679,6 +679,13 @@ export default class Pricelist extends EventEmitter {
 
         return sorted;
     }
+}
+
+export interface KeyPrices {
+    buy: Currencies;
+    sell: Currencies;
+    src: string;
+    time: number;
 }
 
 interface GetPrices {

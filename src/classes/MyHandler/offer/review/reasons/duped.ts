@@ -1,29 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import { UnknownDictionary } from '../../../../../types/common';
+import * as r from '../../../MyHandler';
 
-export default function duped(meta: UnknownDictionary<any>, bot: Bot): { note: string; name: string[] } {
+export default function duped(meta: r.Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options;
 
     const wrong = meta.reasons;
     const dupedItemsName: string[] = [];
-    const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS'));
+    const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as r.DupedItems[];
 
     duped.forEach(el => {
         const name = bot.schema.getName(SKU.fromString(el.sku), false);
         if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-            dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid as string})`);
+            dupedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid})`);
         } else {
             // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-            dupedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid as string}`);
+            dupedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
         }
     });
 

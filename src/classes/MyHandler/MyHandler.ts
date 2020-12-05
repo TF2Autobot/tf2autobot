@@ -1486,12 +1486,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onOfferAction(
-        offer: TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
-        reason: string,
-        meta: UnknownDictionary<any>
-    ): void {
+    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
         const notify = offer.data('notify') === true;
         if (!notify) {
             return;
@@ -1844,7 +1839,7 @@ interface OnRun {
 interface OnNewTradeOffer {
     action: 'accept' | 'decline' | 'skip';
     reason: string;
-    meta?: UnknownDictionary<any>;
+    meta?: Meta;
 }
 
 interface BotInfo {
@@ -1879,7 +1874,7 @@ interface GetPrices {
     message?: string;
 }
 
-interface Overstocked {
+export interface Overstocked {
     reason: '🟦_OVERSTOCKED';
     sku: string;
     buying: boolean;
@@ -1887,7 +1882,7 @@ interface Overstocked {
     amountCanTrade: number;
 }
 
-interface Understocked {
+export interface Understocked {
     reason: '🟩_UNDERSTOCKED';
     sku: string;
     selling: boolean;
@@ -1895,7 +1890,7 @@ interface Understocked {
     amountCanTrade: number;
 }
 
-interface InvalidItems {
+export interface InvalidItems {
     reason: '🟨_INVALID_ITEMS';
     sku: string;
     buying: boolean;
@@ -1903,13 +1898,13 @@ interface InvalidItems {
     price: string;
 }
 
-interface InvalidValue {
+export interface InvalidValue {
     reason: '🟥_INVALID_VALUE';
     our: number;
     their: number;
 }
 
-interface DupeCheckFailed {
+export interface DupeCheckFailed {
     reason: '🟪_DUPE_CHECK_FAILED';
     withError: boolean;
     assetid: string | string[];
@@ -1917,7 +1912,7 @@ interface DupeCheckFailed {
     error?: string;
 }
 
-interface DupedItems {
+export interface DupedItems {
     reason: '🟫_DUPED_ITEMS';
     assetid: string;
     sku: string;
@@ -1942,3 +1937,13 @@ export type WrongAboutOffer =
     | DupedItems
     | EscrowCheckFailed
     | BannedCheckFailed;
+
+export interface Meta {
+    highValue?: HighValueOutput;
+    highValueName?: string[];
+    uniqueReasons?: string[];
+    reasons?: WrongAboutOffer[];
+    assetids?: string[];
+    sku?: string[];
+    result?: boolean[];
+}
