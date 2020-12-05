@@ -903,7 +903,7 @@ export default class Commands {
                 steamID,
                 `I only have ${pluralize(name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
-                    ' been added to your donate cart. Type "!donatecart" to view your donation cart summary or "!donatenow" to donate. 💰'
+                    ' been added to your donate cart. Type "!donatecart" to view your donation cart sumary or "!donatenow" to donate. 💰'
             );
         } else {
             this.bot.sendMessage(
