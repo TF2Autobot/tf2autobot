@@ -67,19 +67,10 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-// This error is a false positive.
-// The signal and err are being created dynamically.
-// Treat them as any for now.
 ON_DEATH({ uncaughtException: true })((signal, err) => {
     const crashed = typeof err !== 'string';
 
     if (crashed) {
-        if (err.statusCode >= 500 || err.statusCode === 429) {
-            delete err.body;
-        }
-
         const botReady = botManager.isBotReady();
 
         log.error(
@@ -105,7 +96,7 @@ ON_DEATH({ uncaughtException: true })((signal, err) => {
         log.warn('Received kill signal `' + signal + '`');
     }
 
-    botManager.stop(crashed ? err : null, true, signal === 'SIGKILL');
+    botManager.stop(crashed ? (signal as Error) : null, true, false);
 });
 
 process.on('message', message => {

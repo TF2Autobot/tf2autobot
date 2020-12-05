@@ -69,7 +69,7 @@
         "@types/async": "^3.2.5",
         "@types/bluebird-global": "^3.5.12",
         "@types/cheerio": "^0.22.22",
-        "@types/death": "^1.1.0",
+        "@types/death": "^1.1.1",
         "@types/graceful-fs": "^4.1.4",
         "@types/jest": "^26.0.16",
         "@types/pluralize": "0.0.29",
