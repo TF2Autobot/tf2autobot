@@ -630,7 +630,7 @@ export default class Listings {
                                     .replace('Deadly Daffodil', '🟡')
                                     .replace('Mean Green', '🟢')
                                     .replace('Agonizing Emerald', '🟩')
-                                    .replace('Villainous Violet', '🩱')
+                                    .replace('Villainous Violet', '🟣')
                             );
                         }
                     } else if (value.startsWith('Paint Color: ') && color === '756b5e') {
