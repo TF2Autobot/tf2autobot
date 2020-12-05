@@ -602,76 +602,67 @@ export default class Listings {
                     } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1') {
                         const killstreaker = value.replace('Killstreaker: ', '').trim();
 
-                        // Only user specified in highValue.killstreakers
-                        if (opt.killstreakers.includes(killstreaker)) {
-                            hasKillstreaker = true;
-                            killstreakerName.push(
-                                killstreaker
-                                    .replace(/Cerebral Discharge/, '⚡')
-                                    .replace(/Fire Horns/, '🔥🐮')
-                                    .replace(/Flames/, '🔥')
-                                    .replace(/Hypno-Beam/, '😵💫')
-                                    .replace(/Incinerator/, '🚬')
-                                    .replace(/Singularity/, '🔆')
-                                    .replace(/Tornado/, '🌪️')
-                            );
-                        }
+                        hasKillstreaker = true;
+                        killstreakerName.push(
+                            killstreaker
+                                .replace(/Cerebral Discharge/, '⚡')
+                                .replace(/Fire Horns/, '🔥🐮')
+                                .replace(/Flames/, '🔥')
+                                .replace(/Hypno-Beam/, '😵💫')
+                                .replace(/Incinerator/, '🚬')
+                                .replace(/Singularity/, '🔆')
+                                .replace(/Tornado/, '🌪️')
+                        );
                     } else if (value.startsWith('Sheen: ') && color === '7ea9d1') {
                         const sheen = value.replace('Sheen: ', '').trim();
 
-                        // Only user specified in highValue.sheens
-                        if (opt.sheens.includes(sheen)) {
-                            hasSheen = true;
-                            sheenName.push(
-                                sheen
-                                    .replace(/Team Shine/, '🔵🔴')
-                                    .replace(/Hot Rod/, '🎗️')
-                                    .replace(/Manndarin/, '🟠')
-                                    .replace(/Deadly Daffodil/, '🟡')
-                                    .replace(/Mean Green/, '🟢')
-                                    .replace(/Agonizing Emerald/, '🟩')
-                                    .replace(/Villainous Violet/, '🟣')
-                            );
-                        }
+                        hasSheen = true;
+                        sheenName.push(
+                            sheen
+                                .replace(/Team Shine/, '🔵🔴')
+                                .replace(/Hot Rod/, '🎗️')
+                                .replace(/Manndarin/, '🟠')
+                                .replace(/Deadly Daffodil/, '🟡')
+                                .replace(/Mean Green/, '🟢')
+                                .replace(/Agonizing Emerald/, '🟩')
+                                .replace(/Villainous Violet/, '🟣')
+                        );
                     } else if (value.startsWith('Paint Color: ') && color === '756b5e') {
                         const paint = value.replace('Paint Color: ', '').trim();
 
-                        // Only user specified in highValue.painted
-                        if (opt.painted.includes(paint)) {
-                            hasPaint = true;
-                            paintName.push(
-                                paint
-                                    .replace(/A Color Similar to Slate/, '🧪')
-                                    .replace(/A Deep Commitment to Purple/, '🪀')
-                                    .replace(/A Distinctive Lack of Hue/, '🎩')
-                                    .replace(/A Mann's Mint/, '👽')
-                                    .replace(/After Eight/, '🏴')
-                                    .replace(/Aged Moustache Grey/, '👤')
-                                    .replace(/An Extraordinary Abundance of Tinge/, '🏐')
-                                    .replace(/Australium Gold/, '🏆')
-                                    .replace(/Color No. 216-190-216/, '🧠')
-                                    .replace(/Dark Salmon Injustice/, '🐚')
-                                    .replace(/Drably Olive/, '🥝')
-                                    .replace(/Indubitably Green/, '🥦')
-                                    .replace(/Mann Co. Orange/, '🏀')
-                                    .replace(/Muskelmannbraun/, '👜')
-                                    .replace(/Noble Hatter's Violet/, '🍇')
-                                    .replace(/Peculiarly Drab Tincture/, '🪑')
-                                    .replace(/Pink as Hell/, '🎀')
-                                    .replace(/Radigan Conagher Brown/, '🚪')
-                                    .replace(/The Bitter Taste of Defeat and Lime/, '💚')
-                                    .replace(/The Color of a Gentlemann's Business Pants/, '🧽')
-                                    .replace(/Ye Olde Rustic Colour/, '🥔')
-                                    .replace(/Zepheniah's Greed/, '🌳')
-                                    .replace(/An Air of Debonair/, '👜🔷')
-                                    .replace(/Balaclavas Are Forever/, '👜🔷')
-                                    .replace(/Operator's Overalls/, '👜🔷')
-                                    .replace(/Cream Spirit/, '🍘🥮')
-                                    .replace(/Team Spirit/, '🔵🔴')
-                                    .replace(/The Value of Teamwork/, '👨🏽‍🤝‍👨🏻')
-                                    .replace(/Waterlogged Lab Coat/, '👨🏽‍🤝‍👨🏽')
-                            );
-                        }
+                        hasPaint = true;
+                        paintName.push(
+                            paint
+                                .replace(/A Color Similar to Slate/, '🧪')
+                                .replace(/A Deep Commitment to Purple/, '🪀')
+                                .replace(/A Distinctive Lack of Hue/, '🎩')
+                                .replace(/A Mann's Mint/, '👽')
+                                .replace(/After Eight/, '🏴')
+                                .replace(/Aged Moustache Grey/, '👤')
+                                .replace(/An Extraordinary Abundance of Tinge/, '🏐')
+                                .replace(/Australium Gold/, '🏆')
+                                .replace(/Color No. 216-190-216/, '🧠')
+                                .replace(/Dark Salmon Injustice/, '🐚')
+                                .replace(/Drably Olive/, '🥝')
+                                .replace(/Indubitably Green/, '🥦')
+                                .replace(/Mann Co. Orange/, '🏀')
+                                .replace(/Muskelmannbraun/, '👜')
+                                .replace(/Noble Hatter's Violet/, '🍇')
+                                .replace(/Peculiarly Drab Tincture/, '🪑')
+                                .replace(/Pink as Hell/, '🎀')
+                                .replace(/Radigan Conagher Brown/, '🚪')
+                                .replace(/The Bitter Taste of Defeat and Lime/, '💚')
+                                .replace(/The Color of a Gentlemann's Business Pants/, '🧽')
+                                .replace(/Ye Olde Rustic Colour/, '🥔')
+                                .replace(/Zepheniah's Greed/, '🌳')
+                                .replace(/An Air of Debonair/, '👜🔷')
+                                .replace(/Balaclavas Are Forever/, '👜🔷')
+                                .replace(/Operator's Overalls/, '👜🔷')
+                                .replace(/Cream Spirit/, '🍘🥮')
+                                .replace(/Team Spirit/, '🔵🔴')
+                                .replace(/The Value of Teamwork/, '👨🏽‍🤝‍👨🏻')
+                                .replace(/Waterlogged Lab Coat/, '👨🏽‍🤝‍👨🏽')
+                        );
                     }
                 });
 
