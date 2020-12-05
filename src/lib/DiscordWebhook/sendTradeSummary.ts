@@ -152,7 +152,9 @@ export default function sendTradeSummary(
                         icon_url: avatarFull
                     },
                     description:
-                        summary + (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                        summary +
+                        (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n') +
+                        `\n⏱ Time taken: ${timeTaken}\n`,
                     fields: [
                         {
                             name: '__Item list__',
@@ -182,7 +184,6 @@ export default function sendTradeSummary(
                                 (isShowInventory
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
-                                `\n⏱ Time taken: ${timeTaken}` +
                                 (AdditionalNotes
                                     ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
                                       AdditionalNotes
