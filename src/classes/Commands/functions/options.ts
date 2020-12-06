@@ -3,7 +3,6 @@
 
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
-import * as path from 'path';
 
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -35,6 +34,103 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         if (steamID) bot.sendMessage(steamID, msg);
         else log.warn(msg);
         return;
+    }
+
+    // Convert every string required to string (if user input was some numbers)
+
+    if (params.sendOfferMessage !== undefined) {
+        // idk maybe someone want to put their phone number here xD
+        params.sendOfferMessage = String(params.sendOfferMessage);
+    }
+
+    if (typeof params.game === 'object') {
+        if (params.game.customName !== undefined) {
+            // same as above
+            params.game.customName = String(params.game.customName);
+        }
+    }
+
+    if (typeof params.customMessage === 'object') {
+        // maybe they want to put as binary number for these custom messages
+        if (params.customMessage.welcome !== undefined) {
+            params.customMessage.welcome = String(params.customMessage.welcome);
+        }
+        if (params.customMessage.iDontKnowWhatYouMean !== undefined) {
+            params.customMessage.iDontKnowWhatYouMean = String(params.customMessage.iDontKnowWhatYouMean);
+        }
+        if (params.customMessage.how2trade !== undefined) {
+            params.customMessage.how2trade = String(params.customMessage.how2trade);
+        }
+        if (params.customMessage.success !== undefined) {
+            params.customMessage.success = String(params.customMessage.success);
+        }
+        if (params.customMessage.decline !== undefined) {
+            params.customMessage.decline = String(params.customMessage.decline);
+        }
+        if (params.customMessage.tradedAway !== undefined) {
+            params.customMessage.tradedAway = String(params.customMessage.tradedAway);
+        }
+        if (params.customMessage.clearFriends !== undefined) {
+            params.customMessage.clearFriends = String(params.customMessage.clearFriends);
+        }
+    }
+
+    if (typeof params.manualReview === 'object') {
+        // yeah same
+        if (params.manualReview.invalidValue !== undefined) {
+            if (params.manualReview.invalidValue.note !== undefined) {
+                params.manualReview.invalidValue.note = String(params.manualReview.invalidValue.note);
+            }
+            if (params.manualReview.invalidValue.autoDecline !== undefined) {
+                if (params.manualReview.invalidValue.autoDecline.note !== undefined) {
+                    params.manualReview.invalidValue.autoDecline.note = String(
+                        params.manualReview.invalidValue.autoDecline.note
+                    );
+                }
+            }
+        }
+        if (params.manualReview.invalidItems !== undefined) {
+            if (params.manualReview.invalidItems.note !== undefined) {
+                params.manualReview.invalidItems.note = String(params.manualReview.invalidItems.note);
+            }
+        }
+        if (params.manualReview.overstocked !== undefined) {
+            if (params.manualReview.overstocked.note !== undefined) {
+                params.manualReview.overstocked.note = String(params.manualReview.overstocked.note);
+            }
+        }
+        if (params.manualReview.understocked !== undefined) {
+            if (params.manualReview.understocked.note !== undefined) {
+                params.manualReview.understocked.note = String(params.manualReview.understocked.note);
+            }
+        }
+        if (params.manualReview.duped !== undefined) {
+            if (params.manualReview.duped.note !== undefined) {
+                params.manualReview.duped.note = String(params.manualReview.duped.note);
+            }
+        }
+        if (params.manualReview.dupedCheckFailed !== undefined) {
+            if (params.manualReview.dupedCheckFailed.note !== undefined) {
+                params.manualReview.dupedCheckFailed.note = String(params.manualReview.dupedCheckFailed.note);
+            }
+        }
+        if (params.manualReview.additionalNotes !== undefined) {
+            params.manualReview.additionalNotes = String(params.manualReview.additionalNotes);
+        }
+    }
+
+    if (typeof params.discordWebhook === 'object') {
+        if (params.discordWebhook.ownerID !== undefined) {
+            // THIS IS WHAT IS NEEDED ACTUALLY
+            params.discordWebhook.ownerID = String(params.discordWebhook.ownerID);
+        }
+        if (params.discordWebhook.displayName !== undefined) {
+            params.discordWebhook.displayName = String(params.discordWebhook.displayName);
+        }
+        if (params.discordWebhook.embedColor !== undefined) {
+            // AND ALSO THIS
+            params.discordWebhook.embedColor = String(params.discordWebhook.embedColor);
+        }
     }
 
     const result: JsonOptions = deepMerge(saveOptions, params);
