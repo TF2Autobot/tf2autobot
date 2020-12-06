@@ -503,17 +503,28 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
     }
 }
 
-function loadJsonOptions(p: string, options?: Options): JsonOptions {
+function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     let fileOptions;
     const workingDefault = deepMerge({}, DEFAULTS);
     const incomingOptions = options ? deepMerge({}, options) : deepMerge({}, DEFAULTS);
 
     try {
-        fileOptions = deepMerge({}, workingDefault, JSON.parse(readFileSync(p, { encoding: 'utf8' })));
-    } catch {
-        if (!existsSync(path.dirname(p))) mkdirSync(path.dirname(p), { recursive: true });
-        writeFileSync(p, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
-        fileOptions = deepMerge({}, DEFAULTS);
+        fileOptions = deepMerge({}, workingDefault, JSON.parse(readFileSync(optionsPath, { encoding: 'utf8' })));
+    } catch (e) {
+        // unsure if file or directory is missing or something else is wrong
+        if (!existsSync(path.dirname(optionsPath))) {
+            // check for dir
+            mkdirSync(path.dirname(optionsPath), { recursive: true });
+            writeFileSync(optionsPath, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
+            fileOptions = deepMerge({}, DEFAULTS);
+        } else if (!existsSync(optionsPath)) {
+            // directory is present, see if file was missing
+            writeFileSync(optionsPath, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
+            fileOptions = deepMerge({}, DEFAULTS);
+        } else {
+            // something else is wrong, throw the error
+            throw e;
+        }
     }
     return deepMerge(fileOptions, incomingOptions);
 }
