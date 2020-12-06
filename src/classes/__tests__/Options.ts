@@ -94,14 +94,19 @@ test('malformed options.json should crash', () => {
     const optionsPath = Options.getOptionsPath('abc123');
     cleanPath(path.dirname(optionsPath));
     Options.loadOptions({ steamAccountName: 'abc123' }); // make default options get loaded
-    const malformedOptions = '{this_is_malformed';
+    const malformedOptions = '{"good": "entry",\r\n"unclosed": "string}';
     writeFileSync(optionsPath, malformedOptions, { encoding: 'utf8' }); // options are now mangled
     expect(() => {
         Options.loadOptions({ steamAccountName: 'abc123' });
-    }).toThrow(SyntaxError);
+    }).toThrow(
+        new Error(
+            `${optionsPath}\n` +
+                "Parse error on line 2:\n...ntry\",\r\"unclosed\": \"string}\n----------------------^\nExpecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '[', got 'undefined'"
+        )
+    );
     // ensure options.json is left untouched
     const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
-    expect(rawOptions).toEqual('{this_is_malformed');
+    expect(rawOptions).toEqual('{"good": "entry",\r\n"unclosed": "string}');
 });
 
 test('write options.json if no file exists in directory', () => {
@@ -113,4 +118,21 @@ test('write options.json if no file exists in directory', () => {
     mkdirSync(path.dirname(optionsPath)); // now only the directory exists but no options.json
     Options.loadOptions({ steamAccountName: 'abc123' });
     expect(readFileSync(optionsPath, { encoding: 'utf8' })).toEqual(JSON.stringify(Options.DEFAULTS, null, 4));
+});
+
+test('malformed json in the files dir should crash', () => {
+    const filesPath = Options.getFilesPath('abc123');
+    cleanPath(filesPath);
+    const malformedJsonFile = '{"good": "entry",\r\n"unclosed": "string}';
+    const malformedFilePath = path.join(filesPath, 'bad.json');
+    mkdirSync(filesPath, { recursive: true });
+    writeFileSync(malformedFilePath, malformedJsonFile, { encoding: 'utf8' });
+    expect(() => {
+        Options.loadOptions({ steamAccountName: 'abc123' });
+    }).toThrow(
+        new Error(
+            `${malformedFilePath}\n` +
+                "Parse error on line 2:\n...ntry\",\r\"unclosed\": \"string}\n----------------------^\nExpecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '[', got 'undefined'"
+        )
+    );
 });
