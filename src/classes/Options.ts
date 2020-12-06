@@ -2,6 +2,7 @@
 
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import jsonlint from 'jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 
@@ -509,24 +510,33 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     const incomingOptions = options ? deepMerge({}, options) : deepMerge({}, DEFAULTS);
 
     try {
-        fileOptions = deepMerge({}, workingDefault, JSON.parse(readFileSync(optionsPath, { encoding: 'utf8' })));
+        const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
+        try {
+            fileOptions = deepMerge({}, workingDefault, JSON.parse(rawOptions));
+            return deepMerge(fileOptions, incomingOptions);
+        } catch (e) {
+            if (e instanceof SyntaxError) {
+                // lint the rawOptions to give better feedback since it is SyntaxError
+                jsonlint.parse(rawOptions);
+            }
+            throw e;
+        }
     } catch (e) {
-        // unsure if file or directory is missing or something else is wrong
+        // file or directory is missing or something else is wrong
         if (!existsSync(path.dirname(optionsPath))) {
             // check for dir
             mkdirSync(path.dirname(optionsPath), { recursive: true });
             writeFileSync(optionsPath, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
-            fileOptions = deepMerge({}, DEFAULTS);
+            return deepMerge({}, DEFAULTS);
         } else if (!existsSync(optionsPath)) {
             // directory is present, see if file was missing
             writeFileSync(optionsPath, JSON.stringify(DEFAULTS, null, 4), { encoding: 'utf8' });
-            fileOptions = deepMerge({}, DEFAULTS);
+            return deepMerge({}, DEFAULTS);
         } else {
             // something else is wrong, throw the error
             throw e;
         }
     }
-    return deepMerge(fileOptions, incomingOptions);
 }
 
 export function removeCliOptions(incomingOptions: Options): void {
