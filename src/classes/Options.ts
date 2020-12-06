@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { snakeCase } from 'change-case';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from 'jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
@@ -504,6 +504,26 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
     }
 }
 
+function lintPath(filepath: string): void {
+    const rawOptions = readFileSync(filepath, { encoding: 'utf8' });
+    try {
+        jsonlint.parse(rawOptions);
+    } catch (e) {
+        if (e instanceof Error && 'message' in e) {
+            throw new Error(`${filepath}\n${e.message}`);
+        }
+        throw e;
+    }
+}
+
+function lintAllTheThings(directory: string): void {
+    if (existsSync(directory)) {
+        readdirSync(directory, { withFileTypes: true })
+            .filter(ent => path.extname(ent.name) === '.json')
+            .forEach(ent => lintPath(path.join(directory, ent.name)));
+    }
+}
+
 function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     let fileOptions;
     const workingDefault = deepMerge({}, DEFAULTS);
@@ -552,6 +572,7 @@ export function removeCliOptions(incomingOptions: Options): void {
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
+    lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
     const envOptions = {
         steamAccountName: steamAccountName,
         steamPassword: getOption('steamPassword', '', String, incomingOptions),
@@ -594,6 +615,10 @@ export function loadOptions(options?: Options): Options {
     return deepMerge(jsonOptions, envOptions, incomingOptions);
 }
 
+export function getFilesPath(accountName: string): string {
+    return path.resolve(__dirname, '..', '..', 'files', accountName);
+}
+
 export function getOptionsPath(accountName: string): string {
-    return path.resolve(__dirname, '..', '..', 'files', accountName, 'options.json');
+    return path.resolve(getFilesPath(accountName), 'options.json');
 }
