@@ -545,13 +545,14 @@ export default class Listings {
             const sheenName: string[] = [];
             const paintName: string[] = [];
 
+            const optD = this.bot.options.details.highValue;
+            const optH = this.bot.options.highValue;
+
             // if econ undefined, then skip because it will make your bot crashed.
             if (econ) {
                 const descriptions = econ.descriptions;
 
                 descriptions.forEach(desc => {
-                    const opt = this.bot.options.highValue;
-
                     const value = desc.value;
                     const color = desc.color;
 
@@ -564,7 +565,8 @@ export default class Listings {
                     if (
                         value.startsWith('Halloween:') &&
                         value.endsWith('(spell only active during event)') &&
-                        color === '7ea9d1'
+                        color === '7ea9d1' &&
+                        optD.showSpells
                     ) {
                         // Show all
                         hasSpells = true;
@@ -592,14 +594,15 @@ export default class Listings {
                         (part === 'Kills' || part === 'Assists'
                             ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
                             : strangePartNames.includes(part)) &&
-                        color === '756b5e'
+                        color === '756b5e' &&
+                        optD.showStrangeParts
                     ) {
                         // Only user specified in highValue.strangeParts
-                        if (opt.strangeParts.includes(part)) {
+                        if (optH.strangeParts.includes(part)) {
                             hasStrangeParts = true;
                             partsNames.push(part);
                         }
-                    } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1') {
+                    } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1' && optD.showKillstreaker) {
                         const killstreaker = value.replace('Killstreaker: ', '').trim();
 
                         hasKillstreaker = true;
@@ -613,7 +616,7 @@ export default class Listings {
                                 .replace(/Singularity/, '🔆')
                                 .replace(/Tornado/, '🌪️')
                         );
-                    } else if (value.startsWith('Sheen: ') && color === '7ea9d1') {
+                    } else if (value.startsWith('Sheen: ') && color === '7ea9d1' && optD.showSheen) {
                         const sheen = value.replace('Sheen: ', '').trim();
 
                         hasSheen = true;
@@ -627,7 +630,7 @@ export default class Listings {
                                 .replace(/Agonizing Emerald/, '🟩')
                                 .replace(/Villainous Violet/, '🟣')
                         );
-                    } else if (value.startsWith('Paint Color: ') && color === '756b5e') {
+                    } else if (value.startsWith('Paint Color: ') && color === '756b5e' && optD.showPainted) {
                         const paint = value.replace('Paint Color: ', '').trim();
 
                         hasPaint = true;
@@ -666,18 +669,14 @@ export default class Listings {
                     }
                 });
 
-                const opt = this.bot.options.details.highValue;
-
                 if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
                     highValueString = ' | ';
 
-                    if (hasSpells && opt.showSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
-                    if (hasStrangeParts && opt.showStrangeParts)
-                        highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
-                    if (hasKillstreaker && opt.showKillstreaker)
-                        highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
-                    if (hasSheen && opt.showSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
-                    if (hasPaint && opt.showPainted) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
+                    if (hasSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
+                    if (hasStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
+                    if (hasKillstreaker) highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
+                    if (hasSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
+                    if (hasPaint) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
 
                     for (let i = 0; i < Object.keys(highValue).length; i++) {
                         if (Object.values(highValue)[i] !== '') {
