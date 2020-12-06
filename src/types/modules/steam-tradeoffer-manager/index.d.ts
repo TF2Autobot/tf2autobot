@@ -3,6 +3,7 @@ declare module 'steam-tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import SchemaManager from 'tf2-schema-2';
+    import Currencies from 'tf2-currencies';
 
     interface UnknownKeys<T> {
         [key: string]: T;
@@ -84,8 +85,187 @@ declare module 'steam-tradeoffer-manager' {
             received: UnknownKeys<number>;
             timestamps: UnknownKeys<number>;
             offersSince: number;
-            offerData: UnknownKeys<any>;
+            offerData: { [offerID: string]: OfferData };
         };
+
+        export interface OfferData {
+            partner?: string; // checked
+            handleTimestamp?: number; // checked
+            notify?: boolean; // checked
+            dict?: ItemsDict; // checked
+            value?: ItemsValue; // ADMIN don't have this
+            prices?: { [sku: string]: Prices }; // ADMIN don't have this // checked
+            handledByUs?: boolean; // checked
+            handleTime?: number; // Offer sent don't have this // checked
+            actionTimestamp?: number; // checked
+            actionTime?: number; // checked
+            actedOnConfirmation?: boolean; // checked
+            actedOnConfirmationTimestamp?: number; // checked
+            confirmationTime?: number; // checked
+            finishTimestamp?: number; // checked
+            isAccepted?: boolean; // checked
+            action?: Action; // checked
+            highValue?: HighValueOutput; // Only offer sent // checked
+            _dupeCheck?: string[]; // Only offer sent // checked
+            _ourItems?: OutItems[]; // checked
+            reviewMeta?: ReviewMeta; // Only if offer need to be reviewed
+            canceledByUser?: boolean; // checked
+            switchedState?: number; // checked
+        }
+
+        export interface ItemsDict {
+            our: { [sku: string]: ItemsDictContent };
+            their: { [sku: string]: ItemsDictContent };
+        }
+
+        export interface ItemsDictContent {
+            amount?: number;
+            stock?: number;
+            maxStock?: number;
+        }
+
+        export interface ItemsValue {
+            our: Values;
+            their: Values;
+            rate: number;
+        }
+
+        export interface Values {
+            total: number;
+            keys: number;
+            metal: number;
+        }
+
+        export interface Prices {
+            buy: Currencies;
+            sell: Currencies;
+        }
+
+        export interface Action {
+            action: 'accept' | 'decline' | 'skip';
+            reason: string;
+            meta: Meta;
+        }
+
+        export interface Overstocked {
+            reason: '🟦_OVERSTOCKED';
+            sku: string;
+            buying: boolean;
+            diff: number;
+            amountCanTrade: number;
+        }
+
+        export interface Understocked {
+            reason: '🟩_UNDERSTOCKED';
+            sku: string;
+            selling: boolean;
+            diff: number;
+            amountCanTrade: number;
+        }
+
+        export interface InvalidItems {
+            reason: '🟨_INVALID_ITEMS';
+            sku: string;
+            buying: boolean;
+            amount: number;
+            price: string;
+        }
+
+        export interface InvalidValue {
+            reason: '🟥_INVALID_VALUE';
+            our: number;
+            their: number;
+        }
+
+        export interface DupeCheckFailed {
+            reason: '🟪_DUPE_CHECK_FAILED';
+            withError: boolean;
+            assetid: string | string[];
+            sku: string | string[];
+            error?: string;
+        }
+
+        export interface DupedItems {
+            reason: '🟫_DUPED_ITEMS';
+            assetid: string;
+            sku: string;
+        }
+
+        interface EscrowCheckFailed {
+            reason: '⬜_ESCROW_CHECK_FAILED';
+            error?: string;
+        }
+
+        interface BannedCheckFailed {
+            reason: '⬜_BANNED_CHECK_FAILED';
+            error?: string;
+        }
+
+        export type WrongAboutOffer =
+            | Overstocked
+            | Understocked
+            | InvalidItems
+            | InvalidValue
+            | DupeCheckFailed
+            | DupedItems
+            | EscrowCheckFailed
+            | BannedCheckFailed;
+
+        export interface Meta {
+            highValue?: HighValueOutput;
+            highValueName?: string[];
+            uniqueReasons?: string[];
+            reasons?: WrongAboutOffer[];
+            assetids?: string[];
+            sku?: string[];
+            result?: boolean[];
+        }
+
+        interface HighValue {
+            has: boolean;
+            skus: string[];
+            names: string[];
+            isMention: boolean;
+        }
+
+        export interface HighValueInput {
+            our: HighValue;
+            their: HighValue;
+        }
+
+        interface HighValueBoolean {
+            our: boolean;
+            their: boolean;
+        }
+
+        interface HighValueItems {
+            skus: string[];
+            names: string[];
+        }
+
+        interface HighValueItemsWhich {
+            our: HighValueItems;
+            their: HighValueItems;
+        }
+
+        export interface HighValueOutput {
+            has: HighValueBoolean;
+            items: HighValueItemsWhich;
+            isMention: HighValueBoolean;
+        }
+
+        export interface ReviewMeta {
+            uniqueReasons: string;
+            reasons: WrongAboutOffer[];
+            highValue: HighValueOutput;
+        }
+
+        export interface OutItems {
+            appid: number;
+            contextid: string;
+            assetid: string;
+            amount: number;
+        }
 
         export class EconItem {
             appid: number;

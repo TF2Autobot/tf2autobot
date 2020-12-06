@@ -1,7 +1,18 @@
 import SKU from 'tf2-sku-2';
 import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
-import TradeOfferManager, { TradeOffer, PollData, CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, {
+    TradeOffer,
+    PollData,
+    CustomError,
+    ItemsDict,
+    HighValueInput,
+    HighValueOutput,
+    Meta,
+    WrongAboutOffer,
+    Prices
+} from 'steam-tradeoffer-manager';
+
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
@@ -13,7 +24,7 @@ import { processAccepted, updateListings } from './offer/accepted/exportAccepted
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
 
-import { HighValueInput, HighValueOutput, BPTFGetUserInfo, ItemsDict } from './interfaces';
+import { BPTFGetUserInfo } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
@@ -730,7 +741,7 @@ export default class MyHandler extends Handler {
 
         const manualReviewEnabled = opt.manualReview.enable;
 
-        const itemPrices = {};
+        const itemPrices: { [sku: string]: Prices } = {};
 
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
@@ -1872,78 +1883,4 @@ interface GetPrices {
     buy?: Currencies;
     sell?: Currencies;
     message?: string;
-}
-
-export interface Overstocked {
-    reason: '🟦_OVERSTOCKED';
-    sku: string;
-    buying: boolean;
-    diff: number;
-    amountCanTrade: number;
-}
-
-export interface Understocked {
-    reason: '🟩_UNDERSTOCKED';
-    sku: string;
-    selling: boolean;
-    diff: number;
-    amountCanTrade: number;
-}
-
-export interface InvalidItems {
-    reason: '🟨_INVALID_ITEMS';
-    sku: string;
-    buying: boolean;
-    amount: number;
-    price: string;
-}
-
-export interface InvalidValue {
-    reason: '🟥_INVALID_VALUE';
-    our: number;
-    their: number;
-}
-
-export interface DupeCheckFailed {
-    reason: '🟪_DUPE_CHECK_FAILED';
-    withError: boolean;
-    assetid: string | string[];
-    sku: string | string[];
-    error?: string;
-}
-
-export interface DupedItems {
-    reason: '🟫_DUPED_ITEMS';
-    assetid: string;
-    sku: string;
-}
-
-interface EscrowCheckFailed {
-    reason: '⬜_ESCROW_CHECK_FAILED';
-    error?: string;
-}
-
-interface BannedCheckFailed {
-    reason: '⬜_BANNED_CHECK_FAILED';
-    error?: string;
-}
-
-export type WrongAboutOffer =
-    | Overstocked
-    | Understocked
-    | InvalidItems
-    | InvalidValue
-    | DupeCheckFailed
-    | DupedItems
-    | EscrowCheckFailed
-    | BannedCheckFailed;
-
-export interface Meta {
-    highValue?: HighValueOutput;
-    highValueName?: string[];
-    uniqueReasons?: string[];
-    reasons?: WrongAboutOffer[];
-    assetids?: string[];
-    sku?: string[];
-    result?: boolean[];
 }

@@ -1,8 +1,16 @@
 import { KeyPrices } from '../../classes/Pricelist';
 
-export default function summarize(trade: string, value: ValueDiff, keyPrice: KeyPrices, isSteamChat: boolean): string {
+export default function summarize(
+    trade: string,
+    value: ValueDiff,
+    keyPrice: KeyPrices,
+    isSteamChat: boolean,
+    isOfferSent: boolean | undefined = undefined
+): string {
     const summary =
-        `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}\n` +
+        `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}${
+            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
+        }\n` +
         trade
             .replace('Asked:', isSteamChat ? '• Asked:' : '**• Asked:**')
             .replace('Offered:', isSteamChat ? '• Offered:' : '**• Offered:**') +

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import TradeOfferManager, { EconItem, CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { EconItem, CustomError, Meta } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -9,7 +9,6 @@ import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-import { Meta } from './MyHandler/MyHandler';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -184,11 +183,11 @@ export default class Trades {
 
             const offerData = this.bot.manager.pollData.offerData[offerID];
 
-            if (!(offerData.partner as string) || tradesBySteamID[offerData.partner as string] === undefined) {
+            if (!offerData.partner || tradesBySteamID[offerData.partner] === undefined) {
                 continue;
             }
 
-            tradesBySteamID[offerData.partner as string]++;
+            tradesBySteamID[offerData.partner]++;
         }
 
         return tradesBySteamID;

@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import { Meta, DupeCheckFailed } from '../../../MyHandler';
+import { Meta, DupeCheckFailed } from 'steam-tradeoffer-manager';
 
 export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options;

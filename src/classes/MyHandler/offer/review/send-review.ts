@@ -1,7 +1,6 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer, Meta } from 'steam-tradeoffer-manager';
 
 import Bot from '../../../Bot';
-import { Meta } from '../../MyHandler';
 
 import processReview from './process-review';
 

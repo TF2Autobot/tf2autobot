@@ -189,13 +189,13 @@ export default class Inventory {
         return this.findBySKU(sku, tradableOnly).length;
     }
 
-    getCurrencies(): { [key: string]: string[] } {
+    getCurrencies(): { [sku: string]: string[] } {
         const pure = ['5021;6', '5002;6', '5001;6', '5000;6'];
         const weapons = craftAll.concat(uncraftAll);
         const combine = pure.concat(weapons);
 
         const toObject: {
-            [key: string]: string[];
+            [sku: string]: string[];
         } = {};
 
         combine.forEach(sku => {

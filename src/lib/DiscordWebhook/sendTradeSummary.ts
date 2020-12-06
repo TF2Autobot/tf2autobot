@@ -26,7 +26,8 @@ export default function sendTradeSummary(
     links: Links,
     time: string,
     bot: Bot,
-    timeTaken: string
+    timeTaken: string,
+    isOfferSent: boolean | undefined
 ): void {
     const opt = bot.options.discordWebhook;
 
@@ -103,7 +104,8 @@ export default function sendTradeSummary(
             : offer.summarizeWithLink(bot.schema),
         value,
         keyPrices,
-        false
+        false,
+        isOfferSent
     );
 
     let personaName: string;

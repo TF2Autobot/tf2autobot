@@ -119,17 +119,14 @@ export default class Listings {
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (this.autoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
                 this.disableAutoRelist();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             } else if (!this.autoRelistEnabled && info.premium !== 1) {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
                 );
                 this.enableAutoRelist();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             } else if (this.isAutoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
                 updateOptionsCommand(null, '!config autobump=false', this.bot);

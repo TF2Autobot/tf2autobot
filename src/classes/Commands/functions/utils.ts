@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../../types/common';
+import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { Item } from '../../../types/TeamFortress2';
 import levenshtein from 'js-levenshtein';
 
@@ -11,6 +11,7 @@ import { Entry } from '../../Pricelist';
 
 import { craftAll, uncraftAll } from '../../../lib/data';
 import { fixItem } from '../../../lib/items';
+import { ItemsDictContent } from 'steam-tradeoffer-manager';
 
 export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
     message = removeLinkProtocol(message);
@@ -443,7 +444,7 @@ export function testSKU(sku: string): boolean {
     );
 }
 
-export function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaManager.Schema): string {
+export function summarizeItems(dict: { [sku: string]: ItemsDictContent }, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }
@@ -455,7 +456,7 @@ export function summarizeItems(dict: UnknownDictionary<number>, schema: SchemaMa
             continue;
         }
 
-        const amount = dict[sku];
+        const amount = dict[sku].amount;
         const name = schema.getName(SKU.fromString(sku), false);
 
         summary.push(name + (amount > 1 ? `x${amount}` : ''));

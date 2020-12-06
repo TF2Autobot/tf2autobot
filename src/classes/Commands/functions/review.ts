@@ -1,20 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager from 'steam-tradeoffer-manager';
+import TradeOfferManager, { Meta } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import { Currency } from '../../../types/TeamFortress2';
-import { UnknownDictionaryKnownValues, UnknownDictionary } from '../../../types/common';
+import { UnknownDictionaryKnownValues } from '../../../types/common';
 
 import { summarizeItems } from './utils';
 
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { Meta } from '../../MyHandler/MyHandler';
 
 import { check, generateLinks } from '../../../lib/tools/export';
 import log from '../../../lib/logger';
@@ -61,9 +58,10 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
         const offer = offers[i];
 
         reply +=
-            `\n- Offer #${offer.id} from ${offer.data.partner} (reason: ${offer.data.action.meta.uniqueReasons.join(
-                ', '
-            )})` + `\n⚠️ Send "!trade ${offer.id}" for more details.\n`;
+            `\n- Offer #${offer.id as string} from ${
+                offer.data.partner as number
+            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})` +
+            `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
     }
 
     bot.sendMessage(steamID, reply);
@@ -106,12 +104,9 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
     const keyPrice = bot.pricelist.getKeyPrices();
-    const value: { our: Currency; their: Currency } = offerData.value;
+    const value = offerData.value;
 
-    const items: {
-        our: UnknownDictionary<number>;
-        their: UnknownDictionary<number>;
-    } = offerData.dict || { our: null, their: null };
+    const items = offerData.dict || { our: null, their: null };
 
     if (!value) {
         reply +=

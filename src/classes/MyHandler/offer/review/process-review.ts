@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
-import { Meta } from '../../MyHandler';
+import { Meta } from 'steam-tradeoffer-manager';
 
 import Bot from '../../../Bot';
 import * as re from './reasons/export-reasons';

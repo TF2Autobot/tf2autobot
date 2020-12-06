@@ -1,7 +1,5 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict } from 'steam-tradeoffer-manager';
 import { UnknownDictionary } from '../../../types/common';
-
-import { ItemsDict } from '../../../classes/MyHandler/interfaces';
 
 export = function (): UnknownDictionary<number> | null {
     const self = this as TradeOffer;

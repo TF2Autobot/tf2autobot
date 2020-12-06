@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import SteamID from 'steamid';
-import TradeOfferManager, { PollData } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { PollData, Meta } from 'steam-tradeoffer-manager';
 
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
-import { Meta } from './MyHandler/MyHandler';
 
 export default abstract class Handler {
     readonly bot: Bot;
