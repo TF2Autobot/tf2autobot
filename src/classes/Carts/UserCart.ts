@@ -144,7 +144,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += match.sell.toValue(keyPrice.metal) * this.our[sku]['amount'];
+            value += match.sell.toValue(keyPrice.metal) * this.our[sku].amount;
         }
 
         return Currencies.toCurrencies(value, this.canUseKeys() ? keyPrice.metal : undefined);
@@ -168,7 +168,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += match.buy.toValue(keyPrice.metal) * this.their[sku]['amount'];
+            value += match.buy.toValue(keyPrice.metal) * this.their[sku].amount;
         }
 
         return Currencies.toCurrencies(value, this.canUseKeys() ? keyPrice.metal : undefined);
@@ -322,12 +322,12 @@ export default class UserCart extends Cart {
         const { isBuyer } = this.getCurrencies();
 
         const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
-        const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
-        const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
-        const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
+        const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6'].amount : 0;
+        const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6'].amount : 0;
+        const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6'].amount : 0;
 
         if (isBuyer) {
-            const keys = this.canUseKeys() ? (ourDict['5021;6'] !== undefined ? ourDict['5021;6']['amount'] : 0) : 0;
+            const keys = this.canUseKeys() ? (ourDict['5021;6'] !== undefined ? ourDict['5021;6'].amount : 0) : 0;
 
             const currencies = new Currencies({
                 keys: keys,
@@ -353,16 +353,12 @@ export default class UserCart extends Cart {
         const { isBuyer } = this.getCurrencies();
 
         const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
-        const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
-        const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
-        const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
+        const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6'].amount : 0;
+        const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6'].amount : 0;
+        const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6'].amount : 0;
 
         if (!isBuyer) {
-            const keys = this.canUseKeys()
-                ? theirDict['5021;6'] !== undefined
-                    ? theirDict['5021;6']['amount']
-                    : 0
-                : 0;
+            const keys = this.canUseKeys() ? (theirDict['5021;6'] !== undefined ? theirDict['5021;6'].amount : 0) : 0;
 
             const currencies = new Currencies({
                 keys: keys,
@@ -613,7 +609,7 @@ export default class UserCart extends Cart {
 
         // Add our items
         for (const sku in this.our) {
-            const amount = this.our[sku]['amount'];
+            const amount = this.our[sku].amount;
             const assetids = ourInventory.findBySKU(sku, true);
 
             let missing = amount;
@@ -654,7 +650,7 @@ export default class UserCart extends Cart {
 
         // Add their items
         for (const sku in this.their) {
-            const amount = this.their[sku]['amount'];
+            const amount = this.their[sku].amount;
             const assetids = theirInventory.findBySKU(sku, true);
 
             const match = this.bot.pricelist.getPrice(sku, true);
@@ -770,14 +766,13 @@ export default class UserCart extends Cart {
                             const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
-                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
+                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
-                                    amount:
-                                        (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
+                                    amount: (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
@@ -927,7 +922,7 @@ export default class UserCart extends Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount']}x ${name}`;
+            str += `\n- ${this.our[sku].amount}x ${name}`;
         }
 
         if (isBuyer) {
@@ -942,7 +937,7 @@ export default class UserCart extends Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]['amount']}x ${name}`;
+            str += `\n- ${this.their[sku].amount}x ${name}`;
         }
 
         if (!isBuyer) {
@@ -1012,7 +1007,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += match.sell.toValue(keyPrice.metal) * this.our[sku]['amount'];
+            value += match.sell.toValue(keyPrice.metal) * this.our[sku].amount;
         }
 
         return Currencies.toCurrencies(value, this.canUseKeysWithWeapons() ? keyPrice.metal : undefined);
@@ -1036,7 +1031,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += match.buy.toValue(keyPrice.metal) * this.their[sku]['amount'];
+            value += match.buy.toValue(keyPrice.metal) * this.their[sku].amount;
         }
 
         return Currencies.toCurrencies(value, this.canUseKeysWithWeapons() ? keyPrice.metal : undefined);
@@ -1206,24 +1201,24 @@ export default class UserCart extends Cart {
         let addWeapons = 0;
 
         const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
-        const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6']['amount'] : 0;
-        const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6']['amount'] : 0;
-        const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6']['amount'] : 0;
+        const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6'].amount : 0;
+        const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6'].amount : 0;
+        const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6'].amount : 0;
 
         craftAll.forEach(sku => {
-            addWeapons += ourDict[sku] !== undefined ? ourDict[sku]['amount'] : 0;
+            addWeapons += ourDict[sku] !== undefined ? ourDict[sku].amount : 0;
         });
 
         if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
-                addWeapons += ourDict[sku] !== undefined ? ourDict[sku]['amount'] : 0;
+                addWeapons += ourDict[sku] !== undefined ? ourDict[sku].amount : 0;
             });
         }
 
         if (isBuyer) {
             const keys = this.canUseKeysWithWeapons()
                 ? ourDict['5021;6'] !== undefined
-                    ? ourDict['5021;6']['amount']
+                    ? ourDict['5021;6'].amount
                     : 0
                 : 0;
 
@@ -1253,24 +1248,24 @@ export default class UserCart extends Cart {
         let addWeapons = 0;
 
         const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
-        const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6']['amount'] : 0;
-        const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6']['amount'] : 0;
-        const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6']['amount'] : 0;
+        const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6'].amount : 0;
+        const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6'].amount : 0;
+        const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6'].amount : 0;
 
         craftAll.forEach(sku => {
-            addWeapons += theirDict[sku] !== undefined ? theirDict[sku]['amount'] : 0;
+            addWeapons += theirDict[sku] !== undefined ? theirDict[sku].amount : 0;
         });
 
         if (this.bot.options.weaponsAsCurrency.withUncraft) {
             uncraftAll.forEach(sku => {
-                addWeapons += theirDict[sku] !== undefined ? theirDict[sku]['amount'] : 0;
+                addWeapons += theirDict[sku] !== undefined ? theirDict[sku].amount : 0;
             });
         }
 
         if (!isBuyer) {
             const keys = this.canUseKeysWithWeapons()
                 ? theirDict['5021;6'] !== undefined
-                    ? theirDict['5021;6']['amount']
+                    ? theirDict['5021;6'].amount
                     : 0
                 : 0;
 
@@ -1542,7 +1537,7 @@ export default class UserCart extends Cart {
 
         // Add our items
         for (const sku in this.our) {
-            const amount = this.our[sku]['amount'];
+            const amount = this.our[sku].amount;
             const assetids = ourInventory.findBySKU(sku, true);
 
             let missing = amount;
@@ -1583,7 +1578,7 @@ export default class UserCart extends Cart {
 
         // Add their items
         for (const sku in this.their) {
-            const amount = this.their[sku]['amount'];
+            const amount = this.their[sku].amount;
             const assetids = theirInventory.findBySKU(sku, true);
 
             const match = this.bot.pricelist.getPrice(sku, true);
@@ -1704,14 +1699,13 @@ export default class UserCart extends Cart {
                             const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
                                 itemsDict.our[sku] = {
-                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku]['amount'] : 0) + 1,
+                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
                                 itemsDict.their[sku] = {
-                                    amount:
-                                        (itemsDict.their[sku] !== undefined ? itemsDict.their[sku]['amount'] : 0) + 1,
+                                    amount: (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
@@ -1861,7 +1855,7 @@ export default class UserCart extends Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount']}x ${name}`;
+            str += `\n- ${this.our[sku].amount}x ${name}`;
         }
 
         if (isBuyer) {
@@ -1876,7 +1870,7 @@ export default class UserCart extends Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]['amount']}x ${name}`;
+            str += `\n- ${this.their[sku].amount}x ${name}`;
         }
 
         if (!isBuyer) {

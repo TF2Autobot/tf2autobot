@@ -110,8 +110,8 @@ export default function updateListings(
             } as EntryData;
 
             if (!inPrice.autoprice) {
-                entry['sell'] = inPrice.sell;
-                entry['buy'] = inPrice.buy;
+                entry.sell = inPrice.sell;
+                entry.buy = inPrice.buy;
             }
 
             bot.pricelist
