@@ -564,14 +564,15 @@ export function loadOptions(options?: Options): Options {
     }
 
     removeCliOptions(incomingOptions);
-    const jsonOptions = loadJsonOptions(
-        path.resolve(__dirname, '..', '..', 'files', envOptions.steamAccountName, 'options.json'),
-        incomingOptions
-    );
+    const jsonOptions = loadJsonOptions(getOptionsPath(envOptions.steamAccountName), incomingOptions);
 
     const errors = validator(jsonOptions, 'options');
     if (errors !== null) {
         throw new Error(errors.join(', '));
     }
     return deepMerge(jsonOptions, envOptions, incomingOptions);
+}
+
+export function getOptionsPath(accountName: string): string {
+    return path.resolve(__dirname, '..', '..', 'files', accountName, 'options.json');
 }
