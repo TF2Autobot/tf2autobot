@@ -57,7 +57,7 @@ function summarizeItems(
             continue;
         }
 
-        const amount = dict[sku]['amount'];
+        const amount = dict[sku].amount;
 
         const name = schema.getName(SKU.fromString(sku), false);
 
@@ -66,13 +66,13 @@ function summarizeItems(
         let maxStock = 0;
 
         if (type === 'summary') {
-            currentStock = which === 'our' ? dict[sku]['stock'] - amount : dict[sku]['stock'] + amount;
+            currentStock = which === 'our' ? dict[sku].stock - amount : dict[sku].stock + amount;
         } else {
-            currentStock = dict[sku]['stock'];
+            currentStock = dict[sku].stock;
         }
 
-        oldStock = dict[sku]['stock'];
-        maxStock = dict[sku]['maxStock'];
+        oldStock = dict[sku].stock;
+        maxStock = dict[sku].maxStock;
         summary.push(
             `${name}${amount > 1 ? ` x${amount}` : ''}${
                 type === 'review-partner' || type === 'declined'

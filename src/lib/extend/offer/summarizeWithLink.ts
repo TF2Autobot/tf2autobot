@@ -54,7 +54,7 @@ function summarizeItemsWithLink(dict: { [sku: string]: ItemsDictContent }, schem
             continue;
         }
 
-        const amount = dict[sku]['amount'];
+        const amount = dict[sku].amount;
         const generateName = schema.getName(SKU.fromString(sku), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
 

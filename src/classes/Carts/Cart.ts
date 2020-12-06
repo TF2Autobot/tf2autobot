@@ -113,11 +113,11 @@ export default abstract class Cart {
     }
 
     getOurCount(sku: string): number {
-        return this.our[sku] !== undefined ? this.our[sku]['amount'] : 0;
+        return this.our[sku] !== undefined ? this.our[sku].amount : 0;
     }
 
     getTheirCount(sku: string): number {
-        return this.their[sku] !== undefined ? this.their[sku]['amount'] : 0;
+        return this.their[sku] !== undefined ? this.their[sku].amount : 0;
     }
 
     addOurItem(sku: string, amount = 1): void {
@@ -130,7 +130,7 @@ export default abstract class Cart {
             maxStock: entry !== null ? entry.max : 0
         };
 
-        if (this.our[sku]['amount'] < 1) {
+        if (this.our[sku].amount < 1) {
             delete this.our[sku];
         }
     }
@@ -145,7 +145,7 @@ export default abstract class Cart {
             maxStock: entry !== null ? entry.max : 0
         };
 
-        if (this.their[sku]['amount'] < 1) {
+        if (this.their[sku].amount < 1) {
             delete this.their[sku];
         }
     }
@@ -215,7 +215,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku]['amount'] });
+            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
         }
 
         let summary: string[];
@@ -245,7 +245,7 @@ export default abstract class Cart {
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku]['amount']
+                amount: this.their[sku].amount
             });
         }
 
@@ -306,7 +306,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku]['amount'] });
+            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
         }
 
         let summary: string[];
@@ -336,7 +336,7 @@ export default abstract class Cart {
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku]['amount']
+                amount: this.their[sku].amount
             });
         }
 
@@ -467,7 +467,7 @@ export default abstract class Cart {
                         if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
                             continue;
                         }
-                        ourNumItems += this.our[sku] !== undefined ? this.our[sku]['amount'] : 0;
+                        ourNumItems += this.our[sku] !== undefined ? this.our[sku].amount : 0;
                     }
 
                     let theirNumItems = 0;
@@ -475,7 +475,7 @@ export default abstract class Cart {
                         if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                             continue;
                         }
-                        theirNumItems += this.their[sku] !== undefined ? this.their[sku]['amount'] : 0;
+                        theirNumItems += this.their[sku] !== undefined ? this.their[sku].amount : 0;
                     }
 
                     const msg =
@@ -535,7 +535,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount']}x ${name}`;
+            str += `\n- ${this.our[sku].amount}x ${name}`;
         }
 
         if (!isDonating) {
@@ -546,7 +546,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku]['amount']}x ${name}`;
+                str += `\n- ${this.their[sku].amount}x ${name}`;
             }
         }
 
@@ -571,7 +571,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]['amount']}x ${name}`;
+            str += `\n- ${this.our[sku].amount}x ${name}`;
         }
 
         if (!isDonating) {
@@ -582,7 +582,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku]['amount']}x ${name}`;
+                str += `\n- ${this.their[sku].amount}x ${name}`;
             }
         }
 

@@ -19,7 +19,7 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) - dict.our[sku]['amount'];
+        diff[sku] = (diff[sku] || 0) - dict.our[sku].amount;
     }
 
     for (const sku in dict.their) {
@@ -27,7 +27,7 @@ export = function (): UnknownDictionary<number> | null {
             continue;
         }
 
-        diff[sku] = (diff[sku] || 0) + dict.their[sku]['amount'];
+        diff[sku] = (diff[sku] || 0) + dict.their[sku].amount;
     }
 
     return diff;

@@ -897,15 +897,15 @@ export default class MyHandler extends Handler {
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
                             const valueInRef = {
-                                buy: Currencies.toRefined(price['buy'].toValue(keyPrice.metal)),
-                                sell: Currencies.toRefined(price['sell'].toValue(keyPrice.metal))
+                                buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
+                                sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
                             };
 
                             itemSuggestedValue =
                                 (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
-                                    ? `${valueInRef.buy.toString()} ref (${price['buy'].toString()})` +
-                                      ` / ${valueInRef.sell.toString()} ref (${price['sell'].toString()})`
-                                    : `${price['buy'].toString()} / ${price['sell'].toString()}`;
+                                    ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
+                                      ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
+                                    : `${price.buy.toString()} / ${price.sell.toString()}`;
                         }
 
                         wrongAboutOffer.push({
