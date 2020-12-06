@@ -504,15 +504,19 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
     }
 }
 
+function throwLintError(filepath: string, e: Error): void {
+    if (e instanceof Error && 'message' in e) {
+        throw new Error(`${filepath}\n${e.message}`);
+    }
+    throw e;
+}
+
 function lintPath(filepath: string): void {
     const rawOptions = readFileSync(filepath, { encoding: 'utf8' });
     try {
         jsonlint.parse(rawOptions);
     } catch (e) {
-        if (e instanceof Error && 'message' in e) {
-            throw new Error(`${filepath}\n${e.message}`);
-        }
-        throw e;
+        throwLintError(filepath, e);
     }
 }
 
@@ -537,7 +541,11 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
         } catch (e) {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError
-                jsonlint.parse(rawOptions);
+                try {
+                    jsonlint.parse(rawOptions);
+                } catch (e) {
+                    throwLintError(optionsPath, e);
+                }
             }
             throw e;
         }
