@@ -7,7 +7,7 @@ import * as path from 'path';
 
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { JsonOptions, removeCliOptions } from '../../Options';
+import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 
 import { deepMerge } from '../../../lib/tools/deep-merge';
 import validator from '../../../lib/validator';
@@ -26,7 +26,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const optionsPath = path.join(__dirname, `../../../files/${opt.steamAccountName}/options.json`);
+    const optionsPath = getOptionsPath(opt.steamAccountName);
     const saveOptions = deepMerge({}, opt) as JsonOptions;
     removeCliOptions(saveOptions);
 
