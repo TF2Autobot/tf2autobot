@@ -1,5 +1,5 @@
 import * as Options from '../Options';
-import { existsSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import path from 'path';
 import { DEFAULTS as defaultOptions } from '../Options';
 import { deepMerge } from '../../lib/tools/deep-merge';
@@ -70,7 +70,7 @@ test('Parsing Options', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete defaults.crafting.metals;
     expect(defaults.crafting).toEqual({ weapons: { enable: true } });
-    const optionsPath = path.resolve(__dirname, '..', '..', '..', 'files', 'abc123', 'options.json');
+    const optionsPath = Options.getOptionsPath('abc123');
     mkdirSync(path.dirname(optionsPath), { recursive: true });
     writeFileSync(optionsPath, JSON.stringify(defaults, null, 4), {
         encoding: 'utf8'
@@ -88,4 +88,29 @@ test('Parsing Options', () => {
         }
     });
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
+});
+
+test('malformed options.json should crash', () => {
+    const optionsPath = Options.getOptionsPath('abc123');
+    cleanPath(path.dirname(optionsPath));
+    Options.loadOptions({ steamAccountName: 'abc123' }); // make default options get loaded
+    const malformedOptions = '{this_is_malformed';
+    writeFileSync(optionsPath, malformedOptions, { encoding: 'utf8' }); // options are now mangled
+    expect(() => {
+        Options.loadOptions({ steamAccountName: 'abc123' });
+    }).toThrow(SyntaxError);
+    // ensure options.json is left untouched
+    const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
+    expect(rawOptions).toEqual('{this_is_malformed');
+});
+
+test('write options.json if no file exists in directory', () => {
+    const optionsPath = Options.getOptionsPath('abc123');
+    cleanPath(path.dirname(optionsPath));
+    Options.loadOptions({ steamAccountName: 'abc123' }); // options should create directory and write defaults
+    expect(readFileSync(optionsPath, { encoding: 'utf8' })).toEqual(JSON.stringify(Options.DEFAULTS, null, 4));
+    cleanPath(path.dirname(optionsPath));
+    mkdirSync(path.dirname(optionsPath)); // now only the directory exists but no options.json
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(readFileSync(optionsPath, { encoding: 'utf8' })).toEqual(JSON.stringify(Options.DEFAULTS, null, 4));
 });
