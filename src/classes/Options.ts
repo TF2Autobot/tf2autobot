@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { snakeCase } from 'change-case';
@@ -25,6 +27,7 @@ export const DEFAULTS = {
     allowBanned: false,
 
     sendOfferMessage: '',
+    maxPriceAge: 28800,
 
     autobump: false,
 
@@ -198,8 +201,7 @@ export const DEFAULTS = {
             enable: true,
             url: ''
         }
-    },
-    maxPriceAge: 28800
+    }
 };
 
 export interface WeaponsAsCurrency {
@@ -443,6 +445,7 @@ export interface JsonOptions {
     allowGiftNoMessage?: boolean;
     allowBanned?: boolean;
     sendOfferMessage?: string;
+    maxPriceAge?: number;
     autobump?: boolean;
     tradeSummary?: TradeSummary;
     highValue?: HighValue;
@@ -457,7 +460,6 @@ export interface JsonOptions {
     manualReview?: ManualReview;
     discordInviteLink?: string;
     discordWebhook?: DiscordWebhook;
-    maxPriceAge?: number;
 }
 
 export default interface Options extends JsonOptions {

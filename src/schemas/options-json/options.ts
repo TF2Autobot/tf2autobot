@@ -46,6 +46,9 @@ export const optionsSchema: jsonschema.Schema = {
         sendOfferMessage: {
             type: 'string'
         },
+        maxPriceAge: {
+            type: 'number'
+        },
         autobump: {
             type: 'boolean'
         },
@@ -93,9 +96,6 @@ export const optionsSchema: jsonschema.Schema = {
         },
         discordWebhook: {
             $ref: 'discord-webhook'
-        },
-        maxPriceAge: {
-            type: 'number'
         }
     },
     additionalProperties: false,
