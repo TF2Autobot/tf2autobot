@@ -93,6 +93,29 @@ export default function updateListings(
                     log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
                 });
         } else if (
+            inPrice === null &&
+            isNotPureOrWeapons &&
+            item.wear === null &&
+            highValue.isDisableSKU.includes(sku) && // This is the only difference
+            !bot.isAdmin(offer.partner)
+        ) {
+            // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a highValue items, and not
+            // from ADMINS, then notify admin.
+            let msg =
+                'I have received a high-valued items which is not in my pricelist.' + '\n\nItem information:\n\n- ';
+
+            for (let i = 0; i < highValue.theirItems.length; i++) {
+                if (highValue.theirItems[i].includes(name)) {
+                    msg += highValue.theirItems[i];
+                }
+            }
+
+            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
+            } else {
+                bot.messageAdmins(msg, []);
+            }
+        } else if (
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
             isNotPureOrWeapons &&
