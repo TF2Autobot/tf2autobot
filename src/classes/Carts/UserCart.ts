@@ -2,15 +2,22 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import { EconItem } from 'steam-tradeoffer-manager';
-import { CurrencyObject, Currency } from '../../types/TeamFortress2';
-import { UnknownDictionary } from '../../types/common';
+import {
+    EconItem,
+    HighValueInput,
+    HighValueOutput,
+    ItemsDict,
+    ItemsDictContent,
+    OurTheirItemsDict,
+    Prices
+} from 'steam-tradeoffer-manager';
+
+import { CurrencyObject } from '../../types/TeamFortress2';
 
 import Cart from './Cart';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import MyHandler from '../MyHandler/MyHandler';
-import { HighValueInput, HighValueOutput, ItemsDict, ItemsDictContent } from '../MyHandler/interfaces';
 
 import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
@@ -321,7 +328,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
+        const ourDict: { [sku: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6'].amount : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6'].amount : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6'].amount : 0;
@@ -352,7 +359,7 @@ export default class UserCart extends Cart {
 
         const { isBuyer } = this.getCurrencies();
 
-        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
+        const theirDict: { [sku: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6'].amount : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6'].amount : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6'].amount : 0;
@@ -548,8 +555,8 @@ export default class UserCart extends Cart {
         }
 
         const itemsDict: {
-            our: { [sku: string]: ItemsDictContent };
-            their: { [sku: string]: ItemsDictContent };
+            our: OurTheirItemsDict;
+            their: OurTheirItemsDict;
         } = {
             our: Object.assign({}, this.our),
             their: Object.assign({}, this.their)
@@ -842,7 +849,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemPrices: UnknownDictionary<{ buy: Currency; sell: Currency }> = {};
+        const itemPrices: Prices = {};
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
@@ -852,8 +859,8 @@ export default class UserCart extends Cart {
             const entry = this.bot.pricelist.getPrice(sku, true);
 
             itemPrices[sku] = {
-                buy: entry.buy.toJSON(),
-                sell: entry.sell.toJSON()
+                buy: entry.buy,
+                sell: entry.sell
             };
         }
 
@@ -869,8 +876,8 @@ export default class UserCart extends Cart {
             const entry = this.bot.pricelist.getPrice(sku, true);
 
             itemPrices[sku] = {
-                buy: entry.buy.toJSON(),
-                sell: entry.sell.toJSON()
+                buy: entry.buy,
+                sell: entry.sell
             };
         }
 
@@ -1038,10 +1045,10 @@ export default class UserCart extends Cart {
     }
 
     private getRequiredWithWeapons(
-        buyerCurrencies: { [key: string]: number },
+        buyerCurrencies: { [sku: string]: number },
         price: Currencies,
         useKeys: boolean
-    ): { currencies: { [key: string]: number }; change: number } {
+    ): { currencies: { [sku: string]: number }; change: number } {
         log.debug('Getting required currencies');
 
         const keyPrice = this.bot.pricelist.getKeyPrice();
@@ -1049,7 +1056,7 @@ export default class UserCart extends Cart {
         const value = price.toValue(useKeys ? keyPrice.metal : undefined);
 
         const currencyValues: {
-            [key: string]: number;
+            [sku: string]: number;
         } = {
             '5021;6': useKeys ? keyPrice.toValue() : -1,
             '5002;6': 9,
@@ -1074,7 +1081,7 @@ export default class UserCart extends Cart {
         let index = 0;
 
         const pickedCurrencies: {
-            [key: string]: number;
+            [sku: string]: number;
         } = {
             '5021;6': 0,
             '5002;6': 0,
@@ -1200,7 +1207,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const ourDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
+        const ourDict: { [sku: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).our;
         const scrap = ourDict['5000;6'] !== undefined ? ourDict['5000;6'].amount : 0;
         const reclaimed = ourDict['5001;6'] !== undefined ? ourDict['5001;6'].amount : 0;
         const refined = ourDict['5002;6'] !== undefined ? ourDict['5002;6'].amount : 0;
@@ -1247,7 +1254,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
 
-        const theirDict: { [key: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
+        const theirDict: { [sku: string]: ItemsDictContent } = (this.offer.data('dict') as ItemsDict).their;
         const scrap = theirDict['5000;6'] !== undefined ? theirDict['5000;6'].amount : 0;
         const reclaimed = theirDict['5001;6'] !== undefined ? theirDict['5001;6'].amount : 0;
         const refined = theirDict['5002;6'] !== undefined ? theirDict['5002;6'].amount : 0;
@@ -1457,8 +1464,8 @@ export default class UserCart extends Cart {
         }
 
         const itemsDict: {
-            our: { [sku: string]: ItemsDictContent };
-            their: { [sku: string]: ItemsDictContent };
+            our: OurTheirItemsDict;
+            their: OurTheirItemsDict;
         } = {
             our: Object.assign({}, this.our),
             their: Object.assign({}, this.their)
@@ -1504,7 +1511,7 @@ export default class UserCart extends Cart {
         const combine = pures.concat(weapons);
 
         const buyerCurrenciesCount: {
-            [key: string]: number;
+            [sku: string]: number;
         } = {};
 
         combine.forEach(sku => {
@@ -1775,7 +1782,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemPrices: UnknownDictionary<{ buy: Currency; sell: Currency }> = {};
+        const itemPrices: Prices = {};
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
@@ -1785,8 +1792,8 @@ export default class UserCart extends Cart {
             const entry = this.bot.pricelist.getPrice(sku, true);
 
             itemPrices[sku] = {
-                buy: entry.buy.toJSON(),
-                sell: entry.sell.toJSON()
+                buy: entry.buy,
+                sell: entry.sell
             };
         }
 
@@ -1802,8 +1809,8 @@ export default class UserCart extends Cart {
             const entry = this.bot.pricelist.getPrice(sku, true);
 
             itemPrices[sku] = {
-                buy: entry.buy.toJSON(),
-                sell: entry.sell.toJSON()
+                buy: entry.buy,
+                sell: entry.sell
             };
         }
 

@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import { Meta, InvalidItems } from '../../../MyHandler';
+import { Meta, InvalidItems } from 'steam-tradeoffer-manager';
 
 export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const wrong = meta.reasons;

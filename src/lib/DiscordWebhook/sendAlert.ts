@@ -47,6 +47,10 @@ export default function sendAlert(
         title = 'Temporarily disabled items with High value attachments';
         description = msg;
         color = '8323327'; // purple
+    } else if (type === 'highValuedInvalidItems') {
+        title = 'Received High-value invalid item(s)';
+        description = msg;
+        color = '8323327'; // purple
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;

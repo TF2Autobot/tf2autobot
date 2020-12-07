@@ -26,18 +26,15 @@ export default function stats(
             continue;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === true) {
             // Sucessful trades handled by the bot
             tradesTotal++;
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
                 // Within the last 24 hours
                 trades24Hours++;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
                 // All trades since 0:00 in the morning.
                 tradesToday++;

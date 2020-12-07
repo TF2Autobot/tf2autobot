@@ -1,12 +1,9 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { Action, HighValueOutput, InvalidItems, Overstocked, TradeOffer, Understocked } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 
-import { HighValueOutput } from '../../interfaces';
-import * as r from '../../MyHandler';
 import { itemList } from '../../utils/export-utils';
 
 import Bot from '../../../Bot';
-import { Action } from '../../../Trades';
 
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
@@ -54,7 +51,7 @@ export default function processAccepted(
 
                     const invalid = offerReceived.meta.reasons.filter(
                         el => el.reason === '🟨_INVALID_ITEMS'
-                    ) as r.InvalidItems[];
+                    ) as InvalidItems[];
                     invalid.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
                         accepted.invalidItems.push(`${name} - ${el.price}`);
@@ -66,7 +63,7 @@ export default function processAccepted(
 
                     const overstocked = offerReceived.meta.reasons.filter(el =>
                         el.reason.includes('🟦_OVERSTOCKED')
-                    ) as r.Overstocked[];
+                    ) as Overstocked[];
 
                     overstocked.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
@@ -79,7 +76,7 @@ export default function processAccepted(
 
                     const understocked = offerReceived.meta.reasons.filter(el =>
                         el.reason.includes('🟩_UNDERSTOCKED')
-                    ) as r.Understocked[];
+                    ) as Understocked[];
                     understocked.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
                         accepted.understocked.push(`${name} (amount can sell was ${el.amountCanTrade})`);
@@ -149,8 +146,27 @@ export default function processAccepted(
     const keyPrices = bot.pricelist.getKeyPrices();
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
 
+    const offerData = bot.manager.pollData.offerData;
+    const isOfferSent = offerData
+        ? offerData[offer.id].highValue !== undefined ||
+          (offerData[offer.id].action === undefined && bot.isAdmin(offer.partner))
+        : undefined;
+
     if (opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0) {
-        sendTradeSummary(offer, autokeys, currentItems, accepted, keyPrices, value, items, links, time, bot, timeTaken);
+        sendTradeSummary(
+            offer,
+            autokeys,
+            currentItems,
+            accepted,
+            keyPrices,
+            value,
+            items,
+            links,
+            time,
+            bot,
+            timeTaken,
+            isOfferSent
+        );
     } else {
         const isShowChanges = bot.options.tradeSummary.showStockChanges;
         const slots = bot.tf2.backpackSlots;
@@ -173,7 +189,8 @@ export default function processAccepted(
                         : offer.summarize(bot.schema),
                     value,
                     keyPrices,
-                    true
+                    true,
+                    isOfferSent
                 ) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +

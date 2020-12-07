@@ -1,6 +1,4 @@
-import { Action } from '../../../Trades';
-
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { Action, TradeOffer } from 'steam-tradeoffer-manager';
 import { valueDiff } from '../../../../lib/tools/export';
 
 import Bot from '../../../Bot';

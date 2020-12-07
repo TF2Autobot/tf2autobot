@@ -22,7 +22,7 @@ import Pricelist, { EntryData } from './Pricelist';
 import Handler from './Handler';
 import Friends from './Friends';
 import Trades from './Trades';
-import Listings from './Listings';
+import Listings from './Listings/Listings';
 import TF2GC from './TF2GC';
 import Inventory from './Inventory';
 import BotManager from './BotManager';

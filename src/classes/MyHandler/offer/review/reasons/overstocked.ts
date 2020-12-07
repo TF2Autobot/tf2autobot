@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../../../Bot';
 
-import { Meta, Overstocked } from '../../../MyHandler';
+import { Meta, Overstocked } from 'steam-tradeoffer-manager';
 
 export default function overstocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const wrong = meta.reasons;

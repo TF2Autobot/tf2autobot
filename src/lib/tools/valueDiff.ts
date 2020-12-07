@@ -1,4 +1,4 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { ItemsValue, TradeOffer } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import { Currency } from '../../types/TeamFortress2';
 import { KeyPrices } from '../../classes/Pricelist';
@@ -9,8 +9,7 @@ export default function valueDiff(
     isTradingKeys: boolean,
     enableShowOnlyMetal: boolean
 ): ValueDiff {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const value: { our: Currency; their: Currency } = offer.data('value');
+    const value: { our: Currency; their: Currency } = offer.data('value') as ItemsValue;
 
     let diff: number;
     let diffRef: number;

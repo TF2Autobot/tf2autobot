@@ -46,11 +46,11 @@ export const optionsSchema: jsonschema.Schema = {
         sendOfferMessage: {
             type: 'string'
         },
+        maxPriceAge: {
+            type: 'number'
+        },
         autobump: {
             type: 'boolean'
-        },
-        enableCraftweaponAsCurrency: {
-            type: 'boolean' // just for compatibility with v2.0.4 and below
         },
         weaponsAsCurrency: {
             type: 'weapons-as-currency'
@@ -93,9 +93,6 @@ export const optionsSchema: jsonschema.Schema = {
         },
         discordWebhook: {
             $ref: 'discord-webhook'
-        },
-        maxPriceAge: {
-            type: 'number'
         }
     },
     additionalProperties: false,

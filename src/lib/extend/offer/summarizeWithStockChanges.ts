@@ -1,21 +1,16 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
-
-import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfaces';
-
 import { Currency } from '../../../types/TeamFortress2';
 
 export = function (schema: SchemaManager.Schema, type: string): string {
     const self = this as TradeOffer;
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const value: { our: Currency; their: Currency } = self.data('value');
+    const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
 
     const items: {
-        our: { [sku: string]: ItemsDictContent };
-        their: { [sku: string]: ItemsDictContent };
+        our: OurTheirItemsDict;
+        their: OurTheirItemsDict;
     } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
@@ -40,12 +35,7 @@ export = function (schema: SchemaManager.Schema, type: string): string {
     }
 };
 
-function summarizeItems(
-    dict: { [sku: string]: ItemsDictContent },
-    schema: SchemaManager.Schema,
-    which: string,
-    type: string
-): string {
+function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema, which: string, type: string): string {
     if (dict === null) {
         return 'unknown items';
     }

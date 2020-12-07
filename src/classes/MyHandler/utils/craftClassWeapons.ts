@@ -19,7 +19,7 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     craftEachClassWeapons(bot, craftWeapons.spy, currencies);
 }
 
-function craftEachClassWeapons(bot: Bot, weapons: string[], currencies: { [key: string]: string[] }): void {
+function craftEachClassWeapons(bot: Bot, weapons: string[], currencies: { [sku: string]: string[] }): void {
     weapons.forEach((sku1, i) => {
         // first loop
         const wep1 = currencies[sku1].length;

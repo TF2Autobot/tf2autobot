@@ -1,24 +1,17 @@
-// /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-// /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
 import { Currency } from '../../../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
-
-import { ItemsDict, ItemsDictContent } from '../../../classes/MyHandler/interfaces';
 
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
 export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const value: { our: Currency; their: Currency } = self.data('value');
+    const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
 
     const items: {
-        our: { [sku: string]: ItemsDictContent };
-        their: { [sku: string]: ItemsDictContent };
+        our: OurTheirItemsDict;
+        their: OurTheirItemsDict;
     } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
@@ -38,7 +31,7 @@ export = function (schema: SchemaManager.Schema): string {
     }
 };
 
-function summarizeItems(dict: { [sku: string]: ItemsDictContent }, schema: SchemaManager.Schema): string {
+function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }

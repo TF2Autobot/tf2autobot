@@ -1,5 +1,5 @@
 import * as Options from '../Options';
-import { existsSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import path from 'path';
 import { DEFAULTS as defaultOptions } from '../Options';
 import { deepMerge } from '../../lib/tools/deep-merge';
@@ -70,7 +70,7 @@ test('Parsing Options', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete defaults.crafting.metals;
     expect(defaults.crafting).toEqual({ weapons: { enable: true } });
-    const optionsPath = path.resolve(__dirname, '..', '..', '..', 'files', 'abc123', 'options.json');
+    const optionsPath = Options.getOptionsPath('abc123');
     mkdirSync(path.dirname(optionsPath), { recursive: true });
     writeFileSync(optionsPath, JSON.stringify(defaults, null, 4), {
         encoding: 'utf8'
@@ -88,4 +88,51 @@ test('Parsing Options', () => {
         }
     });
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
+});
+
+test('malformed options.json should crash', () => {
+    const optionsPath = Options.getOptionsPath('abc123');
+    cleanPath(path.dirname(optionsPath));
+    Options.loadOptions({ steamAccountName: 'abc123' }); // make default options get loaded
+    const malformedOptions = '{"good": "entry",\r\n"unclosed": "string}';
+    writeFileSync(optionsPath, malformedOptions, { encoding: 'utf8' }); // options are now mangled
+    expect(() => {
+        Options.loadOptions({ steamAccountName: 'abc123' });
+    }).toThrow(
+        new Error(
+            `${optionsPath}\n` +
+                "Parse error on line 2:\n...ntry\",\r\"unclosed\": \"string}\n----------------------^\nExpecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '[', got 'undefined'"
+        )
+    );
+    // ensure options.json is left untouched
+    const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
+    expect(rawOptions).toEqual('{"good": "entry",\r\n"unclosed": "string}');
+});
+
+test('write options.json if no file exists in directory', () => {
+    const optionsPath = Options.getOptionsPath('abc123');
+    cleanPath(path.dirname(optionsPath));
+    Options.loadOptions({ steamAccountName: 'abc123' }); // options should create directory and write defaults
+    expect(readFileSync(optionsPath, { encoding: 'utf8' })).toEqual(JSON.stringify(Options.DEFAULTS, null, 4));
+    cleanPath(path.dirname(optionsPath));
+    mkdirSync(path.dirname(optionsPath)); // now only the directory exists but no options.json
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(readFileSync(optionsPath, { encoding: 'utf8' })).toEqual(JSON.stringify(Options.DEFAULTS, null, 4));
+});
+
+test('malformed json in the files dir should crash', () => {
+    const filesPath = Options.getFilesPath('abc123');
+    cleanPath(filesPath);
+    const malformedJsonFile = '{"good": "entry",\r\n"unclosed": "string}';
+    const malformedFilePath = path.join(filesPath, 'bad.json');
+    mkdirSync(filesPath, { recursive: true });
+    writeFileSync(malformedFilePath, malformedJsonFile, { encoding: 'utf8' });
+    expect(() => {
+        Options.loadOptions({ steamAccountName: 'abc123' });
+    }).toThrow(
+        new Error(
+            `${malformedFilePath}\n` +
+                "Parse error on line 2:\n...ntry\",\r\"unclosed\": \"string}\n----------------------^\nExpecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '[', got 'undefined'"
+        )
+    );
 });
