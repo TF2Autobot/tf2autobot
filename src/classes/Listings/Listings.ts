@@ -6,14 +6,15 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import async from 'async';
 import dayjs from 'dayjs';
 
-import Bot from './Bot';
-import { Entry } from './Pricelist';
-import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
+import Bot from '../Bot';
+import { Entry } from '../Pricelist';
+import { BPTFGetUserInfo, UserSteamID } from '../MyHandler/interfaces';
+import * as rep from './export';
 
-import log from '../lib/logger';
-import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakerSKU, strangePartsData } from '../lib/data';
-import { updateOptionsCommand } from './Commands/functions/options';
+import log from '../../lib/logger';
+import { exponentialBackoff } from '../../lib/helpers';
+import { noiseMakerSKU, strangePartsData } from '../../lib/data';
+import { updateOptionsCommand } from '../Commands/functions/options';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -568,25 +569,7 @@ export default class Listings {
                         // Show all
                         hasSpells = true;
                         const spellName = value.substring(10, value.length - 32).trim();
-                        spellNames.push(
-                            spellName
-                                .replace(/Putrescent Pigmentation/, 'PP 🍃')
-                                .replace(/Die Job/, 'DJ 🍐')
-                                .replace(/Chromatic Corruption/, 'CC 🪀')
-                                .replace(/Spectral Spectrum/, 'Spec 🔵🔴')
-                                .replace(/Sinister Staining/, 'Sin 🍈')
-                                .replace(/Voices From Below/, 'VFB 🗣️')
-                                .replace(/Team Spirit Footprints/, 'TS-FP 🔵🔴')
-                                .replace(/Gangreen Footprints/, 'GG-FP 🟡')
-                                .replace(/Corpse Gray Footprints/, 'CG-FP 👽')
-                                .replace(/Violent Violet Footprints/, 'VV-FP ♨️')
-                                .replace(/Rotten Orange Footprints/, 'RO-FP 🍊')
-                                .replace(/Bruised Purple Footprints/, 'BP-FP 🍷')
-                                .replace(/Headless Horseshoes/, 'HH 🍇')
-                                .replace(/Exorcism/, '👻')
-                                .replace(/Pumpkin Bomb/, '🎃💣')
-                                .replace(/Halloween Fire/, '🔥🟢')
-                        );
+                        spellNames.push(rep.replaceSpells(spellName));
                     } else if (
                         (part === 'Kills' || part === 'Assists'
                             ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
@@ -603,66 +586,17 @@ export default class Listings {
                         const killstreaker = value.replace('Killstreaker: ', '').trim();
 
                         hasKillstreaker = true;
-                        killstreakerName.push(
-                            killstreaker
-                                .replace(/Cerebral Discharge/, '⚡')
-                                .replace(/Fire Horns/, '🔥🐮')
-                                .replace(/Flames/, '🔥')
-                                .replace(/Hypno-Beam/, '😵💫')
-                                .replace(/Incinerator/, '🚬')
-                                .replace(/Singularity/, '🔆')
-                                .replace(/Tornado/, '🌪️')
-                        );
+                        killstreakerName.push(rep.replaceKillstreaker(killstreaker));
                     } else if (value.startsWith('Sheen: ') && color === '7ea9d1' && optD.showSheen) {
                         const sheen = value.replace('Sheen: ', '').trim();
 
                         hasSheen = true;
-                        sheenName.push(
-                            sheen
-                                .replace(/Team Shine/, '🔵🔴')
-                                .replace(/Hot Rod/, '🎗️')
-                                .replace(/Manndarin/, '🟠')
-                                .replace(/Deadly Daffodil/, '🟡')
-                                .replace(/Mean Green/, '🟢')
-                                .replace(/Agonizing Emerald/, '🟩')
-                                .replace(/Villainous Violet/, '🟣')
-                        );
+                        sheenName.push(rep.replaceSheens(sheen));
                     } else if (value.startsWith('Paint Color: ') && color === '756b5e' && optD.showPainted) {
                         const paint = value.replace('Paint Color: ', '').trim();
 
                         hasPaint = true;
-                        paintName.push(
-                            paint
-                                .replace(/A Color Similar to Slate/, '🧪')
-                                .replace(/A Deep Commitment to Purple/, '🪀')
-                                .replace(/A Distinctive Lack of Hue/, '🎩')
-                                .replace(/A Mann's Mint/, '👽')
-                                .replace(/After Eight/, '🏴')
-                                .replace(/Aged Moustache Grey/, '👤')
-                                .replace(/An Extraordinary Abundance of Tinge/, '🏐')
-                                .replace(/Australium Gold/, '🏆')
-                                .replace(/Color No. 216-190-216/, '🧠')
-                                .replace(/Dark Salmon Injustice/, '🐚')
-                                .replace(/Drably Olive/, '🥝')
-                                .replace(/Indubitably Green/, '🥦')
-                                .replace(/Mann Co. Orange/, '🏀')
-                                .replace(/Muskelmannbraun/, '👜')
-                                .replace(/Noble Hatter's Violet/, '🍇')
-                                .replace(/Peculiarly Drab Tincture/, '🪑')
-                                .replace(/Pink as Hell/, '🎀')
-                                .replace(/Radigan Conagher Brown/, '🚪')
-                                .replace(/The Bitter Taste of Defeat and Lime/, '💚')
-                                .replace(/The Color of a Gentlemann's Business Pants/, '🧽')
-                                .replace(/Ye Olde Rustic Colour/, '🥔')
-                                .replace(/Zepheniah's Greed/, '🌳')
-                                .replace(/An Air of Debonair/, '👜🔷')
-                                .replace(/Balaclavas Are Forever/, '👜🔷')
-                                .replace(/Operator's Overalls/, '👜🔷')
-                                .replace(/Cream Spirit/, '🍘🥮')
-                                .replace(/Team Spirit/, '🔵🔴')
-                                .replace(/The Value of Teamwork/, '👨🏽‍🤝‍👨🏻')
-                                .replace(/Waterlogged Lab Coat/, '👨🏽‍🤝‍👨🏽')
-                        );
+                        paintName.push(rep.replacePainted(paint));
                     }
                 });
 
