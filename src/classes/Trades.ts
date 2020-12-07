@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import TradeOfferManager, { EconItem, CustomError, Meta } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -835,10 +835,4 @@ export default class Trades {
             amount: item.amount
         };
     }
-}
-
-export interface Action {
-    action: string;
-    reason: string;
-    meta: Meta;
 }

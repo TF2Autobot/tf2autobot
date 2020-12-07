@@ -1,13 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import { Currency } from '../types/TeamFortress2';
-import { UnknownDictionary } from '../types/common';
 
 import Options from './Options';
 
@@ -518,7 +514,7 @@ export default class Pricelist extends EventEmitter {
         return getPricelist('bptf').then(pricelist => {
             log.debug('Got pricelist');
 
-            const groupedPrices = Pricelist.groupPrices(pricelist.items as any[]);
+            const groupedPrices = Pricelist.groupPrices((pricelist as GetPricelist).items);
 
             let pricesChanged = false;
 
@@ -561,7 +557,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private handlePriceChange(data: any): void {
+    private handlePriceChange(data: Data): void {
         const opt = this.options;
 
         if (data.source !== 'bptf') {
@@ -655,8 +651,8 @@ export default class Pricelist extends EventEmitter {
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
-    static groupPrices(prices: any[]): UnknownDictionary<UnknownDictionary<any[]>> {
-        const sorted: UnknownDictionary<UnknownDictionary<any[]>> = {};
+    static groupPrices(prices: Items[]): Group {
+        const sorted: Group = {};
 
         for (let i = 0; i < prices.length; i++) {
             if (prices[i].buy === null) {
@@ -707,4 +703,33 @@ interface ErrorRequest {
 
 interface ErrorBody {
     message: string;
+}
+
+interface GetPricelist {
+    success?: boolean;
+    currency?: unknown;
+    items?: Items[];
+}
+
+interface Items {
+    sku: string;
+    name: string;
+    source: string;
+    time: number;
+    buy: Currencies | null;
+    sell: Currencies | null;
+}
+
+interface Data {
+    sku: string;
+    name: string;
+    source: string;
+    currency: unknown;
+    buy: Currencies | null;
+    sell: Currencies | null;
+    time: number;
+}
+
+interface Group {
+    [quality: string]: { [killstreak: string]: Items[] };
 }
