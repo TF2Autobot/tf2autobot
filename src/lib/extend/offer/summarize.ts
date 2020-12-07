@@ -1,4 +1,4 @@
-import { TradeOffer, ItemsDict, ItemsDictContent, ItemsValue } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
 import { Currency } from '../../../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
@@ -10,8 +10,8 @@ export = function (schema: SchemaManager.Schema): string {
     const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
 
     const items: {
-        our: { [sku: string]: ItemsDictContent };
-        their: { [sku: string]: ItemsDictContent };
+        our: OurTheirItemsDict;
+        their: OurTheirItemsDict;
     } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
@@ -31,7 +31,7 @@ export = function (schema: SchemaManager.Schema): string {
     }
 };
 
-function summarizeItems(dict: { [sku: string]: ItemsDictContent }, schema: SchemaManager.Schema): string {
+function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }

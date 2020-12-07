@@ -1,4 +1,4 @@
-import { TradeOffer, ItemsDict, ItemsDictContent, ItemsValue } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
@@ -12,8 +12,8 @@ export = function (schema: SchemaManager.Schema, type: string): string {
     const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
 
     const items: {
-        our: { [sku: string]: ItemsDictContent };
-        their: { [sku: string]: ItemsDictContent };
+        our: OurTheirItemsDict;
+        their: OurTheirItemsDict;
     } = (self.data('dict') as ItemsDict) || { our: null, their: null };
 
     if (!value) {
@@ -39,7 +39,7 @@ export = function (schema: SchemaManager.Schema, type: string): string {
 };
 
 function summarizeItemsWithLink(
-    dict: { [sku: string]: ItemsDictContent },
+    dict: OurTheirItemsDict,
     schema: SchemaManager.Schema,
     which: string,
     type: string

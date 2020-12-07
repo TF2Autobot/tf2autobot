@@ -94,7 +94,7 @@ declare module 'steam-tradeoffer-manager' {
             notify?: boolean; // checked
             dict?: ItemsDict; // checked
             value?: ItemsValue; // ADMIN don't have this
-            prices?: { [sku: string]: Prices }; // ADMIN don't have this // checked
+            prices?: Prices; // ADMIN don't have this // checked
             handledByUs?: boolean; // checked
             handleTime?: number; // Offer sent don't have this // checked
             actionTimestamp?: number; // checked
@@ -114,8 +114,12 @@ declare module 'steam-tradeoffer-manager' {
         }
 
         export interface ItemsDict {
-            our: { [sku: string]: ItemsDictContent };
-            their: { [sku: string]: ItemsDictContent };
+            our: OurTheirItemsDict;
+            their: OurTheirItemsDict;
+        }
+
+        export interface OurTheirItemsDict {
+            [sku: string]: ItemsDictContent;
         }
 
         export interface ItemsDictContent {
@@ -136,9 +140,13 @@ declare module 'steam-tradeoffer-manager' {
             metal: number;
         }
 
-        export interface Prices {
+        export interface PricesContent {
             buy: Currencies;
             sell: Currencies;
+        }
+
+        export interface Prices {
+            [sku: string]: PricesContent;
         }
 
         export interface Action {

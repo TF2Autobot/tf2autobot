@@ -3,7 +3,7 @@
 import SteamID from 'steamid';
 import dayjs from 'dayjs';
 import SKU from 'tf2-sku-2';
-import TradeOfferManager, { ItemsDictContent, TradeOffer } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../../types/common';
@@ -40,9 +40,9 @@ export default abstract class Cart {
 
     // TODO: Make it possible to add specific items to the cart
 
-    protected our: { [sku: string]: ItemsDictContent } = {};
+    protected our: OurTheirItemsDict = {};
 
-    protected their: { [sku: string]: ItemsDictContent } = {};
+    protected their: OurTheirItemsDict = {};
 
     protected canceled = false;
 

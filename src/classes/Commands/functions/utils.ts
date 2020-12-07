@@ -11,7 +11,7 @@ import { Entry } from '../../Pricelist';
 
 import { craftAll, uncraftAll } from '../../../lib/data';
 import { fixItem } from '../../../lib/items';
-import { ItemsDictContent } from 'steam-tradeoffer-manager';
+import { OurTheirItemsDict } from 'steam-tradeoffer-manager';
 
 export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
     message = removeLinkProtocol(message);
@@ -444,7 +444,7 @@ export function testSKU(sku: string): boolean {
     );
 }
 
-export function summarizeItems(dict: { [sku: string]: ItemsDictContent }, schema: SchemaManager.Schema): string {
+export function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema): string {
     if (dict === null) {
         return 'unknown items';
     }

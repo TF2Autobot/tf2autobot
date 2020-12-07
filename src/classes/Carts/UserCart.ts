@@ -8,6 +8,7 @@ import {
     HighValueOutput,
     ItemsDict,
     ItemsDictContent,
+    OurTheirItemsDict,
     Prices
 } from 'steam-tradeoffer-manager';
 
@@ -554,8 +555,8 @@ export default class UserCart extends Cart {
         }
 
         const itemsDict: {
-            our: { [sku: string]: ItemsDictContent };
-            their: { [sku: string]: ItemsDictContent };
+            our: OurTheirItemsDict;
+            their: OurTheirItemsDict;
         } = {
             our: Object.assign({}, this.our),
             their: Object.assign({}, this.their)
@@ -848,7 +849,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemPrices: { [sku: string]: Prices } = {};
+        const itemPrices: Prices = {};
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
@@ -1463,8 +1464,8 @@ export default class UserCart extends Cart {
         }
 
         const itemsDict: {
-            our: { [sku: string]: ItemsDictContent };
-            their: { [sku: string]: ItemsDictContent };
+            our: OurTheirItemsDict;
+            their: OurTheirItemsDict;
         } = {
             our: Object.assign({}, this.our),
             their: Object.assign({}, this.their)
@@ -1781,7 +1782,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const itemPrices: { [sku: string]: Prices } = {};
+        const itemPrices: Prices = {};
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {

@@ -741,7 +741,7 @@ export default class MyHandler extends Handler {
 
         const manualReviewEnabled = opt.manualReview.enable;
 
-        const itemPrices: { [sku: string]: Prices } = {};
+        const itemPrices: Prices = {};
 
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
