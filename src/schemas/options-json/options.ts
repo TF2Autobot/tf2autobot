@@ -52,9 +52,6 @@ export const optionsSchema: jsonschema.Schema = {
         autobump: {
             type: 'boolean'
         },
-        enableCraftweaponAsCurrency: {
-            type: 'boolean' // just for compatibility with v2.0.4 and below
-        },
         weaponsAsCurrency: {
             type: 'weapons-as-currency'
         },
