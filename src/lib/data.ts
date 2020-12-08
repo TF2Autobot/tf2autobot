@@ -554,55 +554,55 @@ export const strangePartsData = {
 };
 
 export const sheensData = [
-    'Team Shine',
-    'Villainous Violet',
-    'Hot Rod',
-    'Agonizing Emerald',
-    'Manndarin',
-    'Deadly Daffodil',
-    'Mean Green'
+    'Team Shine', //            ks-1
+    'Deadly Daffodil', //       ks-2
+    'Manndarin', //             ks-3
+    'Mean Green', //            ks-4
+    'Agonizing Emerald', //     ks-5
+    'Villainous Violet', //     ks-6
+    'Hot Rod' //                ks-7
 ];
 
 export const killstreakersData = [
-    'Fire Horns',
-    'Flames',
-    'Singularity',
-    'Tornado',
-    'Cerebral Discharge',
-    'Incinerator',
-    'Hypno-Beam'
+    'Fire Horns', //            ke-2002
+    'Cerebral Discharge', //    ke-2003
+    'Tornado', //               ke-2004
+    'Flames', //                ke-2005
+    'Singularity', //           ke-2006
+    'Incinerator', //           ke-2007
+    'Hypno-Beam' //             ke-2008
 ];
 
 // export const paintedData = [
-//     'A Color Similar to Slate',
-//     'A Deep Commitment to Purple',
-//     'A Distinctive Lack of Hue',
-//     "A Mann's Mint",
-//     'After Eight',
-//     'Aged Moustache Grey',
-//     'An Extraordinary Abundance of Tinge',
-//     'Australium Gold',
-//     'Color No. 216-190-216',
-//     'Dark Salmon Injustice',
-//     'Drably Olive',
-//     'Indubitably Green',
-//     'Mann Co. Orange',
-//     'Muskelmannbraun',
-//     "Noble Hatter's Violet",
-//     'Peculiarly Drab Tincture',
-//     'Pink as Hell',
-//     'Radigan Conagher Brown',
-//     'The Bitter Taste of Defeat and Lime',
-//     "The Color of a Gentlemann's Business Pants",
-//     'Ye Olde Rustic Colour',
-//     "Zepheniah's Greed",
-//     'An Air of Debonair',
-//     'Balaclavas Are Forever',
-//     'Cream Spirit',
-//     "Operator's Overalls",
-//     'Team Spirit',
-//     'The Value of Teamwork',
-//     'Waterlogged Lab Coat'
+//     'A Color Similar to Slate',              p3100495
+//     'A Deep Commitment to Purple',           p8208497
+//     'A Distinctive Lack of Hue',             p1315860
+//     "A Mann's Mint",                         p12377523
+//     'After Eight',                           p2960676
+//     'Aged Moustache Grey',                   p8289918
+//     'An Extraordinary Abundance of Tinge',   p15132390
+//     'Australium Gold',                       p15185211
+//     'Color No. 216-190-216',                 p14204632
+//     'Dark Salmon Injustice',                 p15308410
+//     'Drably Olive',                          p8421376
+//     'Indubitably Green',                     p7511618
+//     'Mann Co. Orange',                       p13595446
+//     'Muskelmannbraun',                       p10843461
+//     "Noble Hatter's Violet",                 p5322826
+//     'Peculiarly Drab Tincture',              p12955537
+//     'Pink as Hell',                          p16738740
+//     'Radigan Conagher Brown',                p6901050
+//     'The Bitter Taste of Defeat and Lime',   p3329330
+//     "The Color of a Gentlemann's Business Pants",    p15787660
+//     'Ye Olde Rustic Colour',                 p8154199
+//     "Zepheniah's Greed",                     p4345659
+//     'An Air of Debonair',                    p6637376
+//     'Balaclavas Are Forever',                p3874595
+//     'Cream Spirit',                          p12807213
+//     "Operator's Overalls",                   p4732984
+//     'Team Spirit',                           p12073019
+//     'The Value of Teamwork',                 p8400928
+//     'Waterlogged Lab Coat'                   p11049612
 // ];
 
 export const giftWords = [
