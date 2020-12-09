@@ -614,11 +614,14 @@ export default class UserCart extends Cart {
 
         // Add items to offer
 
+        let ourItemsCount = 0;
+
         // Add our items
         for (const sku in this.our) {
             const amount = this.our[sku].amount;
             const assetids = ourInventory.findBySKU(sku, true);
 
+            ourItemsCount += amount;
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
@@ -655,6 +658,8 @@ export default class UserCart extends Cart {
 
         const assetidsToCheck: string[] = [];
 
+        let theirItemsCount = 0;
+
         // Add their items
         for (const sku in this.their) {
             const amount = this.their[sku].amount;
@@ -669,6 +674,7 @@ export default class UserCart extends Cart {
                 match.buy.toValue(keyPrice.metal) >
                     (this.bot.handler as MyHandler).getMinimumKeysDupeCheck() * keyPrice.toValue();
 
+            theirItemsCount += amount;
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
@@ -772,12 +778,20 @@ export default class UserCart extends Cart {
                         if (isAdded) {
                             const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
+                                const ourAmount =
+                                    (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1;
+                                ourItemsCount += ourAmount;
+
                                 itemsDict.our[sku] = {
-                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1,
+                                    amount: ourAmount,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
+                                const theirAmount =
+                                    (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1;
+                                theirItemsCount += theirAmount;
+
                                 itemsDict.their[sku] = {
                                     amount: (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
@@ -810,14 +824,20 @@ export default class UserCart extends Cart {
             }
 
             if (isBuyer) {
+                const ourAmount = required.currencies[sku] as number;
+                ourItemsCount += ourAmount;
+
                 itemsDict.our[sku] = {
-                    amount: required.currencies[sku] as number,
+                    amount: ourAmount,
                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                     maxStock: 0
                 };
             } else {
+                const theirAmount = required.currencies[sku] as number;
+                theirItemsCount += theirAmount;
+
                 itemsDict.their[sku] = {
-                    amount: required.currencies[sku] as number,
+                    amount: theirAmount,
                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                     maxStock: 0
                 };
@@ -848,6 +868,9 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        this.ourItemsCount = ourItemsCount;
+        this.theirItemsCount = theirItemsCount;
 
         const itemPrices: Prices = {};
 
@@ -1542,11 +1565,14 @@ export default class UserCart extends Cart {
 
         // Add items to offer
 
+        let ourItemsCount = 0;
+
         // Add our items
         for (const sku in this.our) {
             const amount = this.our[sku].amount;
             const assetids = ourInventory.findBySKU(sku, true);
 
+            ourItemsCount += amount;
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
@@ -1583,6 +1609,8 @@ export default class UserCart extends Cart {
 
         const assetidsToCheck: string[] = [];
 
+        let theirItemsCount = 0;
+
         // Add their items
         for (const sku in this.their) {
             const amount = this.their[sku].amount;
@@ -1597,6 +1625,7 @@ export default class UserCart extends Cart {
                 match.buy.toValue(keyPrice.metal) >
                     (this.bot.handler as MyHandler).getMinimumKeysDupeCheck() * keyPrice.toValue();
 
+            theirItemsCount += amount;
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
@@ -1705,12 +1734,20 @@ export default class UserCart extends Cart {
                         if (isAdded) {
                             const entry = this.bot.pricelist.getPrice(sku, false);
                             if (whose === 'our') {
+                                const ourAmount =
+                                    (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1;
+                                ourItemsCount += ourAmount;
+
                                 itemsDict.our[sku] = {
-                                    amount: (itemsDict.our[sku] !== undefined ? itemsDict.our[sku].amount : 0) + 1,
+                                    amount: ourAmount,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                                     maxStock: entry !== null ? entry.max : 0
                                 };
                             } else {
+                                const theirAmount =
+                                    (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1;
+                                theirItemsCount += theirAmount;
+
                                 itemsDict.their[sku] = {
                                     amount: (itemsDict.their[sku] !== undefined ? itemsDict.their[sku].amount : 0) + 1,
                                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
@@ -1743,14 +1780,20 @@ export default class UserCart extends Cart {
             }
 
             if (isBuyer) {
+                const ourAmount = required.currencies[sku];
+                ourItemsCount += ourAmount;
+
                 itemsDict.our[sku] = {
-                    amount: required.currencies[sku],
+                    amount: ourAmount,
                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                     maxStock: 0
                 };
             } else {
+                const theirAmount = required.currencies[sku];
+                theirItemsCount += theirAmount;
+
                 itemsDict.their[sku] = {
-                    amount: required.currencies[sku],
+                    amount: theirAmount,
                     stock: this.bot.inventoryManager.getInventory().getAmount(sku, true),
                     maxStock: 0
                 };
@@ -1781,6 +1824,9 @@ export default class UserCart extends Cart {
                 return Promise.reject('Something went wrong while constructing the offer');
             }
         }
+
+        this.ourItemsCount = ourItemsCount;
+        this.theirItemsCount = theirItemsCount;
 
         const itemPrices: Prices = {};
 

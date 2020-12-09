@@ -112,10 +112,6 @@ export default class MyHandler extends Handler {
         };
     }
 
-    private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump;
-    }
-
     private get invalidValueException(): number {
         return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
     }
@@ -329,10 +325,10 @@ export default class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
-        // Check for missing sell listings every 5 minutes, 30 minutes after start
-        setTimeout(() => {
-            this.enableAutoRefreshListings();
-        }, 30 * 60 * 1000);
+        // Check for missing sell listings every 5 minutes, 30 minutes after start (DEPRECATED)
+        // setTimeout(() => {
+        //     this.enableAutoRefreshListings();
+        // }, 30 * 60 * 1000);
     }
 
     onShutdown(): Promise<void> {
@@ -438,37 +434,31 @@ export default class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    enableAutoRefreshListings(): void {
-        // Automatically check for missing sell listings every 15 minutes
-        if (this.isAutoRelistEnabled && this.isPremium === false) {
-            return;
-        }
+    // (DEPRECATED - but might find another solution later)
+    // enableAutoRefreshListings(): void {
+    //     // Automatically check for missing sell listings every 15 minutes
+    //     if (this.isAutoRelistEnabled && this.isPremium === false) {
+    //         return;
+    //     }
 
-        this.autoRefreshListingsTimeout = setInterval(() => {
-            log.debug('Running automatic check for missing sell listings...');
-            const inventory = this.bot.inventoryManager.getInventory();
-            const pricelist = this.bot.pricelist.getPrices().filter(entry => {
-                // Filter our pricelist to only the items that the bot currently have.
-                return inventory.findBySKU(entry.sku).length > 0 && !entry.sku.includes(';6;c');
-            }); //                                                  ^ Temporary fix for crates problem
+    //     this.autoRefreshListingsTimeout = setInterval(() => {
+    //         log.debug('Running automatic check for missing sell listings...');
+    //         const inventory = this.bot.inventoryManager.getInventory();
+    //         const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+    //             // Filter our pricelist to only the items that the bot currently have.
+    //             return inventory.findBySKU(entry.sku).length > 0 && !entry.sku.includes(';6;c');
+    //         }); //                                                  ^ Temporary fix for crates problem
 
-            if (pricelist.length > 0) {
-                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-                void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-                    log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
-                });
-            } else {
-                log.debug('❌ Nothing to refresh.');
-            }
-        }, 15 * 60 * 1000);
-    }
-
-    disableAutoRefreshListings(): void {
-        if (this.isPremium) {
-            return;
-        }
-        clearTimeout(this.autoRefreshListingsTimeout);
-    }
+    //         if (pricelist.length > 0) {
+    //             log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+    //             void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+    //                 log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
+    //             });
+    //         } else {
+    //             log.debug('❌ Nothing to refresh.');
+    //         }
+    //     }, 15 * 60 * 1000);
+    // }
 
     getWeapons(): string[] {
         return this.weapons;

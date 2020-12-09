@@ -181,10 +181,8 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             if (params.autobump !== undefined) {
                 if (params.autobump === true) {
                     bot.listings.setupAutorelist();
-                    (bot.handler as MyHandler).disableAutoRefreshListings();
                 } else {
                     bot.listings.disableAutorelistOption();
-                    (bot.handler as MyHandler).enableAutoRefreshListings();
                 }
             }
 

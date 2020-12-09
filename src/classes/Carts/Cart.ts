@@ -26,6 +26,10 @@ export default abstract class Cart {
 
     theirInventoryCount = 0;
 
+    ourItemsCount = 0;
+
+    theirItemsCount = 0;
+
     readonly partner: SteamID;
 
     protected token: string | null = null;
@@ -462,21 +466,8 @@ export default abstract class Cart {
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
 
-                    let ourNumItems = 0;
-                    for (const sku in this.our) {
-                        if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                            continue;
-                        }
-                        ourNumItems += this.our[sku] !== undefined ? this.our[sku].amount : 0;
-                    }
-
-                    let theirNumItems = 0;
-                    for (const sku in this.their) {
-                        if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                            continue;
-                        }
-                        theirNumItems += this.their[sku] !== undefined ? this.their[sku].amount : 0;
-                    }
+                    const ourNumItems = this.ourItemsCount;
+                    const theirNumItems = this.theirItemsCount;
 
                     const msg =
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
