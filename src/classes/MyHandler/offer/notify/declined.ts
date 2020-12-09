@@ -54,13 +54,13 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         offerReason.reason === 'ONLY_OVERSTOCKED' ||
         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
     ) {
-        reasonForInvalidValue = value.diffRef !== 0;
+        reasonForInvalidValue = value.diff < 0;
         reason = "you're attempting to sell item(s) that I can't buy more of.";
     } else if (
         offerReason.reason === 'ONLY_UNDERSTOCKED' ||
         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
     ) {
-        reasonForInvalidValue = value.diffRef !== 0;
+        reasonForInvalidValue = value.diff < 0;
         reason = "you're attempting to purchase item(s) that I can't sell more of.";
     } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
         reason = "I don't accept duped items.";
