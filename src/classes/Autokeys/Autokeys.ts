@@ -220,16 +220,12 @@ export default class Autokeys {
         const roundedKeysCanSell = Math.round((userMinRef - currRef) / currKeyPrice.sell.toValue());
         const roundedKeysCanBankMin = Math.round((userMaxRef - currRef) / currKeyPrice.sell.toValue());
         const roundedKeysCanBankMax = Math.round((currRef - userMinRef) / currKeyPrice.buy.toValue());
-        const fixedKeysCanBuy = roundedKeysCanBuy === 0 ? 1 : roundedKeysCanBuy;
-        const fixedKeysCanSell = roundedKeysCanSell === 0 ? 1 : roundedKeysCanSell;
-        const fixedKeysCanBankMin = roundedKeysCanBankMin === 0 ? 1 : roundedKeysCanBankMin;
-        const fixedKeysCanBankMax = roundedKeysCanBankMax === 0 ? 1 : roundedKeysCanBankMax;
 
         // Check and set new min and max
         if (isBuyingKeys) {
             // If buying - we need to set min = currKeys and max = currKeys + CanBuy
             setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-            setMaxKeys = currKeys + fixedKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + fixedKeysCanBuy;
+            setMaxKeys = currKeys + roundedKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + roundedKeysCanBuy;
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
             // If buying - we need to set min = currKeys and max = currKeys + CanBuy
             setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
@@ -237,12 +233,14 @@ export default class Autokeys {
                 currKeys + roundedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + roundedKeysCanBankMax;
         } else if (isSellingKeys) {
             // If selling - we need to set min = currKeys - CanSell and max = currKeys
-            setMinKeys = currKeys - fixedKeysCanSell <= userMinKeys ? userMinKeys : currKeys - fixedKeysCanSell;
+            setMinKeys = currKeys - roundedKeysCanSell <= userMinKeys ? userMinKeys : currKeys - roundedKeysCanSell;
             setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
         } else if (isBankingKeys && isEnableKeyBanking) {
             // If banking - we need to set min = currKeys - CanBankMin and max = currKeys + CanBankMax
-            setMinKeys = currKeys - fixedKeysCanBankMin <= userMinKeys ? userMinKeys : currKeys - fixedKeysCanBankMin;
-            setMaxKeys = currKeys + fixedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + fixedKeysCanBankMax;
+            setMinKeys =
+                currKeys - roundedKeysCanBankMin <= userMinKeys ? userMinKeys : currKeys - roundedKeysCanBankMin;
+            setMaxKeys =
+                currKeys + roundedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + roundedKeysCanBankMax;
         }
 
         const isAlreadyRunningAutokeys = this.isActive;
