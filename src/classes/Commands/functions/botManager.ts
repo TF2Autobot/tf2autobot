@@ -648,6 +648,8 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         }
     });
 
+    log.debug('newlistingsSKUs: ', newlistingsSKUs);
+
     const pricelist = bot.pricelist.getPrices().filter(entry => {
         // Filter our pricelist to only the items that are missing.
         return !newlistingsSKUs.includes(entry.sku) && !entry.sku.includes(';6;c');
