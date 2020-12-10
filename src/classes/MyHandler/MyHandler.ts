@@ -329,10 +329,10 @@ export default class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
-        // Check for missing sell listings every 30 minutes, 30 minutes after start
+        // Check for missing sell listings every 30 minutes, initiate setInterval 5 minutes after start
         setTimeout(() => {
             this.enableAutoRefreshListings();
-        }, 30 * 60 * 1000);
+        }, 5 * 60 * 1000);
     }
 
     onShutdown(): Promise<void> {
@@ -457,10 +457,13 @@ export default class MyHandler extends Handler {
                     clearTimeout(this.autoRefreshListingsTimeout);
                     return;
                 }
+                log.debug('listings: ', this.bot.listingManager.listings.length);
                 this.bot.listingManager.listings.forEach(listing => {
                     listingsSKUs.push(listing.getSKU());
                 });
             });
+
+            log.debug('listingsSKUs: ', listingsSKUs.length);
 
             // Remove duplicate elements
             const newlistingsSKUs: string[] = [];
@@ -470,7 +473,7 @@ export default class MyHandler extends Handler {
                 }
             });
 
-            log.debug('newlistingsSKUs: ', newlistingsSKUs);
+            log.debug('newlistingsSKUs: ', newlistingsSKUs.length);
 
             const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                 // Filter our pricelist to only the items that are missing.
