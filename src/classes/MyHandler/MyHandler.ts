@@ -457,12 +457,9 @@ export default class MyHandler extends Handler {
                     clearTimeout(this.autoRefreshListingsTimeout);
                     return;
                 }
-                log.debug('listings: ', this.bot.listingManager.listings.length);
                 this.bot.listingManager.listings.forEach(listing => {
                     listingsSKUs.push(listing.getSKU());
                 });
-
-                log.debug('listingsSKUs: ', listingsSKUs.length);
 
                 // Remove duplicate elements
                 const newlistingsSKUs: string[] = [];
@@ -471,9 +468,6 @@ export default class MyHandler extends Handler {
                         newlistingsSKUs.push(sku);
                     }
                 });
-
-                log.debug('newlistingsSKUs length: ', newlistingsSKUs.length);
-                log.debug('newlistingsSKUs array: ', newlistingsSKUs);
 
                 const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                     // Filter our pricelist to only the items that are missing.

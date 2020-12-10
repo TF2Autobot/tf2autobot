@@ -635,12 +635,9 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
             bot.sendMessage(steamID, '❌ Unable to refresh listings, please try again later: ' + (err as string));
             return;
         }
-        log.debug('listings: ', bot.listingManager.listings.length);
         bot.listingManager.listings.forEach(listing => {
             listingsSKUs.push(listing.getSKU());
         });
-
-        log.debug('listingsSKUs: ', listingsSKUs.length);
 
         // Remove duplicate elements
         const newlistingsSKUs: string[] = [];
@@ -649,9 +646,6 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 newlistingsSKUs.push(sku);
             }
         });
-
-        log.debug('newlistingsSKUs length: ', newlistingsSKUs.length);
-        log.debug('newlistingsSKUs array: ', newlistingsSKUs);
 
         const pricelist = bot.pricelist.getPrices().filter(entry => {
             // Filter our pricelist to only the items that are missing.
