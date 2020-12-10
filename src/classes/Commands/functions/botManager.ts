@@ -639,33 +639,33 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         bot.listingManager.listings.forEach(listing => {
             listingsSKUs.push(listing.getSKU());
         });
-    });
 
-    log.debug('listingsSKUs: ', listingsSKUs.length);
+        log.debug('listingsSKUs: ', listingsSKUs.length);
 
-    // Remove duplicate elements
-    const newlistingsSKUs: string[] = [];
-    listingsSKUs.forEach(sku => {
-        if (!newlistingsSKUs.includes(sku)) {
-            newlistingsSKUs.push(sku);
+        // Remove duplicate elements
+        const newlistingsSKUs: string[] = [];
+        listingsSKUs.forEach(sku => {
+            if (!newlistingsSKUs.includes(sku)) {
+                newlistingsSKUs.push(sku);
+            }
+        });
+
+        log.debug('newlistingsSKUs: ', newlistingsSKUs.length);
+
+        const pricelist = bot.pricelist.getPrices().filter(entry => {
+            // Filter our pricelist to only the items that are missing.
+            return !newlistingsSKUs.includes(entry.sku) && !entry.sku.includes(';6;c');
+        }); //                                                  ^ Temporary fix for crates problem
+
+        if (pricelist.length > 0) {
+            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+            bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
+            void bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+                bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+            });
+        } else {
+            bot.sendMessage(steamID, '❌ Nothing to refresh.');
         }
     });
-
-    log.debug('newlistingsSKUs: ', newlistingsSKUs.length);
-
-    const pricelist = bot.pricelist.getPrices().filter(entry => {
-        // Filter our pricelist to only the items that are missing.
-        return !newlistingsSKUs.includes(entry.sku) && !entry.sku.includes(';6;c');
-    }); //                                                  ^ Temporary fix for crates problem
-
-    if (pricelist.length > 0) {
-        log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-        bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
-        void bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-            log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-            bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
-        });
-    } else {
-        bot.sendMessage(steamID, '❌ Nothing to refresh.');
-    }
 }
