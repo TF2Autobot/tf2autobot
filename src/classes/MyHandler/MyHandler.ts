@@ -335,7 +335,7 @@ export default class MyHandler extends Handler {
         return new Promise(resolve => {
             if (this.bot.options.autokeys.enable && this.autokeys.isActive) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable(true);
+                this.autokeys.disable();
             }
 
             if (this.bot.listingManager.ready !== true) {

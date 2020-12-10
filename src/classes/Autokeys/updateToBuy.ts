@@ -70,10 +70,9 @@ export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot):
         } as EntryData;
     }
     bot.pricelist
-        .updatePrice(entry, false, PricelistChangedSource.Autokeys)
-        .then(data => {
+        .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+        .then(() => {
             log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`);
-            bot.listings.checkBySKU(data.sku, data);
         })
         .catch((err: Error) => {
             log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${err.message}`);

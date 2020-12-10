@@ -635,7 +635,7 @@ export default class Autokeys {
         this.bot.listings.checkBySKU('5021;6');
     }
 
-    disable(onShutdown = false): void {
+    disable(): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         const opt = this.bot.options;
         let entry;
@@ -675,12 +675,9 @@ export default class Autokeys {
             } as EntryData;
         }
         this.bot.pricelist
-            .updatePrice(entry, onShutdown, PricelistChangedSource.Autokeys)
-            .then(data => {
+            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .then(() => {
                 log.debug('✅ Automatically disabled Autokeys.');
-                if (!onShutdown) {
-                    this.bot.listings.checkBySKU(data.sku, data);
-                }
             })
             .catch((err: Error) => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
