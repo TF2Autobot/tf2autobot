@@ -477,8 +477,8 @@ export default class MyHandler extends Handler {
 
                 const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                     // Filter our pricelist to only the items that are missing.
-                    return entry.enabled && !newlistingsSKUs.includes(entry.sku) && !entry.sku.includes(';6;c');
-                }); //                                                              ^ Temporary fix for crates problem
+                    return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+                });
 
                 if (pricelist.length > 0) {
                     log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
