@@ -650,7 +650,8 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
             }
         });
 
-        log.debug('newlistingsSKUs: ', newlistingsSKUs.length);
+        log.debug('newlistingsSKUs length: ', newlistingsSKUs.length);
+        log.debug('newlistingsSKUs array: ', newlistingsSKUs);
 
         const pricelist = bot.pricelist.getPrices().filter(entry => {
             // Filter our pricelist to only the items that are missing.

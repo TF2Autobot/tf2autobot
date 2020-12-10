@@ -472,7 +472,8 @@ export default class MyHandler extends Handler {
                     }
                 });
 
-                log.debug('newlistingsSKUs: ', newlistingsSKUs.length);
+                log.debug('newlistingsSKUs length: ', newlistingsSKUs.length);
+                log.debug('newlistingsSKUs array: ', newlistingsSKUs);
 
                 const pricelist = this.bot.pricelist.getPrices().filter(entry => {
                     // Filter our pricelist to only the items that are missing.
