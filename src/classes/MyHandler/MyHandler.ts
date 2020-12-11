@@ -438,7 +438,6 @@ export default class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    // BETA
     enableAutoRefreshListings(): void {
         // Automatically check for missing sell listings every 30 minutes
         if (this.isAutoRelistEnabled && this.isPremium === false) {
