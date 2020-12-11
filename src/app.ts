@@ -68,9 +68,15 @@ const botManager = new BotManager();
 import ON_DEATH from 'death';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
+    // sad method, doing this because signalOrErr: "SIGINT" | "SIGTERM" | "SIGQUIT" | Error
+    // Sent from CTRL-C
     const crashed = signalOrErr !== 'SIGINT';
+    // Sent from operating system `kill`
+    const crashed1 = signalOrErr !== 'SIGTERM';
+    // Sent from keyboard quit action.
+    const crashed2 = signalOrErr !== 'SIGQUIT';
 
-    if (crashed) {
+    if (crashed || crashed1 || crashed2) {
         const botReady = botManager.isBotReady();
 
         log.error(
@@ -96,7 +102,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
         log.warn('Received kill signal `' + signalOrErr + '`');
     }
 
-    botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
+    botManager.stop(crashed || crashed1 || crashed2 ? (signalOrErr as Error) : null, true, false);
 });
 
 process.on('message', message => {
