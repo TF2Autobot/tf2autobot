@@ -65,9 +65,10 @@ export default class Listings {
     }
 
     disableAutorelistOption(): void {
+        this.bot.listingManager.off('heartbeat', this.checkAccountInfo.bind(this));
         this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        this.autoRelistEnabled = false;
-        clearTimeout(this.autoRelistTimeout);
+        clearInterval(this.bot.listingManager._heartbeatInterval);
+        this.disableAutoRelist();
     }
 
     private enableAutoRelist(): void {
