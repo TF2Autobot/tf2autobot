@@ -27,6 +27,8 @@ export default class Listings {
 
     private autoRelistEnabled = false;
 
+    private isForceDisabled = false;
+
     private autoRelistTimeout;
 
     private get isAutoRelistEnabled(): boolean {
@@ -55,6 +57,8 @@ export default class Listings {
             return;
         }
 
+        this.isForceDisabled = false;
+
         // Autobump is enabled, add heartbeat listener
 
         this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
@@ -65,9 +69,13 @@ export default class Listings {
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.off('heartbeat', this.checkAccountInfo.bind(this));
+        if (!this.autoRelistEnabled) {
+            // If the process already not running, just don't execute this.
+            return;
+        }
         this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        clearInterval(this.bot.listingManager._heartbeatInterval);
+        this.bot.listingManager.off('heartbeat', this.checkAccountInfo.bind(this));
+        this.isForceDisabled = true;
         this.disableAutoRelist();
     }
 
@@ -113,6 +121,9 @@ export default class Listings {
     }
 
     private checkAccountInfo(): void {
+        if (this.isForceDisabled) {
+            return;
+        }
         log.debug('Checking account info');
 
         void this.getAccountInfo().asCallback((err, info) => {
