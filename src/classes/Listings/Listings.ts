@@ -27,8 +27,6 @@ export default class Listings {
 
     private autoRelistEnabled = false;
 
-    private isForceDisabled = false;
-
     private autoRelistTimeout;
 
     private get isAutoRelistEnabled(): boolean {
@@ -41,6 +39,8 @@ export default class Listings {
 
     private templates: { buy: string; sell: string };
 
+    private readonly checkFn;
+
     constructor(bot: Bot) {
         this.bot = bot;
         this.templates = {
@@ -49,6 +49,8 @@ export default class Listings {
                 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
             sell: this.bot.options.details.sell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
         };
+
+        this.checkFn = this.checkAccountInfo.bind(this);
     }
 
     setupAutorelist(): void {
@@ -57,26 +59,19 @@ export default class Listings {
             return;
         }
 
-        this.isForceDisabled = false;
-
         // Autobump is enabled, add heartbeat listener
 
-        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        this.bot.listingManager.on('heartbeat', this.checkAccountInfo.bind(this));
+        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.bot.listingManager.on('heartbeat', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        if (!this.autoRelistEnabled) {
-            // If the process already not running, just don't execute this.
-            return;
-        }
-        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        this.bot.listingManager.off('heartbeat', this.checkAccountInfo.bind(this));
-        this.isForceDisabled = true;
-        this.disableAutoRelist();
+        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.autoRelistEnabled = false;
+        clearTimeout(this.autoRelistTimeout);
     }
 
     private enableAutoRelist(): void {
@@ -121,9 +116,6 @@ export default class Listings {
     }
 
     private checkAccountInfo(): void {
-        if (this.isForceDisabled) {
-            return;
-        }
         log.debug('Checking account info');
 
         void this.getAccountInfo().asCallback((err, info) => {
