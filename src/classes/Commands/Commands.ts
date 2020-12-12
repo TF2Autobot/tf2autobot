@@ -971,7 +971,7 @@ export default class Commands {
             params.months === undefined ||
             typeof params.months !== 'number' ||
             !Number.isInteger(params.months) ||
-            params.months === 0
+            params.months < 1
         ) {
             this.bot.sendMessage(
                 steamID,
@@ -981,26 +981,11 @@ export default class Commands {
             return;
         }
 
-        let amountKeys = 0;
-
         const amountMonths = params.months;
-        let reducedMonths = amountMonths;
-
-        for (let i = 0; i < amountMonths; i++) {
-            if (reducedMonths === 0) {
-                break;
-            }
-
-            if (reducedMonths % 2 === 0) {
-                amountKeys += 2;
-                reducedMonths -= 1;
-            }
-
-            if (reducedMonths % 2 === 1) {
-                amountKeys += 3;
-                reducedMonths -= 1;
-            }
-        }
+        const numMonths = params.months;
+        const numOdds = numMonths % 2 !== 0 ? (numMonths - 1) / 2 + 1 : (numMonths - 1) / 2;
+        const numEvens = numMonths - numOdds;
+        const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
         const ourAmount = this.bot.inventoryManager.getInventory().getAmount('5021;6');
 
