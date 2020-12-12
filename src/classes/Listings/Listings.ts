@@ -70,8 +70,7 @@ export default class Listings {
 
     disableAutorelistOption(): void {
         this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.autoRelistEnabled = false;
-        clearTimeout(this.autoRelistTimeout);
+        this.disableAutoRelist();
     }
 
     private enableAutoRelist(): void {
