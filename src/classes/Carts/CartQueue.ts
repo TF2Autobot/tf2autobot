@@ -20,7 +20,7 @@ export default class CartQueue {
         this.bot = bot;
     }
 
-    enqueue(cart: Cart, isDonating: boolean): number {
+    enqueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): number {
         // TODO: Priority queueing
 
         log.debug('Enqueueing cart');
@@ -39,7 +39,7 @@ export default class CartQueue {
 
         setImmediate(() => {
             // Using set immediate so that the queue will first be handled when done with this event loop cycle
-            this.handleQueue(isDonating);
+            this.handleQueue(isDonating, isBuyingPremium);
         });
 
         clearTimeout(this.queuePositionCheck);
@@ -96,7 +96,7 @@ export default class CartQueue {
         return this.carts[index];
     }
 
-    private handleQueue(isDonating: boolean): void {
+    private handleQueue(isDonating: boolean, isBuyingPremium: boolean): void {
         log.debug('Handling queue...');
 
         if (this.busy || this.carts.length === 0) {
@@ -122,8 +122,8 @@ export default class CartQueue {
 
                     cart.sendNotification(
                         `⌛ Please wait while I process your ${
-                            isDonating ? 'donation' : 'offer'
-                        }! ${cart.summarizeWithWeapons(isDonating)}.`
+                            isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
+                        }! ${cart.summarizeWithWeapons(isDonating, isBuyingPremium)}.`
                     );
 
                     log.debug('Sending offer...');
@@ -134,7 +134,7 @@ export default class CartQueue {
                     if (status === 'pending') {
                         cart.sendNotification(
                             `⌛ Your ${
-                                isDonating ? 'donation' : 'offer'
+                                isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
                             } has been made! Please wait while I accept the mobile confirmation.`
                         );
 
@@ -142,6 +142,8 @@ export default class CartQueue {
 
                         if (isDonating) {
                             cart.sendNotification('✅ Success! Your donation has been sent and received!');
+                        } else if (isBuyingPremium) {
+                            cart.sendNotification('✅ Success! Your premium purchase has been sent and received!');
                         }
 
                         // Wait for confirmation to be accepted
@@ -176,7 +178,7 @@ export default class CartQueue {
                     this.busy = false;
 
                     // Handle the queue
-                    this.handleQueue(false);
+                    this.handleQueue(false, false);
                 });
         } else {
             Promise.resolve(cart.constructOffer())
@@ -187,9 +189,9 @@ export default class CartQueue {
                     }
 
                     cart.sendNotification(
-                        `⌛ Please wait while I process your ${isDonating ? 'donation' : 'offer'}! ${cart.summarize(
-                            isDonating
-                        )}.`
+                        `⌛ Please wait while I process your ${
+                            isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
+                        }! ${cart.summarize(isDonating, isBuyingPremium)}.`
                     );
 
                     log.debug('Sending offer...');
@@ -200,12 +202,14 @@ export default class CartQueue {
                     if (status === 'pending') {
                         cart.sendNotification(
                             `⌛ Your ${
-                                isDonating ? 'donation' : 'offer'
+                                isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
                             } has been made! Please wait while I accept the mobile confirmation.`
                         );
 
                         if (isDonating) {
                             cart.sendNotification('✅ Success! Your donation has been sent and received!');
+                        } else if (isBuyingPremium) {
+                            cart.sendNotification('✅ Success! Your premium purchase has been sent and received!');
                         }
 
                         log.debug('Accepting mobile confirmation...');
@@ -242,7 +246,7 @@ export default class CartQueue {
                     this.busy = false;
 
                     // Handle the queue
-                    this.handleQueue(false);
+                    this.handleQueue(false, false);
                 });
         }
     }

@@ -75,7 +75,8 @@ const ADMIN_COMMANDS: string[] = [
     '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍',
     '!options - Get options.json content (current bot option settings) 🔧',
     '!config <Options>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
-    '!donatebptf (sku|name|defindex)=<a>&amount=<number> - Donate to backpack.tf (https://backpack.tf/donate) 💰'
+    '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
+    '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
 ];
 
 export function helpCommand(steamID: SteamID, bot: Bot): void {

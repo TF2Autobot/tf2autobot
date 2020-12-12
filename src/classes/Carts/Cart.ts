@@ -38,6 +38,8 @@ export default abstract class Cart {
 
     protected donation = false;
 
+    protected buyPremium = false;
+
     protected offer: TradeOfferManager.TradeOffer | null = null;
 
     protected readonly bot: Bot;
@@ -96,6 +98,10 @@ export default abstract class Cart {
 
     isDonating(isDonation: boolean): void {
         this.donation = isDonation;
+    }
+
+    isBuyingPremium(isBuyingPremium: boolean): void {
+        this.buyPremium = isBuyingPremium;
     }
 
     sendNotification(message: string): void {
@@ -179,7 +185,7 @@ export default abstract class Cart {
         return Object.keys(this.our).length === 0 && Object.keys(this.their).length === 0;
     }
 
-    summarize(isDonating: boolean): string {
+    summarize(isDonating: boolean, isBuyingPremium: boolean): string {
         const ourSummary = this.summarizeOur();
 
         let ourSummaryString: string;
@@ -208,8 +214,10 @@ export default abstract class Cart {
             theirSummaryString = theirSummary.join(', ');
         }
 
-        return `You will ${isDonating ? 'donating' : 'be offered'} ${ourSummaryString} ${
-            isDonating ? 'to backpack.tf' : `for ${theirSummaryString}`
+        return `You${isDonating || isBuyingPremium ? `'re` : ' will'} ${
+            isDonating ? 'donating' : isBuyingPremium ? 'purchasing premium with' : 'be offered'
+        } ${ourSummaryString} ${
+            isDonating ? 'to backpack.tf' : isBuyingPremium ? 'from backpack.tf' : `for ${theirSummaryString}`
         }`;
     }
 
@@ -272,7 +280,7 @@ export default abstract class Cart {
         return summary;
     }
 
-    summarizeWithWeapons(isDonating: boolean): string {
+    summarizeWithWeapons(isDonating: boolean, isBuyingPremium: boolean): string {
         const ourSummary = this.summarizeOurWithWeapons();
 
         let ourSummaryString: string;
@@ -301,8 +309,10 @@ export default abstract class Cart {
             theirSummaryString = theirSummary.join(', ');
         }
 
-        return `You will ${isDonating ? 'donating' : 'be offered'} ${ourSummaryString} ${
-            isDonating ? 'to backpack.tf' : `for ${theirSummaryString}`
+        return `You${isDonating || isBuyingPremium ? `'re` : ' will'} ${
+            isDonating ? 'donating' : isBuyingPremium ? 'purchasing premium with' : 'be offered'
+        } ${ourSummaryString} ${
+            isDonating ? 'to backpack.tf' : isBuyingPremium ? 'from backpack.tf' : `for ${theirSummaryString}`
         }`;
     }
 
@@ -382,7 +392,7 @@ export default abstract class Cart {
             return Promise.reject(new Error('❌ Offer has not yet been constructed'));
         }
 
-        const pass = this.donation ? false : !this.bot.isAdmin(this.offer.partner);
+        const pass = this.donation || this.buyPremium ? false : !this.bot.isAdmin(this.offer.partner);
 
         if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
             return Promise.reject('Offer was mistakenly created to give free items to trade partner');
@@ -426,6 +436,8 @@ export default abstract class Cart {
 
                 this.donation = false;
 
+                this.buyPremium = false;
+
                 return status;
             })
             .catch(async err => {
@@ -434,6 +446,8 @@ export default abstract class Cart {
                 }
 
                 this.donation = false;
+
+                this.buyPremium = false;
 
                 const error = err as TradeOfferManager.CustomError;
 
