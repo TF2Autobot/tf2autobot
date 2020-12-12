@@ -179,7 +179,7 @@ export default abstract class Cart {
         return Object.keys(this.our).length === 0 && Object.keys(this.their).length === 0;
     }
 
-    summarize(): string {
+    summarize(isDonating: boolean): string {
         const ourSummary = this.summarizeOur();
 
         let ourSummaryString: string;
@@ -208,7 +208,9 @@ export default abstract class Cart {
             theirSummaryString = theirSummary.join(', ');
         }
 
-        return `You will be offered ${ourSummaryString} for ${theirSummaryString}`;
+        return `You will ${isDonating ? 'donating' : 'be offered'} ${ourSummaryString} ${
+            isDonating ? 'to backpack.tf' : `for ${theirSummaryString}`
+        }`;
     }
 
     summarizeOur(): string[] {
@@ -270,7 +272,7 @@ export default abstract class Cart {
         return summary;
     }
 
-    summarizeWithWeapons(): string {
+    summarizeWithWeapons(isDonating: boolean): string {
         const ourSummary = this.summarizeOurWithWeapons();
 
         let ourSummaryString: string;
@@ -299,7 +301,9 @@ export default abstract class Cart {
             theirSummaryString = theirSummary.join(', ');
         }
 
-        return `You will be offered ${ourSummaryString} for ${theirSummaryString}`;
+        return `You will ${isDonating ? 'donating' : 'be offered'} ${ourSummaryString} ${
+            isDonating ? 'to backpack.tf' : `for ${theirSummaryString}`
+        }`;
     }
 
     summarizeOurWithWeapons(): string[] {

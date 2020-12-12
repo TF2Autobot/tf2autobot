@@ -120,7 +120,11 @@ export default class CartQueue {
                         cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
                     }
 
-                    cart.sendNotification(`⌛ Please wait while I process your offer! ${cart.summarizeWithWeapons()}.`);
+                    cart.sendNotification(
+                        `⌛ Please wait while I process your ${
+                            isDonating ? 'donation' : 'offer'
+                        }! ${cart.summarizeWithWeapons(isDonating)}.`
+                    );
 
                     log.debug('Sending offer...');
                     return cart.sendOffer();
@@ -129,7 +133,9 @@ export default class CartQueue {
                     log.debug('Sent offer');
                     if (status === 'pending') {
                         cart.sendNotification(
-                            '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
+                            `⌛ Your ${
+                                isDonating ? 'donation' : 'offer'
+                            } has been made! Please wait while I accept the mobile confirmation.`
                         );
 
                         log.debug('Accepting mobile confirmation...');
@@ -180,7 +186,11 @@ export default class CartQueue {
                         cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
                     }
 
-                    cart.sendNotification(`⌛ Please wait while I process your offer! ${cart.summarize()}.`);
+                    cart.sendNotification(
+                        `⌛ Please wait while I process your ${isDonating ? 'donation' : 'offer'}! ${cart.summarize(
+                            isDonating
+                        )}.`
+                    );
 
                     log.debug('Sending offer...');
                     return cart.sendOffer();
@@ -189,7 +199,9 @@ export default class CartQueue {
                     log.debug('Sent offer');
                     if (status === 'pending') {
                         cart.sendNotification(
-                            '⌛ Your offer has been made! Please wait while I accept the mobile confirmation.'
+                            `⌛ Your ${
+                                isDonating ? 'donation' : 'offer'
+                            } has been made! Please wait while I accept the mobile confirmation.`
                         );
 
                         if (isDonating) {
