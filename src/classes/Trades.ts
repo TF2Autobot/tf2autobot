@@ -437,28 +437,26 @@ export default class Trades {
     }
 
     async acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
-        return new Promise((resolve, reject) => {
-            log.debug('Accepting mobile confirmation...', {
-                offerId: offer.id,
-                attempts: attempts
-            });
-
-            const start = dayjs().valueOf();
-            offer.data('actedOnConfirmation', true);
-            offer.data('actedOnConfirmationTimestamp', start);
-
-            return acceptConfirmation(offer, this.bot)
-                .then(() => null)
-                .catch(err => {
-                    if (attempts > 2) {
-                        throw err;
-                    }
-
-                    return promiseDelay(10 * 1000).then(() => {
-                        return this.acceptConfirmation(offer, attempts);
-                    });
-                });
+        log.debug('Accepting mobile confirmation...', {
+            offerId: offer.id,
+            attempts: attempts
         });
+
+        const start = dayjs().valueOf();
+        offer.data('actedOnConfirmation', true);
+        offer.data('actedOnConfirmationTimestamp', start);
+
+        return acceptConfirmation(offer, this.bot)
+            .then(() => null)
+            .catch(err => {
+                if (attempts > 2) {
+                    throw err;
+                }
+
+                return promiseDelay(10 * 1000).then(() => {
+                    return this.acceptConfirmation(offer, attempts);
+                });
+            });
     }
 
     private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
