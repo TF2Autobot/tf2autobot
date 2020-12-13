@@ -329,7 +329,7 @@ export default class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
-        // Check for missing sell listings every 30 minutes, initiate setInterval 5 minutes after start
+        // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
@@ -439,13 +439,13 @@ export default class MyHandler extends Handler {
     }
 
     enableAutoRefreshListings(): void {
-        // Automatically check for missing sell listings every 30 minutes
+        // Automatically check for missing listings every 30 minutes
         if (this.isAutoRelistEnabled && this.isPremium === false) {
             return;
         }
 
         this.autoRefreshListingsTimeout = setInterval(() => {
-            log.debug('Running automatic check for missing sell listings...');
+            log.debug('Running automatic check for missing listings...');
 
             const listingsSKUs: string[] = [];
             this.bot.listingManager.getListings(err => {
