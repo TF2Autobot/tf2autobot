@@ -53,9 +53,11 @@ export default class DonateCart extends Cart {
                 }
 
                 let missing = amount;
+                let isSkipped = false;
 
                 for (let i = 0; i < ourAssetids.length; i++) {
                     if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                        isSkipped = true;
                         continue;
                     }
                     const isAdded = offer.addMyItem({
@@ -73,14 +75,24 @@ export default class DonateCart extends Cart {
                         }
                     }
                 }
-                if (missing !== 0) {
-                    log.warn('Failed to create offer because missing our items', {
-                        sku: sku,
-                        required: amount,
-                        missing: missing
-                    });
 
-                    return reject('Something went wrong while constructing the offer');
+                if (missing !== 0) {
+                    log.warn(
+                        `Failed to create offer because missing our items${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                        }`,
+                        {
+                            sku: sku,
+                            required: amount,
+                            missing: missing
+                        }
+                    );
+
+                    return reject(
+                        `Something went wrong while constructing the offer${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                        }`
+                    );
                 }
             }
 
@@ -140,9 +152,11 @@ export default class DonateCart extends Cart {
                 }
 
                 let missing = amount;
+                let isSkipped = false;
 
                 for (let i = 0; i < ourAssetids.length; i++) {
                     if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                        isSkipped = true;
                         continue;
                     }
                     const isAdded = offer.addMyItem({
@@ -162,13 +176,22 @@ export default class DonateCart extends Cart {
                 }
 
                 if (missing !== 0) {
-                    log.warn('Failed to create offer because missing our items', {
-                        sku: sku,
-                        required: amount,
-                        missing: missing
-                    });
+                    log.warn(
+                        `Failed to create offer because missing our items${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                        }`,
+                        {
+                            sku: sku,
+                            required: amount,
+                            missing: missing
+                        }
+                    );
 
-                    return reject('Something went wrong while constructing the offer');
+                    return reject(
+                        `Something went wrong while constructing the offer${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                        }`
+                    );
                 }
             }
 
