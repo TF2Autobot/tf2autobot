@@ -19,6 +19,8 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         reason = `the offer you've sent is an empty offer on my side without any offer message. If you wish to give it as a gift, please include "gift" in the offer message. Thank you.`;
     } else if (offerReason.reason === 'CRIME_ATTEMPT') {
         reason = "you're taking free items. No.";
+    } else if (offerReason.reason === 'ONLY_METAL') {
+        reason = 'you might forgot to add items into the trade';
     } else if (offerReason.reason === 'DUELING_NOT_5_USES') {
         reason = 'your offer contains a Dueling Mini-Game that does not have 5 uses.';
     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
@@ -54,13 +56,13 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         offerReason.reason === 'ONLY_OVERSTOCKED' ||
         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
     ) {
-        reasonForInvalidValue = value.diffRef !== 0;
+        reasonForInvalidValue = value.diff < 0;
         reason = "you're attempting to sell item(s) that I can't buy more of.";
     } else if (
         offerReason.reason === 'ONLY_UNDERSTOCKED' ||
         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
     ) {
-        reasonForInvalidValue = value.diffRef !== 0;
+        reasonForInvalidValue = value.diff < 0;
         reason = "you're attempting to purchase item(s) that I can't sell more of.";
     } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
         reason = "I don't accept duped items.";

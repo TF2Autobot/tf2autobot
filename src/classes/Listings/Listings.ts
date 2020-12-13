@@ -39,6 +39,8 @@ export default class Listings {
 
     private templates: { buy: string; sell: string };
 
+    private readonly checkFn;
+
     constructor(bot: Bot) {
         this.bot = bot;
         this.templates = {
@@ -47,6 +49,8 @@ export default class Listings {
                 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
             sell: this.bot.options.details.sell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
         };
+
+        this.checkFn = this.checkAccountInfo.bind(this);
     }
 
     setupAutorelist(): void {
@@ -57,17 +61,16 @@ export default class Listings {
 
         // Autobump is enabled, add heartbeat listener
 
-        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        this.bot.listingManager.on('heartbeat', this.checkAccountInfo.bind(this));
+        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.bot.listingManager.on('heartbeat', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('heartbeat', this.checkAccountInfo.bind(this));
-        this.autoRelistEnabled = false;
-        clearTimeout(this.autoRelistTimeout);
+        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.disableAutoRelist();
     }
 
     private enableAutoRelist(): void {

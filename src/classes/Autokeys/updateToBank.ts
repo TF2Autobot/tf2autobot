@@ -44,10 +44,9 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
         } as EntryData;
     }
     bot.pricelist
-        .updatePrice(entry, false, PricelistChangedSource.Autokeys)
-        .then(data => {
+        .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+        .then(() => {
             log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`);
-            bot.listings.checkBySKU(data.sku, data);
         })
         .catch((err: Error) => {
             log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${err.message}`);

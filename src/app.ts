@@ -67,8 +67,8 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 
-ON_DEATH({ uncaughtException: true })(signalOrErr => {
-    const crashed = typeof signalOrErr !== 'string';
+ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
+    const crashed = signalOrErr !== 'SIGINT';
 
     if (crashed) {
         const botReady = botManager.isBotReady();
@@ -83,7 +83,7 @@ ON_DEATH({ uncaughtException: true })(signalOrErr => {
                     process.platform
                 } ${process.arch}}`,
                 'Stack trace:',
-                require('util').inspect(signalOrErr)
+                require('util').inspect(origin)
             ].join('\r\n')
         );
 

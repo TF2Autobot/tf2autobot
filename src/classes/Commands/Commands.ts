@@ -22,6 +22,7 @@ import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';
 import log from '../../lib/logger';
 import { ignoreWords } from '../../lib/data';
 import DonateCart from '../Carts/DonateCart';
+import PremiumCart from '../Carts/PremiumCart';
 
 export default class Commands {
     private readonly bot: Bot;
@@ -174,6 +175,8 @@ export default class Commands {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
             this.donateCartCommand(steamID, opt.weaponsAsCurrency.enable);
+        } else if (command === 'premium' && isAdmin) {
+            this.buyBPTFPremiumCommand(steamID, message);
         } else if (isNoReply) {
             return;
         } else {
@@ -286,7 +289,7 @@ export default class Commands {
 
         cart.addOurItem(match.sku, amount);
 
-        this.addCartToQueue(cart, false);
+        this.addCartToQueue(cart, false, false);
     }
 
     private sellCommand(steamID: SteamID, message: string): void {
@@ -304,7 +307,7 @@ export default class Commands {
 
         cart.addTheirItem(match.sku, amount);
 
-        this.addCartToQueue(cart, false);
+        this.addCartToQueue(cart, false, false);
     }
 
     // Multiple items trade
@@ -479,7 +482,7 @@ export default class Commands {
 
         cart.isDonating(false);
 
-        this.addCartToQueue(cart, false);
+        this.addCartToQueue(cart, false, false);
     }
 
     // Trade actions
@@ -550,7 +553,7 @@ export default class Commands {
         }
     }
 
-    private addCartToQueue(cart: Cart, isDonating: boolean): void {
+    private addCartToQueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): void {
         const activeOfferID = this.bot.trades.getActiveOffer(cart.partner);
 
         if (activeOfferID !== null) {
@@ -580,7 +583,7 @@ export default class Commands {
             return;
         }
 
-        const position = this.cartQueue.enqueue(cart, isDonating);
+        const position = this.cartQueue.enqueue(cart, isDonating, isBuyingPremium);
 
         if (position !== 0) {
             this.bot.sendMessage(
@@ -935,7 +938,7 @@ export default class Commands {
 
         cart.isDonating(true);
 
-        this.addCartToQueue(cart, true);
+        this.addCartToQueue(cart, true, false);
     }
 
     private donateCartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
@@ -947,6 +950,82 @@ export default class Commands {
             return;
         }
         this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
+    }
+
+    private buyBPTFPremiumCommand(steamID: SteamID, message: string): void {
+        const currentCart = Cart.getCart(steamID);
+        if (currentCart !== null && !(currentCart instanceof PremiumCart)) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ You already have an active cart, please finalize it before making a new one.'
+            );
+            return;
+        }
+
+        message = c.utils.removeLinkProtocol(message);
+        const paramStr = CommandParser.removeCommand(message);
+
+        const params = CommandParser.parseParams(paramStr);
+
+        if (
+            params.months === undefined ||
+            typeof params.months !== 'number' ||
+            !Number.isInteger(params.months) ||
+            params.months < 1
+        ) {
+            this.bot.sendMessage(
+                steamID,
+                '❌ Wrong syntax. Example: !premium months=1' +
+                    '\n\n📌 Note: 📌\n- 1 month = 3 keys\n- 2 months = 5 keys\n- 3 months = 8 keys\n- 4 months = 10 keys\n- 1 year (12 months) = 30 keys'
+            );
+            return;
+        }
+
+        const amountMonths = params.months;
+        const numMonths = params.months;
+        const numOdds = numMonths % 2 !== 0 ? (numMonths - 1) / 2 + 1 : (numMonths - 1) / 2;
+        const numEvens = numMonths - numOdds;
+        const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
+
+        const ourAmount = this.bot.inventoryManager.getInventory().getAmount('5021;6');
+
+        if (ourAmount < amountKeys) {
+            this.bot.sendMessage(
+                steamID,
+                `❌ I don't have enough keys to buy premium for ${pluralize(
+                    'month',
+                    amountMonths,
+                    true
+                )}. I have ${pluralize('key', ourAmount, true)} and need ${pluralize(
+                    'key',
+                    amountKeys - ourAmount,
+                    true
+                )} more.`
+            );
+            return;
+        }
+
+        if (params.i_am_sure !== 'yes_i_am') {
+            this.bot.sendMessage(
+                steamID,
+                `⚠️ Are you sure that you want to buy premium for ${pluralize('month', amountMonths, true)}?` +
+                    `\nThis will cost you ${pluralize('key', amountKeys, true)}.` +
+                    `\nIf yes, retry by sending !premium months=${amountMonths}&i_am_sure=yes_i_am`
+            );
+            return;
+        }
+
+        const cart = new PremiumCart(steamID, this.bot);
+
+        cart.addOurItem('5021;6', amountKeys);
+
+        Cart.addCart(cart);
+
+        cart.setNotify(true);
+
+        cart.isBuyingPremium(true);
+
+        this.addCartToQueue(cart, false, true);
     }
 
     // Request commands

@@ -629,20 +629,38 @@ export function resetQueueCommand(steamID: SteamID, bot: Bot, cartQueue: CartQue
 }
 
 export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
-    const inventory = bot.inventoryManager.getInventory();
-    const pricelist = bot.pricelist.getPrices().filter(entry => {
-        // Filter our pricelist to only the items that the bot currently have.
-        return inventory.findBySKU(entry.sku).length > 0;
-    });
-
-    if (pricelist.length > 0) {
-        log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-        bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
-        void bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-            log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-            bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+    const listingsSKUs: string[] = [];
+    bot.listingManager.getListings(err => {
+        if (err) {
+            bot.sendMessage(steamID, '❌ Unable to refresh listings, please try again later: ' + (err as string));
+            return;
+        }
+        bot.listingManager.listings.forEach(listing => {
+            listingsSKUs.push(listing.getSKU());
         });
-    } else {
-        bot.sendMessage(steamID, '❌ Nothing to refresh.');
-    }
+
+        // Remove duplicate elements
+        const newlistingsSKUs: string[] = [];
+        listingsSKUs.forEach(sku => {
+            if (!newlistingsSKUs.includes(sku)) {
+                newlistingsSKUs.push(sku);
+            }
+        });
+
+        const pricelist = bot.pricelist.getPrices().filter(entry => {
+            // Filter our pricelist to only the items that are missing.
+            return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+        });
+
+        if (pricelist.length > 0) {
+            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+            bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
+            void bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
+                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+                bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+            });
+        } else {
+            bot.sendMessage(steamID, '❌ Nothing to refresh.');
+        }
+    });
 }

@@ -623,8 +623,13 @@ export default class UserCart extends Cart {
 
             ourItemsCount += amount;
             let missing = amount;
+            let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
+                if (this.bot.trades.isInTrade(assetids[i])) {
+                    isSkipped = true;
+                    continue;
+                }
                 const isAdded = offer.addMyItem({
                     appid: 440,
                     contextid: '2',
@@ -646,13 +651,22 @@ export default class UserCart extends Cart {
             }
 
             if (missing !== 0) {
-                log.warn('Failed to create offer because missing our items', {
-                    sku: sku,
-                    required: amount,
-                    missing: missing
-                });
+                log.warn(
+                    `Failed to create offer because missing our items${
+                        isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                    }`,
+                    {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    }
+                );
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                    }`
+                );
             }
         }
 
@@ -749,6 +763,8 @@ export default class UserCart extends Cart {
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
+            let isSkipped = false;
+
             for (const sku in currencies) {
                 if (!Object.prototype.hasOwnProperty.call(currencies, sku)) {
                     continue;
@@ -768,6 +784,10 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
+                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                            isSkipped = true;
+                            continue;
+                        }
                         const isAdded = offer[isBuyer ? 'addTheirItem' : 'addMyItem']({
                             assetid: currencies[sku][i],
                             appid: 440,
@@ -810,7 +830,11 @@ export default class UserCart extends Cart {
             }
 
             if (change !== 0) {
-                return Promise.reject(`I am missing ${Currencies.toRefined(change)} ref as change`);
+                return Promise.reject(
+                    `I am missing ${Currencies.toRefined(change)} ref as change${
+                        isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
+                    }`
+                );
             }
         }
 
@@ -822,6 +846,8 @@ export default class UserCart extends Cart {
             if (required.currencies[sku] === 0) {
                 continue;
             }
+
+            // Original: itemsDict[isBuyer ? 'our' : 'their'][sku] = required.currencies[sku];
 
             if (isBuyer) {
                 const ourAmount = required.currencies[sku] as number;
@@ -843,7 +869,13 @@ export default class UserCart extends Cart {
                 };
             }
 
+            let isSkipped = false;
+
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
+                if (isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                    isSkipped = true;
+                    continue;
+                }
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
                     assetid: buyerCurrenciesWithAssetids[sku][i],
                     appid: 440,
@@ -865,7 +897,11 @@ export default class UserCart extends Cart {
                     sku: sku
                 });
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
+                    }`
+                );
             }
         }
 
@@ -1574,8 +1610,13 @@ export default class UserCart extends Cart {
 
             ourItemsCount += amount;
             let missing = amount;
+            let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
+                if (this.bot.trades.isInTrade(assetids[i])) {
+                    isSkipped = true;
+                    continue;
+                }
                 const isAdded = offer.addMyItem({
                     appid: 440,
                     contextid: '2',
@@ -1597,13 +1638,22 @@ export default class UserCart extends Cart {
             }
 
             if (missing !== 0) {
-                log.warn('Failed to create offer because missing our items', {
-                    sku: sku,
-                    required: amount,
-                    missing: missing
-                });
+                log.warn(
+                    `Failed to create offer because missing our items${
+                        isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                    }`,
+                    {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    }
+                );
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                    }`
+                );
             }
         }
 
@@ -1700,6 +1750,8 @@ export default class UserCart extends Cart {
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
+            let isSkipped = false;
+
             for (const sku in currencies) {
                 if (!Object.prototype.hasOwnProperty.call(currencies, sku)) {
                     continue;
@@ -1724,6 +1776,10 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
+                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                            isSkipped = true;
+                            continue;
+                        }
                         const isAdded = offer[isBuyer ? 'addTheirItem' : 'addMyItem']({
                             assetid: currencies[sku][i],
                             appid: 440,
@@ -1766,7 +1822,11 @@ export default class UserCart extends Cart {
             }
 
             if (change !== 0) {
-                return Promise.reject(`I am missing ${Currencies.toRefined(change)} ref as change`);
+                return Promise.reject(
+                    `I am missing ${Currencies.toRefined(change)} ref as change${
+                        isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
+                    }`
+                );
             }
         }
 
@@ -1799,7 +1859,13 @@ export default class UserCart extends Cart {
                 };
             }
 
+            let isSkipped = false;
+
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
+                if (!isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                    isSkipped = true;
+                    continue;
+                }
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
                     assetid: buyerCurrenciesWithAssetids[sku][i],
                     appid: 440,
@@ -1821,7 +1887,11 @@ export default class UserCart extends Cart {
                     sku: sku
                 });
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
+                    }`
+                );
             }
         }
 
