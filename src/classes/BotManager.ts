@@ -9,15 +9,16 @@ import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
+import SocketManager from './MyHandler/SocketManager';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
 export default class BotManager {
-    private readonly socket: SocketIOClient.Socket;
+    private readonly socketManager: SocketManager;
 
     private readonly schemaManager: SchemaManager;
 
-    private bot: Bot = null;
+    public bot: Bot = null;
 
     private stopRequested = false;
 
@@ -29,42 +30,15 @@ export default class BotManager {
 
     constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
-        this.socket = io('https://api.prices.tf', {
-            forceNew: true,
-            autoConnect: false
-        });
-
-        this.socket.on('connect', () => {
-            log.debug('Connected to socket server');
-            this.socket.emit('authentication', pricestfApiToken);
-        });
-
-        this.socket.on('authenticated', () => {
-            log.debug('Authenticated with socket server');
-        });
-
-        this.socket.on('unauthorized', err => {
-            log.debug('Failed to authenticate with socket server', {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                error: err
-            });
-        });
-
-        this.socket.on('disconnect', (reason: string) => {
-            log.debug('Disconnected from socket server', { reason: reason });
-
-            if (reason === 'io server disconnect') {
-                this.socket.connect();
-            }
-        });
+        this.socketManager = new SocketManager('https://api.prices.tf', pricestfApiToken);
     }
 
     getSchema(): SchemaManager.Schema | null {
         return this.schemaManager.schema;
     }
 
-    getSocket(): SocketIOClient.Socket {
-        return this.socket;
+    getSocketManager(): SocketManager {
+        return this.socketManager;
     }
 
     isStopping(): boolean {
@@ -90,11 +64,16 @@ export default class BotManager {
                         void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
+                        log.info('Starting Socket Manager...');
+                        void this.socketManager.init().asCallback(callback);
+                    },
+                    (callback): void => {
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Starting bot...');
+
                         this.bot = new Bot(this, options);
 
                         void this.bot.start().asCallback(callback);
@@ -119,9 +98,6 @@ export default class BotManager {
                         this.stop(null, false, false);
                         return;
                     }
-
-                    // Connect to socket server
-                    this.socket.open();
 
                     return resolve();
                 }
@@ -230,7 +206,7 @@ export default class BotManager {
         }
 
         // Disconnect from socket server to stop price updates
-        this.socket.disconnect();
+        this.socketManager.shutDown();
     }
 
     private exit(err: Error | null): void {

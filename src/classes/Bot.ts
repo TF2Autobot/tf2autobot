@@ -18,7 +18,7 @@ import semver from 'semver';
 import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
+import Pricelist, { Entry, EntryData } from './Pricelist';
 import Handler from './Handler';
 import Friends from './Friends';
 import Trades from './Trades';
@@ -38,8 +38,6 @@ export default class Bot {
     readonly botManager: BotManager;
 
     readonly schema: SchemaManager.Schema;
-
-    readonly socket: SocketIOClient.Socket;
 
     readonly bptf: BptfLogin;
 
@@ -89,11 +87,50 @@ export default class Bot {
 
     private ready = false;
 
+    private handleLoggedOn: OmitThisParameter<() => void>;
+
+    private handleMessage: OmitThisParameter<(steamID: SteamID, message: string) => void>;
+
+    private handleFriendRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
+
+    private handleGroupRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
+
+    private handleWebSession: OmitThisParameter<(sessionID: string, cookies: string[]) => void>;
+
+    private handleSteamGuard: OmitThisParameter<
+        (domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean) => void
+    >;
+
+    private handleLoginKey: OmitThisParameter<(loginKey: string) => void>;
+
+    private handleError: OmitThisParameter<(err: CustomError) => void>;
+
+    private handleSessionExpired: OmitThisParameter<() => void>;
+
+    private handleConfKeyNeeded: OmitThisParameter<
+        (tag: string, callback: (err: Error | null, time: number, confKey: string) => void) => void
+    >;
+
+    private handlePollData: OmitThisParameter<(pollData: TradeOfferManager.PollData) => void>;
+
+    private handleNewOffer: OmitThisParameter<(offer: TradeOfferManager.TradeOffer) => void>;
+
+    private handleOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
+
+    private handleOfferList: OmitThisParameter<
+        (filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]) => void
+    >;
+
+    private handleHeartbeat: OmitThisParameter<(bumped: number) => void>;
+
+    private handlePricelist: OmitThisParameter<(pricelist: Entry[]) => void>;
+
+    private handlePriceChange: OmitThisParameter<(sku: string, price: Entry | null) => void>;
+
     constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema();
-        this.socket = this.botManager.getSocket();
 
         this.client = new SteamUser();
         this.community = new SteamCommunity();
@@ -123,7 +160,7 @@ export default class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.socket, this.options);
+        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager(), this.options);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
@@ -134,28 +171,27 @@ export default class Bot {
             }
         });
 
-        this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
-        this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
-        this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
-        this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
-        this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
-        this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
-        this.addListener(this.client, 'error', this.onError.bind(this), false);
+        this.handleLoggedOn = this.handler.onLoggedOn.bind(this.handler);
+        this.handleMessage = this.onMessage.bind(this);
+        this.handleFriendRelationship = this.handler.onFriendRelationship.bind(this.handler);
+        this.handleGroupRelationship = this.handler.onGroupRelationship.bind(this.handler);
+        this.handleWebSession = this.onWebSession.bind(this);
+        this.handleSteamGuard = this.onSteamGuard.bind(this);
+        this.handleLoginKey = this.handler.onLoginKey.bind(this.handler);
+        this.handleError = this.onError.bind(this);
 
-        this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
-        this.addListener(this.community, 'confKeyNeeded', this.onConfKeyNeeded.bind(this), false);
+        this.handleSessionExpired = this.onSessionExpired.bind(this);
+        this.handleConfKeyNeeded = this.onConfKeyNeeded.bind(this);
 
-        this.addListener(this.manager, 'pollData', this.handler.onPollData.bind(this.handler), false);
-        this.addListener(this.manager, 'newOffer', this.trades.onNewOffer.bind(this.trades), true);
-        this.addListener(this.manager, 'sentOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
-        this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
-        this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
+        this.handlePollData = this.handler.onPollData.bind(this.handler);
+        this.handleNewOffer = this.trades.onNewOffer.bind(this.trades);
+        this.handleOfferChanged = this.trades.onOfferChanged.bind(this.trades);
+        this.handleOfferList = this.trades.onOfferList.bind(this.trades);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
+        this.handleHeartbeat = this.handler.onHeartbeat.bind(this);
 
-        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
-        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
+        this.handlePricelist = this.handler.onPricelist.bind(this.handler);
+        this.handlePriceChange = this.handler.onPriceChange.bind(this.handler);
     }
 
     getHandler(): Handler {
@@ -294,6 +330,31 @@ export default class Bot {
             pollData?: TradeOfferManager.PollData;
         };
         let cookies: string[];
+
+        this.addListener(this.client, 'loggedOn', this.handleLoggedOn, false);
+        this.addListener(this.client, 'friendMessage', this.handleMessage, true);
+        this.addListener(this.client, 'friendRelationship', this.handleFriendRelationship, true);
+        this.addListener(this.client, 'groupRelationship', this.handleGroupRelationship, true);
+        this.addListener(this.client, 'webSession', this.handleWebSession, false);
+        this.addListener(this.client, 'steamGuard', this.handleSteamGuard, false);
+        this.addListener(this.client, 'loginKey', this.handleLoginKey, false);
+        this.addListener(this.client, 'error', this.handleError, false);
+
+        this.addListener(this.community, 'sessionExpired', this.handleSessionExpired, false);
+        this.addListener(this.community, 'confKeyNeeded', this.handleConfKeyNeeded, false);
+
+        this.addListener(this.manager, 'pollData', this.handlePollData, false);
+        this.addListener(this.manager, 'newOffer', this.handleNewOffer, true);
+        this.addListener(this.manager, 'sentOfferChanged', this.handleOfferChanged, true);
+        this.addListener(this.manager, 'receivedOfferChanged', this.handleOfferChanged, true);
+        this.addListener(this.manager, 'offerList', this.handleOfferList, true);
+
+        this.addListener(this.listingManager, 'heartbeat', this.handleHeartbeat, true);
+
+        this.addListener(this.pricelist, 'pricelist', this.handlePricelist, false);
+        this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
+
+        this.pricelist.init();
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
