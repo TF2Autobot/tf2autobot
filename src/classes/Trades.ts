@@ -213,15 +213,13 @@ export default class Trades {
         });
     }
 
-    findMatchingOffer(
+    async findMatchingOffer(
         offer: TradeOfferManager.TradeOffer,
         isSent: boolean
     ): Promise<TradeOfferManager.TradeOffer | null> {
-        return this.getOffers().then(({ sent, received }) => {
-            const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
-
-            return match === undefined ? null : match;
-        });
+        const { sent, received } = await this.getOffers();
+        const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
+        return match === undefined ? null : match;
     }
 
     private enqueueOffer(offer: TradeOfferManager.TradeOffer): void {
