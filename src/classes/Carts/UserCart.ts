@@ -625,6 +625,9 @@ export default class UserCart extends Cart {
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
+                if (this.bot.trades.isInTrade(assetids[i])) {
+                    continue;
+                }
                 const isAdded = offer.addMyItem({
                     appid: 440,
                     contextid: '2',
@@ -768,6 +771,9 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
+                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                            continue;
+                        }
                         const isAdded = offer[isBuyer ? 'addTheirItem' : 'addMyItem']({
                             assetid: currencies[sku][i],
                             appid: 440,
@@ -844,6 +850,9 @@ export default class UserCart extends Cart {
             }
 
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
+                if (!isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                    continue;
+                }
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
                     assetid: buyerCurrenciesWithAssetids[sku][i],
                     appid: 440,
@@ -1576,6 +1585,9 @@ export default class UserCart extends Cart {
             let missing = amount;
 
             for (let i = 0; i < assetids.length; i++) {
+                if (this.bot.trades.isInTrade(assetids[i])) {
+                    continue;
+                }
                 const isAdded = offer.addMyItem({
                     appid: 440,
                     contextid: '2',
@@ -1724,6 +1736,9 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
+                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                            continue;
+                        }
                         const isAdded = offer[isBuyer ? 'addTheirItem' : 'addMyItem']({
                             assetid: currencies[sku][i],
                             appid: 440,
@@ -1800,6 +1815,9 @@ export default class UserCart extends Cart {
             }
 
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
+                if (!isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                    continue;
+                }
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
                     assetid: buyerCurrenciesWithAssetids[sku][i],
                     appid: 440,

@@ -2,6 +2,7 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 
 import Cart from './Cart';
+import log from '../../lib/logger';
 
 export default class DonateCart extends Cart {
     protected preSendOffer(): Promise<void> {
@@ -51,12 +52,35 @@ export default class DonateCart extends Cart {
                     }
                 }
 
-                for (let i = 0; i < amount; i++) {
-                    offer.addMyItem({
+                let missing = amount;
+
+                for (let i = 0; i < ourAssetids.length; i++) {
+                    if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                        continue;
+                    }
+                    const isAdded = offer.addMyItem({
                         appid: 440,
                         contextid: '2',
                         assetid: ourAssetids[i]
                     });
+
+                    if (isAdded) {
+                        // The item was added to the offer
+                        missing--;
+                        if (missing === 0) {
+                            // We added all the items
+                            break;
+                        }
+                    }
+                }
+                if (missing !== 0) {
+                    log.warn('Failed to create offer because missing our items', {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    });
+
+                    return reject('Something went wrong while constructing the offer');
                 }
             }
 
@@ -115,12 +139,36 @@ export default class DonateCart extends Cart {
                     }
                 }
 
-                for (let i = 0; i < amount; i++) {
-                    offer.addMyItem({
+                let missing = amount;
+
+                for (let i = 0; i < ourAssetids.length; i++) {
+                    if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                        continue;
+                    }
+                    const isAdded = offer.addMyItem({
                         appid: 440,
                         contextid: '2',
                         assetid: ourAssetids[i]
                     });
+
+                    if (isAdded) {
+                        // The item was added to the offer
+                        missing--;
+                        if (missing === 0) {
+                            // We added all the items
+                            break;
+                        }
+                    }
+                }
+
+                if (missing !== 0) {
+                    log.warn('Failed to create offer because missing our items', {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    });
+
+                    return reject('Something went wrong while constructing the offer');
                 }
             }
 
