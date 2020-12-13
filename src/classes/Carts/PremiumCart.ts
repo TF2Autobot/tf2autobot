@@ -2,10 +2,9 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 
 import Cart from './Cart';
-import Inventory from '../Inventory';
 import log from '../../lib/logger';
 
-export default class AdminCart extends Cart {
+export default class PremiumCart extends Cart {
     protected preSendOffer(): Promise<void> {
         return Promise.resolve();
     }
@@ -16,7 +15,10 @@ export default class AdminCart extends Cart {
                 return reject('cart is empty');
             }
 
-            const offer = this.bot.manager.createOffer(this.partner);
+            const offer = this.bot.manager.createOffer(
+                'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi' // Backpack.tf premium purchase bot
+                // https://steamcommunity.com/id/backpacktf001
+            );
 
             const alteredMessages: string[] = [];
 
@@ -104,65 +106,6 @@ export default class AdminCart extends Cart {
 
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             }
-
-            // Load their inventory
-
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-
-            void theirInventory.fetch().asCallback(err => {
-                if (err) {
-                    return reject('Failed to load inventories (Steam might be down)');
-                }
-
-                // Add their items
-
-                for (const sku in this.their) {
-                    if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                        continue;
-                    }
-
-                    let amount = this.getTheirCount(sku);
-                    const theirAssetids = theirInventory.findBySKU(sku, true);
-
-                    if (amount > theirAssetids.length) {
-                        amount = theirAssetids.length;
-                        // Remove the item from the cart
-                        this.removeTheirItem(sku);
-
-                        if (theirAssetids.length === 0) {
-                            alteredMessages.push(
-                                "you don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
-                            );
-                        } else {
-                            alteredMessages.push(
-                                'you only have ' +
-                                    pluralize(
-                                        this.bot.schema.getName(SKU.fromString(sku), false),
-                                        theirAssetids.length,
-                                        true
-                                    )
-                            );
-
-                            // Add the max amount to the offer
-                            this.addTheirItem(sku, theirAssetids.length);
-                        }
-                    }
-
-                    for (let i = 0; i < amount; i++) {
-                        offer.addTheirItem({
-                            appid: 440,
-                            contextid: '2',
-                            assetid: theirAssetids[i]
-                        });
-                    }
-                }
-
-                offer.data('dict', { our: this.our, their: this.their });
-
-                this.offer = offer;
-
-                return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
-            });
         });
     }
 
@@ -172,7 +115,10 @@ export default class AdminCart extends Cart {
                 return reject('cart is empty');
             }
 
-            const offer = this.bot.manager.createOffer(this.partner);
+            const offer = this.bot.manager.createOffer(
+                'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi' // Backpack.tf premium purchase bot
+                // https://steamcommunity.com/id/backpacktf001
+            );
 
             const alteredMessages: string[] = [];
 
@@ -260,65 +206,6 @@ export default class AdminCart extends Cart {
 
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             }
-
-            // Load their inventory
-
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
-
-            void theirInventory.fetch().asCallback(err => {
-                if (err) {
-                    return reject('Failed to load inventories (Steam might be down)');
-                }
-
-                // Add their items
-
-                for (const sku in this.their) {
-                    if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                        continue;
-                    }
-
-                    let amount = this.getTheirCount(sku);
-                    const theirAssetids = theirInventory.findBySKU(sku, true);
-
-                    if (amount > theirAssetids.length) {
-                        amount = theirAssetids.length;
-                        // Remove the item from the cart
-                        this.removeTheirItem(sku);
-
-                        if (theirAssetids.length === 0) {
-                            alteredMessages.push(
-                                "you don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
-                            );
-                        } else {
-                            alteredMessages.push(
-                                'you only have ' +
-                                    pluralize(
-                                        this.bot.schema.getName(SKU.fromString(sku), false),
-                                        theirAssetids.length,
-                                        true
-                                    )
-                            );
-
-                            // Add the max amount to the offer
-                            this.addTheirItem(sku, theirAssetids.length);
-                        }
-                    }
-
-                    for (let i = 0; i < amount; i++) {
-                        offer.addTheirItem({
-                            appid: 440,
-                            contextid: '2',
-                            assetid: theirAssetids[i]
-                        });
-                    }
-                }
-
-                offer.data('dict', { our: this.our, their: this.their });
-
-                this.offer = offer;
-
-                return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
-            });
         });
     }
 }

@@ -5,7 +5,7 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, valueDiff, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
+import { pure, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -14,7 +14,6 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const pureStock = pure.stock(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
     const links = generateLinks(offer.partner.toString());
 
     const content = processReview(offer, meta, bot, isTradingKeys);
@@ -101,7 +100,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const list = listItems(items, true);
 
     if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
-        sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, value, links, items, bot);
+        sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
     } else {
         const currentItems = bot.inventoryManager.getInventory().getTotalItems();
         const slots = bot.tf2.backpackSlots;
@@ -118,7 +117,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     isShowChanges
                         ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
                         : offer.summarize(bot.schema),
-                    value,
+                    content.value,
                     keyPrices,
                     true
                 ) +

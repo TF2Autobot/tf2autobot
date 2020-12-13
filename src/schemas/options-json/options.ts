@@ -52,6 +52,9 @@ export const optionsSchema: jsonschema.Schema = {
         autobump: {
             type: 'boolean'
         },
+        skipItemsInTrade: {
+            type: 'boolean'
+        },
         weaponsAsCurrency: {
             type: 'weapons-as-currency'
         },

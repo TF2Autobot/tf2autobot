@@ -31,6 +31,8 @@ export const DEFAULTS = {
 
     autobump: false,
 
+    skipItemsInTrade: true,
+
     weaponsAsCurrency: {
         enable: true,
         withUncraft: true
@@ -447,6 +449,7 @@ export interface JsonOptions {
     sendOfferMessage?: string;
     maxPriceAge?: number;
     autobump?: boolean;
+    skipItemsInTrade?: boolean;
     tradeSummary?: TradeSummary;
     highValue?: HighValue;
     checkUses?: CheckUses;

@@ -2,6 +2,7 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 
 import Cart from './Cart';
+import log from '../../lib/logger';
 
 export default class DonateCart extends Cart {
     protected preSendOffer(): Promise<void> {
@@ -51,12 +52,47 @@ export default class DonateCart extends Cart {
                     }
                 }
 
-                for (let i = 0; i < amount; i++) {
-                    offer.addMyItem({
+                let missing = amount;
+                let isSkipped = false;
+
+                for (let i = 0; i < ourAssetids.length; i++) {
+                    if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(ourAssetids[i])) {
+                        isSkipped = true;
+                        continue;
+                    }
+                    const isAdded = offer.addMyItem({
                         appid: 440,
                         contextid: '2',
                         assetid: ourAssetids[i]
                     });
+
+                    if (isAdded) {
+                        // The item was added to the offer
+                        missing--;
+                        if (missing === 0) {
+                            // We added all the items
+                            break;
+                        }
+                    }
+                }
+
+                if (missing !== 0) {
+                    log.warn(
+                        `Failed to create offer because missing our items${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                        }`,
+                        {
+                            sku: sku,
+                            required: amount,
+                            missing: missing
+                        }
+                    );
+
+                    return reject(
+                        `Something went wrong while constructing the offer${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                        }`
+                    );
                 }
             }
 
@@ -115,12 +151,47 @@ export default class DonateCart extends Cart {
                     }
                 }
 
-                for (let i = 0; i < amount; i++) {
-                    offer.addMyItem({
+                let missing = amount;
+                let isSkipped = false;
+
+                for (let i = 0; i < ourAssetids.length; i++) {
+                    if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(ourAssetids[i])) {
+                        isSkipped = true;
+                        continue;
+                    }
+                    const isAdded = offer.addMyItem({
                         appid: 440,
                         contextid: '2',
                         assetid: ourAssetids[i]
                     });
+
+                    if (isAdded) {
+                        // The item was added to the offer
+                        missing--;
+                        if (missing === 0) {
+                            // We added all the items
+                            break;
+                        }
+                    }
+                }
+
+                if (missing !== 0) {
+                    log.warn(
+                        `Failed to create offer because missing our items${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade' : ''
+                        }`,
+                        {
+                            sku: sku,
+                            required: amount,
+                            missing: missing
+                        }
+                    );
+
+                    return reject(
+                        `Something went wrong while constructing the offer${
+                            isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
+                        }`
+                    );
                 }
             }
 

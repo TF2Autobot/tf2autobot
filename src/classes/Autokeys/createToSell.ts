@@ -71,10 +71,9 @@ export default function createToSell(minKeys: number, maxKeys: number, bot: Bot)
         } as EntryData;
     }
     bot.pricelist
-        .addPrice(entry, false, PricelistChangedSource.Autokeys)
-        .then(data => {
+        .addPrice(entry, true, PricelistChangedSource.Autokeys)
+        .then(() => {
             log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`);
-            bot.listings.checkBySKU(data.sku, data);
         })
         .catch((err: Error) => {
             log.warn(`❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${err.message}`);

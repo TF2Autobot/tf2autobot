@@ -216,33 +216,43 @@ export default class Autokeys {
 
         let setMinKeys: number;
         let setMaxKeys: number;
-        const roundedKeysCanBuy = Math.round((currRef - userMaxRef) / currKeyPrice.buy.toValue());
-        const roundedKeysCanSell = Math.round((userMinRef - currRef) / currKeyPrice.sell.toValue());
-        const roundedKeysCanBankMin = Math.round((userMaxRef - currRef) / currKeyPrice.sell.toValue());
-        const roundedKeysCanBankMax = Math.round((currRef - userMinRef) / currKeyPrice.buy.toValue());
-        const fixedKeysCanBuy = roundedKeysCanBuy === 0 ? 1 : roundedKeysCanBuy;
-        const fixedKeysCanSell = roundedKeysCanSell === 0 ? 1 : roundedKeysCanSell;
-        const fixedKeysCanBankMin = roundedKeysCanBankMin === 0 ? 1 : roundedKeysCanBankMin;
-        const fixedKeysCanBankMax = roundedKeysCanBankMax === 0 ? 1 : roundedKeysCanBankMax;
+        const rKeysCanBuy = Math.round((currRef - userMaxRef) / currKeyPrice.buy.toValue());
+        const rKeysCanSell = Math.round((userMinRef - currRef) / currKeyPrice.sell.toValue());
+        const rKeysCanBankMin = Math.round((userMaxRef - currRef) / currKeyPrice.sell.toValue());
+        const rKeysCanBankMax = Math.round((currRef - userMinRef) / currKeyPrice.buy.toValue());
 
         // Check and set new min and max
         if (isBuyingKeys) {
             // If buying - we need to set min = currKeys and max = currKeys + CanBuy
-            setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-            setMaxKeys = currKeys + fixedKeysCanBuy >= userMaxKeys ? userMaxKeys : currKeys + fixedKeysCanBuy;
+            const min = currKeys;
+            setMinKeys = min <= userMinKeys ? userMinKeys : min;
+
+            const max = currKeys + rKeysCanBuy;
+            setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+            //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
-            // If buying - we need to set min = currKeys and max = currKeys + CanBuy
-            setMinKeys = currKeys <= userMinKeys ? userMinKeys : currKeys;
-            setMaxKeys =
-                currKeys + roundedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + roundedKeysCanBankMax;
+            // If buying (while banking) - we need to set min = currKeys and max = currKeys + CanBankMax
+            const min = currKeys;
+            setMinKeys = min <= userMinKeys ? userMinKeys : min;
+
+            const max = currKeys + rKeysCanBankMax;
+            setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+            //
         } else if (isSellingKeys) {
             // If selling - we need to set min = currKeys - CanSell and max = currKeys
-            setMinKeys = currKeys - fixedKeysCanSell <= userMinKeys ? userMinKeys : currKeys - fixedKeysCanSell;
-            setMaxKeys = currKeys >= userMaxKeys ? userMaxKeys : currKeys;
+            const min = currKeys - rKeysCanSell;
+            setMinKeys = min <= userMinKeys ? userMinKeys : min;
+
+            const max = currKeys;
+            setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+            //
         } else if (isBankingKeys && isEnableKeyBanking) {
             // If banking - we need to set min = currKeys - CanBankMin and max = currKeys + CanBankMax
-            setMinKeys = currKeys - fixedKeysCanBankMin <= userMinKeys ? userMinKeys : currKeys - fixedKeysCanBankMin;
-            setMaxKeys = currKeys + fixedKeysCanBankMax >= userMaxKeys ? userMaxKeys : currKeys + fixedKeysCanBankMax;
+            const min = currKeys - rKeysCanBankMin;
+            setMinKeys = min <= userMinKeys ? userMinKeys : min;
+
+            const max = currKeys + rKeysCanBankMax;
+            setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
         }
 
         const isAlreadyRunningAutokeys = this.isActive;
@@ -256,8 +266,8 @@ export default class Autokeys {
                 isBankingKeys &&
                 isEnableKeyBanking &&
                 (!isAlreadyUpdatedToBank ||
-                    roundedKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                    roundedKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
+                    rKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
+                    rKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -272,8 +282,8 @@ export default class Autokeys {
                 this.oldAmount = {
                     keysCanSell: 0,
                     keysCanBuy: 0,
-                    keysCanBankMin: roundedKeysCanBankMin,
-                    keysCanBankMax: roundedKeysCanBankMax,
+                    keysCanBankMin: rKeysCanBankMin,
+                    keysCanBankMax: rKeysCanBankMax,
                     ofKeys: currKeys
                 };
                 this.isActive = true;
@@ -282,7 +292,7 @@ export default class Autokeys {
                 isBankingBuyKeysWithEnoughRefs &&
                 isEnableKeyBanking &&
                 (!isAlreadyUpdatedToBuy ||
-                    roundedKeysCanBankMax !== this.oldAmount.keysCanBuy ||
+                    rKeysCanBankMax !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -296,7 +306,7 @@ export default class Autokeys {
                 };
                 this.oldAmount = {
                     keysCanSell: 0,
-                    keysCanBuy: roundedKeysCanBankMax,
+                    keysCanBuy: rKeysCanBankMax,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
                     ofKeys: currKeys
@@ -306,7 +316,7 @@ export default class Autokeys {
             } else if (
                 isBuyingKeys &&
                 (!isAlreadyUpdatedToBuy ||
-                    roundedKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                    rKeysCanBuy !== this.oldAmount.keysCanBuy ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable Autokeys - Buying - if buying keys conditions matched
@@ -320,7 +330,7 @@ export default class Autokeys {
                 };
                 this.oldAmount = {
                     keysCanSell: 0,
-                    keysCanBuy: roundedKeysCanBuy,
+                    keysCanBuy: rKeysCanBuy,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
                     ofKeys: currKeys
@@ -330,7 +340,7 @@ export default class Autokeys {
             } else if (
                 isSellingKeys &&
                 (!isAlreadyUpdatedToSell ||
-                    roundedKeysCanSell !== this.oldAmount.keysCanSell ||
+                    rKeysCanSell !== this.oldAmount.keysCanSell ||
                     currKeys !== this.oldAmount.ofKeys)
             ) {
                 // enable Autokeys - Selling - if selling keys conditions matched
@@ -343,7 +353,7 @@ export default class Autokeys {
                     alreadyUpdatedToSell: true
                 };
                 this.oldAmount = {
-                    keysCanSell: roundedKeysCanSell,
+                    keysCanSell: rKeysCanSell,
                     keysCanBuy: 0,
                     keysCanBankMin: 0,
                     keysCanBankMax: 0,
@@ -412,8 +422,8 @@ export default class Autokeys {
                     this.oldAmount = {
                         keysCanSell: 0,
                         keysCanBuy: 0,
-                        keysCanBankMin: roundedKeysCanBankMin,
-                        keysCanBankMax: roundedKeysCanBankMax,
+                        keysCanBankMin: rKeysCanBankMin,
+                        keysCanBankMax: rKeysCanBankMax,
                         ofKeys: currKeys
                     };
                     this.isActive = true;
@@ -430,7 +440,7 @@ export default class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBankMax,
+                        keysCanBuy: rKeysCanBankMax,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -449,7 +459,7 @@ export default class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBuy,
+                        keysCanBuy: rKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -467,7 +477,7 @@ export default class Autokeys {
                         alreadyUpdatedToSell: true
                     };
                     this.oldAmount = {
-                        keysCanSell: roundedKeysCanSell,
+                        keysCanSell: rKeysCanSell,
                         keysCanBuy: 0,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
@@ -501,8 +511,8 @@ export default class Autokeys {
                     isBankingKeys &&
                     isEnableKeyBanking &&
                     (!isAlreadyUpdatedToBank ||
-                        roundedKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                        roundedKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
+                        rKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
+                        rKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -517,8 +527,8 @@ export default class Autokeys {
                     this.oldAmount = {
                         keysCanSell: 0,
                         keysCanBuy: 0,
-                        keysCanBankMin: roundedKeysCanBankMin,
-                        keysCanBankMax: roundedKeysCanBankMax,
+                        keysCanBankMin: rKeysCanBankMin,
+                        keysCanBankMax: rKeysCanBankMax,
                         ofKeys: currKeys
                     };
                     this.isActive = true;
@@ -527,7 +537,7 @@ export default class Autokeys {
                     isBankingBuyKeysWithEnoughRefs &&
                     isEnableKeyBanking &&
                     (!isAlreadyUpdatedToBuy ||
-                        roundedKeysCanBankMax !== this.oldAmount.keysCanBuy ||
+                        rKeysCanBankMax !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
@@ -541,7 +551,7 @@ export default class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBankMax,
+                        keysCanBuy: rKeysCanBankMax,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -551,7 +561,7 @@ export default class Autokeys {
                 } else if (
                     isBuyingKeys &&
                     (!isAlreadyUpdatedToBuy ||
-                        roundedKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                        rKeysCanBuy !== this.oldAmount.keysCanBuy ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable Autokeys - Buying - if buying keys conditions matched
@@ -565,7 +575,7 @@ export default class Autokeys {
                     };
                     this.oldAmount = {
                         keysCanSell: 0,
-                        keysCanBuy: roundedKeysCanBuy,
+                        keysCanBuy: rKeysCanBuy,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
                         ofKeys: currKeys
@@ -575,7 +585,7 @@ export default class Autokeys {
                 } else if (
                     isSellingKeys &&
                     (!isAlreadyUpdatedToSell ||
-                        roundedKeysCanSell !== this.oldAmount.keysCanSell ||
+                        rKeysCanSell !== this.oldAmount.keysCanSell ||
                         currKeys !== this.oldAmount.ofKeys)
                 ) {
                     // enable Autokeys - Selling - if selling keys conditions matched
@@ -588,7 +598,7 @@ export default class Autokeys {
                         alreadyUpdatedToSell: true
                     };
                     this.oldAmount = {
-                        keysCanSell: roundedKeysCanSell,
+                        keysCanSell: rKeysCanSell,
                         keysCanBuy: 0,
                         keysCanBankMin: 0,
                         keysCanBankMax: 0,
@@ -637,7 +647,7 @@ export default class Autokeys {
         this.bot.listings.checkBySKU('5021;6');
     }
 
-    disable(onShutdown = false): void {
+    disable(): void {
         const keyPrices = this.bot.pricelist.getKeyPrices();
         const opt = this.bot.options;
         let entry;
@@ -677,12 +687,9 @@ export default class Autokeys {
             } as EntryData;
         }
         this.bot.pricelist
-            .updatePrice(entry, onShutdown, PricelistChangedSource.Autokeys)
-            .then(data => {
+            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .then(() => {
                 log.debug('✅ Automatically disabled Autokeys.');
-                if (!onShutdown) {
-                    this.bot.listings.checkBySKU(data.sku, data);
-                }
             })
             .catch((err: Error) => {
                 log.warn(`❌ Failed to disable Autokeys: ${err.message}`);

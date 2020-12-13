@@ -10,7 +10,7 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
         reason = 'Failed to accept mobile confirmation';
     } else {
         reason =
-            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again.";
+            "The offer has been active for a while. If the offer was just created, this is likely an issue on Steam's end. Please try again";
     }
 
     bot.sendMessage(offer.partner, '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: ' + reason + '.');
