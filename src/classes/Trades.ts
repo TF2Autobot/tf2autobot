@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import TradeOfferManager, { EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -78,7 +78,7 @@ export default class Trades {
         this.bot.manager.pollData = pollData;
     }
 
-    onNewOffer(offer: TradeOfferManager.TradeOffer): void {
+    onNewOffer(offer: TradeOffer): void {
         if (offer.isGlitched()) {
             offer.log('debug', 'is glitched');
             return;
@@ -89,7 +89,7 @@ export default class Trades {
         this.enqueueOffer(offer);
     }
 
-    onOfferList(filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]): void {
+    onOfferList(filter: number, sent: TradeOffer[], received: TradeOffer[]): void {
         // Go through all offers and add offers that we have not checked
 
         this.pollCount++;
@@ -196,8 +196,8 @@ export default class Trades {
     getOffers(
         includeInactive = false
     ): Promise<{
-        sent: TradeOfferManager.TradeOffer[];
-        received: TradeOfferManager.TradeOffer[];
+        sent: TradeOffer[];
+        received: TradeOffer[];
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
@@ -213,16 +213,15 @@ export default class Trades {
         });
     }
 
-    async findMatchingOffer(
-        offer: TradeOfferManager.TradeOffer,
-        isSent: boolean
-    ): Promise<TradeOfferManager.TradeOffer | null> {
-        const { sent, received } = await this.getOffers();
-        const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
-        return match === undefined ? null : match;
+    findMatchingOffer(offer: TradeOffer, isSent: boolean): Promise<TradeOffer | null> {
+        return this.getOffers().then(({ sent, received }) => {
+            const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
+
+            return match === undefined ? null : match;
+        });
     }
 
-    private enqueueOffer(offer: TradeOfferManager.TradeOffer): void {
+    private enqueueOffer(offer: TradeOffer): void {
         if (!this.receivedOffers.includes(offer.id)) {
             offer.itemsToGive.forEach(item => this.setItemInTrade(item.assetid));
 
@@ -253,7 +252,7 @@ export default class Trades {
         }
     }
 
-    private handlerProcessOffer(offer: TradeOfferManager.TradeOffer): void {
+    private handlerProcessOffer(offer: TradeOffer): void {
         log.debug('Giving offer to handler');
 
         const start = dayjs().valueOf();
@@ -291,7 +290,7 @@ export default class Trades {
         action: 'accept' | 'decline' | 'skip',
         reason: string,
         meta: Meta,
-        offer: TradeOfferManager.TradeOffer
+        offer: TradeOffer
     ): Promise<void> {
         this.bot.handler.onOfferAction(offer, action, reason, meta);
 
@@ -367,7 +366,7 @@ export default class Trades {
         });
     }
 
-    getOffer(offerId: string, attempts = 0): Promise<TradeOfferManager.TradeOffer> {
+    getOffer(offerId: string, attempts = 0): Promise<TradeOffer> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffer(offerId, (err, offer) => {
                 attempts++;
@@ -410,7 +409,7 @@ export default class Trades {
         });
     }
 
-    private acceptOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    private acceptOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -437,31 +436,32 @@ export default class Trades {
         });
     }
 
-    acceptConfirmation(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    async acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
         return new Promise((resolve, reject) => {
             log.debug('Accepting mobile confirmation...', {
-                offerId: offer.id
+                offerId: offer.id,
+                attempts: attempts
             });
 
             const start = dayjs().valueOf();
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
-            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
-                const confirmationTime = dayjs().valueOf() - start;
-                offer.data('confirmationTime', confirmationTime);
+            return acceptConfirmation(offer, this.bot)
+                .then(() => null)
+                .catch(err => {
+                    if (attempts > 2) {
+                        throw err;
+                    }
 
-                if (err) {
-                    log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
-                    return reject(err);
-                }
-
-                return resolve();
-            });
+                    return promiseDelay(10 * 1000).then(() => {
+                        return this.acceptConfirmation(offer, attempts);
+                    });
+                });
         });
     }
 
-    private acceptOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.accept((err: CustomError, status) => {
                 attempts++;
@@ -493,7 +493,7 @@ export default class Trades {
         });
     }
 
-    private declineOffer(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    private declineOffer(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -511,7 +511,7 @@ export default class Trades {
         });
     }
 
-    sendOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    sendOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.data('partner', offer.partner.getSteamID64());
 
@@ -547,7 +547,7 @@ export default class Trades {
         });
     }
 
-    private sendOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private sendOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.send((err: CustomError, status) => {
                 attempts++;
@@ -647,7 +647,7 @@ export default class Trades {
         });
     }
 
-    checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
+    checkEscrow(offer: TradeOffer): Promise<boolean> {
         log.debug('Checking escrow');
 
         return new Promise((resolve, reject) => {
@@ -690,7 +690,7 @@ export default class Trades {
         });
     }
 
-    onOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number): void {
+    onOfferChanged(offer: TradeOffer, oldState: number): void {
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
         offer.log(
@@ -789,7 +789,7 @@ export default class Trades {
         }
     }
 
-    static offerEquals(a: TradeOfferManager.TradeOffer, b: TradeOfferManager.TradeOffer): boolean {
+    static offerEquals(a: TradeOffer, b: TradeOffer): boolean {
         return (
             a.isOurOffer === b.isOurOffer &&
             a.partner.getSteamID64() === b.partner.getSteamID64() &&
@@ -833,4 +833,21 @@ export default class Trades {
             amount: item.amount
         };
     }
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
+}
+
+function acceptConfirmation(offer: TradeOffer, bot: Bot): Promise<void> {
+    return new Promise((resolve, reject) => {
+        bot.community.acceptConfirmationForObject(bot.options.steamIdentitySecret, offer.id, err => {
+            if (err) {
+                reject(err);
+                return;
+            }
+
+            return resolve();
+        });
+    });
 }
