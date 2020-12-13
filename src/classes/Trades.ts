@@ -213,12 +213,10 @@ export default class Trades {
         });
     }
 
-    findMatchingOffer(offer: TradeOffer, isSent: boolean): Promise<TradeOffer | null> {
-        return this.getOffers().then(({ sent, received }) => {
-            const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
-
-            return match === undefined ? null : match;
-        });
+    async findMatchingOffer(offer: TradeOffer, isSent: boolean): Promise<TradeOffer | null> {
+        const { sent, received } = await this.getOffers();
+        const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
+        return match === undefined ? null : match;
     }
 
     private enqueueOffer(offer: TradeOffer): void {
@@ -446,17 +444,14 @@ export default class Trades {
         offer.data('actedOnConfirmation', true);
         offer.data('actedOnConfirmationTimestamp', start);
 
-        return acceptConfirmation(offer, this.bot)
-            .then(() => null)
-            .catch(err => {
-                if (attempts > 2) {
-                    throw err;
-                }
+        return acceptConfirmation(offer, this.bot).catch(async (err: Error) => {
+            if (attempts > 2) {
+                throw err;
+            }
 
-                return promiseDelay(10 * 1000).then(() => {
-                    return this.acceptConfirmation(offer, attempts);
-                });
-            });
+            await promiseDelay(5 * 1000);
+            return await this.acceptConfirmation(offer, attempts);
+        });
     }
 
     private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
