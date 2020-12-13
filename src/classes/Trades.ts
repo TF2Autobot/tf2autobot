@@ -435,6 +435,8 @@ export default class Trades {
     }
 
     async acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
+        attempts++;
+
         log.debug('Accepting mobile confirmation...', {
             offerId: offer.id,
             attempts: attempts
@@ -443,9 +445,10 @@ export default class Trades {
         const start = dayjs().valueOf();
         offer.data('actedOnConfirmation', true);
         offer.data('actedOnConfirmationTimestamp', start);
+        offer.data('attempts', attempts);
 
         return acceptConfirmation(offer, this.bot).catch(async (err: Error) => {
-            if (attempts > 2) {
+            if (attempts > 3) {
                 throw err;
             }
 
