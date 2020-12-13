@@ -127,6 +127,8 @@ export default class Bot {
 
     private handlePriceChange: OmitThisParameter<(sku: string, price: Entry | null) => void>;
 
+    private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
+
     constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
@@ -186,6 +188,7 @@ export default class Bot {
         this.handlePollData = this.handler.onPollData.bind(this.handler);
         this.handleNewOffer = this.trades.onNewOffer.bind(this.trades);
         this.handleOfferChanged = this.trades.onOfferChanged.bind(this.trades);
+        this.receivedOfferChanged = this.trades.onOfferChanged.bind(this.trades);
         this.handleOfferList = this.trades.onOfferList.bind(this.trades);
 
         this.handleHeartbeat = this.handler.onHeartbeat.bind(this);
@@ -346,7 +349,7 @@ export default class Bot {
         this.addListener(this.manager, 'pollData', this.handlePollData, false);
         this.addListener(this.manager, 'newOffer', this.handleNewOffer, true);
         this.addListener(this.manager, 'sentOfferChanged', this.handleOfferChanged, true);
-        this.addListener(this.manager, 'receivedOfferChanged', this.handleOfferChanged, true);
+        this.addListener(this.manager, 'receivedOfferChanged', this.receivedOfferChanged, true);
         this.addListener(this.manager, 'offerList', this.handleOfferList, true);
 
         this.addListener(this.listingManager, 'heartbeat', this.handleHeartbeat, true);
