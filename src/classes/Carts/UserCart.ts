@@ -626,7 +626,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (this.bot.trades.isInTrade(assetids[i])) {
+                if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -784,7 +784,11 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
-                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                        if (
+                            !isBuyer &&
+                            this.bot.options.skipItemsInTrade &&
+                            this.bot.trades.isInTrade(currencies[sku][i])
+                        ) {
                             isSkipped = true;
                             continue;
                         }
@@ -872,7 +876,11 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
-                if (isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                if (
+                    isBuyer &&
+                    this.bot.options.skipItemsInTrade &&
+                    this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
+                ) {
                     isSkipped = true;
                     continue;
                 }
@@ -1613,7 +1621,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (this.bot.trades.isInTrade(assetids[i])) {
+                if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -1776,7 +1784,11 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
-                        if (!isBuyer && this.bot.trades.isInTrade(currencies[sku][i])) {
+                        if (
+                            !isBuyer &&
+                            this.bot.options.skipItemsInTrade &&
+                            this.bot.trades.isInTrade(currencies[sku][i])
+                        ) {
                             isSkipped = true;
                             continue;
                         }
@@ -1862,7 +1874,11 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
-                if (!isBuyer && this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])) {
+                if (
+                    !isBuyer &&
+                    this.bot.options.skipItemsInTrade &&
+                    this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
+                ) {
                     isSkipped = true;
                     continue;
                 }
