@@ -122,19 +122,38 @@ export default function updateListings(
             opt.highValue.enableHold
         ) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
-            const entry: EntryData = {
-                sku: sku,
-                enabled: false,
-                autoprice: inPrice.autoprice,
-                min: inPrice.min,
-                max: inPrice.max,
-                intent: inPrice.intent,
-                group: 'highValue'
-            } as EntryData;
+            let entry: EntryData;
 
             if (!inPrice.autoprice) {
-                entry.sell = inPrice.sell;
-                entry.buy = inPrice.buy;
+                // if not autopriced, then explicitly set the buy/sell prices
+                // with the current buy/sell prices
+                entry = {
+                    sku: sku, // required
+                    enabled: false, // required
+                    autoprice: inPrice.autoprice, // required
+                    buy: {
+                        keys: inPrice.buy.keys,
+                        metal: inPrice.buy.metal
+                    },
+                    sell: {
+                        keys: inPrice.sell.keys,
+                        metal: inPrice.sell.metal
+                    },
+                    min: inPrice.min, // required
+                    max: inPrice.max, // required
+                    intent: inPrice.intent, // required
+                    group: 'highValue'
+                };
+            } else {
+                entry = {
+                    sku: sku, // required
+                    enabled: false, // required
+                    autoprice: inPrice.autoprice, // required
+                    min: inPrice.min, // required
+                    max: inPrice.max, // required
+                    intent: inPrice.intent, // required
+                    group: 'highValue'
+                };
             }
 
             bot.pricelist
