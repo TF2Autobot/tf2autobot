@@ -779,6 +779,15 @@ export default class Trades {
         if (index === -1) {
             this.itemsInTrade.push(assetid);
         }
+
+        const fixDuplicate: string[] = [];
+        this.itemsInTrade.forEach(assetID => {
+            if (fixDuplicate.includes(assetID)) {
+                fixDuplicate.push(assetID);
+            }
+        });
+
+        this.itemsInTrade = fixDuplicate;
     }
 
     private unsetItemInTrade(assetid: string): void {
