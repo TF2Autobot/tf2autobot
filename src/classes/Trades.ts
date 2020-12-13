@@ -782,7 +782,7 @@ export default class Trades {
 
         const fixDuplicate: string[] = [];
         this.itemsInTrade.forEach(assetID => {
-            if (fixDuplicate.includes(assetID)) {
+            if (!fixDuplicate.includes(assetID)) {
                 fixDuplicate.push(assetID);
             }
         });
