@@ -6,6 +6,7 @@ import validUrl from 'valid-url';
 import child from 'child_process';
 import fs from 'graceful-fs';
 import path from 'path';
+import { EPersonaState } from 'steam-user';
 
 import { utils } from '../functions/export';
 import Bot from '../../Bot';
@@ -550,6 +551,13 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
                 bot.sendMessage(steamID, `❌ Failed to check for updates: ${err.message}`);
             });
     } else {
+        bot.sendMessage(steamID, '⌛ Updating...');
+        // Make the bot snooze on Steam, that way people will know it is not running
+        bot.client.setPersona(EPersonaState.Snooze);
+
+        // Stop polling offers
+        bot.manager.pollInterval = -1;
+
         try {
             child.execSync('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') });
         } catch (err) {
