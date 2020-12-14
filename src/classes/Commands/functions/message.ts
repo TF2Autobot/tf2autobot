@@ -23,7 +23,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         return;
     }
 
-    const adminDetails = bot.friends.getFriend(steamID);
+    const senderDetails = bot.friends.getFriend(steamID);
 
     if (isAdmin) {
         const parts = message.split(' ');
@@ -62,6 +62,9 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                     '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
             );
             return;
+        } else if (!bot.friends.isFriend(recipientSteamID)) {
+            bot.sendMessage(steamID, `❌ I am not friends with the user.`);
+            return;
         }
 
         const recipentDetails = bot.friends.getFriend(recipientSteamID);
@@ -81,10 +84,12 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
 
         // Send a notification to the admin with message contents & details
         if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
-            sendAdminMessage(steamID.toString(), reply, adminDetails, links, time.time, bot);
+            sendAdminMessage(recipientSteamID.toString(), reply, recipentDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(
-                `/quote 💬 Message sent to #${steamID.toString()} (${adminDetails.player_name}): "${reply}". `,
+                `/quote 💬 Message sent to #${recipientSteamID.toString()} (${
+                    recipentDetails.player_name
+                }): "${reply}". `,
                 []
             );
         }
@@ -92,7 +97,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         // Send message to all other admins that an admin replied
         bot.messageAdmins(
             `${
-                adminDetails ? `${adminDetails.player_name} (${steamID.toString()})` : steamID.toString()
+                senderDetails ? `${senderDetails.player_name} (${steamID.toString()})` : steamID.toString()
             } sent a message to ${
                 recipentDetails
                     ? recipentDetails.player_name + ` (${recipientSteamID.toString()})`
@@ -119,10 +124,10 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
 
         if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
-            sendPartnerMessage(steamID.toString(), msg, adminDetails, links, time.time, bot);
+            sendPartnerMessage(steamID.toString(), msg, senderDetails, links, time.time, bot);
         } else {
             bot.messageAdmins(
-                `/quote 💬 You've got a message from #${steamID.toString()} (${adminDetails.player_name}):` +
+                `/quote 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +
                     `"${msg}". ` +
                     `\nSteam: ${links.steam}` +
                     `\nBackpack.tf: ${links.bptf}` +
