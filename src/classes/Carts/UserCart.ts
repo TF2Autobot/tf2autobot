@@ -703,7 +703,7 @@ export default class UserCart extends Cart {
                 log.warn(
                     `Failed to create offer because missing their items${
                         checkedDuel
-                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
                             ? ' (not enough Noise Maker with 25x Uses)'
                             : ''
@@ -718,7 +718,7 @@ export default class UserCart extends Cart {
                 return Promise.reject(
                     `Something went wrong while constructing the offer${
                         checkedDuel
-                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
                             ? ' (not enough Noise Maker with 25x Uses)'
                             : ''
@@ -1700,7 +1700,7 @@ export default class UserCart extends Cart {
                 log.warn(
                     `Failed to create offer because missing their items${
                         checkedDuel
-                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
                             ? ' (not enough Noise Maker with 25x Uses)'
                             : ''
@@ -1715,7 +1715,7 @@ export default class UserCart extends Cart {
                 return Promise.reject(
                     `Something went wrong while constructing the offer${
                         checkedDuel
-                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
                             ? ' (not enough Noise Maker with 25x Uses)'
                             : ''
