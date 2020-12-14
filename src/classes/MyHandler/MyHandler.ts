@@ -274,15 +274,13 @@ export default class MyHandler extends Handler {
 
     onReady(): void {
         log.info(
-            'TF2Autobot v' +
-                process.env.BOT_VERSION +
-                ' is ready! ' +
-                pluralize('item', this.bot.pricelist.getLength(), true) +
-                ' in pricelist, ' +
-                pluralize('listing', this.bot.listingManager.listings.length, true) +
-                ' on www.backpack.tf (cap: ' +
-                String(this.bot.listingManager.cap) +
-                ')'
+            `TF2Autobot v${process.env.BOT_VERSION} is ready | ${pluralize(
+                'item',
+                this.bot.pricelist.getLength(),
+                true
+            )} in pricelist | Listings cap: ${String(
+                this.bot.listingManager.cap
+            )} | Startup time: ${process.uptime().toFixed(0)}s`
         );
 
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
