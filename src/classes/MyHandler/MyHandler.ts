@@ -39,7 +39,7 @@ import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
-import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../../lib/data';
+import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData, noiseMakerSKUs } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
@@ -709,20 +709,28 @@ export default class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
-            const im = check.uses(offer, offer.itemsToReceive, this.bot);
+        const offerSKUs = offer.itemsToReceive.map(item =>
+            item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual)
+        );
 
-            if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+        if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
+            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive, this.bot);
+
+            if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
+        }
 
-            const isHasNoiseMaker = im.noiseMakerSKU.some(sku => {
+        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
+            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, this.bot);
+
+            const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
 
-            if (im.isNot25Uses && isHasNoiseMaker) {
+            if (isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noice Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
