@@ -551,7 +551,7 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
             });
     } else {
         try {
-            child.execSync('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..', '..') });
+            child.execSync('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') });
         } catch (err) {
             bot.sendMessage(steamID, `❌ Failed to update bot repository: ${(err as Error).message}`);
         }
