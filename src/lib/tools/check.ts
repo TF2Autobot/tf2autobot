@@ -1,62 +1,78 @@
 import SKU from 'tf2-sku-2';
-import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
+import { EconItem } from 'steam-tradeoffer-manager';
 
 import log from '../logger';
-import { strangePartsData, noiseMakerNames } from '../data';
+import { strangePartsData, noiseMakerSKUs } from '../data';
 
 import Bot from '../../classes/Bot';
 
-export function uses(
-    offer: TradeOffer,
-    items: EconItem[],
-    bot: Bot
-): { isNot5Uses: boolean; isNot25Uses: boolean; noiseMakerSKU: string[] } {
-    const ex = {
-        isNot5Uses: false,
-        isNot25Uses: false,
-        noiseMakerSKU: []
-    };
+export function getAssetidsWith5xUses(items: EconItem[], bot: Bot): string[] {
+    const opt = bot.options.normalize;
+    return items
+        .filter(item => item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual) === '241;6')
+        .filter(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
 
-    items.forEach(item => {
-        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-        const isNoiseMaker = noiseMakerNames.some(name => {
-            return item.market_hash_name.includes(name);
+                return (
+                    descriptionValue.includes('This is a limited use item. Uses: 5') && descriptionColor === '00a000'
+                );
+            }
+        })
+        .map(item => item.assetid);
+}
+
+export function getAssetidsWith25xUses(items: EconItem[], bot: Bot, sku: string): string[] {
+    const opt = bot.options.normalize;
+    return items
+        .filter(item => item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual) === sku)
+        .filter(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                return (
+                    descriptionValue.includes('This is a limited use item. Uses: 25') && descriptionColor === '00a000'
+                );
+            }
+        })
+        .map(item => item.assetid);
+}
+
+export function isNot5xUses(items: EconItem[], bot: Bot): boolean {
+    const opt = bot.options.normalize;
+    return items
+        .filter(item => item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual) === '241;6')
+        .some(item => {
+            for (let i = 0; i < item.descriptions.length; i++) {
+                const descriptionValue = item.descriptions[i].value;
+                const descriptionColor = item.descriptions[i].color;
+
+                return (
+                    !descriptionValue.includes('This is a limited use item. Uses: 5') && descriptionColor === '00a000'
+                );
+            }
         });
+}
 
-        if (isDuelingMiniGame && bot.options.checkUses.duel) {
+export function isNot25xUses(items: EconItem[], bot: Bot): [boolean, string[]] {
+    const opt = bot.options.normalize;
+    const skus: string[] = [];
+    const is25xUses = items
+        .filter(item => noiseMakerSKUs.includes(item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual)))
+        .some(item => {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
 
-                if (
-                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                    descriptionColor === '00a000'
-                ) {
-                    ex.isNot5Uses = true;
-                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                    break;
-                }
+                skus.push(item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual));
+                return (
+                    !descriptionValue.includes('This is a limited use item. Uses: 25') && descriptionColor === '00a000'
+                );
             }
-        } else if (isNoiseMaker && bot.options.checkUses.noiseMaker) {
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
-
-                if (
-                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                    descriptionColor === '00a000'
-                ) {
-                    ex.isNot25Uses = true;
-                    ex.noiseMakerSKU.push(
-                        item.getSKU(bot.schema, bot.options.normalize.festivized, bot.options.normalize.strangeUnusual)
-                    );
-                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                    break;
-                }
-            }
-        }
-    });
-    return ex;
+        });
+    return [is25xUses, skus];
 }
 
 export function highValue(
