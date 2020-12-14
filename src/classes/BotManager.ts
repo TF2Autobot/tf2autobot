@@ -61,7 +61,6 @@ export default class BotManager {
 
     private patchSchemaManager() {
         // Make the schema manager request the schema from PricesTF
-        /* eslint-disable-next-line @typescript-eslint/unbound-method */
         this.schemaManager.getSchema = function (callback): void {
             getSchema()
                 .then(schema => {

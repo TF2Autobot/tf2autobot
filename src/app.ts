@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-process.env.BOT_VERSION = BOT_VERSION;
+
+process.env.BOT_VERSION = BOT_VERSION as string;
 
 import fs from 'fs';
 import path from 'path';
@@ -44,6 +44,7 @@ import BotManager from './classes/BotManager';
 const botManager = new BotManager();
 
 import ON_DEATH from 'death';
+import * as inspect from 'util';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
@@ -61,8 +62,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                     process.platform
                 } ${process.arch}}`,
                 'Stack trace:',
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-var-requires
-                require('util').inspect(origin)
+                inspect.inspect(origin)
             ].join('\r\n')
         );
 
@@ -72,8 +72,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             );
         }
     } else {
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        log.warn('Received kill signal `' + signalOrErr + '`');
+        log.warn('Received kill signal `' + (signalOrErr as string) + '`');
     }
 
     botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
@@ -85,8 +84,7 @@ process.on('message', message => {
 
         botManager.stop(null, true, false);
     } else {
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        log.warn('Process received unknown message `' + message + '`');
+        log.warn('Process received unknown message `' + (message as string) + '`');
     }
 });
 
