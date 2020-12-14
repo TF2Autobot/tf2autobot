@@ -12,6 +12,7 @@ import { getPricelist, getPrice } from '../lib/ptf-api';
 import validator from '../lib/validator';
 
 import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
+import SocketManager from './MyHandler/SocketManager';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -130,24 +131,25 @@ export class Entry {
 export default class Pricelist extends EventEmitter {
     private readonly schema: SchemaManager.Schema;
 
-    private readonly socket: SocketIOClient.Socket;
-
     private prices: Entry[] = [];
 
     private globalKeyPrices: KeyPrices;
 
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
-    private maxAge: number;
+    private readonly maxAge: number;
 
-    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket, private options?: Options) {
+    private readonly boundHandlePriceChange;
+
+    constructor(schema: SchemaManager.Schema, private socketManager: SocketManager, private options?: Options) {
         super();
         this.schema = schema;
-        this.socket = socket;
-
-        this.socket.removeListener('price', this.handlePriceChange.bind(this));
-        this.socket.on('price', this.handlePriceChange.bind(this));
         this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
+        this.boundHandlePriceChange = this.handlePriceChange.bind(this);
+    }
+
+    init(): void {
+        this.socketManager.on('price', this.boundHandlePriceChange);
     }
 
     getKeyPrices(): KeyPrices {
