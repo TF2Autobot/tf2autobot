@@ -14,10 +14,12 @@ export function getAssetidsWith5xUses(items: EconItem[]): string[] {
                     const descriptionValue = item.descriptions[i].value;
                     const descriptionColor = item.descriptions[i].color;
 
-                    return (
+                    if (
                         descriptionValue.includes('This is a limited use item. Uses: 5') &&
                         descriptionColor === '00a000'
-                    );
+                    ) {
+                        return true;
+                    }
                 }
             }
         })
@@ -32,10 +34,12 @@ export function getAssetidsWith25xUses(items: EconItem[], noiseMakerName: string
                     const descriptionValue = item.descriptions[i].value;
                     const descriptionColor = item.descriptions[i].color;
 
-                    return (
+                    if (
                         descriptionValue.includes('This is a limited use item. Uses: 25') &&
                         descriptionColor === '00a000'
-                    );
+                    ) {
+                        return true;
+                    }
                 }
             }
         })
@@ -49,9 +53,12 @@ export function isNot5xUses(items: EconItem[]): boolean {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
 
-                return (
-                    !descriptionValue.includes('This is a limited use item. Uses: 5') && descriptionColor === '00a000'
-                );
+                if (
+                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                    descriptionColor === '00a000'
+                ) {
+                    return true;
+                }
             }
         }
     });
@@ -71,10 +78,13 @@ export function isNot25xUses(items: EconItem[], bot: Bot): [boolean, string[]] {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
 
-                skus.push(item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual));
-                return (
-                    !descriptionValue.includes('This is a limited use item. Uses: 25') && descriptionColor === '00a000'
-                );
+                if (
+                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                    descriptionColor === '00a000'
+                ) {
+                    skus.push(item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual));
+                    return true;
+                }
             }
         }
     });
