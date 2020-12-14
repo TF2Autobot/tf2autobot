@@ -1,6 +1,5 @@
 import async from 'async';
 import SchemaManager from 'tf2-schema-2';
-import io from 'socket.io-client';
 import pm2 from 'pm2';
 
 import Bot from './Bot';
@@ -10,6 +9,10 @@ import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
 import SocketManager from './MyHandler/SocketManager';
+import { getSchema } from '../lib/ptf-api';
+import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
+import CEconItem from 'steamcommunity/classes/CEconItem.js';
+import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -30,7 +33,47 @@ export default class BotManager {
 
     constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
+        this.patchSchemaManager();
+        this.extendTradeOfferApis();
         this.socketManager = new SocketManager('https://api.prices.tf', pricestfApiToken);
+    }
+
+    private extendTradeOfferApis() {
+        ['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            EconItem.prototype[v] = require('../lib/extend/item/' + v);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            CEconItem.prototype[v] = require('../lib/extend/item/' + v);
+        });
+
+        [
+            'log',
+            'summarize',
+            'summarizeWithStockChanges',
+            'getDiff',
+            'summarizeWithLink',
+            'summarizeWithLinkWithStockChanges'
+        ].forEach(v => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
+        });
+    }
+
+    private patchSchemaManager() {
+        // Make the schema manager request the schema from PricesTF
+        /* eslint-disable-next-line @typescript-eslint/unbound-method */
+        this.schemaManager.getSchema = function (callback): void {
+            getSchema()
+                .then(schema => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+                    this.setSchema(schema, true);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    callback(null, this.schema);
+                })
+                .catch(err => {
+                    callback(err);
+                });
+        };
     }
 
     getSchema(): SchemaManager.Schema | null {
