@@ -669,10 +669,11 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = check.getAssetidsWith5xUses(theirInventoryEcon, this.bot);
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon);
             } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
                 checkNoiseMaker = true;
-                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, this.bot, sku);
+                const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, name);
             }
 
             for (let i = 0; i < assetids.length; i++) {
@@ -1666,10 +1667,11 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = check.getAssetidsWith5xUses(theirInventoryEcon, this.bot);
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon);
             } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
                 checkNoiseMaker = true;
-                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, this.bot, sku);
+                const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, name);
             }
 
             for (let i = 0; i < assetids.length; i++) {

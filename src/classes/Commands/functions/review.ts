@@ -198,7 +198,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
             // Re-check Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Dueling Mini-Game...');
-            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive, bot);
+            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive);
 
             if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Only decline if exist in pricelist

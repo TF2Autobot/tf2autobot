@@ -712,7 +712,7 @@ export default class MyHandler extends Handler {
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
-            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive, this.bot);
+            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
