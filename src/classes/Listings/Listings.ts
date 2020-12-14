@@ -13,7 +13,7 @@ import * as rep from './export';
 
 import log from '../../lib/logger';
 import { exponentialBackoff } from '../../lib/helpers';
-import { noiseMakerSKU, strangePartsData } from '../../lib/data';
+import { noiseMakerSKUs, strangePartsData } from '../../lib/data';
 import { updateOptionsCommand } from '../Commands/functions/options';
 
 export default class Listings {
@@ -644,7 +644,7 @@ export default class Listings {
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker
+                    : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
@@ -663,7 +663,7 @@ export default class Listings {
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker
+                    : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.sku === '241;6' && opt.checkUses.duel) {
@@ -680,7 +680,7 @@ export default class Listings {
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
-        } else if (noiseMakerSKU.includes(entry.sku) && opt.checkUses.noiseMaker) {
+        } else if (noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
             details = this.templates[key]
                 .replace(/%price%/g, entry[key].toString())
