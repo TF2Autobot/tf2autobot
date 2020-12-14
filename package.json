@@ -11,7 +11,8 @@
         "prelint": "npm run eslint-check",
         "lint": "eslint \"src/**/*\"",
         "prettier": "prettier --check src/**/*",
-        "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check"
+        "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check",
+        "update": "git stash && git checkout master && git pull && npm install && npm run build"
     },
     "repository": {
         "type": "git",
