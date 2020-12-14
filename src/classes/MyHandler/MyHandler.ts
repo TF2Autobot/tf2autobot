@@ -280,7 +280,7 @@ export default class MyHandler extends Handler {
                 true
             )} in pricelist | Listings cap: ${String(
                 this.bot.listingManager.cap
-            )} | Startup time: ${process.uptime().toFixed(0)}s`
+            )} | Startup time: ${process.uptime().toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
