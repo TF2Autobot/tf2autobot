@@ -20,7 +20,7 @@ import TF2Inventory from '../TF2Inventory';
 import MyHandler from '../MyHandler/MyHandler';
 
 import log from '../../lib/logger';
-import { craftAll, uncraftAll, noiseMakerSKU } from '../../lib/data';
+import { craftAll, uncraftAll, noiseMakerSKUs } from '../../lib/data';
 import { pure, check } from '../../lib/tools/export';
 
 export default class UserCart extends Cart {
@@ -469,19 +469,11 @@ export default class UserCart extends Cart {
 
         const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
         this.theirInventoryCount = theirInventoryEcon.length;
-        let containsUses = false;
 
         // Add their items
-
         for (const sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                 continue;
-            }
-
-            if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
-                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    containsUses = true;
-                }
             }
 
             let alteredMessage: string;
@@ -528,25 +520,6 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
-            }
-        }
-
-        if (containsUses) {
-            const yes: {
-                isNot5Uses: boolean;
-                isNot25Uses: boolean;
-            } = check.uses(offer, theirInventoryEcon, this.bot);
-
-            if (yes.isNot5Uses) {
-                return Promise.reject(
-                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                );
-            }
-
-            if (yes.isNot25Uses) {
-                return Promise.reject(
-                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                );
             }
         }
 
@@ -677,7 +650,7 @@ export default class UserCart extends Cart {
         // Add their items
         for (const sku in this.their) {
             const amount = this.their[sku].amount;
-            const assetids = theirInventory.findBySKU(sku, true);
+            let assetids = theirInventory.findBySKU(sku, true);
 
             const match = this.bot.pricelist.getPrice(sku, true);
 
@@ -690,6 +663,17 @@ export default class UserCart extends Cart {
 
             theirItemsCount += amount;
             let missing = amount;
+
+            let checkedDuel = false;
+            let checkNoiseMaker = false;
+
+            if (opt.checkUses.duel && sku === '241;6') {
+                checkedDuel = true;
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon, this.bot);
+            } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
+                checkNoiseMaker = true;
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, this.bot, sku);
+            }
 
             for (let i = 0; i < assetids.length; i++) {
                 const isAdded = offer.addTheirItem({
@@ -716,13 +700,30 @@ export default class UserCart extends Cart {
             }
 
             if (missing !== 0) {
-                log.warn('Failed to create offer because missing their items', {
-                    sku: sku,
-                    required: amount,
-                    missing: missing
-                });
+                log.warn(
+                    `Failed to create offer because missing their items${
+                        checkedDuel
+                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            : checkNoiseMaker
+                            ? ' (not enough Noise Maker with 25x Uses)'
+                            : ''
+                    }`,
+                    {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    }
+                );
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        checkedDuel
+                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            : checkNoiseMaker
+                            ? ' (not enough Noise Maker with 25x Uses)'
+                            : ''
+                    }`
+                );
             }
         }
 
@@ -1445,19 +1446,12 @@ export default class UserCart extends Cart {
 
         const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
         this.theirInventoryCount = theirInventoryEcon.length;
-        let containsUses = false;
 
         // Add their items
 
         for (const sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                 continue;
-            }
-
-            if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
-                if (sku === '241;6' || noiseMakerSKU.includes(sku)) {
-                    containsUses = true;
-                }
             }
 
             let alteredMessage: string;
@@ -1504,25 +1498,6 @@ export default class UserCart extends Cart {
 
             if (alteredMessage) {
                 alteredMessages.push(alteredMessage);
-            }
-        }
-
-        if (containsUses) {
-            const yes: {
-                isNot5Uses: boolean;
-                isNot25Uses: boolean;
-            } = check.uses(offer, theirInventoryEcon, this.bot);
-
-            if (yes.isNot5Uses) {
-                return Promise.reject(
-                    'One of your Dueling Mini-Game is not 5 Uses. Please make sure you only have 5 Uses in your inventory or send me an offer with the one that has 5 Uses instead'
-                );
-            }
-
-            if (yes.isNot25Uses) {
-                return Promise.reject(
-                    'One of your Noise Maker in your inventory is not 25 Uses. Please make sure you only have 25 Uses in your inventory or send me an offer with the one that has 25 Uses instead'
-                );
             }
         }
 
@@ -1672,7 +1647,7 @@ export default class UserCart extends Cart {
         // Add their items
         for (const sku in this.their) {
             const amount = this.their[sku].amount;
-            const assetids = theirInventory.findBySKU(sku, true);
+            let assetids = theirInventory.findBySKU(sku, true);
 
             const match = this.bot.pricelist.getPrice(sku, true);
 
@@ -1685,6 +1660,17 @@ export default class UserCart extends Cart {
 
             theirItemsCount += amount;
             let missing = amount;
+
+            let checkedDuel = false;
+            let checkNoiseMaker = false;
+
+            if (opt.checkUses.duel && sku === '241;6') {
+                checkedDuel = true;
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon, this.bot);
+            } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
+                checkNoiseMaker = true;
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, this.bot, sku);
+            }
 
             for (let i = 0; i < assetids.length; i++) {
                 const isAdded = offer.addTheirItem({
@@ -1711,13 +1697,30 @@ export default class UserCart extends Cart {
             }
 
             if (missing !== 0) {
-                log.warn('Failed to create offer because missing their items', {
-                    sku: sku,
-                    required: amount,
-                    missing: missing
-                });
+                log.warn(
+                    `Failed to create offer because missing their items${
+                        checkedDuel
+                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            : checkNoiseMaker
+                            ? ' (not enough Noise Maker with 25x Uses)'
+                            : ''
+                    }`,
+                    {
+                        sku: sku,
+                        required: amount,
+                        missing: missing
+                    }
+                );
 
-                return Promise.reject('Something went wrong while constructing the offer');
+                return Promise.reject(
+                    `Something went wrong while constructing the offer${
+                        checkedDuel
+                            ? ' (not enough Dueling Mini-Game with x5 Uses)'
+                            : checkNoiseMaker
+                            ? ' (not enough Noise Maker with 25x Uses)'
+                            : ''
+                    }`
+                );
             }
         }
 
