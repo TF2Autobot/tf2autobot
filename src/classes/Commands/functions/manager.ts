@@ -8,7 +8,7 @@ import fs from 'graceful-fs';
 import path from 'path';
 import { EPersonaState } from 'steam-user';
 
-import { utils } from '../functions/export';
+import { utils } from './export';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
