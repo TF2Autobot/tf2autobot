@@ -517,12 +517,12 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
 
 export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): void {
     if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
-        bot.sendMessage(steamID, '❌ You did not cloned from Github.');
+        bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
         return;
     }
 
     if (process.env.pm_id === undefined) {
-        bot.sendMessage(steamID, '❌ You did not run with pm2!');
+        bot.sendMessage(steamID, '❌ You did not start the bot with pm2!');
         return;
     }
 
