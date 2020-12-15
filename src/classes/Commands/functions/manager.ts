@@ -555,20 +555,23 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         // Make the bot snooze on Steam, that way people will know it is not running
         bot.client.setPersona(EPersonaState.Snooze);
 
+        // Set isUpdating status, so any command will not be processed
+        (bot.handler as MyHandler).setIsUpdatingStatus(true);
+
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        try {
-            child.execSync('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') });
-        } catch (err) {
-            bot.sendMessage(steamID, `❌ Failed to update bot repository: ${(err as Error).message}`);
-        }
+        child.exec('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, err => {
+            if (err) {
+                bot.sendMessage(steamID, `❌ Failed to update bot repository: ${(err as Error).message}`);
+                return;
+            }
+            bot.sendMessage(steamID, '⌛ Restarting...');
 
-        bot.sendMessage(steamID, '⌛ Restarting...');
-
-        bot.botManager.restartProcess().catch((err: Error) => {
-            log.warn('Error occurred while trying to restart: ', err);
-            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
+            bot.botManager.restartProcess().catch((err: Error) => {
+                log.warn('Error occurred while trying to restart: ', err);
+                bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
+            });
         });
     }
 }

@@ -210,6 +210,8 @@ export default class MyHandler extends Handler {
 
     private paths: Paths;
 
+    private isUpdating = false;
+
     constructor(bot: Bot) {
         super(bot);
 
@@ -363,6 +365,11 @@ export default class MyHandler extends Handler {
     }
 
     onMessage(steamID: SteamID, message: string): void {
+        if (this.isUpdating) {
+            this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
+            return;
+        }
+
         const steamID64 = steamID.toString();
 
         if (!this.bot.friends.isFriend(steamID64)) {
@@ -385,6 +392,10 @@ export default class MyHandler extends Handler {
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
         this.commands.processMessage(steamID, message);
+    }
+
+    setIsUpdatingStatus(setStatus: boolean): void {
+        this.isUpdating = setStatus;
     }
 
     onLoginKey(loginKey: string): void {
