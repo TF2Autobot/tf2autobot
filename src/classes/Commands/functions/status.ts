@@ -3,13 +3,14 @@ import pluralize from 'pluralize';
 
 import Bot from '../../Bot';
 
-import { stats } from '../../../lib/tools/export';
+import { stats, profit } from '../../../lib/tools/export';
 
 // Bot status
 
 export function statsCommand(steamID: SteamID, bot: Bot): void {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const trades = stats(bot);
+    const profits = profit(bot);
 
     bot.sendMessage(
         steamID,
@@ -20,7 +21,11 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
             ' \n Last 24 hours: ' +
             String(trades.trades24Hours) +
             ' \n Since beginning of today: ' +
-            String(trades.tradesToday)
+            String(trades.tradesToday) +
+            ' \n\nProfit made: ' +
+            String(profits.tradeProfit) +
+            ' \nProfit from overpay: ' +
+            String(profits.overpriceProfit)
     );
 }
 

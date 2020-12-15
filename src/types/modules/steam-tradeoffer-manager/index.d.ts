@@ -129,20 +129,20 @@ declare module 'steam-tradeoffer-manager' {
         }
 
         export interface ItemsValue {
-            our: Values;
-            their: Values;
-            rate: number;
+            our?: Values;
+            their?: Values;
+            rate?: number;
         }
 
         export interface Values {
-            total: number;
+            total?: number;
             keys: number;
             metal: number;
         }
 
         export interface PricesContent {
-            buy: Currencies;
-            sell: Currencies;
+            buy?: Currencies;
+            sell?: Currencies;
         }
 
         export interface Prices {
