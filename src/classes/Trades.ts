@@ -447,13 +447,26 @@ export default class Trades {
         offer.data('actedOnConfirmationTimestamp', start);
         offer.data('attempts', attempts);
 
-        return acceptConfirmationPromise(offer, this.bot).catch(async (err: Error) => {
+        return this.acceptConfirmationPromise(offer).catch(async (err: Error) => {
             if (attempts > 3) {
                 throw err;
             }
 
             await promiseDelay(5 * 1000);
             return this.acceptConfirmation(offer, attempts);
+        });
+    }
+
+    acceptConfirmationPromise(offer: TradeOffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                return resolve();
+            });
         });
     }
 
@@ -833,17 +846,4 @@ export default class Trades {
 
 function promiseDelay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
-
-function acceptConfirmationPromise(offer: TradeOffer, bot: Bot): Promise<void> {
-    return new Promise((resolve, reject) => {
-        bot.community.acceptConfirmationForObject(bot.options.steamIdentitySecret, offer.id, err => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            return resolve();
-        });
-    });
 }
