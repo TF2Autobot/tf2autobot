@@ -147,7 +147,7 @@ export default class CartQueue {
                         }
 
                         // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
+                        return this.bot.trades.acceptConfirmation(cart.getOffer());
                     }
                 })
                 .catch(err => {
@@ -215,7 +215,7 @@ export default class CartQueue {
                         log.debug('Accepting mobile confirmation...');
 
                         // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
+                        return this.bot.trades.acceptConfirmation(cart.getOffer());
                     }
                 })
                 .catch(err => {
