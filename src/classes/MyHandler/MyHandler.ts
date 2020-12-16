@@ -268,8 +268,7 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, Entry[], number[], PollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
