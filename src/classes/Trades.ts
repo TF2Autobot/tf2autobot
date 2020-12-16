@@ -437,7 +437,7 @@ export default class Trades {
     acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
         attempts++;
 
-        log.debug('Accepting mobile confirmation...', {
+        log.debug(`Accepting mobile confirmation, attempt: ${attempts}...`, {
             offerId: offer.id,
             attempts: attempts
         });
