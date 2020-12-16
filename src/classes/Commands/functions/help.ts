@@ -28,8 +28,7 @@ const MORE: string[] = [
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
-    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales name=<item name> OR sku=<item sku> - Get the sales history for an item'
+    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫"
 ];
 
 const ADMIN_COMMANDS: string[] = [

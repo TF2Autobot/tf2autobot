@@ -229,6 +229,10 @@ export default class Autokeys {
 
             const max = currKeys + rKeysCanBuy;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+
+            if (setMinKeys === setMaxKeys) {
+                setMaxKeys += 1;
+            }
             //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
             // If buying (while banking) - we need to set min = currKeys and max = currKeys + CanBankMax
@@ -237,6 +241,10 @@ export default class Autokeys {
 
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+
+            if (setMinKeys === setMaxKeys) {
+                setMaxKeys += 1;
+            }
             //
         } else if (isSellingKeys) {
             // If selling - we need to set min = currKeys - CanSell and max = currKeys
@@ -245,6 +253,10 @@ export default class Autokeys {
 
             const max = currKeys;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+
+            if (setMinKeys === setMaxKeys) {
+                setMinKeys -= 1;
+            }
             //
         } else if (isBankingKeys && isEnableKeyBanking) {
             // If banking - we need to set min = currKeys - CanBankMin and max = currKeys + CanBankMax
@@ -253,6 +265,10 @@ export default class Autokeys {
 
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
+
+            if (setMinKeys === setMaxKeys) {
+                setMinKeys -= 1;
+            }
         }
 
         const isAlreadyRunningAutokeys = this.isActive;

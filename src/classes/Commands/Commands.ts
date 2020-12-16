@@ -103,7 +103,7 @@ export default class Commands {
             c.misc.craftweaponCommand(steamID, this.bot);
         } else if (command === 'uncraftweapon') {
             c.misc.uncraftweaponCommand(steamID, this.bot);
-        } else if (command === 'sales') {
+        } else if (command === 'sales' && isAdmin) {
             void this.getSalesCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
