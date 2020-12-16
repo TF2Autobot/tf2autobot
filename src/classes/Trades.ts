@@ -436,18 +436,7 @@ export default class Trades {
 
     acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
         attempts++;
-
-        log.debug(`Accepting mobile confirmation, attempt: ${attempts}...`, {
-            offerId: offer.id,
-            attempts: attempts
-        });
-
-        const start = dayjs().valueOf();
-        offer.data('actedOnConfirmation', true);
-        offer.data('actedOnConfirmationTimestamp', start);
-        offer.data('attempts', attempts);
-
-        return this.acceptConfirmationPromise(offer).catch(async (err: Error) => {
+        return this.acceptConfirmationPromise(offer, attempts).catch(async (err: Error) => {
             if (attempts > 3) {
                 throw err;
             }
@@ -457,8 +446,18 @@ export default class Trades {
         });
     }
 
-    acceptConfirmationPromise(offer: TradeOffer): Promise<void> {
+    acceptConfirmationPromise(offer: TradeOffer, attempts = 1): Promise<void> {
         return new Promise((resolve, reject) => {
+            log.debug(`Accepting mobile confirmation, attempt: ${attempts}...`, {
+                offerId: offer.id,
+                attempts: attempts
+            });
+            offer.data('attempts', attempts);
+
+            const start = dayjs().valueOf();
+            offer.data('actedOnConfirmation', true);
+            offer.data('actedOnConfirmationTimestamp', start);
+
             this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 if (err) {
                     reject(err);
