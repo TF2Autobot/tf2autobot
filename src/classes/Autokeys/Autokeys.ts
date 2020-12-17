@@ -269,6 +269,11 @@ export default class Autokeys {
             if (setMinKeys === setMaxKeys) {
                 setMinKeys -= 1;
             }
+
+            if (setMaxKeys - setMinKeys === 1) {
+                // When banking, the bot should be able to both buy and sell keys.
+                setMaxKeys += 1;
+            }
         }
 
         const isAlreadyRunningAutokeys = this.isActive;
