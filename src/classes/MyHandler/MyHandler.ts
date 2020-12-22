@@ -922,7 +922,7 @@ export default class MyHandler extends Handler {
                         }
 
                         // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = (await this.bot.pricelist.getPricesTF(sku)) as GetPrices;
+                        const price = await this.bot.pricelist.getPricesTF(sku);
 
                         const item = SKU.fromString(sku);
 

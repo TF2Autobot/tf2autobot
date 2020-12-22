@@ -1162,10 +1162,17 @@ export default class Commands {
         const item = SKU.fromString(params.sku);
         const name = this.bot.schema.getName(item);
 
-        let price: GetPrices;
-
         try {
-            price = (await getPrice(params.sku, 'bptf')) as GetPrices;
+            const price = await getPrice(params.sku, 'bptf');
+            const currBuy = new Currencies(price.buy);
+            const currSell = new Currencies(price.sell);
+
+            this.bot.sendMessage(
+                steamID,
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
+                    params.sku as string
+                }`
+            );
         } catch (err) {
             const thisErr = err as ErrorRequest;
             this.bot.sendMessage(
@@ -1176,19 +1183,6 @@ export default class Commands {
             );
             return;
         }
-
-        if (!price) {
-            return;
-        }
-        const currBuy = new Currencies(price.buy);
-        const currSell = new Currencies(price.sell);
-
-        this.bot.sendMessage(
-            steamID,
-            `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                params.sku as string
-            }`
-        );
     }
 }
 
@@ -1222,17 +1216,5 @@ interface PriceCheckRequest {
     success: boolean;
     sku?: string;
     name?: string;
-    message?: string;
-}
-
-interface GetPrices {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    currency?: number | string;
-    source?: string;
-    time?: number;
-    buy?: Currencies;
-    sell?: Currencies;
     message?: string;
 }
