@@ -121,8 +121,13 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         }
     }
 
-    tradeProfit = Math.round(tradeProfit);
-    overpriceProfit = Math.round(overpriceProfit);
+    const fromPrevious = {
+        made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
+        overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
+    };
+
+    tradeProfit = Math.round(tradeProfit + fromPrevious.made);
+    overpriceProfit = Math.round(overpriceProfit + fromPrevious.overpay);
 
     return { tradeProfit, overpriceProfit, totalTrades };
 }
