@@ -81,7 +81,9 @@ export const DEFAULTS = {
     statistics: {
         starter: 0,
         lastTotalTrades: 0,
-        startingTimeInUnix: 0
+        startingTimeInUnix: 0,
+        lastTotalProfitMadeInRef: 0,
+        lastTotalProfitOverpayInRef: 0
     },
     autokeys: {
         enable: false,
@@ -263,6 +265,8 @@ export interface Statistics {
     starter?: number;
     lastTotalTrades?: number;
     startingTimeInUnix?: number;
+    lastTotalProfitMadeInRef?: number;
+    lastTotalProfitOverpayInRef?: number;
 }
 
 export interface Banking {

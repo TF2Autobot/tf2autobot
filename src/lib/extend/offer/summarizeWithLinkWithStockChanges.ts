@@ -3,13 +3,11 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 
-import { Currency } from '../../../types/TeamFortress2';
-
 import { replace } from '../../tools/export';
 
 export = function (schema: SchemaManager.Schema, type: string): string {
     const self = this as TradeOffer;
-    const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
+    const value = self.data('value') as ItemsValue;
 
     const items: {
         our: OurTheirItemsDict;
