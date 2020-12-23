@@ -69,7 +69,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             // item bought
             if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
                 const itemCount =
-                    typeof trade.dict.their[sku] == 'object' ? trade.dict.their[sku].amount : trade.dict.their[sku];
+                    typeof trade.dict.their[sku] == 'object' ? trade.dict.their[sku].amount : +trade.dict.their[sku];
 
                 if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
                     // if it is not currency
@@ -98,7 +98,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         for (const sku in trade.dict.our) {
             if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
                 const itemCount =
-                    typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : trade.dict.our[sku];
+                    typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : +trade.dict.our[sku];
                 if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
                     if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                         continue; // item is not in pricelist, so we will just skip it
