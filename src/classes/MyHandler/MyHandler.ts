@@ -793,6 +793,7 @@ export default class MyHandler extends Handler {
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
+        let hasInvalidItemsOur = false;
 
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
@@ -914,6 +915,11 @@ export default class MyHandler extends Handler {
                     ) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
+
+                        // If that particular item is on our side, then put to review
+                        if (which === 'our') {
+                            hasInvalidItemsOur = true;
+                        }
 
                         // await sleepasync().Promise.sleep(1 * 1000);
                         const price = (await this.bot.pricelist.getPricesTF(sku)) as GetPrices;
@@ -1300,6 +1306,7 @@ export default class MyHandler extends Handler {
             const isAcceptInvalidItems =
                 isInvalidItem &&
                 canAcceptInvalidItemsOverpay &&
+                !hasInvalidItemsOur &&
                 (exchange.our.value < exchange.their.value ||
                     (exchange.our.value === exchange.their.value && hasNoPrice)) &&
                 (isOverstocked ? canAcceptOverstockedOverpay : true) &&
