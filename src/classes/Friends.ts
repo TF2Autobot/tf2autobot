@@ -85,7 +85,7 @@ export default class Friends {
 
         return new Promise((resolve, reject) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
+            void request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
                 if (err) {
                     return reject(err);
                 }

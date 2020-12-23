@@ -308,7 +308,7 @@ export default class Bot {
 
     getLatestVersion(): Promise<string> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     method: 'GET',
                     url: 'https://raw.githubusercontent.com/idinium96/tf2autobot/master/package.json',

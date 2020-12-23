@@ -701,15 +701,6 @@ export class ParsedPrice {
     }
 }
 
-interface ErrorRequest {
-    body?: ErrorBody;
-    message?: string;
-}
-
-interface ErrorBody {
-    message: string;
-}
-
 interface Group {
     [quality: string]: { [killstreak: string]: Item[] };
 }

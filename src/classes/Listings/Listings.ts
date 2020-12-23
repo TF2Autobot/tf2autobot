@@ -161,7 +161,7 @@ export default class Listings {
             };
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(options, (err, reponse, body) => {
+            void request(options, (err, reponse, body) => {
                 if (err) {
                     return reject(err);
                 }

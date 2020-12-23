@@ -1731,7 +1731,7 @@ export default class MyHandler extends Handler {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
@@ -1916,16 +1916,4 @@ interface GetAutokeysStatus {
     isActive: boolean;
     isBuying: boolean;
     isBanking: boolean;
-}
-
-interface GetPrices {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    currency?: number | string;
-    source?: string;
-    time?: string;
-    buy?: Currencies;
-    sell?: Currencies;
-    message?: string;
 }
