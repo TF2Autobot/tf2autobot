@@ -27,7 +27,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         return aTime - bTime;
     });
 
-    let iter = 0; // to keep track of how many trades are accepted
+    let totalTrades = 0; // to keep track of how many trades are accepted
 
     for (let i = 0; i < trades.length; i++) {
         const trade = trades[i];
@@ -35,7 +35,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             continue; // trade was not accepted, go to next trade
         }
 
-        iter++;
+        totalTrades++;
         let isGift = false;
         if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
             continue; // trade has no items involved (not possible, but who knows)
@@ -68,7 +68,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         for (const sku in trade.dict.their) {
             // item bought
             if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
-                const itemCount = trade.dict.their[sku].amount;
+                const itemCount =
+                    typeof trade.dict.their[sku] == 'object' ? trade.dict.their[sku].amount : trade.dict.their[sku];
 
                 if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
                     // if it is not currency
@@ -96,8 +97,9 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
         for (const sku in trade.dict.our) {
             if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
-                const itemCount = trade.dict.our[sku].amount;
-                if (sku !== '5000;6' && sku !== '5002;6' && sku !== '5001;6' && sku !== '5021;6') {
+                const itemCount =
+                    typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : trade.dict.our[sku];
+                if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
                     if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                         continue; // item is not in pricelist, so we will just skip it
                     }
@@ -118,8 +120,6 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                 tracker.convert(trade.value.our, trade.value.rate);
         }
     }
-
-    const totalTrades = iter;
 
     return { tradeProfit, overpriceProfit, totalTrades };
 }
@@ -200,7 +200,6 @@ class itemTracker {
     }
 
     convert(prices: Currency, keyPrice: number) {
-        const converted = new Currencies(prices).toValue(keyPrice);
-        return converted;
+        return new Currencies(prices).toValue(keyPrice);
     }
 }
