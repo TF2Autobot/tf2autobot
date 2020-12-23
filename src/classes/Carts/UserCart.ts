@@ -1133,11 +1133,15 @@ export default class UserCart extends Cart {
             '5000;6': 1
         };
 
-        const weapons = (this.bot.handler as MyHandler).getWeapons();
-
-        weapons.forEach(sku => {
+        craftAll.forEach(sku => {
             currencyValues[sku] = 0.5;
         });
+
+        if (this.bot.options.weaponsAsCurrency.withUncraft) {
+            uncraftAll.forEach(sku => {
+                currencyValues[sku] = 0.5;
+            });
+        }
 
         // log.debug('Currency values', currencyValues);
 
@@ -1158,9 +1162,15 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        weapons.forEach(sku => {
+        craftAll.forEach(sku => {
             pickedCurrencies[sku] = 0;
         });
+
+        if (this.bot.options.weaponsAsCurrency.withUncraft) {
+            uncraftAll.forEach(sku => {
+                pickedCurrencies[sku] = 0;
+            });
+        }
 
         /* eslint-disable-next-line no-constant-condition */
         while (true) {

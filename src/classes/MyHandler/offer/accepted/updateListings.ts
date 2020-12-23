@@ -29,8 +29,8 @@ export default function updateListings(
         const name = bot.schema.getName(item, false);
 
         const isNotPureOrWeapons = !(
-            craftAll.includes(sku) ||
-            uncraftAll.includes(sku) ||
+            (bot.options.weaponsAsCurrency.enable &&
+                (craftAll.includes(sku) || (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 
