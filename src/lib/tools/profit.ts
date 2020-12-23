@@ -1,6 +1,7 @@
 import Bot from '../../classes/Bot';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies';
+import { craftAll, uncraftAll } from '../data';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
@@ -61,7 +62,14 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                 const itemCount =
                     typeof trade.dict.their[sku] == 'object' ? trade.dict.their[sku].amount : +trade.dict.their[sku];
 
-                if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
+                const isNotPureOrWeapons = !(
+                    (bot.options.weaponsAsCurrency.enable &&
+                        (craftAll.includes(sku) ||
+                            (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
+                    ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                );
+
+                if (isNotPureOrWeapons) {
                     // if it is not currency
                     if (isGift) {
                         if (!Object.prototype.hasOwnProperty.call(trade, 'prices')) {
@@ -89,7 +97,15 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
                 const itemCount =
                     typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : +trade.dict.our[sku];
-                if (!['5000;6', '5001;6', '5002;6', '5021;6'].includes(sku)) {
+
+                const isNotPureOrWeapons = !(
+                    (bot.options.weaponsAsCurrency.enable &&
+                        (craftAll.includes(sku) ||
+                            (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
+                    ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                );
+
+                if (isNotPureOrWeapons) {
                     if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                         continue; // item is not in pricelist, so we will just skip it
                     }
