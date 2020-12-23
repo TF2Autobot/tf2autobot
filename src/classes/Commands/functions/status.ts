@@ -16,9 +16,7 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
     const keyPrice = bot.pricelist.getKeyPrice().metal;
 
     const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrice).toString();
-    const profitmadeInRef = profitmadeFull.includes('key')
-        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
-        : '';
+    const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
 
     const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrice).toString();
     const profitOverpayInRef = profitmadeFull.includes('key')
