@@ -19,7 +19,7 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
     const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
 
     const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrices.sell.metal).toString();
-    const profitOverpayInRef = profitmadeFull.includes('key')
+    const profitOverpayInRef = profitOverpayFull.includes('key')
         ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
         : '';
 
@@ -38,7 +38,7 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
             ' \nProfit from overpay: ' +
             `${profitOverpayFull + profitOverpayInRef}` +
             ' \nKey rate: ' +
-            `${keyPrices.buy.metal}/${keyPrices.sell.metal}`
+            `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
     );
 }
 
