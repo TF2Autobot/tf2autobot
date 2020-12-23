@@ -1,5 +1,4 @@
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
-import { Currency } from '../../../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
 import Currencies from 'tf2-currencies';
@@ -9,7 +8,7 @@ import { replace } from '../../tools/export';
 
 export = function (schema: SchemaManager.Schema): string {
     const self = this as TradeOffer;
-    const value: { our: Currency; their: Currency } = self.data('value') as ItemsValue;
+    const value = self.data('value') as ItemsValue;
 
     const items: {
         our: OurTheirItemsDict;

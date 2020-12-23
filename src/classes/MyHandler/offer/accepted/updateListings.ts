@@ -5,7 +5,7 @@ import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { requestCheck } from '../../../../lib/ptf-api';
+import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import { craftAll, uncraftAll } from '../../../../lib/data';
 import log from '../../../../lib/logger';
 
@@ -29,21 +29,17 @@ export default function updateListings(
         const name = bot.schema.getName(item, false);
 
         const isNotPureOrWeapons = !(
-            craftAll.includes(sku) ||
-            uncraftAll.includes(sku) ||
+            (bot.options.weaponsAsCurrency.enable &&
+                (craftAll.includes(sku) || (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 
         // Request priceheck on each sku involved in the trade, except craft weapons,
         // and pure.
         if (isNotPureOrWeapons) {
-            void requestCheck(sku, 'bptf').asCallback((err: ErrorRequest, body: PriceCheckRequest) => {
+            void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
                 if (err) {
-                    log.debug(
-                        `❌ Failed to request pricecheck for ${name} (${sku}): ${
-                            err.body && err.body.message ? err.body.message : err.message
-                        }`
-                    );
+                    log.debug(`❌ Failed to request pricecheck for ${name} (${sku}): ${JSON.stringify(err)}`);
                 } else {
                     log.debug(
                         `✅ Requested pricecheck for ${
@@ -201,20 +197,4 @@ export default function updateListings(
                 });
         }
     }
-}
-
-interface PriceCheckRequest {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    message?: string;
-}
-
-interface ErrorRequest {
-    body?: ErrorBody;
-    message?: string;
-}
-
-interface ErrorBody {
-    message: string;
 }

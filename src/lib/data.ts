@@ -453,7 +453,7 @@ export const uncraftAll = [
     '59;6;uncraftable' // Dead Ringer
 ];
 
-export const noiseMakerSKU = [
+export const noiseMakerSKUs = [
     '280;6', // Noise Maker - Black Cat
     '280;6;uncraftable',
     '281;6', // Noise Maker - Gremlin

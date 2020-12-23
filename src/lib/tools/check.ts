@@ -1,29 +1,54 @@
 import SKU from 'tf2-sku-2';
-import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
+import { EconItem } from 'steam-tradeoffer-manager';
 
 import log from '../logger';
 import { strangePartsData, noiseMakerNames } from '../data';
 
 import Bot from '../../classes/Bot';
 
-export function uses(
-    offer: TradeOffer,
-    items: EconItem[],
-    bot: Bot
-): { isNot5Uses: boolean; isNot25Uses: boolean; noiseMakerSKU: string[] } {
-    const ex = {
-        isNot5Uses: false,
-        isNot25Uses: false,
-        noiseMakerSKU: []
-    };
+export function getAssetidsWith5xUses(items: EconItem[]): string[] {
+    return items
+        .filter(item => {
+            if (item.market_hash_name === 'Dueling Mini-Game') {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
 
-    items.forEach(item => {
-        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-        const isNoiseMaker = noiseMakerNames.some(name => {
-            return item.market_hash_name.includes(name);
-        });
+                    if (
+                        descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                        descriptionColor === '00a000'
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        })
+        .map(item => item.assetid);
+}
 
-        if (isDuelingMiniGame && bot.options.checkUses.duel) {
+export function getAssetidsWith25xUses(items: EconItem[], noiseMakerName: string): string[] {
+    return items
+        .filter(item => {
+            if (item.market_hash_name.includes(noiseMakerName)) {
+                for (let i = 0; i < item.descriptions.length; i++) {
+                    const descriptionValue = item.descriptions[i].value;
+                    const descriptionColor = item.descriptions[i].color;
+
+                    if (
+                        descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                        descriptionColor === '00a000'
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        })
+        .map(item => item.assetid);
+}
+
+export function isNot5xUses(items: EconItem[]): boolean {
+    return items.some(item => {
+        if (item.market_hash_name === 'Dueling Mini-Game') {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -32,12 +57,23 @@ export function uses(
                     !descriptionValue.includes('This is a limited use item. Uses: 5') &&
                     descriptionColor === '00a000'
                 ) {
-                    ex.isNot5Uses = true;
-                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                    break;
+                    return true;
                 }
             }
-        } else if (isNoiseMaker && bot.options.checkUses.noiseMaker) {
+        }
+    });
+}
+
+export function isNot25xUses(items: EconItem[], bot: Bot): [boolean, string[]] {
+    const opt = bot.options.normalize;
+    const skus: string[] = [];
+
+    const is25xUses = items.some(item => {
+        const isNoiseMaker = noiseMakerNames.some(name => {
+            return item.market_hash_name.includes(name);
+        });
+
+        if (isNoiseMaker) {
             for (let i = 0; i < item.descriptions.length; i++) {
                 const descriptionValue = item.descriptions[i].value;
                 const descriptionColor = item.descriptions[i].color;
@@ -46,17 +82,13 @@ export function uses(
                     !descriptionValue.includes('This is a limited use item. Uses: 25') &&
                     descriptionColor === '00a000'
                 ) {
-                    ex.isNot25Uses = true;
-                    ex.noiseMakerSKU.push(
-                        item.getSKU(bot.schema, bot.options.normalize.festivized, bot.options.normalize.strangeUnusual)
-                    );
-                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                    break;
+                    skus.push(item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual));
+                    return true;
                 }
             }
         }
     });
-    return ex;
+    return [is25xUses, skus];
 }
 
 export function highValue(

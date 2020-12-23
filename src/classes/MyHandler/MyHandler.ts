@@ -39,7 +39,7 @@ import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
-import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData } from '../../lib/data';
+import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData, noiseMakerSKUs } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
@@ -210,6 +210,8 @@ export default class MyHandler extends Handler {
 
     private paths: Paths;
 
+    private isUpdating = false;
+
     constructor(bot: Bot) {
         super(bot);
 
@@ -266,23 +268,20 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, Entry[], number[], PollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
 
     onReady(): void {
         log.info(
-            'TF2Autobot v' +
-                process.env.BOT_VERSION +
-                ' is ready! ' +
-                pluralize('item', this.bot.pricelist.getLength(), true) +
-                ' in pricelist, ' +
-                pluralize('listing', this.bot.listingManager.listings.length, true) +
-                ' on www.backpack.tf (cap: ' +
-                String(this.bot.listingManager.cap) +
-                ')'
+            `TF2Autobot v${process.env.BOT_VERSION} is ready | ${pluralize(
+                'item',
+                this.bot.pricelist.getLength(),
+                true
+            )} in pricelist | Listings cap: ${String(
+                this.bot.listingManager.cap
+            )} | Startup time: ${process.uptime().toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
@@ -365,6 +364,11 @@ export default class MyHandler extends Handler {
     }
 
     onMessage(steamID: SteamID, message: string): void {
+        if (this.isUpdating) {
+            this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
+            return;
+        }
+
         const steamID64 = steamID.toString();
 
         if (!this.bot.friends.isFriend(steamID64)) {
@@ -387,6 +391,10 @@ export default class MyHandler extends Handler {
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
         this.commands.processMessage(steamID, message);
+    }
+
+    setIsUpdatingStatus(setStatus: boolean): void {
+        this.isUpdating = setStatus;
     }
 
     onLoginKey(loginKey: string): void {
@@ -709,20 +717,28 @@ export default class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
 
-        if (opt.checkUses.duel || opt.checkUses.noiseMaker) {
-            const im = check.uses(offer, offer.itemsToReceive, this.bot);
+        const offerSKUs = offer.itemsToReceive.map(item =>
+            item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual)
+        );
 
-            if (im.isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+        if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
+            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive);
+
+            if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
+        }
 
-            const isHasNoiseMaker = im.noiseMakerSKU.some(sku => {
+        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
+            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, this.bot);
+
+            const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
 
-            if (im.isNot25Uses && isHasNoiseMaker) {
+            if (isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noice Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
@@ -777,6 +793,7 @@ export default class MyHandler extends Handler {
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
+        let hasInvalidItemsOur = false;
 
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
@@ -899,8 +916,13 @@ export default class MyHandler extends Handler {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
+                        // If that particular item is on our side, then put to review
+                        if (which === 'our') {
+                            hasInvalidItemsOur = true;
+                        }
+
                         // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = (await this.bot.pricelist.getPricesTF(sku)) as GetPrices;
+                        const price = await this.bot.pricelist.getPricesTF(sku);
 
                         const item = SKU.fromString(sku);
 
@@ -1284,6 +1306,7 @@ export default class MyHandler extends Handler {
             const isAcceptInvalidItems =
                 isInvalidItem &&
                 canAcceptInvalidItemsOverpay &&
+                !hasInvalidItemsOur &&
                 (exchange.our.value < exchange.their.value ||
                     (exchange.our.value === exchange.their.value && hasNoPrice)) &&
                 (isOverstocked ? canAcceptOverstockedOverpay : true) &&
@@ -1708,7 +1731,7 @@ export default class MyHandler extends Handler {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
@@ -1893,16 +1916,4 @@ interface GetAutokeysStatus {
     isActive: boolean;
     isBuying: boolean;
     isBanking: boolean;
-}
-
-interface GetPrices {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    currency?: number | string;
-    source?: string;
-    time?: string;
-    buy?: Currencies;
-    sell?: Currencies;
-    message?: string;
 }

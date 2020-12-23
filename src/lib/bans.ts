@@ -20,7 +20,7 @@ function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Promise<bo
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
-        request(
+        void request(
             {
                 url: 'https://backpack.tf/api/users/info/v1',
                 qs: {
@@ -47,7 +47,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Pr
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
-        request(
+        void request(
             {
                 url: 'https://backpack.tf/api/users/info/v1',
                 qs: {
@@ -75,7 +75,7 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promis
     const steamID64 = steamID.toString();
 
     return new Promise(resolve => {
-        request(
+        void request(
             {
                 url: 'http://steamrep.com/api/beta4/reputation/' + steamID64,
                 qs: {
@@ -86,10 +86,10 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promis
             },
             (err, response, body) => {
                 if (err) {
-                    return isBptfSteamRepBanned(steamID64, bptfApiKey);
+                    resolve(isBptfSteamRepBanned(steamID64, bptfApiKey));
                 }
 
-                return resolve(body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1);
+                resolve(body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1);
             }
         );
     });

@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Meta } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { Meta, OfferData } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 
@@ -14,6 +10,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
 import { check, generateLinks } from '../../../lib/tools/export';
+import { noiseMakerSKUs } from '../../../lib/data';
 import log from '../../../lib/logger';
 
 // Manual review commands
@@ -59,8 +56,8 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
 
         reply +=
             `\n- Offer #${offer.id as string} from ${
-                offer.data.partner as number
-            } (reason: ${offer.data.action.meta.uniqueReasons.join(', ')})` +
+                (offer.data as OfferData).partner
+            } (reason: ${(offer.data as OfferData).action.meta.uniqueReasons.join(', ')})` +
             `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
     }
 
@@ -175,7 +172,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         if (err) {
             bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
             );
             return;
         }
@@ -190,33 +187,39 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         let hasNot5Uses = false;
         let hasNot25Uses = false;
 
-        if (bot.options.checkUses.duel || bot.options.checkUses.noiseMaker) {
-            // Re-check for Dueling Mini-Game and/or Noise Maker for 5x/25x Uses only when enabled and exist in pricelist
-            log.debug('Running re-check on Dueling Mini-Game and/or Noise maker...');
+        const opt = bot.options;
 
-            const checkExist = bot.pricelist;
+        const offerSKUs = offer.itemsToReceive.map(item =>
+            item.getSKU(bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual)
+        );
 
-            const im: {
-                isNot5Uses: boolean;
-                isNot25Uses: boolean;
-                noiseMakerSKU: string[];
-            } = check.uses(offer, offer.itemsToReceive, bot);
+        const checkExist = bot.pricelist;
 
-            hasNot5Uses = im.isNot5Uses;
-            hasNot25Uses = im.isNot25Uses;
+        if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
+            // Re-check Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
+            log.debug('Running re-check on Dueling Mini-Game...');
+            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive);
 
             if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses (re-checked).');
                 declineTrade = true;
             }
+        }
 
-            const isNoiseMaker = im.noiseMakerSKU.some(sku => {
+        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
+            // Re-check Noise Maker for 25x Uses only when enabled and exist in pricelist
+            log.debug('Running re-check on Noise maker...');
+
+            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, bot);
+            hasNot25Uses = isNot25Uses;
+
+            const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
 
-            if (hasNot25Uses && isNoiseMaker) {
-                offer.log('info', 'contains Noice Maker that does not have 25 uses (re-checked).');
+            if (hasNot25Uses && isHasNoiseMaker) {
+                offer.log('info', 'contains Noise Maker that does not have 25 uses (re-checked).');
                 declineTrade = true;
             }
         }
@@ -228,7 +231,9 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 if (err) {
                     bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${err.message}`
+                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${
+                            (err as Error).message
+                        }`
                     );
                     return;
                 }
@@ -261,7 +266,9 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                 if (err) {
                     bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
+                        `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${
+                            (err as Error).message
+                        }`
                     );
                     return;
                 }
@@ -327,7 +334,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         if (err) {
             bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
+                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
             );
             return;
         }
@@ -342,7 +349,7 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
             if (err) {
                 bot.sendMessage(
                     steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${err.message}`
+                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
                 );
                 return;
             }

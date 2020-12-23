@@ -56,7 +56,7 @@ export default class DonateCart extends Cart {
                 let isSkipped = false;
 
                 for (let i = 0; i < ourAssetids.length; i++) {
-                    if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                    if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(ourAssetids[i])) {
                         isSkipped = true;
                         continue;
                     }
@@ -155,7 +155,7 @@ export default class DonateCart extends Cart {
                 let isSkipped = false;
 
                 for (let i = 0; i < ourAssetids.length; i++) {
-                    if (this.bot.trades.isInTrade(ourAssetids[i])) {
+                    if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(ourAssetids[i])) {
                         isSkipped = true;
                         continue;
                     }

@@ -18,7 +18,7 @@ import CartQueue from '../Carts/CartQueue';
 import Autokeys from '../Autokeys/Autokeys';
 
 import { fixItem } from '../../lib/items';
-import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';
+import { requestCheck, getPrice, getSales, RequestCheckResponse, GetItemSalesResponse } from '../../lib/ptf-api';
 import log from '../../lib/logger';
 import { ignoreWords } from '../../lib/data';
 import DonateCart from '../Carts/DonateCart';
@@ -103,7 +103,7 @@ export default class Commands {
             c.misc.craftweaponCommand(steamID, this.bot);
         } else if (command === 'uncraftweapon') {
             c.misc.uncraftweaponCommand(steamID, this.bot);
-        } else if (command === 'sales') {
+        } else if (command === 'sales' && isAdmin) {
             void this.getSalesCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
@@ -137,6 +137,8 @@ export default class Commands {
             c.manager.stopCommand(steamID, this.bot);
         } else if (command === 'restart' && isAdmin) {
             c.manager.restartCommand(steamID, this.bot);
+        } else if (command === 'updaterepo' && isAdmin) {
+            c.manager.updaterepoCommand(steamID, this.bot, message);
         } else if (command === 'refreshautokeys' && isAdmin) {
             c.manager.refreshAutokeysCommand(steamID, this.bot, this.autokeys);
         } else if (command === 'refreshlist' && isAdmin) {
@@ -627,17 +629,16 @@ export default class Commands {
         const item = SKU.fromString(params.sku);
         const name = this.bot.schema.getName(item);
 
-        let salesData: getSalesData;
+        let salesData: GetItemSalesResponse;
 
         try {
-            salesData = (await getSales(params.sku, 'bptf')) as getSalesData;
+            salesData = await getSales(params.sku, 'bptf');
         } catch (err) {
-            const thisErr = err as ErrorRequest;
             this.bot.sendMessage(
                 steamID,
-                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
-                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                }`
+                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(
+                    err
+                )}`
             );
             return;
         }
@@ -1052,15 +1053,9 @@ export default class Commands {
         params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
-        void requestCheck(params.sku, 'bptf').asCallback((err, body: PriceCheckRequest) => {
+        void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
             if (err) {
-                const thisErr = err as ErrorRequest;
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Error while requesting price check: ${
-                        thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                    }`
-                );
+                this.bot.sendMessage(steamID, `❌ Error while requesting price check: ${JSON.stringify(err)}`);
                 return;
             }
 
@@ -1109,14 +1104,9 @@ export default class Commands {
             await sleepasync().Promise.sleep(2 * 1000);
             void requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
-                    const thisErr = err as ErrorRequest;
                     submitted++;
                     failed++;
-                    log.warn(
-                        `pricecheck failed for ${sku}: ${
-                            thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                        }`
-                    );
+                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
                     log.debug(
                         `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
@@ -1160,77 +1150,23 @@ export default class Commands {
         const item = SKU.fromString(params.sku);
         const name = this.bot.schema.getName(item);
 
-        let price: GetPrices;
-
         try {
-            price = (await getPrice(params.sku, 'bptf')) as GetPrices;
-        } catch (err) {
-            const thisErr = err as ErrorRequest;
+            const price = await getPrice(params.sku, 'bptf');
+            const currBuy = new Currencies(price.buy);
+            const currSell = new Currencies(price.sell);
+
             this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name === null ? (params.sku as string) : name}: ${
-                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
+                    params.sku as string
                 }`
+            );
+        } catch (err) {
+            this.bot.sendMessage(
+                steamID,
+                `Error getting price for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(err)}`
             );
             return;
         }
-
-        if (!price) {
-            return;
-        }
-        const currBuy = new Currencies(price.buy);
-        const currSell = new Currencies(price.sell);
-
-        this.bot.sendMessage(
-            steamID,
-            `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                params.sku as string
-            }`
-        );
     }
-}
-
-interface ErrorRequest {
-    body?: ErrorBody;
-    message?: string;
-}
-
-interface ErrorBody {
-    message: string;
-}
-
-interface getSalesData {
-    success: boolean;
-    sku: string;
-    name: string;
-    sales: Sales[];
-}
-
-interface Sales {
-    id: string;
-    steamid: string;
-    automatic: boolean;
-    attributes: Record<string, unknown>;
-    intent: number;
-    currencies: Currencies;
-    time: number;
-}
-
-interface PriceCheckRequest {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    message?: string;
-}
-
-interface GetPrices {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    currency?: number | string;
-    source?: string;
-    time?: number;
-    buy?: Currencies;
-    sell?: Currencies;
-    message?: string;
 }

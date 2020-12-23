@@ -12,6 +12,12 @@ export const statisticsSchema: jsonschema.Schema = {
         },
         startingTimeInUnix: {
             type: 'integer'
+        },
+        lastTotalProfitMadeInRef: {
+            type: 'number'
+        },
+        lastTotalProfitOverpayInRef: {
+            type: 'number'
         }
     },
     additionalProperties: false,

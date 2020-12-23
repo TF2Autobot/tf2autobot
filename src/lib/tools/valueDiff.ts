@@ -9,7 +9,7 @@ export default function valueDiff(
     isTradingKeys: boolean,
     enableShowOnlyMetal: boolean
 ): ValueDiff {
-    const value: { our: Currency; their: Currency } = offer.data('value') as ItemsValue;
+    const value = offer.data('value') as ItemsValue;
 
     let diff: number;
     let diffRef: number;

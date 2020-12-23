@@ -8,10 +8,11 @@ import { Currency } from '../types/TeamFortress2';
 import Options from './Options';
 
 import log from '../lib/logger';
-import { getPricelist, getPrice } from '../lib/ptf-api';
+import { getPricelist, getPrice, GetItemPriceResponse, Item } from '../lib/ptf-api';
 import validator from '../lib/validator';
 
 import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
+import SocketManager from './MyHandler/SocketManager';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -130,24 +131,25 @@ export class Entry {
 export default class Pricelist extends EventEmitter {
     private readonly schema: SchemaManager.Schema;
 
-    private readonly socket: SocketIOClient.Socket;
-
     private prices: Entry[] = [];
 
     private globalKeyPrices: KeyPrices;
 
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
-    private maxAge: number;
+    private readonly maxAge: number;
 
-    constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket, private options?: Options) {
+    private readonly boundHandlePriceChange;
+
+    constructor(schema: SchemaManager.Schema, private socketManager: SocketManager, private options?: Options) {
         super();
         this.schema = schema;
-        this.socket = socket;
-
-        this.socket.removeListener('price', this.handlePriceChange.bind(this));
-        this.socket.on('price', this.handlePriceChange.bind(this));
         this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
+        this.boundHandlePriceChange = this.handlePriceChange.bind(this);
+    }
+
+    init(): void {
+        this.socketManager.on('price', this.boundHandlePriceChange);
     }
 
     getKeyPrices(): KeyPrices {
@@ -258,15 +260,7 @@ export default class Pricelist extends EventEmitter {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
-            let pricePTF: GetPrices;
-
-            try {
-                pricePTF = (await getPrice(entry.sku, 'bptf')) as GetPrices;
-            } catch (err) {
-                const thisErr = err as ErrorRequest;
-                throw new Error(thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message);
-            }
-
+            const pricePTF = await getPrice(entry.sku, 'bptf');
             entry.buy = new Currencies(pricePTF.buy);
             entry.sell = new Currencies(pricePTF.sell);
             entry.time = pricePTF.time;
@@ -305,14 +299,13 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    async getPricesTF(sku: string): Promise<any> {
-        let price: GetPrices;
+    async getPricesTF(sku: string): Promise<ParsedPrice | null> {
         try {
-            price = (await getPrice(sku, 'bptf')) as GetPrices;
+            return await getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
-            price = null;
+            log.debug(`getPricesTF failed ${JSON.stringify(err)}`);
+            return null;
         }
-        return price;
     }
 
     async addPrice(
@@ -460,10 +453,8 @@ export default class Pricelist extends EventEmitter {
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
 
-        return getPrice('5021;6', 'bptf').then(keyPrices => {
+        return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
             log.debug('Got key price');
-
-            const keyPricesPTF = keyPrices as GetPrices;
 
             const entryKey = this.getPrice('5021;6', false);
             const timePTF = keyPricesPTF.time;
@@ -514,7 +505,7 @@ export default class Pricelist extends EventEmitter {
         return getPricelist('bptf').then(pricelist => {
             log.debug('Got pricelist');
 
-            const groupedPrices = Pricelist.groupPrices((pricelist as GetPricelist).items);
+            const groupedPrices = Pricelist.groupPrices(pricelist.items);
 
             let pricesChanged = false;
 
@@ -557,7 +548,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private handlePriceChange(data: Data): void {
+    private handlePriceChange(data: GetItemPriceResponse): void {
         const opt = this.options;
 
         if (data.source !== 'bptf') {
@@ -651,7 +642,7 @@ export default class Pricelist extends EventEmitter {
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
     }
 
-    static groupPrices(prices: Items[]): Group {
+    static groupPrices(prices: Item[]): Group {
         const sorted: Group = {};
 
         for (let i = 0; i < prices.length; i++) {
@@ -684,52 +675,32 @@ export interface KeyPrices {
     time: number;
 }
 
-interface GetPrices {
-    success?: boolean;
+export class ParsedPrice {
     sku?: string;
+
     name?: string;
-    currency?: number | string;
+
+    currency?: string;
+
     source?: string;
+
     time?: number;
+
     buy?: Currencies;
+
     sell?: Currencies;
-    message?: string;
-}
 
-interface ErrorRequest {
-    body?: ErrorBody;
-    message?: string;
-}
-
-interface ErrorBody {
-    message: string;
-}
-
-interface GetPricelist {
-    success?: boolean;
-    currency?: unknown;
-    items?: Items[];
-}
-
-interface Items {
-    sku: string;
-    name: string;
-    source: string;
-    time: number;
-    buy: Currencies | null;
-    sell: Currencies | null;
-}
-
-interface Data {
-    sku: string;
-    name: string;
-    source: string;
-    currency: unknown;
-    buy: Currencies | null;
-    sell: Currencies | null;
-    time: number;
+    constructor(priceResponse: GetItemPriceResponse) {
+        this.sku = priceResponse.sku;
+        this.name = priceResponse.name;
+        this.currency = priceResponse.currency;
+        this.source = priceResponse.source;
+        this.time = priceResponse.time;
+        this.buy = new Currencies(priceResponse.buy);
+        this.sell = new Currencies(priceResponse.sell);
+    }
 }
 
 interface Group {
-    [quality: string]: { [killstreak: string]: Items[] };
+    [quality: string]: { [killstreak: string]: Item[] };
 }

@@ -1,15 +1,27 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
+import Currencies from 'tf2-currencies';
 
 import Bot from '../../Bot';
 
-import { stats } from '../../../lib/tools/export';
+import { stats, profit } from '../../../lib/tools/export';
 
 // Bot status
 
 export function statsCommand(steamID: SteamID, bot: Bot): void {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const trades = stats(bot);
+    const profits = profit(bot);
+
+    const keyPrices = bot.pricelist.getKeyPrices();
+
+    const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
+    const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
+
+    const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrices.sell.metal).toString();
+    const profitOverpayInRef = profitOverpayFull.includes('key')
+        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
+        : '';
 
     bot.sendMessage(
         steamID,
@@ -17,10 +29,16 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
             pluralize('day', trades.totalDays, true) +
             ' ago 📊\n\n Total: ' +
             (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
-            ' \n Last 24 hours: ' +
+            ' \nLast 24 hours: ' +
             String(trades.trades24Hours) +
-            ' \n Since beginning of today: ' +
-            String(trades.tradesToday)
+            ' \nSince beginning of today: ' +
+            String(trades.tradesToday) +
+            ' \n\nProfit made: ' +
+            `${profitmadeFull + profitmadeInRef}` +
+            ' \nProfit from overpay: ' +
+            `${profitOverpayFull + profitOverpayInRef}` +
+            ' \nKey rate: ' +
+            `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
     );
 }
 

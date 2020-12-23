@@ -213,10 +213,15 @@ export default class Trades {
         });
     }
 
-    async findMatchingOffer(offer: TradeOffer, isSent: boolean): Promise<TradeOffer | null> {
-        const { sent, received } = await this.getOffers();
-        const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
-        return match === undefined ? null : match;
+    findMatchingOffer(
+        offer: TradeOfferManager.TradeOffer,
+        isSent: boolean
+    ): Promise<TradeOfferManager.TradeOffer | null> {
+        return this.getOffers().then(({ sent, received }) => {
+            const match = (isSent ? sent : received).find(v => Trades.offerEquals(offer, v));
+
+            return match === undefined ? null : match;
+        });
     }
 
     private enqueueOffer(offer: TradeOffer): void {
@@ -787,6 +792,15 @@ export default class Trades {
         if (index === -1) {
             this.itemsInTrade.push(assetid);
         }
+
+        const fixDuplicate: string[] = [];
+        this.itemsInTrade.forEach(assetID => {
+            if (!fixDuplicate.includes(assetID)) {
+                fixDuplicate.push(assetID);
+            }
+        });
+
+        this.itemsInTrade = fixDuplicate;
     }
 
     private unsetItemInTrade(assetid: string): void {

@@ -3,8 +3,12 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
+import child from 'child_process';
+import fs from 'graceful-fs';
+import path from 'path';
+import { EPersonaState } from 'steam-user';
 
-import { utils } from '../functions/export';
+import { utils } from './export';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
@@ -507,9 +511,69 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
         })
         .catch((err: Error) => {
             log.warn('Error occurred while trying to restart: ', err);
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
         });
+}
+
+export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): void {
+    if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
+        bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
+        return;
+    }
+
+    if (process.env.pm_id === undefined) {
+        bot.sendMessage(steamID, '❌ You did not start the bot with pm2!');
+        return;
+    }
+
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+    if (params.i_am_sure !== 'yes_i_am') {
+        bot.sendMessage(
+            steamID,
+            `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
+        );
+
+        bot.checkForUpdates()
+            .then(({ hasNewVersion, latestVersion }) => {
+                if (!hasNewVersion) {
+                    bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                } else if (bot.lastNotifiedVersion === latestVersion) {
+                    bot.sendMessage(
+                        steamID,
+                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
+                            '\nSend !updaterepo i_am_sure=yes_i_am to update your repo now!' +
+                            `\n\nRelease note: https://github.com/idinium96/tf2autobot/releases`
+                    );
+                }
+            })
+            .catch((err: Error) => {
+                bot.sendMessage(steamID, `❌ Failed to check for updates: ${err.message}`);
+            });
+    } else {
+        bot.sendMessage(steamID, '⌛ Updating...');
+        // Make the bot snooze on Steam, that way people will know it is not running
+        bot.client.setPersona(EPersonaState.Snooze);
+
+        // Set isUpdating status, so any command will not be processed
+        (bot.handler as MyHandler).setIsUpdatingStatus(true);
+
+        // Stop polling offers
+        bot.manager.pollInterval = -1;
+
+        child.exec('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, err => {
+            if (err) {
+                bot.sendMessage(steamID, `❌ Failed to update bot repository: ${(err as Error).message}`);
+                return;
+            }
+            bot.sendMessage(steamID, '⌛ Restarting...');
+
+            bot.botManager.restartProcess().catch((err: Error) => {
+                log.warn('Error occurred while trying to restart: ', err);
+                bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${err.message}`);
+            });
+        });
+    }
 }
 
 export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): void {

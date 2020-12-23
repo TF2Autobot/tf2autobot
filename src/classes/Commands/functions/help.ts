@@ -28,8 +28,7 @@ const MORE: string[] = [
     "!rate - Get the bot's current key rates 🔑",
     '!stock - Get a list of items that the bot owns',
     "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
-    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-    '!sales name=<item name> OR sku=<item sku> - Get the sales history for an item'
+    "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫"
 ];
 
 const ADMIN_COMMANDS: string[] = [
@@ -48,6 +47,7 @@ const ADMIN_COMMANDS: string[] = [
     '!unblock <steamid> - Unblock a specific user',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
+    '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
     "!refreshautokeys - Refresh the bot's autokeys settings.",
     '!refreshlist - Refresh sell listings 🔄',
     "!name <new_name> - Change the bot's name",

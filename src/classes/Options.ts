@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from 'jsonlint';
@@ -30,6 +26,8 @@ export const DEFAULTS = {
     maxPriceAge: 28800,
 
     autobump: false,
+
+    skipItemsInTrade: true,
 
     weaponsAsCurrency: {
         enable: true,
@@ -83,7 +81,9 @@ export const DEFAULTS = {
     statistics: {
         starter: 0,
         lastTotalTrades: 0,
-        startingTimeInUnix: 0
+        startingTimeInUnix: 0,
+        lastTotalProfitMadeInRef: 0,
+        lastTotalProfitOverpayInRef: 0
     },
     autokeys: {
         enable: false,
@@ -265,6 +265,8 @@ export interface Statistics {
     starter?: number;
     lastTotalTrades?: number;
     startingTimeInUnix?: number;
+    lastTotalProfitMadeInRef?: number;
+    lastTotalProfitOverpayInRef?: number;
 }
 
 export interface Banking {
@@ -447,6 +449,7 @@ export interface JsonOptions {
     sendOfferMessage?: string;
     maxPriceAge?: number;
     autobump?: boolean;
+    skipItemsInTrade?: boolean;
     tradeSummary?: TradeSummary;
     highValue?: HighValue;
     checkUses?: CheckUses;
@@ -583,6 +586,10 @@ export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
+
+    const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
+    const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
+
     const envOptions = {
         steamAccountName: steamAccountName,
         steamPassword: getOption('steamPassword', '', String, incomingOptions),
@@ -592,23 +599,23 @@ export function loadOptions(options?: Options): Options {
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
 
-        admins: getOption('admins', [], JSON.parse, incomingOptions),
-        keep: getOption('keep', [], JSON.parse, incomingOptions),
-        groups: getOption('groups', ['103582791464047777', '103582791462300957'], JSON.parse, incomingOptions),
-        alerts: getOption('alerts', ['trade'], JSON.parse, incomingOptions),
+        admins: getOption('admins', [], jsonParseArray, incomingOptions),
+        keep: getOption('keep', [], jsonParseArray, incomingOptions),
+        groups: getOption('groups', ['103582791464047777', '103582791462300957'], jsonParseArray, incomingOptions),
+        alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         pricestfAPIToken: getOption('pricestfAPIToken', '', String, incomingOptions),
 
-        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, JSON.parse, incomingOptions),
-        skipAccountLimitations: getOption('skipAccountLimitations', true, JSON.parse, incomingOptions),
-        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, JSON.parse, incomingOptions),
+        skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
+        skipAccountLimitations: getOption('skipAccountLimitations', true, jsonParseBoolean, incomingOptions),
+        skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),
 
         timezone: getOption('timezone', '', String, incomingOptions),
         customTimeFormat: getOption('customTimeFormat', '', String, incomingOptions),
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
-        debug: getOption('debug', true, JSON.parse, incomingOptions),
-        debugFile: getOption('debugFile', true, JSON.parse, incomingOptions)
+        debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
+        debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions)
     };
 
     if (!envOptions.steamAccountName) {

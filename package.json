@@ -1,7 +1,7 @@
 {
     "name": "tf2autobot",
-    "version": "2.1.2",
-    "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason",
+    "version": "2.3.4",
+    "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
         "release": "np --no-cleanup --no-publish",
@@ -11,7 +11,8 @@
         "prelint": "npm run eslint-check",
         "lint": "eslint \"src/**/*\"",
         "prettier": "prettier --check src/**/*",
-        "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check"
+        "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check",
+        "update": "git stash && git checkout master && git pull && npm install && npm run build"
     },
     "repository": {
         "type": "git",
