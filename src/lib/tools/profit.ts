@@ -9,23 +9,13 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
     const trades = Object.keys(polldata.offerData).map(offerID => {
         return polldata.offerData[offerID];
     });
+
     const keyPrice = bot.pricelist.getKeyPrice();
 
     let overpriceProfit = 0;
     let tradeProfit = 0;
 
     const tracker = new itemTracker();
-
-    trades.sort((a, b) => {
-        const aTime = a.handleTimestamp;
-        const bTime = b.handleTimestamp;
-
-        // check for undefined time, sort those at the beggining, they will be skipped
-        if ((!aTime || isNaN(aTime)) && !(!bTime || isNaN(bTime))) return -1;
-        if (!(!aTime || isNaN(aTime)) && (!bTime || isNaN(bTime))) return 1;
-        if ((!aTime || isNaN(aTime)) && (!bTime || isNaN(bTime))) return 0;
-        return aTime - bTime;
-    });
 
     let totalTrades = 0; // to keep track of how many trades are accepted
 
