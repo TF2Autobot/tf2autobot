@@ -260,28 +260,23 @@ export default class Pricelist extends EventEmitter {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
-            try {
-                const pricePTF = await getPrice(entry.sku, 'bptf');
-                entry.buy = new Currencies(pricePTF.buy);
-                entry.sell = new Currencies(pricePTF.sell);
-                entry.time = pricePTF.time;
+            const pricePTF = await getPrice(entry.sku, 'bptf');
+            entry.buy = new Currencies(pricePTF.buy);
+            entry.sell = new Currencies(pricePTF.sell);
+            entry.time = pricePTF.time;
 
-                if (entry.sku === '5021;6') {
-                    this.globalKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell,
-                        src: 'ptf',
-                        time: entry.time
-                    };
+            if (entry.sku === '5021;6') {
+                this.globalKeyPrices = {
+                    buy: entry.buy,
+                    sell: entry.sell,
+                    src: 'ptf',
+                    time: entry.time
+                };
 
-                    this.currentPTFKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell
-                    };
-                }
-            } catch (err) {
-                const thisErr = err as ErrorRequest;
-                throw new Error(thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message);
+                this.currentPTFKeyPrices = {
+                    buy: entry.buy,
+                    sell: entry.sell
+                };
             }
         }
 
@@ -308,6 +303,7 @@ export default class Pricelist extends EventEmitter {
         try {
             return await getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
+            log.debug(`getPricesTF failed ${JSON.stringify(err)}`);
             return null;
         }
     }

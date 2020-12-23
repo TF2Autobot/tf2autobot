@@ -95,6 +95,11 @@ export interface Sale {
     time: number;
 }
 
+export interface RequestCheckResponse extends PricesResponse {
+    sku: string;
+    name: string;
+}
+
 export function getSchema(): Promise<GetSchemaResponse> {
     return apiRequest('GET', '/schema', { appid: 440 });
 }
@@ -115,15 +120,15 @@ export function getSales(sku: string, source: string): Promise<GetItemSalesRespo
     return apiRequest('GET', `/items/${sku}/sales`, { src: source });
 }
 
-export function requestCheck(sku: string, source: string): Promise<PricesResponse> {
+export function requestCheck(sku: string, source: string): Promise<RequestCheckResponse> {
     return apiRequest('POST', `/items/${sku}`, { source: source });
 }
 
 export function getLinks(sku: string): Promise<GetItemLinks> {
-    return apiRequest('POST', `/items/${sku}/links`, {});
+    return apiRequest('GET', `/items/${sku}/links`, {});
 }
 
-function apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
+export function apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
     const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
         method: httpMethod,
         url: `https://api.prices.tf${path}`,
@@ -142,13 +147,9 @@ function apiRequest<I, R extends PricesResponse>(httpMethod: string, path: strin
     options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
 
     return new Promise((resolve, reject) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        request(options, (err: Error | null, response: ResponseAsJSON, body: R) => {
+        void request(options, (err, response: ResponseAsJSON, body: R) => {
             if (err) {
-                return reject(err);
-            }
-            if (!body.success) {
-                reject(response);
+                reject(err);
             }
             resolve(body);
         });
