@@ -639,7 +639,7 @@ export default abstract class Cart {
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
