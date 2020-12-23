@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
+import Currencies from 'tf2-currencies';
 
 import Bot from '../../Bot';
 
@@ -12,6 +13,18 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
     const trades = stats(bot);
     const profits = profit(bot);
 
+    const keyPrice = bot.pricelist.getKeyPrice().metal;
+
+    const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrice).toString();
+    const profitmadeInRef = profitmadeFull.includes('key')
+        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
+        : '';
+
+    const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrice).toString();
+    const profitOverpayInRef = profitmadeFull.includes('key')
+        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
+        : '';
+
     bot.sendMessage(
         steamID,
         'All trades are recorded from ' +
@@ -23,9 +36,9 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
             ' \n Since beginning of today: ' +
             String(trades.tradesToday) +
             ' \n\nProfit made: ' +
-            String(profits.tradeProfit) +
+            `${profitmadeFull + profitmadeInRef}` +
             ' \nProfit from overpay: ' +
-            String(profits.overpriceProfit)
+            `${profitOverpayFull + profitOverpayInRef}`
     );
 }
 

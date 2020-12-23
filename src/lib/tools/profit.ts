@@ -121,6 +121,9 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         }
     }
 
+    tradeProfit = Math.round(tradeProfit);
+    overpriceProfit = Math.round(overpriceProfit);
+
     return { tradeProfit, overpriceProfit, totalTrades };
 }
 
