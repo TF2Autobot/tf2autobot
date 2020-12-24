@@ -258,6 +258,20 @@ export default class MyHandler extends Handler {
         return { sheens, killstreakers, strangeParts, painted };
     }
 
+    updateAutokeysStatus(): void {
+        const autokeys = {
+            isEnabled: this.autokeys.isEnabled,
+            isActive: this.autokeys.isActive,
+            isBuying: this.autokeys.status.isBuyingKeys,
+            isBanking: this.autokeys.status.isBankingKeys
+        };
+        this.autokeysStatus = {
+            isActive: autokeys.isActive,
+            isBuying: autokeys.isBuying,
+            isBanking: autokeys.isBanking
+        };
+    }
+
     getAutokeysStatus(): GetAutokeysStatus {
         return this.autokeysStatus;
     }
