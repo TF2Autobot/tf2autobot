@@ -153,7 +153,7 @@ export default function processAccepted(
         : undefined;
 
     if (opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0) {
-        sendTradeSummary(
+        void sendTradeSummary(
             offer,
             autokeys,
             currentItems,
