@@ -450,7 +450,7 @@ export default class Trades {
                     throw err;
                 }
 
-                await promiseDelay(10 * 1000);
+                await promiseDelay(20 * 1000);
 
                 return this.acceptConfirmation(offer, attempts);
             });
