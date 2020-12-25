@@ -111,6 +111,8 @@ declare module 'steam-tradeoffer-manager' {
             reviewMeta?: ReviewMeta; // Only if offer need to be reviewed
             canceledByUser?: boolean; // checked
             switchedState?: number; // checked
+            donation?: boolean;
+            buyBptfPremium?: boolean;
         }
 
         export interface ItemsDict {

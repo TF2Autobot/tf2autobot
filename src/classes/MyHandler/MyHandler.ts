@@ -1487,6 +1487,12 @@ export default class MyHandler extends Handler {
             if (notify) {
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
                     accepted(offer, this.bot);
+
+                    if (offer.data('donation')) {
+                        this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
+                    } else if (offer.data('buyBptfPremium')) {
+                        this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
+                    }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
                     acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {

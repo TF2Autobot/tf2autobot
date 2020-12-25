@@ -101,6 +101,7 @@ export default class PremiumCart extends Cart {
                 // Done constructing offer
 
                 offer.data('dict', { our: this.our, their: this.their });
+                offer.data('buyBptfPremium', true);
 
                 this.offer = offer;
 
@@ -201,6 +202,7 @@ export default class PremiumCart extends Cart {
                 // Done constructing offer
 
                 offer.data('dict', { our: this.our, their: this.their });
+                offer.data('buyBptfPremium', true);
 
                 this.offer = offer;
 

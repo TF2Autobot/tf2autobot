@@ -100,6 +100,7 @@ export default class DonateCart extends Cart {
                 // Done constructing offer
 
                 offer.data('dict', { our: this.our, their: this.their });
+                offer.data('donation', true);
 
                 this.offer = offer;
 
@@ -199,6 +200,7 @@ export default class DonateCart extends Cart {
                 // Done constructing offer
 
                 offer.data('dict', { our: this.our, their: this.their });
+                offer.data('donation', true);
 
                 this.offer = offer;
 

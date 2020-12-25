@@ -140,12 +140,6 @@ export default class CartQueue {
 
                         log.debug('Accepting mobile confirmation...');
 
-                        if (isDonating) {
-                            cart.sendNotification('✅ Success! Your donation has been sent and received!');
-                        } else if (isBuyingPremium) {
-                            cart.sendNotification('✅ Success! Your premium purchase has been sent and received!');
-                        }
-
                         // Wait for confirmation to be accepted
                         return this.bot.trades.acceptConfirmationPromise(cart.getOffer()).reflect();
                     }
@@ -205,12 +199,6 @@ export default class CartQueue {
                                 isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
                             } has been made! Please wait while I accept the mobile confirmation.`
                         );
-
-                        if (isDonating) {
-                            cart.sendNotification('✅ Success! Your donation has been sent and received!');
-                        } else if (isBuyingPremium) {
-                            cart.sendNotification('✅ Success! Your premium purchase has been sent and received!');
-                        }
 
                         log.debug('Accepting mobile confirmation...');
 
