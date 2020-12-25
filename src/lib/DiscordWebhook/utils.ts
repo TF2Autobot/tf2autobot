@@ -5,7 +5,7 @@ import Bot from '../../classes/Bot';
 
 import { Webhook } from './interfaces';
 
-export function getPartnerDetails(offer: TradeOffer, bot: Bot, callback: (err: Error, details: any) => void): any {
+export function getPartnerDetails(offer: TradeOffer, bot: Bot, callback: (err: any, details: any) => void): any {
     // check state of the offer
     if (offer.state === TradeOfferManager.ETradeOfferState['Active']) {
         offer.getUserDetails((err, me, them) => {
