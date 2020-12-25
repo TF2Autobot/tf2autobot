@@ -418,7 +418,7 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    return reject(err);
+                    reject(err);
                 }
 
                 offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
@@ -426,11 +426,11 @@ export default class Trades {
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
                     this.acceptConfirmation(offer).catch(err => {
-                        log.debug(`failed acceptconfirmation ${JSON.stringify(err)}`);
+                        log.debug(`failed acceptConfirmation ${JSON.stringify(err)}`);
                     });
                 }
 
-                return resolve(status);
+                resolve(status);
             });
         });
     }
