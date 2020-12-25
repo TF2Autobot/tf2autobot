@@ -440,6 +440,9 @@ export default class Trades {
     }
 
     acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
+        if (offer.state === TradeOfferManager.ETradeOfferState['Canceled'])
+            throw new Error(`Offer #${offer.id} was canceled during confirmation`);
+
         attempts++;
         if (
             offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
