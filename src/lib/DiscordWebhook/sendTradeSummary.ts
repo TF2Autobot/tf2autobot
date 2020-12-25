@@ -15,7 +15,7 @@ import { pure, stats, summarize, listItems, replace } from '../tools/export';
 import Bot from '../../classes/Bot';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
-export default function sendTradeSummary(
+export default async function sendTradeSummary(
     offer: TradeOffer,
     autokeys: Autokeys,
     currentItems: number,
@@ -28,7 +28,7 @@ export default function sendTradeSummary(
     bot: Bot,
     timeTaken: string,
     isOfferSent: boolean | undefined
-): void {
+): Promise<void> {
     const opt = bot.options.discordWebhook;
 
     const ourItems = items.our;
@@ -88,7 +88,7 @@ export default function sendTradeSummary(
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
     const pureStock = pure.stock(bot);
-    const trades = stats(bot);
+    const trades = await stats(bot);
 
     const tradeNumbertoShowStarter = bot.options.statistics.starter;
 
