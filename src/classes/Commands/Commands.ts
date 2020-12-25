@@ -13,7 +13,6 @@ import CommandParser from '../CommandParser';
 import Cart from '../Carts/Cart';
 import AdminCart from '../Carts/AdminCart';
 import UserCart from '../Carts/UserCart';
-import MyHandler from '../MyHandler/MyHandler';
 import CartQueue from '../Carts/CartQueue';
 import Autokeys from '../Autokeys/Autokeys';
 
@@ -37,7 +36,7 @@ export default class Commands {
     }
 
     get cartQueue(): CartQueue {
-        return (this.bot.getHandler() as MyHandler).cartQueue;
+        return this.bot.handler.cartQueue;
     }
 
     processMessage(steamID: SteamID, message: string): void {
@@ -598,7 +597,7 @@ export default class Commands {
     }
 
     private queueCommand(steamID: SteamID): void {
-        const position = (this.bot.handler as MyHandler).cartQueue.getPosition(steamID);
+        const position = this.bot.handler.cartQueue.getPosition(steamID);
 
         if (position === -1) {
             this.bot.sendMessage(steamID, '❌ You are not in the queue.');

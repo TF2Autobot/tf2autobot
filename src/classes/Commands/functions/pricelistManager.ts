@@ -15,7 +15,6 @@ import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
-import MyHandler from '../../MyHandler/MyHandler';
 
 // Pricelist manager
 
@@ -23,7 +22,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = (bot.handler as MyHandler).getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo().premium;
 
     if (params.enabled === undefined) {
         params.enabled = true;
@@ -156,7 +155,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = (bot.handler as MyHandler).getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo().premium;
 
     if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
@@ -398,7 +397,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         // FIXME: Make it so that it is not needed to remove all listings
 
         if (params.autoprice !== true) {
-            void bot.getHandler().onPricelist(newPricelist);
+            await bot.handler.onPricelist(newPricelist);
             bot.sendMessage(steamID, '✅ Updated pricelist!');
             await bot.listings.redoListings();
             return;
@@ -701,7 +700,7 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
         clearTimeout(executeTimeout);
         lastExecutedTime = dayjs().valueOf();
 
-        void bot.getHandler().onPricelist(shufflePricelist(pricelist));
+        await bot.handler.onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');
         await bot.listings.redoListings();
 

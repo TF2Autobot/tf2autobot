@@ -10,7 +10,6 @@ import log from '../logger';
 import { pure, stats, summarize, listItems, replace } from '../tools/export';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
@@ -83,7 +82,7 @@ export default async function sendTradeSummary(
 
     const url = opt.tradeSummary.url;
 
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo();
     const pureStock = await pure.stock(bot);
     const trades = await stats(bot);
 
@@ -108,7 +107,7 @@ export default async function sendTradeSummary(
     let personaName: string;
     let avatarFull: string;
     log.debug('getting partner Avatar and Name...');
-    getPartnerDetails(offer, bot, (err, details) => {
+    getPartnerDetails(offer, bot, (err, details: Details) => {
         if (err) {
             log.debug('Error retrieving partner Avatar and Name: ', err);
             personaName = 'unknown';
@@ -116,8 +115,8 @@ export default async function sendTradeSummary(
                 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
         } else {
             log.debug('partner Avatar and Name retrieved. Applying...');
-            personaName = (details as Details).personaName;
-            avatarFull = (details as Details).avatarFull;
+            personaName = details.personaName;
+            avatarFull = details.avatarFull;
         }
 
         const partnerNameNoFormat = replace.specialChar(personaName);

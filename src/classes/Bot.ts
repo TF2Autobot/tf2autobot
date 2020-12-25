@@ -19,7 +19,6 @@ import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
 import Pricelist, { Entry, EntryData } from './Pricelist';
-import Handler from './Handler';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings/Listings';
@@ -61,7 +60,7 @@ export default class Bot {
 
     readonly tf2gc: TF2GC;
 
-    readonly handler: Handler;
+    readonly handler: MyHandler;
 
     readonly inventoryManager: InventoryManager;
 
@@ -195,10 +194,6 @@ export default class Bot {
 
         this.handlePricelist = this.handler.onPricelist.bind(this.handler);
         this.handlePriceChange = this.handler.onPriceChange.bind(this.handler);
-    }
-
-    getHandler(): Handler {
-        return this.handler;
     }
 
     isAdmin(steamID: SteamID | string): boolean {
