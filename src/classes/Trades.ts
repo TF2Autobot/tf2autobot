@@ -441,14 +441,20 @@ export default class Trades {
 
     acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
         attempts++;
-        return this.acceptConfirmationPromise(offer, attempts).catch(async (err: Error) => {
-            if (attempts > 3) {
-                throw err;
-            }
+        if (
+            offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
+            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+        ) {
+            return this.acceptConfirmationPromise(offer, attempts).catch(async (err: Error) => {
+                if (attempts > 3) {
+                    throw err;
+                }
 
-            await promiseDelay(5 * 1000);
-            return this.acceptConfirmation(offer, attempts);
-        });
+                await promiseDelay(10 * 1000);
+
+                return this.acceptConfirmation(offer, attempts);
+            });
+        }
     }
 
     acceptConfirmationPromise(offer: TradeOffer, attempts = 1): Promise<void> {
