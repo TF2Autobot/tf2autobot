@@ -7,71 +7,65 @@ import { strangePartsData, noiseMakerNames } from '../data';
 import Bot from '../../classes/Bot';
 
 export function getAssetidsWith5xUses(items: EconItem[]): Promise<string[]> {
-    return new Promise(resolve => {
-        return resolve(
-            items
-                .filter(item => {
-                    if (item.market_hash_name === 'Dueling Mini-Game') {
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
-
-                            if (
-                                descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                return true;
-                            }
-                        }
-                    }
-                })
-                .map(item => item.assetid)
-        );
-    });
-}
-
-export async function getAssetidsWith25xUses(items: EconItem[], noiseMakerName: string): Promise<string[]> {
-    return new Promise(resolve => {
-        return resolve(
-            items
-                .filter(item => {
-                    if (item.market_hash_name.includes(noiseMakerName)) {
-                        for (let i = 0; i < item.descriptions.length; i++) {
-                            const descriptionValue = item.descriptions[i].value;
-                            const descriptionColor = item.descriptions[i].color;
-
-                            if (
-                                descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                                descriptionColor === '00a000'
-                            ) {
-                                return true;
-                            }
-                        }
-                    }
-                })
-                .map(item => item.assetid)
-        );
-    });
-}
-
-export async function isNot5xUses(items: EconItem[]): Promise<boolean> {
-    return new Promise(resolve => {
-        return resolve(
-            items.some(item => {
+    return Promise.resolve(
+        items
+            .filter(item => {
                 if (item.market_hash_name === 'Dueling Mini-Game') {
-                    for (const content of item.descriptions) {
-                        const value = content.value;
-                        const color = content.color;
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
 
-                        if (value.includes('This is a limited use item. Uses: 5') && color === '00a000') {
-                            // return some method to true
+                        if (
+                            descriptionValue.includes('This is a limited use item. Uses: 5') &&
+                            descriptionColor === '00a000'
+                        ) {
                             return true;
                         }
                     }
                 }
             })
-        );
-    });
+            .map(item => item.assetid)
+    );
+}
+
+export async function getAssetidsWith25xUses(items: EconItem[], noiseMakerName: string): Promise<string[]> {
+    return Promise.resolve(
+        items
+            .filter(item => {
+                if (item.market_hash_name.includes(noiseMakerName)) {
+                    for (let i = 0; i < item.descriptions.length; i++) {
+                        const descriptionValue = item.descriptions[i].value;
+                        const descriptionColor = item.descriptions[i].color;
+
+                        if (
+                            descriptionValue.includes('This is a limited use item. Uses: 25') &&
+                            descriptionColor === '00a000'
+                        ) {
+                            return true;
+                        }
+                    }
+                }
+            })
+            .map(item => item.assetid)
+    );
+}
+
+export async function isNot5xUses(items: EconItem[]): Promise<boolean> {
+    return Promise.resolve(
+        items.some(item => {
+            if (item.market_hash_name === 'Dueling Mini-Game') {
+                for (const content of item.descriptions) {
+                    const value = content.value;
+                    const color = content.color;
+
+                    if (value.includes('This is a limited use item. Uses: 5') && color === '00a000') {
+                        // return some method to true
+                        return true;
+                    }
+                }
+            }
+        })
+    );
 }
 
 export function isNot25xUses(items: EconItem[], bot: Bot): Promise<[boolean, string[]]> {
@@ -97,7 +91,7 @@ export function isNot25xUses(items: EconItem[], bot: Bot): Promise<[boolean, str
                 }
             }
         });
-        return resolve([is25xUses, skus]);
+        resolve([is25xUses, skus]);
     });
 }
 
@@ -312,6 +306,6 @@ export function highValue(
                 }
             }
         });
-        return resolve(highValued);
+        resolve(highValued);
     });
 }

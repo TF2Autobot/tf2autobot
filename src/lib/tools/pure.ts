@@ -39,7 +39,7 @@ export function stock(bot: Bot): Promise<string[]> {
             pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
         }
 
-        return resolve(pureStock);
+        resolve(pureStock);
     });
 }
 
