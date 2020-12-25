@@ -17,7 +17,6 @@ import { CurrencyObject } from '../../types/TeamFortress2';
 import Cart from './Cart';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
-import MyHandler from '../MyHandler/MyHandler';
 
 import log from '../../lib/logger';
 import { craftAll, uncraftAll, noiseMakerSKUs } from '../../lib/data';
@@ -45,7 +44,7 @@ export default class UserCart extends Cart {
 
         // TODO: Check for dupes
 
-        const isDupedCheckEnabled = (this.bot.handler as MyHandler).hasDupeCheckEnabled();
+        const isDupedCheckEnabled = this.bot.handler.hasDupeCheckEnabled();
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
@@ -55,7 +54,7 @@ export default class UserCart extends Cart {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
         }
 
-        const minimumKeysDupeCheck = (this.bot.handler as MyHandler).getMinimumKeysDupeCheck() * keyPrice.toValue();
+        const minimumKeysDupeCheck = this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
 
         if (isDupedCheckEnabled && theirItemsValue > minimumKeysDupeCheck) {
             const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
@@ -658,8 +657,7 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 item.effect !== null &&
-                match.buy.toValue(keyPrice.metal) >
-                    (this.bot.handler as MyHandler).getMinimumKeysDupeCheck() * keyPrice.toValue();
+                match.buy.toValue(keyPrice.metal) > this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -728,7 +726,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const toMention = this.bot.handler.getToMention();
         const highValueOur = await check.highValue(
             ourItemsToCheck,
             toMention.sheens,
@@ -1558,7 +1556,7 @@ export default class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies();
-        const weapons = (this.bot.handler as MyHandler).getWeapons();
+        const weapons = this.bot.handler.getWeapons();
 
         const pures = ['5021;6', '5002;6', '5001;6', '5000;6'];
         const combine = pures.concat(weapons);
@@ -1666,8 +1664,7 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 item.effect !== null &&
-                match.buy.toValue(keyPrice.metal) >
-                    (this.bot.handler as MyHandler).getMinimumKeysDupeCheck() * keyPrice.toValue();
+                match.buy.toValue(keyPrice.metal) > this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -1736,7 +1733,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        const toMention = (this.bot.handler as MyHandler).getToMention();
+        const toMention = this.bot.handler.getToMention();
         const highValueOur = await check.highValue(
             ourItemsToCheck,
             toMention.sheens,

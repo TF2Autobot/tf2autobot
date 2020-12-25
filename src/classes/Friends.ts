@@ -8,7 +8,6 @@ import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../types/common';
 
 import Bot from './Bot';
-import MyHandler from './MyHandler/MyHandler';
 
 export default class Friends {
     private readonly bot: Bot;
@@ -77,7 +76,7 @@ export default class Friends {
             qs: {
                 key: this.bot.manager.apiKey,
                 steamid: (this.bot.client.steamID === null
-                    ? (this.bot.handler as MyHandler).getBotSteamID()
+                    ? this.bot.handler.getBotSteamID()
                     : this.bot.client.steamID
                 ).getSteamID64()
             }
@@ -93,7 +92,7 @@ export default class Friends {
                 const result = body.response;
                 const level = result.player_level;
 
-                const friendToKeep = (this.bot.handler as MyHandler).getFriendToKeep();
+                const friendToKeep = this.bot.handler.getFriendToKeep();
                 const enableAddFriends = this.bot.options.enableAddFriends;
 
                 const base = 250;

@@ -212,6 +212,10 @@ export default class MyHandler extends Handler {
 
     private isUpdating = false;
 
+    private poller: NodeJS.Timeout;
+
+    private refreshInterval: NodeJS.Timeout;
+
     constructor(bot: Bot) {
         super(bot);
 
@@ -220,10 +224,6 @@ export default class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.bot.options.steamAccountName);
-
-        setInterval(() => {
-            this.recentlySentMessage = {};
-        }, 1000);
     }
 
     getFriendToKeep(): number {
@@ -277,6 +277,9 @@ export default class MyHandler extends Handler {
     }
 
     onRun(): Promise<OnRun> {
+        this.poller = setInterval(() => {
+            this.recentlySentMessage = {};
+        }, 1000);
         return Promise.all([
             files.readFile(this.paths.files.loginKey, false),
             files.readFile(this.paths.files.pricelist, true),
@@ -343,12 +346,14 @@ export default class MyHandler extends Handler {
         this.bot.listings.setupAutorelist();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
-        setTimeout(() => {
+        this.refreshInterval = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
     }
 
     onShutdown(): Promise<void> {
+        if (this.poller) clearInterval(this.poller);
+        if (this.refreshInterval) clearTimeout(this.refreshInterval);
         return new Promise(resolve => {
             if (this.bot.options.autokeys.enable && this.autokeys.isActive) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');

@@ -13,6 +13,7 @@ import { getSchema } from '../lib/ptf-api';
 import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
+import { camelCase } from 'change-case';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -94,7 +95,7 @@ export default class BotManager {
     start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {
-                if (!process.env[optName]) {
+                if (!process.env[optName] && !options[camelCase(optName)]) {
                     return reject(new Error(`Missing required environment variable "${optName}"`));
                 }
             });

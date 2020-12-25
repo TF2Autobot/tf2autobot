@@ -8,7 +8,6 @@ import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 import { deepMerge } from '../../../lib/tools/deep-merge';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
-import MyHandler from '../../MyHandler/MyHandler';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
@@ -170,33 +169,34 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             if (typeof knownParams.weaponsAsCurrency === 'object') {
                 if (knownParams.weaponsAsCurrency.enable !== undefined) {
                     if (knownParams.weaponsAsCurrency.enable === true) {
-                        (bot.handler as MyHandler).shuffleWeapons();
+                        bot.handler.shuffleWeapons();
                     } else {
-                        (bot.handler as MyHandler).disableWeaponsAsCurrency();
+                        bot.handler.disableWeaponsAsCurrency();
                     }
                 }
 
                 if (knownParams.weaponsAsCurrency.withUncraft !== undefined) {
-                    (bot.handler as MyHandler).shuffleWeapons();
+                    bot.handler.shuffleWeapons();
                 }
             }
 
             if (knownParams.autobump !== undefined) {
                 if (knownParams.autobump === true) {
                     bot.listings.setupAutorelist();
-                    (bot.handler as MyHandler).disableAutoRefreshListings();
+                    bot.handler.disableAutoRefreshListings();
                 } else {
                     bot.listings.disableAutorelistOption();
-                    (bot.handler as MyHandler).enableAutoRefreshListings();
+                    bot.handler.enableAutoRefreshListings();
                 }
             }
 
             if (knownParams.autokeys !== undefined) {
+                bot.handler.autokeys.check();
                 if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
-                    (bot.handler as MyHandler).autokeys.disable();
+                    bot.handler.autokeys.disable();
                 }
-                (bot.handler as MyHandler).autokeys.check();
-                (bot.handler as MyHandler).updateAutokeysStatus();
+                bot.handler.autokeys.check();
+                bot.handler.updateAutokeysStatus();
             }
 
             if (steamID) return bot.sendMessage(steamID, msg);

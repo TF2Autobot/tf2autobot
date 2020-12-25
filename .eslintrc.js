@@ -1,8 +1,9 @@
+// eslint-disable-next-line no-undef
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
     parserOptions: {
-        project: './tsconfig.json'
+        project: './tsconfig.eslint.json'
     },
     plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc', 'prettier'],
     extends: [
@@ -21,9 +22,12 @@ module.exports = {
         '@typescript-eslint/no-use-before-define': [0],
         'no-console': 'error',
         'tsdoc/syntax': 'error',
-        'prettier/prettier': ['error', {
-            'endOfLine': 'auto',
-            'arrowParens': 'avoid'
-        }]
+        'prettier/prettier': [
+            'error',
+            {
+                endOfLine: 'auto',
+                arrowParens: 'avoid'
+            }
+        ]
     }
 };
