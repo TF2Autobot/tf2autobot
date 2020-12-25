@@ -10,7 +10,7 @@ import { stats, profit } from '../../../lib/tools/export';
 
 export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
-    const trades = stats(bot);
+    const trades = await stats(bot);
     const profits = await profit(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices();
