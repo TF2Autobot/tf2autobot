@@ -2,7 +2,6 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
-import sleepasync from 'sleep-async';
 
 import dayjs from 'dayjs';
 
@@ -17,8 +16,6 @@ import CartQueue from '../Carts/CartQueue';
 import Autokeys from '../Autokeys/Autokeys';
 
 import { fixItem } from '../../lib/items';
-import { requestCheck, getPrice, getSales, RequestCheckResponse, GetItemSalesResponse } from '../../lib/ptf-api';
-import log from '../../lib/logger';
 import { ignoreWords } from '../../lib/data';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
@@ -103,7 +100,7 @@ export default class Commands {
         } else if (command === 'uncraftweapon') {
             void c.misc.uncraftweaponCommand(steamID, this.bot);
         } else if (command === 'sales' && isAdmin) {
-            void this.getSalesCommand(steamID, message);
+            void c.request.getSalesCommand(steamID, message, this.bot);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
@@ -159,11 +156,11 @@ export default class Commands {
         } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
             void c.review.declinetradeCommand(steamID, message, this.bot);
         } else if (command === 'pricecheck' && isAdmin) {
-            this.pricecheckCommand(steamID, message);
+            c.request.pricecheckCommand(steamID, message, this.bot);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void this.pricecheckAllCommand(steamID);
+            void c.request.pricecheckAllCommand(steamID, this.bot);
         } else if (command === 'check' && isAdmin) {
-            void this.checkCommand(steamID, message);
+            void c.request.checkCommand(steamID, message, this.bot);
         } else if (command === 'find' && isAdmin) {
             void c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
@@ -608,105 +605,6 @@ export default class Commands {
         }
     }
 
-    // under !more command
-
-    private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const item = SKU.fromString(params.sku);
-        const name = this.bot.schema.getName(item);
-
-        let salesData: GetItemSalesResponse;
-
-        try {
-            salesData = await getSales(params.sku, 'bptf');
-        } catch (err) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(
-                    err
-                )}`
-            );
-            return;
-        }
-
-        if (!salesData) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-            );
-            return;
-        }
-
-        if (salesData.sales.length === 0) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-            );
-            return;
-        }
-
-        const sales: {
-            seller: string;
-            itemHistory: string;
-            keys: number;
-            metal: number;
-            date: number;
-        }[] = [];
-
-        salesData.sales.forEach(sale => {
-            sales.push({
-                seller: 'https://backpack.tf/profiles/' + sale.steamid,
-                itemHistory: 'https://backpack.tf/item/' + sale.id.replace('440_', ''),
-                keys: sale.currencies.keys,
-                metal: sale.currencies.metal,
-                date: sale.time
-            });
-        });
-
-        sales.sort((a, b) => {
-            return b.date - a.date;
-        });
-
-        let left = 0;
-        const SalesList: string[] = [];
-
-        for (let i = 0; i < sales.length; i++) {
-            if (SalesList.length > 40) {
-                left += 1;
-            } else {
-                SalesList.push(
-                    `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sales[i].date).utc().toString()}\n• Item: ${
-                        sales[i].itemHistory
-                    }\n• Seller: ${sales[i].seller}\n• Was selling for: ${
-                        sales[i].keys > 0 ? `${sales[i].keys} keys,` : ''
-                    } ${sales[i].metal} ref`
-                );
-            }
-        }
-
-        let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
-            salesData.name
-        }\n\n-----${SalesList.join('\n\n-----')}`;
-        if (left > 0) {
-            reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
-        }
-
-        this.bot.sendMessage(steamID, reply);
-    }
-
     // Admin commands
 
     private depositCommand(steamID: SteamID, message: string): void {
@@ -1026,146 +924,5 @@ export default class Commands {
         cart.isBuyingPremium(true);
 
         this.addCartToQueue(cart, false, true);
-    }
-
-    // Request commands
-
-    private pricecheckCommand(steamID: SteamID, message: string): void {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
-            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-            return;
-        }
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
-
-        void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-            if (err) {
-                this.bot.sendMessage(steamID, `❌ Error while requesting price check: ${JSON.stringify(err)}`);
-                return;
-            }
-
-            if (!body) {
-                this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
-            } else {
-                this.bot.sendMessage(
-                    steamID,
-                    `⌛ Price check requested for ${
-                        body.name.includes('War Paint') ||
-                        body.name.includes('Mann Co. Supply Crate Series #') ||
-                        body.name.includes('Salvaged Mann Co. Supply Crate #')
-                            ? name
-                            : body.name
-                    }, the item will be checked.`
-                );
-            }
-        });
-    }
-
-    private async pricecheckAllCommand(steamID): Promise<void> {
-        const pricelist = this.bot.pricelist.getPrices();
-
-        const total = pricelist.length;
-        const totalTime = total * 2 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
-        this.bot.sendMessage(
-            steamID,
-            `⌛ Price check requested for ${total} items. It will be completed in approximately ${
-                totalTime < aMin
-                    ? `${Math.round(totalTime / aSecond)} seconds.`
-                    : totalTime < anHour
-                    ? `${Math.round(totalTime / aMin)} minutes.`
-                    : `${Math.round(totalTime / anHour)} hours.`
-            } (about 2 seconds for each item).`
-        );
-
-        const skus = pricelist.map(entry => entry.sku);
-
-        let submitted = 0;
-        let success = 0;
-        let failed = 0;
-        for (const sku of skus) {
-            await sleepasync().Promise.sleep(2 * 1000);
-            void requestCheck(sku, 'bptf').asCallback(err => {
-                if (err) {
-                    submitted++;
-                    failed++;
-                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
-                    log.debug(
-                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                } else {
-                    submitted++;
-                    success++;
-                    log.debug(
-                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                }
-                if (submitted === total) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
-                    );
-                }
-            });
-        }
-    }
-
-    private async checkCommand(steamID: SteamID, message: string): Promise<void> {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
-            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-            return;
-        }
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const item = SKU.fromString(params.sku);
-        const name = this.bot.schema.getName(item);
-
-        try {
-            const price = await getPrice(params.sku, 'bptf');
-            const currBuy = new Currencies(price.buy);
-            const currSell = new Currencies(price.sell);
-
-            this.bot.sendMessage(
-                steamID,
-                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                    params.sku as string
-                }`
-            );
-        } catch (err) {
-            this.bot.sendMessage(
-                steamID,
-                `Error getting price for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(err)}`
-            );
-            return;
-        }
     }
 }
