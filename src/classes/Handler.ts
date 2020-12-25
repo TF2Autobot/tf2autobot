@@ -71,7 +71,7 @@ export default abstract class Handler {
         action: 'accept' | 'decline' | 'skip',
         reason: string,
         meta: Meta
-    ): void;
+    ): Promise<void>;
 
     /**
      * Called when a new login attempt has been made
@@ -89,7 +89,7 @@ export default abstract class Handler {
      * Called when the pricelist updates
      * @param pricelist - The pricelist
      */
-    abstract onPricelist(pricelist: Entry[]): void;
+    abstract onPricelist(pricelist: Entry[]): Promise<void>;
 
     /**
      * Called when the price of an item changes
@@ -146,7 +146,11 @@ export default abstract class Handler {
      * @param offer - The offer that changed
      * @param oldState - The old state of the offer
      */
-    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, processTime?: number): void {
+    async onTradeOfferChanged(
+        offer: TradeOfferManager.TradeOffer,
+        oldState: number,
+        processTime?: number
+    ): Promise<void> {
         // empty function
     }
 

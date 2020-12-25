@@ -152,7 +152,7 @@ async function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): P
     });
 }
 
-export function updateCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function updateCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
@@ -400,7 +400,7 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
         if (params.autoprice !== true) {
             bot.getHandler().onPricelist(newPricelist);
             bot.sendMessage(steamID, '✅ Updated pricelist!');
-            void bot.listings.redoListings().asCallback();
+            await bot.listings.redoListings();
             return;
         }
 
@@ -408,9 +408,9 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
 
         bot.pricelist
             .setupPricelist()
-            .then(() => {
+            .then(async () => {
                 bot.sendMessage(steamID, '✅ Updated pricelist!');
-                void bot.listings.redoListings().asCallback();
+                await bot.listings.redoListings();
             })
             .catch((err: Error) => {
                 log.warn('Failed to update prices: ', err);
@@ -678,7 +678,7 @@ let executed = false;
 let lastExecutedTime: number | null = null;
 let executeTimeout;
 
-export function shuffleCommand(steamID: SteamID, bot: Bot): void {
+export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const newExecutedTime = dayjs().valueOf();
     const timeDiff = newExecutedTime - lastExecutedTime;
 
@@ -703,7 +703,7 @@ export function shuffleCommand(steamID: SteamID, bot: Bot): void {
 
         bot.getHandler().onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');
-        void bot.listings.redoListings().asCallback();
+        await bot.listings.redoListings();
 
         executed = true;
         executeTimeout = setTimeout(() => {
@@ -714,7 +714,7 @@ export function shuffleCommand(steamID: SteamID, bot: Bot): void {
     }
 }
 
-export function removeCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function removeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
@@ -794,28 +794,24 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
         }
 
         if (params.withgroup || params.withoutgroup) {
-            bot.pricelist
-                .removeByGroup(newPricelist)
-                .then(() => {
-                    bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
-                    void bot.listings.redoListings().asCallback();
-                })
-                .catch((err: Error) => {
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
-                });
-            return;
+            try {
+                await bot.pricelist.removeByGroup(newPricelist);
+                bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                await bot.listings.redoListings();
+                return;
+            } catch (err) {
+                bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
+                return;
+            }
         } else {
-            bot.pricelist
-                .removeAll()
-                .then(() => {
-                    bot.sendMessage(steamID, '✅ Cleared pricelist!');
-                })
-                .catch((err: Error) => {
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${err.message}`);
-                });
-            return;
+            try {
+                await bot.pricelist.removeAll();
+                bot.sendMessage(steamID, '✅ Cleared pricelist!');
+                return;
+            } catch (err) {
+                bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
+                return;
+            }
         }
     }
 

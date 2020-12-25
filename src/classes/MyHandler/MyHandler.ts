@@ -310,16 +310,16 @@ export default class MyHandler extends Handler {
         keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
         // Craft duplicate weapons
-        craftDuplicateWeapons(this.bot);
+        void craftDuplicateWeapons(this.bot);
 
         // Shuffle weapons on start
         this.shuffleWeapons();
 
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
-            // called after 2 minutes to craft metals and duplicated weapons first.
+            // called after 5 seconds to craft metals and duplicated weapons first.
             void craftClassWeapons(this.bot);
-        }, 2 * 60 * 1000);
+        }, 5 * 1000);
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
@@ -470,7 +470,7 @@ export default class MyHandler extends Handler {
             log.debug('Running automatic check for missing listings...');
 
             const listingsSKUs: string[] = [];
-            this.bot.listingManager.getListings(err => {
+            this.bot.listingManager.getListings(async err => {
                 if (err) {
                     setTimeout(() => {
                         this.enableAutoRefreshListings();
@@ -497,9 +497,8 @@ export default class MyHandler extends Handler {
 
                 if (pricelist.length > 0) {
                     log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-                    void this.bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-                        log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
-                    });
+                    await this.bot.listings.recursiveCheckPricelistWithDelay(pricelist);
+                    log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
                 } else {
                     log.debug('❌ Nothing to refresh.');
                 }
@@ -639,7 +638,7 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(
+        const highValueOur = await check.highValue(
             offer.itemsToGive,
             this.sheens,
             this.killstreakers,
@@ -647,7 +646,7 @@ export default class MyHandler extends Handler {
             this.painted,
             this.bot
         );
-        const highValueTheir = check.highValue(
+        const highValueTheir = await check.highValue(
             offer.itemsToReceive,
             this.sheens,
             this.killstreakers,
@@ -736,7 +735,7 @@ export default class MyHandler extends Handler {
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
-            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive);
+            const isNot5Uses = await check.isNot5xUses(offer.itemsToReceive);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
@@ -746,7 +745,7 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
-            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, this.bot);
+            const [isNot25Uses, skus] = await check.isNot25xUses(offer.itemsToReceive, this.bot);
 
             const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
@@ -1462,7 +1461,7 @@ export default class MyHandler extends Handler {
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
 
-    onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
+    async onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): Promise<void> {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
@@ -1519,7 +1518,7 @@ export default class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const result = processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
+                const result = await processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
 
                 this.isTradingKeys = false; // reset
 
@@ -1535,12 +1534,12 @@ export default class MyHandler extends Handler {
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicated weapons
-            craftDuplicateWeapons(this.bot);
+            void craftDuplicateWeapons(this.bot);
 
             this.classWeaponsTimeout = setTimeout(() => {
-                // called after 2 minutes to craft metals and duplicated weapons first.
+                // called after 5 second to craft metals and duplicated weapons first.
                 void craftClassWeapons(this.bot);
-            }, 2 * 60 * 1000);
+            }, 5 * 1000);
 
             // Sort inventory
             this.sortInventory();
@@ -1556,14 +1555,19 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
+    async onOfferAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip',
+        reason: string,
+        meta: Meta
+    ): Promise<void> {
         const notify = offer.data('notify') === true;
         if (!notify) {
             return;
         }
 
         if (action === 'skip') {
-            sendReview(offer, this.bot, meta, this.isTradingKeys);
+            await sendReview(offer, this.bot, meta, this.isTradingKeys);
             this.isTradingKeys = false; // reset
         }
     }
@@ -1824,14 +1828,14 @@ export default class MyHandler extends Handler {
         });
     }
 
-    onPricelist(pricelist: Entry[]): void {
+    async onPricelist(pricelist: Entry[]): Promise<void> {
         if (!this.isPriceUpdateWebhook) {
             log.debug('Pricelist changed');
         }
 
         if (pricelist.length === 0) {
             // Ignore errors
-            void this.bot.listings.removeAll().asCallback();
+            await this.bot.listings.removeAll();
         }
 
         files

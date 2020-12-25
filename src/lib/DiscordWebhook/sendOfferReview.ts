@@ -9,7 +9,7 @@ import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
 import MyHandler from '../../classes/MyHandler/MyHandler';
 
-export default function sendOfferReview(
+export default async function sendOfferReview(
     offer: TradeOffer,
     reasons: string,
     time: string,
@@ -18,7 +18,7 @@ export default function sendOfferReview(
     links: Links,
     items: Review,
     bot: Bot
-): void {
+): Promise<void> {
     const opt = bot.options.discordWebhook;
 
     let noMentionOnInvalidValue = false;
@@ -36,7 +36,7 @@ export default function sendOfferReview(
     const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${opt.ownerID}>, check this! - ${offer.id}`;
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
-    const pureStock = pure.stock(bot);
+    const pureStock = await pure.stock(bot);
     const message = replace.specialChar(offer.message);
 
     const itemsName = {

@@ -295,7 +295,7 @@ export default class Trades {
         meta: Meta,
         offer: TradeOffer
     ): Promise<void> {
-        this.bot.handler.onOfferAction(offer, action, reason, meta);
+        void this.bot.handler.onOfferAction(offer, action, reason, meta);
 
         let actionFunc: () => Promise<any>;
 
@@ -765,7 +765,7 @@ export default class Trades {
             offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
-            this.bot.handler.onTradeOfferChanged(offer, oldState);
+            void this.bot.handler.onTradeOfferChanged(offer, oldState);
             return;
         }
 
@@ -788,7 +788,7 @@ export default class Trades {
                     this.bot.listings.checkBySKU(sku);
                 }
 
-                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
+                void this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
 

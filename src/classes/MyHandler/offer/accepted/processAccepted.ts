@@ -8,19 +8,19 @@ import Bot from '../../../Bot';
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
-export default function processAccepted(
+export default async function processAccepted(
     offer: TradeOffer,
     autokeys: Autokeys,
     bot: Bot,
     isTradingKeys: boolean,
     processTime: number
-): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
+): Promise<{ theirHighValuedItems: string[]; isDisableSKU: string[] }> {
     const opt = bot.options;
 
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
 
-    const pureStock = t.pure.stock(bot);
+    const pureStock = await t.pure.stock(bot);
     const time = t.timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes).time;
     const links = t.generateLinks(offer.partner.toString());
     const items = itemList(offer);

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
@@ -87,7 +84,7 @@ export default async function sendTradeSummary(
     const url = opt.tradeSummary.url;
 
     const botInfo = (bot.handler as MyHandler).getBotInfo();
-    const pureStock = pure.stock(bot);
+    const pureStock = await pure.stock(bot);
     const trades = await stats(bot);
 
     const tradeNumbertoShowStarter = bot.options.statistics.starter;
@@ -119,8 +116,8 @@ export default async function sendTradeSummary(
                 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
         } else {
             log.debug('partner Avatar and Name retrieved. Applying...');
-            personaName = details.personaName;
-            avatarFull = details.avatarFull;
+            personaName = (details as Details).personaName;
+            avatarFull = (details as Details).avatarFull;
         }
 
         const partnerNameNoFormat = replace.specialChar(personaName);
@@ -279,4 +276,9 @@ interface Autokeys {
 export interface ItemSKUList {
     their: string[];
     our: string[];
+}
+
+interface Details {
+    personaName: string;
+    avatarFull: string;
 }

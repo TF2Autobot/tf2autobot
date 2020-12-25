@@ -24,8 +24,8 @@ export function uptimeCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, botUptime);
 }
 
-export function pureCommand(steamID: SteamID, bot: Bot): void {
-    const pureStock = pure.stock(bot);
+export async function pureCommand(steamID: SteamID, bot: Bot): Promise<void> {
+    const pureStock = await pure.stock(bot);
 
     bot.sendMessage(steamID, `💰 I have ${pureStock.join(' and ')} in my inventory.`);
 }

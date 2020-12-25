@@ -702,7 +702,7 @@ export function resetQueueCommand(steamID: SteamID, bot: Bot, cartQueue: CartQue
 
 export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
     const listingsSKUs: string[] = [];
-    bot.listingManager.getListings(err => {
+    bot.listingManager.getListings(async err => {
         if (err) {
             bot.sendMessage(steamID, '❌ Unable to refresh listings, please try again later: ' + (err as string));
             return;
@@ -727,10 +727,11 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         if (pricelist.length > 0) {
             log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
             bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
-            void bot.listings.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-                bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
-            });
+
+            await bot.listings.recursiveCheckPricelistWithDelay(pricelist);
+
+            log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+            bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
         } else {
             bot.sendMessage(steamID, '❌ Nothing to refresh.');
         }

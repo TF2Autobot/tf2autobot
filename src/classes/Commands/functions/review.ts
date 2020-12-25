@@ -147,7 +147,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     bot.sendMessage(steamID, reply);
 }
 
-export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function accepttradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
     const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
 
@@ -178,15 +178,8 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         return;
     }
 
-    void bot.trades.getOffer(offerId).asCallback((err, offer) => {
-        if (err) {
-            bot.sendMessage(
-                steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
-            );
-            return;
-        }
-
+    try {
+        const offer = await bot.trades.getOffer(offerId);
         bot.sendMessage(steamID, 'Accepting offer...');
 
         const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
@@ -208,7 +201,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
             // Re-check Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Dueling Mini-Game...');
-            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive);
+            hasNot5Uses = await check.isNot5xUses(offer.itemsToReceive);
 
             if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Only decline if exist in pricelist
@@ -221,7 +214,7 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
             // Re-check Noise Maker for 25x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Noise maker...');
 
-            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, bot);
+            const [isNot25Uses, skus] = await check.isNot25xUses(offer.itemsToReceive, bot);
             hasNot25Uses = isNot25Uses;
 
             const isHasNoiseMaker = skus.some(sku => {
@@ -237,17 +230,8 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
         const reviewMeta = offer.data('reviewMeta') as Meta;
 
         if (declineTrade === false) {
-            void bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer).asCallback(err => {
-                if (err) {
-                    bot.sendMessage(
-                        steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${
-                            (err as Error).message
-                        }`
-                    );
-                    return;
-                }
-
+            try {
+                await bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer);
                 const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
                 if (isManyItems) {
@@ -270,19 +254,16 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                         `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
                     );
                 }
-            });
+            } catch (err) {
+                bot.sendMessage(
+                    steamID,
+                    `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
+                );
+                return;
+            }
         } else {
-            void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
-                if (err) {
-                    bot.sendMessage(
-                        steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${
-                            (err as Error).message
-                        }`
-                    );
-                    return;
-                }
-
+            try {
+                await bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer);
                 bot.sendMessage(
                     steamID,
                     `❌ Offer #${offer.id} has been automatically declined: contains ${
@@ -304,12 +285,24 @@ export function accepttradeCommand(steamID: SteamID, message: string, bot: Bot):
                             : 'Noise Maker'
                     }, thus your offer has been declined.`
                 );
-            });
+            } catch (err) {
+                bot.sendMessage(
+                    steamID,
+                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+                );
+                return;
+            }
         }
-    });
+    } catch (err) {
+        bot.sendMessage(
+            steamID,
+            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
+        );
+        return;
+    }
 }
 
-export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
     const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
 
@@ -340,36 +333,34 @@ export function declinetradeCommand(steamID: SteamID, message: string, bot: Bot)
         return;
     }
 
-    void bot.trades.getOffer(offerId).asCallback((err, offer) => {
-        if (err) {
-            bot.sendMessage(
-                steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
-            );
-            return;
-        }
-
+    try {
+        const offer = await bot.trades.getOffer(offerId);
         bot.sendMessage(steamID, 'Declining offer...');
 
         const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
         const reply = offerIdAndMessage.substr(offerId.length);
         const adminDetails = bot.friends.getFriend(steamID);
 
-        void bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer).asCallback(err => {
-            if (err) {
-                bot.sendMessage(
-                    steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
-                );
-                return;
-            }
-            // Send message to recipient if includes some messages
+        try {
+            await bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer);
             if (reply) {
                 bot.sendMessage(
                     partnerId,
                     `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
                 );
             }
-        });
-    });
+        } catch (err) {
+            bot.sendMessage(
+                steamID,
+                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+            );
+            return;
+        }
+    } catch (err) {
+        bot.sendMessage(
+            steamID,
+            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+        );
+        return;
+    }
 }

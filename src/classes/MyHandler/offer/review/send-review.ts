@@ -7,11 +7,16 @@ import processReview from './process-review';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import { pure, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
 
-export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
+export default async function sendReview(
+    offer: TradeOffer,
+    bot: Bot,
+    meta: Meta,
+    isTradingKeys: boolean
+): Promise<void> {
     const opt = bot.options;
 
     const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-    const pureStock = pure.stock(bot);
+    const pureStock = await pure.stock(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices();
     const links = generateLinks(offer.partner.toString());
@@ -100,7 +105,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const list = listItems(items, true);
 
     if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
-        sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
+        void sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
     } else {
         const currentItems = bot.inventoryManager.getInventory().getTotalItems();
         const slots = bot.tf2.backpackSlots;
