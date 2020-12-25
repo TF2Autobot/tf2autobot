@@ -9,8 +9,8 @@
         "pretest": "npm run lint",
         "test": "jest",
         "prelint": "npm run eslint-check",
-        "lint": "eslint \"src/**/*\"",
-        "prettier": "prettier --check src/**/*",
+        "lint": "eslint .",
+        "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check",
         "update": "git stash && git checkout master && git pull && npm install && npm run build"
     },

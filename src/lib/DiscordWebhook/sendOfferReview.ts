@@ -7,7 +7,6 @@ import log from '../logger';
 
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default async function sendOfferReview(
     offer: TradeOffer,
@@ -35,7 +34,7 @@ export default async function sendOfferReview(
     }
     const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${opt.ownerID}>, check this! - ${offer.id}`;
 
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo();
     const pureStock = await pure.stock(bot);
     const message = replace.specialChar(offer.message);
 

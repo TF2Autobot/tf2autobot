@@ -2,7 +2,6 @@ import { timeNow } from '../tools/time';
 import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 import { sendWebhook } from './utils';
 
 import log from '../logger';
@@ -57,7 +56,7 @@ export default function sendAlert(
         color = '8323327'; // purple
     }
 
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo();
 
     const webhook = opt.discordWebhook;
 

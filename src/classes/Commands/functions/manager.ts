@@ -12,7 +12,6 @@ import { utils } from './export';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
-import MyHandler from '../../MyHandler/MyHandler';
 import Autokeys from '../../Autokeys/Autokeys';
 import CartQueue from '../../Carts/CartQueue';
 
@@ -556,7 +555,7 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         bot.client.setPersona(EPersonaState.Snooze);
 
         // Set isUpdating status, so any command will not be processed
-        (bot.handler as MyHandler).setIsUpdatingStatus(true);
+        bot.handler.setIsUpdatingStatus(true);
 
         // Stop polling offers
         bot.manager.pollInterval = -1;
@@ -596,7 +595,7 @@ async function generateAutokeysReply(steamID: SteamID, bot: Bot, auto: Autokeys)
         const keyPrices = bot.pricelist.getKeyPrices();
 
         const userPure = autokeys.userPure;
-        const status = (bot.handler as MyHandler).getAutokeysStatus();
+        const status = bot.handler.getAutokeysStatus();
 
         const keyBlMin = `       X`;
         const keyAbMax = `                     X`;

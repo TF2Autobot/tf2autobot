@@ -145,7 +145,7 @@ export default class Pricelist extends EventEmitter {
      */
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
-    private readonly maxAge: number;
+    public readonly maxAge: number;
 
     private readonly boundHandlePriceChange;
 
