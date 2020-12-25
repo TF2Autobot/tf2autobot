@@ -133,13 +133,23 @@ export default class Pricelist extends EventEmitter {
 
     private prices: Entry[] = [];
 
+    /**
+     * Current global key rate (this changes if you manually price key).
+     */
     private globalKeyPrices: KeyPrices;
 
+    /**
+     * Current key rate before receiving new prices data, this
+     * can be different with global key rate.
+     * Will not update Global key rate if manually priced.
+     */
     private currentPTFKeyPrices: { buy: Currencies; sell: Currencies };
 
     private readonly maxAge: number;
 
     private readonly boundHandlePriceChange;
+
+    private retryGetKeyPrices;
 
     constructor(schema: SchemaManager.Schema, private socketManager: SocketManager, private options?: Options) {
         super();
@@ -260,23 +270,29 @@ export default class Pricelist extends EventEmitter {
         const keyPrices = this.getKeyPrices();
 
         if (entry.autoprice) {
-            const pricePTF = await getPrice(entry.sku, 'bptf');
-            entry.buy = new Currencies(pricePTF.buy);
-            entry.sell = new Currencies(pricePTF.sell);
-            entry.time = pricePTF.time;
+            try {
+                const pricePTF = await getPrice(entry.sku, 'bptf');
 
-            if (entry.sku === '5021;6') {
-                this.globalKeyPrices = {
-                    buy: entry.buy,
-                    sell: entry.sell,
-                    src: 'ptf',
-                    time: entry.time
-                };
+                entry.buy = new Currencies(pricePTF.buy);
+                entry.sell = new Currencies(pricePTF.sell);
+                entry.time = pricePTF.time;
 
-                this.currentPTFKeyPrices = {
-                    buy: entry.buy,
-                    sell: entry.sell
-                };
+                if (entry.sku === '5021;6') {
+                    clearTimeout(this.retryGetKeyPrices);
+                    this.globalKeyPrices = {
+                        buy: entry.buy,
+                        sell: entry.sell,
+                        src: 'ptf',
+                        time: entry.time
+                    };
+
+                    this.currentPTFKeyPrices = {
+                        buy: entry.buy,
+                        sell: entry.sell
+                    };
+                }
+            } catch (err) {
+                throw new Error(`❌ Unable to get current prices for ${entry.sku}: ${JSON.stringify(err)}`);
             }
         }
 
@@ -452,51 +468,130 @@ export default class Pricelist extends EventEmitter {
 
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
+        const entryKey = this.getPrice('5021;6', false);
 
-        return getPrice('5021;6', 'bptf').then(keyPricesPTF => {
-            log.debug('Got key price');
+        return getPrice('5021;6', 'bptf')
+            .then(keyPricesPTF => {
+                log.debug('Got key price');
 
-            const entryKey = this.getPrice('5021;6', false);
-            const timePTF = keyPricesPTF.time;
+                const timePTF = keyPricesPTF.time;
 
-            this.currentPTFKeyPrices = {
-                buy: new Currencies(keyPricesPTF.buy),
-                sell: new Currencies(keyPricesPTF.sell)
-            };
-
-            if (entryKey !== null && !entryKey.autoprice) {
-                this.globalKeyPrices = {
-                    buy: entryKey.buy,
-                    sell: entryKey.sell,
-                    src: 'manual',
-                    time: entryKey.time
-                };
-                log.debug('Key rate is set based on current key prices in the pricelist.', this.globalKeyPrices);
-            } else {
-                this.globalKeyPrices = {
+                this.currentPTFKeyPrices = {
                     buy: new Currencies(keyPricesPTF.buy),
-                    sell: new Currencies(keyPricesPTF.sell),
-                    src: 'ptf',
-                    time: timePTF
+                    sell: new Currencies(keyPricesPTF.sell)
                 };
-                log.debug('Key rate is set based current key prices.', this.globalKeyPrices);
+
+                if (entryKey !== null && !entryKey.autoprice) {
+                    this.globalKeyPrices = {
+                        buy: entryKey.buy,
+                        sell: entryKey.sell,
+                        src: 'manual',
+                        time: entryKey.time
+                    };
+                    log.debug('Key rate is set based on current key prices in the pricelist.', this.globalKeyPrices);
+                } else {
+                    this.globalKeyPrices = {
+                        buy: new Currencies(keyPricesPTF.buy),
+                        sell: new Currencies(keyPricesPTF.sell),
+                        src: 'ptf',
+                        time: timePTF
+                    };
+                    log.debug('Key rate is set based current key prices.', this.globalKeyPrices);
+
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = new Currencies(keyPricesPTF.buy);
+                        entryKey.sell = new Currencies(keyPricesPTF.sell);
+                        entryKey.time = keyPricesPTF.time;
+                    }
+                }
+
+                const old = this.getOld();
+
+                if (old.length === 0) {
+                    return;
+                }
+
+                return this.updateOldPrices(old);
+            })
+            .catch(err => {
+                log.debug('❌ Unable to get key prices: ', err);
+
+                if (entryKey !== null) {
+                    log.debug('✅ Key entry exist, setting current and global key rate as is');
+                    this.currentPTFKeyPrices = {
+                        buy: entryKey.buy,
+                        sell: entryKey.sell
+                    };
+                    this.globalKeyPrices = {
+                        buy: entryKey.buy,
+                        sell: entryKey.sell,
+                        src: entryKey.time !== null ? 'ptf' : 'manual',
+                        time: entryKey.time
+                    };
+                } else {
+                    log.debug(
+                        '⚠️ Key entry does not exist, setting random current and global key rate, retry in 15 minutes'
+                    );
+                    this.currentPTFKeyPrices = {
+                        buy: new Currencies({
+                            keys: 0,
+                            metal: 50
+                        }),
+                        sell: new Currencies({
+                            keys: 0,
+                            metal: 60
+                        })
+                    };
+                    this.globalKeyPrices = {
+                        buy: new Currencies({
+                            keys: 0,
+                            metal: 50
+                        }),
+                        sell: new Currencies({
+                            keys: 0,
+                            metal: 60
+                        }),
+                        src: 'ptf',
+                        time: 1600000000000
+                    };
+
+                    this.retryGetKeyPrices = setTimeout(() => {
+                        void this.updateKeyRate();
+                    }, 15 * 60 * 1000);
+                }
+
+                return;
+            });
+    }
+
+    private updateKeyRate(): Promise<void> {
+        const entryKey = this.getPrice('5021;6', false);
+        clearTimeout(this.retryGetKeyPrices);
+
+        return getPrice('5021;6', 'bptf')
+            .then(keyPricesPTF => {
+                log.debug('✅ Got current key prices, updating...');
 
                 if (entryKey !== null && entryKey.autoprice) {
-                    // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                    entryKey.buy = new Currencies(keyPricesPTF.buy);
-                    entryKey.sell = new Currencies(keyPricesPTF.sell);
-                    entryKey.time = keyPricesPTF.time;
+                    this.globalKeyPrices = {
+                        buy: new Currencies(keyPricesPTF.buy),
+                        sell: new Currencies(keyPricesPTF.sell),
+                        src: 'ptf',
+                        time: keyPricesPTF.time
+                    };
                 }
-            }
-
-            const old = this.getOld();
-
-            if (old.length === 0) {
-                return;
-            }
-
-            return this.updateOldPrices(old);
-        });
+                this.currentPTFKeyPrices = {
+                    buy: new Currencies(keyPricesPTF.buy),
+                    sell: new Currencies(keyPricesPTF.sell)
+                };
+            })
+            .catch(err => {
+                log.debug('⚠️ Still unable to get current key prices, retrying in 15 minutes: ', err);
+                this.retryGetKeyPrices = setTimeout(() => {
+                    void this.updateKeyRate();
+                }, 15 * 60 * 1000);
+            });
     }
 
     private updateOldPrices(old: Entry[]): Promise<void> {
@@ -557,17 +652,29 @@ export default class Pricelist extends EventEmitter {
 
         const match = this.getPrice(data.sku);
 
+        /**
+         * New received prices data.
+         */
+        const newPTF = {
+            buy: new Currencies(data.buy),
+            sell: new Currencies(data.sell)
+        };
+
         if (data.sku === '5021;6') {
-            const currentGlobalKeyBuyingPrice = this.globalKeyPrices.buy.metal;
-            const currentGlobalKeySellingPrice = this.globalKeyPrices.sell.metal;
-            const currentPTFBuyingPrice = this.currentPTFKeyPrices.buy.metal;
-            const currentPTFSellingPrice = this.currentPTFKeyPrices.sell.metal;
+            const currGlobal = {
+                buy: this.globalKeyPrices.buy.metal,
+                sell: this.globalKeyPrices.sell.metal
+            };
+            const currPTF = {
+                buy: this.currentPTFKeyPrices.buy.metal,
+                sell: this.currentPTFKeyPrices.sell.metal
+            };
 
             const isEnableScrapAdjustmentWithAutoprice =
                 opt.autokeys.enable &&
                 opt.autokeys.scrapAdjustment.enable &&
-                currentGlobalKeyBuyingPrice === currentPTFBuyingPrice &&
-                currentGlobalKeySellingPrice === currentPTFSellingPrice;
+                currGlobal.buy === currPTF.buy &&
+                currGlobal.sell === currPTF.sell;
 
             if (match === null || (match !== null && match.autoprice) || isEnableScrapAdjustmentWithAutoprice) {
                 // Only update global key rate if key is not in pricelist
@@ -578,8 +685,8 @@ export default class Pricelist extends EventEmitter {
                 // (and autokeys/scrap adjustment will update key prices after new trade).
                 // else entirely, key was manually priced and ignore updating global key rate.
                 this.globalKeyPrices = {
-                    buy: new Currencies(data.buy),
-                    sell: new Currencies(data.sell),
+                    buy: newPTF.buy,
+                    sell: newPTF.sell,
                     src: 'ptf',
                     time: data.time
                 };
@@ -587,14 +694,14 @@ export default class Pricelist extends EventEmitter {
 
             // currentPTFKeyPrices will still need to be updated.
             this.currentPTFKeyPrices = {
-                buy: new Currencies(data.buy),
-                sell: new Currencies(data.sell)
+                buy: newPTF.buy,
+                sell: newPTF.sell
             };
         }
 
         if (match !== null && match.autoprice) {
-            match.buy = new Currencies(data.buy);
-            match.sell = new Currencies(data.sell);
+            match.buy = newPTF.buy;
+            match.sell = newPTF.sell;
             match.time = data.time;
 
             this.priceChanged(match.sku, match);
