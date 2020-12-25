@@ -94,7 +94,7 @@ export default class Commands {
         } else if (command === 'uptime') {
             c.misc.uptimeCommand(steamID, this.bot);
         } else if (command === 'pure') {
-            c.misc.pureCommand(steamID, this.bot);
+            void c.misc.pureCommand(steamID, this.bot);
         } else if (command === 'rate') {
             c.misc.rateCommand(steamID, this.bot);
         } else if (command === 'stock') {
@@ -112,13 +112,13 @@ export default class Commands {
         } else if (command === 'add' && isAdmin) {
             c.pricelist.addCommand(steamID, message, this.bot);
         } else if (command === 'update' && isAdmin) {
-            c.pricelist.updateCommand(steamID, message, this.bot);
+            void c.pricelist.updateCommand(steamID, message, this.bot);
         } else if (command === 'remove' && isAdmin) {
-            c.pricelist.removeCommand(steamID, message, this.bot);
+            void c.pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
             void c.pricelist.getCommand(steamID, message, this.bot);
         } else if (command === 'shuffle' && isAdmin) {
-            c.pricelist.shuffleCommand(steamID, this.bot);
+            void c.pricelist.shuffleCommand(steamID, this.bot);
         } else if (command === 'expand' && isAdmin) {
             c.manager.expandCommand(steamID, message, this.bot);
         } else if (command === 'delete' && isAdmin) {
@@ -156,9 +156,9 @@ export default class Commands {
         } else if (command === 'trade' && isAdmin) {
             c.review.tradeCommand(steamID, message, this.bot);
         } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
-            c.review.accepttradeCommand(steamID, message, this.bot);
+            void c.review.accepttradeCommand(steamID, message, this.bot);
         } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
-            c.review.declinetradeCommand(steamID, message, this.bot);
+            void c.review.declinetradeCommand(steamID, message, this.bot);
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {

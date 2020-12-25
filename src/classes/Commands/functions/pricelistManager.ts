@@ -398,7 +398,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         // FIXME: Make it so that it is not needed to remove all listings
 
         if (params.autoprice !== true) {
-            bot.getHandler().onPricelist(newPricelist);
+            void bot.getHandler().onPricelist(newPricelist);
             bot.sendMessage(steamID, '✅ Updated pricelist!');
             await bot.listings.redoListings();
             return;
@@ -701,7 +701,7 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
         clearTimeout(executeTimeout);
         lastExecutedTime = dayjs().valueOf();
 
-        bot.getHandler().onPricelist(shufflePricelist(pricelist));
+        void bot.getHandler().onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');
         await bot.listings.redoListings();
 
