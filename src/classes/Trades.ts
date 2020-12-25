@@ -471,8 +471,7 @@ export default class Trades {
 
             this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 if (err) {
-                    reject(err);
-                    return;
+                    return reject(err);
                 }
 
                 return resolve();
