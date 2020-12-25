@@ -79,7 +79,7 @@ const ADMIN_COMMANDS: string[] = [
     '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
 ];
 
-export function helpCommand(steamID: SteamID, bot: Bot): void {
+export async function helpCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const isAdmin = bot.isAdmin(steamID);
     bot.sendMessage(
         steamID,
@@ -91,12 +91,32 @@ export function helpCommand(steamID: SteamID, bot: Bot): void {
                   '\n• <a> = Replace "a" with relevant content' +
                   '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
                 : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
-        }\n\n📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
+        }\n\n📜 Here's a list of my commands:\n- ${
+            isAdmin ? await generateAdminCommands(ADMIN_COMMANDS) : await generatePartnerCommands(COMMANDS)
+        }`
     );
 }
 
-export function moreCommand(steamID: SteamID, bot: Bot): void {
-    bot.sendMessage(steamID, `Advanced commands list:\n- ${MORE.join('\n- ')}`);
+async function generateAdminCommands(commands: string[]): Promise<string> {
+    return new Promise(resolve => {
+        resolve(commands.join('\n- '));
+    });
+}
+
+async function generatePartnerCommands(commands: string[]): Promise<string> {
+    return new Promise(resolve => {
+        resolve(commands.join('\n- '));
+    });
+}
+
+export async function moreCommand(steamID: SteamID, bot: Bot): Promise<void> {
+    bot.sendMessage(steamID, `Advanced commands list:\n- ${await generateMoreCommands(MORE)}`);
+}
+
+async function generateMoreCommands(commands: string[]): Promise<string> {
+    return new Promise(resolve => {
+        resolve(commands.join('\n- '));
+    });
 }
 
 export function howToTradeCommand(steamID: SteamID, bot: Bot): void {

@@ -127,25 +127,29 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
 
     bot.pricelist
         .addPrice(params as EntryData, true, PricelistChangedSource.Command)
-        .then(entry => {
-            const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
-            bot.sendMessage(
-                steamID,
-                `✅ Added "${entry.name}"` +
-                    `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
-                    `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
-                    `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
-                    `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
-                    `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
-                    (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
-                    `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
-                    `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-                    `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
-            );
+        .then(async entry => {
+            bot.sendMessage(steamID, `✅ Added "${entry.name}"` + (await generateAddedReply(bot, isPremium, entry)));
         })
         .catch((err: Error) => {
             bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${err.message}`);
         });
+}
+
+async function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): Promise<string> {
+    return new Promise(resolve => {
+        const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
+        const reply =
+            `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
+            `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
+            `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
+            `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
+            `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+            (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
+            `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
+            `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
+        resolve(reply);
+    });
 }
 
 export function updateCommand(steamID: SteamID, message: string, bot: Bot): void {
@@ -600,58 +604,10 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
 
     bot.pricelist
         .updatePrice(entryData, true, PricelistChangedSource.Command)
-        .then(entry => {
-            const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
-            const keyPrice = bot.pricelist.getKeyPrice().metal;
+        .then(async entry => {
             bot.sendMessage(
                 steamID,
-                `✅ Updated "${entry.name}"` +
-                    `\n💲 Buy: ${
-                        itemEntry.buy.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
-                            ? `${itemEntry.buy.toString()} → ${entry.buy.toString()}`
-                            : entry.buy.toString()
-                    } | Sell: ${
-                        itemEntry.sell.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
-                            ? `${itemEntry.sell.toString()} → ${entry.sell.toString()}`
-                            : entry.sell.toString()
-                    }` +
-                    `\n📦 Stock: ${amount}` +
-                    ` | Min: ${itemEntry.min !== entry.min ? `${itemEntry.min} → ${entry.min}` : entry.min} | Max: ${
-                        itemEntry.max !== entry.max ? `${itemEntry.max} → ${entry.max}` : entry.max
-                    }` +
-                    `\n🛒 Intent: ${
-                        itemEntry.intent !== entry.intent
-                            ? `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'} → ${
-                                  entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'
-                              }`
-                            : `${itemEntry.intent === 2 ? 'bank' : itemEntry.intent === 1 ? 'sell' : 'buy'}`
-                    }` +
-                    `\n📋 Enabled: ${
-                        itemEntry.enabled !== entry.enabled
-                            ? `${itemEntry.enabled ? '✅' : '❌'} → ${entry.enabled ? '✅' : '❌'}`
-                            : `${entry.enabled ? '✅' : '❌'}`
-                    }` +
-                    `\n🔄 Autoprice: ${
-                        itemEntry.autoprice !== entry.autoprice
-                            ? `${itemEntry.autoprice ? '✅' : '❌'} → ${entry.autoprice ? '✅' : '❌'}`
-                            : `${entry.autoprice ? '✅' : '❌'}`
-                    }` +
-                    (isPremium
-                        ? `\n📢 Promoted: ${
-                              itemEntry.promoted !== entry.promoted
-                                  ? `${itemEntry.promoted === 1 ? '✅' : '❌'} → ${entry.promoted === 1 ? '✅' : '❌'}`
-                                  : `${entry.promoted === 1 ? '✅' : '❌'}`
-                          }`
-                        : '') +
-                    `${
-                        entry.group !== 'all'
-                            ? `\n🔰 Group: ${
-                                  itemEntry.group !== entry.group ? `${itemEntry.group} → ${entry.group}` : entry.group
-                              }`
-                            : ''
-                    }` +
-                    `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-                    `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+                `✅ Updated "${entry.name}"` + (await generateUpdateReply(bot, isPremium, entry, itemEntry))
             );
         })
         .catch((err: ErrorRequest) => {
@@ -661,6 +617,61 @@ export function updateCommand(steamID: SteamID, message: string, bot: Bot): void
                     (err.body && err.body.message ? err.body.message : err.message)
             );
         });
+}
+
+async function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): Promise<string> {
+    return new Promise(resolve => {
+        const keyPrice = bot.pricelist.getKeyPrice().metal;
+        const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
+        const reply =
+            `\n💲 Buy: ${
+                oldEntry.buy.toValue(keyPrice) !== newEntry.buy.toValue(keyPrice)
+                    ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
+                    : newEntry.buy.toString()
+            } | Sell: ${
+                oldEntry.sell.toValue(keyPrice) !== newEntry.sell.toValue(keyPrice)
+                    ? `${oldEntry.sell.toString()} → ${newEntry.sell.toString()}`
+                    : newEntry.sell.toString()
+            }` +
+            `\n📦 Stock: ${amount}` +
+            ` | Min: ${oldEntry.min !== newEntry.min ? `${oldEntry.min} → ${newEntry.min}` : newEntry.min} | Max: ${
+                oldEntry.max !== newEntry.max ? `${oldEntry.max} → ${newEntry.max}` : newEntry.max
+            }` +
+            `\n🛒 Intent: ${
+                oldEntry.intent !== newEntry.intent
+                    ? `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'} → ${
+                          newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'
+                      }`
+                    : `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'}`
+            }` +
+            `\n📋 Enabled: ${
+                oldEntry.enabled !== newEntry.enabled
+                    ? `${oldEntry.enabled ? '✅' : '❌'} → ${newEntry.enabled ? '✅' : '❌'}`
+                    : `${newEntry.enabled ? '✅' : '❌'}`
+            }` +
+            `\n🔄 Autoprice: ${
+                oldEntry.autoprice !== newEntry.autoprice
+                    ? `${oldEntry.autoprice ? '✅' : '❌'} → ${newEntry.autoprice ? '✅' : '❌'}`
+                    : `${newEntry.autoprice ? '✅' : '❌'}`
+            }` +
+            (isPremium
+                ? `\n📢 Promoted: ${
+                      oldEntry.promoted !== newEntry.promoted
+                          ? `${oldEntry.promoted === 1 ? '✅' : '❌'} → ${newEntry.promoted === 1 ? '✅' : '❌'}`
+                          : `${newEntry.promoted === 1 ? '✅' : '❌'}`
+                  }`
+                : '') +
+            `${
+                newEntry.group !== 'all'
+                    ? `\n🔰 Group: ${
+                          oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
+                      }`
+                    : ''
+            }` +
+            `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
+        resolve(reply);
+    });
 }
 
 let executed = false;
@@ -863,7 +874,7 @@ export function removeCommand(steamID: SteamID, message: string, bot: Bot): void
         });
 }
 
-export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function getCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
@@ -922,11 +933,11 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
     if (match === null) {
         bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
     } else {
-        bot.sendMessage(steamID, `/code ${JSON.stringify(match, null, 4)}`);
+        bot.sendMessage(steamID, `/code ${await generateOutput(match)}`);
     }
 }
 
-export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function findCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
     if (
@@ -1057,26 +1068,41 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
             steamID,
             `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only a max of 100 items`
         );
-        bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(0, 20), null, 4)}`);
+        bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 0, 20)}`);
         if (length <= 40) {
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, length > 40 ? 40 : length), null, 4)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 20, length > 40 ? 40 : length)}`);
         } else if (length <= 60) {
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, length > 60 ? 60 : length), null, 4)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 20, 40)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 40, length > 60 ? 60 : length)}`);
         } else if (length <= 80) {
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(60, length > 80 ? 80 : length), null, 4)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 20, 40)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 40, 60)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 60, length > 80 ? 80 : length)}`);
         } else if (length > 80) {
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(20, 40), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(40, 60), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(60, 80), null, 4)}`);
-            bot.sendMessage(steamID, `/code ${JSON.stringify(filter.slice(80, length > 100 ? 100 : length), null, 4)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 20, 40)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 40, 60)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 60, 80)}`);
+            bot.sendMessage(steamID, `/code ${await generateOutput(filter, true, 80, length > 100 ? 100 : length)}`);
         }
     } else {
         bot.sendMessage(steamID, `Found ${pluralize('item', filter.length, true)} with ${display.join('&')}`);
-        bot.sendMessage(steamID, `/code ${JSON.stringify(filter, null, 4)}`);
+        bot.sendMessage(steamID, `/code ${await generateOutput(filter)}`);
     }
+}
+
+async function generateOutput(
+    filtered: Entry[] | Entry,
+    isSlice = false,
+    start?: number,
+    end?: number
+): Promise<string> {
+    return new Promise(resolve => {
+        resolve(
+            isSlice
+                ? JSON.stringify((filtered as Entry[]).slice(start, end), null, 4)
+                : JSON.stringify(filtered, null, 4)
+        );
+    });
 }
 
 interface ErrorRequest {

@@ -362,76 +362,80 @@ export function getItemFromParams(
     return fixItem(item, bot.schema);
 }
 
-export function craftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
+export function craftWeapons(bot: Bot): Promise<string[]> {
+    return new Promise(resolve => {
+        const items: { amount: number; name: string }[] = [];
 
-    craftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: amount
-            });
-        }
-    });
+        craftAll.forEach(sku => {
+            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: bot.schema.getName(SKU.fromString(sku), false),
+                    amount: amount
+                });
+            }
+        });
 
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
+        items.sort((a, b) => {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const craftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
             }
         }
-        return b.amount - a.amount;
+        resolve(craftWeaponsStock);
     });
-
-    const craftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return craftWeaponsStock;
 }
 
-export function uncraftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
+export function uncraftWeapons(bot: Bot): Promise<string[]> {
+    return new Promise(resolve => {
+        const items: { amount: number; name: string }[] = [];
 
-    uncraftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: bot.inventoryManager.getInventory().getAmount(sku)
-            });
-        }
-    });
+        uncraftAll.forEach(sku => {
+            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: bot.schema.getName(SKU.fromString(sku), false),
+                    amount: bot.inventoryManager.getInventory().getAmount(sku)
+                });
+            }
+        });
 
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
+        items.sort((a, b) => {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const uncraftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
             }
         }
-        return b.amount - a.amount;
+        resolve(uncraftWeaponsStock);
     });
-
-    const uncraftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return uncraftWeaponsStock;
 }
 
 export function removeLinkProtocol(message: string): string {

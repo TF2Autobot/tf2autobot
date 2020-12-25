@@ -576,97 +576,104 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
     }
 }
 
-export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): void {
+export async function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): Promise<void> {
     if (auto.isEnabled === false) {
         bot.sendMessage(steamID, `This feature is disabled.`);
         return;
     }
 
-    const autokeys = auto;
+    bot.sendMessage(steamID, '/pre ' + (await generateAutokeysReply(steamID, bot, auto)));
+}
 
-    const pureNow = pure.currPure(bot);
-    const currKey = pureNow.key;
-    const currRef = pureNow.refTotalInScrap;
+async function generateAutokeysReply(steamID: SteamID, bot: Bot, auto: Autokeys): Promise<string> {
+    return new Promise(resolve => {
+        const autokeys = auto;
 
-    const keyPrices = bot.pricelist.getKeyPrices();
+        const pureNow = pure.currPure(bot);
+        const currKey = pureNow.key;
+        const currRef = pureNow.refTotalInScrap;
 
-    const userPure = autokeys.userPure;
-    const status = (bot.handler as MyHandler).getAutokeysStatus();
+        const keyPrices = bot.pricelist.getKeyPrices();
 
-    const keyBlMin = `       X`;
-    const keyAbMax = `                     X`;
-    const keyAtBet = `              X`;
-    const keyAtMin = `         X`;
-    const keyAtMax = `                   X`;
-    const keysLine = `Keys ————|—————————|————▶`;
-    const refBlMin = `       X`;
-    const refAbMax = `                     X`;
-    const refAtBet = `              X`;
-    const refAtMin = `         X`;
-    const refAtMax = `                   X`;
-    const refsLine = `Refs ————|—————————|————▶`;
-    const xAxisRef = `        min       max`;
-    const keysPosition =
-        currKey < userPure.minKeys
-            ? keyBlMin
-            : currKey > userPure.maxKeys
-            ? keyAbMax
-            : currKey > userPure.minKeys && currKey < userPure.maxKeys
-            ? keyAtBet
-            : currKey === userPure.minKeys
-            ? keyAtMin
-            : currKey === userPure.maxKeys
-            ? keyAtMax
-            : '';
-    const refsPosition =
-        currRef < userPure.minRefs
-            ? refBlMin
-            : currRef > userPure.maxRefs
-            ? refAbMax
-            : currRef > userPure.minRefs && currRef < userPure.maxRefs
-            ? refAtBet
-            : currRef === userPure.minRefs
-            ? refAtMin
-            : currRef === userPure.maxRefs
-            ? refAtMax
-            : '';
-    const summary = `\n• ${userPure.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
-        userPure.maxKeys
-    }\n• ${Currencies.toRefined(userPure.minRefs)} < ${pluralize(
-        'ref',
-        Currencies.toRefined(currRef)
-    )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
+        const userPure = autokeys.userPure;
+        const status = (bot.handler as MyHandler).getAutokeysStatus();
 
-    const isAdmin = bot.isAdmin(steamID);
+        const keyBlMin = `       X`;
+        const keyAbMax = `                     X`;
+        const keyAtBet = `              X`;
+        const keyAtMin = `         X`;
+        const keyAtMax = `                   X`;
+        const keysLine = `Keys ————|—————————|————▶`;
+        const refBlMin = `       X`;
+        const refAbMax = `                     X`;
+        const refAtBet = `              X`;
+        const refAtMin = `         X`;
+        const refAtMax = `                   X`;
+        const refsLine = `Refs ————|—————————|————▶`;
+        const xAxisRef = `        min       max`;
+        const keysPosition =
+            currKey < userPure.minKeys
+                ? keyBlMin
+                : currKey > userPure.maxKeys
+                ? keyAbMax
+                : currKey > userPure.minKeys && currKey < userPure.maxKeys
+                ? keyAtBet
+                : currKey === userPure.minKeys
+                ? keyAtMin
+                : currKey === userPure.maxKeys
+                ? keyAtMax
+                : '';
+        const refsPosition =
+            currRef < userPure.minRefs
+                ? refBlMin
+                : currRef > userPure.maxRefs
+                ? refAbMax
+                : currRef > userPure.minRefs && currRef < userPure.maxRefs
+                ? refAtBet
+                : currRef === userPure.minRefs
+                ? refAtMin
+                : currRef === userPure.maxRefs
+                ? refAtMax
+                : '';
+        const summary = `\n• ${userPure.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
+            userPure.maxKeys
+        }\n• ${Currencies.toRefined(userPure.minRefs)} < ${pluralize(
+            'ref',
+            Currencies.toRefined(currRef)
+        )}(${Currencies.toRefined(currRef)}) < ${Currencies.toRefined(userPure.maxRefs)}`;
 
-    let reply =
-        (isAdmin ? 'Your ' : 'My ') +
-        `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-    reply += `\n       Key price: ${keyPrices.buy.metal}/${keyPrices.sell.toString()} (${
-        keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
-    })`;
-    reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
-    reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
-    reply += `\n Autokeys status: ${
-        status.isActive
-            ? status.isBanking
-                ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                : status.isBuying
-                ? 'Buying for ' +
-                  Currencies.toRefined(
-                      keyPrices.buy.toValue() + (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                  ).toString() +
-                  ' ref' +
-                  (autokeys.isEnableScrapAdjustment ? ` (+${autokeys.scrapAdjustmentValue} scrap)` : '')
-                : 'Selling for ' +
-                  Currencies.toRefined(
-                      keyPrices.sell.toValue() - (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
-                  ).toString() +
-                  ' ref' +
-                  (autokeys.isEnableScrapAdjustment ? ` (-${autokeys.scrapAdjustmentValue} scrap)` : '')
-            : 'Not active'
-    }`;
-    /*
+        const isAdmin = bot.isAdmin(steamID);
+
+        let reply =
+            (isAdmin ? 'Your ' : 'My ') +
+            `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
+        reply += `\n       Key price: ${keyPrices.buy.metal}/${keyPrices.sell.toString()} (${
+            keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+        })`;
+        reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+        reply += `\n Autokeys status: ${
+            status.isActive
+                ? status.isBanking
+                    ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
+                    : status.isBuying
+                    ? 'Buying for ' +
+                      Currencies.toRefined(
+                          keyPrices.buy.toValue() +
+                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
+                      ).toString() +
+                      ' ref' +
+                      (autokeys.isEnableScrapAdjustment ? ` (+${autokeys.scrapAdjustmentValue} scrap)` : '')
+                    : 'Selling for ' +
+                      Currencies.toRefined(
+                          keyPrices.sell.toValue() -
+                              (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
+                      ).toString() +
+                      ' ref' +
+                      (autokeys.isEnableScrapAdjustment ? ` (-${autokeys.scrapAdjustmentValue} scrap)` : '')
+                : 'Not active'
+        }`;
+        /*
     //        X
     // Keys ————|—————————|————▶
     //                       X
@@ -674,7 +681,8 @@ export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): voi
     //         min       max
     */
 
-    bot.sendMessage(steamID, '/pre ' + reply);
+        resolve(reply);
+    });
 }
 
 export function refreshAutokeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): void {

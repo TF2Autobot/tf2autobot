@@ -56,7 +56,7 @@ export default class Commands {
             });
 
         if (command === 'help') {
-            c.help.helpCommand(steamID, this.bot);
+            void c.help.helpCommand(steamID, this.bot);
         } else if (command === 'how2trade') {
             c.help.howToTradeCommand(steamID, this.bot);
         } else if (['price', 'pc'].includes(command)) {
@@ -84,9 +84,9 @@ export default class Commands {
         } else if (command === 'discord') {
             c.misc.discordCommand(steamID, this.bot);
         } else if (command === 'more') {
-            c.help.moreCommand(steamID, this.bot);
+            void c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
-            c.manager.autoKeysCommand(steamID, this.bot, this.autokeys);
+            void c.manager.autoKeysCommand(steamID, this.bot, this.autokeys);
         } else if (command === 'message') {
             c.messageCommand(steamID, message, this.bot);
         } else if (command === 'time') {
@@ -100,9 +100,9 @@ export default class Commands {
         } else if (command === 'stock') {
             c.misc.stockCommand(steamID, this.bot);
         } else if (command === 'craftweapon') {
-            c.misc.craftweaponCommand(steamID, this.bot);
+            void c.misc.craftweaponCommand(steamID, this.bot);
         } else if (command === 'uncraftweapon') {
-            c.misc.uncraftweaponCommand(steamID, this.bot);
+            void c.misc.uncraftweaponCommand(steamID, this.bot);
         } else if (command === 'sales' && isAdmin) {
             void this.getSalesCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
@@ -116,7 +116,7 @@ export default class Commands {
         } else if (command === 'remove' && isAdmin) {
             c.pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
-            c.pricelist.getCommand(steamID, message, this.bot);
+            void c.pricelist.getCommand(steamID, message, this.bot);
         } else if (command === 'shuffle' && isAdmin) {
             c.pricelist.shuffleCommand(steamID, this.bot);
         } else if (command === 'expand' && isAdmin) {
@@ -152,7 +152,7 @@ export default class Commands {
         } else if (command === 'version' && isAdmin) {
             c.botStatus.versionCommand(steamID, this.bot);
         } else if (command === 'trades' && isAdmin) {
-            c.review.tradesCommand(steamID, this.bot);
+            void c.review.tradesCommand(steamID, this.bot);
         } else if (command === 'trade' && isAdmin) {
             c.review.tradeCommand(steamID, message, this.bot);
         } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
@@ -166,7 +166,7 @@ export default class Commands {
         } else if (command === 'check' && isAdmin) {
             void this.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
-            c.pricelist.findCommand(steamID, message, this.bot);
+            void c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
             c.options.optionsCommand(steamID, this.bot);
         } else if (command === 'config' && isAdmin) {
