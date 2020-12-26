@@ -196,6 +196,14 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         }
     }
 
+    if (
+        (params.sell !== undefined && params.buy === undefined) ||
+        (params.sell === undefined && params.buy !== undefined)
+    ) {
+        bot.sendMessage(steamID, `❌ Please set both buy and sell prices.`);
+        return;
+    }
+
     if (params.promoted !== undefined) {
         if (!isPremium) {
             bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`);
