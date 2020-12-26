@@ -8,7 +8,7 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'boolean'
         },
         sortInventory: {
-            type: 'boolean'
+            type: 'sort-inventory'
         },
         createListings: {
             type: 'boolean'
