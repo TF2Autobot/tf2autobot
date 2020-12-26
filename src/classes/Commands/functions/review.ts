@@ -201,7 +201,7 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
             // Re-check Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Dueling Mini-Game...');
-            hasNot5Uses = await check.isNot5xUses(offer.itemsToReceive);
+            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive);
 
             if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Only decline if exist in pricelist
@@ -214,7 +214,7 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
             // Re-check Noise Maker for 25x Uses only when enabled and exist in pricelist
             log.debug('Running re-check on Noise maker...');
 
-            const [isNot25Uses, skus] = await check.isNot25xUses(offer.itemsToReceive, bot);
+            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, bot);
             hasNot25Uses = isNot25Uses;
 
             const isHasNoiseMaker = skus.some(sku => {
