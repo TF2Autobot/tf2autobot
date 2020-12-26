@@ -3,7 +3,14 @@ import Bot from '../../classes/Bot';
 
 export default function stats(
     bot: Bot
-): Promise<{ totalDays: number; tradesTotal: number; trades24Hours: number; tradesToday: number }> {
+): Promise<{
+    totalDays: number;
+    tradesTotal: number;
+    trades24Hours: number;
+    tradesToday: number;
+    failedOrIgnored24Hours: number;
+    failedOrIgnoredToday: number;
+}> {
     return new Promise(resolve => {
         const now = dayjs();
         const aDayAgo = dayjs().subtract(24, 'hour');
@@ -12,6 +19,8 @@ export default function stats(
         let tradesToday = 0;
         let trades24Hours = 0;
         let tradesTotal = 0;
+        let failedOrIgnored24Hours = 0;
+        let failedOrIgnoredToday = 0;
 
         const pollData = bot.manager.pollData;
         const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
@@ -41,14 +50,29 @@ export default function stats(
                     tradesToday++;
                 }
             }
+
+            if (offerData[offerID].handledByUs === true && offerData[offerID].isAccepted === undefined) {
+                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                    // Within the last 24 hours
+                    failedOrIgnored24Hours++;
+                }
+
+                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    // All trades since 0:00 in the morning.
+                    failedOrIgnoredToday++;
+                }
+            }
         }
 
         const polldata = {
             totalDays: totalDays,
             tradesTotal: tradesTotal,
             trades24Hours: trades24Hours,
-            tradesToday: tradesToday
+            tradesToday: tradesToday,
+            failedOrIgnored24Hours: failedOrIgnored24Hours,
+            failedOrIgnoredToday: failedOrIgnoredToday
         };
+
         resolve(polldata);
     });
 }

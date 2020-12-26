@@ -25,20 +25,18 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
 
     bot.sendMessage(
         steamID,
-        'All trades are recorded from ' +
-            pluralize('day', trades.totalDays, true) +
+        `All accepted trades are recorded from ${pluralize('day', trades.totalDays, true)}` +
             ' ago 📊\n\n Total: ' +
             (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
-            ' \nLast 24 hours: ' +
-            String(trades.trades24Hours) +
-            ' \nSince beginning of today: ' +
-            String(trades.tradesToday) +
-            ' \n\nProfit made: ' +
-            `${profitmadeFull + profitmadeInRef}` +
-            ' \nProfit from overpay: ' +
-            `${profitOverpayFull + profitOverpayInRef}` +
-            ' \nKey rate: ' +
-            `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
+            ` \nLast 24 hours: ${trades.trades24Hours} (${
+                trades.trades24Hours + trades.failedOrIgnored24Hours
+            } attempts)` +
+            ` \nSince beginning of today: ${trades.tradesToday} (${
+                trades.tradesToday + trades.failedOrIgnoredToday
+            } attempts)` +
+            ` \n\nProfit made: ${profitmadeFull + profitmadeInRef}` +
+            ` \nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +
+            ` \nKey rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
     );
 }
 
