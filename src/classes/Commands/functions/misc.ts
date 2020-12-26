@@ -123,8 +123,8 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, reply);
 }
 
-export async function craftweaponCommand(steamID: SteamID, bot: Bot): Promise<void> {
-    const crafWeaponStock = await craftWeapons(bot);
+export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
+    const crafWeaponStock = craftWeapons(bot);
 
     let reply: string;
     if (crafWeaponStock.length > 0) {
@@ -135,8 +135,8 @@ export async function craftweaponCommand(steamID: SteamID, bot: Bot): Promise<vo
     bot.sendMessage(steamID, reply);
 }
 
-export async function uncraftweaponCommand(steamID: SteamID, bot: Bot): Promise<void> {
-    const uncrafWeaponStock = await uncraftWeapons(bot);
+export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
+    const uncrafWeaponStock = uncraftWeapons(bot);
 
     let reply: string;
     if (uncrafWeaponStock.length > 0) {

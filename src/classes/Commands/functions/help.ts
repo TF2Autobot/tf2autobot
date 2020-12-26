@@ -79,7 +79,7 @@ const ADMIN_COMMANDS: string[] = [
     '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
 ];
 
-export async function helpCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export function helpCommand(steamID: SteamID, bot: Bot): void {
     const isAdmin = bot.isAdmin(steamID);
     bot.sendMessage(
         steamID,
@@ -92,31 +92,25 @@ export async function helpCommand(steamID: SteamID, bot: Bot): Promise<void> {
                   '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
                 : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
         }\n\n📜 Here's a list of my commands:\n- ${
-            isAdmin ? await generateAdminCommands(ADMIN_COMMANDS) : await generatePartnerCommands(COMMANDS)
+            isAdmin ? generateAdminCommands(ADMIN_COMMANDS) : generatePartnerCommands(COMMANDS)
         }`
     );
 }
 
-async function generateAdminCommands(commands: string[]): Promise<string> {
-    return new Promise(resolve => {
-        resolve(commands.join('\n- '));
-    });
+function generateAdminCommands(commands: string[]): string {
+    return commands.join('\n- ');
 }
 
-async function generatePartnerCommands(commands: string[]): Promise<string> {
-    return new Promise(resolve => {
-        resolve(commands.join('\n- '));
-    });
+function generatePartnerCommands(commands: string[]): string {
+    return commands.join('\n- ');
 }
 
-export async function moreCommand(steamID: SteamID, bot: Bot): Promise<void> {
-    bot.sendMessage(steamID, `Advanced commands list:\n- ${await generateMoreCommands(MORE)}`);
+export function moreCommand(steamID: SteamID, bot: Bot): void {
+    bot.sendMessage(steamID, `Advanced commands list:\n- ${generateMoreCommands(MORE)}`);
 }
 
-async function generateMoreCommands(commands: string[]): Promise<string> {
-    return new Promise(resolve => {
-        resolve(commands.join('\n- '));
-    });
+function generateMoreCommands(commands: string[]): string {
+    return commands.join('\n- ');
 }
 
 export function howToTradeCommand(steamID: SteamID, bot: Bot): void {

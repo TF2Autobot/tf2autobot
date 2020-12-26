@@ -15,7 +15,7 @@ import log from '../../../lib/logger';
 
 // Manual review commands
 
-export async function tradesCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export function tradesCommand(steamID: SteamID, bot: Bot): void {
     // Go through polldata and find active offers
 
     const pollData = bot.manager.pollData;
@@ -49,29 +49,27 @@ export async function tradesCommand(steamID: SteamID, bot: Bot): Promise<void> {
 
     offers.sort((a, b) => a.id - b.id);
 
-    const reply = await generateTradesReply(offers);
+    const reply = generateTradesReply(offers);
 
     bot.sendMessage(steamID, reply);
 }
 
-async function generateTradesReply(offers: UnknownDictionaryKnownValues[]): Promise<string> {
-    return new Promise(resolve => {
-        offers.sort((a, b) => a.id - b.id);
+function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
+    offers.sort((a, b) => a.id - b.id);
 
-        let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
+    let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
 
-        for (let i = 0; i < offers.length; i++) {
-            const offer = offers[i];
+    for (let i = 0; i < offers.length; i++) {
+        const offer = offers[i];
 
-            reply +=
-                `\n- Offer #${offer.id as string} from ${
-                    (offer.data as OfferData).partner
-                } (reason: ${(offer.data as OfferData).action.meta.uniqueReasons.join(', ')})` +
-                `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
-        }
+        reply +=
+            `\n- Offer #${offer.id as string} from ${
+                (offer.data as OfferData).partner
+            } (reason: ${(offer.data as OfferData).action.meta.uniqueReasons.join(', ')})` +
+            `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
+    }
 
-        resolve(reply);
-    });
+    return reply;
 }
 
 export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void {
