@@ -8,7 +8,10 @@ import validator from '../lib/validator';
 
 export const DEFAULTS = {
     showOnlyMetal: true,
-    sortInventory: true,
+    sortInventory: {
+        enable: true,
+        type: 3 // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+    },
     createListings: true,
     enableMessages: true,
     sendAlert: true,
@@ -205,6 +208,11 @@ export const DEFAULTS = {
         }
     }
 };
+
+export interface SortInventory {
+    enable?: boolean;
+    type?: number;
+}
 
 export interface WeaponsAsCurrency {
     enable?: boolean;
@@ -437,7 +445,7 @@ export interface DiscordWebhook {
 
 export interface JsonOptions {
     showOnlyMetal?: boolean;
-    sortInventory?: boolean;
+    sortInventory?: SortInventory;
     createListings?: boolean;
     enableMessages?: boolean;
     sendAlert?: boolean;

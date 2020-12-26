@@ -15,6 +15,7 @@ import { detailsSchema } from './details/details';
 import { highValueDetailsSchema } from './details/show-high-value';
 import { customMessageSchema } from './custom-message/custom-message';
 import { statisticsSchema } from './statistics/statistics';
+import { sortInventorySchema } from './sortInventory/sortInventory';
 
 export {
     stringArraySchema,
@@ -32,5 +33,6 @@ export {
     detailsSchema,
     highValueDetailsSchema,
     customMessageSchema,
-    statisticsSchema
+    statisticsSchema,
+    sortInventorySchema
 };

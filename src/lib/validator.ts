@@ -12,6 +12,7 @@ v.addSchema(pl.listingSchema);
 
 import * as op from '../schemas/options-json/export';
 
+v.addSchema(op.sortInventorySchema);
 v.addSchema(op.stringArraySchema);
 v.addSchema(op.optionsSchema);
 v.addSchema(op.weaponsAsCurrencySchema);

@@ -1631,8 +1631,8 @@ export default class MyHandler extends Handler {
     }
 
     private sortInventory(): void {
-        if (this.bot.options.sortInventory) {
-            this.bot.tf2gc.sortInventory(3);
+        if (this.bot.options.sortInventory.enable) {
+            this.bot.tf2gc.sortInventory(this.bot.options.sortInventory.type);
         }
     }
 
