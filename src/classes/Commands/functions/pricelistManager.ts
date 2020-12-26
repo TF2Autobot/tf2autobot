@@ -335,6 +335,8 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                         total - added - skipped - failed
                     } remaining`
             );
+            // Prevent spamming detection and cause the bot to stop sending messages
+            await sleepasync().Promise.sleep(1 * 1000);
             continue;
         }
 
