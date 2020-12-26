@@ -5,7 +5,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import { Currency } from '../types/TeamFortress2';
 
-import Options from './Options';
+import Bot from './Bot';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice, GetItemPriceResponse, Item } from '../lib/ptf-api';
@@ -151,10 +151,10 @@ export default class Pricelist extends EventEmitter {
 
     private retryGetKeyPrices;
 
-    constructor(schema: SchemaManager.Schema, private socketManager: SocketManager, private options?: Options) {
+    constructor(schema: SchemaManager.Schema, private socketManager: SocketManager, private readonly bot?: Bot) {
         super();
         this.schema = schema;
-        this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
+        this.maxAge = this.bot.options.maxPriceAge || 8 * 60 * 60;
         this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
 
@@ -672,7 +672,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: GetItemPriceResponse): void {
-        const opt = this.options;
+        const opt = this.bot.options;
 
         if (data.source !== 'bptf') {
             return;
@@ -745,7 +745,7 @@ export default class Pricelist extends EventEmitter {
                     match,
                     time,
                     this.schema,
-                    this.options
+                    this.bot.options
                 );
                 // this.priceChanges.push({
                 //     sku: data.sku,
