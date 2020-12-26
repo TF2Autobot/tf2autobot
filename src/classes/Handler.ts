@@ -71,7 +71,7 @@ export default abstract class Handler {
         action: 'accept' | 'decline' | 'skip',
         reason: string,
         meta: Meta
-    ): Promise<void>;
+    ): void;
 
     /**
      * Called when a new login attempt has been made
@@ -146,11 +146,7 @@ export default abstract class Handler {
      * @param offer - The offer that changed
      * @param oldState - The old state of the offer
      */
-    async onTradeOfferChanged(
-        offer: TradeOfferManager.TradeOffer,
-        oldState: number,
-        processTime?: number
-    ): Promise<void> {
+    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, processTime?: number): void {
         // empty function
     }
 

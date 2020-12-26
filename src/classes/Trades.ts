@@ -293,26 +293,30 @@ export default class Trades {
         action: 'accept' | 'decline' | 'skip',
         reason: string,
         meta: Meta,
-        offer: TradeOffer
+        offer: TradeOfferManager.TradeOffer
     ): Promise<void> {
-        return this.bot.handler
-            .onOfferAction(offer, action, reason, meta)
-            .then(() => {
-                offer.data('action', {
-                    action: action,
-                    reason: reason,
-                    meta: meta
-                } as Action);
-                if (action === 'accept') {
-                    return this.acceptOffer(offer).then(() => {
-                        return;
-                    });
-                } else if (action === 'decline') {
-                    return this.declineOffer(offer);
-                } else {
-                    return;
-                }
-            })
+        this.bot.handler.onOfferAction(offer, action, reason, meta);
+
+        let actionFunc: () => Promise<any>;
+
+        if (action === 'accept') {
+            actionFunc = this.acceptOffer.bind(this, offer);
+        } else if (action === 'decline') {
+            actionFunc = this.declineOffer.bind(this, offer);
+        }
+
+        offer.data('action', {
+            action: action,
+            reason: reason,
+            meta: meta
+        } as Action);
+
+        if (actionFunc === undefined) {
+            return Promise.resolve();
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
             })
@@ -763,7 +767,7 @@ export default class Trades {
             offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
-            void this.bot.handler.onTradeOfferChanged(offer, oldState);
+            this.bot.handler.onTradeOfferChanged(offer, oldState);
             return;
         }
 
@@ -786,7 +790,7 @@ export default class Trades {
                     this.bot.listings.checkBySKU(sku);
                 }
 
-                void this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
+                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
 

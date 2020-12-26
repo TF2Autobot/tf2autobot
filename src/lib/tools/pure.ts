@@ -2,45 +2,41 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../classes/Bot';
 
-export function stock(bot: Bot): Promise<string[]> {
-    return new Promise(resolve => {
-        const pureStock: string[] = [];
-        const pure = currPure(bot);
-        const totalKeys = pure.key;
-        const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
+export function stock(bot: Bot): string[] {
+    const pureStock: string[] = [];
+    const pure = currPure(bot);
+    const totalKeys = pure.key;
+    const totalRefs = Currencies.toRefined(pure.refTotalInScrap);
 
-        const keysPrefix = pluralize('key', totalKeys);
-        const refinedPrefix = pluralize('ref', Math.trunc(totalRefs));
+    const keysPrefix = pluralize('key', totalKeys);
+    const refinedPrefix = pluralize('ref', Math.trunc(totalRefs));
 
-        const pureCombine = [
-            {
-                name: keysPrefix,
-                amount: totalKeys
-            },
-            {
-                name: '',
-                amount: `${totalRefs}${
-                    totalRefs > 0
-                        ? ` ${refinedPrefix} (${
-                              pure.ref > 0 ? `${pure.ref} ref${pure.rec > 0 || pure.scrap > 0 ? ',' : ''}` : ''
-                          }${
-                              pure.rec > 0
-                                  ? `${pure.ref > 0 ? ' ' : ''}${pure.rec} rec${pure.scrap > 0 ? ',' : ''}`
-                                  : ''
-                          }${pure.scrap > 0 ? `${pure.ref > 0 || pure.rec > 0 ? ' ' : ''}${pure.scrap} scrap` : ''})`
-                        : ''
-                }`
-            }
-        ];
-        for (let i = 0; i < pureCombine.length; i++) {
-            if (i < 1 && totalKeys < 1) {
-                continue;
-            }
-            pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
+    const pureCombine = [
+        {
+            name: keysPrefix,
+            amount: totalKeys
+        },
+        {
+            name: '',
+            amount: `${totalRefs}${
+                totalRefs > 0
+                    ? ` ${refinedPrefix} (${
+                          pure.ref > 0 ? `${pure.ref} ref${pure.rec > 0 || pure.scrap > 0 ? ',' : ''}` : ''
+                      }${pure.rec > 0 ? `${pure.ref > 0 ? ' ' : ''}${pure.rec} rec${pure.scrap > 0 ? ',' : ''}` : ''}${
+                          pure.scrap > 0 ? `${pure.ref > 0 || pure.rec > 0 ? ' ' : ''}${pure.scrap} scrap` : ''
+                      })`
+                    : ''
+            }`
         }
+    ];
+    for (let i = 0; i < pureCombine.length; i++) {
+        if (i < 1 && totalKeys < 1) {
+            continue;
+        }
+        pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
+    }
 
-        resolve(pureStock);
-    });
+    return pureStock;
 }
 
 export function currPure(bot: Bot): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {

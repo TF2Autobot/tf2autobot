@@ -8,7 +8,7 @@ import log from '../logger';
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
 
-export default async function sendOfferReview(
+export default function sendOfferReview(
     offer: TradeOffer,
     reasons: string,
     time: string,
@@ -17,7 +17,7 @@ export default async function sendOfferReview(
     links: Links,
     items: Review,
     bot: Bot
-): Promise<void> {
+): void {
     const opt = bot.options.discordWebhook;
 
     let noMentionOnInvalidValue = false;
@@ -35,7 +35,7 @@ export default async function sendOfferReview(
     const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${opt.ownerID}>, check this! - ${offer.id}`;
 
     const botInfo = bot.handler.getBotInfo();
-    const pureStock = await pure.stock(bot);
+    const pureStock = pure.stock(bot);
     const message = replace.specialChar(offer.message);
 
     const itemsName = {

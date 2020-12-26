@@ -643,7 +643,7 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = await check.highValue(
+        const highValueOur = check.highValue(
             offer.itemsToGive,
             this.sheens,
             this.killstreakers,
@@ -651,7 +651,7 @@ export default class MyHandler extends Handler {
             this.painted,
             this.bot
         );
-        const highValueTheir = await check.highValue(
+        const highValueTheir = check.highValue(
             offer.itemsToReceive,
             this.sheens,
             this.killstreakers,
@@ -766,7 +766,7 @@ export default class MyHandler extends Handler {
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
-            const isNot5Uses = await check.isNot5xUses(offer.itemsToReceive);
+            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
@@ -776,7 +776,7 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
-            const [isNot25Uses, skus] = await check.isNot25xUses(offer.itemsToReceive, this.bot);
+            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, this.bot);
 
             const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
@@ -802,7 +802,7 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = await check.getHighValueItems(highValueOur.items, this.bot);
+            const itemsName = check.getHighValueItems(highValueOur.items, this.bot);
 
             if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                 for (const name in itemsName) {
@@ -1517,7 +1517,7 @@ export default class MyHandler extends Handler {
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them
 
-    async onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): Promise<void> {
+    onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
@@ -1580,7 +1580,7 @@ export default class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const result = await processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
+                const result = processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
 
                 this.isTradingKeys = false; // reset
 
@@ -1617,19 +1617,14 @@ export default class MyHandler extends Handler {
         }
     }
 
-    async onOfferAction(
-        offer: TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
-        reason: string,
-        meta: Meta
-    ): Promise<void> {
+    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
         const notify = offer.data('notify') === true;
         if (!notify) {
             return;
         }
 
         if (action === 'skip') {
-            await sendReview(offer, this.bot, meta, this.isTradingKeys);
+            sendReview(offer, this.bot, meta, this.isTradingKeys);
             this.isTradingKeys = false; // reset
             return;
         }

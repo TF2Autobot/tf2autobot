@@ -83,7 +83,7 @@ export default async function sendTradeSummary(
     const url = opt.tradeSummary.url;
 
     const botInfo = bot.handler.getBotInfo();
-    const pureStock = await pure.stock(bot);
+    const pureStock = pure.stock(bot);
     const trades = await stats(bot);
 
     const tradeNumbertoShowStarter = bot.options.statistics.starter;

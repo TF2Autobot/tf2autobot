@@ -543,7 +543,7 @@ export default class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = await pure.stock(this.bot);
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -667,11 +667,11 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = await check.getAssetidsWith5xUses(theirInventoryEcon);
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon);
             } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
                 checkNoiseMaker = true;
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                assetids = await check.getAssetidsWith25xUses(theirInventoryEcon, name);
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, name);
             }
 
             for (let i = 0; i < assetids.length; i++) {
@@ -727,7 +727,7 @@ export default class UserCart extends Cart {
         }
 
         const toMention = this.bot.handler.getToMention();
-        const highValueOur = await check.highValue(
+        const highValueOur = check.highValue(
             ourItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,
@@ -735,7 +735,7 @@ export default class UserCart extends Cart {
             toMention.painted,
             this.bot
         );
-        const highValueTheir = await check.highValue(
+        const highValueTheir = check.highValue(
             theirItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,
@@ -1533,7 +1533,7 @@ export default class UserCart extends Cart {
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = await pure.stock(this.bot);
+        const pureStock = pure.stock(this.bot);
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeysWithWeapons(), currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
@@ -1676,11 +1676,11 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = await check.getAssetidsWith5xUses(theirInventoryEcon);
+                assetids = check.getAssetidsWith5xUses(theirInventoryEcon);
             } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
                 checkNoiseMaker = true;
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                assetids = await check.getAssetidsWith25xUses(theirInventoryEcon, name);
+                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, name);
             }
 
             for (let i = 0; i < assetids.length; i++) {
@@ -1736,7 +1736,7 @@ export default class UserCart extends Cart {
         }
 
         const toMention = this.bot.handler.getToMention();
-        const highValueOur = await check.highValue(
+        const highValueOur = check.highValue(
             ourItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,
@@ -1744,7 +1744,7 @@ export default class UserCart extends Cart {
             toMention.painted,
             this.bot
         );
-        const highValueTheir = await check.highValue(
+        const highValueTheir = check.highValue(
             theirItemsToCheck,
             toMention.sheens,
             toMention.killstreakers,

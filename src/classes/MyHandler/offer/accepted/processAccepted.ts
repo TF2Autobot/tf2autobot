@@ -8,19 +8,19 @@ import Bot from '../../../Bot';
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
-export default async function processAccepted(
+export default function processAccepted(
     offer: TradeOffer,
     autokeys: Autokeys,
     bot: Bot,
     isTradingKeys: boolean,
     processTime: number
-): Promise<{ theirHighValuedItems: string[]; isDisableSKU: string[] }> {
+): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
     const opt = bot.options;
 
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
 
-    const pureStock = await t.pure.stock(bot);
+    const pureStock = t.pure.stock(bot);
     const time = t.timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes).time;
     const links = t.generateLinks(offer.partner.toString());
     const items = itemList(offer);
@@ -94,7 +94,7 @@ export default async function processAccepted(
         if (offerReceived.meta && offerReceived.meta.highValue) {
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = await t.check.getHighValueItems(offerReceived.meta.highValue.items.their, bot);
+                const itemsName = t.check.getHighValueItems(offerReceived.meta.highValue.items.their, bot);
 
                 for (const name in itemsName) {
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
@@ -112,7 +112,7 @@ export default async function processAccepted(
 
             if (Object.keys(offerReceived.meta.highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = await t.check.getHighValueItems(offerReceived.meta.highValue.items.our, bot);
+                const itemsName = t.check.getHighValueItems(offerReceived.meta.highValue.items.our, bot);
 
                 for (const name in itemsName) {
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
@@ -128,7 +128,7 @@ export default async function processAccepted(
     } else if (offerSent) {
         // This is for offer that bot created from commands
         if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
-            const itemsName = await t.check.getHighValueItems(offerSent.items.their, bot);
+            const itemsName = t.check.getHighValueItems(offerSent.items.their, bot);
 
             for (const name in itemsName) {
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
@@ -148,7 +148,7 @@ export default async function processAccepted(
             const itemsName = t.check.getHighValueItems(offerSent.items.our, bot);
 
             for (const name in itemsName) {
-                accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + (itemsName[name] as string));
+                accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 
             if (offerSent.isMention.our) {

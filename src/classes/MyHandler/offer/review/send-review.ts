@@ -7,16 +7,11 @@ import processReview from './process-review';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import { pure, listItems, summarize, timeNow, generateLinks, check } from '../../../../lib/tools/export';
 
-export default async function sendReview(
-    offer: TradeOffer,
-    bot: Bot,
-    meta: Meta,
-    isTradingKeys: boolean
-): Promise<void> {
+export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-    const pureStock = await pure.stock(bot);
+    const pureStock = pure.stock(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices();
     const links = generateLinks(offer.partner.toString());
@@ -85,7 +80,7 @@ export default async function sendReview(
     const highValueItems: string[] = [];
     if (meta && meta.highValue && meta.highValue.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const itemsName = await check.getHighValueItems(meta.highValue.items.their, bot);
+            const itemsName = check.getHighValueItems(meta.highValue.items.their, bot);
 
             for (const name in itemsName) {
                 highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
