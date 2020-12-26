@@ -84,11 +84,27 @@ export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): s
         }
 
         const name = bot.schema.getName(SKU.fromString(sku), false);
-        const buyPrice = new Currencies(prices[sku].buy).toString();
-        const sellPrice = new Currencies(prices[sku].sell).toString();
+
+        const pricelist = bot.pricelist.getPrice(sku, false);
+        let buyPrice: string;
+        let sellPrice: string;
+        let autoprice = 'unknown';
+
+        if (pricelist !== null) {
+            buyPrice = pricelist.buy.toString();
+            sellPrice = pricelist.sell.toString();
+            autoprice = pricelist.autoprice ? 'autopriced' : 'manual';
+        } else {
+            buyPrice = new Currencies(prices[sku].buy).toString();
+            sellPrice = new Currencies(prices[sku].sell).toString();
+        }
 
         toJoin.push(
-            `${isSteamChat ? `${name} - ${buyPrice} / ${sellPrice}` : `_${name}_ - ${buyPrice} / ${sellPrice}`}`
+            `${
+                isSteamChat
+                    ? `${name} - ${buyPrice} / ${sellPrice}`
+                    : `_${name}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
+            }`
         );
     }
 
