@@ -297,10 +297,10 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         `⏳ Running automatic add items... Total items to add: ${total}` +
             `\n${params.autoprice ? 2 : 1} seconds in between items, so it will be about ${
                 totalTime < aMin
-                    ? `${Math.round(totalTime / aSecond)} seconds.`
+                    ? `${Math.round(totalTime / aSecond)} seconds`
                     : totalTime < anHour
-                    ? `${Math.round(totalTime / aMin)} minutes.`
-                    : `${Math.round(totalTime / anHour)} hours.`
+                    ? `${Math.round(totalTime / aMin)} minutes`
+                    : `${Math.round(totalTime / anHour)} hours`
             } to complete. Send "!stopautoadd" to abort.`
     );
 
@@ -310,16 +310,9 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     for (const sku in dict) {
         if (stopAutoAdd) {
-            bot.sendMessage(
-                steamID,
-                '🛑 Stopped auto-add items, final status:' +
-                    `\n${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
-                        total - added - skipped - failed
-                    } remaining`
-            );
-
+            bot.sendMessage(steamID, '----------\n🛑 Stopped auto-add items');
             stopAutoAdd = false;
-            return;
+            break;
         }
 
         if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
@@ -330,7 +323,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
             skipped++;
             bot.sendMessage(
                 steamID,
-                `⚠️ ${bot.schema.getName(SKU.fromString(sku))} (${sku}) already in pricelist, skipping...` +
+                `----------\n⚠️ ${bot.schema.getName(SKU.fromString(sku))} (${sku}) already in pricelist, skipping...` +
                     `\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                         total - added - skipped - failed
                     } remaining`
@@ -354,7 +347,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                 added++;
                 bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}"` +
+                    `----------\n✅ Added "${entry.name}"` +
                         generateAddedReply(bot, isPremium, entry) +
                         `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                             total - added - skipped - failed
@@ -365,7 +358,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                 failed++;
                 bot.sendMessage(
                     steamID,
-                    `❌ Failed to add the item to the pricelist: ${err.message}` +
+                    `----------\n❌ Failed to add the item to the pricelist: ${err.message}` +
                         `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                             total - added - skipped - failed
                         } remaining`
@@ -373,7 +366,10 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
             });
     }
 
-    bot.sendMessage(steamID, `✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`);
+    bot.sendMessage(
+        steamID,
+        `----------\n✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`
+    );
 
     stopAutoAdd = false;
 }
