@@ -295,28 +295,24 @@ export default class Trades {
         meta: Meta,
         offer: TradeOffer
     ): Promise<void> {
-        void this.bot.handler.onOfferAction(offer, action, reason, meta);
-
-        let actionFunc: () => Promise<any>;
-
-        if (action === 'accept') {
-            actionFunc = this.acceptOffer.bind(this, offer);
-        } else if (action === 'decline') {
-            actionFunc = this.declineOffer.bind(this, offer);
-        }
-
-        offer.data('action', {
-            action: action,
-            reason: reason,
-            meta: meta
-        } as Action);
-
-        if (actionFunc === undefined) {
-            return Promise.resolve();
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return actionFunc()
+        return this.bot.handler
+            .onOfferAction(offer, action, reason, meta)
+            .then(() => {
+                offer.data('action', {
+                    action: action,
+                    reason: reason,
+                    meta: meta
+                } as Action);
+                if (action === 'accept') {
+                    return this.acceptOffer(offer).then(() => {
+                        return;
+                    });
+                } else if (action === 'decline') {
+                    return this.declineOffer(offer);
+                } else {
+                    return;
+                }
+            })
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
             })
@@ -422,24 +418,27 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    return reject(err);
+                    reject(err);
                 }
 
                 offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
 
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
-                    this.acceptConfirmation(offer).catch(() => {
-                        // catch errors like a boss
+                    this.acceptConfirmation(offer).catch(err => {
+                        log.debug(`failed acceptConfirmation ${JSON.stringify(err)}`);
                     });
                 }
 
-                return resolve(status);
+                resolve(status);
             });
         });
     }
 
     acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
+        if (offer.state === TradeOfferManager.ETradeOfferState['Canceled'])
+            throw new Error(`Offer #${offer.id} was canceled during confirmation`);
+
         attempts++;
         if (
             offer.state === TradeOfferManager.ETradeOfferState['Active'] ||

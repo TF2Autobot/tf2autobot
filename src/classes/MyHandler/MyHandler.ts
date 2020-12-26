@@ -1589,6 +1589,7 @@ export default class MyHandler extends Handler {
         if (action === 'skip') {
             await sendReview(offer, this.bot, meta, this.isTradingKeys);
             this.isTradingKeys = false; // reset
+            return;
         }
     }
 
