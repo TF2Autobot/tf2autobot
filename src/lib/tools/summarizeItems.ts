@@ -102,7 +102,7 @@ export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): s
         toJoin.push(
             `${
                 isSteamChat
-                    ? `${name} - ${buyPrice} / ${sellPrice}`
+                    ? `${name} - ${buyPrice} / ${sellPrice} (${autoprice})`
                     : `_${name}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
             }`
         );
