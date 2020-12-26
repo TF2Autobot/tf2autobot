@@ -35,6 +35,8 @@ const ADMIN_COMMANDS: string[] = [
     '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
     '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
     '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+    '!autoadd [Listing-parameters] - Perform automatic add items based on items in your backpack (about 2 seconds every item) 🤖',
+    '!stopautoadd - Stop automatic add items operation 🛑',
     '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
     '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
     '!shuffle - Shuffle pricelist entries.',

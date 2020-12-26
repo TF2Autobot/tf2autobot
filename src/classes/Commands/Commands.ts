@@ -113,6 +113,10 @@ export default class Commands {
             void c.pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
             c.pricelist.getCommand(steamID, message, this.bot);
+        } else if (command === 'autoadd' && isAdmin) {
+            void c.pricelist.autoAddCommand(steamID, message, this.bot);
+        } else if (command === 'stopautoadd' && isAdmin) {
+            void c.pricelist.stopAutoAddCommand();
         } else if (command === 'shuffle' && isAdmin) {
             void c.pricelist.shuffleCommand(steamID, this.bot);
         } else if (command === 'expand' && isAdmin) {

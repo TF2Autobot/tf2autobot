@@ -6,6 +6,7 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
+import sleepasync from 'sleep-async';
 
 import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
 
@@ -13,6 +14,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
+import { craftAll, uncraftAll } from '../../../lib/data';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -132,6 +134,228 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
         .catch((err: Error) => {
             bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${err.message}`);
         });
+}
+
+let stopAutoAdd = false;
+
+export function stopAutoAddCommand(): void {
+    stopAutoAdd = true;
+}
+
+export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+    message = removeLinkProtocol(message);
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+    const isPremium = bot.handler.getBotInfo().premium;
+
+    if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
+        bot.sendMessage(
+            steamID,
+            `❌ Please only define item listing settings parameters, more info:` +
+                ` https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F#i2---item-listing-settings-parameters.`
+        );
+        return;
+    }
+
+    if (params === undefined) {
+        bot.sendMessage(steamID, `⏳ Adding all items with default settings...`);
+    }
+
+    if (params.enabled === undefined) {
+        params.enabled = true;
+    }
+    if (params.max === undefined) {
+        params.max = 1;
+    }
+    if (params.min === undefined) {
+        params.min = 0;
+    }
+    if (params.intent === undefined) {
+        params.intent = 2;
+    } else if (typeof params.intent === 'string') {
+        const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
+        if (intent !== -1) {
+            params.intent = intent;
+        }
+    }
+
+    if (typeof params.buy === 'object') {
+        params.buy.keys = params.buy.keys || 0;
+        params.buy.metal = params.buy.metal || 0;
+
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
+    }
+    if (typeof params.sell === 'object') {
+        params.sell.keys = params.sell.keys || 0;
+        params.sell.metal = params.sell.metal || 0;
+
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
+    }
+
+    if (params.promoted !== undefined) {
+        if (!isPremium) {
+            bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`);
+            return;
+        }
+
+        if (typeof params.promoted === 'boolean') {
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
+        } else {
+            if (typeof params.promoted !== 'number') {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+            if (params.promoted < 0 || params.promoted > 1) {
+                bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
+                return;
+            }
+        }
+    } else if (params.promoted === undefined) {
+        params['promoted'] = 0;
+    }
+
+    if (typeof params.note === 'object') {
+        params.note.buy = params.note.buy || null;
+        params.note.sell = params.note.sell || null;
+    }
+
+    if (params.note === undefined) {
+        // If note parameter is not defined, set both note.buy and note.sell to null.
+        params['note'] = { buy: null, sell: null };
+    }
+
+    if (params.group && typeof params.group !== 'string') {
+        // if group parameter is defined, convert anything to string
+        params.group = (params.group as string).toString();
+    }
+
+    if (params.group === undefined) {
+        // If group paramater is not defined, set it to null.
+        params['group'] = 'all';
+    }
+
+    if (params.autoprice === undefined) {
+        params.autoprice = true;
+    }
+
+    const pricelist = bot.pricelist.getPrices();
+
+    const dict = bot.inventoryManager.getInventory().getItems();
+
+    let pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
+    const combine: string[] = [];
+
+    if (bot.options.weaponsAsCurrency.enable) {
+        pure = pure.concat(craftAll);
+
+        if (bot.options.weaponsAsCurrency.withUncraft) {
+            pure = pure.concat(uncraftAll);
+        }
+    }
+
+    pure.forEach(sku => {
+        if (!combine.includes(sku)) {
+            combine.push(sku);
+        }
+    });
+
+    for (const sku in dict) {
+        if (combine.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
+            delete dict[sku];
+        }
+    }
+
+    const total = Object.keys(dict).length;
+
+    const totalTime = total * (params.autoprice ? 2 : 1) * 1000;
+    const aSecond = 1 * 1000;
+    const aMin = 1 * 60 * 1000;
+    const anHour = 1 * 60 * 60 * 1000;
+
+    bot.sendMessage(
+        steamID,
+        `⏳ Running automatic add items... Total items to add: ${total}` +
+            `\n${params.autoprice ? 2 : 1} seconds in between items, so it will be about ${
+                totalTime < aMin
+                    ? `${Math.round(totalTime / aSecond)} seconds.`
+                    : totalTime < anHour
+                    ? `${Math.round(totalTime / aMin)} minutes.`
+                    : `${Math.round(totalTime / anHour)} hours.`
+            } to complete. Send "!stopautoadd" to abort.`
+    );
+
+    let added = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const sku in dict) {
+        if (stopAutoAdd) {
+            bot.sendMessage(
+                steamID,
+                '🛑 Stopped auto-add items, final status:' +
+                    `\n${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
+                        total - added - skipped - failed
+                    } remaining`
+            );
+            return;
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            continue;
+        }
+
+        if (pricelist.some(entry => entry.sku === sku)) {
+            skipped++;
+            bot.sendMessage(
+                steamID,
+                `⚠️ ${bot.schema.getName(SKU.fromString(sku))} (${sku}) already in pricelist, skipping...` +
+                    `\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
+                        total - added - skipped - failed
+                    } remaining`
+            );
+            continue;
+        }
+
+        if (params.autoprice === true) {
+            await sleepasync().Promise.sleep(2 * 1000);
+        } else {
+            await sleepasync().Promise.sleep(1 * 1000);
+        }
+
+        params.sku = sku;
+
+        bot.pricelist
+            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
+            .then(entry => {
+                added++;
+                bot.sendMessage(
+                    steamID,
+                    `✅ Added "${entry.name}"` +
+                        generateAddedReply(bot, isPremium, entry) +
+                        `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
+                            total - added - skipped - failed
+                        } remaining`
+                );
+            })
+            .catch((err: Error) => {
+                failed++;
+                bot.sendMessage(
+                    steamID,
+                    `❌ Failed to add the item to the pricelist: ${err.message}` +
+                        `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
+                            total - added - skipped - failed
+                        } remaining`
+                );
+            });
+    }
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
