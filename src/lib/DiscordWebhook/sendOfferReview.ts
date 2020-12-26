@@ -16,6 +16,7 @@ export default function sendOfferReview(
     value: ValueDiff,
     links: Links,
     items: Review,
+    prices: string,
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
@@ -60,6 +61,9 @@ export default function sendOfferReview(
         false
     );
     const itemList = listItems(itemsName, false);
+
+    const combineList =
+        (bot.options.manualReview.showItemPrices ? (prices !== '' ? `${prices}\n\n` : '') : '') + itemList;
 
     let partnerAvatar: string;
     let partnerName: string;
@@ -114,7 +118,7 @@ export default function sendOfferReview(
                     fields: [
                         {
                             name: '__Item list__',
-                            value: itemList.replace(/@/g, '')
+                            value: combineList.replace(/@/g, '')
                         },
                         {
                             name: `__Status__`,
@@ -144,7 +148,7 @@ export default function sendOfferReview(
             removeStatus = true;
         }
 
-        if (itemList === '-') {
+        if (combineList === '-') {
             // if __Item list__ field is empty, then remove it
             if (removeStatus) {
                 // if __Status__ fields was removed, then delete the entire fields properties
@@ -153,7 +157,7 @@ export default function sendOfferReview(
                 // else just remove the first element of the fields array (__Item list__)
                 webhookReview.embeds[0].fields.shift();
             }
-        } else if (itemList.length >= 1024) {
+        } else if (combineList.length >= 1024) {
             // first get __Status__ element
             const statusElement = webhookReview.embeds[0].fields.pop();
 
@@ -162,7 +166,7 @@ export default function sendOfferReview(
 
             const separate = itemList.split('@');
 
-            let newSentences = '';
+            let newSentences = bot.options.manualReview.showItemPrices ? `${prices}\n\n` : '';
             let j = 1;
             separate.forEach((sentence, i) => {
                 if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {

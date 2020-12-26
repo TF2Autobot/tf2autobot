@@ -23,7 +23,7 @@ export default function processAccepted(
     const pureStock = t.pure.stock(bot);
     const time = t.timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes).time;
     const links = t.generateLinks(offer.partner.toString());
-    const items = itemList(offer);
+    const itemsSKU = itemList(offer);
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
 
     const timeTaken = t.convertTime(processTime, bot.options.tradeSummary.showTimeTakenInMS);
@@ -169,6 +169,7 @@ export default function processAccepted(
         : undefined;
 
     if (isWebhookEnabled) {
+        const itemPrices = t.listPrices(offer, bot, false);
         void sendTradeSummary(
             offer,
             autokeys,
@@ -176,7 +177,8 @@ export default function processAccepted(
             accepted,
             keyPrices,
             value,
-            items,
+            itemsSKU,
+            itemPrices,
             links,
             time,
             bot,
@@ -195,6 +197,7 @@ export default function processAccepted(
             highValue: accepted.highValue // 🔶_HIGH_VALUE_ITEMS
         };
         const itemList = t.listItems(itemsName, true);
+        const itemPrices = t.listPrices(offer, bot, true);
 
         bot.messageAdmins(
             'trade',
@@ -208,6 +211,7 @@ export default function processAccepted(
                     true,
                     isOfferSent
                 ) +
+                (opt.tradeSummary.showItemPrices ? `\n\nItem prices:\n${itemPrices}` : '') +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +

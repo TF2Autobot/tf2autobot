@@ -36,7 +36,8 @@ export const DEFAULTS = {
 
     tradeSummary: {
         showStockChanges: false,
-        showTimeTakenInMS: true
+        showTimeTakenInMS: true,
+        showItemPrices: false
     },
 
     highValue: {
@@ -118,6 +119,7 @@ export const DEFAULTS = {
         showOfferSummary: true,
         showReviewOfferNote: true,
         showOwnerCurrentTime: true,
+        showItemPrices: true,
         invalidValue: {
             note: '',
             autoDecline: {
@@ -212,6 +214,7 @@ export interface WeaponsAsCurrency {
 export interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
+    showItemPrices?: boolean;
 }
 
 export interface HighValue {
@@ -359,6 +362,7 @@ export interface ManualReview {
     showOfferSummary?: boolean;
     showReviewOfferNote?: boolean;
     showOwnerCurrentTime?: boolean;
+    showItemPrices?: boolean;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     overstocked?: Overstocked;

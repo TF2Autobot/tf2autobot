@@ -1,3 +1,8 @@
+import { TradeOffer, Prices } from 'steam-tradeoffer-manager';
+import SKU from 'tf2-sku-2';
+import Currencies from 'tf2-currencies';
+import Bot from '../../classes/Bot';
+
 export default function listItems(
     items: {
         invalid: string[];
@@ -66,4 +71,27 @@ export default function listItems(
         list = '-';
     }
     return list;
+}
+
+export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
+    const prices = offer.data('prices') as Prices;
+
+    let text = '';
+    for (const sku in prices) {
+        if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+            continue;
+        }
+
+        const name = bot.schema.getName(SKU.fromString(sku), false);
+        const buyPrice = new Currencies(prices[sku].buy).toString();
+        const sellPrice = new Currencies(prices[sku].sell).toString();
+
+        text += `\n-${isSteamChat ? `${name} - ${buyPrice}/${sellPrice}` : `_${name}_ - ${buyPrice}/${sellPrice}`}`;
+    }
+
+    if (text !== '') {
+        text = `📜${isSteamChat ? '' : '`'}_ITEMS_PRICES${isSteamChat ? '' : '`'}` + text;
+    }
+
+    return text;
 }

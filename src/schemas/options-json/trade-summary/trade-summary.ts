@@ -9,6 +9,9 @@ export const tradeSummarySchema: jsonschema.Schema = {
         },
         showTimeTakenInMS: {
             type: 'boolean'
+        },
+        showItemPrices: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

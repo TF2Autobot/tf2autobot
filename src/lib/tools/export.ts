@@ -5,7 +5,7 @@ import * as replace from './replace';
 import stats from './stats';
 import { timeNow, convertTime, uptime } from './time';
 import valueDiff from './valueDiff';
-import listItems from './summarizeItems';
+import listItems, { listPrices } from './summarizeItems';
 import summarize from './summarizeOffer';
 import profit from './profit';
 
@@ -18,6 +18,7 @@ export {
     timeNow,
     valueDiff,
     listItems,
+    listPrices,
     summarize,
     uptime,
     convertTime,

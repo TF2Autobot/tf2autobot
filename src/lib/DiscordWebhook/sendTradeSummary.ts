@@ -19,6 +19,7 @@ export default async function sendTradeSummary(
     keyPrices: KeyPrices,
     value: ValueDiff,
     items: ItemSKUList,
+    prices: string,
     links: Links,
     time: string,
     bot: Bot,
@@ -40,6 +41,9 @@ export default async function sendTradeSummary(
     };
 
     const itemList = listItems(itemsName, false);
+
+    const combineList =
+        (bot.options.tradeSummary.showItemPrices ? (prices !== '' ? `${prices}\n\n` : '') : '') + itemList;
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = opt.tradeSummary.mentionOwner.enable;
@@ -150,7 +154,7 @@ export default async function sendTradeSummary(
                     fields: [
                         {
                             name: '__Item list__',
-                            value: itemList.replace(/@/g, '')
+                            value: combineList.replace(/@/g, '')
                         },
                         {
                             name: `__Status__`,
@@ -189,9 +193,9 @@ export default async function sendTradeSummary(
             ]
         };
 
-        if (itemList === '-') {
+        if (combineList === '-') {
             acceptedTradeSummary.embeds[0].fields.shift();
-        } else if (itemList.length >= 1024) {
+        } else if (combineList.length >= 1024) {
             // first get __Status__ element
             const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
 
@@ -200,7 +204,7 @@ export default async function sendTradeSummary(
 
             const separate = itemList.split('@');
 
-            let newSentences = '';
+            let newSentences = bot.options.manualReview.showItemPrices ? `${prices}\n\n` : '';
             let j = 1;
             separate.forEach((sentence, i) => {
                 if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {

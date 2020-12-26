@@ -16,6 +16,9 @@ export const manualReviewSchema: jsonschema.Schema = {
         showOwnerCurrentTime: {
             type: 'boolean'
         },
+        showItemPrices: {
+            type: 'boolean'
+        },
         invalidValue: {
             $ref: 'invalid-value'
         },

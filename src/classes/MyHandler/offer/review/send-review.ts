@@ -5,7 +5,7 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, listItems, summarize, timeNow, generateLinks, check } from '../../../../lib/tools/export';
+import { pure, listItems, summarize, timeNow, generateLinks, check, listPrices } from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -100,11 +100,13 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const list = listItems(items, true);
 
     if (isWebhookEnabled) {
-        void sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
+        const itemPrices = listPrices(offer, bot, false);
+        sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, itemPrices, bot);
     } else {
         const currentItems = bot.inventoryManager.getInventory().getTotalItems();
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
+        const itemPrices = listPrices(offer, bot, true);
         bot.messageAdmins(
             `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
                 `\nReasons: ${reasons.join(', ')}` +
@@ -123,6 +125,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 ) +
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
+                (opt.manualReview.showItemPrices ? `\n\n${itemPrices}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
