@@ -207,7 +207,9 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     const schemaItem = schema.getItemByDefindex(getDefindex(item));
 
     // Remove weapon from skin name
-    skin = skin.replace(schemaItem.item_type_name, '').trim();
+    if (schemaItem !== null) {
+        skin = skin.replace(schemaItem.item_type_name, '').trim();
+    }
 
     return schema.getSkinIdByName(skin);
 }
