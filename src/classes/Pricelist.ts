@@ -339,6 +339,20 @@ export default class Pricelist extends EventEmitter {
             throw new Error('Item is already priced');
         }
 
+        if (entryData.sku === '5021;6') {
+            if (entryData.buy !== undefined) {
+                if (entryData.buy.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
+            }
+
+            if (entryData.sell !== undefined) {
+                if (entryData.sell.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
+            }
+        }
+
         const entry = new Entry(entryData, this.schema);
 
         await this.validateEntry(entry, src);
@@ -362,6 +376,20 @@ export default class Pricelist extends EventEmitter {
 
         if (errors !== null) {
             return Promise.reject(new Error(errors.join(', ')));
+        }
+
+        if (entryData.sku === '5021;6') {
+            if (entryData.buy !== undefined) {
+                if (entryData.buy.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
+            }
+
+            if (entryData.sell !== undefined) {
+                if (entryData.sell.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
+            }
         }
 
         const entry = new Entry(entryData, this.schema);
