@@ -77,6 +77,7 @@ export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): s
     const prices = offer.data('prices') as Prices;
 
     let text = '';
+    const toJoin: string[] = [];
     for (const sku in prices) {
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
             continue;
@@ -86,11 +87,13 @@ export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): s
         const buyPrice = new Currencies(prices[sku].buy).toString();
         const sellPrice = new Currencies(prices[sku].sell).toString();
 
-        text += `\n-${isSteamChat ? `${name} - ${buyPrice}/${sellPrice}` : `_${name}_ - ${buyPrice}/${sellPrice}`}`;
+        toJoin.push(
+            `${isSteamChat ? `${name} - ${buyPrice} / ${sellPrice}` : `_${name}_ - ${buyPrice} / ${sellPrice}`}`
+        );
     }
 
-    if (text !== '') {
-        text = `📜${isSteamChat ? '' : '`'}_ITEMS_PRICES${isSteamChat ? '' : '`'}` + text;
+    if (toJoin.length > 0) {
+        text = `📜${isSteamChat ? '' : '`'}_ITEMS_PRICES${isSteamChat ? '\n' : '`\n'}` + toJoin.join(',\n- ');
     }
 
     return text;
