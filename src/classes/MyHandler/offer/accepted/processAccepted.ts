@@ -127,7 +127,7 @@ export default async function processAccepted(
         }
     } else if (offerSent) {
         // This is for offer that bot created from commands
-        if (Object.keys(offerSent.items.their).length > 0) {
+        if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
             const itemsName = await t.check.getHighValueItems(offerSent.items.their, bot);
 
             for (const name in itemsName) {
@@ -144,7 +144,7 @@ export default async function processAccepted(
             }
         }
 
-        if (Object.keys(offerSent.items.our).length > 0) {
+        if (offerSent.items && Object.keys(offerSent.items.our).length > 0) {
             const itemsName = t.check.getHighValueItems(offerSent.items.our, bot);
 
             for (const name in itemsName) {

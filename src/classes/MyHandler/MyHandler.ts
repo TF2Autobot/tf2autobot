@@ -665,6 +665,9 @@ export default class MyHandler extends Handler {
             their: highValueTheir
         };
 
+        const isContainsHighValue =
+            Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0;
+
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
             offer.log(
@@ -675,11 +678,19 @@ export default class MyHandler extends Handler {
                         : offer.summarize(this.bot.schema)
                 }`
             );
-            return {
-                action: 'accept',
-                reason: 'ADMIN',
-                meta: { highValue: highValueMeta(input) }
-            };
+
+            if (isContainsHighValue) {
+                return {
+                    action: 'accept',
+                    reason: 'ADMIN',
+                    meta: { highValue: highValueMeta(input) }
+                };
+            } else {
+                return {
+                    action: 'accept',
+                    reason: 'ADMIN'
+                };
+            }
         }
 
         if (hasInvalidItems) {
@@ -705,22 +716,37 @@ export default class MyHandler extends Handler {
                         : offer.summarize(this.bot.schema)
                 }`
             );
-            return {
-                action: 'accept',
-                reason: 'GIFT',
-                meta: { highValue: highValueMeta(input) }
-            };
+            if (isContainsHighValue) {
+                return {
+                    action: 'accept',
+                    reason: 'GIFT',
+                    meta: { highValue: highValueMeta(input) }
+                };
+            } else {
+                return {
+                    action: 'accept',
+                    reason: 'GIFT'
+                };
+            }
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
             if (opt.allowGiftNoMessage) {
                 offer.log(
                     'info',
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
                 );
-                return {
-                    action: 'accept',
-                    reason: 'GIFT',
-                    meta: { highValue: highValueMeta(input) }
-                };
+
+                if (isContainsHighValue) {
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT',
+                        meta: { highValue: highValueMeta(input) }
+                    };
+                } else {
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT'
+                    };
+                }
             } else {
                 offer.log('info', 'is a gift offer without any offer message, declining...');
                 return { action: 'decline', reason: 'GIFT_NO_NOTE' };
@@ -1390,15 +1416,26 @@ export default class MyHandler extends Handler {
                     );
                 }
 
-                return {
-                    action: 'accept',
-                    reason: 'VALID_WITH_OVERPAY',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        highValue: highValueMeta(input)
-                    }
-                };
+                if (isContainsHighValue) {
+                    return {
+                        action: 'accept',
+                        reason: 'VALID_WITH_OVERPAY',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer,
+                            highValue: highValueMeta(input)
+                        }
+                    };
+                } else {
+                    return {
+                        action: 'accept',
+                        reason: 'VALID_WITH_OVERPAY',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
             } else if (
                 opt.manualReview.invalidValue.autoDecline.enable &&
                 isInvalidValue &&
@@ -1464,13 +1501,18 @@ export default class MyHandler extends Handler {
             );
         }
 
-        return {
-            action: 'accept',
-            reason: 'VALID',
-            meta: {
-                highValue: highValueMeta(input)
-            }
-        };
+        if (isContainsHighValue) {
+            return {
+                action: 'accept',
+                reason: 'VALID',
+                meta: { highValue: highValueMeta(input) }
+            };
+        } else {
+            return {
+                action: 'accept',
+                reason: 'VALID'
+            };
+        }
     }
 
     // TODO: checkBanned and checkEscrow are copied from UserCart, don't duplicate them

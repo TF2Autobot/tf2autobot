@@ -749,7 +749,9 @@ export default class UserCart extends Cart {
             their: highValueTheir
         };
 
-        offer.data('highValue', highValue(input));
+        if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
+            offer.data('highValue', highValue(input));
+        }
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
@@ -1756,7 +1758,9 @@ export default class UserCart extends Cart {
             their: highValueTheir
         };
 
-        offer.data('highValue', highValue(input));
+        if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
+            offer.data('highValue', highValue(input));
+        }
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
 
