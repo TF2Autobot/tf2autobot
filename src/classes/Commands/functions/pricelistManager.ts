@@ -305,6 +305,8 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                         total - added - skipped - failed
                     } remaining`
             );
+
+            stopAutoAdd = false;
             return;
         }
 
@@ -356,6 +358,10 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                 );
             });
     }
+
+    bot.sendMessage(steamID, `✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`);
+
+    stopAutoAdd = false;
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
