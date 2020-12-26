@@ -155,11 +155,12 @@ export default class Pricelist extends EventEmitter {
     constructor(
         schema: SchemaManager.Schema,
         private socketManager: SocketManager,
-        private readonly bot?: Bot | Options
+        private options?: Options,
+        private readonly bot?: Bot
     ) {
         super();
         this.schema = schema;
-        this.maxAge = (this.bot as Bot).options.maxPriceAge || 8 * 60 * 60;
+        this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
         this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
 
@@ -677,7 +678,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: GetItemPriceResponse): void {
-        const opt = (this.bot as Bot).options;
+        const opt = this.options;
 
         if (data.source !== 'bptf') {
             return;
@@ -750,7 +751,7 @@ export default class Pricelist extends EventEmitter {
                     match,
                     time,
                     this.schema,
-                    (this.bot as Bot).options
+                    this.options
                 );
                 // this.priceChanges.push({
                 //     sku: data.sku,

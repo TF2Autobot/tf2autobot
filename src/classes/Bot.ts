@@ -161,7 +161,7 @@ export default class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager(), this);
+        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager(), this.options, this);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
