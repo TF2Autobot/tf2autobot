@@ -59,7 +59,7 @@ export function versionCommand(steamID: SteamID, bot: Bot): void {
                 bot.sendMessage(
                     steamID,
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
-                        `\n\nNavigate to your bot folder and run [git stash && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
+                        `\n\nNavigate to your bot folder and run [git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                         `\nIf the update requires you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                         '\nContact IdiNium if you have any other problem. Thank you.'
                 );

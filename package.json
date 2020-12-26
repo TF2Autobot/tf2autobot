@@ -12,7 +12,7 @@
         "lint": "eslint .",
         "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "eslint --print-config src/app.ts | eslint-config-prettier-check",
-        "update": "git stash && git checkout master && git pull && npm install && npm run build"
+        "update": "git reset HEAD --hard && git checkout master && git pull && npm install && npm run build"
     },
     "repository": {
         "type": "git",
