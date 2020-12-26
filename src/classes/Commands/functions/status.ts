@@ -25,7 +25,7 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
 
     bot.sendMessage(
         steamID,
-        `All accepted trades are recorded from ${pluralize('day', trades.totalDays, true)}` +
+        `All trades (accepted) are recorded from ${pluralize('day', trades.totalDays, true)}` +
             ' ago 📊\n\n Total: ' +
             (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
             ` \nLast 24 hours: ${trades.trades24Hours} (${
