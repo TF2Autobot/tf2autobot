@@ -844,7 +844,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         .then(entry => {
             bot.sendMessage(
                 steamID,
-                `✅ Updated "${entry.name}"` + generateUpdateReply(bot, isPremium, entry, itemEntry)
+                `✅ Updated "${entry.name}"` + generateUpdateReply(bot, isPremium, itemEntry, entry)
             );
         })
         .catch((err: ErrorRequest) => {
@@ -878,7 +878,7 @@ function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newE
                 ? `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'} → ${
                       newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'
                   }`
-                : `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'}`
+                : `${newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'}`
         }` +
         `\n📋 Enabled: ${
             oldEntry.enabled !== newEntry.enabled
