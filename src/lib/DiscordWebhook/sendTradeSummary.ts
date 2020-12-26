@@ -43,7 +43,11 @@ export default async function sendTradeSummary(
     const itemList = listItems(itemsName, false);
 
     const combineList =
-        (bot.options.tradeSummary.showItemPrices ? (prices !== '' ? `${prices}\n\n` : '') : '') + itemList;
+        (bot.options.tradeSummary.showItemPrices
+            ? prices !== ''
+                ? `${prices}` + (itemList !== '-' ? '\n\n' : '')
+                : ''
+            : '') + (prices !== '' && itemList === '-' ? '' : itemList);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = opt.tradeSummary.mentionOwner.enable;

@@ -63,7 +63,11 @@ export default function sendOfferReview(
     const itemList = listItems(itemsName, false);
 
     const combineList =
-        (bot.options.manualReview.showItemPrices ? (prices !== '' ? `${prices}\n\n` : '') : '') + itemList;
+        (bot.options.manualReview.showItemPrices
+            ? prices !== ''
+                ? `${prices}` + (itemList !== '-' ? '\n\n' : '')
+                : ''
+            : '') + (prices !== '' && itemList === '-' ? '' : itemList);
 
     let partnerAvatar: string;
     let partnerName: string;
