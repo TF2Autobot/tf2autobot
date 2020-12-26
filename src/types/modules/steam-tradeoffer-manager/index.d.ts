@@ -231,16 +231,25 @@ declare module 'steam-tradeoffer-manager' {
             result?: boolean[];
         }
 
-        interface HighValue {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
+        interface PartialSKUWithMention {
+            [partialSKU: string]: boolean;
         }
 
-        export interface HighValueInput {
-            our: HighValue;
-            their: HighValue;
+        interface ItemAttributes {
+            s?: string[];
+            sp?: PartialSKUWithMention;
+            ks?: PartialSKUWithMention;
+            ke?: PartialSKUWithMention;
+            p?: PartialSKUWithMention;
+        }
+
+        interface Items {
+            [sku: string]: ItemAttributes;
+        }
+
+        interface HighValue {
+            items: Items;
+            isMention: boolean;
         }
 
         interface HighValueBoolean {
@@ -248,18 +257,17 @@ declare module 'steam-tradeoffer-manager' {
             their: boolean;
         }
 
-        interface HighValueItems {
-            skus: string[];
-            names: string[];
+        interface HighValueItemsWhich {
+            our: Items;
+            their: Items;
         }
 
-        interface HighValueItemsWhich {
-            our: HighValueItems;
-            their: HighValueItems;
+        export interface HighValueInput {
+            our: HighValue;
+            their: HighValue;
         }
 
         export interface HighValueOutput {
-            has: HighValueBoolean;
             items: HighValueItemsWhich;
             isMention: HighValueBoolean;
         }

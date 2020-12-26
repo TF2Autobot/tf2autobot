@@ -142,7 +142,7 @@ export default class MyHandler extends Handler {
             log.warn(
                 'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
             );
-            return sheensData.map(sheen => sheen.toLowerCase().trim());
+            return Object.keys(sheensData).map(sheen => sheen.toLowerCase().trim());
         } else {
             return sheens.map(sheen => sheen.toLowerCase().trim());
         }
@@ -155,7 +155,7 @@ export default class MyHandler extends Handler {
             log.warn(
                 'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
             );
-            return killstreakersData.map(killstreaker => killstreaker.toLowerCase().trim());
+            return Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase().trim());
         } else {
             return killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
         }
@@ -764,22 +764,31 @@ export default class MyHandler extends Handler {
         }
 
         const isInPricelist =
-            highValueOur.skus.length > 0 // Only check if this not empty
-                ? highValueOur.skus.some(sku => {
+            Object.keys(highValueOur.items).length > 0 // Only check if this not empty
+                ? Object.keys(highValueOur.items).some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
-        if (highValueOur.has && isInPricelist === false) {
+        if (Object.keys(highValueOur.items).length > 0 && isInPricelist === false) {
             // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
+            const highValueOurNames: string[] = [];
+            const itemsName = await check.getHighValueItems(highValueOur.items, this.bot);
+
             if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                sendAlert('highValue', this.bot, null, null, null, highValueOur.names);
+                for (const name in itemsName) {
+                    highValueOurNames.push(`_${name}_` + itemsName[name]);
+                }
+                sendAlert('highValue', this.bot, null, null, null, highValueOurNames);
             } else {
+                for (const name in itemsName) {
+                    highValueOurNames.push(name + itemsName[name]);
+                }
                 this.bot.messageAdmins(
-                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOur.names.join(
+                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOurNames.join(
                         '\n\n- '
                     )}`,
                     []
@@ -790,7 +799,7 @@ export default class MyHandler extends Handler {
                 action: 'decline',
                 reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
                 meta: {
-                    highValueName: highValueOur.names
+                    highValueName: highValueOurNames
                 }
             };
         }
@@ -1893,19 +1902,9 @@ function filterReasons(reasons: string[]): string[] {
 
 function highValueMeta(info: HighValueInput): HighValueOutput {
     return {
-        has: {
-            our: info.our.has,
-            their: info.their.has
-        },
         items: {
-            our: {
-                skus: info.our.skus,
-                names: info.our.names
-            },
-            their: {
-                skus: info.their.skus,
-                names: info.their.names
-            }
+            our: info.our.items,
+            their: info.their.items
         },
         isMention: {
             our: info.our.isMention,

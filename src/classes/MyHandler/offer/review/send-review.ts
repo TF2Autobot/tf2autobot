@@ -5,7 +5,7 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
+import { pure, listItems, summarize, timeNow, generateLinks, check } from '../../../../lib/tools/export';
 
 export default async function sendReview(
     offer: TradeOffer,
@@ -34,6 +34,8 @@ export default async function sendReview(
     const reasons = meta.uniqueReasons;
 
     const isShowChanges = bot.options.tradeSummary.showStockChanges;
+
+    const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
     // Notify partner and admin that the offer is waiting for manual review
     if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
@@ -81,14 +83,12 @@ export default async function sendReview(
     }
 
     const highValueItems: string[] = [];
-    if (meta && meta.highValue) {
-        if (meta.highValue.has) {
-            const hasHighValue = meta.highValue.has.their;
+    if (meta && meta.highValue && meta.highValue.items) {
+        if (Object.keys(meta.highValue.items.their).length > 0) {
+            const itemsName = await check.getHighValueItems(meta.highValue.items.their, bot);
 
-            if (hasHighValue) {
-                meta.highValue.items.their.names.forEach(name => {
-                    highValueItems.push(name);
-                });
+            for (const name in itemsName) {
+                highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
         }
     }
@@ -104,7 +104,7 @@ export default async function sendReview(
 
     const list = listItems(items, true);
 
-    if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
+    if (isWebhookEnabled) {
         void sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
     } else {
         const currentItems = bot.inventoryManager.getInventory().getTotalItems();

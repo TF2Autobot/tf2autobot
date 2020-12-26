@@ -2036,19 +2036,9 @@ export default class UserCart extends Cart {
 
 function highValue(info: HighValueInput): HighValueOutput {
     return {
-        has: {
-            our: info.our.has,
-            their: info.their.has
-        },
         items: {
-            our: {
-                skus: info.our.skus,
-                names: info.our.names
-            },
-            their: {
-                skus: info.their.skus,
-                names: info.their.names
-            }
+            our: info.our.items,
+            their: info.their.items
         },
         isMention: {
             our: info.our.isMention,

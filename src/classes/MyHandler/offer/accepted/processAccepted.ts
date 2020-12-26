@@ -39,6 +39,8 @@ export default async function processAccepted(
     const offerReceived = offer.data('action') as Action;
     const offerSent = offer.data('highValue') as HighValueOutput;
 
+    const isWebhookEnabled = opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0;
+
     if (offerReceived) {
         // doing this because if an offer is being made by bot (from command), then this is undefined
         if (offerReceived.reason === 'VALID_WITH_OVERPAY' || offerReceived.reason === 'MANUAL') {
@@ -54,7 +56,7 @@ export default async function processAccepted(
                     ) as InvalidItems[];
                     invalid.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.invalidItems.push(`${name} - ${el.price}`);
+                        accepted.invalidItems.push(`${`${isWebhookEnabled ? `_${name}_` : name}`} - ${el.price}`);
                     });
                 }
 
@@ -67,7 +69,9 @@ export default async function processAccepted(
 
                     overstocked.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.overstocked.push(`${name} (amount can buy was ${el.amountCanTrade})`);
+                        accepted.overstocked.push(
+                            `${`${isWebhookEnabled ? `_${name}_` : name}`} (amount can buy was ${el.amountCanTrade})`
+                        );
                     });
                 }
 
@@ -79,22 +83,26 @@ export default async function processAccepted(
                     ) as Understocked[];
                     understocked.forEach(el => {
                         const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.understocked.push(`${name} (amount can sell was ${el.amountCanTrade})`);
+                        accepted.understocked.push(
+                            `${`${isWebhookEnabled ? `_${name}_` : name}`} (amount can sell was ${el.amountCanTrade})`
+                        );
                     });
                 }
             }
         }
 
         if (offerReceived.meta && offerReceived.meta.highValue) {
-            if (offerReceived.meta.highValue.has.their) {
+            if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                offerReceived.meta.highValue.items.their.names.forEach(name => {
-                    accepted.highValue.push(name);
-                    theirHighValuedItems.push(name);
-                });
+                const itemsName = await t.check.getHighValueItems(offerReceived.meta.highValue.items.their, bot);
+
+                for (const name in itemsName) {
+                    accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                    theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
 
                 if (offerReceived.meta.highValue.isMention.their) {
-                    offerReceived.meta.highValue.items.their.skus.forEach(sku => isDisableSKU.push(sku));
+                    Object.keys(offerReceived.meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
                     if (!bot.isAdmin(offer.partner)) {
                         accepted.isMention = true;
@@ -102,9 +110,13 @@ export default async function processAccepted(
                 }
             }
 
-            if (offerReceived.meta.highValue.has.our) {
+            if (Object.keys(offerReceived.meta.highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                offerReceived.meta.highValue.items.our.names.forEach(name => accepted.highValue.push(name));
+                const itemsName = await t.check.getHighValueItems(offerReceived.meta.highValue.items.our, bot);
+
+                for (const name in itemsName) {
+                    accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
 
                 if (offerReceived.meta.highValue.isMention.our) {
                     if (!bot.isAdmin(offer.partner)) {
@@ -115,14 +127,16 @@ export default async function processAccepted(
         }
     } else if (offerSent) {
         // This is for offer that bot created from commands
-        if (offerSent.has.their) {
-            offerSent.items.their.names.forEach(name => {
-                accepted.highValue.push(name);
-                theirHighValuedItems.push(name);
-            });
+        if (Object.keys(offerSent.items.their).length > 0) {
+            const itemsName = await t.check.getHighValueItems(offerSent.items.their, bot);
+
+            for (const name in itemsName) {
+                accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
 
             if (offerSent.isMention.their) {
-                offerSent.items.their.skus.forEach(sku => isDisableSKU.push(sku));
+                Object.keys(offerSent.items.their).forEach(sku => isDisableSKU.push(sku));
 
                 if (!bot.isAdmin(offer.partner)) {
                     accepted.isMention = true;
@@ -130,10 +144,12 @@ export default async function processAccepted(
             }
         }
 
-        if (offerSent.has.our) {
-            offerSent.items.our.names.forEach(name => {
-                accepted.highValue.push(name);
-            });
+        if (Object.keys(offerSent.items.our).length > 0) {
+            const itemsName = t.check.getHighValueItems(offerSent.items.our, bot);
+
+            for (const name in itemsName) {
+                accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + (itemsName[name] as string));
+            }
 
             if (offerSent.isMention.our) {
                 if (!bot.isAdmin(offer.partner)) {
@@ -152,7 +168,7 @@ export default async function processAccepted(
           (offerData[offer.id].action === undefined && bot.isAdmin(offer.partner))
         : undefined;
 
-    if (opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0) {
+    if (isWebhookEnabled) {
         void sendTradeSummary(
             offer,
             autokeys,
