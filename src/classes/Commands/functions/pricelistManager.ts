@@ -276,6 +276,10 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     });
 
     for (const sku in dict) {
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            continue;
+        }
+
         if (combine.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
             delete dict[sku];
         }
