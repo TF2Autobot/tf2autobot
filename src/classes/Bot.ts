@@ -817,10 +817,24 @@ export default class Bot {
         this.client.chatMessage(steamID, message);
 
         if (friend === null) {
-            log.info(`Message sent to ${steamID.toString()}: ${message}`);
+            void this.getPartnerDetails(steamID).then(name => {
+                log.info(`Message sent to ${name} (${steamID64}): ${message}`);
+            });
         } else {
             log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
         }
+    }
+
+    private getPartnerDetails(steamID: SteamID | string): Promise<string> {
+        return new Promise(resolve => {
+            this.community.getSteamUser(steamID, (err, user) => {
+                if (err) {
+                    resolve('unknown');
+                } else {
+                    resolve(user.name);
+                }
+            });
+        });
     }
 
     private canSendEvents(): boolean {
