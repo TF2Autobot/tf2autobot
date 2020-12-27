@@ -226,8 +226,8 @@ export default class MyHandler extends Handler {
         this.paths = genPaths(this.bot.options.steamAccountName);
     }
 
-    getFriendToKeep(): number {
-        return this.friendsToKeep.length;
+    getFriendToKeep(): string[] {
+        return this.friendsToKeep;
     }
 
     getBotSteamID(): SteamID {

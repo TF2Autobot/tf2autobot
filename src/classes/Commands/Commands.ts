@@ -133,6 +133,8 @@ export default class Commands {
             c.manager.unblockCommand(steamID, message, this.bot);
         } else if (command === 'block' && isAdmin) {
             c.manager.blockCommand(steamID, message, this.bot);
+        } else if (command === 'clearfriends' && isAdmin) {
+            c.manager.clearFriendsCommand(steamID, this.bot);
         } else if (command === 'stop' && isAdmin) {
             c.manager.stopCommand(steamID, this.bot);
         } else if (command === 'restart' && isAdmin) {

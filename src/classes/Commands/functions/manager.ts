@@ -485,6 +485,24 @@ export function unblockCommand(steamID: SteamID, message: string, bot: Bot): voi
     });
 }
 
+export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
+    const friends = bot.friends.getFriends();
+    const friendsToKeep = bot.handler.getFriendToKeep();
+
+    const friendsToRemove = friends.filter(steamid => !friendsToKeep.includes(steamid));
+
+    friendsToRemove.forEach(steamid => {
+        const friend = bot.friends.getFriend(steamid);
+        bot.sendMessage(
+            steamid,
+            `/quote Hey ${friend.player_name}! My owner has performed friendlist clearance. Please feel free to add me again if you want to trade at a later time!`
+        );
+        bot.client.removeFriend(steamid);
+    });
+
+    bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${friendsToRemove.length} friends.`);
+}
+
 export function stopCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, '⌛ Stopping...');
 

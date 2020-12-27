@@ -92,7 +92,7 @@ export default class Friends {
                 const result = body.response;
                 const level = result.player_level;
 
-                const friendToKeep = this.bot.handler.getFriendToKeep();
+                const friendToKeep = this.bot.handler.getFriendToKeep().length;
                 const enableAddFriends = this.bot.options.enableAddFriends;
 
                 const base = 250;

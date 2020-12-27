@@ -47,6 +47,7 @@ const ADMIN_COMMANDS: string[] = [
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
     '!unblock <steamid> - Unblock a specific user',
+    '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
     '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
