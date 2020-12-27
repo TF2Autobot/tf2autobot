@@ -30,10 +30,10 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
             ` \nLast 24 hours: ${trades.trades24Hours} (${
                 trades.trades24Hours + trades.failedOrIgnored24Hours
-            } attempts)` +
+            } processed)` +
             ` \nSince beginning of today: ${trades.tradesToday} (${
                 trades.tradesToday + trades.failedOrIgnoredToday
-            } attempts)` +
+            } processed)` +
             ` \n\nProfit made: ${profitmadeFull + profitmadeInRef}` +
             ` \nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +
             ` \nKey rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
