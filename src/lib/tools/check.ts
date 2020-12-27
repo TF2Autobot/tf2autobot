@@ -276,6 +276,9 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
     } = {};
 
     for (const sku in items) {
+        if (!Object.prototype.hasOwnProperty.call(items, sku)) {
+            continue;
+        }
         const name = bot.schema.getName(SKU.fromString(sku));
 
         let attachments = '';
@@ -297,6 +300,10 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             const toJoin: string[] = [];
 
             for (const sPartSKU in attributes.sp) {
+                if (!Object.prototype.hasOwnProperty.call(attributes.sp, sPartSKU)) {
+                    continue;
+                }
+
                 if (attributes.sp[sPartSKU] === true) {
                     toJoin.push(getKeyByValue(strangePartsData, +sPartSKU) + ' (🌟)');
                 } else {
@@ -312,6 +319,10 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             const toJoin: string[] = [];
 
             for (const keSKU in attributes.ke) {
+                if (!Object.prototype.hasOwnProperty.call(attributes.ke, keSKU)) {
+                    continue;
+                }
+
                 if (attributes.ke[keSKU] === true) {
                     toJoin.push(getKeyByValue(killstreakersData, keSKU) + ' (🌟)');
                 } else {
@@ -327,6 +338,10 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
 
             const toJoin: string[] = [];
             for (const ksSKU in attributes.ks) {
+                if (!Object.prototype.hasOwnProperty.call(attributes.ks, ksSKU)) {
+                    continue;
+                }
+
                 if (attributes.ks[ksSKU] === true) {
                     toJoin.push(getKeyByValue(sheensData, ksSKU) + ' (🌟)');
                 } else {
@@ -342,6 +357,10 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
 
             const toJoin: string[] = [];
             for (const pSKU in attributes.p) {
+                if (!Object.prototype.hasOwnProperty.call(attributes.p, pSKU)) {
+                    continue;
+                }
+
                 if (attributes.p[pSKU] === true) {
                     toJoin.push(getKeyByValue(paintedData, pSKU) + ' (🌟)');
                 } else {

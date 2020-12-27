@@ -97,6 +97,9 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(offerReceived.meta.highValue.items.their, bot);
 
                 for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                     theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
@@ -115,6 +118,9 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(offerReceived.meta.highValue.items.our, bot);
 
                 for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
@@ -131,6 +137,9 @@ export default function processAccepted(
             const itemsName = t.check.getHighValueItems(offerSent.items.their, bot);
 
             for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
@@ -148,6 +157,9 @@ export default function processAccepted(
             const itemsName = t.check.getHighValueItems(offerSent.items.our, bot);
 
             for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 

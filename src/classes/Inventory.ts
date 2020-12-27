@@ -62,10 +62,16 @@ export default class Inventory {
         let items = 0;
         const amountTradable = this.tradable;
         for (const sku in amountTradable) {
+            if (!Object.prototype.hasOwnProperty.call(amountTradable, sku)) {
+                continue;
+            }
             items += amountTradable[sku].length;
         }
         const amountNonTradable = this.nonTradable;
         for (const sku in amountNonTradable) {
+            if (!Object.prototype.hasOwnProperty.call(amountNonTradable, sku)) {
+                continue;
+            }
             items += amountNonTradable[sku].length;
         }
         return items;

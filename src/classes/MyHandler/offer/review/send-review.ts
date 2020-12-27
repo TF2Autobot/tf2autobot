@@ -83,6 +83,9 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
             const itemsName = check.getHighValueItems(meta.highValue.items.their, bot);
 
             for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
                 highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
         }
