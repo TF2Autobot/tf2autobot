@@ -2,31 +2,48 @@ import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 import Bot from '../../classes/Bot';
+import log from '../logger';
 
 import { Webhook } from './interfaces';
 
-export function getPartnerDetails(offer: TradeOffer, bot: Bot, callback: (err: any, details: any) => void): any {
-    // check state of the offer
-    if (offer.state === TradeOfferManager.ETradeOfferState['Active']) {
-        offer.getUserDetails((err, me, them) => {
-            if (err) {
-                callback(err, {});
-            } else {
-                callback(null, them);
-            }
-        });
-    } else {
-        bot.community.getSteamUser(offer.partner, (err, user) => {
-            if (err) {
-                callback(err, {});
-            } else {
-                callback(null, {
-                    personaName: user.name,
-                    avatarFull: user.getAvatarURL('full')
-                });
-            }
-        });
-    }
+export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {
+    return new Promise(resolve => {
+        if (offer.state === TradeOfferManager.ETradeOfferState['Active']) {
+            offer.getUserDetails((err, me, them) => {
+                if (err) {
+                    log.debug('Error retrieving partner Avatar and Name: ', err);
+                    resolve({
+                        personaName: 'unknown',
+                        avatarFull:
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg' //default "?" image
+                    });
+                } else {
+                    log.debug('partner Avatar and Name retrieved. Applying...');
+                    resolve({
+                        personaName: them.personaName,
+                        avatarFull: them.avatarFull
+                    });
+                }
+            });
+        } else {
+            bot.community.getSteamUser(offer.partner, (err, user) => {
+                if (err) {
+                    log.debug('Error retrieving partner Avatar and Name: ', err);
+                    resolve({
+                        personaName: 'unknown',
+                        avatarFull:
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg' //default "?" image
+                    });
+                } else {
+                    log.debug('partner Avatar and Name retrieved. Applying...');
+                    resolve({
+                        personaName: user.name,
+                        avatarFull: user.getAvatarURL('full')
+                    });
+                }
+            });
+        }
+    });
 }
 
 export function quickLinks(name: string, links: { steam: string; bptf: string; steamrep: string }): string {

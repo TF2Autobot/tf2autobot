@@ -112,137 +112,126 @@ export default async function sendTradeSummary(
         isOfferSent
     );
 
-    let personaName: string;
-    let avatarFull: string;
     log.debug('getting partner Avatar and Name...');
-    getPartnerDetails(offer, bot, (err, details: Details) => {
-        if (err) {
-            log.debug('Error retrieving partner Avatar and Name: ', err);
-            personaName = 'unknown';
-            avatarFull =
-                'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
-        } else {
-            log.debug('partner Avatar and Name retrieved. Applying...');
-            personaName = details.personaName;
-            avatarFull = details.avatarFull;
-        }
+    const details = await getPartnerDetails(offer, bot);
 
-        const partnerNameNoFormat = replace.specialChar(personaName);
+    const personaName = details.personaName;
+    const avatarFull = details.avatarFull as string;
 
-        const misc = opt.tradeSummary.misc;
+    const partnerNameNoFormat = replace.specialChar(personaName);
 
-        const isShowQuickLinks = misc.showQuickLinks;
-        const isShowKeyRate = misc.showKeyRate;
-        const isShowPureStock = misc.showPureStock;
-        const isShowInventory = misc.showInventory;
-        const AdditionalNotes = misc.note;
+    const misc = opt.tradeSummary.misc;
 
-        const slots = bot.tf2.backpackSlots;
+    const isShowQuickLinks = misc.showQuickLinks;
+    const isShowKeyRate = misc.showKeyRate;
+    const isShowPureStock = misc.showPureStock;
+    const isShowInventory = misc.showInventory;
+    const AdditionalNotes = misc.note;
 
-        const acceptedTradeSummary: Webhook = {
-            username: opt.displayName ? opt.displayName : botInfo.name,
-            avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-            content: mentionOwner,
-            embeds: [
-                {
-                    color: opt.embedColor,
-                    author: {
-                        name: `Trade from: ${personaName} #${tradesMade.toString()}`,
-                        url: links.steam,
-                        icon_url: avatarFull
+    const slots = bot.tf2.backpackSlots;
+
+    const acceptedTradeSummary: Webhook = {
+        username: opt.displayName ? opt.displayName : botInfo.name,
+        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        content: mentionOwner,
+        embeds: [
+            {
+                color: opt.embedColor,
+                author: {
+                    name: `Trade from: ${personaName} #${tradesMade.toString()}`,
+                    url: links.steam,
+                    icon_url: avatarFull
+                },
+                description:
+                    summary +
+                    `\n⏱ **Time taken:** ${timeTaken}\n\n` +
+                    (isShowQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                fields: [
+                    {
+                        name: '__Item list__',
+                        value: combineList.replace(/@/g, '')
                     },
-                    description:
-                        summary +
-                        `\n⏱ **Time taken:** ${timeTaken}\n\n` +
-                        (isShowQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
-                    fields: [
-                        {
-                            name: '__Item list__',
-                            value: combineList.replace(/@/g, '')
-                        },
-                        {
-                            name: `__Status__`,
-                            value:
-                                (isShowKeyRate
-                                    ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                                      ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                                      `${
-                                          autokeys.isEnabled
-                                              ? ' | Autokeys: ' +
-                                                (autokeys.isActive
-                                                    ? '✅' +
-                                                      (autokeys.isBanking
-                                                          ? ' (banking)'
-                                                          : autokeys.isBuying
-                                                          ? ' (buying)'
-                                                          : ' (selling)')
-                                                    : '🛑')
-                                              : ''
-                                      }`
-                                    : '') +
-                                (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                                (isShowInventory
-                                    ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
-                                    : '') +
-                                (AdditionalNotes
-                                    ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') +
-                                      AdditionalNotes
-                                    : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
-                        }
-                    ],
-                    footer: {
-                        text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
+                    {
+                        name: `__Status__`,
+                        value:
+                            (isShowKeyRate
+                                ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                                  ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
+                                  `${
+                                      autokeys.isEnabled
+                                          ? ' | Autokeys: ' +
+                                            (autokeys.isActive
+                                                ? '✅' +
+                                                  (autokeys.isBanking
+                                                      ? ' (banking)'
+                                                      : autokeys.isBuying
+                                                      ? ' (buying)'
+                                                      : ' (selling)')
+                                                : '🛑')
+                                          : ''
+                                  }`
+                                : '') +
+                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                            (isShowInventory
+                                ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
+                                : '') +
+                            (AdditionalNotes
+                                ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') + AdditionalNotes
+                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
                     }
+                ],
+                footer: {
+                    text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
                 }
-            ]
-        };
+            }
+        ]
+    };
 
-        if (combineList === '-') {
-            acceptedTradeSummary.embeds[0].fields.shift();
-        } else if (combineList.length >= 1024) {
-            // first get __Status__ element
-            const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
+    if (combineList === '-') {
+        acceptedTradeSummary.embeds[0].fields.shift();
+    } else if (combineList.length >= 1024) {
+        // first get __Status__ element
+        const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
 
-            // now remove __Item list__, so now it should be empty
-            acceptedTradeSummary.embeds[0].fields.length = 0;
+        // now remove __Item list__, so now it should be empty
+        acceptedTradeSummary.embeds[0].fields.length = 0;
 
-            const separate = itemList.split('@');
+        const separate = itemList.split('@');
 
-            let newSentences = bot.options.manualReview.showItemPrices ? `${prices}\n\n` : '';
-            let j = 1;
-            separate.forEach((sentence, i) => {
-                if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
-                    acceptedTradeSummary.embeds[0].fields.push({
-                        name: `__Item list ${j}__`,
-                        value: newSentences.replace(/@/g, '')
-                    });
-
-                    if (i === separate.length - 1 || j > 4) {
-                        acceptedTradeSummary.embeds[0].fields.push(statusElement);
-                    }
-
-                    newSentences = '';
-                    j++;
-                } else {
-                    newSentences += sentence;
-                }
-            });
-        }
-
-        url.forEach((link, i) => {
-            sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
-                .then(() => {
-                    log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`);
-                })
-                .catch(err => {
-                    log.debug(
-                        `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
-                            url.length > 1 ? ` (${i + 1})` : ''
-                        }: `,
-                        err
-                    );
+        let newSentences = bot.options.manualReview.showItemPrices ? `${prices}\n\n` : '';
+        let j = 1;
+        separate.forEach((sentence, i) => {
+            if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
+                acceptedTradeSummary.embeds[0].fields.push({
+                    name: `__Item list ${j}__`,
+                    value: newSentences.replace(/@/g, '')
                 });
+
+                if (i === separate.length - 1 || j > 4) {
+                    acceptedTradeSummary.embeds[0].fields.push(statusElement);
+                }
+
+                newSentences = '';
+                j++;
+            } else {
+                newSentences += sentence;
+            }
         });
+    }
+
+    url.forEach((link, i) => {
+        sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
+            .then(() => {
+                log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`);
+            })
+            .catch(err => {
+                log.debug(
+                    `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
+                        url.length > 1 ? ` (${i + 1})` : ''
+                    }: `,
+                    err
+                );
+            });
     });
 }
 
@@ -283,9 +272,4 @@ interface Autokeys {
 export interface ItemSKUList {
     their: string[];
     our: string[];
-}
-
-interface Details {
-    personaName: string;
-    avatarFull: string;
 }
