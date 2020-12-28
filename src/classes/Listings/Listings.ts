@@ -30,11 +30,11 @@ export default class Listings {
     private autoRelistTimeout;
 
     private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump;
+        return this.bot.options.autobump.enable;
     }
 
     private get isCreateListing(): boolean {
-        return this.bot.options.createListings;
+        return this.bot.options.createListings.enable;
     }
 
     private templates: { buy: string; sell: string };

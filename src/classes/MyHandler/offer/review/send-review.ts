@@ -18,29 +18,40 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
     const content = processReview(offer, meta, bot, isTradingKeys);
 
-    const hasCustomNote = !!(
-        opt.manualReview.invalidItems.note ||
-        opt.manualReview.overstocked.note ||
-        opt.manualReview.understocked.note ||
-        opt.manualReview.duped.note ||
-        opt.manualReview.dupedCheckFailed.note
+    const hasCustomNote = !(
+        opt.manualReview.invalidItems.note !== '' ||
+        opt.manualReview.overstocked.note !== '' ||
+        opt.manualReview.understocked.note !== '' ||
+        opt.manualReview.duped.note !== '' ||
+        opt.manualReview.dupedCheckFailed.note !== '' ||
+        opt.manualReview.escrowCheckFailed.note !== '' ||
+        opt.manualReview.bannedCheckFailed.note !== ''
     );
 
     const reasons = meta.uniqueReasons;
 
-    const isShowChanges = bot.options.tradeSummary.showStockChanges;
+    const isShowChanges = opt.tradeSummary.showStockChanges;
 
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
     // Notify partner and admin that the offer is waiting for manual review
     if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
-        bot.sendMessage(
-            offer.partner,
-            (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
-                ' is down and I failed to check your ' +
-                (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow (Trade holds)') +
-                ' status, please wait for my owner to manually accept/decline your offer.'
-        );
+        let reply: string;
+
+        if (reasons.includes('⬜_BANNED_CHECK_FAILED')) {
+            const custom = opt.manualReview.bannedCheckFailed.note;
+            reply = custom
+                ? custom
+                : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
+                  ' status, please wait for my owner to manually accept/decline your offer.';
+        } else {
+            const custom = opt.manualReview.escrowCheckFailed.note;
+            reply = custom
+                ? custom
+                : 'Steam is down and I failed to check your Escrow (Trade holds)' +
+                  ' status, please wait for my owner to manually accept/decline your offer.';
+        }
+        bot.sendMessage(offer.partner, reply);
     } else {
         bot.sendMessage(
             offer.partner,

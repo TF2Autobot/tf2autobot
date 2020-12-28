@@ -160,7 +160,7 @@ export default class Pricelist extends EventEmitter {
     ) {
         super();
         this.schema = schema;
-        this.maxAge = this.options.maxPriceAge || 8 * 60 * 60;
+        this.maxAge = this.options.priceAge.maxInSeconds || 8 * 60 * 60;
         this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
 

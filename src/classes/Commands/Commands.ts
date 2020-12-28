@@ -194,6 +194,16 @@ export default class Commands {
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
+        const opt = this.bot.options.commands.price;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
         const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
 
         if (info === null) {
@@ -450,6 +460,16 @@ export default class Commands {
     }
 
     private cartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
+        const opt = this.bot.options.commands.cart;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
         if (this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -463,7 +483,9 @@ export default class Commands {
     private clearCartCommand(steamID: SteamID): void {
         Cart.removeCart(steamID);
 
-        this.bot.sendMessage(steamID, '🛒 Your cart has been cleared.');
+        const custom = this.bot.options.commands.clearcart.customReply.reply;
+
+        this.bot.sendMessage(steamID, custom ? custom : '🛒 Your cart has been cleared.');
     }
 
     private checkoutCommand(steamID: SteamID): void {
@@ -477,8 +499,10 @@ export default class Commands {
 
         const cart = Cart.getCart(steamID);
 
+        const custom = this.bot.options.commands.checkout.customReply.empty;
+
         if (cart === null) {
-            this.bot.sendMessage(steamID, '🛒 Your cart is empty.');
+            this.bot.sendMessage(steamID, custom ? custom : '🛒 Your cart is empty.');
             return;
         }
 
@@ -498,6 +522,8 @@ export default class Commands {
 
         // If a user is in the queue, then they can't have an active offer
 
+        const custom = this.bot.options.commands.cancel.customReply;
+
         if (positionInQueue === 0) {
             // The user is in the queue and the offer is already being processed
             const cart = this.cartQueue.getCart(steamID);
@@ -505,13 +531,17 @@ export default class Commands {
             if (cart.isMade()) {
                 this.bot.sendMessage(
                     steamID,
-                    '⚠️ Your offer is already being sent! Please try again when the offer is active.'
+                    custom.isBeingSent
+                        ? custom.isBeingSent
+                        : '⚠️ Your offer is already being sent! Please try again when the offer is active.'
                 );
                 return;
             } else if (cart.isCanceled()) {
                 this.bot.sendMessage(
                     steamID,
-                    '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
+                    custom.isCancelling
+                        ? custom.isCancelling
+                        : '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
                 );
                 return;
             }
@@ -520,14 +550,20 @@ export default class Commands {
         } else if (positionInQueue !== -1) {
             // The user is in the queue
             this.cartQueue.dequeue(steamID);
-            this.bot.sendMessage(steamID, '✅ You have been removed from the queue.');
+            this.bot.sendMessage(
+                steamID,
+                custom.isRemovedFromQueue ? custom.isRemovedFromQueue : '✅ You have been removed from the queue.'
+            );
         } else {
             // User is not in the queue, check if they have an active offer
 
             const activeOffer = this.bot.trades.getActiveOffer(steamID);
 
             if (activeOffer === null) {
-                this.bot.sendMessage(steamID, "❌ You don't have an active offer.");
+                this.bot.sendMessage(
+                    steamID,
+                    custom.noActiveOffer ? custom.noActiveOffer : "❌ You don't have an active offer."
+                );
                 return;
             }
 
@@ -560,10 +596,17 @@ export default class Commands {
     private addCartToQueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): void {
         const activeOfferID = this.bot.trades.getActiveOffer(cart.partner);
 
+        const custom = this.bot.options.commands.addToQueue;
+
         if (activeOfferID !== null) {
             this.bot.sendMessage(
                 cart.partner,
-                `❌ You already have an active offer! Please finish it before requesting a new one:  https://steamcommunity.com/tradeoffer/${activeOfferID}/`
+                custom.alreadyHaveActiveOffer
+                    ? custom.alreadyHaveActiveOffer.replace(
+                          /%tradeurl%/g,
+                          `https://steamcommunity.com/tradeoffer/${activeOfferID}/`
+                      )
+                    : `❌ You already have an active offer! Please finish it before requesting a new one: https://steamcommunity.com/tradeoffer/${activeOfferID}/`
             );
             return;
         }
@@ -574,14 +617,20 @@ export default class Commands {
             if (currentPosition === 0) {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⚠️ You are already in the queue! Please wait while I process your offer.'
+                    custom.alreadyInQueueProcessingOffer
+                        ? custom.alreadyInQueueProcessingOffer
+                        : '⚠️ You are already in the queue! Please wait while I process your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⚠️ You are already in the queue! Please wait your turn, there ' +
-                        (currentPosition !== 1 ? 'are' : 'is') +
-                        ` ${currentPosition} infront of you.`
+                    custom.alreadyInQueueWaitingTurn
+                        ? custom.alreadyInQueueWaitingTurn
+                              .replace(/%isOrAre%/g, currentPosition !== 1 ? 'are' : 'is')
+                              .replace(/%currentPosition%/g, String(currentPosition))
+                        : '⚠️ You are already in the queue! Please wait your turn, there ' +
+                              (currentPosition !== 1 ? 'are' : 'is') +
+                              ` ${currentPosition} infront of you.`
                 );
             }
             return;
@@ -592,22 +641,35 @@ export default class Commands {
         if (position !== 0) {
             this.bot.sendMessage(
                 cart.partner,
-                '✅ You have been added to the queue! Please wait your turn, there ' +
-                    (position !== 1 ? 'are' : 'is') +
-                    ` ${position} infront of you.`
+                custom.addedToQueueWaitingTurn
+                    ? custom.addedToQueueWaitingTurn
+                          .replace(/%isOrAre%/g, position !== 1 ? 'are' : 'is')
+                          .replace(/%position%/g, String(position))
+                    : '✅ You have been added to the queue! Please wait your turn, there ' +
+                          (position !== 1 ? 'are' : 'is') +
+                          ` ${position} infront of you.`
             );
         }
     }
 
     private queueCommand(steamID: SteamID): void {
         const position = this.bot.handler.cartQueue.getPosition(steamID);
+        const custom = this.bot.options.commands.queue.customReply;
 
         if (position === -1) {
-            this.bot.sendMessage(steamID, '❌ You are not in the queue.');
+            this.bot.sendMessage(steamID, custom.notInQueue ? custom.notInQueue : '❌ You are not in the queue.');
         } else if (position === 0) {
-            this.bot.sendMessage(steamID, '⌛ Your offer is being made.');
+            this.bot.sendMessage(
+                steamID,
+                custom.offerBeingMade ? custom.offerBeingMade : '⌛ Your offer is being made.'
+            );
         } else {
-            this.bot.sendMessage(steamID, `There are ${position} users ahead of you.`);
+            this.bot.sendMessage(
+                steamID,
+                custom.hasPosition
+                    ? custom.hasPosition.replace(/%position%/g, String(position))
+                    : `There are ${position} users ahead of you.`
+            );
         }
     }
 

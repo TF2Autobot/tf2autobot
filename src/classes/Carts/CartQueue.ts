@@ -113,18 +113,34 @@ export default class CartQueue {
         log.debug('Constructing offer');
 
         if (this.bot.options.weaponsAsCurrency.enable) {
+            const custom = this.bot.options.commands.addToQueue;
+
             Promise.resolve(cart.constructOfferWithWeapons())
                 .then(alteredMessage => {
                     log.debug('Constructed offer');
                     if (alteredMessage) {
-                        cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
+                        cart.sendNotification(
+                            custom.alteredOffer
+                                ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
+                                : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
+                        );
                     }
 
-                    cart.sendNotification(
-                        `⌛ Please wait while I process your ${
-                            isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
-                        }! ${cart.summarizeWithWeapons(isDonating, isBuyingPremium)}.`
-                    );
+                    const summarize = cart.summarizeWithWeapons(isDonating, isBuyingPremium);
+
+                    const sendNotification = isDonating
+                        ? custom.processingOffer.donation
+                            ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
+                            : `⌛ Please wait while I process your donation! ${summarize}.`
+                        : isBuyingPremium
+                        ? custom.processingOffer.isBuyingPremium
+                            ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
+                            : `⌛ Please wait while I process your premium purchase! ${summarize}.`
+                        : custom.processingOffer.offer
+                        ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
+                        : `⌛ Please wait while I process your offer! ${summarize}.`;
+
+                    cart.sendNotification(sendNotification);
 
                     log.debug('Sending offer...');
                     return cart.sendOffer();
@@ -132,11 +148,19 @@ export default class CartQueue {
                 .then(status => {
                     log.debug('Sent offer');
                     if (status === 'pending') {
-                        cart.sendNotification(
-                            `⌛ Your ${
-                                isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
-                            } has been made! Please wait while I accept the mobile confirmation.`
-                        );
+                        const sendNotification = isDonating
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                                ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : isBuyingPremium
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                                ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+
+                        cart.sendNotification(sendNotification);
 
                         log.debug('Accepting mobile confirmation...');
 
@@ -175,18 +199,33 @@ export default class CartQueue {
                     this.handleQueue(false, false);
                 });
         } else {
+            const custom = this.bot.options.commands.addToQueue;
             Promise.resolve(cart.constructOffer())
                 .then(alteredMessage => {
                     log.debug('Constructed offer');
                     if (alteredMessage) {
-                        cart.sendNotification(`⚠️ Your offer has been altered. Reason: ${alteredMessage}.`);
+                        cart.sendNotification(
+                            custom.alteredOffer
+                                ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
+                                : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
+                        );
                     }
 
-                    cart.sendNotification(
-                        `⌛ Please wait while I process your ${
-                            isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
-                        }! ${cart.summarize(isDonating, isBuyingPremium)}.`
-                    );
+                    const summarize = cart.summarizeWithWeapons(isDonating, isBuyingPremium);
+
+                    const sendNotification = isDonating
+                        ? custom.processingOffer.donation
+                            ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
+                            : `⌛ Please wait while I process your donation! ${summarize}.`
+                        : isBuyingPremium
+                        ? custom.processingOffer.isBuyingPremium
+                            ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
+                            : `⌛ Please wait while I process your premium purchase! ${summarize}.`
+                        : custom.processingOffer.offer
+                        ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
+                        : `⌛ Please wait while I process your offer! ${summarize}.`;
+
+                    cart.sendNotification(sendNotification);
 
                     log.debug('Sending offer...');
                     return cart.sendOffer();
@@ -194,11 +233,19 @@ export default class CartQueue {
                 .then(status => {
                     log.debug('Sent offer');
                     if (status === 'pending') {
-                        cart.sendNotification(
-                            `⌛ Your ${
-                                isDonating ? 'donation' : isBuyingPremium ? 'premium purchase' : 'offer'
-                            } has been made! Please wait while I accept the mobile confirmation.`
-                        );
+                        const sendNotification = isDonating
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                                ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : isBuyingPremium
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                                ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+
+                        cart.sendNotification(sendNotification);
 
                         log.debug('Accepting mobile confirmation...');
 

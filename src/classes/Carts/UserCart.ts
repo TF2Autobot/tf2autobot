@@ -598,7 +598,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(assetids[i])) {
+                if (this.bot.options.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -788,7 +788,7 @@ export default class UserCart extends Cart {
                     for (let i = 0; i < currencies[sku].length; i++) {
                         if (
                             !isBuyer &&
-                            this.bot.options.skipItemsInTrade &&
+                            this.bot.options.skipItemsInTrade.enable &&
                             this.bot.trades.isInTrade(currencies[sku][i])
                         ) {
                             isSkipped = true;
@@ -880,7 +880,7 @@ export default class UserCart extends Cart {
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
                 if (
                     isBuyer &&
-                    this.bot.options.skipItemsInTrade &&
+                    this.bot.options.skipItemsInTrade.enable &&
                     this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
                 ) {
                     isSkipped = true;
@@ -951,7 +951,7 @@ export default class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (opt.showOnlyMetal) {
+        if (opt.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1607,7 +1607,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (this.bot.options.skipItemsInTrade && this.bot.trades.isInTrade(assetids[i])) {
+                if (this.bot.options.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -1802,7 +1802,7 @@ export default class UserCart extends Cart {
                     for (let i = 0; i < currencies[sku].length; i++) {
                         if (
                             !isBuyer &&
-                            this.bot.options.skipItemsInTrade &&
+                            this.bot.options.skipItemsInTrade.enable &&
                             this.bot.trades.isInTrade(currencies[sku][i])
                         ) {
                             isSkipped = true;
@@ -1892,7 +1892,7 @@ export default class UserCart extends Cart {
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
                 if (
                     !isBuyer &&
-                    this.bot.options.skipItemsInTrade &&
+                    this.bot.options.skipItemsInTrade.enable &&
                     this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
                 ) {
                     isSkipped = true;
@@ -1963,7 +1963,7 @@ export default class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (opt.showOnlyMetal) {
+        if (opt.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

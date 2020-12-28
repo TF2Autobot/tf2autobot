@@ -7,7 +7,8 @@ import { Meta, DupeCheckFailed } from 'steam-tradeoffer-manager';
 export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options;
     const wrong = meta.reasons;
-    const dupedFailedItemsName: string[] = [];
+    const dupedFailedItemsNameOur: string[] = [];
+    const dupedFailedItemsNameTheir: string[] = [];
     const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED')) as DupeCheckFailed[];
 
     dupedFailed.forEach(el => {
@@ -17,11 +18,14 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
 
             if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                dupedFailedItemsName.push(`${name} - [history page](https://backpack.tf/item/${el.assetid as string})`);
+                dupedFailedItemsNameOur.push(
+                    `_${name}_ - [history page](https://backpack.tf/item/${el.assetid as string})`
+                );
             } else {
                 // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                dupedFailedItemsName.push(`${name}, history page: https://backpack.tf/item/${el.assetid as string}`);
+                dupedFailedItemsNameOur.push(`${name}, history page: https://backpack.tf/item/${el.assetid as string}`);
             }
+            dupedFailedItemsNameTheir.push(`${name}, history page: https://backpack.tf/item/${el.assetid as string}`);
         } else {
             // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
             for (let i = 0; i < el.sku.length; i++) {
@@ -29,27 +33,26 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
 
                 if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
                     // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-                    dupedFailedItemsName.push(
-                        `${name} - [history page](https://backpack.tf/item/${el.assetid as string})`
+                    dupedFailedItemsNameOur.push(
+                        `_${name}_ - [history page](https://backpack.tf/item/${el.assetid[i]})`
                     );
                 } else {
                     // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-                    dupedFailedItemsName.push(
-                        `${name}, history page: https://backpack.tf/item/${el.assetid as string}`
-                    );
+                    dupedFailedItemsNameOur.push(`${name}, history page: https://backpack.tf/item/${el.assetid[i]}`);
                 }
+                dupedFailedItemsNameTheir.push(`${name}, history page: https://backpack.tf/item/${el.assetid[i]}`);
             }
         }
     });
 
     const note = opt.manualReview.dupedCheckFailed.note
         ? `🟪_DUPE_CHECK_FAILED - ${opt.manualReview.dupedCheckFailed.note}`
-              .replace(/%name%/g, dupedFailedItemsName.join(', '))
-              .replace(/%isName%/, pluralize('is', dupedFailedItemsName.length))
-        : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsName.join(', ')}.`;
-    // Default note: I failed to check for duped on %name%.
+              .replace(/%itemsName%/g, dupedFailedItemsNameTheir.join(', '))
+              .replace(/%isOrAre%/g, pluralize('is', dupedFailedItemsNameTheir.length))
+        : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsNameTheir.join(', ')}.`;
+    // Default note: I failed to check for duped on %itemsName%.
 
-    const name = dupedFailedItemsName;
+    const name = dupedFailedItemsNameOur;
 
     return { note, name };
 }

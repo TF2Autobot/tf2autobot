@@ -106,10 +106,12 @@ export default function updateListings(
                 }
             }
 
-            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
-            } else {
-                bot.messageAdmins(msg, []);
+            if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
+                } else {
+                    bot.messageAdmins(msg, []);
+                }
             }
         } else if (
             inPrice !== null &&
@@ -169,17 +171,19 @@ export default function updateListings(
                         }
                     }
 
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
-                    } else {
-                        bot.messageAdmins(msg, []);
+                    if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
                     }
                 })
                 .catch((err: Error) => {
                     log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
                 });
         } else if (
-            opt.autoRemoveIntentSell &&
+            opt.autoRemoveIntentSell.enable &&
             inPrice !== null &&
             inPrice.intent === 1 &&
             currentStock < 1 &&

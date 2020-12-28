@@ -109,6 +109,16 @@ function generatePartnerCommands(commands: string[]): string {
 }
 
 export function moreCommand(steamID: SteamID, bot: Bot): void {
+    const opt = bot.options.commands.more;
+
+    if (!opt.enable) {
+        if (!bot.isAdmin(steamID)) {
+            const custom = opt.customReply.disabled;
+            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            return;
+        }
+    }
+
     bot.sendMessage(steamID, `Advanced commands list:\n- ${generateMoreCommands(MORE)}`);
 }
 
@@ -117,11 +127,16 @@ function generateMoreCommands(commands: string[]): string {
 }
 
 export function howToTradeCommand(steamID: SteamID, bot: Bot): void {
+    const custom = bot.options.commands.how2trade.customReply.reply;
+
     bot.sendMessage(
         steamID,
-        bot.options.customMessage.how2trade
-            ? bot.options.customMessage.how2trade
-            : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
-                  '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
+        custom
+            ? custom
+            : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. ' +
+                  'Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, ' +
+                  'just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
+                  '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or ' +
+                  '"!sellcart [amount] <item name>" commands.'
     );
 }
