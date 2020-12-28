@@ -172,7 +172,7 @@ export default function processAccepted(
     }
 
     const keyPrices = bot.pricelist.getKeyPrices();
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal);
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
 
     const offerData = bot.manager.pollData.offerData;
     const isOfferSent = offerData

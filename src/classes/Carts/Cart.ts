@@ -467,7 +467,7 @@ export default abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
                         } else {
