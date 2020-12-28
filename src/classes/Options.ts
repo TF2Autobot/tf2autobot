@@ -649,6 +649,7 @@ export const DEFAULTS = {
                  * ^Parameters:
                  *   - %steamurl% (`https://steamcommunity.com/profiles/${firstAdmin.toString()}`)
                  *   - %bptfurl% (`https://backpack.tf/profiles/${firstAdmin.toString()}`)
+                 *   - %steamid% (SteamID64 of the first ADMINS element)
                  */
             }
         },

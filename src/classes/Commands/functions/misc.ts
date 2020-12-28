@@ -278,7 +278,10 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(
         steamID,
         custom
-            ? custom.replace(/%steamurl%/g, steamURL).replace(/%bptfurl%/g, bptfURL)
+            ? custom
+                  .replace(/%steamurl%/g, steamURL)
+                  .replace(/%bptfurl%/g, bptfURL)
+                  .replace(/%steamid%/, firstAdmin.toString())
             : `• Steam: ${steamURL}\n• Backpack.tf: ${bptfURL}`
     );
 }
