@@ -1,6 +1,8 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 
+import { removeLinkProtocol } from './utils';
+
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
@@ -13,13 +15,28 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
+
+    const commands = liveOptions.commands;
+    const detailsExtra = liveOptions.detailsExtra;
+
+    delete liveOptions.commands;
+    delete liveOptions.detailsExtra;
+
     bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: commands }, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
 
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
+    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message))) as unknown;
 
     const optionsPath = getOptionsPath(opt.steamAccountName);
     const saveOptions = deepMerge({}, opt) as JsonOptions;
