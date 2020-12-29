@@ -548,6 +548,7 @@ export default class Listings {
 
             const optD = this.bot.options.details.highValue;
             const optH = this.bot.options.highValue;
+            const optR = this.bot.options.detailsExtra;
 
             // if econ undefined, then skip because it will make your bot crashed.
             if (econ) {
@@ -572,7 +573,7 @@ export default class Listings {
                         // Show all
                         hasSpells = true;
                         const spellName = value.substring(10, value.length - 32).trim();
-                        spellNames.push(rep.replaceSpells(spellName));
+                        spellNames.push(rep.replaceSpells(spellName, optR.spells));
                     } else if (
                         (part === 'Kills' || part === 'Assists'
                             ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
@@ -583,23 +584,23 @@ export default class Listings {
                         // Only user specified in highValue.strangeParts
                         if (optH.strangeParts.includes(part)) {
                             hasStrangeParts = true;
-                            partsNames.push(part);
+                            partsNames.push(rep.replaceStrangeParts(part, optR.strangeParts));
                         }
                     } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1' && optD.showKillstreaker) {
                         const killstreaker = value.replace('Killstreaker: ', '').trim();
 
                         hasKillstreaker = true;
-                        killstreakerName.push(rep.replaceKillstreaker(killstreaker));
+                        killstreakerName.push(rep.replaceKillstreaker(killstreaker, optR.killstreakers));
                     } else if (value.startsWith('Sheen: ') && color === '7ea9d1' && optD.showSheen) {
                         const sheen = value.replace('Sheen: ', '').trim();
 
                         hasSheen = true;
-                        sheenName.push(rep.replaceSheens(sheen));
+                        sheenName.push(rep.replaceSheens(sheen, optR.sheens));
                     } else if (value.startsWith('Paint Color: ') && color === '756b5e' && optD.showPainted) {
                         const paint = value.replace('Paint Color: ', '').trim();
 
                         hasPaint = true;
-                        paintName.push(rep.replacePainted(paint));
+                        paintName.push(rep.replacePainted(paint, optR.painted));
                     }
                 });
 

@@ -8,83 +8,93 @@ import validator from '../lib/validator';
 
 export const DEFAULTS = {
     showOnlyMetal: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/ - MyHandler/MyHandler.ts, Cart/UserCart.ts)
     },
 
     sortInventory: {
-        enable: true, // ✅
+        enable: true, // ✅ (src/classes/MyHandler/MyHandler.ts)
         type: 3 // ✅ 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
     },
 
     createListings: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/Pricelist.ts)
     },
 
     sendAlert: {
         enable: true, // ✅
         autokeys: {
-            lowPure: true // ✅
+            lowPure: true // ✅ (src/classes/Autokeys/Autokeys.ts)
         },
-        backpackFull: true, // ✅
+        backpackFull: true, // ✅ (src/classes/Carts/Cart.ts)
         highValue: {
-            gotDisabled: true, // ✅
-            receivedNotInPricelist: true, // ✅
-            tryingToTake: true // ✅
+            gotDisabled: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
+            receivedNotInPricelist: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
+            tryingToTake: true // ✅ (src/classes/MyHandler/MyHandler.ts)
         }
     },
 
     addFriends: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
     },
 
     sendGroupInvite: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
     },
 
     autoRemoveIntentSell: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
     },
 
     bypass: {
         escrow: {
-            allow: false // ✅
+            allow: false // ✅ (src/classes/Bot.ts)
         },
         overpay: {
-            allow: true // ✅
+            allow: true // ✅ (src/classes/MyHandler/MyHandler.ts)
         },
         giftWithoutMessage: {
-            allow: false // ✅
+            allow: false // ✅ (src/classes/MyHandler/MyHandler.ts)
         },
         bannedPeople: {
-            allow: false // ✅
+            allow: false // ✅ (src/classes/Bot.ts)
         }
     },
 
     priceAge: {
-        maxInSeconds: 28000 // ✅
+        maxInSeconds: 28000 // ✅ (src/classes/Pricelist.ts)
     },
 
     autobump: {
-        enable: false // ✅
+        enable: false // ✅ (src/classes/ - Listings.ts, MyHandler/MyHandler.ts, Commands/functions/options.ts)
     },
 
     skipItemsInTrade: {
-        enable: true // ✅
+        enable: true // ✅ (src/classes/Carts - AdminCart.ts, DonateCart.ts, PremiumCart.ts, UserCart.ts)
     },
 
     weaponsAsCurrency: {
+        // src/classes/ - Carts/CartQueue.ts, Carts/UserCart.ts, Commands/Commands.ts, Commands/functions/options.ts
+        //                Commands/functions/PricelistManager.ts, MyHandler/MyHandler.ts, MyHandler/offer/accepted/updateListings.ts
+        // src/lib/tools/profit.ts
         enable: true, // ✅
         withUncraft: true // ✅
     },
 
     tradeSummary: {
         showStockChanges: false, // ✅
-        showTimeTakenInMS: true,
-        showItemPrices: false
+        // src/classes/ - MyHandler/MyHandler.ts, MyHandler/offer/accepted/processAccepted.ts, MyHandler/offer/notify/declined.ts
+        //                MyHandler/offer/review/send-review.ts
+        // src/lib/DiscordWebhook - sendOfferReview.ts, sendTradeSummary.ts
+        showTimeTakenInMS: true, // ✅
+        // src/classes/ - MyHandler/offer/accepted/processAccepted.ts
+        showItemPrices: false // ✅
+        // src/classes/ - MyHandler/offer/accepted/processAccepted.ts
+        // src/lib/DiscordWebhook/sendTradeSummary.ts
     },
 
     highValue: {
-        enableHold: true,
+        enableHold: true, // ✅ // (src/classes/MyHandler/offer/accepted/updateListings.ts)
+        // ↓ src/classes/ - MyHandler/offer/accepted/updateListings.ts, Listings/Listings.ts
         sheens: [], // ✅
         killstreakers: [], // ✅
         strangeParts: [], // ✅
@@ -92,52 +102,59 @@ export const DEFAULTS = {
     },
 
     checkUses: {
+        // src/classes/ - MyHandler/MyHandler.ts, Carts/UserCart.ts, Commands/functions/review.ts, Listings/Listings.ts
         duel: true, // ✅
         noiseMaker: true // ✅
     },
 
     game: {
+        // src/classes/ - MyHandler/MyHandler.ts, Commands/functions/options.ts
         playOnlyTF2: false, // ✅
         customName: '' // ✅
     },
 
     normalize: {
+        // src/classes/ - Inventory.ts, MyHandler/MyHandler.ts, Commands/functions/review.ts
+        // src/lib/tools/check.ts
         festivized: false, // ✅
         strangeUnusual: false // ✅
     },
 
     details: {
-        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.', // ✅
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.', // ✅
+        // ^ src/classes/ - Autokeys/(all), Listings/Listings.ts
+        // ↓ src/classes/Listings/Listings.ts
         highValue: {
-            showSpells: true,
-            showStrangeParts: false,
-            showKillstreaker: true,
-            showSheen: true,
-            showPainted: true
+            showSpells: true, // ✅
+            showStrangeParts: false, // ✅
+            showKillstreaker: true, // ✅
+            showSheen: true, // ✅
+            showPainted: true // ✅
         }
     },
 
     statistics: {
-        starter: 0,
-        lastTotalTrades: 0,
-        startingTimeInUnix: 0,
-        lastTotalProfitMadeInRef: 0,
-        lastTotalProfitOverpayInRef: 0
+        starter: 0, // ✅ (src/lib/DiscordWebhook/sendTradeSummary.ts)
+        lastTotalTrades: 0, // ✅ (src/classes/Commands/functions/status.ts)
+        startingTimeInUnix: 0, // ✅ (src/lib/tools/stats.ts)
+        lastTotalProfitMadeInRef: 0, // ✅ (src/lib/tools/profit.ts)
+        lastTotalProfitOverpayInRef: 0 // ✅ (src/lib/tools/profit.ts)
     },
 
     autokeys: {
+        // src/classes/Autokeys/(all)
         enable: false, // ✅
-        minKeys: 3,
-        maxKeys: 15,
-        minRefined: 30,
-        maxRefined: 150,
+        minKeys: 3, // ✅
+        maxKeys: 15, // ✅
+        minRefined: 30, // ✅
+        maxRefined: 150, // ✅
         banking: {
-            enable: false
+            enable: false // ✅
         },
         scrapAdjustment: {
-            enable: false,
-            value: 1
+            enable: false, // ✅
+            value: 1 // ✅
         },
         accept: {
             understock: false // ✅
@@ -146,13 +163,13 @@ export const DEFAULTS = {
 
     crafting: {
         weapons: {
-            enable: true
+            enable: true // ✅ (src/classes/MyHandler/utils/ - craftClassWeapons.ts, craftDuplicateWeapons.ts)
         },
         metals: {
-            enable: true,
-            minScrap: 9, // ✅
-            minRec: 9, // ✅
-            threshold: 9 // ✅
+            enable: true, // ✅ (src/classes/MyHandler/utils/keepMetalSupply.ts)
+            minScrap: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
+            minRec: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
+            threshold: 9 // ✅ (src/classes/MyHandler/MyHandler.ts)
         }
     },
 
@@ -161,7 +178,7 @@ export const DEFAULTS = {
         invalidValue: {
             autoDecline: {
                 enable: true, // ✅
-                note: ''
+                note: '' // ✅
                 /*
                  * ^Default:
                  * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -181,7 +198,7 @@ export const DEFAULTS = {
             autoAcceptOverpay: true, // ✅
             autoDecline: {
                 enable: false, // ✅
-                note: ''
+                note: '' // ✅
                 /*
                  * ^Default:
                  * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -196,7 +213,7 @@ export const DEFAULTS = {
             autoAcceptOverpay: false, // ✅
             autoDecline: {
                 enable: false, // ✅
-                note: ''
+                note: '' // ✅
                 /*
                  * ^Default:
                  * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -211,7 +228,7 @@ export const DEFAULTS = {
             autoAcceptOverpay: false, // ✅
             autoDecline: {
                 enable: false, // ✅
-                note: ''
+                note: '' // ✅
                 /*
                  * ^Default:
                  * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -227,7 +244,7 @@ export const DEFAULTS = {
             minKeys: 10, // ✅
             autoDecline: {
                 enable: true, // ✅
-                note: ''
+                note: '' // ✅
                 /*
                  * ^Default:
                  * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -296,54 +313,54 @@ export const DEFAULTS = {
     },
 
     discordWebhook: {
-        ownerID: '',
-        displayName: '',
-        avatarURL: '',
-        embedColor: '9171753',
+        ownerID: '', // ✅
+        displayName: '', // ✅
+        avatarURL: '', // ✅
+        embedColor: '9171753', // ✅
         tradeSummary: {
-            enable: true,
-            url: [],
+            enable: true, // ✅
+            url: [], // ✅
             misc: {
-                showQuickLinks: true,
-                showKeyRate: true,
-                showPureStock: true,
-                showInventory: true,
-                note: ''
+                showQuickLinks: true, // ✅
+                showKeyRate: true, // ✅
+                showPureStock: true, // ✅
+                showInventory: true, // ✅
+                note: '' // ✅
             },
             mentionOwner: {
-                enable: true,
-                itemSkus: []
+                enable: true, // ✅
+                itemSkus: [] // ✅
             }
         },
         offerReview: {
             enable: true, // ✅
             url: '', // ✅
-            mentionInvalidValue: false,
+            mentionInvalidValue: false, // ✅
             misc: {
-                showQuickLinks: true,
-                showKeyRate: true,
-                showPureStock: true,
-                showInventory: true
+                showQuickLinks: true, // ✅
+                showKeyRate: true, // ✅
+                showPureStock: true, // ✅
+                showInventory: true // ✅
             }
         },
         messages: {
-            enable: true,
-            url: '',
+            enable: true, // ✅
+            url: '', // ✅
             showQuickLinks: true
         },
         priceUpdate: {
             enable: true, // ✅
             url: '', // ✅
-            note: ''
+            note: '' // ✅
         },
         sendAlert: {
-            enable: true,
-            url: ''
+            enable: true, // ✅
+            url: '' // ✅
         }
     },
 
     customMessage: {
-        sendOffer: '',
+        sendOffer: '', // ✅
         // ^Default: Powered by TF2Autobot (not removed)
         welcome: '', // ✅
         // ^Default: `Hi %name%! If you don't know how things work, please type "!%admin%" - TF2Autobot v${version}`
@@ -351,7 +368,7 @@ export const DEFAULTS = {
         iDontKnowWhatYouMean: '',
         success: '', // ✅
         // ^Default: "/pre ✅ Success! The offer went through successfully."
-        successEscrow: '',
+        successEscrow: '', // ✅
         // ^Default:
         /*
          * "✅ Success! The offer has gone through successfully, but you will receive your items after several days.
@@ -360,38 +377,38 @@ export const DEFAULTS = {
          *  \n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
          */
         decline: {
-            giftNoNote: '',
+            giftNoNote: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *   the offer you've sent is an empty offer on my side without any offer message. If you wish to give
              *   it as a gift, please include "gift" in the offer message. Thank you.""
              */
-            crimeAttempt: '',
+            crimeAttempt: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're taking free items. No."
              */
-            onlyMetal: '',
+            onlyMetal: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you might forgot to add items into the trade."
              */
-            duelingNot5Uses: '',
+            duelingNot5Uses: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  your offer contains Dueling Mini-Game(s) that does not have 5 uses."
              */
-            noiseMakerNot5Uses: '',
+            noiseMakerNot5Uses: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  your offer contains Noise Maker(s) that does not have 25 uses"
              */
-            highValueItemsNotSelling: '',
+            highValueItemsNotSelling: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -399,31 +416,31 @@ export const DEFAULTS = {
              * //
              * ^Parameter: %highValueName% (output a join of an array of highValue items name)
              */
-            notTradingKeys: '',
+            notTradingKeys: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            notSellingKeys: '',
+            notSellingKeys: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            notBuyingKeys: '',
+            notBuyingKeys: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            banned: '',
+            banned: '', // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community."
              */
-            escrow: ''
+            escrow: '' // ✅
             /*
              * ^Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
@@ -432,15 +449,24 @@ export const DEFAULTS = {
              *  \n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218
              */
         },
-        tradedAway: '',
+        tradedAway: '', // ✅
+        /*
+         * ^Default: "/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade)."
+         */
         failedMobileConfirmation: '', // ✅
-        // ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Failed to accept mobile confirmation"
+        /*
+         * ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Failed to accept mobile confirmation"
+         */
         cancelledActiveForAwhile: '', // ✅
-        // ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been active for a while.
-        //            If the offer was just created, this is likely an issue on Steam's end. Please try again"
+        /*
+         * ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been active for a while.
+         *            If the offer was just created, this is likely an issue on Steam's end. Please try again"
+         */
         clearFriends: '' // ✅
-        // ^parameter: %name% (output: partner's name)
-        // ^Default: "/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!"
+        /*
+         * ^Default: "/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!"
+         * ^Parameter: %name% (output: partner's name)
+         */
     },
 
     commands: {
@@ -450,9 +476,8 @@ export const DEFAULTS = {
          * ^Default: "❌ Command function is disabled by the owner."
          */
         how2trade: {
-            // ✅
             customReply: {
-                reply: ''
+                reply: '' // ✅
                 /*
                  * ^Default:
                  * `/quote You can either send me an offer yourself, or use one of my commands to request a trade.
@@ -464,10 +489,9 @@ export const DEFAULTS = {
             }
         },
         price: {
-            // ✅
-            enable: true,
+            enable: true, // ✅
             customReply: {
-                disabled: ''
+                disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
@@ -637,13 +661,13 @@ export const DEFAULTS = {
         },
         owner: {
             // ✅
-            enable: true,
+            enable: true, // ✅
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // parameters: %steamurl%, %bptfurl%
+                reply: '' // ✅
                 /*
                  * ^Default: "• Steam: %steamurl%\n• Backpack.tf: %bptfurl%"
                  * ^Parameters:
@@ -654,18 +678,17 @@ export const DEFAULTS = {
             }
         },
         discord: {
-            // ✅
-            enable: true,
-            inviteURL: '',
+            enable: true, // ✅
+            inviteURL: '', // ✅
             /*
              * ^Default: "https://discord.gg/ZrVT7mc"
              */
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // parameter: %discordurl%
+                reply: '' // ✅
                 /*
                  * ^Default:
                  *   - If discord.inviteURL is not empty:
@@ -676,59 +699,55 @@ export const DEFAULTS = {
             }
         },
         more: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: ''
+                disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
             }
         },
         autokeys: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: ''
+                disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
             }
         },
         message: {
-            // ✅
-            enable: true,
+            enable: true, // ✅
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                wrongSyntax: '',
+                wrongSyntax: '', // ✅
                 /*
                  * ^Default: `❌ Please include a message. Here\'s an example: "!message Hi"`
                  */
-                fromOwner: '', // parameter: %reply%,
+                fromOwner: '', // ✅
                 /*
                  * ^Default: `/quote 💬 Message from the owner: %reply%\n\n❔ Hint: You can
                  *             use the !message command to respond to the owner of this bot.
                  *             \nExample: !message Hi Thanks!`
                  * ^Parameter: %reply% (Your reply)
                  */
-                success: ''
+                success: '' // ✅
                 /*
                  * ^Default: "✅ Your message has been sent."
                  */
             }
         },
         time: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: ''
+                reply: '' // ✅
                 /*
                  * ^Default: "It is currently the following time in my owner's timezone: %emoji% %time%\n\n%note%"
                  * .
@@ -737,28 +756,26 @@ export const DEFAULTS = {
             }
         },
         uptime: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: ''
+                reply: '' // ✅
                 /*
                  * ^Default: "%uptime%" (show bot total uptime)
                  */
             }
         },
         pure: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // parameters: %pure%
+                reply: '' // ✅
                 /*
                  * ^Default: "💰 I have %pure% in my inventory.""
                  * ^Parameter: %pure% (a join('and') of pureStock array)
@@ -766,14 +783,13 @@ export const DEFAULTS = {
             }
         },
         rate: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // parameters: %keyprice%, %keyrate%
+                reply: '' // ✅
                 /*
                  * ^Default: "I value 🔑 Mann Co. Supply Crate Keys at %keyprice%. This means that one key is
                  *             the same as %keyprice% and %keyprice% is the same as one key.
@@ -787,15 +803,14 @@ export const DEFAULTS = {
             }
         },
         stock: {
-            // ✅
-            enable: true, // if false, only admin can use
-            maximumItems: 20,
+            enable: true, // ✅ if false, only admin can use
+            maximumItems: 20, // ✅
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // parameter: %stocklist%
+                reply: '' // ✅
                 /*
                  * ^Default: "/pre 📜 Here's a list of all the items that I have in my inventory:\n%stocklist%"
                  * ^Parameter: %stocklist% (a join(', \n') arrau of the items your bot have (up to stock.maximumItems))
@@ -803,18 +818,17 @@ export const DEFAULTS = {
             }
         },
         craftweapon: {
-            // ✅
-            enable: true, // if false, only admin can use
+            enable: true, // ✅ if false, only admin can use
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                dontHave: '',
+                dontHave: '', // ✅
                 /*
                  * ^Default: "❌ I don't have any craftable weapons in my inventory."
                  */
-                have: '' // parameter: %list%
+                have: '' // ✅
                 /*
                  * ^Default: "📃 Here's a list of all craft weapons stock in my inventory:\n\n%list%"
                  * ^Parameter: %list% (a join(', \n') array or craftable weapons that your bot have)
@@ -822,23 +836,145 @@ export const DEFAULTS = {
             }
         },
         uncraftweapon: {
-            // ✅
-            enable: true,
+            enable: true, // ✅
             customReply: {
-                disabled: '',
+                disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
                  */
-                dontHave: '',
+                dontHave: '', // ✅
                 /*
                  * ^Default: "❌ I don't have any uncraftable weapons in my inventory."
                  */
-                have: ''
+                have: '' // ✅
                 /*
                  * ^Default: "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n%list%"
                  * ^Parameter: %list% (a join(', \n') array or uncraftable weapons that your bot have)
                  */
             }
+        }
+    },
+    detailsExtra: {
+        spells: {
+            'Putrescent Pigmentation': 'PP 🍃',
+            'Die Job': 'DJ 🍐',
+            'Chromatic Corruption': 'CC 🪀',
+            'Spectral Spectrum': 'Spec 🔵🔴',
+            'Sinister Staining': 'Sin 🍈',
+            'Voices From Below': 'VFB 🗣️',
+            'Team Spirit Footprints': 'TS-FP 🔵🔴',
+            'Gangreen Footprints': 'GG-FP 🟡',
+            'Corpse Gray Footprints': 'CG-FP 👽',
+            'Violent Violet Footprints': 'VV-FP ♨️',
+            'Rotten Orange Footprints': 'RO-FP 🍊',
+            'Bruised Purple Footprints': 'BP-FP 🍷',
+            'Headless Horseshoes': 'HH 🍇',
+            Exorcism: '👻',
+            'Pumpkin Bomb': '🎃💣',
+            'Halloween Fire': '🔥🟢'
+        },
+        sheens: {
+            'Team Shine': '🔵🔴',
+            'Hot Rod': '🎗️',
+            Manndarin: '🟠',
+            'Deadly Daffodil': '🟡',
+            'Mean Green': '🟢',
+            'Agonizing Emerald': '🟩',
+            'Villainous Violet': '🟣'
+        },
+        killstreakers: {
+            'Cerebral Discharge': '⚡',
+            'Fire Horns': '🔥🐮',
+            Flames: '🔥',
+            'Hypno-Beam': '😵💫',
+            Incinerator: '🚬',
+            Singularity: '🔆',
+            Tornado: '🌪️'
+        },
+        painted: {
+            'A Color Similar to Slate': '🧪',
+            'A Deep Commitment to Purple': '🪀',
+            'A Distinctive Lack of Hue': '🎩',
+            "A Mann's Mint": '👽',
+            'After Eight': '🏴',
+            'Aged Moustache Grey': '👤',
+            'An Extraordinary Abundance of Tinge': '🏐',
+            'Australium Gold': '🏆',
+            'Color No. 216-190-216': '🧠',
+            'Dark Salmon Injustice': '🐚',
+            'Drably Olive': '🥝',
+            'Indubitably Green': '🥦',
+            'Mann Co. Orange': '🏀',
+            Muskelmannbraun: '👜',
+            "Noble Hatter's Violet": '🍇',
+            'Peculiarly Drab Tincture': '🪑',
+            'Pink as Hell': '🎀',
+            'Radigan Conagher Brown': '🚪',
+            'The Bitter Taste of Defeat and Lime': '💚',
+            "The Color of a Gentlemann's Business Pants": '🧽',
+            'Ye Olde Rustic Colour': '🥔',
+            "Zepheniah's Greed": '🌳',
+            'An Air of Debonair': '👜🔷',
+            'Balaclavas Are Forever': '👜🔷',
+            "Operator's Overalls": '👜🔷',
+            'Cream Spirit': '🍘🥮',
+            'Team Spirit': '🔵🔴',
+            'The Value of Teamwork': '👨🏽‍🤝‍👨🏻',
+            'Waterlogged Lab Coat': '👨🏽‍🤝‍👨🏽'
+        },
+        strangeParts: {
+            'Robots Destroyed': '',
+            Kills: '',
+            'Airborne Enemy Kills': '',
+            'Damage Dealt': '',
+            Dominations: '',
+            'Snipers Killed': '',
+            'Buildings Destroyed': '',
+            'Projectiles Reflected': '',
+            'Headshot Kills': '',
+            'Medics Killed': '',
+            'Fires Survived': '',
+            'Teammates Extinguished': '',
+            'Freezecam Taunt Appearances': '',
+            'Spies Killed': '',
+            'Allied Healing Done': '',
+            'Sappers Removed': '',
+            'Players Hit': '',
+            'Gib Kills': '',
+            'Scouts Killed': '',
+            'Taunt Kills': '',
+            'Point Blank Kills': '',
+            'Soldiers Killed': '',
+            'Long-Distance Kills': '',
+            'Giant Robots Destroyed': '',
+            'Critical Kills': '',
+            'Demomen Killed': '',
+            'Unusual-Wearing Player Kills': '',
+            Assists: '',
+            'Medics Killed That Have Full ÜberCharge': '',
+            'Cloaked Spies Killed': '',
+            'Engineers Killed': '',
+            'Kills While Explosive-Jumping': '',
+            'Kills While Low Health': '',
+            'Burning Player Kills': '',
+            'Kills While Invuln ÜberCharged': '',
+            'Posthumous Kills': '',
+            'Not Crit nor MiniCrit Kills': '',
+            'Full Health Kills': '',
+            'Killstreaks Ended': '',
+            'Defenders Killed': '',
+            Revenges: '',
+            'Robot Scouts Destroyed': '',
+            'Heavies Killed': '',
+            'Tanks Destroyed': '',
+            'Kills During Halloween': '',
+            'Pyros Killed': '',
+            'Submerged Enemy Kills': '',
+            'Kills During Victory Time': '',
+            'Taunting Player Kills': '',
+            'Robot Spies Destroyed': '',
+            'Kills Under A Full Moon': '',
+            'Robots Killed During Halloween': ''
         }
     }
 };
@@ -1309,6 +1445,142 @@ export interface HaveOrNo {
     have?: string;
 }
 
+// ------------ Extra Details -----------
+
+export interface DetailsExtra {
+    spells?: Spells;
+    sheens?: Sheens;
+    killstreakers?: Killstreakers;
+    painted?: Painted;
+    strangeParts?: StrangeParts;
+}
+
+export interface Spells {
+    'Putrescent Pigmentation'?: string;
+    'Die Job'?: string;
+    'Chromatic Corruption'?: string;
+    'Spectral Spectrum'?: string;
+    'Sinister Staining'?: string;
+    'Voices From Below'?: string;
+    'Team Spirit Footprints'?: string;
+    'Gangreen Footprints'?: string;
+    'Corpse Gray Footprints'?: string;
+    'Violent Violet Footprints'?: string;
+    'Rotten Orange Footprints'?: string;
+    'Bruised Purple Footprints'?: string;
+    'Headless Horseshoes'?: string;
+    Exorcism?: string;
+    'Pumpkin Bomb'?: string;
+    'Halloween Fire'?: string;
+}
+
+export interface Sheens {
+    'Team Shine'?: string;
+    'Hot Rod'?: string;
+    Manndarin?: string;
+    'Deadly Daffodil'?: string;
+    'Mean Green'?: string;
+    'Agonizing Emerald'?: string;
+    'Villainous Violet'?: string;
+}
+
+export interface Killstreakers {
+    'Cerebral Discharge'?: string;
+    'Fire Horns'?: string;
+    Flames?: string;
+    'Hypno-Beam'?: string;
+    Incinerator?: string;
+    Singularity?: string;
+    Tornado?: string;
+}
+
+export interface Painted {
+    'A Color Similar to Slate'?: string;
+    'A Deep Commitment to Purple'?: string;
+    'A Distinctive Lack of Hue'?: string;
+    "A Mann's Mint"?: string;
+    'After Eight'?: string;
+    'Aged Moustache Grey'?: string;
+    'An Extraordinary Abundance of Tinge'?: string;
+    'Australium Gold'?: string;
+    'Color No. 216-190-216'?: string;
+    'Dark Salmon Injustice'?: string;
+    'Drably Olive'?: string;
+    'Indubitably Green'?: string;
+    'Mann Co. Orange'?: string;
+    Muskelmannbraun?: string;
+    "Noble Hatter's Violet"?: string;
+    'Peculiarly Drab Tincture'?: string;
+    'Pink as Hell'?: string;
+    'Radigan Conagher Brown'?: string;
+    'The Bitter Taste of Defeat and Lime'?: string;
+    "The Color of a Gentlemann's Business Pants"?: string;
+    'Ye Olde Rustic Colour'?: string;
+    "Zepheniah's Greed"?: string;
+    'An Air of Debonair'?: string;
+    'Balaclavas Are Forever'?: string;
+    "Operator's Overalls"?: string;
+    'Cream Spirit'?: string;
+    'Team Spirit'?: string;
+    'The Value of Teamwork'?: string;
+    'Waterlogged Lab Coat'?: string;
+}
+
+export interface StrangeParts {
+    'Robots Destroyed'?: string;
+    Kills?: string;
+    'Airborne Enemy Kills'?: string;
+    'Damage Dealt'?: string;
+    Dominations?: string;
+    'Snipers Killed'?: string;
+    'Buildings Destroyed'?: string;
+    'Projectiles Reflected'?: string;
+    'Headshot Kills'?: string;
+    'Medics Killed'?: string;
+    'Fires Survived'?: string;
+    'Teammates Extinguished'?: string;
+    'Freezecam Taunt Appearances'?: string;
+    'Spies Killed'?: string;
+    'Allied Healing Done'?: string;
+    'Sappers Removed'?: string;
+    'Players Hit'?: string;
+    'Gib Kills'?: string;
+    'Scouts Killed'?: string;
+    'Taunt Kills'?: string;
+    'Point Blank Kills'?: string;
+    'Soldiers Killed'?: string;
+    'Long-Distance Kills'?: string;
+    'Giant Robots Destroyed'?: string;
+    'Critical Kills'?: string;
+    'Demomen Killed'?: string;
+    'Unusual-Wearing Player Kills'?: string;
+    Assists?: string;
+    'Medics Killed That Have Full ÜberCharge'?: string;
+    'Cloaked Spies Killed'?: string;
+    'Engineers Killed': string;
+    'Kills While Explosive-Jumping': string;
+    'Kills While Low Health': string;
+    'Burning Player Kills': string;
+    'Kills While Invuln ÜberCharged': string;
+    'Posthumous Kills'?: string;
+    'Not Crit nor MiniCrit Kills'?: string;
+    'Full Health Kills'?: string;
+    'Killstreaks Ended'?: string;
+    'Defenders Killed'?: string;
+    Revenges?: string;
+    'Robot Scouts Destroyed'?: string;
+    'Heavies Killed'?: string;
+    'Tanks Destroyed'?: string;
+    'Kills During Halloween'?: string;
+    'Pyros Killed'?: string;
+    'Submerged Enemy Kills'?: string;
+    'Kills During Victory Time'?: string;
+    'Taunting Player Kills'?: string;
+    'Robot Spies Destroyed'?: string;
+    'Kills Under A Full Moon'?: string;
+    'Robots Killed During Halloween'?: string;
+}
+
 // ------------ JsonOptions ------------
 
 export interface JsonOptions {
@@ -1338,6 +1610,7 @@ export interface JsonOptions {
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
     commands?: Commands;
+    detailsExtra?: DetailsExtra;
 }
 
 export default interface Options extends JsonOptions {

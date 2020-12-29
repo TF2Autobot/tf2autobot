@@ -5,7 +5,7 @@ import Bot from '../../../../Bot';
 import { Meta, DupeCheckFailed } from 'steam-tradeoffer-manager';
 
 export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options;
+    const opt = bot.options.discordWebhook.offerReview;
     const wrong = meta.reasons;
     const dupedFailedItemsNameOur: string[] = [];
     const dupedFailedItemsNameTheir: string[] = [];
@@ -16,7 +16,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
             // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
             const name = bot.schema.getName(SKU.fromString(el.sku as string), false);
 
-            if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
+            if (opt.enable && opt.url !== '') {
                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                 dupedFailedItemsNameOur.push(
                     `_${name}_ - [history page](https://backpack.tf/item/${el.assetid as string})`
@@ -31,7 +31,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
             for (let i = 0; i < el.sku.length; i++) {
                 const name = bot.schema.getName(SKU.fromString(el.sku[i]), false);
 
-                if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
+                if (opt.enable && opt.url !== '') {
                     // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
                     dupedFailedItemsNameOur.push(
                         `_${name}_ - [history page](https://backpack.tf/item/${el.assetid[i]})`
@@ -45,8 +45,8 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         }
     });
 
-    const note = opt.manualReview.dupedCheckFailed.note
-        ? `🟪_DUPE_CHECK_FAILED - ${opt.manualReview.dupedCheckFailed.note}`
+    const note = bot.options.manualReview.dupedCheckFailed.note
+        ? `🟪_DUPE_CHECK_FAILED - ${bot.options.manualReview.dupedCheckFailed.note}`
               .replace(/%itemsName%/g, dupedFailedItemsNameTheir.join(', '))
               .replace(/%isOrAre%/g, pluralize('is', dupedFailedItemsNameTheir.length))
         : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsNameTheir.join(', ')}.`;
