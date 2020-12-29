@@ -8,25 +8,31 @@ import validator from '../lib/validator';
 
 export const DEFAULTS = {
     showOnlyMetal: {
+        // 1
         enable: true // ✅ (src/classes/ - MyHandler/MyHandler.ts, Cart/UserCart.ts)
     },
 
     sortInventory: {
+        // 2
         enable: true, // ✅ (src/classes/MyHandler/MyHandler.ts)
         type: 3 // ✅ 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
     },
 
     createListings: {
+        // 3
         enable: true // ✅ (src/classes/Pricelist.ts)
     },
 
     sendAlert: {
+        // 4
         enable: true, // ✅
         autokeys: {
+            // 4.1
             lowPure: true // ✅ (src/classes/Autokeys/Autokeys.ts)
         },
         backpackFull: true, // ✅ (src/classes/Carts/Cart.ts)
         highValue: {
+            // 4.2
             gotDisabled: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
             receivedNotInPricelist: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
             tryingToTake: true // ✅ (src/classes/MyHandler/MyHandler.ts)
@@ -34,45 +40,57 @@ export const DEFAULTS = {
     },
 
     addFriends: {
+        // 5
         enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
     },
 
     sendGroupInvite: {
+        // 6
         enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
     },
 
     autoRemoveIntentSell: {
+        // 7
         enable: true // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
     },
 
     bypass: {
+        // 8
         escrow: {
+            // 8.1
             allow: false // ✅ (src/classes/Bot.ts)
         },
         overpay: {
+            // 8.2
             allow: true // ✅ (src/classes/MyHandler/MyHandler.ts)
         },
         giftWithoutMessage: {
+            // 8.3
             allow: false // ✅ (src/classes/MyHandler/MyHandler.ts)
         },
         bannedPeople: {
+            // 8.4
             allow: false // ✅ (src/classes/Bot.ts)
         }
     },
 
     priceAge: {
-        maxInSeconds: 28000 // ✅ (src/classes/Pricelist.ts)
+        // 9
+        maxInSeconds: 28800 // ✅ (src/classes/Pricelist.ts)
     },
 
     autobump: {
+        // 10
         enable: false // ✅ (src/classes/ - Listings.ts, MyHandler/MyHandler.ts, Commands/functions/options.ts)
     },
 
     skipItemsInTrade: {
+        // 11
         enable: true // ✅ (src/classes/Carts - AdminCart.ts, DonateCart.ts, PremiumCart.ts, UserCart.ts)
     },
 
     weaponsAsCurrency: {
+        // 12
         // src/classes/ - Carts/CartQueue.ts, Carts/UserCart.ts, Commands/Commands.ts, Commands/functions/options.ts
         //                Commands/functions/PricelistManager.ts, MyHandler/MyHandler.ts, MyHandler/offer/accepted/updateListings.ts
         // src/lib/tools/profit.ts
@@ -81,6 +99,7 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
+        // 13
         showStockChanges: false, // ✅
         // src/classes/ - MyHandler/MyHandler.ts, MyHandler/offer/accepted/processAccepted.ts, MyHandler/offer/notify/declined.ts
         //                MyHandler/offer/review/send-review.ts
@@ -93,6 +112,7 @@ export const DEFAULTS = {
     },
 
     highValue: {
+        // 14
         enableHold: true, // ✅ // (src/classes/MyHandler/offer/accepted/updateListings.ts)
         // ↓ src/classes/ - MyHandler/offer/accepted/updateListings.ts, Listings/Listings.ts
         sheens: [], // ✅
@@ -102,18 +122,21 @@ export const DEFAULTS = {
     },
 
     checkUses: {
+        // 15
         // src/classes/ - MyHandler/MyHandler.ts, Carts/UserCart.ts, Commands/functions/review.ts, Listings/Listings.ts
         duel: true, // ✅
         noiseMaker: true // ✅
     },
 
     game: {
+        // 16
         // src/classes/ - MyHandler/MyHandler.ts, Commands/functions/options.ts
         playOnlyTF2: false, // ✅
         customName: '' // ✅
     },
 
     normalize: {
+        // 17
         // src/classes/ - Inventory.ts, MyHandler/MyHandler.ts, Commands/functions/review.ts
         // src/lib/tools/check.ts
         festivized: false, // ✅
@@ -121,11 +144,13 @@ export const DEFAULTS = {
     },
 
     details: {
+        // 18
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.', // ✅
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.', // ✅
         // ^ src/classes/ - Autokeys/(all), Listings/Listings.ts
         // ↓ src/classes/Listings/Listings.ts
         highValue: {
+            // 18.1
             showSpells: true, // ✅
             showStrangeParts: false, // ✅
             showKillstreaker: true, // ✅
@@ -135,6 +160,7 @@ export const DEFAULTS = {
     },
 
     statistics: {
+        // 19
         starter: 0, // ✅ (src/lib/DiscordWebhook/sendTradeSummary.ts)
         lastTotalTrades: 0, // ✅ (src/classes/Commands/functions/status.ts)
         startingTimeInUnix: 0, // ✅ (src/lib/tools/stats.ts)
@@ -143,6 +169,7 @@ export const DEFAULTS = {
     },
 
     autokeys: {
+        // 20
         // src/classes/Autokeys/(all)
         enable: false, // ✅
         minKeys: 3, // ✅
@@ -150,22 +177,28 @@ export const DEFAULTS = {
         minRefined: 30, // ✅
         maxRefined: 150, // ✅
         banking: {
+            // 20.1
             enable: false // ✅
         },
         scrapAdjustment: {
+            // 20.2
             enable: false, // ✅
             value: 1 // ✅
         },
         accept: {
+            // 20.3
             understock: false // ✅
         }
     },
 
     crafting: {
+        // 21
         weapons: {
+            // 21.1
             enable: true // ✅ (src/classes/MyHandler/utils/ - craftClassWeapons.ts, craftDuplicateWeapons.ts)
         },
         metals: {
+            // 21.2
             enable: true, // ✅ (src/classes/MyHandler/utils/keepMetalSupply.ts)
             minScrap: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
             minRec: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
@@ -174,9 +207,12 @@ export const DEFAULTS = {
     },
 
     offerReceived: {
+        // 22
         // 🟥_INVALID_VALUE (ONLY_INVALID_VALUE)
         invalidValue: {
+            // 22.1
             autoDecline: {
+                // 22.s
                 enable: true, // ✅
                 note: '' // ✅
                 /*
@@ -188,15 +224,18 @@ export const DEFAULTS = {
                  */
             },
             exceptionValue: {
+                // 22.1.2
                 skus: [], // ✅
                 valueInRef: 0 // ✅
             }
         },
         // 🟨_INVALID_ITEMS (ONLY_INVALID_ITEMS)
         invalidItems: {
+            // 22.2
             givePrice: false, // ✅
             autoAcceptOverpay: true, // ✅
             autoDecline: {
+                // 22.s
                 enable: false, // ✅
                 note: '' // ✅
                 /*
@@ -210,8 +249,10 @@ export const DEFAULTS = {
         },
         // 🟦_OVERSTOCKED (ONLY_OVERSTOCKED)
         overstocked: {
+            // 22.3
             autoAcceptOverpay: false, // ✅
             autoDecline: {
+                // 22.s
                 enable: false, // ✅
                 note: '' // ✅
                 /*
@@ -225,8 +266,10 @@ export const DEFAULTS = {
         },
         // 🟩_UNDERSTOCKED (ONLY_UNDERSTOCKED)
         understocked: {
+            // 22.4 = 22.3
             autoAcceptOverpay: false, // ✅
             autoDecline: {
+                // 22.s
                 enable: false, // ✅
                 note: '' // ✅
                 /*
@@ -240,9 +283,11 @@ export const DEFAULTS = {
         },
         // 🟫_DUPED_ITEMS
         duped: {
+            // 22.5
             enableCheck: true, // ✅
             minKeys: 10, // ✅
             autoDecline: {
+                // 22.s
                 enable: true, // ✅
                 note: '' // ✅
                 /*
@@ -255,6 +300,7 @@ export const DEFAULTS = {
     },
 
     manualReview: {
+        // 23
         enable: true, // ✅
         showOfferSummary: true, // ✅
         showReviewOfferNote: true, // ✅
@@ -263,48 +309,56 @@ export const DEFAULTS = {
         // All these custom note only apply to trade partner's side
         // 🟥_INVALID_VALUE
         invalidValue: {
+            // 23.1
             note: '' // ✅
             // Default note: "You're taking too much in value."
             // followed by `[You're missing: ${value}]` (unchangeable)
         },
         // 🟨_INVALID_ITEMS
         invalidItems: {
+            // 23.2
             note: '' // ✅ parameters: %itemsName%, %isOrAre%
             // Default note: `%itemsName% %isOrAre% not in my pricelist.`
             // %itemsName% output: join of `${name}` array.
         },
         // 🟦_OVERSTOCKED
         overstocked: {
+            // 23.3
             note: '' // ✅ parameters: %itemsName%, %isOrAre%
             // Default note: `I can only buy %itemsName% right now.`
             // %itemsName% output: join of `${amountCanTrade} - ${name}` array
         },
         // 🟩_UNDERSTOCKED
         understocked: {
+            // 23.4
             note: '' // ✅ parameters: %itemsName%, %isOrAre%
             // Default note: `I can only sell %itemsName% right now.`
             // %itemsName% output: join of `${amountCanTrade} - ${name}` array
         },
         // 🟫_DUPED_ITEMS
         duped: {
+            // 23.5
             note: '' // ✅ parameters: %itemsName%, %isOrAre%
             // Default note: `%itemsName% %isOrAre% appeared to be duped.`
             // %itemsName% output: join of `${name}, history page: https://backpack.tf/item/${el.assetid}` array
         },
         // 🟪_DUPE_CHECK_FAILED
         dupedCheckFailed: {
+            // 23.6
             note: '' // ✅ parameters: %itemsName%, %isOrAre%
             // Default note: `I failed to check for duped on %itemsName%.`
             // %itemsName% output: a string OR a join of `${name}, history page: https://backpack.tf/item/${el.assetid}` array
         },
         // ⬜_ESCROW_CHECK_FAILED
         escrowCheckFailed: {
+            // 23.7
             note: '' // ✅
             // Default note: "Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep
             //                 status, please wait for my owner to manually accept/decline your offer."
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
+            // 23.8
             note: '' // ✅
             // Default note: "Steam is down and I failed to check your Escrow (Trade holds)
             //                 status, please wait for my owner to manually accept/decline your offer."
@@ -313,14 +367,17 @@ export const DEFAULTS = {
     },
 
     discordWebhook: {
+        // 24
         ownerID: '', // ✅
         displayName: '', // ✅
         avatarURL: '', // ✅
         embedColor: '9171753', // ✅
         tradeSummary: {
+            // 24.1
             enable: true, // ✅
             url: [], // ✅
             misc: {
+                // 24.1.1
                 showQuickLinks: true, // ✅
                 showKeyRate: true, // ✅
                 showPureStock: true, // ✅
@@ -328,15 +385,18 @@ export const DEFAULTS = {
                 note: '' // ✅
             },
             mentionOwner: {
+                // 24.1.2
                 enable: true, // ✅
                 itemSkus: [] // ✅
             }
         },
         offerReview: {
+            // 24.2
             enable: true, // ✅
             url: '', // ✅
             mentionInvalidValue: false, // ✅
             misc: {
+                // 24.2.1
                 showQuickLinks: true, // ✅
                 showKeyRate: true, // ✅
                 showPureStock: true, // ✅
@@ -344,22 +404,26 @@ export const DEFAULTS = {
             }
         },
         messages: {
+            // 24.3
             enable: true, // ✅
             url: '', // ✅
             showQuickLinks: true
         },
         priceUpdate: {
+            // 24.4
             enable: true, // ✅
             url: '', // ✅
             note: '' // ✅
         },
         sendAlert: {
+            // 24.5
             enable: true, // ✅
             url: '' // ✅
         }
     },
 
     customMessage: {
+        // 25
         sendOffer: '', // ✅
         // ^Default: Powered by TF2Autobot (not removed)
         welcome: '', // ✅
@@ -377,6 +441,7 @@ export const DEFAULTS = {
          *  \n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
          */
         decline: {
+            // 25.1
             giftNoNote: '', // ✅
             /*
              * ^Default:
@@ -470,13 +535,16 @@ export const DEFAULTS = {
     },
 
     commands: {
+        // 26
         enable: true, // if false, only admin can use commands // ✅
         customDisableReply: '', // ✅
         /*
          * ^Default: "❌ Command function is disabled by the owner."
          */
         how2trade: {
+            // 26.a
             customReply: {
+                // 26.cr.a
                 reply: '' // ✅
                 /*
                  * ^Default:
@@ -489,8 +557,10 @@ export const DEFAULTS = {
             }
         },
         price: {
+            // 26.c
             enable: true, // ✅
             customReply: {
+                // 26.cr.b
                 disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -498,36 +568,46 @@ export const DEFAULTS = {
             }
         },
         buy: {
+            // 26.2
             enable: true, // ⚠️
             disableForSKU: [], // ⚠️
             customReply: {
+                // 26.cr.b
                 disabled: '' // ⚠️
             }
         },
         sell: {
+            // 26.2
             enable: true, // ⚠️
             disableForSKU: [], // ⚠️
             customReply: {
+                // 26.cr.b
                 disabled: '' // ⚠️
             }
         },
         buycart: {
+            // 26.2
             enable: true, // ⚠️
             disableForSKU: [], // ⚠️
             customReply: {
+                // 26.cr.b
                 disabled: '' // ⚠️
             }
         },
         sellcart: {
+            // 26.2
             enable: true, // ⚠️
             disableForSKU: [], // ⚠️
             customReply: {
+                // 26.cr.b
                 disabled: '' // ⚠️
             }
         },
         cart: {
+            // 26.3
             enable: true, // ✅
             customReply: {
+                // 26.3.1
                 title: '', // ✅ (Cart.ts)
                 /*
                  * ^Default: "🛒== YOUR CART ==🛒"
@@ -539,8 +619,10 @@ export const DEFAULTS = {
             }
         },
         clearcart: {
+            // 26.a
             // always enable
             customReply: {
+                // 26.cr.a
                 reply: '' // ✅
                 /*
                  * ^Default: "🛒 Your cart has been cleared."
@@ -548,8 +630,10 @@ export const DEFAULTS = {
             }
         },
         checkout: {
+            // 26.4
             // always enable
             customReply: {
+                // 26.4.1
                 empty: '' // ✅
                 /*
                  * ^Default: "🛒 Your cart is empty."
@@ -557,6 +641,7 @@ export const DEFAULTS = {
             }
         },
         addToQueue: {
+            // 26.5
             alreadyHaveActiveOffer: '', // ✅
             /* ^Default:
              *  "❌ You already have an active offer! Please finish it before requesting a new one:
@@ -584,6 +669,7 @@ export const DEFAULTS = {
              * ^Parameters: %altered% (altered message - unchangeable)
              */
             processingOffer: {
+                // 26.e
                 donation: '', // ✅
                 /*
                  * ^Default: "⌛ Please wait while I process your donation! %summarize%"
@@ -601,6 +687,7 @@ export const DEFAULTS = {
                  */
             },
             hasBeenMadeAcceptingMobileConfirmation: {
+                // 26.e
                 donation: '', // ✅
                 /*
                  * ^Default: "⌛ Your donation has been made! Please wait while I accept the mobile confirmation."
@@ -616,8 +703,10 @@ export const DEFAULTS = {
             }
         },
         cancel: {
+            // 26.6
             // always enable
             customReply: {
+                // 26.6.1
                 isBeingSent: '', // ✅
                 /*
                  * ^Default: "⚠️ Your offer is already being sent! Please try again when the offer is active."
@@ -642,8 +731,10 @@ export const DEFAULTS = {
             }
         },
         queue: {
+            // 26.7
             // always enable
             customReply: {
+                // 26.7.1
                 notInQueue: '', // ✅
                 /*
                  * ^Default: "❌ You are not in the queue."
@@ -660,9 +751,11 @@ export const DEFAULTS = {
             }
         },
         owner: {
+            // 26.d
             // ✅
             enable: true, // ✅
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -678,12 +771,14 @@ export const DEFAULTS = {
             }
         },
         discord: {
+            // 26.8
             enable: true, // ✅
             inviteURL: '', // ✅
             /*
              * ^Default: "https://discord.gg/ZrVT7mc"
              */
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -699,8 +794,10 @@ export const DEFAULTS = {
             }
         },
         more: {
+            // 26.c
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.b
                 disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -708,8 +805,10 @@ export const DEFAULTS = {
             }
         },
         autokeys: {
+            // 26.c
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.b
                 disabled: '' // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -717,8 +816,10 @@ export const DEFAULTS = {
             }
         },
         message: {
+            // 26.9
             enable: true, // ✅
             customReply: {
+                // 26.9.1
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -741,8 +842,10 @@ export const DEFAULTS = {
             }
         },
         time: {
+            // 26.d
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -756,8 +859,10 @@ export const DEFAULTS = {
             }
         },
         uptime: {
+            // 26.d
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -769,8 +874,10 @@ export const DEFAULTS = {
             }
         },
         pure: {
+            // 26.d
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -783,8 +890,10 @@ export const DEFAULTS = {
             }
         },
         rate: {
+            // 26.d
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -803,9 +912,11 @@ export const DEFAULTS = {
             }
         },
         stock: {
+            // 26.10
             enable: true, // ✅ if false, only admin can use
             maximumItems: 20, // ✅
             customReply: {
+                // 26.cr.c
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -818,8 +929,10 @@ export const DEFAULTS = {
             }
         },
         craftweapon: {
+            // 26.11
             enable: true, // ✅ if false, only admin can use
             customReply: {
+                // 26.cr.d
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -836,8 +949,10 @@ export const DEFAULTS = {
             }
         },
         uncraftweapon: {
+            // 26.11
             enable: true, // ✅
             customReply: {
+                // 26.cr.d
                 disabled: '', // ✅
                 /*
                  * ^Default: "❌ This command is disabled by the owner."
@@ -855,7 +970,9 @@ export const DEFAULTS = {
         }
     },
     detailsExtra: {
+        // 27
         spells: {
+            // 27.1
             'Putrescent Pigmentation': 'PP 🍃',
             'Die Job': 'DJ 🍐',
             'Chromatic Corruption': 'CC 🪀',
@@ -874,6 +991,7 @@ export const DEFAULTS = {
             'Halloween Fire': '🔥🟢'
         },
         sheens: {
+            // 27.2
             'Team Shine': '🔵🔴',
             'Hot Rod': '🎗️',
             Manndarin: '🟠',
@@ -883,6 +1001,7 @@ export const DEFAULTS = {
             'Villainous Violet': '🟣'
         },
         killstreakers: {
+            // 27.3
             'Cerebral Discharge': '⚡',
             'Fire Horns': '🔥🐮',
             Flames: '🔥',
@@ -892,6 +1011,7 @@ export const DEFAULTS = {
             Tornado: '🌪️'
         },
         painted: {
+            // 27.4
             'A Color Similar to Slate': '🧪',
             'A Deep Commitment to Purple': '🪀',
             'A Distinctive Lack of Hue': '🎩',
@@ -923,6 +1043,7 @@ export const DEFAULTS = {
             'Waterlogged Lab Coat': '👨🏽‍🤝‍👨🏽'
         },
         strangeParts: {
+            // 27.5
             'Robots Destroyed': '',
             Kills: '',
             'Airborne Enemy Kills': '',
