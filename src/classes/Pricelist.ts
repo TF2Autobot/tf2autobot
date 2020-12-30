@@ -27,7 +27,7 @@ export interface EntryData {
     autoprice: boolean;
     max: number;
     min: number;
-    intent: 0 | 1 | 2;
+    intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
     promoted?: 0 | 1;
@@ -49,7 +49,7 @@ export class Entry {
 
     min: number;
 
-    intent: 0 | 1 | 2;
+    intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
 
     buy: Currencies | null;
 

@@ -431,7 +431,8 @@ export default class UserCart extends Cart {
                 }
             }
 
-            const skuCount = getSkuAmountCanTrade(sku, this.bot);
+            // selling order so buying is false
+            const skuCount = getSkuAmountCanTrade(sku, this.bot, false);
 
             if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(sku, Infinity);
@@ -1420,7 +1421,8 @@ export default class UserCart extends Cart {
                 }
             }
 
-            const skuCount = getSkuAmountCanTrade(sku, this.bot);
+            // this is for selling
+            const skuCount = getSkuAmountCanTrade(sku, this.bot, false);
 
             if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(sku, Infinity);
