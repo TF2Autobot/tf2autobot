@@ -134,13 +134,16 @@ export default abstract class Cart {
         const pSku = SKU.fromString(sku);
         if (pSku.quality === 5) {
             // try to count all unusual types
-            return this.bot.unusualEffects
-                .map(e => {
-                    pSku.effect = e.id;
-                    const s = SKU.fromObject(pSku);
-                    return getCountFn(s);
-                })
-                .reduce((p, c) => (p ? p + c : c));
+            return (
+                this.bot.unusualEffects
+                    .map(e => {
+                        pSku.effect = e.id;
+                        const s = SKU.fromObject(pSku);
+                        return getCountFn(s);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            );
         } else {
             return getCountFn(sku);
         }

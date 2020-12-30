@@ -440,7 +440,10 @@ export default class UserCart extends Cart {
                     alteredMessage = `I can't sell more ${skuCount.name}`;
                     this.bot.listings.checkBySKU(sku);
                 } else {
-                    alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${skuCount.name}`;
+                    alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${pluralize(
+                        skuCount.name,
+                        skuCount.mostCanTrade
+                    )}`;
 
                     this.addOurItem(sku, amount);
                 }
