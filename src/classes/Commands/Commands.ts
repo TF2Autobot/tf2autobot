@@ -19,6 +19,7 @@ import { fixItem } from '../../lib/items';
 import { ignoreWords } from '../../lib/data';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
+import { getSkuAmountCanTrade } from '../Inventory';
 
 export default class Commands {
     private readonly bot: Bot;
@@ -405,18 +406,23 @@ export default class Commands {
 
         const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
 
-        const cartAmount = cart.getOurCount(match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(match.sku);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, true) - cartAmount;
+        const skuCount = getSkuAmountCanTrade(match.sku, this.bot);
+        let cartAmount;
+        if (skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric) {
+            cartAmount = cart.getTheirCount(match.sku);
+        } else {
+            cartAmount = cart.getTheirGenericCount(match.sku);
+        }
+        const amountCanTrade = skuCount.mostCanTrade - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
+        const name = skuCount.name;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
             this.bot.sendMessage(
                 steamID,
                 'I ' +
-                    (ourAmount > 0 ? "can't buy" : "don't want") +
+                    (skuCount.mostCanTrade > 0 ? "can't buy" : "don't want") +
                     ` any ${(cartAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
             );
             return;

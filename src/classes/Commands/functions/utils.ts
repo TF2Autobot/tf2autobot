@@ -12,6 +12,7 @@ import { Entry } from '../../Pricelist';
 import { craftAll, uncraftAll } from '../../../lib/data';
 import { fixItem } from '../../../lib/items';
 import { OurTheirItemsDict } from 'steam-tradeoffer-manager';
+import { genericNameAndMatch } from '../../Inventory';
 
 export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
     message = removeLinkProtocol(message);
@@ -56,7 +57,11 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
     if (match === null) {
         // Search the item by Levenshtein distance to find a close match (if one exists)
         let lowestDistance = 999;
+        let lowestUnusualDistance = 999;
         let closestMatch: Entry = null;
+        let closestUnusualMatch: Entry = null;
+        // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
+        const genericEffect = genericNameAndMatch(name, bot.unusualEffects);
         for (const pricedItem of bot.pricelist.getPrices()) {
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
@@ -64,14 +69,43 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
                     lowestDistance = itemDistance;
                     closestMatch = pricedItem;
                 }
+                // genericNameAndMatch detected that the hat did start with an unusual effect
+                // so we will check to see if a generic SKU is found
+                if (genericEffect.effect) {
+                    const itemDistance = levenshtein(pricedItem.name, genericEffect.name);
+                    if (itemDistance < lowestUnusualDistance) {
+                        lowestUnusualDistance = itemDistance;
+                        closestUnusualMatch = pricedItem;
+                    }
+                }
             }
+        }
+
+        let matchName = closestMatch.name;
+
+        // this case is true only if someone entered 'Sunbeams Team Captain'
+        // and only 'Unusual Team Captain' was in the price list. If the
+        // specific hat is in the list the scores will be equal and we'll
+        // use the actual result
+        if (lowestUnusualDistance < lowestDistance) {
+            lowestDistance = lowestUnusualDistance;
+            closestMatch = closestUnusualMatch;
+            matchName = closestUnusualMatch.name;
+            // don't mutate any Entry objects from getPrices as they are live objects in the pricelist
+            closestMatch = closestMatch.clone();
+            // make the generic match's name equal to the specific effect that trigger the generic hit.
+            // if the hat named Sunbeams Team Captain, then the Entry result will be named Unusual Team Captain
+            closestMatch.name = closestUnusualMatch.name.replace('Unusual', genericEffect.name);
+            // the sku is generic '378;5' vs '378;5;u17' we we take the effect id that genericNameAndMatch
+            // returned and use that so that the pricelist sku now hits on the correct shopping cart item
+            closestMatch.sku = `${closestUnusualMatch.sku};u${genericEffect.effect.id}`;
         }
 
         // If we found an item that is different in 3-characters or less
         if (lowestDistance <= 3) {
             bot.sendMessage(
                 steamID,
-                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${closestMatch.name}" instead.`
+                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${matchName}" instead.`
             );
 
             return {

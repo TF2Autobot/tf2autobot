@@ -52,6 +52,14 @@ export default class SocketManager {
 
             this.socket.on('disconnect', this.socketDisconnected());
 
+            this.socket.on('ratelimit', (rateLimit: { limit: number; remaining: number; reset: number }) => {
+                log.debug(`ptf quota: ${JSON.stringify(rateLimit)}`);
+            });
+
+            this.socket.on('blocked', (blocked: { expire: number }) => {
+                log.warn(`Socket blocked. Expires in ${blocked.expire}`);
+            });
+
             this.socket.connect();
             resolve(undefined);
         });

@@ -15,12 +15,12 @@ import {
 import { CurrencyObject } from '../../types/TeamFortress2';
 
 import Cart from './Cart';
-import Inventory from '../Inventory';
+import Inventory, { getSkuAmountCanTrade } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 
 import log from '../../lib/logger';
-import { craftAll, uncraftAll, noiseMakerSKUs } from '../../lib/data';
-import { pure, check } from '../../lib/tools/export';
+import { craftAll, noiseMakerSKUs, uncraftAll } from '../../lib/data';
+import { check, pure } from '../../lib/tools/export';
 
 export default class UserCart extends Cart {
     /**
@@ -431,19 +431,15 @@ export default class UserCart extends Cart {
                 }
             }
 
-            const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, false);
+            const skuCount = getSkuAmountCanTrade(sku, this.bot);
 
-            if (amount > amountCanTrade) {
+            if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(sku, Infinity);
-                if (amountCanTrade === 0) {
-                    alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                if (skuCount.mostCanTrade === 0) {
+                    alteredMessage = `I can't sell more ${skuCount.name}`;
                     this.bot.listings.checkBySKU(sku);
                 } else {
-                    amount = amountCanTrade;
-                    alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
-                        SKU.fromString(sku),
-                        false
-                    )}`;
+                    alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${skuCount.name}`;
 
                     this.addOurItem(sku, amount);
                 }
@@ -458,7 +454,13 @@ export default class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+        const theirInventory = new Inventory(
+            this.partner,
+            this.bot.manager,
+            this.bot.schema,
+            this.bot.options,
+            this.bot.unusualEffects
+        );
 
         try {
             await theirInventory.fetch();
@@ -498,22 +500,20 @@ export default class UserCart extends Cart {
                 }
             }
 
-            const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, true);
+            const skuCount = getSkuAmountCanTrade(sku, this.bot);
 
-            if (amount > amountCanTrade) {
+            if (amount > skuCount.mostCanTrade) {
                 this.removeTheirItem(sku, Infinity);
-                if (amountCanTrade === 0) {
-                    alteredMessage =
-                        "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                if (skuCount.mostCanTrade === 0) {
+                    alteredMessage = "I can't buy more " + pluralize(skuCount.name);
                     this.bot.listings.checkBySKU(sku);
                 } else {
-                    amount = amountCanTrade;
-                    alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
-                        this.bot.schema.getName(SKU.fromString(sku), false),
-                        amountCanTrade
+                    alteredMessage = `I can only buy ${skuCount.mostCanTrade} more ${pluralize(
+                        skuCount.name,
+                        skuCount.mostCanTrade
                     )}`;
 
-                    this.addTheirItem(sku, amount);
+                    this.addTheirItem(sku, skuCount.mostCanTrade);
                 }
             }
 
@@ -651,7 +651,7 @@ export default class UserCart extends Cart {
             const amount = this.their[sku].amount;
             let assetids = theirInventory.findBySKU(sku, true);
 
-            const match = this.bot.pricelist.getPrice(sku, true);
+            const match = this.bot.pricelist.getPrice(sku, true, true);
 
             const item = SKU.fromString(sku);
 
@@ -942,7 +942,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const entry = this.bot.pricelist.getPrice(sku, true);
+            const entry = this.bot.pricelist.getPrice(sku, true, true);
 
             itemPrices[sku] = {
                 buy: entry.buy,
@@ -1100,7 +1100,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const match = this.bot.pricelist.getPrice(sku, true);
+            const match = this.bot.pricelist.getPrice(sku, true, true);
 
             if (match === null) {
                 // Ignore items that are no longer in the pricelist
@@ -1420,21 +1420,17 @@ export default class UserCart extends Cart {
                 }
             }
 
-            const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, false);
+            const skuCount = getSkuAmountCanTrade(sku, this.bot);
 
-            if (amount > amountCanTrade) {
+            if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(sku, Infinity);
-                if (amountCanTrade === 0) {
-                    alteredMessage = "I can't sell more " + this.bot.schema.getName(SKU.fromString(sku), false);
+                if (skuCount.mostCanTrade === 0) {
+                    alteredMessage = "I can't sell more " + skuCount.name;
                     this.bot.listings.checkBySKU(sku);
                 } else {
-                    amount = amountCanTrade;
-                    alteredMessage = alteredMessage = `I can only sell ${amountCanTrade} more ${this.bot.schema.getName(
-                        SKU.fromString(sku),
-                        false
-                    )}`;
+                    alteredMessage = alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${skuCount.name}`;
 
-                    this.addOurItem(sku, amount);
+                    this.addOurItem(sku, skuCount.mostCanTrade);
                 }
             }
 
@@ -1447,7 +1443,13 @@ export default class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+        const theirInventory = new Inventory(
+            this.partner,
+            this.bot.manager,
+            this.bot.schema,
+            this.bot.options,
+            this.bot.unusualEffects
+        );
 
         try {
             await theirInventory.fetch();
@@ -1487,23 +1489,16 @@ export default class UserCart extends Cart {
                     this.addTheirItem(sku, amount);
                 }
             }
-
-            const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, true);
-
-            if (amount > amountCanTrade) {
+            const skuCount = getSkuAmountCanTrade(sku, this.bot);
+            if (amount > skuCount.mostCanTrade) {
                 this.removeTheirItem(sku, Infinity);
-                if (amountCanTrade === 0) {
-                    alteredMessage =
-                        "I can't buy more " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                if (skuCount.mostCanTrade === 0) {
+                    alteredMessage = `I can't buy more ${pluralize(skuCount.name)}`;
                     this.bot.listings.checkBySKU(sku);
                 } else {
-                    amount = amountCanTrade;
-                    alteredMessage = `I can only buy ${amountCanTrade} more ${pluralize(
-                        this.bot.schema.getName(SKU.fromString(sku), false),
-                        amountCanTrade
-                    )}`;
+                    alteredMessage = `I can only buy ${skuCount.mostCanTrade} more ${pluralize(skuCount.name)}`;
 
-                    this.addTheirItem(sku, amount);
+                    this.addTheirItem(sku, skuCount.mostCanTrade);
                 }
             }
 
@@ -1660,7 +1655,7 @@ export default class UserCart extends Cart {
             const amount = this.their[sku].amount;
             let assetids = theirInventory.findBySKU(sku, true);
 
-            const match = this.bot.pricelist.getPrice(sku, true);
+            const match = this.bot.pricelist.getPrice(sku, true, true);
 
             const item = SKU.fromString(sku);
 
@@ -1954,7 +1949,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const entry = this.bot.pricelist.getPrice(sku, true);
+            const entry = this.bot.pricelist.getPrice(sku, true, true);
 
             itemPrices[sku] = {
                 buy: entry.buy,

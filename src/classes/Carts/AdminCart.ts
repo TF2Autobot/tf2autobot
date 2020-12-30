@@ -107,7 +107,13 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+            const theirInventory = new Inventory(
+                this.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.unusualEffects
+            );
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
@@ -263,7 +269,13 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+            const theirInventory = new Inventory(
+                this.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.unusualEffects
+            );
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {

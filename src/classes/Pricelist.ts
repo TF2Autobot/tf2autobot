@@ -63,9 +63,9 @@ export class Entry {
 
     time: number | null;
 
-    constructor(entry: EntryData, schema: SchemaManager.Schema) {
+    private constructor(entry: EntryData, name: string) {
         this.sku = entry.sku;
-        this.name = schema.getName(SKU.fromString(entry.sku), false);
+        this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
         this.max = entry.max;
@@ -104,6 +104,14 @@ export class Entry {
         } else {
             this.note = { buy: null, sell: null };
         }
+    }
+
+    clone(): Entry {
+        return new Entry(this.getJSON(), this.name);
+    }
+
+    static fromData(data: EntryData, schema: SchemaManager.Schema): Entry {
+        return new Entry(data, schema.getName(SKU.fromString(data.sku), false));
     }
 
     hasPrice(): boolean {
@@ -196,16 +204,27 @@ export default class Pricelist extends EventEmitter {
         return !onlyEnabled || match.enabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false): Entry | null {
+    getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
+        const pSku = SKU.fromString(sku);
         // Index of of item in pricelist
-        const index = this.getIndex(sku);
+        const index = this.getIndex(null, pSku);
+        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku) : -1;
 
-        if (index === -1) {
+        if (index === -1 && (!generics || (generics && gindex === -1))) {
             // Did not find a match
             return null;
         }
 
-        const match = this.prices[index];
+        let match = index !== -1 ? this.prices[index] : this.prices[gindex];
+        if (gindex !== -1) {
+            // we found a generic match for a specific sku so we are going to clone the generic entry
+            // otherwise we would mutate the existing generic entry
+            match = match.clone();
+            const effectMatch = this.bot.unusualEffects.find(e => pSku.effect === e.id);
+            match.name = match.name.replace('Unusual', effectMatch.name);
+            match.sku = sku;
+            // change any other options if needed here (possible spot for config)
+        }
 
         if (onlyEnabled && !match.enabled) {
             // Item is not enabled
@@ -359,7 +378,7 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        const entry = new Entry(entryData, this.schema);
+        const entry = Entry.fromData(entryData, this.schema);
 
         await this.validateEntry(entry, src);
 
@@ -398,7 +417,7 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        const entry = new Entry(entryData, this.schema);
+        const entry = Entry.fromData(entryData, this.schema);
 
         await this.validateEntry(entry, src);
 
@@ -463,11 +482,24 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    getIndex(sku: string): number {
+    getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
-        const name = this.schema.getName(SKU.fromString(sku), false);
+        const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
 
         return this.prices.findIndex(entry => entry.name === name);
+    }
+
+    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item): number {
+        // Get name of item
+        const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
+        if (pSku.quality === 5) {
+            // try to find a generic price
+            const name = this.schema.getName(pSku, false);
+            const effectMatch = this.bot.unusualEffects.find(e => pSku.effect === e.id);
+            return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
+        } else {
+            return -1;
+        }
     }
 
     setPricelist(prices: EntryData[]): Promise<void> {
@@ -495,7 +527,7 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        this.prices = prices.map(entry => new Entry(entry, this.schema));
+        this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
 
         return this.setupPricelist();
     }
