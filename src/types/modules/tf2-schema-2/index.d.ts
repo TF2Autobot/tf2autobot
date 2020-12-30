@@ -23,9 +23,20 @@ declare module 'tf2-schema-2' {
 
         init(callback: (err: any) => void): void;
 
-        setSchema(data: Record<string, unknown>, fromUpdate?: boolean): void;
+        setSchema(data: GetSchemaResponse, fromUpdate?: boolean): void;
 
         getSchema(callback: (err: any, schema?: any) => void): void;
+    }
+
+    interface PricesResponse {
+        success: boolean;
+        message?: string;
+    }
+
+    interface GetSchemaResponse extends PricesResponse {
+        version: string;
+        time: number;
+        raw: any;
     }
 
     namespace SchemaManager {
