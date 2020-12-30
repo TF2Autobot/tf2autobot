@@ -258,8 +258,7 @@ export default class Bot {
         return this.ready;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private addListener(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
+    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
