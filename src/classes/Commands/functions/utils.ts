@@ -13,7 +13,12 @@ import { craftAll, uncraftAll } from '../../../lib/data';
 import { fixItem } from '../../../lib/items';
 import { OurTheirItemsDict } from 'steam-tradeoffer-manager';
 
-export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
+export function getItemAndAmount(
+    steamID: SteamID,
+    message: string,
+    bot: Bot,
+    from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
+): { match: Entry; amount: number } | null {
     message = removeLinkProtocol(message);
     let name = message;
     let amount = 1;
@@ -53,6 +58,20 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
     }
 
     let match = bot.pricelist.searchByName(name, true);
+
+    if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
+        const opt = bot.options.commands;
+
+        if (opt[from].enable === false && opt[from].disableForSKU.includes(match.sku)) {
+            const custom = opt[from].customReply.disabled;
+            bot.sendMessage(
+                steamID,
+                custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
+            );
+            return null;
+        }
+    }
+
     if (match === null) {
         // Search the item by Levenshtein distance to find a close match (if one exists)
         let lowestDistance = 999;

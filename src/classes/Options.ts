@@ -569,38 +569,54 @@ export const DEFAULTS = {
         },
         buy: {
             // 26.2
-            enable: true, // ⚠️
-            disableForSKU: [], // ⚠️
+            enable: true, // ✅
+            disableForSKU: [], // ✅
             customReply: {
                 // 26.cr.b
-                disabled: '' // ⚠️
+                disabled: '' // ✅
+                /*
+                 * ^Default: "❌ buy command is disabled for %itemName%"
+                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
             }
         },
         sell: {
             // 26.2
-            enable: true, // ⚠️
-            disableForSKU: [], // ⚠️
+            enable: true, // ✅
+            disableForSKU: [], // ✅
             customReply: {
                 // 26.cr.b
-                disabled: '' // ⚠️
+                disabled: '' // ✅
+                /*
+                 * ^Default: "❌ sell command is disabled for %itemName%"
+                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
             }
         },
         buycart: {
             // 26.2
-            enable: true, // ⚠️
-            disableForSKU: [], // ⚠️
+            enable: true, // ✅
+            disableForSKU: [], // ✅
             customReply: {
                 // 26.cr.b
-                disabled: '' // ⚠️
+                disabled: '' // ✅
+                /*
+                 * ^Default: "❌ buycart command is disabled for %itemName%"
+                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
             }
         },
         sellcart: {
             // 26.2
-            enable: true, // ⚠️
-            disableForSKU: [], // ⚠️
+            enable: true, // ✅
+            disableForSKU: [], // ✅
             customReply: {
                 // 26.cr.b
-                disabled: '' // ⚠️
+                disabled: '' // ✅
+                /*
+                 * ^Default: "❌ sellcart command is disabled for %itemName%"
+                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
             }
         },
         cart: {
@@ -1417,10 +1433,10 @@ export interface Commands extends OnlyEnable {
     customDisableReply?: string;
     how2trade?: How2Trade;
     price?: Price;
-    buy?: OnlyEnableAndDisableForSKU & Omit<OnlyCustomReplyWithDisabled, 'reply'>;
-    sell?: OnlyEnableAndDisableForSKU & Omit<OnlyCustomReplyWithDisabled, 'reply'>;
-    buycart?: OnlyEnableAndDisableForSKU & Omit<OnlyCustomReplyWithDisabled, 'reply'>;
-    sellcart?: OnlyEnableAndDisableForSKU & Omit<OnlyCustomReplyWithDisabled, 'reply'>;
+    buy?: SpecificOperation;
+    sell?: SpecificOperation;
+    buycart?: SpecificOperation;
+    sellcart?: SpecificOperation;
     cart?: Cart;
     clearcart?: ClearCart;
     checkout?: Checkout;
@@ -1439,6 +1455,11 @@ export interface Commands extends OnlyEnable {
     stock?: Stock;
     craftweapon?: Weapons;
     uncraftweapon?: Weapons;
+}
+
+export interface SpecificOperation extends OnlyEnable {
+    disableForSKU?: string[];
+    customReply?: Pick<OnlyCustomReplyWithDisabled, 'disabled'>;
 }
 
 export interface How2Trade {

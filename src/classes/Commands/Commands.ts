@@ -289,7 +289,17 @@ export default class Commands {
     // Instant item trade
 
     private buyCommand(steamID: SteamID, message: string): void {
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.buy;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buy');
 
         if (info === null) {
             return;
@@ -307,7 +317,17 @@ export default class Commands {
     }
 
     private sellCommand(steamID: SteamID, message: string): void {
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.sell;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sell');
 
         if (info === null) {
             return;
@@ -336,7 +356,17 @@ export default class Commands {
             return;
         }
 
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.buycart;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buycart');
 
         if (info === null) {
             return;
@@ -404,7 +434,17 @@ export default class Commands {
             return;
         }
 
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.sellcart;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+                return;
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sellcart');
 
         if (info === null) {
             return;
