@@ -18,6 +18,12 @@ export const offerReceivedSchema: jsonschema.Schema = {
         },
         duped: {
             $ref: 'duped-or'
+        },
+        escrowCheckFailed: {
+            $ref: 'escrow-banned-check-failed-or'
+        },
+        bannedCheckFailed: {
+            $ref: 'escrow-banned-check-failed-or'
         }
     },
     additionalProperties: false,

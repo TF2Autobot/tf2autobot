@@ -549,6 +549,24 @@ export const DEFAULTS = {
                  */
                 note: ''
             }
+        },
+        // ⬜_ESCROW_CHECK_FAILED
+        escrowCheckFailed: {
+            // 22.t
+            /**
+             * By default, your bot will skip the trade and put to review if escrow check failed.
+             * Set this to false if you want your bot to ignore trade with failed escrow check.
+             */
+            ignoreFailed: false
+        },
+        // ⬜_BANNED_CHECK_FAILED
+        bannedCheckFailed: {
+            // 22.t
+            /**
+             * By default, your bot will skip the trade and put to review if banned check failed.
+             * Set this to false if you want your bot to ignore trade with failed banned check.
+             */
+            ignoreFailed: false
         }
     },
 
@@ -1799,6 +1817,8 @@ export interface OfferReceived {
     overstocked?: AutoAcceptOverpayAndAutoDecline;
     understocked?: AutoAcceptOverpayAndAutoDecline;
     duped?: Duped;
+    escrowCheckFailed?: EscrowBannedCheckFailed;
+    bannedCheckFailed?: EscrowBannedCheckFailed;
 }
 
 export interface InvalidValue {
@@ -1826,6 +1846,10 @@ export interface Duped {
     enableCheck?: boolean;
     minKeys?: number;
     autoDecline?: AutoDecline;
+}
+
+export interface EscrowBannedCheckFailed {
+    ignoreFailed?: boolean;
 }
 
 // ------------ Manual Review ------------

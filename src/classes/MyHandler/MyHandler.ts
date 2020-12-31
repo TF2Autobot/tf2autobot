@@ -1270,14 +1270,19 @@ export default class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_ESCROW_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: filterReasons(uniqueReasons),
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_ESCROW_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
+            }
         }
 
         offer.log('info', 'checking bans...');
@@ -1297,14 +1302,19 @@ export default class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_BANNED_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: filterReasons(uniqueReasons),
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_BANNED_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
+            }
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {

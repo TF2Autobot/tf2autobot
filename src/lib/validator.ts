@@ -48,6 +48,7 @@ v.addSchema(op.cf.weaponsSchema);
 
 v.addSchema(op.or.offerReceivedSchema);
 v.addSchema(op.or.autoDeclineOrSchema);
+v.addSchema(op.or.escrowBannedCheckFailedOrSchema);
 v.addSchema(op.or.exceptionValueIvOrSchema);
 v.addSchema(op.or.invalidValueOrSchema);
 v.addSchema(op.or.invalidItemsOrSchema);
