@@ -147,7 +147,7 @@ export default class MyHandler extends Handler {
     private get sheens(): string[] {
         // check if highValue.sheens is an empty array
         const sheens = this.bot.options.highValue.sheens;
-        if (sheens === [] || (sheens !== undefined && sheens[0] === '')) {
+        if (sheens === [] || (sheens.length > 0 && sheens[0] === '')) {
             log.warn(
                 'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
             );
@@ -160,7 +160,7 @@ export default class MyHandler extends Handler {
     private get killstreakers(): string[] {
         // check if highValue.killstreakers is an empty array
         const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === [] || (killstreakers !== undefined && killstreakers[0] === '')) {
+        if (killstreakers === [] || (killstreakers.length > 0 && killstreakers[0] === '')) {
             log.warn(
                 'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
             );
@@ -172,7 +172,7 @@ export default class MyHandler extends Handler {
 
     private get strangeParts(): string[] {
         const strangeParts = this.bot.options.highValue.strangeParts;
-        if (strangeParts === [] || (strangeParts !== undefined && strangeParts[0] === '')) {
+        if (strangeParts === [] || (strangeParts.length > 0 && strangeParts[0] === '')) {
             log.warn(
                 'You did not set highValue.strangeParts array in your options.json file, will mention/disable all strangeParts.'
             );
@@ -184,7 +184,7 @@ export default class MyHandler extends Handler {
 
     private get painted(): string[] {
         const painted = this.bot.options.highValue.painted;
-        if (painted === [] || (painted !== undefined && painted[0] === '')) {
+        if (painted === [] || (painted.length > 0 && painted[0] === '')) {
             log.warn(
                 'You did not set highValue.painted array in your options.json file, will mention/disable all painted item.'
             );
