@@ -2,6 +2,7 @@ import { customReplyOnlyReplyCmdSchema } from './custom-reply/26.cr.a-custom-rep
 import { customReplyOnlyDisabledCmdSchema } from './custom-reply/26.cr.b-custom-reply-only-disabled-cmd';
 import { customReplyDisabledReplyCmdSchema } from './custom-reply/26.cr.c-custom-reply-disabled-reply-cmd';
 import { customReplyDisabledHaveDontCmdSchema } from './custom-reply/26.cr.d-custom-reply-disable-have-dont-cmd';
+import { customReplyOnlyDisabledDisabledForSKUCmdSchema } from './custom-reply/26.cr.e-custom-reply-only-disabled-disabledForSKU-cmd';
 
 import { commandsSchema } from './26-commands';
 import { priceCmdSchema } from './26.1-price-cmd';
@@ -32,6 +33,7 @@ export {
     customReplyOnlyDisabledCmdSchema,
     customReplyDisabledReplyCmdSchema,
     customReplyDisabledHaveDontCmdSchema,
+    customReplyOnlyDisabledDisabledForSKUCmdSchema,
     commandsSchema,
     priceCmdSchema,
     buySellCmdSchema,

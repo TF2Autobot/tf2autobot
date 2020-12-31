@@ -63,7 +63,7 @@ export function getItemAndAmount(
         const opt = bot.options.commands;
 
         if (opt[from].enable === false && opt[from].disableForSKU.includes(match.sku)) {
-            const custom = opt[from].customReply.disabled;
+            const custom = opt[from].customReply.disabledForSKU;
             bot.sendMessage(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`

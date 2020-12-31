@@ -9,185 +9,382 @@ import validator from '../lib/validator';
 export const DEFAULTS = {
     showOnlyMetal: {
         // 1
-        enable: true // ✅ (src/classes/ - MyHandler/MyHandler.ts, Cart/UserCart.ts)
+        /**
+         * If this is set to false, the bot will show all prices in the format of [x keys, y ref]. Example: (5 keys, 10 ref).
+         * If this is set to true the bot will instead show all prices in the format of [x ref]. Example: (260 ref).
+         */
+        enable: true
     },
 
     sortInventory: {
         // 2
-        enable: true, // ✅ (src/classes/MyHandler/MyHandler.ts)
-        type: 3 // ✅ 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+        /**
+         * If set to false your bot will not automatically sort its own inventory.
+         */
+        enable: true,
+        /**
+         * 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+         * 101 - by class, 102 - by slot
+         */
+        type: 3
     },
 
     createListings: {
         // 3
-        enable: true // ✅ (src/classes/Pricelist.ts)
+        /**
+         * If set to false, your bot will not list items for trade while it is running (if changed
+         * while your bot is running, this wont work unless restarted).
+         */
+        enable: true
     },
 
     sendAlert: {
         // 4
-        enable: true, // ✅
+        /**
+         * Set to false to never send any alerts.
+         */
+        enable: true,
         autokeys: {
             // 4.1
-            lowPure: true // ✅ (src/classes/Autokeys/Autokeys.ts)
+            /**
+             * (Discord Webhhok not mentioned) Send an alert when the bot is low in keys and ref (less than minimum for both).
+             */
+            lowPure: true
         },
-        backpackFull: true, // ✅ (src/classes/Carts/Cart.ts)
+        /**
+         * (Discord Webhhok not mentioned) Send an alert when the bot failed to send an offer due to
+         * full backpack problem.
+         */
+        backpackFull: true,
         highValue: {
             // 4.2
-            gotDisabled: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
-            receivedNotInPricelist: true, // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
-            tryingToTake: true // ✅ (src/classes/MyHandler/MyHandler.ts)
+            /**
+             * (Discord Webhhok mentioned) Send an alert when the bot successfully bought an item with high-value attachment(s)
+             * and it got disabled (only if highValue.enableHold is true).
+             */
+            gotDisabled: true,
+            /**
+             * (Discord Webhhok mentioned) Send an alert when the bot successfully bought an item (INVALID_ITEMS)
+             * with high-value attachment(s) - this will not automatically added to the pricelist.
+             */
+            receivedNotInPricelist: true,
+            /**
+             * (Discord Webhhok mentioned) Send an alert when the trade partner is trying to take an item with high-value attachment(s)
+             * that is still not in the bot pricelist.
+             */
+            tryingToTake: true
         }
     },
 
     addFriends: {
         // 5
-        enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
+        /**
+         * If set to false, the bot will not be able to accept add friend request (except from admins).
+         */
+        enable: true
     },
 
     sendGroupInvite: {
         // 6
-        enable: true // ✅ (src/classes/MyHandler/MyHandler.ts)
+        /**
+         * If set to false, the bot will not send group invite after each successful trade
+         * to the trade partner.
+         */
+        enable: true
     },
 
     autoRemoveIntentSell: {
         // 7
-        enable: true // ✅ (src/classes/MyHandler/offer/accepted/updateListings.ts)
+        /**
+         * If set to true, any item with intent sell in the pricelist will be automatically removed
+         * when the bot no longer have that item.
+         */
+        enable: false
     },
 
     bypass: {
         // 8
         escrow: {
             // 8.1
-            allow: false // ✅ (src/classes/Bot.ts)
+            /**
+             * If set to true, your bot will allow trades to be held for up to 15 days
+             * as a result of the trade partner not having Mobile Authentication enabled.
+             */
+            allow: false
         },
         overpay: {
-            // 8.2
-            allow: true // ✅ (src/classes/MyHandler/MyHandler.ts)
+            /**
+             * If set to true, your bot will allow trade partners to overpay with items or keys/metal.
+             * Otherwise, your bot will decline any trades in which it would receive overpay.
+             */
+            allow: true
         },
         giftWithoutMessage: {
             // 8.3
-            allow: false // ✅ (src/classes/MyHandler/MyHandler.ts)
+            /**
+             * If set to true, your bot will accept any gift without the need for the trade partner to
+             * include a gift message in the offer message. SETTING THIS TO TRUE IS NOT RECOMMENDED!
+             */
+            allow: false
         },
         bannedPeople: {
             // 8.4
-            allow: false // ✅ (src/classes/Bot.ts)
+            /**
+             * If set to true, your bot will trade with users that are banned on backpack.tf or marked as
+             * a scammer on steamrep.com. SETTING THIS TO TRUE IS NOT RECOMMENDED!
+             */
+            allow: false
         }
     },
 
     priceAge: {
         // 9
-        maxInSeconds: 28800 // ✅ (src/classes/Pricelist.ts)
+        /**
+         * (8 hrs) If an item in the pricelist's last price update exceeds this value,
+         * the bot will automatically request a price check for the item from prices.tf
+         * (only apply on boot).
+         */
+        maxInSeconds: 28800
     },
 
     autobump: {
         // 10
-        enable: false // ✅ (src/classes/ - Listings.ts, MyHandler/MyHandler.ts, Commands/functions/options.ts)
+        /**
+         * If set to true, your bot will re-list all listings every 30 minutes.
+         * NOTE: DEPRECATED - Please consider donating to Backpack.tf or purchase Backpack.tf Premium
+         * to enable automatic listing bumping. More information here: https://backpack.tf/premium/subscribe
+         */
+        enable: false
     },
 
     skipItemsInTrade: {
         // 11
-        enable: true // ✅ (src/classes/Carts - AdminCart.ts, DonateCart.ts, PremiumCart.ts, UserCart.ts)
+        /**
+         * By default, when your bot is constructing an offer (trade partner buy/sell through command),
+         * your bot will skip any items that are currently in another active trades.
+         * Set this to false if you want to disable this feature.
+         */
+        enable: true
     },
 
     weaponsAsCurrency: {
         // 12
-        // src/classes/ - Carts/CartQueue.ts, Carts/UserCart.ts, Commands/Commands.ts, Commands/functions/options.ts
-        //                Commands/functions/PricelistManager.ts, MyHandler/MyHandler.ts, MyHandler/offer/accepted/updateListings.ts
-        // src/lib/tools/profit.ts
-        enable: true, // ✅
-        withUncraft: true // ✅
+        /**
+         * If set to false, your bot will not value craft/uncraft weapons as currency (0.05 refined).
+         */
+        enable: true,
+        /**
+         * If set to false, your bot will exclude uncraft weapons as currency (0.05 refined).
+         */
+        withUncraft: true
     },
 
     tradeSummary: {
         // 13
-        showStockChanges: false, // ✅
-        // src/classes/ - MyHandler/MyHandler.ts, MyHandler/offer/accepted/processAccepted.ts, MyHandler/offer/notify/declined.ts
-        //                MyHandler/offer/review/send-review.ts
-        // src/lib/DiscordWebhook - sendOfferReview.ts, sendTradeSummary.ts
-        showTimeTakenInMS: true, // ✅
-        // src/classes/ - MyHandler/offer/accepted/processAccepted.ts
-        showItemPrices: false // ✅
-        // src/classes/ - MyHandler/offer/accepted/processAccepted.ts
-        // src/lib/DiscordWebhook/sendTradeSummary.ts
+        /**
+         * By default is false, set to true if you want to show stock changes, example: B.M.O.C (0 → 1/1).
+         */
+        showStockChanges: false,
+        /**
+         * By default is false, set to true if you want to include time taken to complete the trade in milliseconds.
+         */
+        showTimeTakenInMS: false,
+        /**
+         * By default is false, set to true if you want to include item prices (buying/selling prices).
+         */
+        showItemPrices: false
     },
 
     highValue: {
         // 14
-        enableHold: true, // ✅ // (src/classes/MyHandler/offer/accepted/updateListings.ts)
-        // ↓ src/classes/ - MyHandler/offer/accepted/updateListings.ts, Listings/Listings.ts
-        sheens: [], // ✅
-        killstreakers: [], // ✅
-        strangeParts: [], // ✅
-        painted: [] // ✅
+        /**
+         * By default, whenever your bot accepts items with high valued attachments, it will temporarily be disabled
+         * so you can decide whether to manually price it. Set this to false if you want to disable this feature.
+         */
+        enableHold: true,
+        /**
+         * An array of sheens. Must be the sheen full name in each element. If leave empty ([]) or
+         * set to [""], will mention/disable on all sheens.
+         */
+        sheens: [],
+        /**
+         * An array of killstreakers. Must be the killstreakers full name in each element. If leave empty ([]) or
+         * set to [""], will mention/disable on all killstreakers.
+         */
+        killstreakers: [],
+        /**
+         * An array of strangeParts. Must be the strangeParts full name in each element. If leave empty ([]) or
+         * set to [""], will mention/disable on all strangeParts.
+         */
+        strangeParts: [],
+        /**
+         * An array of painted. Must be the painted full name in each element. If leave empty ([]) or
+         * set to [""], will mention/disable on all painted.
+         */
+        painted: []
     },
 
     checkUses: {
         // 15
-        // src/classes/ - MyHandler/MyHandler.ts, Carts/UserCart.ts, Commands/functions/review.ts, Listings/Listings.ts
-        duel: true, // ✅
-        noiseMaker: true // ✅
+        /**
+         * If set to false, your bot will buy Dueling Mini-Games regardless of how many uses are left. Otherwise,
+         * it will only accept full Dueling Mini-Games (5 uses left).
+         */
+        duel: true,
+        /**
+         * If set to false, your bot will buy Noise Makers regardless of how many uses are left. Otherwise, it will
+         * only accept full Noise Makers (25 uses left).
+         */
+        noiseMaker: true
     },
 
     game: {
         // 16
-        // src/classes/ - MyHandler/MyHandler.ts, Commands/functions/options.ts
-        playOnlyTF2: false, // ✅
-        customName: '' // ✅
+        /**
+         * Set to true if you want your bot to only play Team Fortress 2. Setting this to true will ignore the below Option.
+         */
+        playOnlyTF2: false,
+        /**
+         * Name of the custom game you'd like your bot to play. Limited to only 60 characters.
+         */
+        customName: ''
     },
 
     normalize: {
         // 17
-        // src/classes/ - Inventory.ts, MyHandler/MyHandler.ts, Commands/functions/review.ts
-        // src/lib/tools/check.ts
-        festivized: false, // ✅
-        strangeUnusual: false // ✅
+        /**
+         * If set to true, your bot will recognize Festivized items as their Non-Festivized variant. For example, if your bot
+         * is selling a Strange Australium Black Box and someone sends an offer to your bot containing a Festivized Strange Australium Black Box,
+         * the bot will recognize the Festivized Strange Australium Black Box as Strange Australium Black Box.
+         * Otherwise, the bot will determine each item's price by its specific name, quality, and unique identifiers.
+         */
+        festivized: false,
+        /**
+         * If set to true, Strange Unusuals (items whose SKU ends with ;strange) will be recognized as the normal variant of said Unusuals
+         * (items whose SKU doesn't end with ;strange). Otherwise, the bot will determine each item's price by its specific name, quality,
+         * and unique identifiers.
+         */
+        strangeUnusual: false
     },
 
     details: {
         // 18
-        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.', // ✅
-        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.', // ✅
-        // ^ src/classes/ - Autokeys/(all), Listings/Listings.ts
-        // ↓ src/classes/Listings/Listings.ts
+        /**
+         * This is the note that will be included with each buy order placed on backpack.tf.
+         */
+        buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
+        /**
+         * This is the note that will be included with each sell order placed on backpack.tf.
+         */
+        sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
         highValue: {
             // 18.1
-            showSpells: true, // ✅
-            showStrangeParts: false, // ✅
-            showKillstreaker: true, // ✅
-            showSheen: true, // ✅
-            showPainted: true // ✅
+            /**
+             * Show spell(s) in the listings note.
+             */
+            showSpells: true,
+            /**
+             * Show Strange parts (only the one you specified in highValue.strangeParts).
+             */
+            showStrangeParts: false,
+            /**
+             * Show killstreaker in the listings note.
+             */
+            showKillstreaker: true,
+            /**
+             * Show Sheen in the listings note.
+             */
+            showSheen: true,
+            /**
+             * Show painted color in the listings note
+             * (only the one you specified in highValue.painted).
+             */
+            showPainted: true
         }
     },
 
     statistics: {
         // 19
-        starter: 0, // ✅ (src/lib/DiscordWebhook/sendTradeSummary.ts)
-        lastTotalTrades: 0, // ✅ (src/classes/Commands/functions/status.ts)
-        startingTimeInUnix: 0, // ✅ (src/lib/tools/stats.ts)
-        lastTotalProfitMadeInRef: 0, // ✅ (src/lib/tools/profit.ts)
-        lastTotalProfitOverpayInRef: 0 // ✅ (src/lib/tools/profit.ts)
+        /**
+         * The starting value for the number of successful trades your bot has made. Used in Discord webhooks for
+         * statistical or show off purposes.
+         */
+        starter: 0,
+        /**
+         * An offset value for your bot's .starter. If you clear out your polldata.json file, it will reset your total trades
+         * count back to zero. This Option can be used as an offset to ensure you never lose track of how many trades your bot
+         * has completed in total. An example would be if you bot has completed 1000 trades and you want to clear out your
+         * polldata.json file. If you set .lastTotalTrades to 1000, your bot will remember that it has completed 1000 trades in the past.
+         */
+        lastTotalTrades: 0,
+        /**
+         * Similar to .lastTotalTrades, this Option sets the latest instance a trade was made.
+         */
+        startingTimeInUnix: 0,
+        /**
+         * Similar to .lastTotalTrades, but this is for last profit made (value must in refined metal, i.e. 35.44).
+         */
+        lastTotalProfitMadeInRef: 0,
+        /**
+         * Similar to .lastTotalProfitMadeInRef, but this is for last profit from overpay(value must in refined metal, i.e. 1000.44).
+         */
+        lastTotalProfitOverpayInRef: 0
     },
 
     autokeys: {
         // 20
-        // src/classes/Autokeys/(all)
-        enable: false, // ✅
-        minKeys: 3, // ✅
-        maxKeys: 15, // ✅
-        minRefined: 30, // ✅
-        maxRefined: 150, // ✅
+        /**
+         * If set to true, your bot will automatically buy/sell keys based on the availability of the refined metals and keys in
+         * your bot inventory. This is done in an effort to ensure that your bot has enough pure metal to perform trades.
+         */
+        enable: false,
+        /**
+         * When the bot's current stock of keys is greater than minimum keys, and the bot's current stock of refined metal is less
+         * than minimum ref, the bot will start selling keys in order to convert keys into metal. Otherwise, the bot will not sell keys.
+         */
+        minKeys: 3,
+        /**
+         * When the bot's current stock of keys is less than maximum keys, and the bot's current stock of refined metal is greater than
+         * maximum ref, the bot will start buying keys in order to convert metal into keys. Otherwise, the bot will not buy keys.
+         */
+        maxKeys: 15,
+        /**
+         * The minimum number of refined the bot can have before it begins selling keys (to turn keys into metal). See .minKeys for more information.
+         */
+        minRefined: 30,
+        /**
+         * The maximum number of refined the bot can have before it begins buying keys (to turn metal into keys). See .maxKeys for more information.
+         */
+        maxRefined: 150,
         banking: {
             // 20.1
-            enable: false // ✅
+            /**
+             * If set to true, your bot will bank (buy and sell) keys. If your bot's current refined supply is between min and max and keys \> min,
+             * it will bank keys. autokeys.enable must be set to true to enable this option.
+             */
+            enable: false
         },
         scrapAdjustment: {
             // 20.2
-            enable: false, // ✅
-            value: 1 // ✅
+            /**
+             * If set to true, the bot will make adjustments to the price of keys when selling or buying. For example, if the current key price is
+             * "10 refined", the bot will take "10 refined" and add .value when buying, and subtract .value when selling. This is done in an effort
+             * to quickly buy and sell keys using Autokeys when in a pinch by paying more for keys and selling keys for less. This is not possible
+             * to do when key banking (autokeys.banking.enable set to true).
+             */
+            enable: false,
+            /**
+             * This is the amount of scrap (.11 refined) the bot will increase the buy listing or decrease the sell listing when buying/selling keys
+             * using Autokeys (if .enable is set to true).
+             */
+            value: 1
         },
         accept: {
             // 20.3
-            understock: false // ✅
+            /**
+             * If set to true, your bot will accept trades that will lead to keys become under-stocked.
+             */
+            understock: false
         }
     },
 
@@ -195,14 +392,32 @@ export const DEFAULTS = {
         // 21
         weapons: {
             // 21.1
-            enable: true // ✅ (src/classes/MyHandler/utils/ - craftClassWeapons.ts, craftDuplicateWeapons.ts)
+            /**
+             * Setting this to false will disable metal crafting entirely. This may cause your bot and the trade partner to not be able to trade because
+             * of missing scrap/reclaimed. SETTING THIS TO FALSE IS NOT RECOMMENDED!
+             */
+            enable: true
         },
         metals: {
             // 21.2
-            enable: true, // ✅ (src/classes/MyHandler/utils/keepMetalSupply.ts)
-            minScrap: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
-            minRec: 9, // ✅ (src/classes/MyHandler/MyHandler.ts)
-            threshold: 9 // ✅ (src/classes/MyHandler/MyHandler.ts)
+            /**
+             * Setting this to false will disable metal crafting entirely. This may cause your bot and the trade partner to not be able to trade because
+             * of missing scrap/reclaimed. SETTING THIS TO FALSE IS NOT RECOMMENDED!
+             */
+            enable: true,
+            /**
+             * If your bot has less scrap metal than this amount, it will smelt down reclaimed metal to maintain ample scrap metal supply.
+             */
+            minScrap: 9,
+            /**
+             * If your bot has less reclaimed metal than this amount, it will smelt down refined metal to maintain ample reclaimed metal supply.
+             */
+            minRec: 9,
+            /**
+             * If the bot's scrap/reclaimed metal count has reached the minimum amount, and scrap/metal count has reached this threshold (max),
+             * it will combine the metal into the next highest denomination.
+             */
+            threshold: 9
         }
     },
 
@@ -213,425 +428,658 @@ export const DEFAULTS = {
             // 22.1
             autoDecline: {
                 // 22.s
-                enable: true, // ✅
-                note: '' // ✅
-                /*
-                 * ^Default:
-                 * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                /**
+                 * Set this to false if you do not want your bot to automatically decline trades with 🟥_INVALID_VALUE as the ONLY manual review
+                 * reason where items do not match exceptionValue.skus and exceptionValue.valueInRef
+                 */
+                enable: true,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  *  you've sent a trade with an invalid value (your side and my side do not hold equal value)."
-                 * //
                  * followed by `[You're missing: ${value}]` (unchangeable)
                  */
+                note: ''
             },
             exceptionValue: {
                 // 22.1.2
-                skus: [], // ✅
-                valueInRef: 0 // ✅
+                /**
+                 * An array of SKUs that will bypass the INVALID_VALUE manual review reason if the difference between the bot's value and
+                 * their value is not more than .valueInRef. Let's say your bot is selling an Unusual and someone sent an offer with 0.11 ref
+                 * less, and you want your bot to accept it anyway. By default, it will check only for Unusuals and Australiums: [";5;u", ";11;australium"]
+                 *  You can also leave it empty ([""]) so that all items with INVALID_VALUE create notifications.
+                 */
+                skus: [],
+                /**
+                 * 	Exception value for the SKUs that you set above. The default is 0 (no exception).
+                 */
+                valueInRef: 0
             }
         },
         // 🟨_INVALID_ITEMS (ONLY_INVALID_ITEMS)
         invalidItems: {
             // 22.2
-            givePrice: false, // ✅
-            autoAcceptOverpay: true, // ✅
+            /**
+             * If set to false, your bot will not price INVALID_ITEMS (items that are not in your price list) using prices from prices.tf.
+             */
+            givePrice: false,
+            /**
+             * If set to false, your bot will not accept trades with INVALID_ITEMS where the value of their side is greater than or equal
+             * to the value of your bot's side.
+             */
+            autoAcceptOverpay: true,
             autoDecline: {
                 // 22.s
-                enable: false, // ✅
-                note: '' // ✅
-                /*
-                 * ^Default:
-                 * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
-                 *  you've sent a trade with an invalid items (not exist in my pricelist)."
-                 * //
-                 * followed by `[You're missing: ${value}]` (if applicable)
+                /**
+                 * Set this to false if you do not want your bot to automatically decline trades with 🟨_INVALID_ITEMS as the ONLY manual review
+                 * reason.
                  */
+                enable: false,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                 *  you've sent a trade with an invalid items (not exist in my pricelist)."
+                 * followed by `[You're missing: ${value}]` (if applicable).
+                 */
+                note: ''
             }
         },
         // 🟦_OVERSTOCKED (ONLY_OVERSTOCKED)
         overstocked: {
             // 22.3
-            autoAcceptOverpay: false, // ✅
+            /**
+             * If set to false, your bot will not accept trades with 🟦_OVERSTOCKED where the value of their side is greater than or equal
+             * to the value of your bot's side.
+             */
+            autoAcceptOverpay: false,
             autoDecline: {
                 // 22.s
-                enable: false, // ✅
-                note: '' // ✅
-                /*
-                 * ^Default:
-                 * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
-                 *  you're attempting to sell item(s) that I can't buy more of."
-                 * //
-                 * followed by `[You're missing: ${value}]` (if applicable)
+                /**
+                 * Set this to false if you do not want your bot to automatically decline trades with 🟦_OVERSTOCKED as the ONLY manual review
+                 * reason.
                  */
+                enable: false,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                 *  you're attempting to sell item(s) that I can't buy more of." followed by `[You're missing: ${value}]` (if applicable).
+                 */
+                note: ''
             }
         },
         // 🟩_UNDERSTOCKED (ONLY_UNDERSTOCKED)
         understocked: {
             // 22.4 = 22.3
-            autoAcceptOverpay: false, // ✅
+            /**
+             * If set to false, your bot will not accept trades with 🟩_UNDERSTOCKED where the value of their side is greater than or equal
+             * to the value of your bot's side.
+             */
+            autoAcceptOverpay: false,
             autoDecline: {
                 // 22.s
-                enable: false, // ✅
-                note: '' // ✅
-                /*
-                 * ^Default:
-                 * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
-                 *  you're attempting to purchase item(s) that I can't sell more of."
-                 * //
-                 * followed by `[You're missing: ${value}]` (if applicable)
+                /**
+                 * Set this to false if you do not want your bot to automatically decline trades with 🟩_UNDERSTOCKED as the ONLY manual review
+                 * reason.
                  */
+                enable: false,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                 * you're attempting to purchase item(s) that I can't sell more of." followed by `[You're missing: ${value}]` (if applicable).
+                 */
+                note: ''
             }
         },
         // 🟫_DUPED_ITEMS
         duped: {
             // 22.5
-            enableCheck: true, // ✅
-            minKeys: 10, // ✅
+            /**
+             * If set to true, the bot will perform checks on items to determine whether or not they are duplicated.
+             */
+            enableCheck: true,
+            /**
+             * The minimum number of keys an item must be worth before the bot performs a check for whether or not it is duplicated.
+             */
+            minKeys: 10,
             autoDecline: {
                 // 22.s
-                enable: true, // ✅
-                note: '' // ✅
-                /*
-                 * ^Default:
-                 * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                /**
+                 * If set to true, the bot will decline any unusual items that it determines as having been duplicated.
+                 */
+                enable: true,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  *  I don't accept duped items."
                  */
+                note: ''
             }
         }
     },
 
     manualReview: {
         // 23
-        enable: true, // ✅
-        showOfferSummary: true, // ✅
-        showReviewOfferNote: true, // ✅
-        showOwnerCurrentTime: true, // ✅
-        showItemPrices: true, // ✅
+        /**
+         * By default, offers with INVALID_VALUE/ INVALID_ITEMS/ OVERSTOCKED/ UNDERSTOCKED/ DUPED_ITEMS/ DUPE_CHECK_FAILED will
+         * require manual review by you.
+         */
+        enable: true,
+        /**
+         * If set to true, your bot will show the trade offer summary to the trade partner. Otherwise, it will only notify the
+         * trade partner that their offer is being held for review.
+         */
+        showOfferSummary: true,
+        /**
+         * By default, your bot will show notes on for each manual review reason.
+         */
+        showReviewOfferNote: true,
+        /**
+         * By default, your bot will show the owner's time when sending your trade partner any manual offer review notifications.
+         */
+        showOwnerCurrentTime: true,
+        /**
+         * By default is false, set to true if you want to include item prices (buying/selling prices) - only for owner.
+         */
+        showItemPrices: true, //
         // All these custom note only apply to trade partner's side
         // 🟥_INVALID_VALUE
         invalidValue: {
             // 23.1
-            note: '' // ✅
-            // Default note: "You're taking too much in value."
-            // followed by `[You're missing: ${value}]` (unchangeable)
+            /**
+             * Default: "You're taking too much in value." followed by `[You're missing: ${value}]` (unchangeable)
+             */
+            note: ''
         },
         // 🟨_INVALID_ITEMS
         invalidItems: {
             // 23.2
-            note: '' // ✅ parameters: %itemsName%, %isOrAre%
-            // Default note: `%itemsName% %isOrAre% not in my pricelist.`
-            // %itemsName% output: join of `${name}` array.
+            /**
+             * Default: "%itemsName% %isOrAre% not in my pricelist."
+             *
+             * Parameter: join(', ') of `${name}` array
+             */
+            note: ''
         },
         // 🟦_OVERSTOCKED
         overstocked: {
             // 23.3
-            note: '' // ✅ parameters: %itemsName%, %isOrAre%
-            // Default note: `I can only buy %itemsName% right now.`
-            // %itemsName% output: join of `${amountCanTrade} - ${name}` array
+            /**
+             * Default: "I can only buy %itemsName% right now."
+             *
+             * Parameter: %itemsName% - a join of \``${name}, history page: https://backpack.tf/item/${el.assetid}`\` array
+             */
+            note: ''
         },
         // 🟩_UNDERSTOCKED
         understocked: {
             // 23.4
-            note: '' // ✅ parameters: %itemsName%, %isOrAre%
-            // Default note: `I can only sell %itemsName% right now.`
-            // %itemsName% output: join of `${amountCanTrade} - ${name}` array
+            /**
+             * Default: "I can only sell %itemsName% right now."
+             *
+             * Parameter: %itemsName% - a join of \``${name}, history page: https://backpack.tf/item/${el.assetid}`\` array
+             */
+            note: ''
         },
         // 🟫_DUPED_ITEMS
         duped: {
             // 23.5
-            note: '' // ✅ parameters: %itemsName%, %isOrAre%
-            // Default note: `%itemsName% %isOrAre% appeared to be duped.`
-            // %itemsName% output: join of `${name}, history page: https://backpack.tf/item/${el.assetid}` array
+            /**
+             * Default: "%itemsName% %isOrAre% appeared to be duped."
+             *
+             * Parameter: %itemsName% - a join of \``${name}, history page: https://backpack.tf/item/${el.assetid}`\` array
+             */
+            note: ''
         },
         // 🟪_DUPE_CHECK_FAILED
         dupedCheckFailed: {
             // 23.6
-            note: '' // ✅ parameters: %itemsName%, %isOrAre%
-            // Default note: `I failed to check for duped on %itemsName%.`
-            // %itemsName% output: a string OR a join of `${name}, history page: https://backpack.tf/item/${el.assetid}` array
+            /**
+             * Default: "I failed to check for duped on %itemsName%."
+             *
+             * Parameter: %itemsName% - a string OR a join of \``${name}, history page: https://backpack.tf/item/${el.assetid}`\` array
+             */
+            note: ''
         },
         // ⬜_ESCROW_CHECK_FAILED
         escrowCheckFailed: {
             // 23.7
-            note: '' // ✅
-            // Default note: "Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep
-            //                 status, please wait for my owner to manually accept/decline your offer."
+            /**
+             * Default: "Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep
+             * status, please wait for my owner to manually accept/decline your offer."
+             */
+            note: ''
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
             // 23.8
-            note: '' // ✅
-            // Default note: "Steam is down and I failed to check your Escrow (Trade holds)
-            //                 status, please wait for my owner to manually accept/decline your offer."
+            /**
+             * Default: "Steam is down and I failed to check your Escrow (Trade holds)
+             * status, please wait for my owner to manually accept/decline your offer."
+             */
+            note: ''
         },
-        additionalNotes: '' // ✅
+        /**
+         * Default: ""
+         *
+         * Description: Custom additional notes for offer that need to be reviewed.
+         */
+        additionalNotes: ''
     },
 
     discordWebhook: {
         // 24
-        ownerID: '', // ✅
-        displayName: '', // ✅
-        avatarURL: '', // ✅
-        embedColor: '9171753', // ✅
+        /**
+         * Your Discord ID. To obtain this, right-click on yourself on Discord and click Copy ID. Be sure to
+         * enable Developer Mode on Discord by navigating to Settings \> Appearance \> Advanced. It must be
+         * a number in string like 527868979600031765 not IdiNium#8965.
+         */
+        ownerID: '',
+        /**
+         * The name you'd like to give your bot when it sends a message on Discord.
+         */
+        displayName: '',
+        /**
+         * A URL to the image you'd like your bot to have when it sends a discord message. This must be in URL form.
+         * An example of how to obtain your bot's avatar from Steam:
+         * https://gyazo.com/421792b5ea817c36054c7991fb18cdbc
+         */
+        avatarURL: '',
+        /**
+         * The color you'd like associated with your bot's discord messages. You can view the different colors at spycolor.com.
+         * Copy the Decimal value. An example of this would be 16769280 for the color #ffe100
+         */
+        embedColor: '9171753',
         tradeSummary: {
             // 24.1
-            enable: true, // ✅
-            url: [], // ✅
+            /**
+             * Display each successful trade summary on your trade summary/live-trades channel via Discord Webhook. If set to
+             * false, it will send to your Steam Chat.
+             */
+            enable: true,
+            /**
+             * An array of Discord Webhook URLs for TRADE_SUMMARY. You will need to format it like so: ["yourDiscordWebhookLink"],
+             * or if you want to add more than one, you format them like so: ["link1", "link2"] (separate each link with a comma,
+             * make sure link1 is your own Discord Webhook URL - Mention owner and show stock changes will only be shown in link1).
+             */
+            url: [],
             misc: {
                 // 24.1.1
-                showQuickLinks: true, // ✅
-                showKeyRate: true, // ✅
-                showPureStock: true, // ✅
-                showInventory: true, // ✅
-                note: '' // ✅
+                /**
+                 * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
+                 */
+                showQuickLinks: true,
+                /**
+                 * Show your bot's key rate
+                 */
+                showKeyRate: true,
+                /**
+                 * Show your bot's pure stock
+                 */
+                showPureStock: true,
+                /**
+                 * Show the total amount of items in your bot's inventory.
+                 */
+                showInventory: true,
+                /**
+                 * Any additional notes you'd like included with trade summaries. Notes must be in the following format: [YourText](Link)
+                 */
+                note: ''
             },
             mentionOwner: {
                 // 24.1.2
-                enable: true, // ✅
-                itemSkus: [] // ✅
+                /**
+                 * If set to false, your bot will never mention you on each successful trade (except for accepted 🟨_INVALID_ITEMS or
+                 * 🔶_HIGH_VALUE_ITEMS)
+                 */
+                enable: true,
+                /**
+                 * Your bot will mention you whenever a trade contains an SKU in this list. Supports multiple item SKUs. For example,
+                 * let say you just want to be mentioned on every unusual and australium trade. You would input [";5;u", ";11;australium"].
+                 * If you want to be mentioned on specific items, just fill in the full item SKU, like so: ["725;6;uncraftable"]. To add more,
+                 * just separate new items with a comma between each SKU string.
+                 */
+                itemSkus: []
             }
         },
         offerReview: {
             // 24.2
-            enable: true, // ✅
-            url: '', // ✅
-            mentionInvalidValue: false, // ✅
+            /**
+             * If set to false, your bot will never mention you on each successful trade (except for accepted 🟨_INVALID_ITEMS or
+             * 🔶_HIGH_VALUE_ITEMS)
+             */
+            enable: true,
+            /**
+             * Discord Webhook URL for REVIEW_OFFER (only support one URL).
+             */
+            url: '',
+            /**
+             * If set to true, your bot only mention you for 🟥_INVALID_VALUE offers.
+             */
+            mentionInvalidValue: false,
             misc: {
                 // 24.2.1
-                showQuickLinks: true, // ✅
-                showKeyRate: true, // ✅
-                showPureStock: true, // ✅
-                showInventory: true // ✅
+                /**
+                 * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
+                 */
+                showQuickLinks: true,
+                /**
+                 * Show your bot's key rate
+                 */
+                showKeyRate: true,
+                /**
+                 * Show your bot's pure stock
+                 */
+                showPureStock: true,
+                /**
+                 * Show the total amount of items in your bot's inventory.
+                 */
+                showInventory: true
             }
         },
         messages: {
             // 24.3
-            enable: true, // ✅
-            url: '', // ✅
+            /**
+             * Used to alert you on any messages sent from the trade partner via Discord Webhook (mentioned). If set to false,
+             * it will send to your Steam Chat.
+             */
+            enable: true,
+            /**
+             * Discord Webhook URL.
+             */
+            url: '',
+            /**
+             * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
+             */
             showQuickLinks: true
         },
         priceUpdate: {
             // 24.4
-            enable: true, // ✅
-            url: '', // ✅
-            note: '' // ✅
+            /**
+             * Set to false to disable this feature.
+             */
+            enable: true,
+            /**
+             * The Discord Webhook URL you'd like price update webhook to be sent to.
+             */
+            url: '',
+            /**
+             * Any additional notes you'd like included with price update webhook.
+             */
+            note: ''
         },
         sendAlert: {
             // 24.5
-            enable: true, // ✅
-            url: '' // ✅
+            /**
+             * If set to false, the bot will notify you through Steam chat if there is something wrong. Otherwise, the bot will
+             * notify you through Discord (sendAlert.enable must be true).
+             */
+            enable: true,
+            /**
+             * The Discord Webhook URL you'd for the alert to be sent to.
+             */
+            url: ''
         }
     },
 
     customMessage: {
         // 25
-        sendOffer: '', // ✅
-        // ^Default: Powered by TF2Autobot (not removed)
-        welcome: '', // ✅
-        // ^Default: `Hi %name%! If you don't know how things work, please type "!%admin%" - TF2Autobot v${version}`
-        // parameters output: %name% - partner's name (if obtained), %admin% - if admin, "help", else "how2trade"
+        /**
+         * Default: "Powered by TF2Autobot" (not removed)
+         */
+        sendOffer: '',
+        /**
+         * Default: `Hi %name%! If you don't know how things work, please type "!%admin%" - TF2Autobot v${version}`
+         * parameters output: %name% - partner's name (if obtained), %admin% - if admin, "help", else "how2trade"
+         */
+        welcome: '',
+        /**
+         * Default: "❌ I don\'t know what you mean, please type "!help" for all of my commands!"
+         */
         iDontKnowWhatYouMean: '',
-        success: '', // ✅
-        // ^Default: "/pre ✅ Success! The offer went through successfully."
-        successEscrow: '', // ✅
-        // ^Default:
-        /*
+        /**
+         * Default: "/pre Success! The offer went through successfully."
+         */
+        success: '',
+        /**
+         * Default:
          * "✅ Success! The offer has gone through successfully, but you will receive your items after several days.
          *  To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.
-         *  \nRead:\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030
-         *  \n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
+         *  \\nRead:\\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030
+         *  \\n• How to set up the Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
          */
+        successEscrow: '',
         decline: {
             // 25.1
-            giftNoNote: '', // ✅
-            /*
-             * ^Default:
+            /**
+             * Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *   the offer you've sent is an empty offer on my side without any offer message. If you wish to give
-             *   it as a gift, please include "gift" in the offer message. Thank you.""
+             *   it as a gift, please include "gift" in the offer message. Thank you."
              */
-            crimeAttempt: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            giftNoNote: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're taking free items. No."
              */
-            onlyMetal: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            crimeAttempt: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you might forgot to add items into the trade."
              */
-            duelingNot5Uses: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            onlyMetal: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  your offer contains Dueling Mini-Game(s) that does not have 5 uses."
              */
-            noiseMakerNot5Uses: '', // ✅
-            /*
-             * ^Default:
+            duelingNot5Uses: '',
+            /**
+             * Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  your offer contains Noise Maker(s) that does not have 25 uses"
              */
-            highValueItemsNotSelling: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            noiseMakerNot5Uses: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're attempting to purchase %highValueName%, but I am not selling it right now."
-             * //
-             * ^Parameter: %highValueName% (output a join of an array of highValue items name)
+             *
+             * Parameter: %highValueName% (output a join of an array of highValue items name)
              */
-            notTradingKeys: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            highValueItemsNotSelling: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            notSellingKeys: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            notTradingKeys: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            notBuyingKeys: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            notSellingKeys: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys"."
              */
-            banned: '', // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+            notBuyingKeys: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community."
              */
-            escrow: '' // ✅
-            /*
-             * ^Default:
-             * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
-             *  I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator."
-             *  \nRead:\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030
-             *  \n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218
+            banned: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+             *  I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.
+             *  \\nRead:\\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030
+             *  \\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
              */
+            escrow: ''
         },
-        tradedAway: '', // ✅
-        /*
-         * ^Default: "/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade)."
+        /**
+         * Default: "/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade)."
          */
-        failedMobileConfirmation: '', // ✅
-        /*
-         * ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Failed to accept mobile confirmation"
+        tradedAway: '',
+        /**
+         * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Failed to accept mobile confirmation"
          */
-        cancelledActiveForAwhile: '', // ✅
-        /*
-         * ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been active for a while.
-         *            If the offer was just created, this is likely an issue on Steam's end. Please try again"
+        failedMobileConfirmation: '',
+        /**
+         * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been active for a while.
+         * If the offer was just created, this is likely an issue on Steam's end. Please try again"
          */
-        clearFriends: '' // ✅
-        /*
-         * ^Default: "/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!"
-         * ^Parameter: %name% (output: partner's name)
+        cancelledActiveForAwhile: '',
+        /**
+         * Default: "/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to
+         * add me again if you want to trade at a later time!"
+         *
+         * Parameter: %name% (output: partner's name)
          */
+        clearFriends: ''
     },
 
     commands: {
         // 26
-        enable: true, // if false, only admin can use commands // ✅
-        customDisableReply: '', // ✅
-        /*
-         * ^Default: "❌ Command function is disabled by the owner."
+        /**
+         * if false, only admin can use commands.
          */
+        enable: true,
+        /**
+         * Default: "❌ Command function is disabled by the owner."
+         */
+        customDisableReply: '',
         how2trade: {
             // 26.a
             customReply: {
                 // 26.cr.a
-                reply: '' // ✅
-                /*
-                 * ^Default:
-                 * `/quote You can either send me an offer yourself, or use one of my commands to request a trade.
-                 *   Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more,
-                 *   just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.
-                 *   \nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or
-                 *   "!sellcart [amount] <item name>" commands.`
+                /**
+                 * Default: \`/quote You can either send me an offer yourself, or use one of my commands to request a trade.
+                 *  Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more,
+                 *  just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.
+                 *  \\nYou can also buy or sell multiple items by using the "!buycart [amount] \<item name\>" or
+                 *  "!sellcart [amount] \<item name\>" commands.\`
                  */
+                reply: ''
             }
         },
         price: {
             // 26.c
-            enable: true, // ✅
+            /**
+             * Set to false if want to disable !price command.
+             */
+            enable: true,
             customReply: {
                 // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: ''
             }
         },
         buy: {
             // 26.2
-            enable: true, // ✅
-            disableForSKU: [], // ✅
+            /**
+             * Set to false if want to disable !buy command.
+             */
+            enable: true,
+            /**
+             * Set specific sku(s) to disable !buy command.
+             */
+            disableForSKU: [],
             customReply: {
-                // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ buy command is disabled for %itemName%"
-                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                // 26.cr.e
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: '',
+                /**
+                 * Default: "❌ buy command is disabled for %itemName%"
+                 *
+                 * Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
+                disabledForSKU: ''
             }
         },
         sell: {
             // 26.2
-            enable: true, // ✅
-            disableForSKU: [], // ✅
+            /**
+             * Set to false if want to disable !sell command.
+             */
+            enable: true,
+            /**
+             * Set specific sku(s) to disable !sell command.
+             */
+            disableForSKU: [],
             customReply: {
-                // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ sell command is disabled for %itemName%"
-                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                // 26.cr.e
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: '',
+                /**
+                 * Default: "❌ sell command is disabled for %itemName%"
+                 *
+                 * Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
+                disabledForSKU: ''
             }
         },
         buycart: {
             // 26.2
-            enable: true, // ✅
-            disableForSKU: [], // ✅
+            /**
+             * Set to false if want to disable !buycart command.
+             */
+            enable: true,
+            /**
+             * Set specific sku(s) to disable !buycart command.
+             */
+            disableForSKU: [],
             customReply: {
-                // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ buycart command is disabled for %itemName%"
-                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                // 26.cr.e
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: '',
+                /**
+                 * Default: "❌ buycart command is disabled for %itemName%"
+                 *
+                 * Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
+                disabledForSKU: ''
             }
         },
         sellcart: {
             // 26.2
-            enable: true, // ✅
-            disableForSKU: [], // ✅
+            /**
+             * Set to false if want to disable !sellcart command.
+             */
+            enable: true,
+            /**
+             * Set specific sku(s) to disable !sellcart command.
+             */
+            disableForSKU: [],
             customReply: {
-                // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ sellcart command is disabled for %itemName%"
-                 * ^Parameter: %itemName% (output: the name of an item of specified SKU)
+                // 26.cr.e
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: '',
+                /**
+                 * Default: "❌ sellcart command is disabled for %itemName%"
+                 *
+                 * Parameter: %itemName% (output: the name of an item of specified SKU)
+                 */
+                disabledForSKU: ''
             }
         },
         cart: {
             // 26.3
-            enable: true, // ✅
+            /**
+             * Set to false if want to disable !cart command.
+             */
+            enable: true,
             customReply: {
                 // 26.3.1
-                title: '', // ✅ (Cart.ts)
-                /*
-                 * ^Default: "🛒== YOUR CART ==🛒"
+                /**
+                 * Default: "🛒== YOUR CART ==🛒"
                  */
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                title: '',
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: ''
             }
         },
         clearcart: {
@@ -639,10 +1087,10 @@ export const DEFAULTS = {
             // always enable
             customReply: {
                 // 26.cr.a
-                reply: '' // ✅
-                /*
-                 * ^Default: "🛒 Your cart has been cleared."
+                /**
+                 * Default: "🛒 Your cart has been cleared."
                  */
+                reply: ''
             }
         },
         checkout: {
@@ -650,72 +1098,83 @@ export const DEFAULTS = {
             // always enable
             customReply: {
                 // 26.4.1
-                empty: '' // ✅
-                /*
-                 * ^Default: "🛒 Your cart is empty."
+                /**
+                 * Default: "🛒 Your cart is empty."
                  */
+                empty: ''
             }
         },
         addToQueue: {
             // 26.5
-            alreadyHaveActiveOffer: '', // ✅
-            /* ^Default:
-             *  "❌ You already have an active offer! Please finish it before requesting a new one:
-             *    %tradeurl%"
-             * .
-             * ^Parameter: %tradeurl% (output `https://steamcommunity.com/tradeoffer/${activeOfferID}`)
+            /**
+             * Default: "❌ You already have an active offer! Please finish it before requesting a new one: %tradeurl%"
+             *
+             * Parameter: %tradeurl% (output `https://steamcommunity.com/tradeoffer/${activeOfferID}`)
              */
-            alreadyInQueueProcessingOffer: '', // ✅
-            /*
-             * ^Default: "⚠️ You are already in the queue! Please wait while I process your offer."
+            alreadyHaveActiveOffer: '',
+            /**
+             * Default: "⚠️ You are already in the queue! Please wait while I process your offer."
              */
-            alreadyInQueueWaitingTurn: '', // ✅
-            /*
-             * ^Default: "⚠️ You are already in the queue! Please wait your turn, there %isOrAre% %currentPosition% infront of you."
-             * ^Parameters: %isOrAre% (more than 1 use "are", else "is"), %currentPosition% (yes, current queue position)
+            alreadyInQueueProcessingOffer: '',
+            /**
+             * Default: "⚠️ You are already in the queue! Please wait your turn, there %isOrAre% %currentPosition% infront of you."
+             *
+             * Parameters: %isOrAre% (more than 1 use "are", else "is"), %currentPosition% (yes, current queue position)
              */
-            addedToQueueWaitingTurn: '', // ✅
-            /*
-             * ^Default: "✅ You have been added to the queue! Please wait your turn, there %isOrAre% %position% infront of you."
-             * ^Parameters: %isOrAre% (more than 1 use "are", else "is"), %position% (total queue position)
+            alreadyInQueueWaitingTurn: '',
+            /**
+             * Default: "✅ You have been added to the queue! Please wait your turn, there %isOrAre% %position% infront of you."
+             *
+             * Parameters: %isOrAre% (more than 1 use "are", else "is"), %position% (total queue position)
              */
-            alteredOffer: '', // ✅
-            /*
-             * ^Default: "⚠️ Your offer has been altered. Reason: %altered%."
-             * ^Parameters: %altered% (altered message - unchangeable)
+            addedToQueueWaitingTurn: '',
+            /**
+             * Default: "⚠️ Your offer has been altered. Reason: %altered%."
+             *
+             * Parameters: %altered% (altered message - unchangeable)
              */
+            alteredOffer: '',
             processingOffer: {
                 // 26.e
-                donation: '', // ✅
-                /*
-                 * ^Default: "⌛ Please wait while I process your donation! %summarize%"
-                 * ^Parameters: %summarize% (summarize message - unchangeable)
+                /**
+                 * Default: "⌛ Please wait while I process your donation! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
-                isBuyingPremium: '', // ✅
-                /*
-                 * ^Default: "⌛ Please wait while I process your premium purchase! %summarize%"
-                 * ^Parameters: %summarize% (summarize message - unchangeable)
+                donation: '',
+                /**
+                 * Default: "⌛ Please wait while I process your premium purchase! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
-                offer: '' // ✅
-                /*
-                 * ^Default: "⌛ Please wait while I process your offer! %summarize%"
-                 * ^Parameters: %summarize% (summarize message - unchangeable)
+                isBuyingPremium: '',
+                /**
+                 * Default: "⌛ Please wait while I process your offer! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
+                offer: ''
             },
             hasBeenMadeAcceptingMobileConfirmation: {
                 // 26.e
-                donation: '', // ✅
-                /*
-                 * ^Default: "⌛ Your donation has been made! Please wait while I accept the mobile confirmation."
+                /**
+                 * Default: "⌛ Please wait while I process your donation! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
-                isBuyingPremium: '', // ✅
-                /*
-                 * ^Default: "⌛ Your donation has been made! Please wait while I accept the mobile confirmation."
+                donation: '',
+                /**
+                 * Default: "⌛ Please wait while I process your premium purchase! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
-                offer: '' // ✅
-                /*
-                 * ^Default: "⌛ Your offer has been made! Please wait while I accept the mobile confirmation."
+                isBuyingPremium: '',
+                /**
+                 * Default: "⌛ Please wait while I process your offer! %summarize%"
+                 *
+                 * Parameters: %summarize% (summarize message - unchangeable)
                  */
+                offer: ''
             }
         },
         cancel: {
@@ -723,27 +1182,26 @@ export const DEFAULTS = {
             // always enable
             customReply: {
                 // 26.6.1
-                isBeingSent: '', // ✅
-                /*
-                 * ^Default: "⚠️ Your offer is already being sent! Please try again when the offer is active."
+                /**
+                 * Default: "⚠️ Your offer is already being sent! Please try again when the offer is active."
                  */
-                isCancelling: '', // ✅
-                /*
-                 * ^Default: "⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled."
+                isBeingSent: '',
+                /**
+                 * Default: "⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled."
                  */
-                isRemovedFromQueue: '', // ✅
-                /*
-                 * ^Default: "✅ You have been removed from the queue."
+                isCancelling: '',
+                /**
+                 * Default: "✅ You have been removed from the queue."
                  */
-                noActiveOffer: '', // ✅
-                /*
-                 * ^Default: "❌ You don't have an active offer."
+                isRemovedFromQueue: '',
+                /**
+                 * Default: "❌ You don't have an active offer."
                  */
-                successCancel: '' // ✅
-                /*
-                 * ^Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Offer was canceled by user."
-                 * src/MyHandler/offer/notify/cancelled.ts
+                noActiveOffer: '',
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Offer was canceled by user."
                  */
+                successCancel: ''
             }
         },
         queue: {
@@ -751,242 +1209,290 @@ export const DEFAULTS = {
             // always enable
             customReply: {
                 // 26.7.1
-                notInQueue: '', // ✅
-                /*
-                 * ^Default: "❌ You are not in the queue."
+                /**
+                 * Default: "❌ You are not in the queue."
                  */
-                offerBeingMade: '', // ✅
-                /*
-                 * ^Default: "⌛ Your offer is being made."
+                notInQueue: '',
+                /**
+                 * Default: "⌛ Your offer is being made."
                  */
-                hasPosition: '' // ✅
-                /*
-                 * ^Default: "There are %position% users ahead of you."
-                 * ^Parameter: %position%
+                offerBeingMade: '',
+                /**
+                 * Default: "There are %position% users ahead of you."
+                 *
+                 * Parameter: %position%
                  */
+                hasPosition: ''
             }
         },
         owner: {
             // 26.d
-            // ✅
-            enable: true, // ✅
+            /**
+             * Set to false if want to disable !owner command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "• Steam: %steamurl%\n• Backpack.tf: %bptfurl%"
-                 * ^Parameters:
+                disabled: '',
+                /**
+                 * Default: "• Steam: %steamurl%\\n• Backpack.tf: %bptfurl%"
+                 *
+                 * Parameters:
                  *   - %steamurl% (`https://steamcommunity.com/profiles/${firstAdmin.toString()}`)
                  *   - %bptfurl% (`https://backpack.tf/profiles/${firstAdmin.toString()}`)
                  *   - %steamid% (SteamID64 of the first ADMINS element)
                  */
+                reply: ''
             }
         },
         discord: {
             // 26.8
-            enable: true, // ✅
-            inviteURL: '', // ✅
-            /*
-             * ^Default: "https://discord.gg/ZrVT7mc"
+            /**
+             * Set to false if want to disable !discord command.
              */
+            enable: true,
+            /**
+             * Default: "https://discord.gg/ZrVT7mc"
+             */
+            inviteURL: '',
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner. (except admins)"
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default:
+                disabled: '',
+                /**
+                 * Default:
                  *   - If discord.inviteURL is not empty:
                  *       - `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${inviteURL}`
                  *   - If empty:
                  *       - "TF2Autobot Discord Server: https://discord.gg/ZrVT7mc"
                  */
+                reply: ''
             }
         },
         more: {
             // 26.c
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !more command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: ''
             }
         },
         autokeys: {
             // 26.c
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !autokeys command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.b
-                disabled: '' // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
+                disabled: ''
             }
         },
         message: {
             // 26.9
-            enable: true, // ✅
+            /**
+             * Set to false if want to disable !message command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.9.1
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                wrongSyntax: '', // ✅
-                /*
-                 * ^Default: `❌ Please include a message. Here\'s an example: "!message Hi"`
+                disabled: '',
+                /**
+                 * Default: `❌ Please include a message. Here\'s an example: "!message Hi"`
                  */
-                fromOwner: '', // ✅
-                /*
-                 * ^Default: `/quote 💬 Message from the owner: %reply%\n\n❔ Hint: You can
-                 *             use the !message command to respond to the owner of this bot.
-                 *             \nExample: !message Hi Thanks!`
-                 * ^Parameter: %reply% (Your reply)
+                wrongSyntax: '',
+                /**
+                 * Default: \`/quote 💬 Message from the owner: %reply%\\n\\n❔ Hint: You can
+                 * use the !message command to respond to the owner of this bot.
+                 * \\nExample: !message Hi Thanks!\`
+                 *
+                 * Parameter: %reply% (Your reply)
                  */
-                success: '' // ✅
-                /*
-                 * ^Default: "✅ Your message has been sent."
+                fromOwner: '',
+                /**
+                 * Default: "✅ Your message has been sent."
                  */
+                success: ''
             }
         },
         time: {
             // 26.d
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !time command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "It is currently the following time in my owner's timezone: %emoji% %time%\n\n%note%"
+                disabled: '',
+                /**
+                 * Default: "It is currently the following time in my owner's timezone: %emoji% %time%\\n\\n%note%"
                  * .
-                 * ^Parameters: %emoji% (clock emoji), %time% (full time format), %note% (additional notes)
+                 * Parameters: %emoji% (clock emoji), %time% (full time format), %note% (additional notes)
                  */
+                reply: ''
             }
         },
         uptime: {
             // 26.d
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !uptime command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "%uptime%" (show bot total uptime)
+                disabled: '',
+                /**
+                 * Default: "%uptime%" (show bot total uptime)
                  */
+                reply: ''
             }
         },
         pure: {
             // 26.d
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !pure command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "💰 I have %pure% in my inventory.""
-                 * ^Parameter: %pure% (a join('and') of pureStock array)
+                disabled: '',
+                /**
+                 * Default: "💰 I have %pure% in my inventory.""
+                 *
+                 * Parameter: %pure% (a join('and') of pureStock array)
                  */
+                reply: ''
             }
         },
         rate: {
             // 26.d
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !rate command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "I value 🔑 Mann Co. Supply Crate Keys at %keyprice%. This means that one key is
-                 *             the same as %keyprice% and %keyprice% is the same as one key.
-                 *              \n\nKey rate source: %source%"
-                 * .
-                 * ^Parameter:
-                 *      - %keyprice% (current sell price),
-                 *      - %keyrate% (current buy/sell price)
-                 *      - %source% (show pricestf url if autopriced, "manual" if manually priced)
+                disabled: '',
+                /**
+                 * Default: "I value 🔑 Mann Co. Supply Crate Keys at %keyprice%. This means that one key is
+                 * the same as %keyprice% and %keyprice% is the same as one key.
+                 * \\n\\nKey rate source: %source%"
+                 *
+                 * Parameters:
+                 * - %keyprice% (current sell price),
+                 * - %keyrate% (current buy/sell price)
+                 * - %source% (show pricestf url if autopriced, "manual" if manually priced)
                  */
+                reply: ''
             }
         },
         stock: {
             // 26.10
-            enable: true, // ✅ if false, only admin can use
-            maximumItems: 20, // ✅
+            /**
+             * Set to false if want to disable !stock command (except admins).
+             */
+            enable: true,
+            /**
+             * Maximum number of items to be shown. Default is 20.
+             */
+            maximumItems: 20,
             customReply: {
                 // 26.cr.c
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                reply: '' // ✅
-                /*
-                 * ^Default: "/pre 📜 Here's a list of all the items that I have in my inventory:\n%stocklist%"
-                 * ^Parameter: %stocklist% (a join(', \n') arrau of the items your bot have (up to stock.maximumItems))
+                disabled: '',
+                /**
+                 * Default: "/pre 📜 Here's a list of all the items that I have in my inventory:\\n%stocklist%"
+                 *
+                 * Parameter: %stocklist% (a join(', \\n') arrau of the items your bot have (up to stock.maximumItems))
                  */
+                reply: ''
             }
         },
         craftweapon: {
             // 26.11
-            enable: true, // ✅ if false, only admin can use
+            /**
+             * Set to false if want to disable !craftweapon command (except admins).
+             */
+            enable: true,
             customReply: {
                 // 26.cr.d
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                dontHave: '', // ✅
-                /*
-                 * ^Default: "❌ I don't have any craftable weapons in my inventory."
+                disabled: '',
+                /**
+                 * Default: "❌ I don't have any craftable weapons in my inventory."
                  */
-                have: '' // ✅
-                /*
-                 * ^Default: "📃 Here's a list of all craft weapons stock in my inventory:\n\n%list%"
-                 * ^Parameter: %list% (a join(', \n') array or craftable weapons that your bot have)
+                dontHave: '',
+                /**
+                 * Default: "📃 Here's a list of all craft weapons stock in my inventory:\\n\\n%list%"
+                 *
+                 * Parameter: %list% (a join(', \\n') array or craftable weapons that your bot have)
                  */
+                have: ''
             }
         },
         uncraftweapon: {
             // 26.11
-            enable: true, // ✅
+            /**
+             * Set to false if want to disable !uncraftweapon command (except admins).
+             */
+            enable: true, //
             customReply: {
                 // 26.cr.d
-                disabled: '', // ✅
-                /*
-                 * ^Default: "❌ This command is disabled by the owner."
+                /**
+                 * Default: "❌ This command is disabled by the owner."
                  */
-                dontHave: '', // ✅
-                /*
-                 * ^Default: "❌ I don't have any uncraftable weapons in my inventory."
+                disabled: '',
+                /**
+                 * Default: "❌ I don't have any craftable weapons in my inventory."
                  */
-                have: '' // ✅
-                /*
-                 * ^Default: "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n%list%"
-                 * ^Parameter: %list% (a join(', \n') array or uncraftable weapons that your bot have)
+                dontHave: '',
+                /**
+                 * Default: "📃 Here's a list of all craft weapons stock in my inventory:\\n\\n%list%"
+                 *
+                 * Parameter: %list% (a join(', \\n') array or craftable weapons that your bot have)
                  */
+                have: ''
             }
         }
     },
     detailsExtra: {
         // 27
+        /**
+         * Custom string to be shown in listing note if details.highValue.showSpells set to true
+         */
         spells: {
             // 27.1
             'Putrescent Pigmentation': 'PP 🍃',
@@ -1006,6 +1512,9 @@ export const DEFAULTS = {
             'Pumpkin Bomb': '🎃💣',
             'Halloween Fire': '🔥🟢'
         },
+        /**
+         * Custom string to be shown in listing note if details.highValue.showSheen set to true
+         */
         sheens: {
             // 27.2
             'Team Shine': '🔵🔴',
@@ -1016,6 +1525,9 @@ export const DEFAULTS = {
             'Agonizing Emerald': '🟩',
             'Villainous Violet': '🟣'
         },
+        /**
+         * Custom string to be shown in listing note if details.highValue.showKillstreaker set to true
+         */
         killstreakers: {
             // 27.3
             'Cerebral Discharge': '⚡',
@@ -1026,6 +1538,9 @@ export const DEFAULTS = {
             Singularity: '🔆',
             Tornado: '🌪️'
         },
+        /**
+         * Custom string to be shown in listing note if details.highValue.showPainted set to true
+         */
         painted: {
             // 27.4
             'A Color Similar to Slate': '🧪',
@@ -1058,6 +1573,9 @@ export const DEFAULTS = {
             'The Value of Teamwork': '👨🏽‍🤝‍👨🏻',
             'Waterlogged Lab Coat': '👨🏽‍🤝‍👨🏽'
         },
+        /**
+         * Custom string to be shown in listing note if details.highValue.showStrangeParts set to true
+         */
         strangeParts: {
             // 27.5
             'Robots Destroyed': '',
@@ -1425,10 +1943,6 @@ export interface OnlyCustomReplyWithDisabled {
     reply?: string;
 }
 
-export interface OnlyEnableAndDisableForSKU extends OnlyEnable {
-    disableForSKU?: string[];
-}
-
 export interface Commands extends OnlyEnable {
     customDisableReply?: string;
     how2trade?: How2Trade;
@@ -1459,7 +1973,12 @@ export interface Commands extends OnlyEnable {
 
 export interface SpecificOperation extends OnlyEnable {
     disableForSKU?: string[];
-    customReply?: Pick<OnlyCustomReplyWithDisabled, 'disabled'>;
+    customReply?: CustomReplyForSpecificOperation;
+}
+
+export interface CustomReplyForSpecificOperation {
+    disabled?: string;
+    disabledForSKU?: string;
 }
 
 export interface How2Trade {

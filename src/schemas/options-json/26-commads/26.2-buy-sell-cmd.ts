@@ -11,7 +11,7 @@ export const buySellCmdSchema: jsonschema.Schema = {
             $ref: 'array-string'
         },
         customReply: {
-            $ref: 'custom-reply-only-disabled-cmd' // 26.cr.b
+            $ref: 'custom-reply-only-disabled-disabledForSKU-cmd' // 26.cr.e
         }
     },
     additionalProperties: false,

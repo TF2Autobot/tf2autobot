@@ -74,6 +74,7 @@ v.addSchema(op.cmd.customReplyOnlyReplyCmdSchema);
 v.addSchema(op.cmd.customReplyOnlyDisabledCmdSchema);
 v.addSchema(op.cmd.customReplyDisabledReplyCmdSchema);
 v.addSchema(op.cmd.customReplyDisabledHaveDontCmdSchema);
+v.addSchema(op.cmd.customReplyOnlyDisabledDisabledForSKUCmdSchema);
 v.addSchema(op.cmd.priceCmdSchema);
 v.addSchema(op.cmd.buySellCmdSchema);
 v.addSchema(op.cmd.cartCmdSchema);
