@@ -405,7 +405,7 @@ export default class Commands {
 
         const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
 
-        const cartAmount = cart.getOurCount(match.sku);
+        const cartAmount = cart.getTheirCount(match.sku);
         const ourAmount = this.bot.inventoryManager.getInventory().getAmount(match.sku);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, true) - cartAmount;
 
