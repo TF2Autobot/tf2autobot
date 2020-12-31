@@ -39,7 +39,16 @@ import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
-import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData, noiseMakerSKUs } from '../../lib/data';
+import {
+    craftAll,
+    uncraftAll,
+    giftWords,
+    sheensData,
+    killstreakersData,
+    strangePartsData,
+    paintedData,
+    noiseMakerSKUs
+} from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
@@ -138,7 +147,7 @@ export default class MyHandler extends Handler {
     private get sheens(): string[] {
         // check if highValue.sheens is an empty array
         const sheens = this.bot.options.highValue.sheens;
-        if (sheens === []) {
+        if (sheens === [] || (sheens !== undefined && sheens[0] === '')) {
             log.warn(
                 'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
             );
@@ -151,7 +160,7 @@ export default class MyHandler extends Handler {
     private get killstreakers(): string[] {
         // check if highValue.killstreakers is an empty array
         const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === []) {
+        if (killstreakers === [] || (killstreakers !== undefined && killstreakers[0] === '')) {
             log.warn(
                 'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
             );
@@ -162,11 +171,27 @@ export default class MyHandler extends Handler {
     }
 
     private get strangeParts(): string[] {
-        return this.bot.options.highValue.strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+        const strangeParts = this.bot.options.highValue.strangeParts;
+        if (strangeParts === [] || (strangeParts !== undefined && strangeParts[0] === '')) {
+            log.warn(
+                'You did not set highValue.strangeParts array in your options.json file, will mention/disable all strangeParts.'
+            );
+            return Object.keys(strangePartsData).map(strangePart => strangePart.toLowerCase().trim());
+        } else {
+            return strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+        }
     }
 
     private get painted(): string[] {
-        return this.bot.options.highValue.painted.map(paint => paint.toLowerCase().trim());
+        const painted = this.bot.options.highValue.painted;
+        if (painted === [] || (painted !== undefined && painted[0] === '')) {
+            log.warn(
+                'You did not set highValue.painted array in your options.json file, will mention/disable all painted item.'
+            );
+            return Object.keys(paintedData).map(paint => paint.toLowerCase().trim());
+        } else {
+            return painted.map(paint => paint.toLowerCase().trim());
+        }
     }
 
     private isTradingKeys = false;
