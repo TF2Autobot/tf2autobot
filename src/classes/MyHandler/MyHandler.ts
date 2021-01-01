@@ -379,6 +379,9 @@ export default class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
+        // Initialize send stats
+        this.sendStats();
+
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         this.refreshInterval = setTimeout(() => {
             this.enableAutoRefreshListings();
