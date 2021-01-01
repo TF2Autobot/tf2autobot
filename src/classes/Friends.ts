@@ -76,7 +76,7 @@ export default class Friends {
             qs: {
                 key: this.bot.manager.apiKey,
                 steamid: (this.bot.client.steamID === null
-                    ? this.bot.handler.getBotSteamID()
+                    ? this.bot.handler.getBotInfo.steamID
                     : this.bot.client.steamID
                 ).getSteamID64()
             }
@@ -92,7 +92,7 @@ export default class Friends {
                 const result = body.response;
                 const level = result.player_level;
 
-                const friendToKeep = this.bot.handler.getFriendToKeep().length;
+                const friendToKeep = this.bot.handler.friendsToKeep.length;
                 const enableAddFriends = this.bot.options.enableAddFriends;
 
                 const base = 250;

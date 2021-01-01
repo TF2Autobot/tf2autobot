@@ -35,7 +35,7 @@ export default function sendOfferReview(
     }
     const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${opt.ownerID}>, check this! - ${offer.id}`;
 
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);
     const message = replace.specialChar(offer.message);
 
@@ -135,7 +135,7 @@ export default function sendOfferReview(
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`
+                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
                         }
                     ],
                     color: opt.embedColor

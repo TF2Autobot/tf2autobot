@@ -44,7 +44,7 @@ export default class UserCart extends Cart {
 
         // TODO: Check for dupes
 
-        const isDupedCheckEnabled = this.bot.handler.hasDupeCheckEnabled();
+        const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
         const keyPrice = this.bot.pricelist.getKeyPrice();
 
         let theirItemsValue: number;
@@ -54,7 +54,7 @@ export default class UserCart extends Cart {
             theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
         }
 
-        const minimumKeysDupeCheck = this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
+        const minimumKeysDupeCheck = this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
         if (isDupedCheckEnabled && theirItemsValue > minimumKeysDupeCheck) {
             const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
@@ -661,7 +661,7 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 item.effect !== null &&
-                match.buy.toValue(keyPrice.metal) > this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
+                match.buy.toValue(keyPrice.metal) > this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -730,23 +730,8 @@ export default class UserCart extends Cart {
             }
         }
 
-        const toMention = this.bot.handler.getToMention();
-        const highValueOur = check.highValue(
-            ourItemsToCheck,
-            toMention.sheens,
-            toMention.killstreakers,
-            toMention.strangeParts,
-            toMention.painted,
-            this.bot
-        );
-        const highValueTheir = check.highValue(
-            theirItemsToCheck,
-            toMention.sheens,
-            toMention.killstreakers,
-            toMention.strangeParts,
-            toMention.painted,
-            this.bot
-        );
+        const highValueOur = check.highValue(ourItemsToCheck, this.bot);
+        const highValueTheir = check.highValue(theirItemsToCheck, this.bot);
 
         const input: HighValueInput = {
             our: highValueOur,
@@ -1558,7 +1543,7 @@ export default class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies();
-        const weapons = this.bot.handler.getWeapons();
+        const weapons = this.bot.handler.getWeapons;
 
         const pures = ['5021;6', '5002;6', '5001;6', '5000;6'];
         const combine = pures.concat(weapons);
@@ -1666,7 +1651,7 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 item.effect !== null &&
-                match.buy.toValue(keyPrice.metal) > this.bot.handler.getMinimumKeysDupeCheck() * keyPrice.toValue();
+                match.buy.toValue(keyPrice.metal) > this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -1735,23 +1720,8 @@ export default class UserCart extends Cart {
             }
         }
 
-        const toMention = this.bot.handler.getToMention();
-        const highValueOur = check.highValue(
-            ourItemsToCheck,
-            toMention.sheens,
-            toMention.killstreakers,
-            toMention.strangeParts,
-            toMention.painted,
-            this.bot
-        );
-        const highValueTheir = check.highValue(
-            theirItemsToCheck,
-            toMention.sheens,
-            toMention.killstreakers,
-            toMention.strangeParts,
-            toMention.painted,
-            this.bot
-        );
+        const highValueOur = check.highValue(ourItemsToCheck, this.bot);
+        const highValueTheir = check.highValue(theirItemsToCheck, this.bot);
 
         const input: HighValueInput = {
             our: highValueOur,

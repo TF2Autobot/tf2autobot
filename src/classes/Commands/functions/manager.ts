@@ -487,7 +487,7 @@ export function unblockCommand(steamID: SteamID, message: string, bot: Bot): voi
 
 export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
     const friends = bot.friends.getFriends();
-    const friendsToKeep = bot.handler.getFriendToKeep();
+    const friendsToKeep = bot.handler.friendsToKeep;
 
     const friendsToRemove = friends.filter(steamid => !friendsToKeep.includes(steamid));
 
@@ -573,7 +573,7 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         bot.client.setPersona(EPersonaState.Snooze);
 
         // Set isUpdating status, so any command will not be processed
-        bot.handler.setIsUpdatingStatus(true);
+        bot.handler.isUpdatingStatus = true;
 
         // Stop polling offers
         bot.manager.pollInterval = -1;
@@ -612,7 +612,7 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot, auto: Autokeys): stri
     const keyPrices = bot.pricelist.getKeyPrices();
 
     const userPure = autokeys.userPure;
-    const status = bot.handler.getAutokeysStatus();
+    const status = bot.handler.getAutokeysStatus;
 
     const keyBlMin = `       X`;
     const keyAbMax = `                     X`;

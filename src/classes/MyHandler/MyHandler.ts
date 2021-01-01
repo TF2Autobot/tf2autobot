@@ -51,27 +51,43 @@ export default class MyHandler extends Handler {
 
     readonly cartQueue: CartQueue;
 
+    private groupsStore: string[];
+
     private get groups(): string[] {
-        const groups = this.bot.options.groups;
-        if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(groupID64 => {
-                if (!new SteamID(groupID64).isValid()) {
-                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
-                }
-            });
-            return groups;
+        if (!this.groupsStore) {
+            const groups = this.bot.options.groups;
+            if (groups !== null && Array.isArray(groups)) {
+                groups.forEach(groupID64 => {
+                    if (!new SteamID(groupID64).isValid()) {
+                        throw new Error(`Invalid group SteamID64 "${groupID64}"`);
+                    }
+                });
+                this.groupsStore = groups;
+                return groups;
+            }
+        } else {
+            return this.groupsStore;
         }
     }
 
-    private get friendsToKeep(): string[] {
-        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
-        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(steamID64 => {
-                if (!new SteamID(steamID64).isValid()) {
-                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
-                }
-            });
-            return friendsToKeep;
+    private friendsToKeepStore: string[];
+
+    get friendsToKeep(): string[] {
+        if (!this.friendsToKeepStore) {
+            const friendsToKeep = this.bot.options.keep.concat(
+                this.bot.getAdmins().map(steamID => steamID.getSteamID64())
+            );
+            if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
+                friendsToKeep.forEach(steamID64 => {
+                    if (!new SteamID(steamID64).isValid()) {
+                        throw new Error(`Invalid SteamID64 "${steamID64}"`);
+                    }
+                });
+                this.friendsToKeepStore = friendsToKeep;
+                return friendsToKeep;
+            }
+        } else {
+            return this.friendsToKeepStore;
         }
     }
 
@@ -87,11 +103,11 @@ export default class MyHandler extends Handler {
         return this.bot.options.crafting.metals.threshold;
     }
 
-    private get dupeCheckEnabled(): boolean {
+    get dupeCheckEnabled(): boolean {
         return this.bot.options.manualReview.duped.enable;
     }
 
-    private get minimumKeysDupeCheck(): number {
+    get minimumKeysDupeCheck(): number {
         return this.bot.options.manualReview.duped.minKeys;
     }
 
@@ -135,7 +151,7 @@ export default class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private get sheens(): string[] {
+    get getSheens(): string[] {
         // check if highValue.sheens is an empty array
         const sheens = this.bot.options.highValue.sheens;
         if (sheens === []) {
@@ -148,7 +164,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private get killstreakers(): string[] {
+    get getKillstreakers(): string[] {
         // check if highValue.killstreakers is an empty array
         const killstreakers = this.bot.options.highValue.killstreakers;
         if (killstreakers === []) {
@@ -161,11 +177,11 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private get strangeParts(): string[] {
+    get getStrangeParts(): string[] {
         return this.bot.options.highValue.strangeParts.map(strangePart => strangePart.toLowerCase().trim());
     }
 
-    private get painted(): string[] {
+    get getPainted(): string[] {
         return this.bot.options.highValue.painted.map(paint => paint.toLowerCase().trim());
     }
 
@@ -188,6 +204,16 @@ export default class MyHandler extends Handler {
 
     private botAvatarURL = '';
 
+    private botSteamID: SteamID;
+
+    get getBotInfo(): BotInfo {
+        const name = this.botName;
+        const avatarURL = this.botAvatarURL;
+        const steamID = this.botSteamID;
+        const premium = this.isPremium;
+        return { name, avatarURL, steamID, premium };
+    }
+
     private retryRequest;
 
     private autokeysStatus: {
@@ -196,7 +222,15 @@ export default class MyHandler extends Handler {
         isBanking: boolean;
     };
 
+    get getAutokeysStatus(): GetAutokeysStatus {
+        return this.autokeysStatus;
+    }
+
     private weapons: string[] = [];
+
+    get getWeapons(): string[] {
+        return this.weapons;
+    }
 
     private shuffleWeaponsTimeout;
 
@@ -204,13 +238,15 @@ export default class MyHandler extends Handler {
 
     private autoRefreshListingsTimeout;
 
-    private botSteamID: SteamID;
-
     recentlySentMessage: UnknownDictionary<number> = {};
 
     private paths: Paths;
 
     private isUpdating = false;
+
+    set isUpdatingStatus(setStatus: boolean) {
+        this.isUpdating = setStatus;
+    }
 
     private poller: NodeJS.Timeout;
 
@@ -226,38 +262,6 @@ export default class MyHandler extends Handler {
         this.paths = genPaths(this.bot.options.steamAccountName);
     }
 
-    getFriendToKeep(): string[] {
-        return this.friendsToKeep;
-    }
-
-    getBotSteamID(): SteamID {
-        return this.botSteamID;
-    }
-
-    hasDupeCheckEnabled(): boolean {
-        return this.dupeCheckEnabled;
-    }
-
-    getMinimumKeysDupeCheck(): number {
-        return this.minimumKeysDupeCheck;
-    }
-
-    getBotInfo(): BotInfo {
-        const name = this.botName;
-        const avatarURL = this.botAvatarURL;
-        const steamID = this.botSteamID.getSteamID64();
-        const premium = this.isPremium;
-        return { name, avatarURL, steamID, premium };
-    }
-
-    getToMention(): GetToMention {
-        const sheens = this.sheens;
-        const killstreakers = this.killstreakers;
-        const strangeParts = this.strangeParts;
-        const painted = this.painted;
-        return { sheens, killstreakers, strangeParts, painted };
-    }
-
     updateAutokeysStatus(): void {
         const autokeys = {
             isEnabled: this.autokeys.isEnabled,
@@ -270,10 +274,6 @@ export default class MyHandler extends Handler {
             isBuying: autokeys.isBuying,
             isBanking: autokeys.isBanking
         };
-    }
-
-    getAutokeysStatus(): GetAutokeysStatus {
-        return this.autokeysStatus;
     }
 
     onRun(): Promise<OnRun> {
@@ -412,10 +412,6 @@ export default class MyHandler extends Handler {
         this.commands.processMessage(steamID, message);
     }
 
-    setIsUpdatingStatus(setStatus: boolean): void {
-        this.isUpdating = setStatus;
-    }
-
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
@@ -516,10 +512,6 @@ export default class MyHandler extends Handler {
             return;
         }
         clearTimeout(this.autoRefreshListingsTimeout);
-    }
-
-    getWeapons(): string[] {
-        return this.weapons;
     }
 
     shuffleWeapons(): void {
@@ -646,22 +638,8 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(
-            offer.itemsToGive,
-            this.sheens,
-            this.killstreakers,
-            this.strangeParts,
-            this.painted,
-            this.bot
-        );
-        const highValueTheir = check.highValue(
-            offer.itemsToReceive,
-            this.sheens,
-            this.killstreakers,
-            this.strangeParts,
-            this.painted,
-            this.bot
-        );
+        const highValueOur = check.highValue(offer.itemsToGive, this.bot);
+        const highValueTheir = check.highValue(offer.itemsToReceive, this.bot);
 
         const input: HighValueInput = {
             our: highValueOur,
@@ -1977,15 +1955,8 @@ interface OnNewTradeOffer {
 interface BotInfo {
     name: string;
     avatarURL: string;
-    steamID: string;
+    steamID: SteamID;
     premium: boolean;
-}
-
-interface GetToMention {
-    sheens: string[];
-    killstreakers: string[];
-    strangeParts: string[];
-    painted: string[];
 }
 
 interface GetAutokeysStatus {

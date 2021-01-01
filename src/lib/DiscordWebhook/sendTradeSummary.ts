@@ -90,7 +90,7 @@ export default async function sendTradeSummary(
 
     const url = opt.tradeSummary.url;
 
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);
     const trades = await stats(bot);
 
@@ -177,7 +177,7 @@ export default async function sendTradeSummary(
                                 : '') +
                             (AdditionalNotes
                                 ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') + AdditionalNotes
-                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
+                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`)
                     }
                 ],
                 footer: {

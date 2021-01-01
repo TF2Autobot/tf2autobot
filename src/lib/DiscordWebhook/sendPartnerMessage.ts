@@ -14,7 +14,7 @@ export default function sendPartnerMessage(
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
 
     const discordPartnerMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
