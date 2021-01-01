@@ -187,7 +187,7 @@ export default async function sendTradeSummary(
         ]
     };
 
-    if (combineList === '-') {
+    if (combineList === '-' || combineList === '') {
         acceptedTradeSummary.embeds[0].fields.shift();
     } else if (combineList.length >= 1024) {
         // first get __Status__ element

@@ -152,7 +152,7 @@ export default function sendOfferReview(
             removeStatus = true;
         }
 
-        if (combineList === '-') {
+        if (combineList === '-' || combineList === '') {
             // if __Item list__ field is empty, then remove it
             if (removeStatus) {
                 // if __Status__ fields was removed, then delete the entire fields properties
