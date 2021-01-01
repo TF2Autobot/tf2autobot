@@ -35,7 +35,8 @@ v.addSchema(op.normalizeSchema);
 v.addSchema(op.dl.detailsSchema);
 v.addSchema(op.dl.highValueDetailsSchema);
 
-v.addSchema(op.statisticsSchema);
+v.addSchema(op.st.sendStatsStSchema);
+v.addSchema(op.st.statisticsSchema);
 
 v.addSchema(op.ak.autokeysSchema);
 v.addSchema(op.ak.bankingSchema);
@@ -65,7 +66,7 @@ v.addSchema(op.dw.offerReviewDWSchema);
 v.addSchema(op.dw.miscOfferReviewDWSchema);
 v.addSchema(op.dw.messagesDWSchema);
 v.addSchema(op.dw.priceUpdateDWSchema);
-v.addSchema(op.dw.sendAlertDWSchema);
+v.addSchema(op.dw.sendAlertStatsDWSchema);
 
 v.addSchema(op.cm.customMessageSchema);
 v.addSchema(op.cm.declineCMSchema);

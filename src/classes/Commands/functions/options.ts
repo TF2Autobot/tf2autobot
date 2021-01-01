@@ -114,6 +114,20 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
+            if (typeof knownParams.statistics === 'object') {
+                if (knownParams.statistics.sendStats !== undefined) {
+                    if (knownParams.statistics.sendStats.enable === true) {
+                        bot.handler.sendStats();
+                    } else {
+                        bot.handler.disableSendStats();
+                    }
+
+                    if (knownParams.statistics.sendStats.time !== undefined) {
+                        bot.handler.sendStats();
+                    }
+                }
+            }
+
             if (knownParams.autobump !== undefined) {
                 if (knownParams.autobump === true) {
                     bot.listings.setupAutorelist();

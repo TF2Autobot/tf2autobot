@@ -31,7 +31,10 @@ export const discordWebhookSchema: jsonschema.Schema = {
             $ref: 'price-update-dw'
         },
         sendAlert: {
-            $ref: 'send-alert-dw'
+            $ref: 'send-alert-stats-dw'
+        },
+        sendStats: {
+            $ref: 'send-alert-stats-dw'
         }
     },
     additionalProperties: false,

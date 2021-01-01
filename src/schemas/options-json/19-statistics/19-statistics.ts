@@ -18,6 +18,9 @@ export const statisticsSchema: jsonschema.Schema = {
         },
         lastTotalProfitOverpayInRef: {
             type: 'number'
+        },
+        sendStats: {
+            $ref: 'send-stats-st'
         }
     },
     additionalProperties: false,

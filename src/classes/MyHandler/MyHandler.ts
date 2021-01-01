@@ -17,6 +17,7 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
+import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -35,6 +36,8 @@ import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
+import { statsCommand } from '../Commands/functions/status';
+
 import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
@@ -49,7 +52,7 @@ import {
     paintedData,
     noiseMakerSKUs
 } from '../../lib/data';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 
@@ -194,6 +197,10 @@ export default class MyHandler extends Handler {
         }
     }
 
+    private get sendStatsEnabled(): boolean {
+        return this.bot.options.statistics.sendStats.enable;
+    }
+
     private isTradingKeys = false;
 
     private get customGameName(): string {
@@ -213,7 +220,7 @@ export default class MyHandler extends Handler {
 
     private botAvatarURL = '';
 
-    private retryRequest;
+    private retryRequest: NodeJS.Timeout;
 
     private autokeysStatus: {
         isActive: boolean;
@@ -223,11 +230,11 @@ export default class MyHandler extends Handler {
 
     private weapons: string[] = [];
 
-    private shuffleWeaponsTimeout;
+    private shuffleWeaponsTimeout: NodeJS.Timeout;
 
-    private classWeaponsTimeout;
+    private classWeaponsTimeout: NodeJS.Timeout;
 
-    private autoRefreshListingsTimeout;
+    private autoRefreshListingsTimeout: NodeJS.Timeout;
 
     private botSteamID: SteamID;
 
@@ -240,6 +247,8 @@ export default class MyHandler extends Handler {
     private poller: NodeJS.Timeout;
 
     private refreshInterval: NodeJS.Timeout;
+
+    private sendStatsTimeout: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         super(bot);
@@ -549,6 +558,41 @@ export default class MyHandler extends Handler {
             return;
         }
         clearTimeout(this.autoRefreshListingsTimeout);
+    }
+
+    sendStats(): void {
+        clearTimeout(this.sendStatsTimeout);
+
+        const opt = this.bot.options;
+
+        if (this.sendStatsEnabled) {
+            let times: string[] = [];
+            if (opt.statistics.sendStats.time.length === 0) {
+                times = ['T23:59', 'T05:59', 'T11:59', 'T17:59'];
+            } else {
+                times = opt.statistics.sendStats.time;
+            }
+
+            this.sendStatsTimeout = setTimeout(() => {
+                const time = dayjs()
+                    .tz(opt.timezone ? opt.timezone : 'UTC')
+                    .format();
+
+                if (times.includes(time)) {
+                    if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
+                        void sendStats(this.bot);
+                    } else {
+                        this.bot.getAdmins().forEach(admin => {
+                            void statsCommand(admin, this.bot);
+                        });
+                    }
+                }
+            }, 1 * 60 * 1000);
+        }
+    }
+
+    disableSendStats(): void {
+        clearTimeout(this.sendStatsTimeout);
     }
 
     getWeapons(): string[] {

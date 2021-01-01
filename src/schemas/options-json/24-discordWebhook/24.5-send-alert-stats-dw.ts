@@ -1,7 +1,7 @@
 import jsonschema from 'jsonschema';
 
-export const sendAlertDWSchema: jsonschema.Schema = {
-    id: 'send-alert-dw',
+export const sendAlertStatsDWSchema: jsonschema.Schema = {
+    id: 'send-alert-stats-dw',
     type: 'object',
     properties: {
         enable: {

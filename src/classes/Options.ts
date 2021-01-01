@@ -328,7 +328,20 @@ export const DEFAULTS = {
         /**
          * Similar to .lastTotalProfitMadeInRef, but this is for last profit from overpay(value must in refined metal, i.e. 1000.44).
          */
-        lastTotalProfitOverpayInRef: 0
+        lastTotalProfitOverpayInRef: 0,
+        sendStats: {
+            /**
+             * Send the content of !stats command every specified hours below
+             */
+            enable: false,
+            /**
+             * Time (local/timezone - 24 hours) in hour:minute format, example: ["T23:59", "T05:59", "T11:59", "T17:59"] will send at
+             * 23:59 AM, 05:59 AM, 11:59 PM and 17:59 PM.
+             * Please include that "T" in front of each time, otherwise this wont work.
+             * If this is empty but enable is true, then it will use default ["T23:59", "T05:59", "T11:59", "T17:59"].
+             */
+            time: []
+        }
     },
 
     autokeys: {
@@ -829,6 +842,18 @@ export const DEFAULTS = {
             enable: true,
             /**
              * The Discord Webhook URL you'd for the alert to be sent to.
+             */
+            url: ''
+        },
+        sendStats: {
+            /**
+             * If set to false, the bot will send stats through Steam chat. Otherwise, the bot will
+             * send stats you through Discord (statistics.autoSendStats.enable must be true and
+             * statistics.autoSendStats.time is not empty).
+             */
+            enable: false,
+            /**
+             * The Discord Webhook URL you'd for the stats to be sent to.
              */
             url: ''
         }
@@ -1768,6 +1793,11 @@ export interface Statistics {
     startingTimeInUnix?: number;
     lastTotalProfitMadeInRef?: number;
     lastTotalProfitOverpayInRef?: number;
+    sendStats?: SendStats;
+}
+
+export interface SendStats extends OnlyEnable {
+    time?: string[];
 }
 
 // ------------ Autokeys ------------
@@ -1881,7 +1911,8 @@ export interface DiscordWebhook {
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
-    sendAlert?: SendAlertDW;
+    sendAlert?: SendAlertStatsDW;
+    sendStats?: SendAlertStatsDW;
 }
 
 export interface TradeSummaryDW extends OnlyEnable {
@@ -1927,7 +1958,7 @@ export interface PriceUpdateDW extends OnlyEnable, OnlyNote {
     url?: string;
 }
 
-export interface SendAlertDW extends OnlyEnable {
+export interface SendAlertStatsDW extends OnlyEnable {
     url?: string;
 }
 

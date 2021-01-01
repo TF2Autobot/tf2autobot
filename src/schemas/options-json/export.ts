@@ -22,7 +22,7 @@ import { checkUsesSchema } from './15-checkUses/15-check-uses';
 import { gameSchema } from './16-game/16-game';
 import { normalizeSchema } from './17-normalize/17-normalize';
 import * as dl from './18-details/export';
-import { statisticsSchema } from './19-statistics/19-statistics';
+import * as st from './19-statistics/export';
 import * as ak from './20-autokeys/export';
 import * as cf from './21-crafting/export';
 import * as or from './22-offerRecieved/export';
@@ -49,7 +49,7 @@ export {
     gameSchema,
     normalizeSchema,
     dl,
-    statisticsSchema,
+    st,
     ak,
     cf,
     or,
