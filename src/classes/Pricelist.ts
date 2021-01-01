@@ -489,10 +489,11 @@ export default class Pricelist extends EventEmitter {
         return this.prices.findIndex(entry => entry.name === name);
     }
 
+    /** returns index of sku's generic match otherwise returns -1 */
     getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
         const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
-        if (pSku.quality === 5 && pSku.effect !== null) {
+        if (pSku.quality === 5) {
             // try to find a generic price
             const name = this.schema.getName(pSku, false);
             const effectMatch = this.bot.unusualEffects.find(e => pSku.effect === e.id);
