@@ -86,18 +86,16 @@ export function isNot25xUses(items: EconItem[], bot: Bot): [boolean, string[]] {
     return [is25xUses, skus];
 }
 
-export function highValue(
-    econ: EconItem[],
-    sheens: string[],
-    killstreakers: string[],
-    strangeParts: string[],
-    painted: string[],
-    bot: Bot
-): HighValue {
+export function highValue(econ: EconItem[], bot: Bot): HighValue {
     const highValued: HighValue = {
         items: {},
         isMention: false
     };
+
+    const strangeParts = bot.handler.getStrangeParts;
+    const killstreakers = bot.handler.getKillstreakers;
+    const sheens = bot.handler.getSheens;
+    const painted = bot.handler.getPainted;
 
     econ.forEach(item => {
         // tf2-items-format module (will use this once fixed)

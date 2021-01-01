@@ -24,7 +24,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (params.enabled === undefined) {
         params.enabled = true;
@@ -146,7 +146,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
         bot.sendMessage(
@@ -393,7 +393,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
