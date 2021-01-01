@@ -14,6 +14,9 @@ export const detailsSchema: jsonschema.Schema = {
         },
         highValue: {
             $ref: 'show-high-value-dl'
+        },
+        uses: {
+            $ref: 'uses-dl'
         }
     },
     additionalProperties: false,

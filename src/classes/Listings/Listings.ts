@@ -622,6 +622,8 @@ export default class Listings {
             }
         }
 
+        const optDs = this.bot.options.details.uses;
+
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
             // note.buy for buy order listing note.
@@ -644,9 +646,9 @@ export default class Listings {
             // else just empty string.
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
             // else if note.sell value is defined and not null and intent is selling, then use whatever in the
@@ -663,9 +665,9 @@ export default class Listings {
                 : details.replace(/%keyPrice%/g, '');
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.sku === '241;6' && opt.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
@@ -676,7 +678,7 @@ export default class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
@@ -689,7 +691,7 @@ export default class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')

@@ -34,6 +34,7 @@ v.addSchema(op.normalizeSchema);
 
 v.addSchema(op.dl.detailsSchema);
 v.addSchema(op.dl.highValueDetailsSchema);
+v.addSchema(op.dl.usesDetailsSchema);
 
 v.addSchema(op.st.sendStatsStSchema);
 v.addSchema(op.st.statisticsSchema);

@@ -300,6 +300,20 @@ export const DEFAULTS = {
              * (only the one you specified in highValue.painted).
              */
             showPainted: true
+        },
+        uses: {
+            /**
+             * only show if checkUses.duel is true and the bot is buying Dueling Mini-Game and include %uses% parameter
+             * in the details.buy string.
+             * Default: (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
+             */
+            duel: '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)',
+            /**
+             * only show if checkUses.noiseMaker is true and the bot is buying any Noise Maker and include %uses% parameter
+             * in the details.buy string.
+             * Default: (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)
+             */
+            noiseMaker: '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
         }
     },
 
@@ -1775,6 +1789,7 @@ export interface Details {
     buy?: string;
     sell?: string;
     highValue?: ShowHighValue;
+    uses?: UsesDetails;
 }
 
 export interface ShowHighValue {
@@ -1783,6 +1798,11 @@ export interface ShowHighValue {
     showKillstreaker: boolean;
     showSheen: boolean;
     showPainted: boolean;
+}
+
+export interface UsesDetails {
+    duel?: string;
+    noiseMaker?: string;
 }
 
 // ------------ Statistics ------------
