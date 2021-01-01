@@ -47,14 +47,7 @@ export default class BotManager {
             CEconItem.prototype[v] = require('../lib/extend/item/' + v);
         });
 
-        [
-            'log',
-            'summarize',
-            'summarizeWithStockChanges',
-            'getDiff',
-            'summarizeWithLink',
-            'summarizeWithLinkWithStockChanges'
-        ].forEach(v => {
+        ['log', 'getDiff'].forEach(v => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
         });

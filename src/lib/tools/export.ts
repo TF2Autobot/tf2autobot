@@ -6,7 +6,7 @@ import stats from './stats';
 import { timeNow, convertTime, uptime } from './time';
 import valueDiff from './valueDiff';
 import listItems, { listPrices } from './summarizeItems';
-import summarize from './summarizeOffer';
+import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
 
 export {
@@ -20,6 +20,7 @@ export {
     listItems,
     listPrices,
     summarize,
+    summarizeToChat,
     uptime,
     convertTime,
     profit

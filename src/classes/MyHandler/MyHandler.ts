@@ -41,7 +41,7 @@ import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData, noiseMakerSKUs } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { check, uptime } from '../../lib/tools/export';
+import { summarize, check, uptime } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 
 export default class MyHandler extends Handler {
@@ -578,9 +578,6 @@ export default class MyHandler extends Handler {
 
         let hasInvalidItems = false;
 
-        const entry = this.bot.pricelist;
-        const stock = this.bot.inventoryManager.getInventory();
-
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
@@ -614,23 +611,7 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                const itemEntry = which === 'our' ? entry.getPrice(sku, false) : entry.getPrice(sku, false, true);
-                const currentStock =
-                    which === 'our' ? stock.getAmountOfGenerics(sku, true) : stock.getAmount(sku, true);
-
-                if (which === 'our') {
-                    itemsDict.our[sku] = {
-                        amount: amount,
-                        stock: currentStock,
-                        maxStock: itemEntry !== null ? itemEntry.max : 0
-                    };
-                } else {
-                    itemsDict.their[sku] = {
-                        amount: amount,
-                        stock: currentStock,
-                        maxStock: itemEntry !== null ? itemEntry.max : 0
-                    };
-                }
+                itemsDict[which][sku] = amount;
             }
         }
 
@@ -653,11 +634,7 @@ export default class MyHandler extends Handler {
         if (this.bot.isAdmin(offer.partner)) {
             offer.log(
                 'trade',
-                `is from an admin, accepting. Summary:\n${
-                    this.isShowChanges
-                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                        : offer.summarize(this.bot.schema)
-                }`
+                `is from an admin, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`
             );
 
             if (isContainsHighValue) {
@@ -689,14 +666,7 @@ export default class MyHandler extends Handler {
         });
 
         if (offer.itemsToGive.length === 0 && isGift) {
-            offer.log(
-                'trade',
-                `is a gift offer, accepting. Summary:\n${
-                    this.isShowChanges
-                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                        : offer.summarize(this.bot.schema)
-                }`
-            );
+            offer.log('trade', `is a gift offer, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
             if (isContainsHighValue) {
                 return {
                     action: 'accept',
@@ -1381,11 +1351,12 @@ export default class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${
-                        this.isShowChanges
-                            ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                            : offer.summarize(this.bot.schema)
-                    }`
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${summarize(
+                        offer,
+                        this.bot,
+                        'summary',
+                        false
+                    )}`
                 );
 
                 const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
@@ -1464,14 +1435,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        offer.log(
-            'trade',
-            `accepting. Summary:\n${
-                this.isShowChanges
-                    ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                    : offer.summarize(this.bot.schema)
-            }`
-        );
+        offer.log('trade', `accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 

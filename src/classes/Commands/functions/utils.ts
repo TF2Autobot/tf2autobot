@@ -490,7 +490,7 @@ export function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Sc
             continue;
         }
 
-        const amount = dict[sku].amount;
+        const amount = dict[sku];
         const name = schema.getName(SKU.fromString(sku), false);
 
         summary.push(name + (amount > 1 ? `x${amount}` : ''));
