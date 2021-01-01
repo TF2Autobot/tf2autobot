@@ -531,7 +531,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         log.debug('Creating listings...');
-                        void this.listings.redoListings().asCallback(callback);
+                        void this.listings.redoListingsWithDelay().asCallback(callback);
                     }
                 ],
                 (item, callback) => {

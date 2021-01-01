@@ -637,7 +637,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         if (params.autoprice !== true) {
             await bot.handler.onPricelist(newPricelist);
             bot.sendMessage(steamID, '✅ Updated pricelist!');
-            await bot.listings.redoListings();
+            await bot.listings.redoListingsWithDelay();
             return;
         }
 
@@ -647,7 +647,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             .setupPricelist()
             .then(async () => {
                 bot.sendMessage(steamID, '✅ Updated pricelist!');
-                await bot.listings.redoListings();
+                await bot.listings.redoListingsWithDelay();
             })
             .catch((err: Error) => {
                 log.warn('Failed to update prices: ', err);
@@ -939,7 +939,7 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
 
         await bot.handler.onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');
-        await bot.listings.redoListings();
+        await bot.listings.redoListingsWithDelay();
 
         executed = true;
         executeTimeout = setTimeout(() => {
@@ -1033,7 +1033,7 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
             try {
                 await bot.pricelist.removeByGroup(newPricelist);
                 bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
-                await bot.listings.redoListings();
+                await bot.listings.redoListingsWithDelay();
                 return;
             } catch (err) {
                 bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
