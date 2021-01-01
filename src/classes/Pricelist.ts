@@ -492,11 +492,15 @@ export default class Pricelist extends EventEmitter {
     getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
         const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
-        if (pSku.quality === 5) {
+        if (pSku.quality === 5 && pSku.effect !== null) {
             // try to find a generic price
             const name = this.schema.getName(pSku, false);
             const effectMatch = this.bot.unusualEffects.find(e => pSku.effect === e.id);
-            return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
+            if (effectMatch)
+                // this means the sku given had a matching effect so we are going from a specific to generic
+                return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
+            // this means the sku given was already generic so we just return the index of the generic
+            else return this.getIndex(null, pSku);
         } else {
             return -1;
         }
