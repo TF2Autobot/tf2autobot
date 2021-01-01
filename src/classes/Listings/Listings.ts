@@ -88,7 +88,7 @@ export default class Listings {
             async.eachSeries(
                 [
                     (callback): void => {
-                        void this.redoListingsWithDelay().asCallback(callback);
+                        void this.redoListings().asCallback(callback);
                     },
                     (callback): void => {
                         void this.waitForListings().asCallback(callback);
