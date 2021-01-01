@@ -556,7 +556,8 @@ export default class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            this.bot.options,
+            this.bot.unusualEffects
         );
 
         const theirItems = Inventory.fromItems(
@@ -564,7 +565,8 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            this.bot.options,
+            this.bot.unusualEffects
         );
 
         const items = {
@@ -620,8 +622,9 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                const itemEntry = entry.getPrice(sku, false);
-                const currentStock = stock.getAmount(sku, true);
+                const itemEntry = which === 'our' ? entry.getPrice(sku, false) : entry.getPrice(sku, false, true);
+                const currentStock =
+                    which === 'our' ? stock.getAmountOfGenerics(sku, true) : stock.getAmount(sku, true);
 
                 if (which === 'our') {
                     itemsDict.our[sku] = {
@@ -881,7 +884,10 @@ export default class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
-                    const match = this.bot.pricelist.getPrice(sku, true);
+                    const match =
+                        which === 'our'
+                            ? this.bot.pricelist.getPrice(sku, false)
+                            : this.bot.pricelist.getPrice(sku, false, true);
                     const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
                         ? !(
                               craftAll.includes(sku) ||
@@ -908,7 +914,11 @@ export default class MyHandler extends Handler {
                         const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
+                            sku,
+                            isBuying,
+                            which === 'their'
+                        ); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
                             // User is offering too many
@@ -922,7 +932,7 @@ export default class MyHandler extends Handler {
                                 amountCanTrade: amountCanTrade
                             });
 
-                            this.bot.listings.checkBySKU(match.sku);
+                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
                         if (
@@ -943,7 +953,7 @@ export default class MyHandler extends Handler {
                                 amountCanTrade: amountCanTrade
                             });
 
-                            this.bot.listings.checkBySKU(match.sku);
+                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);

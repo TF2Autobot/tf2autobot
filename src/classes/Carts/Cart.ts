@@ -126,8 +126,35 @@ export default abstract class Cart {
         return this.our[sku] !== undefined ? this.our[sku].amount : 0;
     }
 
+    getOurGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getOurCount(s));
+    }
+
+    getGenericCount(sku: string, getCountFn: (sku: string) => number): number {
+        const pSku = SKU.fromString(sku);
+        if (pSku.quality === 5) {
+            // try to count all unusual types
+            return (
+                this.bot.unusualEffects
+                    .map(e => {
+                        pSku.effect = e.id;
+                        const s = SKU.fromObject(pSku);
+                        return getCountFn(s);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            );
+        } else {
+            return getCountFn(sku);
+        }
+    }
+
     getTheirCount(sku: string): number {
         return this.their[sku] !== undefined ? this.their[sku].amount : 0;
+    }
+
+    getTheirGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getTheirCount(s));
     }
 
     addOurItem(sku: string, amount = 1): void {
@@ -146,8 +173,8 @@ export default abstract class Cart {
     }
 
     addTheirItem(sku: string, amount = 1): void {
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
-        const entry = this.bot.pricelist.getPrice(sku, false);
+        const currentStock = this.bot.inventoryManager.getInventory().getAmountOfGenerics(sku, true);
+        const entry = this.bot.pricelist.getPrice(sku, false, true);
 
         this.their[sku] = {
             amount: this.getTheirCount(sku) + amount,
