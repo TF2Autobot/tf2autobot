@@ -143,24 +143,9 @@ export default function sendOfferReview(
             ]
         };
 
-        let removeStatus = false;
-
-        if (!(isShowKeyRate || isShowPureStock)) {
-            // If both here are false, then it will be true and the last element (__Status__) of the
-            // fields array will be removed
-            webhookReview.embeds[0].fields.pop();
-            removeStatus = true;
-        }
-
         if (combineList === '-' || combineList === '') {
-            // if __Item list__ field is empty, then remove it
-            if (removeStatus) {
-                // if __Status__ fields was removed, then delete the entire fields properties
-                delete webhookReview.embeds[0].fields;
-            } else {
-                // else just remove the first element of the fields array (__Item list__)
-                webhookReview.embeds[0].fields.shift();
-            }
+            // just remove the first element of the fields array (__Item list__)
+            webhookReview.embeds[0].fields.shift();
         } else if (combineList.length >= 1024) {
             // first get __Status__ element
             const statusElement = webhookReview.embeds[0].fields.pop();
