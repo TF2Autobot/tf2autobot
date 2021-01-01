@@ -121,13 +121,7 @@ declare module 'steam-tradeoffer-manager' {
         }
 
         export interface OurTheirItemsDict {
-            [sku: string]: ItemsDictContent;
-        }
-
-        export interface ItemsDictContent {
-            amount?: number;
-            stock?: number;
-            maxStock?: number;
+            [sku: string]: number;
         }
 
         export interface ItemsValue {
@@ -461,15 +455,6 @@ declare module 'steam-tradeoffer-manager' {
 
             // Custom function added to prototype
             log(level: string, message: string, ...meta: any[]);
-
-            // Custom function added to prototype
-            summarize(schema: SchemaManager.Schema): string;
-
-            summarizeWithStockChanges(schema: SchemaManager.Schema, type: string): string;
-
-            summarizeWithLink(schema: SchemaManager.Schema): string;
-
-            summarizeWithLinkWithStockChanges(schema: SchemaManager.Schema, type: string): string;
 
             // Custom function added to prototype
             getDiff(): UnknownKeys<any> | null;

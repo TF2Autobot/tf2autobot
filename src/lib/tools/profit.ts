@@ -65,9 +65,9 @@ export default function profit(
                     // item bought
                     if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
                         const itemCount =
-                            typeof trade.dict.their[sku] == 'object'
-                                ? trade.dict.their[sku].amount
-                                : +trade.dict.their[sku];
+                            typeof trade.dict.their[sku] === 'object'
+                                ? (trade.dict.their[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trade.dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
                         const isNotPureOrWeapons = !(
                             (bot.options.weaponsAsCurrency.enable &&
@@ -103,7 +103,9 @@ export default function profit(
                 for (const sku in trade.dict.our) {
                     if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
                         const itemCount =
-                            typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : +trade.dict.our[sku];
+                            typeof trade.dict.our[sku] === 'object'
+                                ? (trade.dict.our[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trade.dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
                         const isNotPureOrWeapons = !(
                             (bot.options.weaponsAsCurrency.enable &&

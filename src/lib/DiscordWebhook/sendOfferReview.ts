@@ -2,7 +2,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
-import { pure, summarize, listItems, replace } from '../tools/export';
+import { pure, summarize, summarizeToChat, listItems, replace } from '../tools/export';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
@@ -51,15 +51,7 @@ export default function sendOfferReview(
     const slots = bot.tf2.backpackSlots;
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
 
-    const isShowChanges = bot.options.tradeSummary.showStockChanges;
-    const summary = summarize(
-        isShowChanges
-            ? offer.summarizeWithLinkWithStockChanges(bot.schema, 'review')
-            : offer.summarizeWithLink(bot.schema),
-        value,
-        keyPrices,
-        false
-    );
+    const summary = summarizeToChat(summarize(offer, bot, 'review-admin', true), value, keyPrices, false);
     const itemList = listItems(itemsName, false);
 
     const combineList =
