@@ -208,7 +208,7 @@ export default class Listings {
                 listing.remove();
             } else {
                 const inventory = this.bot.inventoryManager.getInventory();
-                const itemsEcon = inventory.getItemsEcon();
+                const itemsEcon = inventory.getItemsEconNoPure();
                 let filtered: EconItem = undefined;
                 if (listing.intent === 1) {
                     filtered = itemsEcon.filter(item => item.assetid === listing.id.replace('440_', ''))[0];
@@ -235,7 +235,7 @@ export default class Listings {
         if (matchNew !== null && matchNew.enabled === true) {
             const inventory = this.bot.inventoryManager.getInventory();
             const assetids = inventory.findBySKU(sku, true);
-            const itemsEcon = inventory.getItemsEcon();
+            const itemsEcon = inventory.getItemsEconNoPure();
 
             const filtered = itemsEcon.filter(item => item.assetid === assetids[assetids.length - 1])[0];
 
