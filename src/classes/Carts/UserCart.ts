@@ -18,7 +18,7 @@ import Inventory, { getSkuAmountCanTrade } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 
 import log from '../../lib/logger';
-import { craftAll, noiseMakerSKUs, uncraftAll } from '../../lib/data';
+import { noiseMakerSKUs } from '../../lib/data';
 import { check, pure } from '../../lib/tools/export';
 
 export default class UserCart extends Cart {
@@ -1094,15 +1094,11 @@ export default class UserCart extends Cart {
             '5000;6': 1
         };
 
-        craftAll.forEach(sku => {
+        const weapons = this.bot.handler.getWeapons;
+
+        weapons.forEach(sku => {
             currencyValues[sku] = 0.5;
         });
-
-        if (this.bot.options.weaponsAsCurrency.withUncraft) {
-            uncraftAll.forEach(sku => {
-                currencyValues[sku] = 0.5;
-            });
-        }
 
         // log.debug('Currency values', currencyValues);
 
@@ -1123,15 +1119,15 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        craftAll.forEach(sku => {
-            pickedCurrencies[sku] = 0;
-        });
+        // craftAll.forEach(sku => {
+        //     pickedCurrencies[sku] = 0;
+        // });
 
-        if (this.bot.options.weaponsAsCurrency.withUncraft) {
-            uncraftAll.forEach(sku => {
-                pickedCurrencies[sku] = 0;
-            });
-        }
+        // if (this.bot.options.weaponsAsCurrency.withUncraft) {
+        //     uncraftAll.forEach(sku => {
+        //         pickedCurrencies[sku] = 0;
+        //     });
+        // }
 
         /* eslint-disable-next-line no-constant-condition */
         while (true) {
@@ -1252,15 +1248,11 @@ export default class UserCart extends Cart {
         const reclaimed = ourDict['5001;6'] || 0;
         const refined = ourDict['5002;6'] || 0;
 
-        craftAll.forEach(sku => {
+        const weapons = this.bot.handler.getWeapons;
+
+        weapons.forEach(sku => {
             addWeapons += ourDict[sku] !== undefined ? ourDict[sku] : 0;
         });
-
-        if (this.bot.options.weaponsAsCurrency.withUncraft) {
-            uncraftAll.forEach(sku => {
-                addWeapons += ourDict[sku] !== undefined ? ourDict[sku] : 0;
-            });
-        }
 
         if (isBuyer) {
             const keys = this.canUseKeysWithWeapons() ? ourDict['5021;6'] || 0 : 0;
@@ -1295,15 +1287,11 @@ export default class UserCart extends Cart {
         const reclaimed = theirDict['5001;6'] || 0;
         const refined = theirDict['5002;6'] || 0;
 
-        craftAll.forEach(sku => {
+        const weapons = this.bot.handler.getWeapons;
+
+        weapons.forEach(sku => {
             addWeapons += theirDict[sku] !== undefined ? theirDict[sku] : 0;
         });
-
-        if (this.bot.options.weaponsAsCurrency.withUncraft) {
-            uncraftAll.forEach(sku => {
-                addWeapons += theirDict[sku] !== undefined ? theirDict[sku] : 0;
-            });
-        }
 
         if (!isBuyer) {
             const keys = this.canUseKeysWithWeapons() ? theirDict['5021;6'] || 0 : 0;
@@ -1523,15 +1511,9 @@ export default class UserCart extends Cart {
         const required = this.getRequiredWithWeapons(buyerCurrenciesCount, currencies, this.canUseKeysWithWeapons());
 
         let addWeapons = 0;
-        craftAll.forEach(sku => {
+        weapons.forEach(sku => {
             addWeapons += required.currencies[sku] * 0.5;
         });
-
-        if (this.bot.options.weaponsAsCurrency.withUncraft) {
-            uncraftAll.forEach(sku => {
-                addWeapons += required.currencies[sku] * 0.5;
-            });
-        }
 
         // Add the value that the buyer pays to the exchange
         exchange[isBuyer ? 'our' : 'their'].value += currencies.toValue(keyPrice.metal);
@@ -1723,10 +1705,7 @@ export default class UserCart extends Cart {
                     value = 3;
                 } else if (sku === '5000;6') {
                     value = 1;
-                } else if (
-                    (craftAll.includes(sku) || (opt.weaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
-                    this.bot.pricelist.getPrice(sku, true) === null
-                ) {
+                } else if (weapons.includes(sku) && this.bot.pricelist.getPrice(sku, true) === null) {
                     value = 0.5;
                 }
 
