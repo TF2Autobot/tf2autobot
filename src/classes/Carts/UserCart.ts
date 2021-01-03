@@ -1119,9 +1119,9 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        weapons.forEach(sku => {
-            pickedCurrencies[sku] = 0;
-        });
+        // weapons.forEach(sku => {
+        //     pickedCurrencies[sku] = 0;
+        // });
 
         /* eslint-disable-next-line no-constant-condition */
         while (true) {
