@@ -518,6 +518,8 @@ export default class MyHandler extends Handler {
         if (!this.isWeaponsAsCurrency.enable) {
             return;
         }
+        clearTimeout(this.shuffleWeaponsTimeout);
+
         const weapons = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
         this.weapons = shuffleArray(weapons);
 
@@ -825,7 +827,7 @@ export default class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     this.isWeaponsAsCurrency.enable &&
-                    (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
+                    this.getWeapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -837,10 +839,7 @@ export default class MyHandler extends Handler {
                             ? this.bot.pricelist.getPrice(sku, false)
                             : this.bot.pricelist.getPrice(sku, false, true);
                     const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
-                        ? !(
-                              craftAll.includes(sku) ||
-                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
-                          )
+                        ? !this.getWeapons.includes(sku)
                         : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price

@@ -6,7 +6,6 @@ import { EntryData } from '../../../Pricelist';
 
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
-import { craftAll, uncraftAll } from '../../../../lib/data';
 import log from '../../../../lib/logger';
 
 export default function updateListings(
@@ -28,9 +27,10 @@ export default function updateListings(
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
 
+        const weapons = bot.handler.getWeapons;
+
         const isNotPureOrWeapons = !(
-            (bot.options.weaponsAsCurrency.enable &&
-                (craftAll.includes(sku) || (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
+            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 

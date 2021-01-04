@@ -1,7 +1,6 @@
 import Bot from '../../classes/Bot';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies';
-import { craftAll, uncraftAll } from '../data';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
@@ -17,6 +16,7 @@ export default function profit(
             });
 
             const keyPrice = bot.pricelist.getKeyPrice();
+            const weapons = bot.handler.getWeapons;
 
             let overpriceProfit = 0;
             let tradeProfit = 0;
@@ -70,9 +70,7 @@ export default function profit(
                                 : trade.dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
                         const isNotPureOrWeapons = !(
-                            (bot.options.weaponsAsCurrency.enable &&
-                                (craftAll.includes(sku) ||
-                                    (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
+                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
                             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                         );
 
@@ -108,9 +106,7 @@ export default function profit(
                                 : trade.dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
                         const isNotPureOrWeapons = !(
-                            (bot.options.weaponsAsCurrency.enable &&
-                                (craftAll.includes(sku) ||
-                                    (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
+                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
                             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                         );
 
