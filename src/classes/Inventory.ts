@@ -24,8 +24,6 @@ export default class Inventory {
 
     private tradableEcon: EconItem[] = [];
 
-    private tradableEconNoPure: EconItem[] = [];
-
     private options: Options;
 
     constructor(
@@ -67,10 +65,6 @@ export default class Inventory {
 
     getItemsEcon(): EconItem[] {
         return this.tradableEcon;
-    }
-
-    getItemsEconNoPure(): EconItem[] {
-        return this.tradableEconNoPure;
     }
 
     getTotalItems(): number {
@@ -150,21 +144,6 @@ export default class Inventory {
         });
 
         this.tradableEcon = tradable;
-
-        let pure = ['5000;6', '5001;6', '5002;6', '5021;6'];
-        if (this.options.weaponsAsCurrency.enable) {
-            pure = pure.concat(craftAll);
-            if (this.options.weaponsAsCurrency.withUncraft) {
-                pure = pure.concat(uncraftAll);
-            }
-        }
-
-        this.tradableEconNoPure = tradable.filter(
-            item =>
-                !pure.includes(
-                    item.getSKU(this.schema, this.options.normalize.festivized, this.options.normalize.strangeUnusual)
-                )
-        );
 
         this.tradable = Inventory.createDictionary(
             tradable,
