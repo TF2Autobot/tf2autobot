@@ -191,7 +191,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    get strangeParts(): string[] {
+    get getStrangeParts(): string[] {
         const strangeParts = this.bot.options.highValue.strangeParts;
         if (strangeParts === [] || (strangeParts.length > 0 && strangeParts[0] === '')) {
             log.warn(
@@ -203,7 +203,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    get painted(): string[] {
+    get getPainted(): string[] {
         const painted = this.bot.options.highValue.painted;
         if (painted === [] || (painted.length > 0 && painted[0] === '')) {
             log.warn(
@@ -237,7 +237,6 @@ export default class MyHandler extends Handler {
     private botName = '';
 
     private botAvatarURL = '';
-
 
     private retryRequest: NodeJS.Timeout;
 

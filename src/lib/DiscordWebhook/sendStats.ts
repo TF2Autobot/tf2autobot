@@ -11,7 +11,7 @@ import Bot from '../../classes/Bot';
 
 export default async function sendStats(bot: Bot): Promise<void> {
     const opt = bot.options.discordWebhook;
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
     const trades = await stats(bot);
     const profits = await profit(bot);
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
