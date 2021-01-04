@@ -112,177 +112,89 @@ export default class CartQueue {
 
         log.debug('Constructing offer');
 
-        if (this.bot.options.weaponsAsCurrency.enable) {
-            const custom = this.bot.options.commands.addToQueue;
+        const custom = this.bot.options.commands.addToQueue;
+        Promise.resolve(cart.constructOffer())
+            .then(alteredMessage => {
+                log.debug('Constructed offer');
+                if (alteredMessage) {
+                    cart.sendNotification(
+                        custom.alteredOffer
+                            ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
+                            : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
+                    );
+                }
 
-            Promise.resolve(cart.constructOfferWithWeapons())
-                .then(alteredMessage => {
-                    log.debug('Constructed offer');
-                    if (alteredMessage) {
-                        cart.sendNotification(
-                            custom.alteredOffer
-                                ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
-                                : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
-                        );
-                    }
+                const summarize = cart.summarize(isDonating, isBuyingPremium);
 
-                    const summarize = cart.summarizeWithWeapons(isDonating, isBuyingPremium);
+                const sendNotification = isDonating
+                    ? custom.processingOffer.donation
+                        ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
+                        : `⌛ Please wait while I process your donation! ${summarize}.`
+                    : isBuyingPremium
+                    ? custom.processingOffer.isBuyingPremium
+                        ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
+                        : `⌛ Please wait while I process your premium purchase! ${summarize}.`
+                    : custom.processingOffer.offer
+                    ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
+                    : `⌛ Please wait while I process your offer! ${summarize}.`;
 
+                cart.sendNotification(sendNotification);
+
+                log.debug('Sending offer...');
+                return cart.sendOffer();
+            })
+            .then(status => {
+                log.debug('Sent offer');
+                if (status === 'pending') {
                     const sendNotification = isDonating
-                        ? custom.processingOffer.donation
-                            ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
-                            : `⌛ Please wait while I process your donation! ${summarize}.`
+                        ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
+                            : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
                         : isBuyingPremium
-                        ? custom.processingOffer.isBuyingPremium
-                            ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
-                            : `⌛ Please wait while I process your premium purchase! ${summarize}.`
-                        : custom.processingOffer.offer
-                        ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
-                        : `⌛ Please wait while I process your offer! ${summarize}.`;
+                        ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                            : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                        : custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                        ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                        : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
 
                     cart.sendNotification(sendNotification);
 
-                    log.debug('Sending offer...');
-                    return cart.sendOffer();
-                })
-                .then(status => {
-                    log.debug('Sent offer');
-                    if (status === 'pending') {
-                        const sendNotification = isDonating
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                                ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
-                            : isBuyingPremium
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                                ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
-                            : custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+                    log.debug('Accepting mobile confirmation...');
 
-                        cart.sendNotification(sendNotification);
+                    // Wait for confirmation to be accepted
+                    return this.bot.trades.acceptConfirmationPromise(cart.getOffer()).reflect();
+                }
+            })
+            .catch(err => {
+                if (!(err instanceof Error)) {
+                    cart.sendNotification(`❌ I failed to make the offer! Reason: ${err as string}.`);
+                } else {
+                    log.warn('Failed to make offer');
+                    log.error(inspect.inspect(err));
 
-                        log.debug('Accepting mobile confirmation...');
-
-                        // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmationPromise(cart.getOffer()).reflect();
-                    }
-                })
-                .catch(err => {
-                    if (!(err instanceof Error)) {
-                        cart.sendNotification(`❌ I failed to make the offer! Reason: ${err as string}.`);
-                    } else {
-                        log.warn('Failed to make offer');
-                        log.error(inspect.inspect(err));
-
-                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
-                            cart.sendNotification(
-                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
-                            );
-                        } else {
-                            cart.sendNotification(
-                                '❌ Something went wrong while trying to make the offer, try again later!'
-                            );
-                        }
-                    }
-                })
-                .finally(() => {
-                    log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
-
-                    // Remove cart from the queue
-                    this.carts.shift();
-
-                    // Now ready to handle a different cart
-                    this.busy = false;
-
-                    // Handle the queue
-                    this.handleQueue(false, false);
-                });
-        } else {
-            const custom = this.bot.options.commands.addToQueue;
-            Promise.resolve(cart.constructOffer())
-                .then(alteredMessage => {
-                    log.debug('Constructed offer');
-                    if (alteredMessage) {
+                    if (err.message.includes("cause: 'TargetCannotTrade'")) {
                         cart.sendNotification(
-                            custom.alteredOffer
-                                ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
-                                : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
+                            "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                        );
+                    } else {
+                        cart.sendNotification(
+                            '❌ Something went wrong while trying to make the offer, try again later!'
                         );
                     }
+                }
+            })
+            .finally(() => {
+                log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
 
-                    const summarize = cart.summarizeWithWeapons(isDonating, isBuyingPremium);
+                // Remove cart from the queue
+                this.carts.shift();
 
-                    const sendNotification = isDonating
-                        ? custom.processingOffer.donation
-                            ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
-                            : `⌛ Please wait while I process your donation! ${summarize}.`
-                        : isBuyingPremium
-                        ? custom.processingOffer.isBuyingPremium
-                            ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
-                            : `⌛ Please wait while I process your premium purchase! ${summarize}.`
-                        : custom.processingOffer.offer
-                        ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
-                        : `⌛ Please wait while I process your offer! ${summarize}.`;
+                // Now ready to handle a different cart
+                this.busy = false;
 
-                    cart.sendNotification(sendNotification);
-
-                    log.debug('Sending offer...');
-                    return cart.sendOffer();
-                })
-                .then(status => {
-                    log.debug('Sent offer');
-                    if (status === 'pending') {
-                        const sendNotification = isDonating
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                                ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
-                            : isBuyingPremium
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                                ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                                : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
-                            : custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
-
-                        cart.sendNotification(sendNotification);
-
-                        log.debug('Accepting mobile confirmation...');
-
-                        // Wait for confirmation to be accepted
-                        return this.bot.trades.acceptConfirmationPromise(cart.getOffer()).reflect();
-                    }
-                })
-                .catch(err => {
-                    if (!(err instanceof Error)) {
-                        cart.sendNotification(`❌ I failed to make the offer! Reason: ${err as string}.`);
-                    } else {
-                        log.warn('Failed to make offer');
-                        log.error(inspect.inspect(err));
-
-                        if (err.message.includes("cause: 'TargetCannotTrade'")) {
-                            cart.sendNotification(
-                                "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
-                            );
-                        } else {
-                            cart.sendNotification(
-                                '❌ Something went wrong while trying to make the offer, try again later!'
-                            );
-                        }
-                    }
-                })
-                .finally(() => {
-                    log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
-
-                    // Remove cart from the queue
-                    this.carts.shift();
-
-                    // Now ready to handle a different cart
-                    this.busy = false;
-
-                    // Handle the queue
-                    this.handleQueue(false, false);
-                });
-        }
+                // Handle the queue
+                this.handleQueue(false, false);
+            });
     }
 }
