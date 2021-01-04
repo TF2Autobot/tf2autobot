@@ -1,38 +1,61 @@
-import * as a from './autokeys/export';
-import * as c from './crafting/export';
-import * as mv from './manual-review/export';
-import * as dw from './discord-webhook/export';
-
-import { stringArraySchema } from './array-string';
 import { optionsSchema } from './options';
-import { weaponsAsCurrencySchema } from './weapons-as-currency/weapons-as-currency';
-import { tradeSummarySchema } from './trade-summary/trade-summary';
-import { highValueSchema } from './high-value/high-value';
-import { checkUsesSchema } from './check-uses/check-uses';
-import { gameSchema } from './game/game';
-import { normalizeSchema } from './normalize/normalize';
-import { detailsSchema } from './details/details';
-import { highValueDetailsSchema } from './details/show-high-value';
-import { customMessageSchema } from './custom-message/custom-message';
-import { statisticsSchema } from './statistics/statistics';
-import { sortInventorySchema } from './sortInventory/sortInventory';
+import { onlyEnableSchema } from './0-general/0.1-only-enable';
+import { onlyNoteSchema } from './0-general/0.2-only-note';
+import { onlyAllowSchema } from './0-general/0.3-only-allow';
+import { stringArraySchema } from './0-general/0.4-array-string';
+// showOnlyMetal - onlyEnable
+import { sortInventorySchema } from './2-sortInventory/2-sort-inventory';
+// createListings - onlyEnable
+import * as sa from './4-sendAlert/export';
+// addFriends - onlyEnable
+// addFriends - onlyEnable
+// sendGroupInvite - onlyEnable
+// autoRemoveIntentSell - onlyEnable
+import { bypassSchema } from './8-bypass/8-bypass';
+import { priceAgeSchema } from './9-priceAge/9-price-age';
+// autobump - onlyEnable
+// skipItemsInTrade - onlyEnable
+import { weaponsAsCurrencySchema } from './12-weaponsAsCurrency/12-weapons-as-currency';
+import { tradeSummarySchema } from './13-tradeSummary/13-trade-summary';
+import { highValueSchema } from './14-highValue/14-high-value';
+import { checkUsesSchema } from './15-checkUses/15-check-uses';
+import { gameSchema } from './16-game/16-game';
+import { normalizeSchema } from './17-normalize/17-normalize';
+import * as dl from './18-details/export';
+import * as st from './19-statistics/export';
+import * as ak from './20-autokeys/export';
+import * as cf from './21-crafting/export';
+import * as or from './22-offerRecieved/export';
+import { manualReviewSchema } from './23-manualReview/23-manual-review';
+import * as dw from './24-discordWebhook/export';
+import * as cm from './25-custom-message/export';
+import * as cmd from './26-commads/export';
+import * as dx from './27-detailsExtra/export';
 
 export {
-    stringArraySchema,
     optionsSchema,
-    a,
-    c,
-    mv,
-    dw,
+    onlyEnableSchema,
+    onlyNoteSchema,
+    onlyAllowSchema,
+    stringArraySchema,
+    sortInventorySchema,
+    sa,
+    bypassSchema,
+    priceAgeSchema,
     weaponsAsCurrencySchema,
     tradeSummarySchema,
     highValueSchema,
     checkUsesSchema,
     gameSchema,
     normalizeSchema,
-    detailsSchema,
-    highValueDetailsSchema,
-    customMessageSchema,
-    statisticsSchema,
-    sortInventorySchema
+    dl,
+    st,
+    ak,
+    cf,
+    or,
+    manualReviewSchema,
+    dw,
+    cm,
+    cmd,
+    dx
 };

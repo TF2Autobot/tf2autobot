@@ -5,58 +5,40 @@ export const optionsSchema: jsonschema.Schema = {
     type: 'object',
     properties: {
         showOnlyMetal: {
-            type: 'boolean'
+            $ref: 'only-enable'
         },
         sortInventory: {
-            type: 'sort-inventory'
+            $ref: 'sort-inventory'
         },
         createListings: {
-            type: 'boolean'
-        },
-        enableMessages: {
-            type: 'boolean'
+            $ref: 'only-enable'
         },
         sendAlert: {
-            type: 'boolean'
+            $ref: 'send-alert'
         },
-        enableAddFriends: {
-            type: 'boolean'
+        addFriends: {
+            $ref: 'only-enable'
         },
-        enableGroupInvites: {
-            type: 'boolean'
-        },
-        enableOwnerCommand: {
-            type: 'boolean'
+        sendGroupInvite: {
+            $ref: 'only-enable'
         },
         autoRemoveIntentSell: {
-            type: 'boolean'
+            $ref: 'only-enable'
         },
-        allowEscrow: {
-            type: 'boolean'
+        bypass: {
+            $ref: 'bypass'
         },
-        allowOverpay: {
-            type: 'boolean'
-        },
-        allowGiftNoMessage: {
-            type: 'boolean'
-        },
-        allowBanned: {
-            type: 'boolean'
-        },
-        sendOfferMessage: {
-            type: 'string'
-        },
-        maxPriceAge: {
-            type: 'number'
+        priceAge: {
+            $ref: 'price-age'
         },
         autobump: {
-            type: 'boolean'
+            $ref: 'only-enable'
         },
         skipItemsInTrade: {
-            type: 'boolean'
+            $ref: 'only-enable'
         },
         weaponsAsCurrency: {
-            type: 'weapons-as-currency'
+            $ref: 'weapons-as-currency'
         },
         tradeSummary: {
             $ref: 'trade-summary'
@@ -76,9 +58,6 @@ export const optionsSchema: jsonschema.Schema = {
         details: {
             $ref: 'details'
         },
-        customMessage: {
-            $ref: 'custom-message'
-        },
         statistics: {
             $ref: 'statistics'
         },
@@ -88,14 +67,23 @@ export const optionsSchema: jsonschema.Schema = {
         crafting: {
             $ref: 'crafting'
         },
+        offerReceived: {
+            $ref: 'offer-received'
+        },
         manualReview: {
             $ref: 'manual-review'
         },
-        discordInviteLink: {
-            type: 'string'
-        },
         discordWebhook: {
             $ref: 'discord-webhook'
+        },
+        customMessage: {
+            $ref: 'custom-message'
+        },
+        commands: {
+            $ref: 'commands'
+        },
+        detailsExtra: {
+            $ref: 'details-extra'
         }
     },
     additionalProperties: false,

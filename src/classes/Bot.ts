@@ -213,7 +213,7 @@ export default class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
-        if (this.options.allowBanned) {
+        if (this.options.bypass.bannedPeople.allow) {
             return Promise.resolve(false);
         }
 
@@ -225,7 +225,7 @@ export default class Bot {
     }
 
     checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
-        if (this.options.allowEscrow) {
+        if (this.options.bypass.escrow.allow) {
             return Promise.resolve(false);
         }
 

@@ -9,16 +9,19 @@ import sendAdminMessage from '../../../lib/DiscordWebhook/sendAdminMessage';
 
 export default function message(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
+    const opt2 = opt.commands.message;
     const isAdmin = bot.isAdmin(steamID);
 
-    if (!opt.enableMessages) {
+    const custom = opt2.customReply;
+
+    if (!opt2.enable) {
         if (isAdmin) {
             bot.sendMessage(
                 steamID,
-                '❌ The message command is disabled. Enable it in the config with `DISABLE_MESSAGES=false`.'
+                '❌ The message command is disabled. Enable it by sending `!config commands.message.enable=true`.'
             );
         } else {
-            bot.sendMessage(steamID, '❌ The owner has disabled messages.');
+            bot.sendMessage(steamID, custom.disabled ? custom.disabled : '❌ The owner has disabled messages.');
         }
         return;
     }
@@ -74,9 +77,11 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         // Send message to recipient
         bot.sendMessage(
             recipient,
-            `/quote 💬 Message from the owner: ${reply}` +
-                '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
-                '\nExample: !message Hi Thanks!'
+            custom.fromOwner
+                ? custom.fromOwner.replace(/%reply%/g, reply)
+                : `/quote 💬 Message from the owner: ${reply}` +
+                      '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
+                      '\nExample: !message Hi Thanks!'
         );
 
         const links = generateLinks(steamID.toString());
@@ -110,13 +115,18 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const admins = bot.getAdmins();
         if (!admins || admins.length === 0) {
             // Just default to same message as if it was disabled
-            bot.sendMessage(steamID, '❌ The owner has disabled messages.');
+            bot.sendMessage(steamID, custom.disabled ? custom.disabled : '❌ The owner has disabled messages.');
             return;
         }
 
         const msg = message.substr(message.toLowerCase().indexOf('message') + 8);
         if (!msg) {
-            bot.sendMessage(steamID, '❌ Please include a message. Here\'s an example: "!message Hi"');
+            bot.sendMessage(
+                steamID,
+                custom.wrongSyntax
+                    ? custom.wrongSyntax
+                    : '❌ Please include a message. Here\'s an example: "!message Hi"'
+            );
             return;
         }
 
@@ -135,6 +145,6 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                 []
             );
         }
-        bot.sendMessage(steamID, '✅ Your message has been sent.');
+        bot.sendMessage(steamID, custom.success ? custom.success : '✅ Your message has been sent.');
     }
 }

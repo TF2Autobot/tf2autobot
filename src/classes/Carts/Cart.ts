@@ -417,7 +417,9 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage('Powered by TF2Autobot' + (opt.sendOfferMessage ? '. ' + opt.sendOfferMessage : ''));
+        this.offer.setMessage(
+            'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
+        );
 
         if (this.notify === true) {
             this.offer.data('notify', true);
@@ -478,7 +480,7 @@ export default abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
                         } else {
@@ -508,7 +510,7 @@ export default abstract class Cart {
                         `\n➡️ They would have received ${ourNumItems} item(s) → ${
                             theirUsedSlots + ourNumItems
                         } / ${theirTotalSlots} slots used`;
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('full-backpack', this.bot, msg);
                         } else {
@@ -548,7 +550,9 @@ export default abstract class Cart {
             return '❌ Your cart is empty.';
         }
 
-        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
+        const customTitle = this.bot.options.commands.cart.customReply.title;
+
+        let str = isDonating ? '💰 == DONATION CART == 💰' : customTitle ? customTitle : '🛒== YOUR CART ==🛒';
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {
@@ -584,7 +588,9 @@ export default abstract class Cart {
             return '❌ Your cart is empty.';
         }
 
-        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
+        const customTitle = this.bot.options.commands.cart.customReply.title;
+
+        let str = isDonating ? '💰 == DONATION CART == 💰' : customTitle ? customTitle : '🛒== YOUR CART ==🛒';
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {

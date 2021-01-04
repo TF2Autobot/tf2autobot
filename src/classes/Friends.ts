@@ -92,13 +92,10 @@ export default class Friends {
                 const result = body.response;
                 const level = result.player_level;
 
-                const friendToKeep = this.bot.handler.friendsToKeep.length;
-                const enableAddFriends = this.bot.options.enableAddFriends;
-
                 const base = 250;
                 const multiplier = 5;
 
-                this.maxFriends = enableAddFriends ? base + level * multiplier : friendToKeep;
+                this.maxFriends = base + level * multiplier;
 
                 resolve(this.maxFriends);
             });

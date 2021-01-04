@@ -1,6 +1,8 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 
+import { removeLinkProtocol } from './utils';
+
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
@@ -13,13 +15,28 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
+
+    const commands = liveOptions.commands;
+    const detailsExtra = liveOptions.detailsExtra;
+
+    delete liveOptions.commands;
+    delete liveOptions.detailsExtra;
+
     bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: commands }, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
 
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
+    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message))) as unknown;
 
     const optionsPath = getOptionsPath(opt.steamAccountName);
     const saveOptions = deepMerge({}, opt) as JsonOptions;
@@ -33,89 +50,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     }
 
     const knownParams = params as JsonOptions;
-
-    // Convert every string required to string (if user input was some numbers)
-
-    if (knownParams.sendOfferMessage !== undefined) {
-        // idk maybe someone want to put their phone number here xD
-        knownParams.sendOfferMessage = String(knownParams.sendOfferMessage);
-    }
-
-    if (typeof knownParams.game === 'object') {
-        if (knownParams.game.customName !== undefined) {
-            // same as above
-            knownParams.game.customName = String(knownParams.game.customName);
-        }
-    }
-
-    if (typeof knownParams.customMessage === 'object') {
-        // maybe they want to put as binary number for these custom messages
-        if (knownParams.customMessage.welcome !== undefined) {
-            knownParams.customMessage.welcome = String(knownParams.customMessage.welcome);
-        }
-        if (knownParams.customMessage.iDontKnowWhatYouMean !== undefined) {
-            knownParams.customMessage.iDontKnowWhatYouMean = String(knownParams.customMessage.iDontKnowWhatYouMean);
-        }
-        if (knownParams.customMessage.how2trade !== undefined) {
-            knownParams.customMessage.how2trade = String(knownParams.customMessage.how2trade);
-        }
-        if (knownParams.customMessage.success !== undefined) {
-            knownParams.customMessage.success = String(knownParams.customMessage.success);
-        }
-        if (knownParams.customMessage.decline !== undefined) {
-            knownParams.customMessage.decline = String(knownParams.customMessage.decline);
-        }
-        if (knownParams.customMessage.tradedAway !== undefined) {
-            knownParams.customMessage.tradedAway = String(knownParams.customMessage.tradedAway);
-        }
-        if (knownParams.customMessage.clearFriends !== undefined) {
-            knownParams.customMessage.clearFriends = String(knownParams.customMessage.clearFriends);
-        }
-    }
-
-    if (typeof knownParams.manualReview === 'object') {
-        // yeah same
-        if (knownParams.manualReview.invalidValue !== undefined) {
-            if (knownParams.manualReview.invalidValue.note !== undefined) {
-                knownParams.manualReview.invalidValue.note = String(knownParams.manualReview.invalidValue.note);
-            }
-            if (knownParams.manualReview.invalidValue.autoDecline !== undefined) {
-                if (knownParams.manualReview.invalidValue.autoDecline.note !== undefined) {
-                    knownParams.manualReview.invalidValue.autoDecline.note = String(
-                        knownParams.manualReview.invalidValue.autoDecline.note
-                    );
-                }
-            }
-        }
-        if (knownParams.manualReview.invalidItems !== undefined) {
-            if (knownParams.manualReview.invalidItems.note !== undefined) {
-                knownParams.manualReview.invalidItems.note = String(knownParams.manualReview.invalidItems.note);
-            }
-        }
-        if (knownParams.manualReview.overstocked !== undefined) {
-            if (knownParams.manualReview.overstocked.note !== undefined) {
-                knownParams.manualReview.overstocked.note = String(knownParams.manualReview.overstocked.note);
-            }
-        }
-        if (knownParams.manualReview.understocked !== undefined) {
-            if (knownParams.manualReview.understocked.note !== undefined) {
-                knownParams.manualReview.understocked.note = String(knownParams.manualReview.understocked.note);
-            }
-        }
-        if (knownParams.manualReview.duped !== undefined) {
-            if (knownParams.manualReview.duped.note !== undefined) {
-                knownParams.manualReview.duped.note = String(knownParams.manualReview.duped.note);
-            }
-        }
-        if (knownParams.manualReview.dupedCheckFailed !== undefined) {
-            if (knownParams.manualReview.dupedCheckFailed.note !== undefined) {
-                knownParams.manualReview.dupedCheckFailed.note = String(knownParams.manualReview.dupedCheckFailed.note);
-            }
-        }
-        if (knownParams.manualReview.additionalNotes !== undefined) {
-            knownParams.manualReview.additionalNotes = String(knownParams.manualReview.additionalNotes);
-        }
-    }
 
     if (typeof knownParams.discordWebhook === 'object') {
         if (knownParams.discordWebhook.ownerID !== undefined) {
@@ -177,6 +111,20 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
                 if (knownParams.weaponsAsCurrency.withUncraft !== undefined) {
                     bot.handler.shuffleWeapons();
+                }
+            }
+
+            if (typeof knownParams.statistics === 'object') {
+                if (knownParams.statistics.sendStats !== undefined) {
+                    if (knownParams.statistics.sendStats.enable === true) {
+                        bot.handler.sendStats();
+                    } else {
+                        bot.handler.disableSendStats();
+                    }
+
+                    if (knownParams.statistics.sendStats.time !== undefined) {
+                        bot.handler.sendStats();
+                    }
                 }
             }
 

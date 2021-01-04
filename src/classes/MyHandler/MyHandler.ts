@@ -17,6 +17,7 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies';
 import async from 'async';
+import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -35,13 +36,26 @@ import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
+import { statsCommand } from '../Commands/functions/status';
+
 import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
-import { craftAll, uncraftAll, giftWords, sheensData, killstreakersData, noiseMakerSKUs } from '../../lib/data';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+
+import {
+    craftAll,
+    uncraftAll,
+    giftWords,
+    sheensData,
+    killstreakersData,
+    strangePartsData,
+    paintedData,
+    noiseMakerSKUs
+} from '../../lib/data';
+import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, check, uptime } from '../../lib/tools/export';
+
 import genPaths from '../../resources/paths';
 
 export default class MyHandler extends Handler {
@@ -104,11 +118,11 @@ export default class MyHandler extends Handler {
     }
 
     get dupeCheckEnabled(): boolean {
-        return this.bot.options.manualReview.duped.enable;
+        return this.bot.options.offerReceived.duped.enableCheck;
     }
 
     get minimumKeysDupeCheck(): number {
-        return this.bot.options.manualReview.duped.minKeys;
+        return this.bot.options.offerReceived.duped.minKeys;
     }
 
     private get isShowChanges(): boolean {
@@ -129,16 +143,16 @@ export default class MyHandler extends Handler {
     }
 
     private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump;
+        return this.bot.options.autobump.enable;
     }
 
     private get invalidValueException(): number {
-        return Currencies.toScrap(this.bot.options.manualReview.invalidValue.exceptionValue.valueInRef);
+        return Currencies.toScrap(this.bot.options.offerReceived.invalidValue.exceptionValue.valueInRef);
     }
 
     private get invalidValueExceptionSKU(): string[] {
         // check if manualReview.invalidValue.exceptionValue.skus is an empty array
-        const invalidValueExceptionSKU = this.bot.options.manualReview.invalidValue.exceptionValue.skus;
+        const invalidValueExceptionSKU = this.bot.options.offerReceived.invalidValue.exceptionValue.skus;
         if (invalidValueExceptionSKU === []) {
             log.warn(
                 'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
@@ -154,7 +168,7 @@ export default class MyHandler extends Handler {
     get getSheens(): string[] {
         // check if highValue.sheens is an empty array
         const sheens = this.bot.options.highValue.sheens;
-        if (sheens === []) {
+        if (sheens === [] || (sheens.length > 0 && sheens[0] === '')) {
             log.warn(
                 'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
             );
@@ -167,7 +181,7 @@ export default class MyHandler extends Handler {
     get getKillstreakers(): string[] {
         // check if highValue.killstreakers is an empty array
         const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === []) {
+        if (killstreakers === [] || (killstreakers.length > 0 && killstreakers[0] === '')) {
             log.warn(
                 'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
             );
@@ -178,11 +192,31 @@ export default class MyHandler extends Handler {
     }
 
     get getStrangeParts(): string[] {
-        return this.bot.options.highValue.strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+        const strangeParts = this.bot.options.highValue.strangeParts;
+        if (strangeParts === [] || (strangeParts.length > 0 && strangeParts[0] === '')) {
+            log.warn(
+                'You did not set highValue.strangeParts array in your options.json file, will mention/disable all strangeParts.'
+            );
+            return Object.keys(strangePartsData).map(strangePart => strangePart.toLowerCase().trim());
+        } else {
+            return strangeParts.map(strangePart => strangePart.toLowerCase().trim());
+        }
     }
 
     get getPainted(): string[] {
-        return this.bot.options.highValue.painted.map(paint => paint.toLowerCase().trim());
+        const painted = this.bot.options.highValue.painted;
+        if (painted === [] || (painted.length > 0 && painted[0] === '')) {
+            log.warn(
+                'You did not set highValue.painted array in your options.json file, will mention/disable all painted item.'
+            );
+            return Object.keys(paintedData).map(paint => paint.toLowerCase().trim());
+        } else {
+            return painted.map(paint => paint.toLowerCase().trim());
+        }
+    }
+
+    private get sendStatsEnabled(): boolean {
+        return this.bot.options.statistics.sendStats.enable;
     }
 
     private isTradingKeys = false;
@@ -204,6 +238,8 @@ export default class MyHandler extends Handler {
 
     private botAvatarURL = '';
 
+    private retryRequest: NodeJS.Timeout;
+
     private botSteamID: SteamID;
 
     get getBotInfo(): BotInfo {
@@ -213,8 +249,6 @@ export default class MyHandler extends Handler {
         const premium = this.isPremium;
         return { name, avatarURL, steamID, premium };
     }
-
-    private retryRequest;
 
     private autokeysStatus: {
         isActive: boolean;
@@ -228,15 +262,15 @@ export default class MyHandler extends Handler {
 
     private weapons: string[] = [];
 
+    private shuffleWeaponsTimeout: NodeJS.Timeout;
+
     get getWeapons(): string[] {
         return this.weapons;
     }
 
-    private shuffleWeaponsTimeout;
+    private classWeaponsTimeout: NodeJS.Timeout;
 
-    private classWeaponsTimeout;
-
-    private autoRefreshListingsTimeout;
+    private autoRefreshListingsTimeout: NodeJS.Timeout;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -251,6 +285,8 @@ export default class MyHandler extends Handler {
     private poller: NodeJS.Timeout;
 
     private refreshInterval: NodeJS.Timeout;
+
+    private sendStatsTimeout: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         super(bot);
@@ -345,6 +381,9 @@ export default class MyHandler extends Handler {
         // Set up autorelist if enabled in environment variable
         this.bot.listings.setupAutorelist();
 
+        // Initialize send stats
+        this.sendStats();
+
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         this.refreshInterval = setTimeout(() => {
             this.enableAutoRefreshListings();
@@ -383,6 +422,14 @@ export default class MyHandler extends Handler {
     }
 
     onMessage(steamID: SteamID, message: string): void {
+        if (!this.bot.options.commands.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = this.bot.options.commands.customDisableReply;
+                this.bot.sendMessage(steamID, custom ? custom : '❌ Command function is disabled by the owner.');
+                return;
+            }
+        }
+
         if (this.isUpdating) {
             this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
             return;
@@ -512,6 +559,41 @@ export default class MyHandler extends Handler {
             return;
         }
         clearTimeout(this.autoRefreshListingsTimeout);
+    }
+
+    sendStats(): void {
+        clearTimeout(this.sendStatsTimeout);
+
+        const opt = this.bot.options;
+
+        if (this.sendStatsEnabled) {
+            let times: string[] = [];
+            if (opt.statistics.sendStats.time.length === 0) {
+                times = ['T23:59', 'T05:59', 'T11:59', 'T17:59'];
+            } else {
+                times = opt.statistics.sendStats.time;
+            }
+
+            this.sendStatsTimeout = setTimeout(() => {
+                const time = dayjs()
+                    .tz(opt.timezone ? opt.timezone : 'UTC')
+                    .format();
+
+                if (times.includes(time)) {
+                    if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
+                        void sendStats(this.bot);
+                    } else {
+                        this.bot.getAdmins().forEach(admin => {
+                            void statsCommand(admin, this.bot);
+                        });
+                    }
+                }
+            }, 1 * 60 * 1000);
+        }
+    }
+
+    disableSendStats(): void {
+        clearTimeout(this.sendStatsTimeout);
     }
 
     shuffleWeapons(): void {
@@ -682,7 +764,7 @@ export default class MyHandler extends Handler {
                 };
             }
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
-            if (opt.allowGiftNoMessage) {
+            if (opt.bypass.giftWithoutMessage.allow) {
                 offer.log(
                     'info',
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
@@ -757,21 +839,23 @@ export default class MyHandler extends Handler {
             const highValueOurNames: string[] = [];
             const itemsName = check.getHighValueItems(highValueOur.items, this.bot);
 
-            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                for (const name in itemsName) {
-                    highValueOurNames.push(`_${name}_` + itemsName[name]);
+            if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    for (const name in itemsName) {
+                        highValueOurNames.push(`_${name}_` + itemsName[name]);
+                    }
+                    sendAlert('tryingToTake', this.bot, null, null, null, highValueOurNames);
+                } else {
+                    for (const name in itemsName) {
+                        highValueOurNames.push(name + itemsName[name]);
+                    }
+                    this.bot.messageAdmins(
+                        `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOurNames.join(
+                            '\n\n- '
+                        )}`,
+                        []
+                    );
                 }
-                sendAlert('highValue', this.bot, null, null, null, highValueOurNames);
-            } else {
-                for (const name in itemsName) {
-                    highValueOurNames.push(name + itemsName[name]);
-                }
-                this.bot.messageAdmins(
-                    `Someone is attempting to purchase a high valued item that you own but is not in your pricelist:\n- ${highValueOurNames.join(
-                        '\n\n- '
-                    )}`,
-                    []
-                );
             }
 
             return {
@@ -953,7 +1037,7 @@ export default class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (opt.manualReview.invalidItems.givePrice && item.wear === null && isCanBePriced) {
+                            if (opt.offerReceived.invalidItems.givePrice && item.wear === null && isCanBePriced) {
                                 // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
                                 // and the item is not enabled=false,
                                 // then give that item price and include in exchange
@@ -986,7 +1070,7 @@ export default class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (opt.showOnlyMetal) {
+        if (opt.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1168,7 +1252,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (exchange.our.value < exchange.their.value && !opt.allowOverpay) {
+        if (exchange.our.value < exchange.their.value && !opt.bypass.overpay.allow) {
             offer.log('info', 'is offering more than needed, declining...');
             return { action: 'decline', reason: 'OVERPAY' };
         }
@@ -1192,14 +1276,19 @@ export default class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_ESCROW_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: filterReasons(uniqueReasons),
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_ESCROW_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
+            }
         }
 
         offer.log('info', 'checking bans...');
@@ -1219,14 +1308,19 @@ export default class MyHandler extends Handler {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
-            return {
-                action: 'skip',
-                reason: '⬜_BANNED_CHECK_FAILED',
-                meta: {
-                    uniqueReasons: filterReasons(uniqueReasons),
-                    reasons: wrongAboutOffer
-                }
-            };
+            if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_BANNED_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
+            }
         }
 
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
@@ -1250,7 +1344,7 @@ export default class MyHandler extends Handler {
 
                 log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
-                const declineDupes = opt.manualReview.duped.declineDuped;
+                const declineDupes = opt.offerReceived.duped.autoDecline.enable;
 
                 for (let i = 0; i < result.length; i++) {
                     if (result[i] === true) {
@@ -1307,9 +1401,9 @@ export default class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
-            const canAcceptInvalidItemsOverpay = opt.manualReview.invalidItems.autoAcceptOverpay;
-            const canAcceptOverstockedOverpay = opt.manualReview.overstocked.autoAcceptOverpay;
-            const canAcceptUnderstockedOverpay = opt.manualReview.understocked.autoAcceptOverpay;
+            const canAcceptInvalidItemsOverpay = opt.offerReceived.invalidItems.autoAcceptOverpay;
+            const canAcceptOverstockedOverpay = opt.offerReceived.overstocked.autoAcceptOverpay;
+            const canAcceptUnderstockedOverpay = opt.offerReceived.understocked.autoAcceptOverpay;
 
             // accepting 🟨_INVALID_ITEMS overpay
 
@@ -1395,7 +1489,7 @@ export default class MyHandler extends Handler {
                     };
                 }
             } else if (
-                opt.manualReview.invalidValue.autoDecline.enable &&
+                opt.offerReceived.invalidValue.autoDecline.enable &&
                 isInvalidValue &&
                 !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
                 this.hasInvalidValueException === false
@@ -1403,14 +1497,21 @@ export default class MyHandler extends Handler {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
-                opt.manualReview.overstocked.autoDecline &&
+                opt.offerReceived.invalidItems.autoDecline.enable &&
+                isInvalidItem &&
+                !(isUnderstocked || isInvalidValue || isOverstocked || isDupedItem || isDupedCheckFailed)
+            ) {
+                // If only INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_INVALID_ITEMS' };
+            } else if (
+                opt.offerReceived.overstocked.autoDecline.enable &&
                 isOverstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
-                opt.manualReview.understocked.autoDecline &&
+                opt.offerReceived.understocked.autoDecline.enable &&
                 isUnderstocked &&
                 !(isInvalidItem || isDupedItem || isDupedCheckFailed)
             ) {
@@ -1583,12 +1684,13 @@ export default class MyHandler extends Handler {
 
     private sortInventory(): void {
         if (this.bot.options.sortInventory.enable) {
-            this.bot.tf2gc.sortInventory(this.bot.options.sortInventory.type);
+            const type = this.bot.options.sortInventory.type;
+            this.bot.tf2gc.sortInventory([1, 2, 3, 4, 5, 101, 102].includes(type) ? type : 3);
         }
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
-        if (!this.bot.options.enableGroupInvites) {
+        if (!this.bot.options.sendGroupInvite.enable) {
             // You still need to include the group ID in your env.
             return;
         }
@@ -1626,6 +1728,13 @@ export default class MyHandler extends Handler {
     }
 
     private respondToFriendRequest(steamID: SteamID | string): void {
+        if (!this.bot.options.addFriends.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                this.bot.client.removeFriend(steamID);
+                return;
+            }
+        }
+
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
 
         log.debug(`Sending friend request to ${steamID64}...`);

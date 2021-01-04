@@ -594,9 +594,14 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
 }
 
 export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): void {
-    if (auto.isEnabled === false) {
-        bot.sendMessage(steamID, `This feature is disabled.`);
-        return;
+    const opt = bot.options.commands.autokeys;
+
+    if (!opt.enable) {
+        if (!bot.isAdmin(steamID)) {
+            const custom = opt.customReply.disabled;
+            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            return;
+        }
     }
 
     bot.sendMessage(steamID, '/pre ' + generateAutokeysReply(steamID, bot, auto));

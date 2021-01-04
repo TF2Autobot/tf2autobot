@@ -30,11 +30,11 @@ export default class Listings {
     private autoRelistTimeout;
 
     private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump;
+        return this.bot.options.autobump.enable;
     }
 
     private get isCreateListing(): boolean {
-        return this.bot.options.createListings;
+        return this.bot.options.createListings.enable;
     }
 
     private templates: { buy: string; sell: string };
@@ -548,6 +548,7 @@ export default class Listings {
 
             const optD = this.bot.options.details.highValue;
             const optH = this.bot.options.highValue;
+            const optR = this.bot.options.detailsExtra;
 
             // if econ undefined, then skip because it will make your bot crashed.
             if (econ) {
@@ -572,7 +573,7 @@ export default class Listings {
                         // Show all
                         hasSpells = true;
                         const spellName = value.substring(10, value.length - 32).trim();
-                        spellNames.push(rep.replaceSpells(spellName));
+                        spellNames.push(rep.replaceSpells(spellName, optR.spells));
                     } else if (
                         (part === 'Kills' || part === 'Assists'
                             ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
@@ -583,23 +584,23 @@ export default class Listings {
                         // Only user specified in highValue.strangeParts
                         if (optH.strangeParts.includes(part)) {
                             hasStrangeParts = true;
-                            partsNames.push(part);
+                            partsNames.push(rep.replaceStrangeParts(part, optR.strangeParts));
                         }
                     } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1' && optD.showKillstreaker) {
                         const killstreaker = value.replace('Killstreaker: ', '').trim();
 
                         hasKillstreaker = true;
-                        killstreakerName.push(rep.replaceKillstreaker(killstreaker));
+                        killstreakerName.push(rep.replaceKillstreaker(killstreaker, optR.killstreakers));
                     } else if (value.startsWith('Sheen: ') && color === '7ea9d1' && optD.showSheen) {
                         const sheen = value.replace('Sheen: ', '').trim();
 
                         hasSheen = true;
-                        sheenName.push(rep.replaceSheens(sheen));
+                        sheenName.push(rep.replaceSheens(sheen, optR.sheens));
                     } else if (value.startsWith('Paint Color: ') && color === '756b5e' && optD.showPainted) {
                         const paint = value.replace('Paint Color: ', '').trim();
 
                         hasPaint = true;
-                        paintName.push(rep.replacePainted(paint));
+                        paintName.push(rep.replacePainted(paint, optR.painted));
                     }
                 });
 
@@ -620,6 +621,8 @@ export default class Listings {
                 }
             }
         }
+
+        const optDs = this.bot.options.details.uses;
 
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
@@ -643,9 +646,9 @@ export default class Listings {
             // else just empty string.
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.note && entry.note.sell && intent === 1) {
             // else if note.sell value is defined and not null and intent is selling, then use whatever in the
@@ -662,9 +665,9 @@ export default class Listings {
                 : details.replace(/%keyPrice%/g, '');
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
         } else if (entry.sku === '241;6' && opt.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
@@ -675,7 +678,7 @@ export default class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
@@ -688,7 +691,7 @@ export default class Listings {
                 .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
                 .replace(/%current_stock%/g, currentStock.toString())
                 .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
+                .replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
