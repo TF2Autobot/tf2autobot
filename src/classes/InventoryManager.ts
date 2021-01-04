@@ -1,4 +1,5 @@
 import Currencies from 'tf2-currencies';
+import Bot from './Bot';
 
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
@@ -74,12 +75,12 @@ export default class InventoryManager {
         return 0;
     }
 
-    amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory): number {
+    amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, bot: Bot): number {
         const keyPrice = this.pricelist.getKeyPrice();
 
         const value = price.toValue(keyPrice.metal);
 
-        const buyerCurrencies = inventory.getCurrencies();
+        const buyerCurrencies = inventory.getCurrencies(bot);
 
         let totalValue =
             buyerCurrencies['5002;6'].length * 9 +

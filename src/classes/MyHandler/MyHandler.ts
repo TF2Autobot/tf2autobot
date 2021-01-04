@@ -262,8 +262,6 @@ export default class MyHandler extends Handler {
 
     private weapons: string[] = [];
 
-    private shuffleWeaponsTimeout: NodeJS.Timeout;
-
     get getWeapons(): string[] {
         return this.weapons;
     }
@@ -345,14 +343,14 @@ export default class MyHandler extends Handler {
         // Get Premium info from backpack.tf
         void this.getBPTFAccountInfo();
 
+        // Shuffle weapons on start
+        this.shuffleWeapons();
+
         // Smelt / combine metal if needed
         keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
         // Craft duplicate weapons
         void craftDuplicateWeapons(this.bot);
-
-        // Shuffle weapons on start
-        this.shuffleWeapons();
 
         // Craft class weapons
         this.classWeaponsTimeout = setTimeout(() => {
@@ -600,20 +598,13 @@ export default class MyHandler extends Handler {
         if (!this.isWeaponsAsCurrency.enable) {
             return;
         }
-        clearTimeout(this.shuffleWeaponsTimeout);
 
-        const weapons = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
-        this.weapons = shuffleArray(weapons);
-
-        // Shuffle weapons position every 11 minutes (prime number)
-        this.shuffleWeaponsTimeout = setInterval(() => {
-            this.weapons = shuffleArray(weapons);
-        }, 11 * 60 * 1000);
+        const weaponsInitial = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+        this.weapons = shuffleArray(weaponsInitial);
     }
 
     disableWeaponsAsCurrency(): void {
         this.weapons.length = 0;
-        clearTimeout(this.shuffleWeaponsTimeout);
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -1643,6 +1634,9 @@ export default class MyHandler extends Handler {
 
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
+
+            // Shuffle weapons
+            this.shuffleWeapons();
 
             // Smelt / combine metal
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);

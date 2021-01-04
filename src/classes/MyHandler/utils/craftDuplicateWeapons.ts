@@ -7,7 +7,7 @@ export default function craftDuplicateWeapons(bot: Bot): Promise<void> {
         if (!bot.options.crafting.weapons.enable) {
             return resolve();
         }
-        const currencies = bot.inventoryManager.getInventory().getCurrencies();
+        const currencies = bot.inventoryManager.getInventory().getCurrencies(bot);
 
         for (const sku of craftAll) {
             const weapon = currencies[sku].length;

@@ -6,7 +6,7 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
         return;
     }
-    const currencies = bot.inventoryManager.getInventory().getCurrencies();
+    const currencies = bot.inventoryManager.getInventory().getCurrencies(bot);
 
     void Promise.all([
         craftEachClassWeapons(bot, craftWeapons.scout, currencies),

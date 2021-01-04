@@ -8,7 +8,7 @@ import SchemaManager, { Schema, SchemaItem } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 
-import { craftAll, uncraftAll } from '../lib/data';
+import log from '../lib/logger';
 import Bot from './Bot';
 
 export default class Inventory {
@@ -222,20 +222,19 @@ export default class Inventory {
         }
     }
 
-    getCurrencies(): { [sku: string]: string[] } {
-        let pure = ['5000;6', '5001;6', '5002;6', '5021;6'];
-        if (this.options.weaponsAsCurrency.enable) {
-            pure = pure.concat(craftAll);
-            if (this.options.weaponsAsCurrency.withUncraft) {
-                pure = pure.concat(uncraftAll);
-            }
-        }
+    getCurrencies(bot: Bot): { [sku: string]: string[] } {
+        const pure = ['5021;6', '5002;6', '5001;6', '5000;6'];
+
+        const weapons = bot.handler.getWeapons;
+        const combine = pure.concat(weapons);
+
+        log.debug('getCurrencies combine: ', combine);
 
         const toObject: {
             [sku: string]: string[];
         } = {};
 
-        pure.forEach(sku => {
+        combine.forEach(sku => {
             toObject[sku] = this.findBySKU(sku);
         });
 

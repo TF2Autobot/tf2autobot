@@ -548,7 +548,7 @@ export default class UserCart extends Cart {
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
         const pureStock = pure.stock(this.bot);
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory) < 1) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory, this.bot) < 1) {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
@@ -570,7 +570,7 @@ export default class UserCart extends Cart {
 
         // Figure out what pure to pick from the buyer, and if change is needed
 
-        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies();
+        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(this.bot);
 
         const buyerCurrenciesCount = {
             '5021;6': buyerCurrenciesWithAssetids['5021;6'].length,
@@ -749,7 +749,7 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = sellerInventory.getCurrencies();
+            const currencies = sellerInventory.getCurrencies(this.bot);
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -1466,7 +1466,14 @@ export default class UserCart extends Cart {
         const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
         const pureStock = pure.stock(this.bot);
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeysWithWeapons(), currencies, buyerInventory) < 1) {
+        if (
+            this.bot.inventoryManager.amountCanAfford(
+                this.canUseKeysWithWeapons(),
+                currencies,
+                buyerInventory,
+                this.bot
+            ) < 1
+        ) {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
@@ -1488,7 +1495,7 @@ export default class UserCart extends Cart {
 
         // Figure out what pure to pick from the buyer, and if change is needed
 
-        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies();
+        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(this.bot);
         const weapons = this.bot.handler.getWeapons;
 
         const pures = ['5021;6', '5002;6', '5001;6', '5000;6'];
@@ -1680,7 +1687,7 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = sellerInventory.getCurrencies();
+            const currencies = sellerInventory.getCurrencies(this.bot);
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
