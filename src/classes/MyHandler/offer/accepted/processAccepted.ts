@@ -176,7 +176,7 @@ export default function processAccepted(
 
     const offerData = bot.manager.pollData.offerData;
     const isOfferSent = offerData
-        ? offerData[offer.id].highValue !== undefined ||
+        ? offerData[offer.id]._dupeCheck !== undefined ||
           (offerData[offer.id].action === undefined && bot.isAdmin(offer.partner))
         : undefined;
 
