@@ -145,9 +145,9 @@ export default function sendOfferReview(
             // now remove __Item list__, so now it should be empty
             webhookReview.embeds[0].fields.length = 0;
 
-            const separate = itemList.split('@');
+            const separate = prices.split('@').concat(itemList.split('@'));
 
-            let newSentences = bot.options.manualReview.showItemPrices ? `${prices}\n\n` : '';
+            let newSentences = '';
             let j = 1;
             separate.forEach((sentence, i) => {
                 if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {

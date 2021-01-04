@@ -109,7 +109,9 @@ export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): s
     }
 
     if (toJoin.length > 0) {
-        text = `📜${isSteamChat ? '' : '`'}_ITEMS_PRICES${isSteamChat ? '\n -' : '`\n -'}` + toJoin.join(',\n- ');
+        text = isSteamChat
+            ? '📜_ITEMS_PRICES\n- ' + toJoin.join(',\n- ')
+            : '📜`_ITEMS_PRICES`\n- ' + toJoin.join(',@\n- ');
     }
 
     return text;
