@@ -569,7 +569,7 @@ export const DEFAULTS = {
                 /**
                  * If set to true, the bot will decline any unusual items that it determines as having been duplicated.
                  */
-                enable: true,
+                enable: false,
                 /**
                  * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  *  I don't accept duped items."
@@ -771,7 +771,7 @@ export const DEFAULTS = {
                  * If set to false, your bot will never mention you on each successful trade (except for accepted 🟨_INVALID_ITEMS or
                  * 🔶_HIGH_VALUE_ITEMS)
                  */
-                enable: true,
+                enable: false,
                 /**
                  * Your bot will mention you whenever a trade contains an SKU in this list. Supports multiple item SKUs. For example,
                  * let say you just want to be mentioned on every unusual and australium trade. You would input [";5;u", ";11;australium"].
@@ -795,7 +795,7 @@ export const DEFAULTS = {
             /**
              * If set to true, your bot only mention you for 🟥_INVALID_VALUE offers.
              */
-            mentionInvalidValue: false,
+            mentionInvalidValue: true,
             misc: {
                 // 24.2.1
                 /**
