@@ -8,7 +8,6 @@ import SchemaManager, { Schema, SchemaItem } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 
-import log from '../lib/logger';
 import Bot from './Bot';
 
 export default class Inventory {
@@ -227,8 +226,6 @@ export default class Inventory {
 
         const weapons = bot.handler.getWeapons;
         const combine = pure.concat(weapons);
-
-        log.debug('getCurrencies combine: ', combine);
 
         const toObject: {
             [sku: string]: string[];
