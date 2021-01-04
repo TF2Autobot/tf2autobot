@@ -567,14 +567,14 @@ export default class MyHandler extends Handler {
         const opt = this.bot.options;
 
         if (this.sendStatsEnabled) {
-            let times: string[] = [];
-            if (opt.statistics.sendStats.time.length === 0) {
-                times = ['T23:59', 'T05:59', 'T11:59', 'T17:59'];
-            } else {
-                times = opt.statistics.sendStats.time;
-            }
-
             this.sendStatsTimeout = setTimeout(() => {
+                let times: string[] = [];
+                if (opt.statistics.sendStats.time.length === 0) {
+                    times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
+                } else {
+                    times = opt.statistics.sendStats.time;
+                }
+
                 const time = dayjs()
                     .tz(opt.timezone ? opt.timezone : 'UTC')
                     .format();
