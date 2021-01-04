@@ -1513,7 +1513,7 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
         weapons.forEach(sku => {
-            addWeapons += required.currencies[sku] * 0.5;
+            addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
         });
 
         // Add the value that the buyer pays to the exchange
