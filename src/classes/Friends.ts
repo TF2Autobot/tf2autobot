@@ -76,7 +76,7 @@ export default class Friends {
             qs: {
                 key: this.bot.manager.apiKey,
                 steamid: (this.bot.client.steamID === null
-                    ? this.bot.handler.getBotSteamID()
+                    ? this.bot.handler.getBotInfo.steamID
                     : this.bot.client.steamID
                 ).getSteamID64()
             }

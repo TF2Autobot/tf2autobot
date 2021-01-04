@@ -172,20 +172,20 @@ export default class Listings {
         });
     }
 
-    checkBySKU(sku: string, data?: Entry | null): void {
+    checkBySKU(sku: string, data?: Entry | null, generics = false): void {
         if (!this.isCreateListing) {
             return;
         }
 
         const item = SKU.fromString(sku);
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true);
+        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = item.paintkit !== null;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false);
+        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
+        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -230,7 +230,7 @@ export default class Listings {
             }
         });
 
-        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true);
+        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const inventory = this.bot.inventoryManager.getInventory();

@@ -2,7 +2,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
-import { pure, summarize, listItems, replace } from '../tools/export';
+import { pure, summarize, summarizeToChat, listItems, replace } from '../tools/export';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
@@ -35,7 +35,7 @@ export default function sendOfferReview(
     }
     const mentionOwner = noMentionOnInvalidValue ? `${offer.id}` : `<@!${opt.ownerID}>, check this! - ${offer.id}`;
 
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);
     const message = replace.specialChar(offer.message);
 
@@ -51,15 +51,7 @@ export default function sendOfferReview(
     const slots = bot.tf2.backpackSlots;
     const currentItems = bot.inventoryManager.getInventory().getTotalItems();
 
-    const isShowChanges = bot.options.tradeSummary.showStockChanges;
-    const summary = summarize(
-        isShowChanges
-            ? offer.summarizeWithLinkWithStockChanges(bot.schema, 'review')
-            : offer.summarizeWithLink(bot.schema),
-        value,
-        keyPrices,
-        false
-    );
+    const summary = summarizeToChat(summarize(offer, bot, 'review-admin', true), value, keyPrices, false);
     const itemList = listItems(itemsName, false);
 
     const combineList =
@@ -135,7 +127,7 @@ export default function sendOfferReview(
                                     ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
                                     : '') +
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`
+                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
                         }
                     ],
                     color: opt.embedColor
@@ -143,24 +135,9 @@ export default function sendOfferReview(
             ]
         };
 
-        let removeStatus = false;
-
-        if (!(isShowKeyRate || isShowPureStock)) {
-            // If both here are false, then it will be true and the last element (__Status__) of the
-            // fields array will be removed
-            webhookReview.embeds[0].fields.pop();
-            removeStatus = true;
-        }
-
-        if (combineList === '-') {
-            // if __Item list__ field is empty, then remove it
-            if (removeStatus) {
-                // if __Status__ fields was removed, then delete the entire fields properties
-                delete webhookReview.embeds[0].fields;
-            } else {
-                // else just remove the first element of the fields array (__Item list__)
-                webhookReview.embeds[0].fields.shift();
-            }
+        if (combineList === '-' || combineList === '') {
+            // just remove the first element of the fields array (__Item list__)
+            webhookReview.embeds[0].fields.shift();
         } else if (combineList.length >= 1024) {
             // first get __Status__ element
             const statusElement = webhookReview.embeds[0].fields.pop();

@@ -23,7 +23,7 @@ import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings/Listings';
 import TF2GC from './TF2GC';
-import Inventory from './Inventory';
+import Inventory, { getUnusualEffects } from './Inventory';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
@@ -31,6 +31,7 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
+import { Effect } from '../types/common';
 
 export default class Bot {
     // Modules and classes
@@ -65,6 +66,8 @@ export default class Bot {
     readonly inventoryManager: InventoryManager;
 
     readonly pricelist: Pricelist;
+
+    public unusualEffects: Array<Effect>;
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -258,8 +261,7 @@ export default class Bot {
         return this.ready;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private addListener(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
+    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
@@ -435,12 +437,16 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
+                            // Load all unusual effect string names
+                            this.unusualEffects = getUnusualEffects(this.schema);
+
                             // We now know our SteamID, but we still don't have our Steam API key
                             const inventory = new Inventory(
                                 this.client.steamID,
                                 this.manager,
                                 this.schema,
-                                this.options
+                                this.options,
+                                this.unusualEffects
                             );
                             this.inventoryManager.setInventory(inventory);
 
@@ -481,7 +487,7 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        log.info('Initializing bptf-listings...');
+                        log.info('Initializing inventory, bptf-listings, and profile settings');
                         async.parallel(
                             [
                                 (callback): void => {

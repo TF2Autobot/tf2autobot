@@ -5,7 +5,16 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, listItems, summarize, timeNow, generateLinks, check, listPrices } from '../../../../lib/tools/export';
+import {
+    pure,
+    listItems,
+    summarize,
+    summarizeToChat,
+    timeNow,
+    generateLinks,
+    check,
+    listPrices
+} from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -27,8 +36,6 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     );
 
     const reasons = meta.uniqueReasons;
-
-    const isShowChanges = opt.tradeSummary.showStockChanges;
 
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
@@ -56,10 +63,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
-                      (isShowChanges
-                          ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
-                          : offer.summarize(bot.schema)
-                      )
+                      summarize(offer, bot, 'review-partner', false)
                           .replace('Asked', '  My side')
                           .replace('Offered', 'Your side') +
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -127,14 +131,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                     ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                     : '') +
-                summarize(
-                    isShowChanges
-                        ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
-                        : offer.summarize(bot.schema),
-                    content.value,
-                    keyPrices,
-                    true
-                ) +
+                summarizeToChat(summarize(offer, bot, 'review-admin', false), content.value, keyPrices, true) +
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 (opt.manualReview.showItemPrices ? `\n\n${itemPrices}` : '') +

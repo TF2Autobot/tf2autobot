@@ -91,7 +91,7 @@ export default function processAccepted(
             }
         }
 
-        if (offerReceived.meta && offerReceived.meta.highValue) {
+        if (offerReceived.meta && offerReceived.meta.highValue && offerReceived.meta.highValue['has'] === undefined) {
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                 const itemsName = t.check.getHighValueItems(offerReceived.meta.highValue.items.their, bot);
@@ -131,7 +131,7 @@ export default function processAccepted(
                 }
             }
         }
-    } else if (offerSent) {
+    } else if (offerSent && offerSent['has'] === undefined) {
         // This is for offer that bot created from commands
         if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
             const itemsName = t.check.getHighValueItems(offerSent.items.their, bot);
@@ -198,7 +198,6 @@ export default function processAccepted(
             isOfferSent
         );
     } else {
-        const isShowChanges = bot.options.tradeSummary.showStockChanges;
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
             invalid: accepted.invalidItems, // 🟨_INVALID_ITEMS
@@ -214,15 +213,7 @@ export default function processAccepted(
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                t.summarize(
-                    isShowChanges
-                        ? offer.summarizeWithStockChanges(bot.schema, 'summary')
-                        : offer.summarize(bot.schema),
-                    value,
-                    keyPrices,
-                    true,
-                    isOfferSent
-                ) +
+                t.summarizeToChat(t.summarize(offer, bot, 'summary', false), value, keyPrices, true, isOfferSent) +
                 (opt.tradeSummary.showItemPrices ? `\n\nItem prices:\n${itemPrices}` : '') +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +

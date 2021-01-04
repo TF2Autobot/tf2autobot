@@ -56,7 +56,7 @@ export default function sendAlert(
         color = '8323327'; // purple
     }
 
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
 
     const webhook = opt.discordWebhook;
 

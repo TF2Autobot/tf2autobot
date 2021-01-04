@@ -42,6 +42,7 @@ import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
+
 import {
     craftAll,
     uncraftAll,
@@ -53,7 +54,8 @@ import {
     noiseMakerSKUs
 } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { check, uptime } from '../../lib/tools/export';
+import { summarize, check, uptime } from '../../lib/tools/export';
+
 import genPaths from '../../resources/paths';
 
 export default class MyHandler extends Handler {
@@ -63,27 +65,43 @@ export default class MyHandler extends Handler {
 
     readonly cartQueue: CartQueue;
 
+    private groupsStore: string[];
+
     private get groups(): string[] {
-        const groups = this.bot.options.groups;
-        if (groups !== null && Array.isArray(groups)) {
-            groups.forEach(groupID64 => {
-                if (!new SteamID(groupID64).isValid()) {
-                    throw new Error(`Invalid group SteamID64 "${groupID64}"`);
-                }
-            });
-            return groups;
+        if (!this.groupsStore) {
+            const groups = this.bot.options.groups;
+            if (groups !== null && Array.isArray(groups)) {
+                groups.forEach(groupID64 => {
+                    if (!new SteamID(groupID64).isValid()) {
+                        throw new Error(`Invalid group SteamID64 "${groupID64}"`);
+                    }
+                });
+                this.groupsStore = groups;
+                return groups;
+            }
+        } else {
+            return this.groupsStore;
         }
     }
 
-    private get friendsToKeep(): string[] {
-        const friendsToKeep = this.bot.options.keep.concat(this.bot.getAdmins().map(steamID => steamID.getSteamID64()));
-        if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
-            friendsToKeep.forEach(steamID64 => {
-                if (!new SteamID(steamID64).isValid()) {
-                    throw new Error(`Invalid SteamID64 "${steamID64}"`);
-                }
-            });
-            return friendsToKeep;
+    private friendsToKeepStore: string[];
+
+    get friendsToKeep(): string[] {
+        if (!this.friendsToKeepStore) {
+            const friendsToKeep = this.bot.options.keep.concat(
+                this.bot.getAdmins().map(steamID => steamID.getSteamID64())
+            );
+            if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
+                friendsToKeep.forEach(steamID64 => {
+                    if (!new SteamID(steamID64).isValid()) {
+                        throw new Error(`Invalid SteamID64 "${steamID64}"`);
+                    }
+                });
+                this.friendsToKeepStore = friendsToKeep;
+                return friendsToKeep;
+            }
+        } else {
+            return this.friendsToKeepStore;
         }
     }
 
@@ -99,11 +117,11 @@ export default class MyHandler extends Handler {
         return this.bot.options.crafting.metals.threshold;
     }
 
-    private get dupeCheckEnabled(): boolean {
+    get dupeCheckEnabled(): boolean {
         return this.bot.options.offerReceived.duped.enableCheck;
     }
 
-    private get minimumKeysDupeCheck(): number {
+    get minimumKeysDupeCheck(): number {
         return this.bot.options.offerReceived.duped.minKeys;
     }
 
@@ -147,7 +165,7 @@ export default class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private get sheens(): string[] {
+    get getSheens(): string[] {
         // check if highValue.sheens is an empty array
         const sheens = this.bot.options.highValue.sheens;
         if (sheens === [] || (sheens.length > 0 && sheens[0] === '')) {
@@ -160,7 +178,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private get killstreakers(): string[] {
+    get getKillstreakers(): string[] {
         // check if highValue.killstreakers is an empty array
         const killstreakers = this.bot.options.highValue.killstreakers;
         if (killstreakers === [] || (killstreakers.length > 0 && killstreakers[0] === '')) {
@@ -173,7 +191,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private get strangeParts(): string[] {
+    get strangeParts(): string[] {
         const strangeParts = this.bot.options.highValue.strangeParts;
         if (strangeParts === [] || (strangeParts.length > 0 && strangeParts[0] === '')) {
             log.warn(
@@ -185,7 +203,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private get painted(): string[] {
+    get painted(): string[] {
         const painted = this.bot.options.highValue.painted;
         if (painted === [] || (painted.length > 0 && painted[0] === '')) {
             log.warn(
@@ -220,7 +238,18 @@ export default class MyHandler extends Handler {
 
     private botAvatarURL = '';
 
+
     private retryRequest: NodeJS.Timeout;
+
+    private botSteamID: SteamID;
+
+    get getBotInfo(): BotInfo {
+        const name = this.botName;
+        const avatarURL = this.botAvatarURL;
+        const steamID = this.botSteamID;
+        const premium = this.isPremium;
+        return { name, avatarURL, steamID, premium };
+    }
 
     private autokeysStatus: {
         isActive: boolean;
@@ -228,21 +257,31 @@ export default class MyHandler extends Handler {
         isBanking: boolean;
     };
 
+    get getAutokeysStatus(): GetAutokeysStatus {
+        return this.autokeysStatus;
+    }
+
     private weapons: string[] = [];
 
     private shuffleWeaponsTimeout: NodeJS.Timeout;
 
+    get getWeapons(): string[] {
+        return this.weapons;
+    }
+
     private classWeaponsTimeout: NodeJS.Timeout;
 
     private autoRefreshListingsTimeout: NodeJS.Timeout;
-
-    private botSteamID: SteamID;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
     private paths: Paths;
 
     private isUpdating = false;
+
+    set isUpdatingStatus(setStatus: boolean) {
+        this.isUpdating = setStatus;
+    }
 
     private poller: NodeJS.Timeout;
 
@@ -260,38 +299,6 @@ export default class MyHandler extends Handler {
         this.paths = genPaths(this.bot.options.steamAccountName);
     }
 
-    getFriendToKeep(): string[] {
-        return this.friendsToKeep;
-    }
-
-    getBotSteamID(): SteamID {
-        return this.botSteamID;
-    }
-
-    hasDupeCheckEnabled(): boolean {
-        return this.dupeCheckEnabled;
-    }
-
-    getMinimumKeysDupeCheck(): number {
-        return this.minimumKeysDupeCheck;
-    }
-
-    getBotInfo(): BotInfo {
-        const name = this.botName;
-        const avatarURL = this.botAvatarURL;
-        const steamID = this.botSteamID.getSteamID64();
-        const premium = this.isPremium;
-        return { name, avatarURL, steamID, premium };
-    }
-
-    getToMention(): GetToMention {
-        const sheens = this.sheens;
-        const killstreakers = this.killstreakers;
-        const strangeParts = this.strangeParts;
-        const painted = this.painted;
-        return { sheens, killstreakers, strangeParts, painted };
-    }
-
     updateAutokeysStatus(): void {
         const autokeys = {
             isEnabled: this.autokeys.isEnabled,
@@ -304,10 +311,6 @@ export default class MyHandler extends Handler {
             isBuying: autokeys.isBuying,
             isBanking: autokeys.isBanking
         };
-    }
-
-    getAutokeysStatus(): GetAutokeysStatus {
-        return this.autokeysStatus;
     }
 
     onRun(): Promise<OnRun> {
@@ -457,10 +460,6 @@ export default class MyHandler extends Handler {
         this.commands.processMessage(steamID, message);
     }
 
-    setIsUpdatingStatus(setStatus: boolean): void {
-        this.isUpdating = setStatus;
-    }
-
     onLoginKey(loginKey: string): void {
         log.debug('New login key');
 
@@ -598,14 +597,12 @@ export default class MyHandler extends Handler {
         clearTimeout(this.sendStatsTimeout);
     }
 
-    getWeapons(): string[] {
-        return this.weapons;
-    }
-
     shuffleWeapons(): void {
         if (!this.isWeaponsAsCurrency.enable) {
             return;
         }
+        clearTimeout(this.shuffleWeaponsTimeout);
+
         const weapons = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
         this.weapons = shuffleArray(weapons);
 
@@ -636,7 +633,8 @@ export default class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            this.bot.options,
+            this.bot.unusualEffects
         );
 
         const theirItems = Inventory.fromItems(
@@ -644,7 +642,8 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            this.bot.options,
+            this.bot.unusualEffects
         );
 
         const items = {
@@ -663,9 +662,6 @@ export default class MyHandler extends Handler {
         const states = [false, true];
 
         let hasInvalidItems = false;
-
-        const entry = this.bot.pricelist;
-        const stock = this.bot.inventoryManager.getInventory();
 
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
@@ -700,22 +696,7 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
-                const itemEntry = entry.getPrice(sku, false);
-                const currentStock = stock.getAmount(sku, true);
-
-                if (which === 'our') {
-                    itemsDict.our[sku] = {
-                        amount: amount,
-                        stock: currentStock,
-                        maxStock: itemEntry !== null ? itemEntry.max : 0
-                    };
-                } else {
-                    itemsDict.their[sku] = {
-                        amount: amount,
-                        stock: currentStock,
-                        maxStock: itemEntry !== null ? itemEntry.max : 0
-                    };
-                }
+                itemsDict[which][sku] = amount;
             }
         }
 
@@ -723,22 +704,8 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(
-            offer.itemsToGive,
-            this.sheens,
-            this.killstreakers,
-            this.strangeParts,
-            this.painted,
-            this.bot
-        );
-        const highValueTheir = check.highValue(
-            offer.itemsToReceive,
-            this.sheens,
-            this.killstreakers,
-            this.strangeParts,
-            this.painted,
-            this.bot
-        );
+        const highValueOur = check.highValue(offer.itemsToGive, this.bot);
+        const highValueTheir = check.highValue(offer.itemsToReceive, this.bot);
 
         const input: HighValueInput = {
             our: highValueOur,
@@ -752,11 +719,7 @@ export default class MyHandler extends Handler {
         if (this.bot.isAdmin(offer.partner)) {
             offer.log(
                 'trade',
-                `is from an admin, accepting. Summary:\n${
-                    this.isShowChanges
-                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                        : offer.summarize(this.bot.schema)
-                }`
+                `is from an admin, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`
             );
 
             if (isContainsHighValue) {
@@ -788,14 +751,7 @@ export default class MyHandler extends Handler {
         });
 
         if (offer.itemsToGive.length === 0 && isGift) {
-            offer.log(
-                'trade',
-                `is a gift offer, accepting. Summary:\n${
-                    this.isShowChanges
-                        ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                        : offer.summarize(this.bot.schema)
-                }`
-            );
+            offer.log('trade', `is a gift offer, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
             if (isContainsHighValue) {
                 return {
                     action: 'accept',
@@ -956,19 +912,19 @@ export default class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     this.isWeaponsAsCurrency.enable &&
-                    (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
+                    this.getWeapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
-                    const match = this.bot.pricelist.getPrice(sku, true);
+                    const match =
+                        which === 'our'
+                            ? this.bot.pricelist.getPrice(sku, false)
+                            : this.bot.pricelist.getPrice(sku, false, true);
                     const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
-                        ? !(
-                              craftAll.includes(sku) ||
-                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
-                          )
+                        ? !this.getWeapons.includes(sku)
                         : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -990,7 +946,11 @@ export default class MyHandler extends Handler {
                         const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(sku, isBuying); // return a number
+                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
+                            sku,
+                            isBuying,
+                            which === 'their'
+                        ); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
                             // User is offering too many
@@ -1004,7 +964,7 @@ export default class MyHandler extends Handler {
                                 amountCanTrade: amountCanTrade
                             });
 
-                            this.bot.listings.checkBySKU(match.sku);
+                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
                         if (
@@ -1025,7 +985,7 @@ export default class MyHandler extends Handler {
                                 amountCanTrade: amountCanTrade
                             });
 
-                            this.bot.listings.checkBySKU(match.sku);
+                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
@@ -1485,11 +1445,12 @@ export default class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${
-                        this.isShowChanges
-                            ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                            : offer.summarize(this.bot.schema)
-                    }`
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${summarize(
+                        offer,
+                        this.bot,
+                        'summary',
+                        false
+                    )}`
                 );
 
                 const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
@@ -1575,14 +1536,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        offer.log(
-            'trade',
-            `accepting. Summary:\n${
-                this.isShowChanges
-                    ? offer.summarizeWithStockChanges(this.bot.schema, 'summary')
-                    : offer.summarize(this.bot.schema)
-            }`
-        );
+        offer.log('trade', `accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
@@ -2074,15 +2028,8 @@ interface OnNewTradeOffer {
 interface BotInfo {
     name: string;
     avatarURL: string;
-    steamID: string;
+    steamID: SteamID;
     premium: boolean;
-}
-
-interface GetToMention {
-    sheens: string[];
-    killstreakers: string[];
-    strangeParts: string[];
-    painted: string[];
 }
 
 interface GetAutokeysStatus {

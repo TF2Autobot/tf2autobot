@@ -123,39 +123,52 @@ export default abstract class Cart {
     }
 
     getOurCount(sku: string): number {
-        return this.our[sku] !== undefined ? this.our[sku].amount : 0;
+        return this.our[sku] || 0;
+    }
+
+    getOurGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getOurCount(s));
+    }
+
+    getGenericCount(sku: string, getCountFn: (sku: string) => number): number {
+        const pSku = SKU.fromString(sku);
+        if (pSku.quality === 5) {
+            // try to count all unusual types
+            return (
+                this.bot.unusualEffects
+                    .map(e => {
+                        pSku.effect = e.id;
+                        const s = SKU.fromObject(pSku);
+                        return getCountFn(s);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            );
+        } else {
+            return getCountFn(sku);
+        }
     }
 
     getTheirCount(sku: string): number {
-        return this.their[sku] !== undefined ? this.their[sku].amount : 0;
+        return this.their[sku] || 0;
+    }
+
+    getTheirGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getTheirCount(s));
     }
 
     addOurItem(sku: string, amount = 1): void {
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
-        const entry = this.bot.pricelist.getPrice(sku, false);
+        this.our[sku] = this.getOurCount(sku) + amount;
 
-        this.our[sku] = {
-            amount: this.getOurCount(sku) + amount,
-            stock: currentStock,
-            maxStock: entry !== null ? entry.max : 0
-        };
-
-        if (this.our[sku].amount < 1) {
+        if (this.our[sku] < 1) {
             delete this.our[sku];
         }
     }
 
     addTheirItem(sku: string, amount = 1): void {
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
-        const entry = this.bot.pricelist.getPrice(sku, false);
+        this.their[sku] = this.getTheirCount(sku) + amount;
 
-        this.their[sku] = {
-            amount: this.getTheirCount(sku) + amount,
-            stock: currentStock,
-            maxStock: entry !== null ? entry.max : 0
-        };
-
-        if (this.their[sku].amount < 1) {
+        if (this.their[sku] < 1) {
             delete this.their[sku];
         }
     }
@@ -229,7 +242,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
+            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
         }
 
         let summary: string[];
@@ -259,7 +272,7 @@ export default abstract class Cart {
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku].amount
+                amount: this.their[sku]
             });
         }
 
@@ -324,7 +337,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
+            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
         }
 
         let summary: string[];
@@ -354,7 +367,7 @@ export default abstract class Cart {
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku].amount
+                amount: this.their[sku]
             });
         }
 
@@ -548,7 +561,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku].amount}x ${name}`;
+            str += `\n- ${this.our[sku]}x ${name}`;
         }
 
         if (!isDonating) {
@@ -559,7 +572,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku].amount}x ${name}`;
+                str += `\n- ${this.their[sku]}x ${name}`;
             }
         }
 
@@ -586,7 +599,7 @@ export default abstract class Cart {
             }
 
             const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku].amount}x ${name}`;
+            str += `\n- ${this.our[sku]}x ${name}`;
         }
 
         if (!isDonating) {
@@ -597,7 +610,7 @@ export default abstract class Cart {
                 }
 
                 const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku].amount}x ${name}`;
+                str += `\n- ${this.their[sku]}x ${name}`;
             }
         }
 

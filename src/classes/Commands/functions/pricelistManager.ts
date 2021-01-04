@@ -14,7 +14,6 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
-import { craftAll, uncraftAll } from '../../../lib/data';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -24,7 +23,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (params.enabled === undefined) {
         params.enabled = true;
@@ -146,7 +145,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
         bot.sendMessage(
@@ -258,22 +257,9 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     const dict = bot.inventoryManager.getInventory().getItems();
 
-    let pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
-    const combine: string[] = [];
-
-    if (bot.options.weaponsAsCurrency.enable) {
-        pure = pure.concat(craftAll);
-
-        if (bot.options.weaponsAsCurrency.withUncraft) {
-            pure = pure.concat(uncraftAll);
-        }
-    }
-
-    pure.forEach(sku => {
-        if (!combine.includes(sku)) {
-            combine.push(sku);
-        }
-    });
+    const pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
+    const weapons = bot.handler.getWeapons;
+    const combine = pure.concat(weapons);
 
     for (const sku in dict) {
         if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
@@ -393,7 +379,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     message = removeLinkProtocol(message);
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-    const isPremium = bot.handler.getBotInfo().premium;
+    const isPremium = bot.handler.getBotInfo.premium;
 
     if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());

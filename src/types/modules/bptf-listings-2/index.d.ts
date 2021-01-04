@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 declare module 'bptf-listings-2' {
     import { EventEmitter } from 'events';
     import SchemaManager from 'tf2-schema-2';
@@ -10,13 +8,13 @@ declare module 'bptf-listings-2' {
     interface Events {
         ready: () => void;
         listings: (listings: ListingManager.Listing[]) => void;
-        actions: (actions: { create: object[]; remove: string[] }) => void;
+        actions: (actions: { create: Record<string, unknown>[]; remove: string[] }) => void;
         heartbeat: (bumped: number) => void;
         inventory: (lastUpdated: number) => void;
     }
 
     class ListingManager extends EventEmitter {
-        static EFailiureReason: object;
+        static EFailiureReason: Record<string, unknown>;
 
         constructor(options?: {
             token?: string;
@@ -40,7 +38,7 @@ declare module 'bptf-listings-2' {
 
         listings: ListingManager.Listing[];
 
-        actions: { create: object[]; remove: string[] };
+        actions: { create: Record<string, unknown>[]; remove: string[] };
 
         ready: boolean;
 
@@ -52,14 +50,11 @@ declare module 'bptf-listings-2' {
 
         _inventoryInterval: ReturnType<typeof setInterval>;
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        init(callback: Function): void;
+        init(callback: (err: any) => void): void;
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        sendHeartbeat(callback: Function): void;
+        sendHeartbeat(callback: (err: any, body?: any) => void): void;
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        getListings(callback: Function): void;
+        getListings(callback: (err: any, body?: any) => any): void;
 
         findListing(search: string | number): ListingManager.Listing | null;
 
@@ -116,7 +111,7 @@ declare module 'bptf-listings-2' {
 
             promoted: 0 | 1;
 
-            item: object;
+            item: Record<string, unknown>;
 
             appid: number;
 

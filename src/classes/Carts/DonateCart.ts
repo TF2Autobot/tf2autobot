@@ -48,7 +48,7 @@ export default class DonateCart extends Cart {
                         );
 
                         // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, ourAssetids.length - this.our[sku].amount);
+                        this.addOurItem(sku, ourAssetids.length - this.our[sku]);
                     }
                 }
 
@@ -148,7 +148,7 @@ export default class DonateCart extends Cart {
                         );
 
                         // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, ourAssetids.length - this.our[sku].amount);
+                        this.addOurItem(sku, ourAssetids.length - this.our[sku]);
                     }
                 }
 

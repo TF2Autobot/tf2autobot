@@ -1,7 +1,6 @@
 import Bot from '../../classes/Bot';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies';
-import { craftAll, uncraftAll } from '../data';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
@@ -10,137 +9,150 @@ export default function profit(
 ): Promise<{ tradeProfit: number; overpriceProfit: number; totalTrades: number }> {
     return new Promise(resolve => {
         const polldata = bot.manager.pollData;
-        const trades = Object.keys(polldata.offerData).map(offerID => {
-            return polldata.offerData[offerID];
-        });
 
-        const keyPrice = bot.pricelist.getKeyPrice();
+        if (polldata.offerData) {
+            const trades = Object.keys(polldata.offerData).map(offerID => {
+                return polldata.offerData[offerID];
+            });
 
-        let overpriceProfit = 0;
-        let tradeProfit = 0;
+            const keyPrice = bot.pricelist.getKeyPrice();
+            const weapons = bot.handler.getWeapons;
 
-        const tracker = new itemTracker();
+            let overpriceProfit = 0;
+            let tradeProfit = 0;
 
-        let totalTrades = 0; // to keep track of how many trades are accepted
+            const tracker = new itemTracker();
 
-        for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            if (!(trade.handledByUs && trade.isAccepted)) {
-                continue; // trade was not accepted, go to next trade
-            }
+            let totalTrades = 0; // to keep track of how many trades are accepted
 
-            totalTrades++;
-            let isGift = false;
-            if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
-                continue; // trade has no items involved (not possible, but who knows)
-            }
-            if (typeof Object.keys(trade.dict.our).length === 'undefined') {
-                isGift = true; // no items on our side, so it is probably gift
-            } else if (Object.keys(trade.dict.our).length > 0) {
-                // trade is not a gift
-                if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
-                    continue; // trade is missing value object
+            for (let i = 0; i < trades.length; i++) {
+                const trade = trades[i];
+                if (!(trade.handledByUs && trade.isAccepted)) {
+                    continue; // trade was not accepted, go to next trade
                 }
-                if (!(Object.keys(trade.prices).length > 0)) {
-                    continue; // have no prices, broken data, skip
+
+                totalTrades++;
+                let isGift = false;
+                if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
+                    continue; // trade has no items involved (not possible, but who knows)
                 }
-            } else {
-                isGift = true; // no items on our side, so it is probably gift
-            }
-
-            if (typeof trade.value === 'undefined') {
-                trade.value = {};
-            }
-
-            if (typeof trade.value.rate === 'undefined') {
-                if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
-                    trade.value = {}; // in case it was gift
+                if (typeof Object.keys(trade.dict.our).length === 'undefined') {
+                    isGift = true; // no items on our side, so it is probably gift
+                } else if (Object.keys(trade.dict.our).length > 0) {
+                    // trade is not a gift
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
+                        continue; // trade is missing value object
+                    }
+                    if (!(Object.keys(trade.prices).length > 0)) {
+                        continue; // have no prices, broken data, skip
+                    }
+                } else {
+                    isGift = true; // no items on our side, so it is probably gift
                 }
-                trade.value.rate = keyPrice.metal; // set key value to current value if it is not defined
-            }
 
-            for (const sku in trade.dict.their) {
-                // item bought
-                if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
-                    const itemCount =
-                        typeof trade.dict.their[sku] == 'object'
-                            ? trade.dict.their[sku].amount
-                            : +trade.dict.their[sku];
+                if (typeof trade.value === 'undefined') {
+                    trade.value = {};
+                }
 
-                    const isNotPureOrWeapons = !(
-                        (bot.options.weaponsAsCurrency.enable &&
-                            (craftAll.includes(sku) ||
-                                (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    );
+                if (typeof trade.value.rate === 'undefined') {
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
+                        trade.value = {}; // in case it was gift
+                    }
+                    trade.value.rate = keyPrice.metal; // set key value to current value if it is not defined
+                }
 
-                    if (isNotPureOrWeapons) {
-                        // if it is not currency
-                        if (isGift) {
-                            if (!Object.prototype.hasOwnProperty.call(trade, 'prices')) {
-                                trade.prices = {};
+                for (const sku in trade.dict.their) {
+                    // item bought
+                    if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
+                        const itemCount =
+                            typeof trade.dict.their[sku] === 'object'
+                                ? (trade.dict.their[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trade.dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+
+                        const isNotPureOrWeapons = !(
+                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                        );
+
+                        if (isNotPureOrWeapons) {
+                            // if it is not currency
+                            if (isGift) {
+                                if (!Object.prototype.hasOwnProperty.call(trade, 'prices')) {
+                                    trade.prices = {};
+                                }
+                                trade.prices[sku] = {
+                                    // set price to 0 because it's a gift
+                                    buy: new Currencies({
+                                        keys: 0,
+                                        metal: 0
+                                    })
+                                };
+                            } else if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
+                                continue; // item is not in pricelist, so we will just skip it
                             }
-                            trade.prices[sku] = {
-                                // set price to 0 because it's a gift
-                                buy: new Currencies({
-                                    keys: 0,
-                                    metal: 0
-                                })
-                            };
-                        } else if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
-                            continue; // item is not in pricelist, so we will just skip it
+
+                            const prices = trade.prices[sku].buy;
+
+                            tradeProfit += tracker.boughtItem(itemCount, sku, prices, trade.value.rate);
                         }
-
-                        const prices = trade.prices[sku].buy;
-
-                        tradeProfit += tracker.boughtItem(itemCount, sku, prices, trade.value.rate);
                     }
+                }
+
+                for (const sku in trade.dict.our) {
+                    if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
+                        const itemCount =
+                            typeof trade.dict.our[sku] === 'object'
+                                ? (trade.dict.our[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trade.dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+
+                        const isNotPureOrWeapons = !(
+                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                        );
+
+                        if (isNotPureOrWeapons) {
+                            if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
+                                continue; // item is not in pricelist, so we will just skip it
+                            }
+                            const prices = trade.prices[sku].sell;
+
+                            tradeProfit += tracker.soldItem(itemCount, sku, prices, trade.value.rate);
+                        }
+                    }
+                }
+
+                if (!isGift) {
+                    // calculate overprice profit
+                    tradeProfit +=
+                        tracker.convert(trade.value.their, trade.value.rate) -
+                        tracker.convert(trade.value.our, trade.value.rate);
+                    overpriceProfit +=
+                        tracker.convert(trade.value.their, trade.value.rate) -
+                        tracker.convert(trade.value.our, trade.value.rate);
                 }
             }
 
-            for (const sku in trade.dict.our) {
-                if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
-                    const itemCount =
-                        typeof trade.dict.our[sku] == 'object' ? trade.dict.our[sku].amount : +trade.dict.our[sku];
+            const fromPrevious = {
+                made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
+                overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
+            };
 
-                    const isNotPureOrWeapons = !(
-                        (bot.options.weaponsAsCurrency.enable &&
-                            (craftAll.includes(sku) ||
-                                (uncraftAll.includes(sku) && bot.options.weaponsAsCurrency.withUncraft))) ||
-                        ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    );
+            tradeProfit = Math.round(tradeProfit + fromPrevious.made);
+            overpriceProfit = Math.round(overpriceProfit + fromPrevious.overpay);
 
-                    if (isNotPureOrWeapons) {
-                        if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
-                            continue; // item is not in pricelist, so we will just skip it
-                        }
-                        const prices = trade.prices[sku].sell;
+            resolve({ tradeProfit, overpriceProfit, totalTrades });
+        } else {
+            const fromPrevious = {
+                made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
+                overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
+            };
 
-                        tradeProfit += tracker.soldItem(itemCount, sku, prices, trade.value.rate);
-                    }
-                }
-            }
+            const tradeProfit = Math.round(fromPrevious.made);
+            const overpriceProfit = Math.round(fromPrevious.overpay);
+            const totalTrades = bot.options.statistics.lastTotalTrades;
 
-            if (!isGift) {
-                // calculate overprice profit
-                tradeProfit +=
-                    tracker.convert(trade.value.their, trade.value.rate) -
-                    tracker.convert(trade.value.our, trade.value.rate);
-                overpriceProfit +=
-                    tracker.convert(trade.value.their, trade.value.rate) -
-                    tracker.convert(trade.value.our, trade.value.rate);
-            }
+            resolve({ tradeProfit, overpriceProfit, totalTrades });
         }
-
-        const fromPrevious = {
-            made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
-            overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
-        };
-
-        tradeProfit = Math.round(tradeProfit + fromPrevious.made);
-        overpriceProfit = Math.round(overpriceProfit + fromPrevious.overpay);
-
-        resolve({ tradeProfit, overpriceProfit, totalTrades });
     });
 }
 

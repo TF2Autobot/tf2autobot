@@ -142,8 +142,7 @@ function errorParser(validated: jsonschema.ValidatorResult): string[] {
 
         let message = error.stack;
         if (error.name === 'additionalProperties') {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            message = `unknown property "${error.argument}"`;
+            message = `unknown property "${error.argument as string}"`;
         } else if (property) {
             if (error.name === 'anyOf') {
                 message = `"${property}" does not have a valid value`;

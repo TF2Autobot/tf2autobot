@@ -7,7 +7,7 @@ import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 
 import log from '../logger';
-import { pure, stats, summarize, listItems, replace } from '../tools/export';
+import { pure, stats, summarize, summarizeToChat, listItems, replace } from '../tools/export';
 
 import Bot from '../../classes/Bot';
 
@@ -90,7 +90,7 @@ export default async function sendTradeSummary(
 
     const url = opt.tradeSummary.url;
 
-    const botInfo = bot.handler.getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);
     const trades = await stats(bot);
 
@@ -101,16 +101,7 @@ export default async function sendTradeSummary(
             ? tradeNumbertoShowStarter + trades.tradesTotal
             : trades.tradesTotal;
 
-    const isShowChanges = bot.options.tradeSummary.showStockChanges;
-    const summary = summarize(
-        isShowChanges
-            ? offer.summarizeWithLinkWithStockChanges(bot.schema, 'summary')
-            : offer.summarizeWithLink(bot.schema),
-        value,
-        keyPrices,
-        false,
-        isOfferSent
-    );
+    const summary = summarizeToChat(summarize(offer, bot, 'summary', true), value, keyPrices, false, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
@@ -177,7 +168,7 @@ export default async function sendTradeSummary(
                                 : '') +
                             (AdditionalNotes
                                 ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') + AdditionalNotes
-                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID})`)
+                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`)
                     }
                 ],
                 footer: {
@@ -187,7 +178,7 @@ export default async function sendTradeSummary(
         ]
     };
 
-    if (combineList === '-') {
+    if (combineList === '-' || combineList === '') {
         acceptedTradeSummary.embeds[0].fields.shift();
     } else if (combineList.length >= 1024) {
         // first get __Status__ element

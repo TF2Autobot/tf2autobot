@@ -47,7 +47,7 @@ export default class AdminCart extends Cart {
                         );
 
                         // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, ourAssetids.length - this.our[sku].amount);
+                        this.addOurItem(sku, ourAssetids.length - this.our[sku]);
                     }
                 }
 
@@ -107,7 +107,13 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+            const theirInventory = new Inventory(
+                this.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.unusualEffects
+            );
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
@@ -144,7 +150,7 @@ export default class AdminCart extends Cart {
                             );
 
                             // Add the max amount to the offer substract current added amount
-                            this.addTheirItem(sku, theirAssetids.length - this.their[sku].amount);
+                            this.addTheirItem(sku, theirAssetids.length - this.their[sku]);
                         }
                     }
 
@@ -203,7 +209,7 @@ export default class AdminCart extends Cart {
                         );
 
                         // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, ourAssetids.length - this.our[sku].amount);
+                        this.addOurItem(sku, ourAssetids.length - this.our[sku]);
                     }
                 }
 
@@ -263,7 +269,13 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+            const theirInventory = new Inventory(
+                this.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.unusualEffects
+            );
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
@@ -300,7 +312,7 @@ export default class AdminCart extends Cart {
                             );
 
                             // Add the max amount to the offer substract current added amount
-                            this.addTheirItem(sku, theirAssetids.length - this.their[sku].amount);
+                            this.addTheirItem(sku, theirAssetids.length - this.their[sku]);
                         }
                     }
 

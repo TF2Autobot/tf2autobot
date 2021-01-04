@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/ban-types */
 
 import Bot from './Bot';
 
@@ -339,8 +338,11 @@ export default class TF2GC {
      *
      * @returns Call this function to cancel
      */
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private listenForEvent(event: string, onSuccess: (...args: any[]) => void, onFail: (err: Error) => void): Function;
+    private listenForEvent(
+        event: string,
+        onSuccess: (...args: any[]) => void,
+        onFail: (err: Error) => void
+    ): () => void;
 
     /**
      * Listens for GC event
@@ -360,10 +362,9 @@ export default class TF2GC {
         iterator: (...args: any[]) => { success: boolean; clearTimeout?: boolean },
         onSuccess: (...args: any[]) => void,
         onFail: (err: Error) => void
-    ): Function;
+    ): () => void;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private listenForEvent(...args: any[]): Function {
+    private listenForEvent(...args: any[]): () => void {
         const event = args[0];
         const iterator =
             args.length === 4
