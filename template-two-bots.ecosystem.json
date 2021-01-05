@@ -23,7 +23,7 @@
 
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
-                "GROUPS": ["103582791464047777", "103582791462300957"],
+                "GROUPS": ["103582791469033930"],
                 "ALERTS": ["trade"],
 
                 "PRICESTF_API_TOKEN": "",
