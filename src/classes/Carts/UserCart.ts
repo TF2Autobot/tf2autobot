@@ -996,6 +996,11 @@ export default class UserCart extends Cart {
 
         this.offer = offer;
 
+        // clear memory
+        ourItemsToCheck.length = 0;
+        theirItemsToCheck.length = 0;
+        theirInventory.clearFetch();
+
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
     }
 

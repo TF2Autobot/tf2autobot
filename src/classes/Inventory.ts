@@ -254,6 +254,12 @@ export default class Inventory {
 
         return dict;
     }
+
+    clearFetch(): void {
+        this.tradable = {};
+        this.nonTradable = {};
+        this.tradableEcon.length = 0;
+    }
 }
 
 export function getUnusualEffects(schema: Schema): Effect[] {

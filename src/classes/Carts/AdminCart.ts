@@ -167,6 +167,8 @@ export default class AdminCart extends Cart {
 
                 this.offer = offer;
 
+                theirInventory.clearFetch();
+
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             });
         });
