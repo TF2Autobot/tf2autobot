@@ -18,7 +18,7 @@ it('can pricecheck', async done => {
     const priceList = new Pricelist(schemaManager.schema, socketManager, DEFAULTS);
     expect(priceList.maxAge).toEqual(8 * 60 * 60);
     await priceList.setupPricelist();
-    expect(priceList.getKeyPrices()).toEqual({
+    expect(priceList.getKeyPrices).toEqual({
         src: 'ptf',
         time: 1608739762,
         buy: new Currencies({ keys: 0, metal: 55.11 }),
@@ -37,8 +37,8 @@ it('can pricecheck', async done => {
         buy: new Currencies({ keys: 0, metal: 55.11 }),
         sell: new Currencies({ keys: 0, metal: 55.22 })
     });
-    expect(priceList.getLength()).toEqual(0);
-    expect(priceList.getPrices()).toEqual([]);
+    expect(priceList.getLength).toEqual(0);
+    expect(priceList.getPrices).toEqual([]);
     expect(priceList.hasPrice('5021;6')).toEqual(false);
     expect(priceList.getPrice('5021;6')).toBeNull();
     expect(priceList.searchByName('Mann Co. Supply Crate Key')).toBeNull();
