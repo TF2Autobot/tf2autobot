@@ -344,7 +344,7 @@ export const DEFAULTS = {
          */
         lastTotalProfitOverpayInRef: 0,
         /**
-         * Similar to .startingTimeInUnix, this Option sets the latest instance instance a profit was made (in Unix Timestamp).
+         * Similar to .startingTimeInUnix, this Option sets the latest instance a profit was made (in Unix Timestamp).
          */
         profitDataSinceInUnix: 0,
         sendStats: {

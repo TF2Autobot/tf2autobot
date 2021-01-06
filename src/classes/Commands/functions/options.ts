@@ -1,8 +1,6 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 
-import { removeLinkProtocol } from './utils';
-
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
@@ -36,7 +34,7 @@ function promiseDelay(ms: number): Promise<void> {
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
 
-    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message))) as unknown;
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
 
     const optionsPath = getOptionsPath(opt.steamAccountName);
     const saveOptions = deepMerge({}, opt) as JsonOptions;
