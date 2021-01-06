@@ -332,7 +332,7 @@ export const DEFAULTS = {
          */
         lastTotalTrades: 0,
         /**
-         * Similar to .lastTotalTrades, this Option sets the latest instance a trade was made.
+         * Similar to .lastTotalTrades, this Option sets the latest instance a trade was made (in Unix Timestamp).
          */
         startingTimeInUnix: 0,
         /**
@@ -343,6 +343,10 @@ export const DEFAULTS = {
          * Similar to .lastTotalProfitMadeInRef, but this is for last profit from overpay(value must in refined metal, i.e. 1000.44).
          */
         lastTotalProfitOverpayInRef: 0,
+        /**
+         * Similar to .startingTimeInUnix, this Option sets the latest instance instance a profit was made (in Unix Timestamp).
+         */
+        profitDataSinceInUnix: 0,
         sendStats: {
             /**
              * Send the content of !stats command every specified hours below
@@ -1813,6 +1817,7 @@ export interface Statistics {
     startingTimeInUnix?: number;
     lastTotalProfitMadeInRef?: number;
     lastTotalProfitOverpayInRef?: number;
+    profitDataSinceInUnix?: number;
     sendStats?: SendStats;
 }
 

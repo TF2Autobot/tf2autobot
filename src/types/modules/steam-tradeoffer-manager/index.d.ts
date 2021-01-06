@@ -109,6 +109,9 @@ declare module 'steam-tradeoffer-manager' {
             _dupeCheck?: string[]; // Only offer sent // checked
             _ourItems?: OutItems[]; // checked
             canceledByUser?: boolean; // checked
+            isFailedConfirmation?: boolean; // added
+            isCanceledUnknown?: boolean; // added
+            isInvalid?: boolean;
             switchedState?: number; // checked
             donation?: boolean;
             buyBptfPremium?: boolean;

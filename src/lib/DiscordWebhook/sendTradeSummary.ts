@@ -98,8 +98,8 @@ export default async function sendTradeSummary(
 
     const tradesMade =
         tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
-            ? tradeNumbertoShowStarter + trades.tradesTotal
-            : trades.tradesTotal;
+            ? tradeNumbertoShowStarter + trades.totalAcceptedTrades
+            : trades.totalAcceptedTrades;
 
     const summary = summarizeToChat(summarize(offer, bot, 'summary', true), value, keyPrices, false, isOfferSent);
 

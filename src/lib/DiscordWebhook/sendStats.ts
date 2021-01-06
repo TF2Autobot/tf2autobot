@@ -39,19 +39,50 @@ export default async function sendStats(bot: Bot): Promise<void> {
                 },
                 title: '📊 Statistics 📊',
                 description:
-                    `**Total days:** ${pluralize('day', trades.totalDays, true)}` +
-                    `\n\n**Total accepted trades:** ${
-                        tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)
-                    }` +
-                    `\n**Last 24 hours:** ${trades.trades24Hours} (${
-                        trades.trades24Hours + trades.failedOrIgnored24Hours
-                    } processed)` +
-                    `\n**Since beginning of today:** ${trades.tradesToday} (${
-                        trades.tradesToday + trades.failedOrIgnoredToday
-                    } processed)` +
-                    `\n\n**Profit made:** ${profitmadeFull + profitmadeInRef}` +
-                    `\n**Profit from overpay:** ${profitOverpayFull + profitOverpayInRef}` +
-                    `\n**Key rate:** ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`,
+                    `All trades (accepted) are recorded from **${pluralize('day', trades.totalDays, true)}** ago.` +
+                    `\n**Total accepted trades:** ${
+                        tradesFromEnv !== 0
+                            ? String(tradesFromEnv + trades.totalAcceptedTrades)
+                            : String(trades.totalAcceptedTrades)
+                    }`,
+                fields: [
+                    {
+                        name: 'Last 24 hours',
+                        value:
+                            `• Processed: ${trades.hours24.processed}` +
+                            `\n• Accepted: ${trades.hours24.accepted}` +
+                            `\n• Skipped: ${trades.hours24.skipped}` +
+                            `\n• Traded away: ${trades.hours24.invalid}` +
+                            `\n• Canceled: ${trades.hours24.canceled.total}` +
+                            `\n---⁎ by user: ${trades.hours24.canceled.byUser}` +
+                            `\n---⁎ confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
+                            `\n---⁎ unknown reason: ${trades.hours24.canceled.unknown}`
+                    },
+                    {
+                        name: 'Since beginning of today',
+                        value:
+                            `• Processed: ${trades.today.processed}` +
+                            `\n• Accepted: ${trades.today.accepted}` +
+                            `\n• Skipped: ${trades.today.skipped}` +
+                            `\n• Traded away: ${trades.today.invalid}` +
+                            `\n• Canceled: ${trades.today.canceled.total}` +
+                            `\n---⁎ by user: ${trades.today.canceled.byUser}` +
+                            `\n---⁎ confirmation failed: ${trades.today.canceled.failedConfirmation}` +
+                            `\n---⁎ unknown reason: ${trades.today.canceled.unknown}`
+                    },
+                    {
+                        name: `Profit${
+                            profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
+                        }`,
+                        value:
+                            `• Total made: ${profitmadeFull + profitmadeInRef}` +
+                            `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
+                    },
+                    {
+                        name: 'Key rate',
+                        value: `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
+                    }
+                ],
                 color: opt.embedColor
             }
         ]

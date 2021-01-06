@@ -1,19 +1,26 @@
 import Bot from '../../classes/Bot';
+import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
-export default function profit(
-    bot: Bot
-): Promise<{ tradeProfit: number; overpriceProfit: number; totalTrades: number }> {
+export default function profit(bot: Bot): Promise<{ tradeProfit: number; overpriceProfit: number; since: number }> {
     return new Promise(resolve => {
         const polldata = bot.manager.pollData;
+        const now = dayjs();
 
         if (polldata.offerData) {
             const trades = Object.keys(polldata.offerData).map(offerID => {
                 return polldata.offerData[offerID];
             });
+
+            const oldestId = polldata.offerData === undefined ? undefined : Object.keys(polldata.offerData)[0];
+            const timeSince =
+                +bot.options.statistics.profitDataSinceInUnix === 0
+                    ? polldata.timestamps[oldestId]
+                    : +bot.options.statistics.profitDataSinceInUnix;
+            const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
             const keyPrice = bot.pricelist.getKeyPrice();
             const weapons = bot.handler.getWeapons;
@@ -23,15 +30,11 @@ export default function profit(
 
             const tracker = new itemTracker();
 
-            let totalTrades = 0; // to keep track of how many trades are accepted
-
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];
                 if (!(trade.handledByUs && trade.isAccepted)) {
                     continue; // trade was not accepted, go to next trade
                 }
-
-                totalTrades++;
                 let isGift = false;
                 if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
                     continue; // trade has no items involved (not possible, but who knows)
@@ -140,18 +143,21 @@ export default function profit(
             tradeProfit = Math.round(tradeProfit + fromPrevious.made);
             overpriceProfit = Math.round(overpriceProfit + fromPrevious.overpay);
 
-            resolve({ tradeProfit, overpriceProfit, totalTrades });
+            resolve({ tradeProfit, overpriceProfit, since });
         } else {
             const fromPrevious = {
                 made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
-                overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
+                overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef),
+                since: bot.options.statistics.profitDataSinceInUnix
             };
 
             const tradeProfit = Math.round(fromPrevious.made);
             const overpriceProfit = Math.round(fromPrevious.overpay);
-            const totalTrades = bot.options.statistics.lastTotalTrades;
 
-            resolve({ tradeProfit, overpriceProfit, totalTrades });
+            const timeSince = fromPrevious.since === 0 ? undefined : fromPrevious.since;
+            const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
+
+            resolve({ tradeProfit, overpriceProfit, since });
         }
     });
 }

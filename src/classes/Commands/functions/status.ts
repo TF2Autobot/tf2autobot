@@ -26,17 +26,33 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     bot.sendMessage(
         steamID,
         `All trades (accepted) are recorded from ${pluralize('day', trades.totalDays, true)}` +
-            ' ago 📊\n\n Total: ' +
-            (tradesFromEnv !== 0 ? String(tradesFromEnv + trades.tradesTotal) : String(trades.tradesTotal)) +
-            ` \nLast 24 hours: ${trades.trades24Hours} (${
-                trades.trades24Hours + trades.failedOrIgnored24Hours
-            } processed)` +
-            ` \nSince beginning of today: ${trades.tradesToday} (${
-                trades.tradesToday + trades.failedOrIgnoredToday
-            } processed)` +
-            ` \n\nProfit made: ${profitmadeFull + profitmadeInRef}` +
-            ` \nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +
-            ` \nKey rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
+            ' ago 📊\n Total accepted trades: ' +
+            (tradesFromEnv !== 0
+                ? String(tradesFromEnv + trades.totalAcceptedTrades)
+                : String(trades.totalAcceptedTrades)) +
+            `\n\n--- Last 24 hours ---` +
+            `\n• Processed: ${trades.hours24.processed}` +
+            `\n• Accepted: ${trades.hours24.accepted}` +
+            `\n• Skipped: ${trades.hours24.skipped}` +
+            `\n• Traded away: ${trades.hours24.invalid}` +
+            `\n• Canceled: ${trades.hours24.canceled.total}` +
+            `\n---⁎ by user: ${trades.hours24.canceled.byUser}` +
+            `\n---⁎ confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
+            `\n---⁎ unknown: ${trades.hours24.canceled.unknown}` +
+            `\n\n--- Since beginning of today ---` +
+            `\n• Processed: ${trades.today.processed}` +
+            `\n• Accepted: ${trades.today.accepted}` +
+            `\n• Skipped: ${trades.today.skipped}` +
+            `\n• Traded away: ${trades.today.invalid}` +
+            `\n• Canceled: ${trades.today.canceled.total}` +
+            `\n---⁎ by user: ${trades.today.canceled.byUser}` +
+            `\n---⁎ confirmation failed: ${trades.today.canceled.failedConfirmation}` +
+            `\n---⁎ unknown: ${trades.today.canceled.unknown}` +
+            `\n\nProfit made: ${profitmadeFull + profitmadeInRef} ${
+                profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
+            }` +
+            `\nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +
+            `\nKey rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
     );
 }
 
