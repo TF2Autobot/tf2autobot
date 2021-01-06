@@ -269,7 +269,7 @@ export default class Pricelist extends EventEmitter {
                 search = search.replace('uncraftable', 'non-craftable');
             }
 
-            if (search === name) {
+            if (search === name || search.replace(/the /g, '').trim() === name.replace(/the /g, '').trim()) {
                 // Found direct match
                 return entry;
             }
