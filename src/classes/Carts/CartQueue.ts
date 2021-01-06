@@ -163,7 +163,7 @@ export default class CartQueue {
                     log.debug('Accepting mobile confirmation...');
 
                     // Wait for confirmation to be accepted
-                    return this.bot.trades.acceptConfirmationPromise(cart.getOffer()).reflect();
+                    return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
                 }
             })
             .catch(err => {

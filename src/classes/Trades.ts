@@ -430,7 +430,7 @@ export default class Trades {
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
                     this.acceptConfirmation(offer).catch(err => {
-                        log.debug(`failed acceptConfirmation ${JSON.stringify(err)}`);
+                        log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
                     });
                 }
 
@@ -439,40 +439,20 @@ export default class Trades {
         });
     }
 
-    acceptConfirmation(offer: TradeOffer, attempts = 0): Promise<void> {
-        if (offer.state === TradeOfferManager.ETradeOfferState['Canceled'])
-            throw new Error(`Offer #${offer.id} was canceled during confirmation`);
-
-        attempts++;
-        if (
-            offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
-            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
-        ) {
-            return this.acceptConfirmationPromise(offer, attempts).catch(async (err: Error) => {
-                if (attempts > 3) {
-                    throw err;
-                }
-
-                await promiseDelay(20 * 1000);
-
-                return this.acceptConfirmation(offer, attempts);
-            });
-        }
-    }
-
-    acceptConfirmationPromise(offer: TradeOffer, attempts = 1): Promise<void> {
+    acceptConfirmation(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
             log.debug(`Accepting mobile confirmation...`, {
-                offerId: offer.id,
-                attempts: attempts
+                offerId: offer.id
             });
-            offer.data('attempts', attempts);
 
             const start = dayjs().valueOf();
             offer.data('actedOnConfirmation', true);
             offer.data('actedOnConfirmationTimestamp', start);
 
             this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
+                const confirmationTime = dayjs().valueOf() - start;
+                offer.data('confirmationTime', confirmationTime);
+
                 if (err) {
                     return reject(err);
                 }
@@ -865,6 +845,6 @@ export default class Trades {
     }
 }
 
-function promiseDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
+// function promiseDelay(ms: number): Promise<void> {
+//     return new Promise(resolve => setTimeout(() => resolve(), ms));
+// }
