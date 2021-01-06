@@ -24,7 +24,7 @@ it('can pricecheck', async done => {
         buy: new Currencies({ keys: 0, metal: 55.11 }),
         sell: new Currencies({ keys: 0, metal: 55.22 })
     });
-    expect(priceList.getKeyPrice()).toEqual({
+    expect(priceList.getKeyPrice).toEqual({
         keys: 0,
         metal: 55.22
     });
