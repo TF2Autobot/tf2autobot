@@ -142,10 +142,26 @@ export default class Pricelist extends EventEmitter {
 
     private prices: Entry[] = [];
 
+    get getLength(): number {
+        return this.prices.length;
+    }
+
+    get getPrices(): Entry[] {
+        return this.prices.slice(0);
+    }
+
     /**
      * Current global key rate (this changes if you manually price key).
      */
     private globalKeyPrices: KeyPrices;
+
+    get getKeyPrices(): KeyPrices {
+        return this.globalKeyPrices;
+    }
+
+    get getKeyPrice(): Currencies {
+        return this.globalKeyPrices.sell;
+    }
 
     /**
      * Current key rate before receiving new prices data, this
@@ -174,22 +190,6 @@ export default class Pricelist extends EventEmitter {
 
     init(): void {
         this.socketManager.on('price', this.boundHandlePriceChange);
-    }
-
-    getKeyPrices(): KeyPrices {
-        return this.globalKeyPrices;
-    }
-
-    getKeyPrice(): Currencies {
-        return this.globalKeyPrices.sell;
-    }
-
-    getLength(): number {
-        return this.prices.length;
-    }
-
-    getPrices(): Entry[] {
-        return this.prices.slice(0);
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
@@ -292,7 +292,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
-        const keyPrices = this.getKeyPrices();
+        const keyPrices = this.getKeyPrices;
 
         if (entry.autoprice) {
             try {
@@ -454,7 +454,7 @@ export default class Pricelist extends EventEmitter {
 
     removeAll(): Promise<any> {
         return new Promise(resolve => {
-            if (this.getLength() !== 0) {
+            if (this.getLength !== 0) {
                 this.prices = [];
                 this.emit('pricelist', []);
             }

@@ -4,7 +4,7 @@ export default function invalidValue(
     bot: Bot,
     value: { diff: number; diffRef: number; diffKey: string }
 ): { note: string; missing: string } {
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
 
     const note = bot.options.manualReview.invalidValue.note
         ? `🟥_INVALID_VALUE - ${bot.options.manualReview.invalidValue.note}`

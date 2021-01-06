@@ -159,7 +159,7 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
 }
 
 export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<void> {
-    const pricelist = bot.pricelist.getPrices();
+    const pricelist = bot.pricelist.getPrices;
 
     const total = pricelist.length;
     const totalTime = total * 2 * 1000;

@@ -76,7 +76,7 @@ export default class InventoryManager {
     }
 
     amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, bot: Bot): number {
-        const keyPrice = this.pricelist.getKeyPrice();
+        const keyPrice = this.pricelist.getKeyPrice;
 
         const value = price.toValue(keyPrice.metal);
 

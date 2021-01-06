@@ -108,7 +108,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
         `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
-    const keyPrice = bot.pricelist.getKeyPrices();
+    const keyPrice = bot.pricelist.getKeyPrices;
     const value = offerData.value;
 
     const items = offerData.dict || { our: null, their: null };

@@ -17,7 +17,7 @@ export default async function sendStats(bot: Bot): Promise<void> {
     const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
 
     const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
     const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';

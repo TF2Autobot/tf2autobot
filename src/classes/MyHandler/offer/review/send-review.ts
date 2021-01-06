@@ -22,7 +22,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
     const pureStock = pure.stock(bot);
 
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
     const links = generateLinks(offer.partner.toString());
 
     const content = processReview(offer, meta, bot, isTradingKeys);

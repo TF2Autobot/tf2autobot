@@ -22,7 +22,7 @@ export default function profit(bot: Bot): Promise<{ tradeProfit: number; overpri
                     : +bot.options.statistics.profitDataSinceInUnix;
             const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
-            const keyPrice = bot.pricelist.getKeyPrice();
+            const keyPrice = bot.pricelist.getKeyPrice;
             const weapons = bot.handler.getWeapons;
 
             let overpriceProfit = 0;

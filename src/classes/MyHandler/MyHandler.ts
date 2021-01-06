@@ -328,7 +328,7 @@ export default class MyHandler extends Handler {
         log.info(
             `TF2Autobot v${process.env.BOT_VERSION} is ready | ${pluralize(
                 'item',
-                this.bot.pricelist.getLength(),
+                this.bot.pricelist.getLength,
                 true
             )} in pricelist | Listings cap: ${String(
                 this.bot.listingManager.cap
@@ -536,7 +536,7 @@ export default class MyHandler extends Handler {
                     }
                 });
 
-                const pricelist = this.bot.pricelist.getPrices().filter(entry => {
+                const pricelist = this.bot.pricelist.getPrices.filter(entry => {
                     // Filter our pricelist to only the items that are missing.
                     return entry.enabled && !newlistingsSKUs.includes(entry.sku);
                 });
@@ -862,7 +862,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         let hasOverstock = false;
 

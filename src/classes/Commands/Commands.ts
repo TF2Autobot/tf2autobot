@@ -223,7 +223,7 @@ export default class Commands {
         const isBuying = match.intent === 0 || match.intent === 2;
         const isSelling = match.intent === 1 || match.intent === 2;
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const isKey = match.sku === '5021;6';
 

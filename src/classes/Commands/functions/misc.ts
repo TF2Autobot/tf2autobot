@@ -87,7 +87,7 @@ export function rateCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const key = bot.pricelist.getKeyPrices();
+    const key = bot.pricelist.getKeyPrices;
     const keyPrice = key.sell.toString();
     const keyRateSource = key.src;
 

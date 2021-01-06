@@ -100,7 +100,7 @@ export default class Autokeys {
 
         const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
 
-        const currKeyPrice = this.bot.pricelist.getKeyPrices();
+        const currKeyPrice = this.bot.pricelist.getKeyPrices;
 
         if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
@@ -677,7 +677,7 @@ export default class Autokeys {
     }
 
     disable(): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
+        const keyPrices = this.bot.pricelist.getKeyPrices;
         const opt = this.bot.options;
         let entry;
         if (keyPrices.src !== 'manual') {

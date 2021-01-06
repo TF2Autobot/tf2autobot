@@ -14,7 +14,7 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const trades = await stats(bot);
     const profits = await profit(bot);
 
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
 
     const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
     const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';

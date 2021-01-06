@@ -253,7 +253,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         params.autoprice = true;
     }
 
-    const pricelist = bot.pricelist.getPrices();
+    const pricelist = bot.pricelist.getPrices;
 
     const dict = bot.inventoryManager.getInventory().getItems();
 
@@ -390,7 +390,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
 
     if (params.all === true) {
         // TODO: Must have atleast one other param
-        const pricelist = bot.pricelist.getPrices();
+        const pricelist = bot.pricelist.getPrices;
 
         let targetedPricelist: Entry[];
         let unTargetedPricelist: Entry[];
@@ -843,7 +843,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
 }
 
 function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
-    const keyPrice = bot.pricelist.getKeyPrice().metal;
+    const keyPrice = bot.pricelist.getKeyPrice.metal;
     const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
     const reply =
         `\n💲 Buy: ${
@@ -904,7 +904,7 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
     const newExecutedTime = dayjs().valueOf();
     const timeDiff = newExecutedTime - lastExecutedTime;
 
-    const pricelist = bot.pricelist.getPrices();
+    const pricelist = bot.pricelist.getPrices;
 
     if (pricelist.length === 0) {
         bot.sendMessage(steamID, '❌ Pricelist is empty!');
@@ -942,14 +942,14 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
 
     if (params.all === true) {
         // Remove entire pricelist
-        const pricelistLength = bot.pricelist.getLength();
+        const pricelistLength = bot.pricelist.getLength;
 
         if (pricelistLength === 0) {
             bot.sendMessage(steamID, '❌ Your pricelist is already empty!');
             return;
         }
 
-        const pricelist = bot.pricelist.getPrices();
+        const pricelist = bot.pricelist.getPrices;
 
         let newPricelist: Entry[] = [];
         let newPricelistCount: Entry[] = [];
@@ -1176,7 +1176,7 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
         return;
     }
 
-    const pricelist = bot.pricelist.getPrices();
+    const pricelist = bot.pricelist.getPrices;
     let filter = pricelist;
 
     if (params.enabled !== undefined) {

@@ -7,7 +7,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
 

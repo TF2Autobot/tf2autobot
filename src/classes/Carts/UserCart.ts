@@ -42,7 +42,7 @@ export default class UserCart extends Cart {
         // TODO: Check for dupes
 
         const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);
 
@@ -103,7 +103,7 @@ export default class UserCart extends Cart {
         const ourCurrencies = this.getOurCurrencies();
         const theirCurrencies = this.getTheirCurrencies();
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const ourValue = ourCurrencies.toValue(keyPrice.metal);
         const theirValue = theirCurrencies.toValue(keyPrice.metal);
@@ -126,7 +126,7 @@ export default class UserCart extends Cart {
     }
 
     getOurCurrencies(): Currencies {
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         let value = 0;
 
@@ -150,7 +150,7 @@ export default class UserCart extends Cart {
     }
 
     getTheirCurrencies(): Currencies {
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         let value = 0;
 
@@ -180,7 +180,7 @@ export default class UserCart extends Cart {
     ): { currencies: { [sku: string]: number }; change: number } {
         log.debug('Getting required currencies');
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const value = price.toValue(useKeys ? keyPrice.metal : undefined);
 
@@ -591,7 +591,7 @@ export default class UserCart extends Cart {
             );
         }
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const ourItemsValue = this.getOurCurrencies().toValue(keyPrice.metal);
         const theirItemsValue = this.getTheirCurrencies().toValue(keyPrice.metal);

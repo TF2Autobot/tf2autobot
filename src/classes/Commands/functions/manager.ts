@@ -614,7 +614,7 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot, auto: Autokeys): stri
     const currKey = pureNow.key;
     const currRef = pureNow.refTotalInScrap;
 
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
 
     const userPure = autokeys.userPure;
     const status = bot.handler.getAutokeysStatus;
@@ -737,7 +737,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
             }
         });
 
-        const pricelist = bot.pricelist.getPrices().filter(entry => {
+        const pricelist = bot.pricelist.getPrices.filter(entry => {
             // Filter our pricelist to only the items that are missing.
             return entry.enabled && !newlistingsSKUs.includes(entry.sku);
         });

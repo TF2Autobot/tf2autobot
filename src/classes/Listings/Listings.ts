@@ -287,7 +287,7 @@ export default class Listings {
 
                 const inventory = this.bot.inventoryManager.getInventory();
 
-                const pricelist = this.bot.pricelist.getPrices().sort((a, b) => {
+                const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
                     return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                 });
 
@@ -356,7 +356,7 @@ export default class Listings {
 
                 const inventory = this.bot.inventoryManager.getInventory();
 
-                const pricelist = this.bot.pricelist.getPrices().sort((a, b) => {
+                const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
                     return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                 });
 
@@ -516,7 +516,7 @@ export default class Listings {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
-        const keyPrice = this.bot.pricelist.getKeyPrice().toString();
+        const keyPrice = this.bot.pricelist.getKeyPrice.toString();
 
         const maxStock = entry.max;
         const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
