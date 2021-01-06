@@ -5,6 +5,7 @@ import Currencies from 'tf2-currencies';
 import Bot from '../../Bot';
 
 import { stats, profit } from '../../../lib/tools/export';
+import { sendStats } from '../../../lib/DiscordWebhook/export';
 
 // Bot status
 
@@ -56,6 +57,28 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             `\nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +
             `\nKey rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
     );
+}
+
+export function statsDWCommand(steamID: SteamID, bot: Bot): void {
+    const opt = bot.options.discordWebhook.sendStats;
+
+    if (!opt.enable) {
+        bot.sendMessage(steamID, '❌ Sending stats to Discord Webhook is disabled.');
+        return;
+    }
+
+    if (opt.url === '') {
+        bot.sendMessage(steamID, '❌ Your discordWebhook.sendStats.url is empty.');
+        return;
+    }
+
+    void sendStats(bot)
+        .then(() => {
+            bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
+        })
+        .catch(err => {
+            bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + JSON.stringify(err));
+        });
 }
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {

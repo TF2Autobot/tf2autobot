@@ -57,6 +57,7 @@ const ADMIN_COMMANDS: string[] = [
     "!avatar <image_URL> - Change the bot's avatar",
     '!resetqueue - Reset the queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
+    '!statsdw - Send statistics to Discord Webhook 📊',
     "!inventory - Get the bot's current inventory spaces 🎒",
     '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
