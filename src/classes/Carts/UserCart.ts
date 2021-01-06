@@ -200,7 +200,7 @@ export default class UserCart extends Cart {
             });
         }
 
-        log.debug('Currency values', currencyValues);
+        // log.debug('Currency values', currencyValues);
 
         const skus = Object.keys(currencyValues);
 
