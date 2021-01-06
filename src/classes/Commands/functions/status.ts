@@ -35,6 +35,7 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             `\n• Accepted: ${trades.hours24.accepted}` +
             `\n• Skipped: ${trades.hours24.skipped}` +
             `\n• Traded away: ${trades.hours24.invalid}` +
+            `\n• Declined: ${trades.hours24.decline}` +
             `\n• Canceled: ${trades.hours24.canceled.total}` +
             `\n---⁎ by user: ${trades.hours24.canceled.byUser}` +
             `\n---⁎ confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
@@ -44,6 +45,7 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             `\n• Accepted: ${trades.today.accepted}` +
             `\n• Skipped: ${trades.today.skipped}` +
             `\n• Traded away: ${trades.today.invalid}` +
+            `\n• Declined: ${trades.today.decline}` +
             `\n• Canceled: ${trades.today.canceled.total}` +
             `\n---⁎ by user: ${trades.today.canceled.byUser}` +
             `\n---⁎ confirmation failed: ${trades.today.canceled.failedConfirmation}` +

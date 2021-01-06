@@ -53,6 +53,7 @@ export default async function sendStats(bot: Bot): Promise<void> {
                             '\n• Accepted:' +
                             '\n• Skipped:' +
                             '\n• Traded away:' +
+                            '\n• Declined: ' +
                             '\n• Canceled:' +
                             '\n---⁎ by user:' +
                             '\n---⁎ confirmation failed:' +
@@ -66,6 +67,7 @@ export default async function sendStats(bot: Bot): Promise<void> {
                             `\n${trades.hours24.accepted}` +
                             `\n${trades.hours24.skipped}` +
                             `\n${trades.hours24.invalid}` +
+                            `\n${trades.hours24.decline}` +
                             `\n${trades.hours24.canceled.total}` +
                             `\n${trades.hours24.canceled.byUser}` +
                             `\n${trades.hours24.canceled.failedConfirmation}` +
@@ -79,6 +81,7 @@ export default async function sendStats(bot: Bot): Promise<void> {
                             `\n${trades.today.accepted}` +
                             `\n${trades.today.skipped}` +
                             `\n${trades.today.invalid}` +
+                            `\n${trades.today.decline}` +
                             `\n${trades.today.canceled.total}` +
                             `\n${trades.today.canceled.byUser}` +
                             `\n${trades.today.canceled.failedConfirmation}` +
