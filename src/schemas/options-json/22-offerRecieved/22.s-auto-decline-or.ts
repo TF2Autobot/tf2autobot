@@ -7,7 +7,7 @@ export const autoDeclineOrSchema: jsonschema.Schema = {
         enable: {
             type: 'boolean'
         },
-        note: {
+        declineReply: {
             type: 'string'
         }
     },

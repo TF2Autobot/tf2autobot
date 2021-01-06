@@ -120,7 +120,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
     ) {
         //
-        const custom = opt.offerReceived.invalidValue.autoDecline.note;
+        const custom = opt.offerReceived.invalidValue.autoDecline.declineReply;
         reasonForInvalidValue = true;
         reply = custom
             ? custom
@@ -132,7 +132,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         (offerReason.reason === '🟨_INVALID_ITEMS' && manualReviewDisabled)
     ) {
         //
-        const custom = opt.offerReceived.invalidItems.autoDecline.note;
+        const custom = opt.offerReceived.invalidItems.autoDecline.declineReply;
         reasonForInvalidValue = value.diff < 0;
         reply = custom
             ? custom
@@ -144,7 +144,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
     ) {
         //
-        const custom = opt.offerReceived.overstocked.autoDecline.note;
+        const custom = opt.offerReceived.overstocked.autoDecline.declineReply;
         reasonForInvalidValue = value.diff < 0;
         reply = custom
             ? custom
@@ -156,7 +156,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         (offerReason.reason === '🟩_UNDERSTOCKED' && manualReviewDisabled)
     ) {
         //
-        const custom = opt.offerReceived.understocked.autoDecline.note;
+        const custom = opt.offerReceived.understocked.autoDecline.declineReply;
         reasonForInvalidValue = value.diff < 0;
         reply = custom
             ? custom
@@ -165,7 +165,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
     } else if (offerReason.reason === '🟫_DUPED_ITEMS') {
         //
-        const custom = opt.offerReceived.duped.autoDecline.note;
+        const custom = opt.offerReceived.duped.autoDecline.declineReply;
         reply = custom
             ? custom
             : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ' +
@@ -181,12 +181,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         '\n\nSummary:\n' +
         summarize(offer, bot, 'declined', false).replace('Asked', '  My side').replace('Offered', 'Your side') +
         "\n[You're missing: " +
-        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
-        `${
-            opt.offerReceived.invalidValue.autoDecline.note
-                ? '\n\nNote from owner: ' + opt.offerReceived.invalidValue.autoDecline.note
-                : ''
-        }`;
+        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 
     bot.sendMessage(offer.partner, reply + (reasonForInvalidValue ? invalidValueSummary : ''));
 }

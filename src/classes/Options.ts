@@ -469,7 +469,7 @@ export const DEFAULTS = {
                  *  you've sent a trade with an invalid value (your side and my side do not hold equal value)."
                  * followed by `[You're missing: ${value}]` (unchangeable)
                  */
-                note: ''
+                declineReply: ''
             },
             exceptionValue: {
                 // 22.1.2
@@ -510,7 +510,7 @@ export const DEFAULTS = {
                  *  you've sent a trade with an invalid items (not exist in my pricelist)."
                  * followed by `[You're missing: ${value}]` (if applicable).
                  */
-                note: ''
+                declineReply: ''
             }
         },
         // 🟦_OVERSTOCKED (ONLY_OVERSTOCKED)
@@ -532,7 +532,7 @@ export const DEFAULTS = {
                  * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  *  you're attempting to sell item(s) that I can't buy more of." followed by `[You're missing: ${value}]` (if applicable).
                  */
-                note: ''
+                declineReply: ''
             }
         },
         // 🟩_UNDERSTOCKED (ONLY_UNDERSTOCKED)
@@ -554,7 +554,7 @@ export const DEFAULTS = {
                  * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  * you're attempting to purchase item(s) that I can't sell more of." followed by `[You're missing: ${value}]` (if applicable).
                  */
-                note: ''
+                declineReply: ''
             }
         },
         // 🟫_DUPED_ITEMS
@@ -578,7 +578,7 @@ export const DEFAULTS = {
                  * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
                  *  I don't accept duped items."
                  */
-                note: ''
+                declineReply: ''
             }
         },
         // ⬜_ESCROW_CHECK_FAILED
@@ -1880,8 +1880,12 @@ export interface OfferReceived {
     bannedCheckFailed?: EscrowBannedCheckFailed;
 }
 
+export interface DeclineReply extends OnlyEnable {
+    declineReply?: string;
+}
+
 export interface InvalidValue {
-    autoDecline: OnlyEnable & OnlyNote;
+    autoDecline: DeclineReply;
     exceptionValue: ExceptionValue;
 }
 
@@ -1890,11 +1894,9 @@ export interface ExceptionValue {
     valueInRef: number;
 }
 
-export type AutoDecline = OnlyEnable & OnlyNote;
-
 export interface AutoAcceptOverpayAndAutoDecline {
     autoAcceptOverpay?: boolean;
-    autoDecline?: AutoDecline;
+    autoDecline?: DeclineReply;
 }
 
 export interface InvalidItems extends AutoAcceptOverpayAndAutoDecline {
@@ -1904,7 +1906,7 @@ export interface InvalidItems extends AutoAcceptOverpayAndAutoDecline {
 export interface Duped {
     enableCheck?: boolean;
     minKeys?: number;
-    autoDecline?: AutoDecline;
+    autoDecline?: DeclineReply;
 }
 
 export interface EscrowBannedCheckFailed {
