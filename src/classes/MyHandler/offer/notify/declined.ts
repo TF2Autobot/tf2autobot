@@ -11,6 +11,8 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
 
+    offer.data('isDeclined', true);
+
     let reasonForInvalidValue = false;
     let reply: string;
     if (!offerReason) {

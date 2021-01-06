@@ -112,6 +112,7 @@ declare module 'steam-tradeoffer-manager' {
             isFailedConfirmation?: boolean; // added
             isCanceledUnknown?: boolean; // added
             isInvalid?: boolean;
+            isDeclined?: boolean;
             switchedState?: number; // checked
             donation?: boolean;
             buyBptfPremium?: boolean;

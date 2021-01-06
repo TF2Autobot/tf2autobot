@@ -33,20 +33,28 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
                 : String(trades.totalAcceptedTrades)) +
             `\n\n--- Last 24 hours ---` +
             `\n• Processed: ${trades.hours24.processed}` +
-            `\n• Accepted: ${trades.hours24.accepted}` +
+            `\n• Accepted: ${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
+            `\n---• Received offer: ${trades.hours24.accepted.offer}` +
+            `\n---• Sent offer: ${trades.hours24.accepted.sent}` +
+            `\n• Declined: ${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
+            `\n---• Received offer: ${trades.hours24.decline.offer}` +
+            `\n---• Sent offer: ${trades.hours24.decline.sent}` +
             `\n• Skipped: ${trades.hours24.skipped}` +
             `\n• Traded away: ${trades.hours24.invalid}` +
-            `\n• Declined: ${trades.hours24.decline}` +
             `\n• Canceled: ${trades.hours24.canceled.total}` +
             `\n---• by user: ${trades.hours24.canceled.byUser}` +
             `\n---• confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
             `\n---• unknown reason: ${trades.hours24.canceled.unknown}` +
             `\n\n--- Since beginning of today ---` +
             `\n• Processed: ${trades.today.processed}` +
-            `\n• Accepted: ${trades.today.accepted}` +
+            `\n• Accepted: ${trades.today.accepted.offer + trades.today.accepted.sent}` +
+            `\n---• Received offer: ${trades.today.accepted.offer}` +
+            `\n---• Sent offer: ${trades.today.accepted.sent}` +
+            `\n• Declined: ${trades.today.decline.offer + trades.today.decline.sent}` +
+            `\n---• Received offer: ${trades.today.decline.offer}` +
+            `\n---• Sent offer: ${trades.today.decline.sent}` +
             `\n• Skipped: ${trades.today.skipped}` +
             `\n• Traded away: ${trades.today.invalid}` +
-            `\n• Declined: ${trades.today.decline}` +
             `\n• Canceled: ${trades.today.canceled.total}` +
             `\n---• by user: ${trades.today.canceled.byUser}` +
             `\n---• confirmation failed: ${trades.today.canceled.failedConfirmation}` +

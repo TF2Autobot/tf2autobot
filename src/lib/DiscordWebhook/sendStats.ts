@@ -51,9 +51,13 @@ export default async function sendStats(bot: Bot): Promise<void> {
                         value:
                             '• Processed:' +
                             '\n• Accepted:' +
+                            '\n---• Received offer:' +
+                            '\n---• Sent offer:' +
+                            '\n• Declined: ' +
+                            '\n---• Received offer:' +
+                            '\n---• Sent offer:' +
                             '\n• Skipped:' +
                             '\n• Traded away:' +
-                            '\n• Declined: ' +
                             '\n• Canceled:' +
                             '\n---• by user:' +
                             '\n---• confirmation failed:' +
@@ -64,10 +68,14 @@ export default async function sendStats(bot: Bot): Promise<void> {
                         name: 'Last 24 hours',
                         value:
                             `${trades.hours24.processed}` +
-                            `\n${trades.hours24.accepted}` +
+                            `\n${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
+                            `\n${trades.hours24.accepted.offer}` +
+                            `\n${trades.hours24.accepted.sent}` +
+                            `\n${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
+                            `\n${trades.hours24.decline.offer}` +
+                            `\n${trades.hours24.decline.sent}` +
                             `\n${trades.hours24.skipped}` +
                             `\n${trades.hours24.invalid}` +
-                            `\n${trades.hours24.decline}` +
                             `\n${trades.hours24.canceled.total}` +
                             `\n${trades.hours24.canceled.byUser}` +
                             `\n${trades.hours24.canceled.failedConfirmation}` +
@@ -78,10 +86,14 @@ export default async function sendStats(bot: Bot): Promise<void> {
                         name: 'Since beginning of today',
                         value:
                             `${trades.today.processed}` +
-                            `\n${trades.today.accepted}` +
+                            `\n${trades.today.accepted.offer + trades.today.accepted.sent}` +
+                            `\n${trades.today.accepted.offer}` +
+                            `\n${trades.today.accepted.sent}` +
+                            `\n${trades.today.decline.offer + trades.today.decline.sent}` +
+                            `\n${trades.today.decline.offer}` +
+                            `\n${trades.today.decline.sent}` +
                             `\n${trades.today.skipped}` +
                             `\n${trades.today.invalid}` +
-                            `\n${trades.today.decline}` +
                             `\n${trades.today.canceled.total}` +
                             `\n${trades.today.canceled.byUser}` +
                             `\n${trades.today.canceled.failedConfirmation}` +
