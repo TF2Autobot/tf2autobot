@@ -55,9 +55,9 @@ export default async function sendStats(bot: Bot): Promise<void> {
                             '\n• Traded away:' +
                             '\n• Declined: ' +
                             '\n• Canceled:' +
-                            '\n---⁎ by user:' +
-                            '\n---⁎ confirmation failed:' +
-                            '\n---⁎ unknown reason:',
+                            '\n---• by user:' +
+                            '\n---• confirmation failed:' +
+                            '\n---• unknown reason:',
                         inline: true
                     },
                     {

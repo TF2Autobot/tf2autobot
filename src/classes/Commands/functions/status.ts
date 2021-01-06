@@ -38,9 +38,9 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             `\n• Traded away: ${trades.hours24.invalid}` +
             `\n• Declined: ${trades.hours24.decline}` +
             `\n• Canceled: ${trades.hours24.canceled.total}` +
-            `\n---⁎ by user: ${trades.hours24.canceled.byUser}` +
-            `\n---⁎ confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
-            `\n---⁎ unknown: ${trades.hours24.canceled.unknown}` +
+            `\n---• by user: ${trades.hours24.canceled.byUser}` +
+            `\n---• confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
+            `\n---• unknown reason: ${trades.hours24.canceled.unknown}` +
             `\n\n--- Since beginning of today ---` +
             `\n• Processed: ${trades.today.processed}` +
             `\n• Accepted: ${trades.today.accepted}` +
@@ -48,9 +48,9 @@ export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
             `\n• Traded away: ${trades.today.invalid}` +
             `\n• Declined: ${trades.today.decline}` +
             `\n• Canceled: ${trades.today.canceled.total}` +
-            `\n---⁎ by user: ${trades.today.canceled.byUser}` +
-            `\n---⁎ confirmation failed: ${trades.today.canceled.failedConfirmation}` +
-            `\n---⁎ unknown: ${trades.today.canceled.unknown}` +
+            `\n---• by user: ${trades.today.canceled.byUser}` +
+            `\n---• confirmation failed: ${trades.today.canceled.failedConfirmation}` +
+            `\n---• unknown reason: ${trades.today.canceled.unknown}` +
             `\n\nProfit made: ${profitmadeFull + profitmadeInRef} ${
                 profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
             }` +
