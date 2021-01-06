@@ -36,6 +36,9 @@ export const declineCMSchema: jsonschema.Schema = {
         },
         escrow: {
             type: 'string'
+        },
+        manual: {
+            type: 'string'
         }
     },
     additionalProperties: false,

@@ -967,7 +967,11 @@ export const DEFAULTS = {
              *  \\nRead:\\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030
              *  \\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218"
              */
-            escrow: ''
+            escrow: '',
+            /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined by the owner."
+             */
+            manual: ''
         },
         /**
          * Default: "/pre ❌ Ohh nooooes! Your offer is no longer available. Reason: Items not available (traded away in a different trade)."
@@ -2003,17 +2007,18 @@ export interface CustomMessage {
 }
 
 export interface DeclineNote {
-    giftNoNote: string;
-    crimeAttempt: string;
-    onlyMetal: string;
-    duelingNot5Uses: string;
-    noiseMakerNot5Uses: string;
-    highValueItemsNotSelling: string;
-    notTradingKeys: string;
-    notSellingKeys: string;
-    notBuyingKeys: string;
-    banned: string;
-    escrow: string;
+    giftNoNote?: string;
+    crimeAttempt?: string;
+    onlyMetal?: string;
+    duelingNot5Uses?: string;
+    noiseMakerNot5Uses?: string;
+    highValueItemsNotSelling?: string;
+    notTradingKeys?: string;
+    notSellingKeys?: string;
+    notBuyingKeys?: string;
+    banned?: string;
+    escrow?: string;
+    manual?: string;
 }
 
 // ------------ Commands ------------

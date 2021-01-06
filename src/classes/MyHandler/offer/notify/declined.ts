@@ -108,6 +108,13 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
               '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
               '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218';
         //
+    } else if (offerReason.reason === 'MANUAL') {
+        //
+        const custom = opt.customMessage.decline.manual;
+        reply = custom
+            ? custom
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined by the owner.';
+        //
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
