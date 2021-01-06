@@ -50,7 +50,6 @@ export default class UserCart extends Cart {
 
         if (isDupedCheckEnabled && theirItemsValue > minimumKeysDupeCheck) {
             const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
-            this.offer.data('_dupeCheck', undefined);
 
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
 
@@ -84,6 +83,8 @@ export default class UserCart extends Cart {
                 return Promise.reject('failed to check for duped items, try sending an offer instead');
             }
         }
+
+        this.offer.data('_dupeCheck', undefined);
     }
 
     canUseKeys(): boolean {

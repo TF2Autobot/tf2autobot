@@ -175,10 +175,7 @@ export default function processAccepted(
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
 
     const offerData = bot.manager.pollData.offerData;
-    const isOfferSent = offerData
-        ? offerData[offer.id]._dupeCheck !== undefined ||
-          (offerData[offer.id].action === undefined && bot.isAdmin(offer.partner))
-        : undefined;
+    const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
 
     if (isWebhookEnabled) {
         const itemPrices = t.listPrices(offer, bot, false);
