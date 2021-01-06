@@ -1510,18 +1510,15 @@ export default class MyHandler extends Handler {
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
-                const reviewMeta = {
-                    uniqueReasons: uniqueReasons,
-                    reasons: wrongAboutOffer,
-                    highValue: highValueMeta(input)
-                };
-
-                offer.data('reviewMeta', reviewMeta);
 
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
-                    meta: reviewMeta
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer,
+                        highValue: highValueMeta(input)
+                    }
                 };
             }
         }

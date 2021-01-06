@@ -108,7 +108,6 @@ declare module 'steam-tradeoffer-manager' {
             highValue?: HighValueOutput; // Only offer sent // checked
             _dupeCheck?: string[]; // Only offer sent // checked
             _ourItems?: OutItems[]; // checked
-            reviewMeta?: ReviewMeta; // Only if offer need to be reviewed
             canceledByUser?: boolean; // checked
             switchedState?: number; // checked
             donation?: boolean;

@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Meta, OfferData } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { Action, OfferData } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 
@@ -225,7 +225,7 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
             }
         }
 
-        const reviewMeta = offer.data('reviewMeta') as Meta;
+        const reviewMeta = (offer.data('action') as Action).meta;
 
         if (declineTrade === false) {
             try {
