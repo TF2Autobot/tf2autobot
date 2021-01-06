@@ -47,28 +47,43 @@ export default async function sendStats(bot: Bot): Promise<void> {
                     }`,
                 fields: [
                     {
+                        name: 'Type/Duration',
+                        value:
+                            '• Processed:' +
+                            '\n• Accepted:' +
+                            '\n• Skipped:' +
+                            '\n• Traded away:' +
+                            '\n• Canceled:' +
+                            '\n---⁎ by user:' +
+                            '\n---⁎ confirmation failed:' +
+                            '\n---⁎ unknown reason:',
+                        inline: true
+                    },
+                    {
                         name: 'Last 24 hours',
                         value:
-                            `• Processed: ${trades.hours24.processed}` +
-                            `\n• Accepted: ${trades.hours24.accepted}` +
-                            `\n• Skipped: ${trades.hours24.skipped}` +
-                            `\n• Traded away: ${trades.hours24.invalid}` +
-                            `\n• Canceled: ${trades.hours24.canceled.total}` +
-                            `\n---⁎ by user: ${trades.hours24.canceled.byUser}` +
-                            `\n---⁎ confirmation failed: ${trades.hours24.canceled.failedConfirmation}` +
-                            `\n---⁎ unknown reason: ${trades.hours24.canceled.unknown}`
+                            `${trades.hours24.processed}` +
+                            `\n${trades.hours24.accepted}` +
+                            `\n${trades.hours24.skipped}` +
+                            `\n${trades.hours24.invalid}` +
+                            `\n${trades.hours24.canceled.total}` +
+                            `\n${trades.hours24.canceled.byUser}` +
+                            `\n${trades.hours24.canceled.failedConfirmation}` +
+                            `\n${trades.hours24.canceled.unknown}`,
+                        inline: true
                     },
                     {
                         name: 'Since beginning of today',
                         value:
-                            `• Processed: ${trades.today.processed}` +
-                            `\n• Accepted: ${trades.today.accepted}` +
-                            `\n• Skipped: ${trades.today.skipped}` +
-                            `\n• Traded away: ${trades.today.invalid}` +
-                            `\n• Canceled: ${trades.today.canceled.total}` +
-                            `\n---⁎ by user: ${trades.today.canceled.byUser}` +
-                            `\n---⁎ confirmation failed: ${trades.today.canceled.failedConfirmation}` +
-                            `\n---⁎ unknown reason: ${trades.today.canceled.unknown}`
+                            `${trades.today.processed}` +
+                            `\n${trades.today.accepted}` +
+                            `\n${trades.today.skipped}` +
+                            `\n${trades.today.invalid}` +
+                            `\n${trades.today.canceled.total}` +
+                            `\n${trades.today.canceled.byUser}` +
+                            `\n${trades.today.canceled.failedConfirmation}` +
+                            `\n${trades.today.canceled.unknown}`,
+                        inline: true
                     },
                     {
                         name: `Profit${
