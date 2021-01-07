@@ -1,7 +1,7 @@
 import SKU from 'tf2-sku-2';
 import { EconItem, Items, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 
-import log from '../logger';
+// import log from '../logger';
 import { strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../data';
 import Bot from '../../classes/Bot';
 import { DictItem } from '../../classes/Inventory';
@@ -168,7 +168,7 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             attributes.p = p;
         }
 
-        log.debug('info', `high value: ${econ.assetid}`);
+        // log.debug('info', `high value: ${econ.assetid}`);
     }
 
     return attributes;
