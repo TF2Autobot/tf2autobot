@@ -419,6 +419,9 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
+        const assetidsOur: string[] = [];
+        const assetidsTheir: string[] = [];
+
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
         this.ourInventoryCount = ourInventory.getTotalItems;
@@ -655,6 +658,7 @@ export default class UserCart extends Cart {
 
                 if (isAdded) {
                     // The item was added to the offer
+                    assetidsOur.push(assetids[i]);
                     missing--;
                     if (missing === 0) {
                         // We added all the items
@@ -724,6 +728,8 @@ export default class UserCart extends Cart {
                 if (isAdded) {
                     missing--;
 
+                    assetidsTheir.push(assetids[i]);
+
                     if (addToDupeCheckList) {
                         assetidsToCheck.push(assetids[i]);
                     }
@@ -774,111 +780,119 @@ export default class UserCart extends Cart {
         };
 
         for (const sku in ourInventoryDict) {
-            ourInventoryDict[sku].forEach(item => {
-                const hv = item.hv;
+            ourInventoryDict[sku]
+                .filter(item => {
+                    return assetidsOur.includes(item.id);
+                })
+                .forEach(item => {
+                    const hv = item.hv;
 
-                if (hv !== undefined) {
-                    // If hv exist, get the high value and assign into items
-                    highValue.our.items[sku] = hv;
+                    if (hv !== undefined) {
+                        // If hv exist, get the high value and assign into items
+                        highValue.our.items[sku] = hv;
 
-                    // Now check for mention
-                    if (hv.s !== undefined) {
-                        // If spells exist, always mention
-                        highValue.our.isMention = true;
-                    }
+                        // Now check for mention
+                        if (hv.s !== undefined) {
+                            // If spells exist, always mention
+                            highValue.our.isMention = true;
+                        }
 
-                    // Else for other attachments, check if boolean is true
-                    if (hv.sp !== undefined) {
-                        // Strange parts
-                        for (const pSku in hv.sp) {
-                            if (hv.sp[pSku] === true) {
-                                highValue.our.isMention = true;
+                        // Else for other attachments, check if boolean is true
+                        if (hv.sp !== undefined) {
+                            // Strange parts
+                            for (const pSku in hv.sp) {
+                                if (hv.sp[pSku] === true) {
+                                    highValue.our.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ks !== undefined) {
+                            // Sheens
+                            for (const pSku in hv.ks) {
+                                if (hv.ks[pSku] === true) {
+                                    highValue.our.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ke !== undefined) {
+                            // Killstreakers
+                            for (const pSku in hv.ke) {
+                                if (hv.ke[pSku] === true) {
+                                    highValue.our.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.p !== undefined) {
+                            // Painted
+                            for (const pSku in hv.p) {
+                                if (hv.p[pSku] === true) {
+                                    highValue.our.isMention = true;
+                                }
                             }
                         }
                     }
-
-                    if (hv.ks !== undefined) {
-                        // Sheens
-                        for (const pSku in hv.ks) {
-                            if (hv.ks[pSku] === true) {
-                                highValue.our.isMention = true;
-                            }
-                        }
-                    }
-
-                    if (hv.ke !== undefined) {
-                        // Killstreakers
-                        for (const pSku in hv.ke) {
-                            if (hv.ke[pSku] === true) {
-                                highValue.our.isMention = true;
-                            }
-                        }
-                    }
-
-                    if (hv.p !== undefined) {
-                        // Painted
-                        for (const pSku in hv.p) {
-                            if (hv.p[pSku] === true) {
-                                highValue.our.isMention = true;
-                            }
-                        }
-                    }
-                }
-            });
+                });
         }
 
         for (const sku in theirInventoryDict) {
-            theirInventoryDict[sku].forEach(item => {
-                const hv = item.hv;
+            theirInventoryDict[sku]
+                .filter(item => {
+                    return assetidsTheir.includes(item.id);
+                })
+                .forEach(item => {
+                    const hv = item.hv;
 
-                if (hv !== undefined) {
-                    // If hv exist, get the high value and assign into items
-                    highValue.their.items[sku] = hv;
+                    if (hv !== undefined) {
+                        // If hv exist, get the high value and assign into items
+                        highValue.their.items[sku] = hv;
 
-                    // Now check for mention
-                    if (hv.s !== undefined) {
-                        // If spells exist, always mention
-                        highValue.their.isMention = true;
-                    }
+                        // Now check for mention
+                        if (hv.s !== undefined) {
+                            // If spells exist, always mention
+                            highValue.their.isMention = true;
+                        }
 
-                    // Else for other attachments, check if boolean is true
-                    if (hv.sp !== undefined) {
-                        // Strange parts
-                        for (const pSku in hv.sp) {
-                            if (hv.sp[pSku] === true) {
-                                highValue.their.isMention = true;
+                        // Else for other attachments, check if boolean is true
+                        if (hv.sp !== undefined) {
+                            // Strange parts
+                            for (const pSku in hv.sp) {
+                                if (hv.sp[pSku] === true) {
+                                    highValue.their.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ks !== undefined) {
+                            // Sheens
+                            for (const pSku in hv.ks) {
+                                if (hv.ks[pSku] === true) {
+                                    highValue.their.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ke !== undefined) {
+                            // Killstreakers
+                            for (const pSku in hv.ke) {
+                                if (hv.ke[pSku] === true) {
+                                    highValue.their.isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.p !== undefined) {
+                            // Painted
+                            for (const pSku in hv.p) {
+                                if (hv.p[pSku] === true) {
+                                    highValue.their.isMention = true;
+                                }
                             }
                         }
                     }
-
-                    if (hv.ks !== undefined) {
-                        // Sheens
-                        for (const pSku in hv.ks) {
-                            if (hv.ks[pSku] === true) {
-                                highValue.their.isMention = true;
-                            }
-                        }
-                    }
-
-                    if (hv.ke !== undefined) {
-                        // Killstreakers
-                        for (const pSku in hv.ke) {
-                            if (hv.ke[pSku] === true) {
-                                highValue.their.isMention = true;
-                            }
-                        }
-                    }
-
-                    if (hv.p !== undefined) {
-                        // Painted
-                        for (const pSku in hv.p) {
-                            if (hv.p[pSku] === true) {
-                                highValue.their.isMention = true;
-                            }
-                        }
-                    }
-                }
-            });
+                });
         }
 
         const input: HighValueInput = {
