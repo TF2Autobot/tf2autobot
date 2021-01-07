@@ -66,8 +66,16 @@ export default class Inventory {
         this.options = options;
     }
 
-    static fromItems(steamID: SteamID | string, items: EconItem[], unusualEffects: Array<Effect>, bot: Bot): Inventory {
-        const inventory = new Inventory(steamID, bot.manager, bot.schema, bot.options, unusualEffects);
+    static fromItems(
+        steamID: SteamID | string,
+        items: EconItem[],
+        manager: TradeOfferManager,
+        schema: SchemaManager.Schema,
+        options: Options,
+        unusualEffects: Array<Effect>,
+        bot: Bot
+    ): Inventory {
+        const inventory = new Inventory(steamID, manager, schema, options, unusualEffects);
 
         // Funny how typescript allows calling a private function from a static function
         inventory.setItems(items, bot);
@@ -132,8 +140,20 @@ export default class Inventory {
             }
         });
 
-        this.tradable = Inventory.createDictionary(tradable, bot);
-        this.nonTradable = Inventory.createDictionary(nonTradable, bot);
+        this.tradable = Inventory.createDictionary(
+            tradable,
+            this.schema,
+            this.options.normalize.festivized,
+            this.options.normalize.strangeUnusual,
+            bot
+        );
+        this.nonTradable = Inventory.createDictionary(
+            nonTradable,
+            this.schema,
+            this.options.normalize.festivized,
+            this.options.normalize.strangeUnusual,
+            bot
+        );
     }
 
     findByAssetid(assetid: string): string | null {
@@ -218,14 +238,18 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(items: EconItem[], bot: Bot): Dict {
+    private static createDictionary(
+        items: EconItem[],
+        schema: SchemaManager.Schema,
+        optFestivized: boolean,
+        optStrangeUnusual: boolean,
+        bot: Bot
+    ): Dict {
         const dict: Dict = {};
-
-        const opt = bot.options.normalize;
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const sku = item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual);
+            const sku = item.getSKU(schema, optFestivized, optStrangeUnusual);
 
             const attributes = check.highValue(item, bot);
 
@@ -256,8 +280,8 @@ export default class Inventory {
     }
 
     clearFetch(): void {
-        this.tradable = {};
-        this.nonTradable = {};
+        this.tradable = undefined;
+        this.nonTradable = undefined;
     }
 }
 

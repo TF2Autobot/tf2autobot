@@ -125,10 +125,6 @@ export default class MyHandler extends Handler {
         return this.bot.options.offerReceived.duped.minKeys;
     }
 
-    private get isShowChanges(): boolean {
-        return this.bot.options.tradeSummary.showStockChanges;
-    }
-
     private get isPriceUpdateWebhook(): boolean {
         return (
             this.bot.options.discordWebhook.priceUpdate.enable && this.bot.options.discordWebhook.priceUpdate.url !== ''
@@ -621,11 +617,22 @@ export default class MyHandler extends Handler {
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
+            this.bot.manager,
+            this.bot.schema,
+            this.bot.options,
             this.bot.unusualEffects,
             this.bot
         );
 
-        const theirItems = Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot.unusualEffects, this.bot);
+        const theirItems = Inventory.fromItems(
+            offer.partner,
+            offer.itemsToReceive,
+            this.bot.manager,
+            this.bot.schema,
+            this.bot.options,
+            this.bot.unusualEffects,
+            this.bot
+        );
 
         const items = {
             our: ourItems.getItems,

@@ -269,12 +269,6 @@ declare module 'steam-tradeoffer-manager' {
             isMention: HighValueBoolean;
         }
 
-        export interface ReviewMeta {
-            uniqueReasons: string;
-            reasons: WrongAboutOffer[];
-            highValue: HighValueOutput;
-        }
-
         export interface OutItems {
             appid: number;
             contextid: string;
