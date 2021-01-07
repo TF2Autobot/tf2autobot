@@ -782,7 +782,7 @@ export default class UserCart extends Cart {
                     highValue.our.items[sku] = hv;
 
                     // Now check for mention
-                    if (hv.s.length > 0) {
+                    if (hv.s !== undefined) {
                         // If spells exist, always mention
                         highValue.our.isMention = true;
                     }
@@ -836,7 +836,7 @@ export default class UserCart extends Cart {
                     highValue.their.items[sku] = hv;
 
                     // Now check for mention
-                    if (hv.s.length > 0) {
+                    if (hv.s !== undefined) {
                         // If spells exist, always mention
                         highValue.their.isMention = true;
                     }
