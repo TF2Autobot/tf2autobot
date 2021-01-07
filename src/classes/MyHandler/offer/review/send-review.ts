@@ -119,7 +119,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         const itemPrices = listPrices(offer, bot, false);
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, itemPrices, bot);
     } else {
-        const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+        const currentItems = bot.inventoryManager.getInventory().getTotalItems;
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
         const itemPrices = listPrices(offer, bot, true);

@@ -123,7 +123,7 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const dict = bot.inventoryManager.getInventory().getItems();
+    const dict = bot.inventoryManager.getInventory().getItems;
 
     const items: { amount: number; name: string }[] = [];
 

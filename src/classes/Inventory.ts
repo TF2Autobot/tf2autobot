@@ -1,72 +1,38 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { Effect, UnknownDictionary } from '../types/common';
+import { Effect } from '../types/common';
 import SteamID from 'steamid';
-import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
 import SchemaManager, { Schema, SchemaItem } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
 
+import { noiseMakerSKUs } from '../lib/data';
+import { check } from '../lib/tools/export';
+
 export default class Inventory {
     private readonly steamID: SteamID;
+
+    get getSteamID(): SteamID {
+        return this.steamID;
+    }
 
     private readonly manager: TradeOfferManager;
 
     private readonly schema: SchemaManager.Schema;
 
-    private tradable: UnknownDictionary<string[]> = {};
+    private tradable: Dict = {};
 
-    private nonTradable: UnknownDictionary<string[]> = {};
-
-    private tradableEcon: EconItem[] = [];
-
-    private options: Options;
-
-    constructor(
-        steamID: SteamID | string,
-        manager: TradeOfferManager,
-        schema: SchemaManager.Schema,
-        options: Options,
-        public unusualEffects: Array<Effect>
-    ) {
-        this.steamID = new SteamID(steamID.toString());
-        this.manager = manager;
-        this.schema = schema;
-        this.options = options;
-    }
-
-    static fromItems(
-        steamID: SteamID | string,
-        items: EconItem[],
-        manager: TradeOfferManager,
-        schema: SchemaManager.Schema,
-        options: Options,
-        unusualEffects: Array<Effect>
-    ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, unusualEffects);
-
-        // Funny how typescript allows calling a private function from a static function
-        inventory.setItems(items);
-
-        return inventory;
-    }
-
-    getSteamID(): SteamID {
-        return this.steamID;
-    }
-
-    getItems(): UnknownDictionary<string[]> {
+    get getItems(): Dict {
         return this.tradable;
     }
 
-    getItemsEcon(): EconItem[] {
-        return this.tradableEcon;
-    }
+    private nonTradable: Dict = {};
 
-    getTotalItems(): number {
+    get getTotalItems(): number {
         let items = 0;
         const amountTradable = this.tradable;
         for (const sku in amountTradable) {
@@ -85,9 +51,33 @@ export default class Inventory {
         return items;
     }
 
+    private options: Options;
+
+    constructor(
+        steamID: SteamID | string,
+        manager: TradeOfferManager,
+        schema: SchemaManager.Schema,
+        options: Options,
+        public unusualEffects: Array<Effect>
+    ) {
+        this.steamID = new SteamID(steamID.toString());
+        this.manager = manager;
+        this.schema = schema;
+        this.options = options;
+    }
+
+    static fromItems(steamID: SteamID | string, items: EconItem[], unusualEffects: Array<Effect>, bot: Bot): Inventory {
+        const inventory = new Inventory(steamID, bot.manager, bot.schema, bot.options, unusualEffects);
+
+        // Funny how typescript allows calling a private function from a static function
+        inventory.setItems(items, bot);
+
+        return inventory;
+    }
+
     addItem(sku: string, assetid: string): void {
         const items = this.tradable;
-        (items[sku] = items[sku] || []).push(assetid);
+        (items[sku] = items[sku] || []).push({ id: assetid });
     }
 
     removeItem(assetid: string): void;
@@ -101,7 +91,7 @@ export default class Inventory {
 
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
-                const assetids = items[sku];
+                const assetids = items[sku].map(item => item.id);
 
                 const index = assetids.indexOf(assetid);
 
@@ -116,21 +106,21 @@ export default class Inventory {
         }
     }
 
-    fetch(): Promise<void> {
+    fetch(bot: Bot): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.manager.getUserInventoryContents(this.getSteamID(), 440, '2', false, (err, items) => {
+            this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
                 if (err) {
                     return reject(err);
                 }
 
-                this.setItems(items);
+                this.setItems(items, bot);
 
                 resolve();
             });
         });
     }
 
-    private setItems(items: EconItem[]): void {
+    private setItems(items: EconItem[], bot: Bot): void {
         const tradable: EconItem[] = [];
         const nonTradable: EconItem[] = [];
 
@@ -142,20 +132,8 @@ export default class Inventory {
             }
         });
 
-        this.tradableEcon = tradable;
-
-        this.tradable = Inventory.createDictionary(
-            tradable,
-            this.schema,
-            this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual
-        );
-        this.nonTradable = Inventory.createDictionary(
-            nonTradable,
-            this.schema,
-            this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual
-        );
+        this.tradable = Inventory.createDictionary(tradable, bot);
+        this.nonTradable = Inventory.createDictionary(nonTradable, bot);
     }
 
     findByAssetid(assetid: string): string | null {
@@ -164,7 +142,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.tradable[sku].includes(assetid)) {
+            if (!this.tradable[sku].find(item => item.id.includes(assetid))) {
                 continue;
             }
 
@@ -176,7 +154,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.nonTradable[sku].includes(assetid)) {
+            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) {
                 continue;
             }
 
@@ -191,12 +169,14 @@ export default class Inventory {
 
         if (tradableOnly) {
             // Copies the array
-            return tradable.slice(0);
+            return tradable.map(item => (item ? item.id : undefined)).slice(0);
         }
 
         const nonTradable = this.nonTradable[sku] || [];
 
-        return nonTradable.concat(tradable);
+        return nonTradable
+            .map(item => (item ? item.id : undefined))
+            .concat(tradable.map(item => (item ? item.id : undefined)));
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
@@ -238,18 +218,38 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(
-        items: EconItem[],
-        schema: SchemaManager.Schema,
-        normalizeFestivizedItems: boolean,
-        normalizeStrangeUnusual: boolean
-    ): UnknownDictionary<string[]> {
-        const dict: UnknownDictionary<string[]> = {};
+    private static createDictionary(items: EconItem[], bot: Bot): Dict {
+        const dict: Dict = {};
+
+        const opt = bot.options.normalize;
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const sku = item.getSKU(schema, normalizeFestivizedItems, normalizeStrangeUnusual);
-            (dict[sku] = dict[sku] || []).push(item.id);
+            const sku = item.getSKU(bot.schema, opt.festivized, opt.strangeUnusual);
+
+            const attributes = check.highValue(item, bot);
+
+            let isDuel5xUses: boolean | null = null;
+            if (sku === '241;6') {
+                isDuel5xUses = check.is5xUses(item);
+            }
+
+            let isNoiseMaker25xUses: boolean | null = null;
+            if (noiseMakerSKUs.includes(sku)) {
+                isNoiseMaker25xUses = check.is25xUses(item);
+            }
+
+            if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
+                (dict[sku] = dict[sku] || []).push({ id: item.id });
+            } else {
+                if (isDuel5xUses !== null) {
+                    (dict[sku] = dict[sku] || []).push({ id: item.id, isFullUses: isDuel5xUses });
+                } else if (isNoiseMaker25xUses !== null) {
+                    (dict[sku] = dict[sku] || []).push({ id: item.id, isFullUses: isNoiseMaker25xUses });
+                } else {
+                    (dict[sku] = dict[sku] || []).push({ id: item.id, hv: attributes });
+                }
+            }
         }
 
         return dict;
@@ -258,8 +258,17 @@ export default class Inventory {
     clearFetch(): void {
         this.tradable = {};
         this.nonTradable = {};
-        this.tradableEcon.length = 0;
     }
+}
+
+export interface Dict {
+    [sku: string]: DictItem[];
+}
+
+export interface DictItem {
+    id: string;
+    hv?: ItemAttributes;
+    isFullUses?: boolean;
 }
 
 export function getUnusualEffects(schema: Schema): Effect[] {

@@ -9,9 +9,7 @@ import { summarizeItems } from './utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
-import { check, generateLinks } from '../../../lib/tools/export';
-import { noiseMakerSKUs } from '../../../lib/data';
-import log from '../../../lib/logger';
+import { generateLinks } from '../../../lib/tools/export';
 
 // Manual review commands
 
@@ -184,112 +182,38 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
         const reply = offerIdAndMessage.substr(offerId.length);
         const adminDetails = bot.friends.getFriend(steamID);
 
-        let declineTrade = false;
-        let hasNot5Uses = false;
-        let hasNot25Uses = false;
-
-        const opt = bot.options;
-
-        const offerSKUs = offer.itemsToReceive.map(item =>
-            item.getSKU(bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual)
-        );
-
-        const checkExist = bot.pricelist;
-
-        if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
-            // Re-check Dueling Mini-Game for 5x Uses only when enabled and exist in pricelist
-            log.debug('Running re-check on Dueling Mini-Game...');
-            hasNot5Uses = check.isNot5xUses(offer.itemsToReceive);
-
-            if (hasNot5Uses && checkExist.getPrice('241;6', true) !== null) {
-                // Only decline if exist in pricelist
-                offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses (re-checked).');
-                declineTrade = true;
-            }
-        }
-
-        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
-            // Re-check Noise Maker for 25x Uses only when enabled and exist in pricelist
-            log.debug('Running re-check on Noise maker...');
-
-            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, bot);
-            hasNot25Uses = isNot25Uses;
-
-            const isHasNoiseMaker = skus.some(sku => {
-                return checkExist.getPrice(sku, true) !== null;
-            });
-
-            if (hasNot25Uses && isHasNoiseMaker) {
-                offer.log('info', 'contains Noise Maker that does not have 25 uses (re-checked).');
-                declineTrade = true;
-            }
-        }
-
         const reviewMeta = (offer.data('action') as Action).meta;
 
-        if (declineTrade === false) {
-            try {
-                await bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer);
-                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+        try {
+            await bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer);
+            const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
-                if (isManyItems) {
-                    bot.sendMessage(
-                        offer.partner,
-                        'My owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
-                } else {
-                    bot.sendMessage(
-                        offer.partner,
-                        'My owner has manually accepted your offer. The trade should be finalized shortly.' +
-                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
-                }
-                // Send message to recipient if includes some messages
-                if (reply) {
-                    bot.sendMessage(
-                        partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                    );
-                }
-            } catch (err) {
-                bot.sendMessage(
-                    steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
-                );
-                return;
-            }
-        } else {
-            try {
-                await bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer);
-                bot.sendMessage(
-                    steamID,
-                    `❌ Offer #${offer.id} has been automatically declined: contains ${
-                        hasNot5Uses && hasNot25Uses
-                            ? 'Dueling Mini-Game and/or Noise Maker'
-                            : hasNot5Uses
-                            ? 'Dueling Mini-Game'
-                            : 'Noise Maker'
-                    } that is not full after re-check...`
-                );
-
+            if (isManyItems) {
                 bot.sendMessage(
                     offer.partner,
-                    `Looks like you've used your ${
-                        hasNot5Uses && hasNot25Uses
-                            ? 'Dueling Mini-Game and/or Noise Maker'
-                            : hasNot5Uses
-                            ? 'Dueling Mini-Game'
-                            : 'Noise Maker'
-                    }, thus your offer has been declined.`
+                    'My owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                        ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                 );
-            } catch (err) {
+            } else {
                 bot.sendMessage(
-                    steamID,
-                    `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+                    offer.partner,
+                    'My owner has manually accepted your offer. The trade should be finalized shortly.' +
+                        ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                 );
-                return;
             }
+            // Send message to recipient if includes some messages
+            if (reply) {
+                bot.sendMessage(
+                    partnerId,
+                    `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                );
+            }
+        } catch (err) {
+            bot.sendMessage(
+                steamID,
+                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
+            );
+            return;
         }
     } catch (err) {
         bot.sendMessage(

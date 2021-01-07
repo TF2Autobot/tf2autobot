@@ -255,7 +255,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     const pricelist = bot.pricelist.getPrices;
 
-    const dict = bot.inventoryManager.getInventory().getItems();
+    const dict = bot.inventoryManager.getInventory().getItems;
 
     const pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
     const weapons = bot.handler.getWeapons;

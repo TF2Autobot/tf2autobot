@@ -32,7 +32,7 @@ import Bot from '../Bot';
 import { Entry, EntryData } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
-import Inventory from '../Inventory';
+import Inventory, { Dict } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
@@ -621,24 +621,15 @@ export default class MyHandler extends Handler {
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
-            this.bot.manager,
-            this.bot.schema,
-            this.bot.options,
-            this.bot.unusualEffects
+            this.bot.unusualEffects,
+            this.bot
         );
 
-        const theirItems = Inventory.fromItems(
-            offer.partner,
-            offer.itemsToReceive,
-            this.bot.manager,
-            this.bot.schema,
-            this.bot.options,
-            this.bot.unusualEffects
-        );
+        const theirItems = Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot.unusualEffects, this.bot);
 
         const items = {
-            our: ourItems.getItems(),
-            their: theirItems.getItems()
+            our: ourItems.getItems,
+            their: theirItems.getItems
         };
 
         const exchange = {
@@ -648,6 +639,16 @@ export default class MyHandler extends Handler {
         };
 
         const itemsDict: ItemsDict = { our: {}, their: {} };
+        const highValue = {
+            our: {
+                items: {},
+                isMention: false
+            },
+            their: {
+                items: {},
+                isMention: false
+            }
+        };
 
         const states = [false, true];
 
@@ -687,6 +688,58 @@ export default class MyHandler extends Handler {
                 const amount = items[which][sku].length;
 
                 itemsDict[which][sku] = amount;
+
+                items[which][sku].forEach(item => {
+                    const hv = item.hv;
+
+                    if (hv !== undefined) {
+                        // If hv exist, get the high value and assign into items
+                        highValue[which].items[sku] = hv;
+
+                        // Now check for mention
+                        if (hv.s !== undefined) {
+                            // If spells exist, always mention
+                            highValue[which].isMention = true;
+                        }
+
+                        // Else for other attachments, check if boolean is true
+                        if (hv.sp !== undefined) {
+                            // Strange parts
+                            for (const pSku in hv.sp) {
+                                if (hv.sp[pSku] === true) {
+                                    highValue[which].isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ks !== undefined) {
+                            // Sheens
+                            for (const pSku in hv.ks) {
+                                if (hv.ks[pSku] === true) {
+                                    highValue[which].isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.ke !== undefined) {
+                            // Killstreakers
+                            for (const pSku in hv.ke) {
+                                if (hv.ke[pSku] === true) {
+                                    highValue[which].isMention = true;
+                                }
+                            }
+                        }
+
+                        if (hv.p !== undefined) {
+                            // Painted
+                            for (const pSku in hv.p) {
+                                if (hv.p[pSku] === true) {
+                                    highValue[which].isMention = true;
+                                }
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -694,12 +747,9 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const highValueOur = check.highValue(offer.itemsToGive, this.bot);
-        const highValueTheir = check.highValue(offer.itemsToReceive, this.bot);
-
         const input: HighValueInput = {
-            our: highValueOur,
-            their: highValueTheir
+            our: highValue.our,
+            their: highValue.their
         };
 
         const isContainsHighValue =
@@ -792,7 +842,7 @@ export default class MyHandler extends Handler {
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
-            const isNot5Uses = check.isNot5xUses(offer.itemsToReceive);
+            const isNot5Uses = items.their['241;6'].some(item => item.isFullUses === false);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
@@ -802,7 +852,7 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
-            const [isNot25Uses, skus] = check.isNot25xUses(offer.itemsToReceive, this.bot);
+            const [isNot25Uses, skus] = noiseMaker(noiseMakerSKUs, items.their);
 
             const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
@@ -816,19 +866,19 @@ export default class MyHandler extends Handler {
         }
 
         const isInPricelist =
-            Object.keys(highValueOur.items).length > 0 // Only check if this not empty
-                ? Object.keys(highValueOur.items).some(sku => {
+            Object.keys(highValue.our.items).length > 0 // Only check if this not empty
+                ? Object.keys(highValue.our.items).some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
-        if (Object.keys(highValueOur.items).length > 0 && isInPricelist === false) {
+        if (Object.keys(highValue.our.items).length > 0 && isInPricelist === false) {
             // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = check.getHighValueItems(highValueOur.items, this.bot);
+            const itemsName = check.getHighValueItems(highValue.our.items, this.bot);
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
@@ -886,7 +936,7 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                const assetids = items[which][sku];
+                const assetids = items[which][sku].map(item => item.id);
                 const amount = assetids.length;
 
                 if (sku === '5000;6') {
@@ -1987,6 +2037,24 @@ function filterReasons(reasons: string[]): string[] {
     });
 
     return filtered;
+}
+
+function noiseMaker(noiseMakerSKUs: string[], items: Dict): [boolean, string[]] {
+    let isNot25Uses = false;
+    const skus: string[] = [];
+
+    noiseMakerSKUs.forEach(sku => {
+        const noise = items[sku];
+
+        if (noise !== undefined) {
+            noise.forEach(item => {
+                isNot25Uses = item.isFullUses === false;
+                skus.push(sku);
+            });
+        }
+    });
+
+    return [isNot25Uses, skus];
 }
 
 function highValueMeta(info: HighValueInput): HighValueOutput {

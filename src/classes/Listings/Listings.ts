@@ -2,7 +2,6 @@ import callbackQueue from 'callback-queue';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
-import { EconItem } from 'steam-tradeoffer-manager';
 import async from 'async';
 import dayjs from 'dayjs';
 
@@ -13,8 +12,16 @@ import * as rep from './export';
 
 import log from '../../lib/logger';
 import { exponentialBackoff } from '../../lib/helpers';
-import { noiseMakerSKUs, strangePartsData } from '../../lib/data';
+import {
+    noiseMakerSKUs,
+    strangePartsData,
+    spellsData,
+    killstreakersData,
+    sheensData,
+    paintedData
+} from '../../lib/data';
 import { updateOptionsCommand } from '../Commands/functions/options';
+import { DictItem } from '../Inventory';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -208,10 +215,11 @@ export default class Listings {
                 listing.remove();
             } else {
                 const inventory = this.bot.inventoryManager.getInventory();
-                const itemsEcon = inventory.getItemsEcon();
-                let filtered: EconItem = undefined;
+                const items = inventory.getItems;
+                let filtered: DictItem = undefined;
+
                 if (listing.intent === 1) {
-                    filtered = itemsEcon.filter(item => item.assetid === listing.id.replace('440_', ''))[0];
+                    filtered = items[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0];
                 }
 
                 const newDetails = this.getDetails(listing.intent, match, filtered);
@@ -235,9 +243,11 @@ export default class Listings {
         if (matchNew !== null && matchNew.enabled === true) {
             const inventory = this.bot.inventoryManager.getInventory();
             const assetids = inventory.findBySKU(sku, true);
-            const itemsEcon = inventory.getItemsEcon();
+            const items = inventory.getItems;
 
-            const filtered = itemsEcon.filter(item => item.assetid === assetids[assetids.length - 1])[0];
+            const filtered = items[sku]
+                ? items[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
+                : undefined;
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
@@ -512,7 +522,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, entry: Entry, econ?: EconItem): string {
+    private getDetails(intent: 0 | 1, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -547,75 +557,67 @@ export default class Listings {
             const paintName: string[] = [];
 
             const optD = this.bot.options.details.highValue;
-            const optH = this.bot.options.highValue;
             const optR = this.bot.options.detailsExtra;
 
-            // if econ undefined, then skip because it will make your bot crashed.
-            if (econ) {
-                const descriptions = econ.descriptions;
+            // if item undefined, then skip because it will make your bot crashed.
+            if (item) {
+                const hv = item.hv;
 
-                descriptions.forEach(desc => {
-                    const value = desc.value;
-                    const color = desc.color;
-
-                    const part = value
-                        .replace('(', '')
-                        .replace(/: \d+\)/g, '')
-                        .trim();
-                    const strangePartNames = Object.keys(strangePartsData);
-
-                    if (
-                        value.startsWith('Halloween:') &&
-                        value.endsWith('(spell only active during event)') &&
-                        color === '7ea9d1' &&
-                        optD.showSpells
-                    ) {
+                if (hv) {
+                    if (hv.s !== undefined && optD.showSpells) {
                         // Show all
                         hasSpells = true;
-                        const spellName = value.substring(10, value.length - 32).trim();
-                        spellNames.push(rep.replaceSpells(spellName, optR.spells));
-                    } else if (
-                        (part === 'Kills' || part === 'Assists'
-                            ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
-                            : strangePartNames.includes(part)) &&
-                        color === '756b5e' &&
-                        optD.showStrangeParts
-                    ) {
-                        // Only user specified in highValue.strangeParts
-                        if (optH.strangeParts.includes(part)) {
-                            hasStrangeParts = true;
-                            partsNames.push(rep.replaceStrangeParts(part, optR.strangeParts));
+                        hv.s.forEach(spell => {
+                            spellNames.push(rep.replaceSpells(getKeyByValue(spellsData, spell), optR.spells));
+                        });
+                    } else if (hv.sp !== undefined && optD.showStrangeParts) {
+                        for (const pSku in hv.sp) {
+                            if (hv.sp[pSku] === true) {
+                                hasStrangeParts = true;
+                                partsNames.push(
+                                    rep.replaceStrangeParts(getKeyByValue(strangePartsData, +pSku), optR.strangeParts)
+                                );
+                            }
                         }
-                    } else if (value.startsWith('Killstreaker: ') && color === '7ea9d1' && optD.showKillstreaker) {
-                        const killstreaker = value.replace('Killstreaker: ', '').trim();
-
-                        hasKillstreaker = true;
-                        killstreakerName.push(rep.replaceKillstreaker(killstreaker, optR.killstreakers));
-                    } else if (value.startsWith('Sheen: ') && color === '7ea9d1' && optD.showSheen) {
-                        const sheen = value.replace('Sheen: ', '').trim();
-
-                        hasSheen = true;
-                        sheenName.push(rep.replaceSheens(sheen, optR.sheens));
-                    } else if (value.startsWith('Paint Color: ') && color === '756b5e' && optD.showPainted) {
-                        const paint = value.replace('Paint Color: ', '').trim();
-
-                        hasPaint = true;
-                        paintName.push(rep.replacePainted(paint, optR.painted));
+                    } else if (hv.ke !== undefined && optD.showKillstreaker) {
+                        for (const pSku in hv.ke) {
+                            if (hv.ke[pSku] === true) {
+                                hasKillstreaker = true;
+                                killstreakerName.push(
+                                    rep.replaceKillstreaker(getKeyByValue(killstreakersData, pSku), optR.killstreakers)
+                                );
+                            }
+                        }
+                    } else if (hv.ks !== undefined && optD.showSheen) {
+                        for (const pSku in hv.ks) {
+                            if (hv.ks[pSku] === true) {
+                                hasSheen = true;
+                                sheenName.push(rep.replaceSheens(getKeyByValue(sheensData, pSku), optR.sheens));
+                            }
+                        }
+                    } else if (hv.p !== undefined && optD.showPainted) {
+                        for (const pSku in hv.p) {
+                            if (hv.p[pSku] === true) {
+                                hasPaint = true;
+                                paintName.push(rep.replacePainted(getKeyByValue(paintedData, pSku), optR.painted));
+                            }
+                        }
                     }
-                });
 
-                if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
-                    highValueString = ' | ';
+                    if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
+                        highValueString = ' | ';
 
-                    if (hasSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
-                    if (hasStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
-                    if (hasKillstreaker) highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
-                    if (hasSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
-                    if (hasPaint) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
+                        if (hasSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
+                        if (hasStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
+                        if (hasKillstreaker)
+                            highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
+                        if (hasSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
+                        if (hasPaint) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
 
-                    for (let i = 0; i < Object.keys(highValue).length; i++) {
-                        if (Object.values(highValue)[i] !== '') {
-                            highValueString += Object.values(highValue)[i] + ' | ';
+                        for (let i = 0; i < Object.keys(highValue).length; i++) {
+                            if (Object.values(highValue)[i] !== '') {
+                                highValueString += Object.values(highValue)[i] + ' | ';
+                            }
                         }
                     }
                 }
@@ -720,4 +722,8 @@ export default class Listings {
 
         return details + highValueString;
     }
+}
+
+function getKeyByValue(object: { [key: string]: any }, value: any) {
+    return Object.keys(object).find(key => object[key] === value);
 }
