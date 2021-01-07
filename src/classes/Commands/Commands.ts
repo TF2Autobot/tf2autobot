@@ -751,6 +751,11 @@ export default class Commands {
         const sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         const amount = typeof params.amount === 'number' ? params.amount : 1;
 
+        if (!Number.isInteger(amount)) {
+            this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+            return;
+        }
+
         const cart = AdminCart.getCart(steamID) || new AdminCart(steamID, this.bot);
 
         cart.addTheirItem(sku, amount);
@@ -794,6 +799,11 @@ export default class Commands {
 
         const sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         let amount = typeof params.amount === 'number' ? params.amount : 1;
+
+        if (!Number.isInteger(amount)) {
+            this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+            return;
+        }
 
         const cart = AdminCart.getCart(steamID) || new AdminCart(steamID, this.bot);
 
