@@ -4,6 +4,8 @@ import Currencies from 'tf2-currencies';
 import Bot from '../../classes/Bot';
 
 export default function listItems(
+    offer: TradeOffer,
+    bot: Bot,
     items: {
         invalid: string[];
         overstock: string[];
@@ -14,36 +16,47 @@ export default function listItems(
     },
     isSteamChat: boolean
 ): string {
-    let list =
+    const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
+
+    let list = itemsPrices;
+
+    list +=
         items.invalid.length > 0
-            ? isSteamChat
-                ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ')
-                : '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- ')
+            ? (itemsPrices.length > 0 ? '\n\n' : '') +
+              (isSteamChat
+                  ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ')
+                  : '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- '))
             : '';
     list +=
         items.overstock.length > 0
-            ? (items.invalid.length > 0 ? '\n\n' : '') +
+            ? (itemsPrices.length > 0 || items.invalid.length > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
                   : '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',@\n- '))
             : '';
     list +=
         items.understock.length > 0
-            ? (items.invalid.length > 0 || items.overstock.length > 0 ? '\n\n' : '') +
+            ? (itemsPrices.length > 0 || items.invalid.length > 0 || items.overstock.length > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟩_UNDERSTOCKED:\n- ' + items.understock.join(',\n- ')
                   : '🟩`_UNDERSTOCKED:`\n- ' + items.understock.join(',@\n- '))
             : '';
     list +=
         items.duped.length > 0
-            ? (items.invalid.length > 0 || items.overstock.length > 0 || items.understock.length > 0 ? '\n\n' : '') +
+            ? (itemsPrices.length > 0 ||
+              items.invalid.length > 0 ||
+              items.overstock.length > 0 ||
+              items.understock.length > 0
+                  ? '\n\n'
+                  : '') +
               (isSteamChat
                   ? '🟫_DUPED_ITEMS:\n- ' + items.duped.join(',\n- ')
                   : '🟫`_DUPED_ITEMS:`\n- ' + items.duped.join(',@\n- '))
             : '';
     list +=
         items.dupedFailed.length > 0
-            ? (items.invalid.length > 0 ||
+            ? (itemsPrices.length > 0 ||
+              items.invalid.length > 0 ||
               items.overstock.length > 0 ||
               items.understock.length > 0 ||
               items.duped.length > 0
@@ -55,7 +68,8 @@ export default function listItems(
             : '';
     list +=
         items.highValue.length > 0
-            ? (items.invalid.length > 0 ||
+            ? (itemsPrices.length > 0 ||
+              items.invalid.length > 0 ||
               items.overstock.length > 0 ||
               items.understock.length > 0 ||
               items.duped.length > 0 ||
@@ -73,7 +87,7 @@ export default function listItems(
     return list;
 }
 
-export function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
+function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
     const prices = offer.data('prices') as Prices;
 
     let text = '';

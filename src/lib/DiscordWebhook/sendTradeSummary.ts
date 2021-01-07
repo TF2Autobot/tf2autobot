@@ -19,7 +19,6 @@ export default async function sendTradeSummary(
     keyPrices: KeyPrices,
     value: ValueDiff,
     items: ItemSKUList,
-    prices: string,
     links: Links,
     time: string,
     bot: Bot,
@@ -40,14 +39,7 @@ export default async function sendTradeSummary(
         highValue: accepted.highValue.map(name => replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
     };
 
-    const itemList = listItems(itemsName, false);
-
-    const combineList =
-        (bot.options.tradeSummary.showItemPrices
-            ? prices !== ''
-                ? `${prices}` + (itemList !== '-' ? '\n\n' : '')
-                : ''
-            : '') + (prices !== '' && itemList === '-' ? '' : itemList);
+    const itemList = listItems(offer, bot, itemsName, false);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = opt.tradeSummary.mentionOwner.enable;
@@ -140,7 +132,7 @@ export default async function sendTradeSummary(
                 fields: [
                     {
                         name: '__Item list__',
-                        value: combineList.replace(/@/g, '')
+                        value: itemList.replace(/@/g, '')
                     },
                     {
                         name: `__Status__`,
@@ -178,16 +170,16 @@ export default async function sendTradeSummary(
         ]
     };
 
-    if (combineList === '-' || combineList === '') {
+    if (itemList === '-' || itemList === '') {
         acceptedTradeSummary.embeds[0].fields.shift();
-    } else if (combineList.length >= 1024) {
+    } else if (itemList.length >= 1024) {
         // first get __Status__ element
         const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
 
         // now remove __Item list__, so now it should be empty
         acceptedTradeSummary.embeds[0].fields.length = 0;
 
-        const separate = prices.split('@').concat(itemList.split('@'));
+        const separate = itemList.split('@');
 
         let newSentences = '';
         let j = 1;

@@ -178,7 +178,6 @@ export default function processAccepted(
     const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
 
     if (isWebhookEnabled) {
-        const itemPrices = t.listPrices(offer, bot, false);
         void sendTradeSummary(
             offer,
             autokeys,
@@ -187,7 +186,6 @@ export default function processAccepted(
             keyPrices,
             value,
             itemsSKU,
-            itemPrices,
             links,
             time,
             bot,
@@ -204,14 +202,13 @@ export default function processAccepted(
             dupedFailed: [],
             highValue: accepted.highValue // 🔶_HIGH_VALUE_ITEMS
         };
-        const itemList = t.listItems(itemsName, true);
-        const itemPrices = t.listPrices(offer, bot, true);
+
+        const itemList = t.listItems(offer, bot, itemsName, true);
 
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                 t.summarizeToChat(t.summarize(offer, bot, 'summary', false), value, keyPrices, true, isOfferSent) +
-                (opt.tradeSummary.showItemPrices ? `\n\nItem prices:\n${itemPrices}` : '') +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +

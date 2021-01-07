@@ -16,7 +16,6 @@ export default function sendOfferReview(
     value: ValueDiff,
     links: Links,
     items: Review,
-    prices: string,
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
@@ -52,14 +51,7 @@ export default function sendOfferReview(
     const currentItems = bot.inventoryManager.getInventory().getTotalItems;
 
     const summary = summarizeToChat(summarize(offer, bot, 'review-admin', true), value, keyPrices, false);
-    const itemList = listItems(itemsName, false);
-
-    const combineList =
-        (bot.options.manualReview.showItemPrices
-            ? prices !== ''
-                ? `${prices}` + (itemList !== '-' ? '\n\n' : '')
-                : ''
-            : '') + (prices !== '' && itemList === '-' ? '' : itemList);
+    const itemList = listItems(offer, bot, itemsName, false);
 
     let partnerAvatar: string;
     let partnerName: string;
@@ -114,7 +106,7 @@ export default function sendOfferReview(
                     fields: [
                         {
                             name: '__Item list__',
-                            value: combineList.replace(/@/g, '')
+                            value: itemList.replace(/@/g, '')
                         },
                         {
                             name: `__Status__`,
@@ -135,17 +127,17 @@ export default function sendOfferReview(
             ]
         };
 
-        if (combineList === '-' || combineList === '') {
+        if (itemList === '-' || itemList === '') {
             // just remove the first element of the fields array (__Item list__)
             webhookReview.embeds[0].fields.shift();
-        } else if (combineList.length >= 1024) {
+        } else if (itemList.length >= 1024) {
             // first get __Status__ element
             const statusElement = webhookReview.embeds[0].fields.pop();
 
             // now remove __Item list__, so now it should be empty
             webhookReview.embeds[0].fields.length = 0;
 
-            const separate = prices.split('@').concat(itemList.split('@'));
+            const separate = itemList.split('@');
 
             let newSentences = '';
             let j = 1;
