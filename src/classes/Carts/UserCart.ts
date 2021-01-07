@@ -2,17 +2,10 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import {
-    EconItem,
-    HighValueInput,
-    HighValueOutput,
-    ItemsDict,
-    OurTheirItemsDict,
-    Prices
-} from 'steam-tradeoffer-manager';
+import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from 'steam-tradeoffer-manager';
 
 import Cart from './Cart';
-import Inventory, { getSkuAmountCanTrade } from '../Inventory';
+import Inventory, { Dict, getSkuAmountCanTrade } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 
 import log from '../../lib/logger';
@@ -426,14 +419,11 @@ export default class UserCart extends Cart {
 
         const alteredMessages: string[] = [];
 
-        let ourItemsToCheck: EconItem[] = [];
-        let theirItemsToCheck: EconItem[] = [];
-
         // Add our items
         const ourInventory = this.bot.inventoryManager.getInventory();
-        this.ourInventoryCount = ourInventory.getTotalItems();
+        this.ourInventoryCount = ourInventory.getTotalItems;
 
-        const ourInventoryEcon: EconItem[] = ourInventory.getItemsEcon();
+        const ourInventoryDict: Dict = ourInventory.getItems;
 
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -500,13 +490,13 @@ export default class UserCart extends Cart {
         );
 
         try {
-            await theirInventory.fetch();
+            await theirInventory.fetch(this.bot);
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }
 
-        const theirInventoryEcon: EconItem[] = theirInventory.getItemsEcon();
-        this.theirInventoryCount = theirInventoryEcon.length;
+        const theirInventoryDict: Dict = theirInventory.getItems;
+        this.theirInventoryCount = theirInventory.getTotalItems;
 
         // Add their items
         for (const sku in this.their) {
@@ -663,10 +653,6 @@ export default class UserCart extends Cart {
                     assetid: assetids[i]
                 });
 
-                ourItemsToCheck = ourInventoryEcon.filter(ourItem => {
-                    return ourItem.assetid === assetids[i];
-                });
-
                 if (isAdded) {
                     // The item was added to the offer
                     missing--;
@@ -722,11 +708,10 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = check.getAssetidsWith5xUses(theirInventoryEcon);
+                assetids = check.getAssetidsWithFullUses(theirInventoryDict[sku]);
             } else if (opt.checkUses.noiseMaker && noiseMakerSKUs.includes(sku)) {
                 checkNoiseMaker = true;
-                const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                assetids = check.getAssetidsWith25xUses(theirInventoryEcon, name);
+                assetids = check.getAssetidsWithFullUses(theirInventoryDict[sku]);
             }
 
             for (let i = 0; i < assetids.length; i++) {
@@ -734,10 +719,6 @@ export default class UserCart extends Cart {
                     appid: 440,
                     contextid: '2',
                     assetid: assetids[i]
-                });
-
-                theirItemsToCheck = theirInventoryEcon.filter(theirItem => {
-                    return theirItem.assetid === assetids[i];
                 });
 
                 if (isAdded) {
@@ -781,16 +762,132 @@ export default class UserCart extends Cart {
             }
         }
 
-        const highValueOur = check.highValue(ourItemsToCheck, this.bot);
-        const highValueTheir = check.highValue(theirItemsToCheck, this.bot);
+        const highValue = {
+            our: {
+                items: {},
+                isMention: false
+            },
+            their: {
+                items: {},
+                isMention: false
+            }
+        };
+
+        for (const sku in ourInventoryDict) {
+            ourInventoryDict[sku].forEach(item => {
+                const hv = item.hv;
+
+                if (hv !== undefined) {
+                    // If hv exist, get the high value and assign into items
+                    highValue.our.items[sku] = hv;
+
+                    // Now check for mention
+                    if (hv.s.length > 0) {
+                        // If spells exist, always mention
+                        highValue.our.isMention = true;
+                    }
+
+                    // Else for other attachments, check if boolean is true
+                    if (hv.sp !== undefined) {
+                        // Strange parts
+                        for (const pSku in hv.sp) {
+                            if (hv.sp[pSku] === true) {
+                                highValue.our.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.ks !== undefined) {
+                        // Sheens
+                        for (const pSku in hv.ks) {
+                            if (hv.ks[pSku] === true) {
+                                highValue.our.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.ke !== undefined) {
+                        // Killstreakers
+                        for (const pSku in hv.ke) {
+                            if (hv.ke[pSku] === true) {
+                                highValue.our.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.p !== undefined) {
+                        // Painted
+                        for (const pSku in hv.p) {
+                            if (hv.p[pSku] === true) {
+                                highValue.our.isMention = true;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        for (const sku in theirInventoryDict) {
+            theirInventoryDict[sku].forEach(item => {
+                const hv = item.hv;
+
+                if (hv !== undefined) {
+                    // If hv exist, get the high value and assign into items
+                    highValue.their.items[sku] = hv;
+
+                    // Now check for mention
+                    if (hv.s.length > 0) {
+                        // If spells exist, always mention
+                        highValue.their.isMention = true;
+                    }
+
+                    // Else for other attachments, check if boolean is true
+                    if (hv.sp !== undefined) {
+                        // Strange parts
+                        for (const pSku in hv.sp) {
+                            if (hv.sp[pSku] === true) {
+                                highValue.their.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.ks !== undefined) {
+                        // Sheens
+                        for (const pSku in hv.ks) {
+                            if (hv.ks[pSku] === true) {
+                                highValue.their.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.ke !== undefined) {
+                        // Killstreakers
+                        for (const pSku in hv.ke) {
+                            if (hv.ke[pSku] === true) {
+                                highValue.their.isMention = true;
+                            }
+                        }
+                    }
+
+                    if (hv.p !== undefined) {
+                        // Painted
+                        for (const pSku in hv.p) {
+                            if (hv.p[pSku] === true) {
+                                highValue.their.isMention = true;
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         const input: HighValueInput = {
-            our: highValueOur,
-            their: highValueTheir
+            our: highValue.our,
+            their: highValue.their
         };
 
         if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
-            offer.data('highValue', highValue(input));
+            offer.data('highValue', highValueOut(input));
         }
 
         const sellerInventory = isBuyer ? theirInventory : ourInventory;
@@ -998,8 +1095,6 @@ export default class UserCart extends Cart {
         this.offer = offer;
 
         // clear memory
-        ourItemsToCheck.length = 0;
-        theirItemsToCheck.length = 0;
         theirInventory.clearFetch();
 
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
@@ -1050,7 +1145,7 @@ export default class UserCart extends Cart {
     }
 }
 
-function highValue(info: HighValueInput): HighValueOutput {
+function highValueOut(info: HighValueInput): HighValueOutput {
     return {
         items: {
             our: info.our.items,

@@ -90,7 +90,7 @@ export function statsDWCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {
-    const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+    const currentItems = bot.inventoryManager.getInventory().getTotalItems;
     bot.sendMessage(
         steamID,
         `🎒 My current items in my inventory: ${String(currentItems) + '/' + String(bot.tf2.backpackSlots)}`

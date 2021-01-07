@@ -24,7 +24,7 @@ export default function processAccepted(
     const time = t.timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes).time;
     const links = t.generateLinks(offer.partner.toString());
     const itemsSKU = itemList(offer);
-    const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+    const currentItems = bot.inventoryManager.getInventory().getTotalItems;
 
     const timeTaken = t.convertTime(processTime, bot.options.tradeSummary.showTimeTakenInMS);
 
