@@ -9,7 +9,6 @@ import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
-// import log from '../lib/logger';
 
 import { noiseMakerSKUs } from '../lib/data';
 import { check } from '../lib/tools/export';
@@ -252,8 +251,6 @@ export default class Inventory {
                 }
             }
         }
-
-        // log.debug('dict: ', dict);
 
         return dict;
     }
