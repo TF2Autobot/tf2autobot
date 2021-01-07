@@ -230,12 +230,12 @@ export default class Inventory {
 
             const attributes = check.highValue(item, bot);
 
-            let isDuel5xUses = null;
+            let isDuel5xUses: boolean | null = null;
             if (sku === '241;6') {
                 isDuel5xUses = check.is5xUses(item);
             }
 
-            let isNoiseMaker25xUses = null;
+            let isNoiseMaker25xUses: boolean | null = null;
             if (noiseMakerSKUs.includes(sku)) {
                 isNoiseMaker25xUses = check.is25xUses(item);
             }
