@@ -803,28 +803,23 @@ export default class UserCart extends Cart {
                             // If hv exist, get the high value and assign into items
                             getHighValue[which as 'our' | 'their'].items[sku] = item.hv;
 
-                            for (const attachments in item.hv) {
-                                if (!Object.prototype.hasOwnProperty.call(item.hv, attachments)) {
-                                    continue;
-                                }
-
-                                if (attachments === 's') {
+                            Object.keys(item.hv).forEach(attachment => {
+                                if (attachment === 's') {
                                     // If spells exist, always mention
                                     getHighValue[which as 'our' | 'their'].isMention = true;
-                                    continue;
                                 }
 
-                                if (item.hv[attachments] !== undefined) {
-                                    for (const pSku in item.hv[attachments]) {
-                                        if (!Object.prototype.hasOwnProperty.call(item.hv[attachments], pSku)) {
+                                if (item.hv[attachment] !== undefined) {
+                                    for (const pSku in item.hv[attachment]) {
+                                        if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;
                                         }
-                                        if (item.hv[attachments] === true) {
+                                        if (item.hv[attachment as 'sp' | 'ks' | 'ke' | 'p'][pSku] === true) {
                                             getHighValue[which as 'our' | 'their'].isMention = true;
                                         }
                                     }
                                 }
-                            }
+                            });
                         }
                     });
             }
