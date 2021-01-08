@@ -211,7 +211,7 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
         const currentStock = bot.inventoryManager.getInventory().getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
-        if (type === 'summary') {
+        if (type === 'summary-accepted') {
             oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
         } else {
             oldStock = currentStock;
@@ -221,7 +221,7 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
             `${name}${amount > 1 ? ` x${amount}` : ''}${
                 type === 'review-partner' || type === 'declined'
                     ? ''
-                    : ` (${type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
+                    : ` (${type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
                           maxStock ? `/${maxStock.max}` : ''
                       })`
             }`
@@ -256,7 +256,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
         const currentStock = bot.inventoryManager.getInventory().getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
-        if (type === 'summary') {
+        if (type === 'summary-accepted') {
             oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
         } else {
             oldStock = currentStock;
@@ -264,7 +264,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
 
         summary.push(
             `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
-                type === 'summary' && oldStock !== null ? `${oldStock} → ` : ''
+                type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
             }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
         );
     }

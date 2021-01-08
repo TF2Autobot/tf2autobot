@@ -199,7 +199,13 @@ export default function processAccepted(
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                t.summarizeToChat(t.summarize(offer, bot, 'summary', false), value, keyPrices, true, isOfferSent) +
+                t.summarizeToChat(
+                    t.summarize(offer, bot, 'summary-accepted', false),
+                    value,
+                    keyPrices,
+                    true,
+                    isOfferSent
+                ) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +

@@ -764,7 +764,7 @@ export default class MyHandler extends Handler {
         if (this.bot.isAdmin(offer.partner)) {
             offer.log(
                 'trade',
-                `is from an admin, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`
+                `is from an admin, accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`
             );
 
             if (isContainsHighValue) {
@@ -796,7 +796,10 @@ export default class MyHandler extends Handler {
         });
 
         if (offer.itemsToGive.length === 0 && isGift) {
-            offer.log('trade', `is a gift offer, accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
+            offer.log(
+                'trade',
+                `is a gift offer, accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`
+            );
             if (isContainsHighValue) {
                 return {
                     action: 'accept',
@@ -1492,7 +1495,7 @@ export default class MyHandler extends Handler {
                     `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${summarize(
                         offer,
                         this.bot,
-                        'summary',
+                        'summary-accepting',
                         false
                     )}`
                 );
@@ -1577,7 +1580,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        offer.log('trade', `accepting. Summary:\n${summarize(offer, this.bot, 'summary', false)}`);
+        offer.log('trade', `accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`);
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
