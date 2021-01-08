@@ -149,9 +149,9 @@ export default class Commands {
         } else if (command === 'resetqueue') {
             c.manager.resetQueueCommand(steamID, this.bot, this.cartQueue);
         } else if (command === 'stats' && isAdmin) {
-            void c.botStatus.statsCommand(steamID, this.bot);
+            c.botStatus.statsCommand(steamID, this.bot);
         } else if (command === 'statsdw' && isAdmin) {
-            void c.botStatus.statsDWCommand(steamID, this.bot);
+            c.botStatus.statsDWCommand(steamID, this.bot);
         } else if (command === 'inventory' && isAdmin) {
             c.botStatus.inventoryCommand(steamID, this.bot);
         } else if (command === 'version' && isAdmin) {

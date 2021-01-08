@@ -575,10 +575,10 @@ export default class MyHandler extends Handler {
 
                 if (times.some(time => now.includes(time))) {
                     if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
-                        void sendStats(this.bot);
+                        sendStats(this.bot);
                     } else {
                         this.bot.getAdmins().forEach(admin => {
-                            void statsCommand(admin, this.bot);
+                            statsCommand(admin, this.bot);
                         });
                     }
                 }

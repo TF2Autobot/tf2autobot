@@ -71,7 +71,7 @@ export default async function sendTradeSummary(
             ? `<@!${optDW.ownerID}>`
             : '';
 
-    const trades = await t.stats(bot);
+    const trades = t.stats(bot);
     const tradeNumbertoShowStarter = bot.options.statistics.starter;
 
     const tradesMade =

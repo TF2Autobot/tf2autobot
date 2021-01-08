@@ -1,5 +1,6 @@
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
+import SteamID from 'steamid';
 
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
@@ -9,11 +10,11 @@ import log from '../logger';
 
 import Bot from '../../classes/Bot';
 
-export default async function sendStats(bot: Bot): Promise<void> {
+export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): void {
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
-    const trades = await stats(bot);
-    const profits = await profit(bot);
+    const trades = stats(bot);
+    const profits = profit(bot);
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
@@ -120,8 +121,14 @@ export default async function sendStats(bot: Bot): Promise<void> {
     sendWebhook(optDW.sendStats.url, discordStats, 'statistics')
         .then(() => {
             log.debug(`✅ Sent statistics webhook to Discord.`);
+            if (forceSend) {
+                bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
+            }
         })
         .catch(err => {
             log.debug(`❌ Failed to send statistics webhook to Discord: `, err);
+            if (forceSend) {
+                bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + JSON.stringify(err));
+            }
         });
 }

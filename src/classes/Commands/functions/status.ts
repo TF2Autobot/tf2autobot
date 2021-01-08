@@ -9,10 +9,10 @@ import { sendStats } from '../../../lib/DiscordWebhook/export';
 
 // Bot status
 
-export async function statsCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export function statsCommand(steamID: SteamID, bot: Bot): void {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
-    const trades = await stats(bot);
-    const profits = await profit(bot);
+    const trades = stats(bot);
+    const profits = profit(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices;
 
@@ -80,13 +80,7 @@ export function statsDWCommand(steamID: SteamID, bot: Bot): void {
         return;
     }
 
-    void sendStats(bot)
-        .then(() => {
-            bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
-        })
-        .catch(err => {
-            bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + JSON.stringify(err));
-        });
+    sendStats(bot, true, steamID);
 }
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {
