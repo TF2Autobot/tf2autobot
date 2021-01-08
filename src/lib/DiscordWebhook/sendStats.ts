@@ -19,8 +19,8 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
 
-    const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
-    const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
+    const profitMadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
+    const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
 
     const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrices.sell.metal).toString();
     const profitOverpayInRef = profitOverpayFull.includes('key')
@@ -105,7 +105,7 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
                             profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)__` : '__'
                         }`,
                         value:
-                            `• Total made: ${profitmadeFull + profitmadeInRef}` +
+                            `• Total made: ${profitMadeFull + profitMadeInRef}` +
                             `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
                     },
                     {

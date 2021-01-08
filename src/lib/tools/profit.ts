@@ -6,18 +6,18 @@ import Currencies from 'tf2-currencies';
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
 export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit: number; since: number } {
-    const polldata = bot.manager.pollData;
+    const pollData = bot.manager.pollData;
     const now = dayjs();
 
-    if (polldata.offerData) {
-        const trades = Object.keys(polldata.offerData).map(offerID => {
-            return polldata.offerData[offerID];
+    if (pollData.offerData) {
+        const trades = Object.keys(pollData.offerData).map(offerID => {
+            return pollData.offerData[offerID];
         });
 
-        const oldestId = polldata.offerData === undefined ? undefined : Object.keys(polldata.offerData)[0];
+        const oldestId = !pollData.offerData ? undefined : Object.keys(pollData.offerData)[0];
         const timeSince =
             +bot.options.statistics.profitDataSinceInUnix === 0
-                ? polldata.timestamps[oldestId]
+                ? pollData.timestamps[oldestId]
                 : +bot.options.statistics.profitDataSinceInUnix;
         const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
@@ -70,8 +70,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                 if (Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku)) {
                     const itemCount =
                         typeof trades[i].dict.their[sku] === 'object'
-                            ? (trades[i].dict.their[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
-                            : trades[i].dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+                            ? (trades[i].dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                            : trades[i].dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                     // const isNotPureOrWeapons = !(
                     //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
@@ -116,8 +116,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                 if (Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku)) {
                     const itemCount =
                         typeof trades[i].dict.our[sku] === 'object'
-                            ? (trades[i].dict.our[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
-                            : trades[i].dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+                            ? (trades[i].dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                            : trades[i].dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                     // const isNotPureOrWeapons = !(
                     //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||

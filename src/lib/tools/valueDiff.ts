@@ -32,27 +32,17 @@ export default function valueDiff(
 
         if (!enableShowOnlyMetal) {
             // if ENABLE_SHOW_ONLY_METAL is set to false, then this need to be converted first.
-            if (isTradingKeys) {
-                // If trading keys, then their side need to use buying key price.
-                newValue.our.metal = Currencies.toRefined(
-                    Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
-                );
-                newValue.our.keys = 0;
-                newValue.their.metal = Currencies.toRefined(
-                    Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
-                );
-                newValue.their.keys = 0;
-            } else {
-                // Else both use selling key price.
-                newValue.our.metal = Currencies.toRefined(
-                    Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
-                );
-                newValue.our.keys = 0;
-                newValue.their.metal = Currencies.toRefined(
-                    Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.sell.toValue()
-                );
-                newValue.their.keys = 0;
-            }
+            newValue.our.metal = Currencies.toRefined(
+                Currencies.toScrap(newValue.our.metal) + newValue.our.keys * keyPrices.sell.toValue()
+            );
+            newValue.our.keys = 0;
+
+            // If trading keys, then their side need to use buying key price.
+            newValue.their.metal = Currencies.toRefined(
+                Currencies.toScrap(newValue.their.metal) +
+                    newValue.their.keys * (isTradingKeys ? keyPrices.buy.toValue() : keyPrices.sell.toValue())
+            );
+            newValue.their.keys = 0;
         }
 
         diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);

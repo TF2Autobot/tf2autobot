@@ -392,7 +392,7 @@ export default class TF2GC {
         function onDisconnected(): void {
             removeListeners();
 
-            failCallback(new Error('Diconnected from TF2 GC'));
+            failCallback(new Error('Disconnected from TF2 GC'));
         }
 
         function onTimeout(): void {

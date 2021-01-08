@@ -32,13 +32,13 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const parts = message.split(' ');
         const steamIdAndMessage = CommandParser.removeCommand(message);
         // Use regex
-        const steamIDreg = new RegExp(
+        const steamIDReg = new RegExp(
             /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?])$/
         );
 
         let steamIDString: string;
 
-        if (!steamIDreg.test(steamIdAndMessage) || !steamIDreg || parts.length < 3) {
+        if (!steamIDReg.test(steamIdAndMessage) || !steamIDReg || parts.length < 3) {
             bot.sendMessage(
                 steamID,
                 '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
@@ -49,7 +49,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             );
             return;
         } else {
-            steamIDString = steamIDreg.exec(steamIdAndMessage)[0];
+            steamIDString = steamIDReg.exec(steamIdAndMessage)[0];
         }
 
         const recipient = steamIDString;
@@ -70,7 +70,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             return;
         }
 
-        const recipentDetails = bot.friends.getFriend(recipientSteamID);
+        const recipientDetails = bot.friends.getFriend(recipientSteamID);
 
         const reply = steamIdAndMessage.substr(steamIDString.length);
 
@@ -89,7 +89,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             sendAdminMessage(
                 recipientSteamID.toString(),
                 reply,
-                recipentDetails,
+                recipientDetails,
                 generateLinks(steamID.toString()),
                 timeNow(bot).time,
                 bot
@@ -97,7 +97,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         } else {
             bot.messageAdmins(
                 `/quote 💬 Message sent to #${recipientSteamID.toString()} (${
-                    recipentDetails.player_name
+                    recipientDetails.player_name
                 }): "${reply}". `,
                 []
             );
@@ -108,8 +108,8 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
             `${
                 senderDetails ? `${senderDetails.player_name} (${steamID.toString()})` : steamID.toString()
             } sent a message to ${
-                recipentDetails
-                    ? recipentDetails.player_name + ` (${recipientSteamID.toString()})`
+                recipientDetails
+                    ? recipientDetails.player_name + ` (${recipientSteamID.toString()})`
                     : recipientSteamID.toString()
             } with "${reply}".`,
             [steamID]

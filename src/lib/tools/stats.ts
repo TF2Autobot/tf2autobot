@@ -89,7 +89,7 @@ export default function stats(bot: Bot): Stats {
         } else if (offerData[offerID].handledByUs === true && offerData[offerID].action === undefined) {
             // action undefined means offer sent
             if (offerData[offerID].isAccepted === true) {
-                // Sucessful trades handled by the bot
+                // Successful trades handled by the bot
                 acceptedTradesTotal++;
 
                 if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
@@ -185,7 +185,7 @@ export default function stats(bot: Bot): Stats {
         isCanceledUnknown24Hours +
         isInvalid24Hours;
 
-    const stats: Stats = {
+    return {
         totalDays: totalDays,
         totalAcceptedTrades: acceptedTradesTotal,
         today: {
@@ -227,8 +227,6 @@ export default function stats(bot: Bot): Stats {
             invalid: isInvalid24Hours
         }
     };
-
-    return stats;
 }
 
 interface Stats {

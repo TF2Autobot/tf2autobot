@@ -10,7 +10,7 @@ import Options from './Options';
 
 import Bot from './Bot';
 
-import { noiseMakerSKUs } from '../lib/data';
+import { noiseMakers } from '../lib/data';
 import { check } from '../lib/tools/export';
 
 export default class Inventory {
@@ -257,7 +257,7 @@ export default class Inventory {
             }
 
             let isNoiseMaker25xUses: boolean | null = null;
-            if (noiseMakerSKUs.includes(sku)) {
+            if (Object.keys(noiseMakers).includes(sku)) {
                 isNoiseMaker25xUses = check.is25xUses(items[i]);
             }
 

@@ -8,7 +8,7 @@ import log from '../logger';
 import { Entry } from '../../classes/Pricelist';
 import Options from '../../classes/Options';
 
-import { paintCan, australiumImageURL, qualityColor } from '../../lib/data';
+import { paintCan, australiumImageURL, qualityColor } from '../data';
 
 export default function sendWebHookPriceUpdateV1(
     sku: string,

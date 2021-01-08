@@ -266,9 +266,9 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
             steamID,
             '⚠️ Please only use sku property.' +
                 '\n\nBelow are some common items to delete:' +
-                '\n• Smissamas Sweater: 16391;15;untradable;w1;pk391' +
+                '\n• Smissmas Sweater: 16391;15;untradable;w1;pk391' +
                 '\n• Soul Gargoyle: 5826;6;uncraftable;untradable' +
-                '\n• Noice Maker - TF Birthday: 536;6;untradable' +
+                '\n• Noise Maker - TF Birthday: 536;6;untradable' +
                 '\n• Bronze Dueling Badge: 242;6;untradable' +
                 '\n• Silver Dueling Badge: 243;6;untradable' +
                 '\n• Gold Dueling Badge: 244;6;untradable' +
@@ -496,7 +496,7 @@ export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
             steamid,
             `/quote Hey ${
                 bot.friends.getFriend(steamid).player_name
-            }! My owner has performed friendlist clearance. Please feel free to add me again if you want to trade at a later time!`
+            }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
         );
         bot.client.removeFriend(steamid);
     });
@@ -716,7 +716,7 @@ export function refreshAutokeysCommand(steamID: SteamID, bot: Bot, auto: Autokey
 
 export function resetQueueCommand(steamID: SteamID, bot: Bot, cartQueue: CartQueue): void {
     cartQueue.resetQueue();
-    bot.sendMessage(steamID, '✅ Sucessfully reset queue!');
+    bot.sendMessage(steamID, '✅ Successfully reset queue!');
 }
 
 export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {

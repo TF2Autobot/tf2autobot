@@ -51,14 +51,13 @@ export function currPure(bot: Bot): { key: number; scrap: number; rec: number; r
 
     const currRef = currencies['5002;6'].length;
 
-    const currReftoScrap = Currencies.toScrap(currRef + currRecValue + currScrapValue);
+    const currRefToScrap = Currencies.toScrap(currRef + currRecValue + currScrapValue);
 
-    const pure = {
+    return {
         key: currKeys,
         scrap: currScrap,
         rec: currRec,
         ref: currRef,
-        refTotalInScrap: currReftoScrap
+        refTotalInScrap: currRefToScrap
     };
-    return pure;
 }

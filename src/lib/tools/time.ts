@@ -83,7 +83,7 @@ export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: stri
             ? '🕚'
             : '';
 
-    const timeWithEmoji = {
+    return {
         timeUnix: dayjs().unix(),
         time: dayjs()
             .tz(opt.timezone ? opt.timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
@@ -91,7 +91,6 @@ export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: stri
         emoji: emoji,
         note: opt.timeAdditionalNotes ? opt.timeAdditionalNotes : ''
     };
-    return timeWithEmoji;
 }
 
 export function convertTime(time: number, showInMS: boolean): string {

@@ -126,7 +126,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
+                `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
                 `\n💰 Pure stock: ${pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,

@@ -8,7 +8,7 @@ import { DictItem } from '../../classes/Inventory';
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
     return items
         .filter(item => {
-            item.isFullUses === true;
+            return item.isFullUses === true;
         })
         .map(item => item.id);
 }

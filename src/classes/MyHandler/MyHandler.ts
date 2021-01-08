@@ -51,7 +51,7 @@ import {
     killstreakersData,
     strangePartsData,
     paintedData,
-    noiseMakerSKUs
+    noiseMakers
 } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, check, uptime } from '../../lib/tools/export';
@@ -562,7 +562,7 @@ export default class MyHandler extends Handler {
 
         if (this.sendStatsEnabled) {
             this.sendStatsTimeout = setInterval(() => {
-                let times: string[] = [];
+                let times: string[];
                 if (opt.statistics.sendStats.time.length === 0) {
                     times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
                 } else {
@@ -646,7 +646,7 @@ export default class MyHandler extends Handler {
         };
 
         const itemsDict: ItemsDict = { our: {}, their: {} };
-        const highValue = {
+        const getHighValue: GetHighValue = {
             our: {
                 items: {},
                 isMention: false
@@ -692,54 +692,34 @@ export default class MyHandler extends Handler {
                     exchange[which].contains.items = true;
                 }
 
-                const amount = items[which][sku].length;
+                // assign amount for sku
+                itemsDict[which][sku] = items[which][sku].length;
 
-                itemsDict[which][sku] = amount;
-
+                // Get High-value items
                 items[which][sku].forEach(item => {
                     if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
-                        highValue[which].items[sku] = item.hv;
+                        getHighValue[which].items[sku] = item.hv;
 
-                        // Now check for mention
-                        if (item.hv.s !== undefined) {
-                            // If spells exist, always mention
-                            highValue[which].isMention = true;
-                        }
-
-                        // Else for other attachments, check if boolean is true
-                        if (item.hv.sp !== undefined) {
-                            // Strange parts
-                            for (const pSku in item.hv.sp) {
-                                if (item.hv.sp[pSku] === true) {
-                                    highValue[which].isMention = true;
-                                }
+                        for (const attachments in item.hv) {
+                            if (!Object.prototype.hasOwnProperty.call(item.hv, attachments)) {
+                                continue;
                             }
-                        }
 
-                        if (item.hv.ks !== undefined) {
-                            // Sheens
-                            for (const pSku in item.hv.ks) {
-                                if (item.hv.ks[pSku] === true) {
-                                    highValue[which].isMention = true;
-                                }
+                            if (attachments === 's') {
+                                // If spells exist, always mention
+                                getHighValue[which].isMention = true;
+                                continue;
                             }
-                        }
 
-                        if (item.hv.ke !== undefined) {
-                            // Killstreakers
-                            for (const pSku in item.hv.ke) {
-                                if (item.hv.ke[pSku] === true) {
-                                    highValue[which].isMention = true;
-                                }
-                            }
-                        }
-
-                        if (item.hv.p !== undefined) {
-                            // Painted
-                            for (const pSku in item.hv.p) {
-                                if (item.hv.p[pSku] === true) {
-                                    highValue[which].isMention = true;
+                            if (item.hv[attachments] !== undefined) {
+                                for (const pSku in item.hv[attachments]) {
+                                    if (!Object.prototype.hasOwnProperty.call(item.hv[attachments], pSku)) {
+                                        continue;
+                                    }
+                                    if (item.hv[attachments] === true) {
+                                        getHighValue[which].isMention = true;
+                                    }
                                 }
                             }
                         }
@@ -753,8 +733,8 @@ export default class MyHandler extends Handler {
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
         const input: HighValueInput = {
-            our: highValue.our,
-            their: highValue.their
+            our: getHighValue.our,
+            their: getHighValue.their
         };
 
         const isContainsHighValue =
@@ -867,8 +847,8 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakerSKUs.includes(sku))) {
-            const [isNot25Uses, skus] = noiseMaker(noiseMakerSKUs, items.their);
+        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => Object.keys(noiseMakers).includes(sku))) {
+            const [isNot25Uses, skus] = noiseMaker(Object.keys(noiseMakers), items.their);
 
             const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
@@ -876,25 +856,25 @@ export default class MyHandler extends Handler {
 
             if (isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
-                offer.log('info', 'contains Noice Maker that does not have 25 uses.');
+                offer.log('info', 'contains Noise Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
             }
         }
 
         const isInPricelist =
-            Object.keys(highValue.our.items).length > 0 // Only check if this not empty
-                ? Object.keys(highValue.our.items).some(sku => {
+            Object.keys(getHighValue.our.items).length > 0 // Only check if this not empty
+                ? Object.keys(getHighValue.our.items).some(sku => {
                       return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
-        if (Object.keys(highValue.our.items).length > 0 && isInPricelist === false) {
+        if (Object.keys(getHighValue.our.items).length > 0 && isInPricelist === false) {
             // Decline trade that offer overpay on high valued (spelled) items that are not in our pricelist.
             offer.log('info', 'contains higher value item on our side that is not in our pricelist.');
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = check.getHighValueItems(highValue.our.items, this.bot);
+            const itemsName = check.getHighValueItems(getHighValue.our.items, this.bot);
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
@@ -978,7 +958,7 @@ export default class MyHandler extends Handler {
                         which === 'our'
                             ? this.bot.pricelist.getPrice(sku, false)
                             : this.bot.pricelist.getPrice(sku, false, true);
-                    const notIncludeCraftweapon = this.isWeaponsAsCurrency.enable
+                    const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !this.getWeapons.includes(sku)
                         : true;
 
@@ -1007,7 +987,7 @@ export default class MyHandler extends Handler {
                             which === 'their'
                         ); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapon) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             // User is offering too many
                             hasOverstock = true;
 
@@ -1027,7 +1007,7 @@ export default class MyHandler extends Handler {
                             !isBuying &&
                             sku !== '5021;6' &&
                             amountCanTrade < Math.abs(diff) &&
-                            notIncludeCraftweapon
+                            notIncludeCraftweapons
                         ) {
                             // User is taking too many
                             hasUnderstock = true;
@@ -1060,7 +1040,7 @@ export default class MyHandler extends Handler {
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                     } else if (
-                        (match === null && notIncludeCraftweapon) ||
+                        (match === null && notIncludeCraftweapons) ||
                         (match !== null && match.intent === (buying ? 1 : 0))
                     ) {
                         // Offer contains an item that we are not trading
@@ -1224,13 +1204,13 @@ export default class MyHandler extends Handler {
             });
         });
 
-        const isThierItems = exceptionSKU.some(fromEnv => {
+        const isTheirItems = exceptionSKU.some(fromEnv => {
             return theirItemsSKU.some(theirItemSKU => {
                 return theirItemSKU.includes(fromEnv);
             });
         });
 
-        const isExcept = isOurItems || isThierItems;
+        const isExcept = isOurItems || isTheirItems;
         const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
@@ -1954,9 +1934,7 @@ export default class MyHandler extends Handler {
                     const user = thisBody.users[steamID64];
                     this.botName = user.name;
                     this.botAvatarURL = user.avatar;
-
-                    const isPremium = user.premium ? user.premium === 1 : false;
-                    this.isPremium = isPremium;
+                    this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 }
             );
@@ -2110,4 +2088,14 @@ interface GetAutokeysStatus {
     isActive: boolean;
     isBuying: boolean;
     isBanking: boolean;
+}
+
+interface GetHighValue {
+    our: Which;
+    their: Which;
+}
+
+interface Which {
+    items: Record<string, any>;
+    isMention: boolean;
 }

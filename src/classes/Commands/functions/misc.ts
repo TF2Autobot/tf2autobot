@@ -9,19 +9,18 @@ import Bot from '../../Bot';
 import { pure, timeNow, uptime } from '../../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
-    const opt = bot.options;
-    const opt2 = opt.commands.time;
+    const opt = bot.options.commands.time;
 
-    if (!opt2.enable) {
+    if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
-            const custom = opt2.customReply.disabled;
+            const custom = opt.customReply.disabled;
 
             bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
             return;
         }
     }
 
-    const custom = opt2.customReply.reply;
+    const custom = opt.customReply.reply;
 
     const timeWithEmojis = timeNow(bot);
     bot.sendMessage(
@@ -213,14 +212,14 @@ export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const crafWeaponStock = craftWeapons(bot);
+    const craftWeaponStock = craftWeapons(bot);
 
     let reply: string;
-    if (crafWeaponStock.length > 0) {
+    if (craftWeaponStock.length > 0) {
         const custom = opt.customReply.have;
         reply = custom
-            ? custom.replace(/%list%/g, crafWeaponStock.join(', \n'))
-            : "📃 Here's a list of all craft weapons stock in my inventory:\n\n" + crafWeaponStock.join(', \n');
+            ? custom.replace(/%list%/g, craftWeaponStock.join(', \n'))
+            : "📃 Here's a list of all craft weapons stock in my inventory:\n\n" + craftWeaponStock.join(', \n');
     } else {
         const custom = opt.customReply.dontHave;
         reply = custom ? custom : "❌ I don't have any craftable weapons in my inventory.";
@@ -240,15 +239,15 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const uncrafWeaponStock = uncraftWeapons(bot);
+    const uncraftWeaponStock = uncraftWeapons(bot);
 
     let reply: string;
 
-    if (uncrafWeaponStock.length > 0) {
+    if (uncraftWeaponStock.length > 0) {
         const custom = opt.customReply.have;
         reply = custom
-            ? custom.replace(/%list/g, uncrafWeaponStock.join(', \n'))
-            : "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncrafWeaponStock.join(', \n');
+            ? custom.replace(/%list/g, uncraftWeaponStock.join(', \n'))
+            : "📃 Here's a list of all uncraft weapons stock in my inventory:\n\n" + uncraftWeaponStock.join(', \n');
     } else {
         const custom = opt.customReply.dontHave;
         reply = custom ? custom : "❌ I don't have any uncraftable weapons in my inventory.";

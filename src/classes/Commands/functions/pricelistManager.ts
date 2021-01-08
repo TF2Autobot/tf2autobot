@@ -62,7 +62,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
 
     if (params.promoted !== undefined) {
         if (!isPremium) {
-            bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`);
+            bot.sendMessage(steamID, `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`);
             return;
         }
 
@@ -82,7 +82,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
                 return;
             }
         }
-    } else if (params.promoted === undefined) {
+    } else {
         params['promoted'] = 0;
     }
 
@@ -102,7 +102,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     }
 
     if (params.group === undefined) {
-        // If group paramater is not defined, set it to null.
+        // If group parameter is not defined, set it to null.
         params['group'] = 'all';
     }
 
@@ -156,7 +156,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         return;
     }
 
-    if (params === undefined) {
+    if (!params) {
         bot.sendMessage(steamID, `⏳ Adding all items with default settings...`);
     }
 
@@ -225,7 +225,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                 return;
             }
         }
-    } else if (params.promoted === undefined) {
+    } else {
         params['promoted'] = 0;
     }
 
@@ -245,7 +245,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     }
 
     if (params.group === undefined) {
-        // If group paramater is not defined, set it to null.
+        // If group parameter is not defined, set it to null.
         params['group'] = 'all';
     }
 
@@ -362,7 +362,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
     const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
-    const reply =
+    return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
         `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
         `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
@@ -371,8 +371,8 @@ function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string 
         (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
         `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
         `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
-    return reply;
+        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+    );
 }
 
 export async function updateCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
@@ -389,7 +389,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     }
 
     if (params.all === true) {
-        // TODO: Must have atleast one other param
+        // TODO: Must have at least one other param
         const pricelist = bot.pricelist.getPrices;
 
         let targetedPricelist: Entry[];
@@ -845,7 +845,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
 function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
     const keyPrice = bot.pricelist.getKeyPrice.metal;
     const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
-    const reply =
+    return (
         `\n💲 Buy: ${
             oldEntry.buy.toValue(keyPrice) !== newEntry.buy.toValue(keyPrice)
                 ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
@@ -891,14 +891,13 @@ function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newE
                 : ''
         }` +
         `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-        `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
-
-    return reply;
+        `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
+    );
 }
 
 let executed = false;
 let lastExecutedTime: number | null = null;
-let executeTimeout;
+let executeTimeout: NodeJS.Timeout;
 
 export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const newExecutedTime = dayjs().valueOf();
@@ -1176,8 +1175,7 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
         return;
     }
 
-    const pricelist = bot.pricelist.getPrices;
-    let filter = pricelist;
+    let filter = bot.pricelist.getPrices;
 
     if (params.enabled !== undefined) {
         if (typeof params.enabled !== 'boolean') {

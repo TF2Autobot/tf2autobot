@@ -48,15 +48,14 @@ export default function processAccepted(
                     ) as InvalidItems[];
                     invalid.forEach(el => {
                         accepted.invalidItems.push(
-                            `${`${
+                            `${
                                 isWebhookEnabled
                                     ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                     : bot.schema.getName(SKU.fromString(el.sku), false)
-                            }`} - ${el.price}`
+                            } - ${el.price}`
                         );
                     });
                 }
-
                 if (offerReceived.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
                     // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
@@ -66,11 +65,11 @@ export default function processAccepted(
 
                     overstocked.forEach(el => {
                         accepted.overstocked.push(
-                            `${`${
+                            `${
                                 isWebhookEnabled
                                     ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                     : bot.schema.getName(SKU.fromString(el.sku), false)
-                            }`} (amount can buy was ${el.amountCanTrade})`
+                            } (amount can buy was ${el.amountCanTrade})`
                         );
                     });
                 }
@@ -83,11 +82,11 @@ export default function processAccepted(
                     ) as Understocked[];
                     understocked.forEach(el => {
                         accepted.understocked.push(
-                            `${`${
+                            `${
                                 isWebhookEnabled
                                     ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                     : bot.schema.getName(SKU.fromString(el.sku), false)
-                            }`} (amount can sell was ${el.amountCanTrade})`
+                            } (amount can sell was ${el.amountCanTrade})`
                         );
                     });
                 }
@@ -213,9 +212,9 @@ export default function processAccepted(
                         : ''
                 }` +
                 `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
-                `\n🎒 Total items: ${`${bot.inventoryManager.getInventory().getTotalItems}${
+                `\n🎒 Total items: ${bot.inventoryManager.getInventory().getTotalItems}${
                     slots !== undefined ? `/${slots}` : ''
-                }`}` +
+                }` +
                 `\n⏱ Time taken: ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []

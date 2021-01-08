@@ -125,8 +125,7 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
         return null;
     }
 
-    const errors = errorParser(validated);
-    return errors;
+    return errorParser(validated);
 };
 
 function errorParser(validated: jsonschema.ValidatorResult): string[] {

@@ -678,7 +678,7 @@ export default class Commands {
                               .replace(/%currentPosition%/g, String(currentPosition))
                         : '⚠️ You are already in the queue! Please wait your turn, there ' +
                               (currentPosition !== 1 ? 'are' : 'is') +
-                              ` ${currentPosition} infront of you.`
+                              ` ${currentPosition} in front of you.`
                 );
             }
             return;
@@ -695,7 +695,7 @@ export default class Commands {
                           .replace(/%position%/g, String(position))
                     : '✅ You have been added to the queue! Please wait your turn, there ' +
                           (position !== 1 ? 'are' : 'is') +
-                          ` ${position} infront of you.`
+                          ` ${position} in front of you.`
             );
         }
     }

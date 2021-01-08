@@ -20,7 +20,7 @@ export function summarizeToChat(
 ): string {
     const generatedSummary = summarize(offer, bot, type, withLink);
 
-    const summary =
+    return (
         `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}${
             isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
         }\n` +
@@ -33,8 +33,8 @@ export function summarizeToChat(
             : value.diff < 0
             ? `\n📉 ${isSteamChat ? 'Loss from underpay:' : '***Loss from underpay:***'} ${value.diffRef} ref` +
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : '');
-    return summary;
+            : '')
+    );
 }
 
 import Currencies from 'tf2-currencies';
@@ -136,7 +136,7 @@ function summarizeWithoutLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: B
             continue;
         }
 
-        // compatible with polldata from before v3.0.0                                    ↓ before v2.2.0 and/or v3.0.0 or later
+        // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
         const generateName = bot.schema.getName(SKU.fromString(sku), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
@@ -163,7 +163,7 @@ function summarizeWithLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: Bot)
             continue;
         }
 
-        // compatible with polldata from before v3.0.0                                    ↓ before v2.2.0 and/or v3.0.0 or later
+        // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
         const generateName = bot.schema.getName(SKU.fromString(sku), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
@@ -197,7 +197,7 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
             continue;
         }
 
-        // compatible with polldata from before v3.0.0                                    ↓ before v2.2.0 and/or v3.0.0 or later
+        // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
         const generateName = bot.schema.getName(SKU.fromString(sku), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
@@ -242,7 +242,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
             continue;
         }
 
-        // compatible with polldata from before v3.0.0                                    ↓ before v2.2.0 and/or v3.0.0 or later
+        // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
         const generateName = bot.schema.getName(SKU.fromString(sku), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');

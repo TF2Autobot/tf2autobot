@@ -21,9 +21,9 @@ export default class Friends {
     getFriend(
         steamID: SteamID | string
     ): {
-        rich_precense: any[];
+        rich_presence: any[];
         player_name: string;
-        avater_hash: Buffer;
+        avatar_hash: Buffer;
         last_logoff: Date;
         last_logon: Date;
         last_seen_online: Date;

@@ -116,7 +116,7 @@ export default function sendOfferReview(
                                       ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
                                     : '') +
                                 (isShowInventory
-                                    ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
+                                    ? `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
                                     : '') +
                                 (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
                                 `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`

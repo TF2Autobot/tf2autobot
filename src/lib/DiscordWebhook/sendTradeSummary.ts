@@ -44,7 +44,7 @@ export default async function sendTradeSummary(
           })
         : false;
 
-    const isMentionThierItems = enableMentionOnSpecificSKU
+    const isMentionTheirItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
               return items.their.some(theirItemSKU => {
                   return theirItemSKU.includes(fromEnv);
@@ -67,16 +67,16 @@ export default async function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : optDW.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
+            : optDW.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionTheirItems)
             ? `<@!${optDW.ownerID}>`
             : '';
 
     const trades = t.stats(bot);
-    const tradeNumbertoShowStarter = bot.options.statistics.starter;
+    const tradeNumberToShowStarter = bot.options.statistics.starter;
 
     const tradesMade =
-        tradeNumbertoShowStarter !== 0 && !isNaN(tradeNumbertoShowStarter)
-            ? tradeNumbertoShowStarter + trades.totalAcceptedTrades
+        tradeNumberToShowStarter !== 0 && !isNaN(tradeNumberToShowStarter)
+            ? tradeNumberToShowStarter + trades.totalAcceptedTrades
             : trades.totalAcceptedTrades;
 
     log.debug('getting partner Avatar and Name...');
@@ -135,9 +135,9 @@ export default async function sendTradeSummary(
                                 : '') +
                             (misc.showPureStock ? `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` : '') +
                             (misc.showInventory
-                                ? `\n🎒 Total items: ${`${bot.inventoryManager.getInventory().getTotalItems}${
+                                ? `\n🎒 Total items: ${bot.inventoryManager.getInventory().getTotalItems}${
                                       slots !== undefined ? `/${slots}` : ''
-                                  }`}`
+                                  }`
                                 : '') +
                             (misc.note
                                 ? (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') + misc.note

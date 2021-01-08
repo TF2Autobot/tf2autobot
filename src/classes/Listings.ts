@@ -12,7 +12,7 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakerSKUs, strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../lib/data';
+import { noiseMakers, strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../lib/data';
 
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
@@ -192,7 +192,7 @@ export default class Listings {
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
-                // Alrready have a sell listing, remove the listing
+                // Already have a sell listing, remove the listing
                 listing.remove();
                 return;
             }
@@ -563,6 +563,10 @@ export default class Listings {
                         });
                     } else if (hv.sp !== undefined && optD.showStrangeParts) {
                         for (const pSku in hv.sp) {
+                            if (!Object.prototype.hasOwnProperty.call(hv.sp, pSku)) {
+                                continue;
+                            }
+
                             if (hv.sp[pSku] === true) {
                                 hasStrangeParts = true;
                                 partsNames.push(
@@ -572,6 +576,10 @@ export default class Listings {
                         }
                     } else if (hv.ke !== undefined && optD.showKillstreaker) {
                         for (const pSku in hv.ke) {
+                            if (!Object.prototype.hasOwnProperty.call(hv.ke, pSku)) {
+                                continue;
+                            }
+
                             if (hv.ke[pSku] === true) {
                                 hasKillstreaker = true;
                                 killstreakerName.push(
@@ -581,6 +589,10 @@ export default class Listings {
                         }
                     } else if (hv.ks !== undefined && optD.showSheen) {
                         for (const pSku in hv.ks) {
+                            if (!Object.prototype.hasOwnProperty.call(hv.ks, pSku)) {
+                                continue;
+                            }
+
                             if (hv.ks[pSku] === true) {
                                 hasSheen = true;
                                 sheenName.push(replaceSheens(getKeyByValue(sheensData, pSku), optR.sheens));
@@ -588,6 +600,10 @@ export default class Listings {
                         }
                     } else if (hv.p !== undefined && optD.showPainted) {
                         for (const pSku in hv.p) {
+                            if (!Object.prototype.hasOwnProperty.call(hv.p, pSku)) {
+                                continue;
+                            }
+
                             if (hv.p[pSku] === true) {
                                 hasPaint = true;
                                 paintName.push(replacePainted(getKeyByValue(paintedData, pSku), optR.painted));
@@ -641,7 +657,7 @@ export default class Listings {
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
+                    : Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
             //
@@ -663,7 +679,7 @@ export default class Listings {
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
+                    : Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
             //
@@ -682,7 +698,7 @@ export default class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
             //
-        } else if (noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker) {
+        } else if (Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
             details = replaceDetails(
                 this.templates[key],

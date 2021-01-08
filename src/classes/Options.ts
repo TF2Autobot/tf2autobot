@@ -47,29 +47,29 @@ export const DEFAULTS = {
         autokeys: {
             // 4.1
             /**
-             * (Discord Webhhok not mentioned) Send an alert when the bot is low in keys and ref (less than minimum for both).
+             * (Discord Webhook not mentioned) Send an alert when the bot is low in keys and ref (less than minimum for both).
              */
             lowPure: true
         },
         /**
-         * (Discord Webhhok not mentioned) Send an alert when the bot failed to send an offer due to
+         * (Discord Webhook not mentioned) Send an alert when the bot failed to send an offer due to
          * full backpack problem.
          */
         backpackFull: true,
         highValue: {
             // 4.2
             /**
-             * (Discord Webhhok mentioned) Send an alert when the bot successfully bought an item with high-value attachment(s)
+             * (Discord Webhook mentioned) Send an alert when the bot successfully bought an item with high-value attachment(s)
              * and it got disabled (only if highValue.enableHold is true).
              */
             gotDisabled: true,
             /**
-             * (Discord Webhhok mentioned) Send an alert when the bot successfully bought an item (INVALID_ITEMS)
+             * (Discord Webhook mentioned) Send an alert when the bot successfully bought an item (INVALID_ITEMS)
              * with high-value attachment(s) - this will not automatically added to the pricelist.
              */
             receivedNotInPricelist: true,
             /**
-             * (Discord Webhhok mentioned) Send an alert when the trade partner is trying to take an item with high-value attachment(s)
+             * (Discord Webhook mentioned) Send an alert when the trade partner is trying to take an item with high-value attachment(s)
              * that is still not in the bot pricelist.
              */
             tryingToTake: true
@@ -778,7 +778,7 @@ export const DEFAULTS = {
                 enable: false,
                 /**
                  * Your bot will mention you whenever a trade contains an SKU in this list. Supports multiple item SKUs. For example,
-                 * let say you just want to be mentioned on every unusual and australium trade. You would input [";5;u", ";11;australium"].
+                 * let say you just want to be mentioned on every Unusual and Australium trade. You would input [";5;u", ";11;australium"].
                  * If you want to be mentioned on specific items, just fill in the full item SKU, like so: ["725;6;uncraftable"]. To add more,
                  * just separate new items with a comma between each SKU string.
                  */
@@ -1182,13 +1182,13 @@ export const DEFAULTS = {
              */
             alreadyInQueueProcessingOffer: '',
             /**
-             * Default: "⚠️ You are already in the queue! Please wait your turn, there %isOrAre% %currentPosition% infront of you."
+             * Default: "⚠️ You are already in the queue! Please wait your turn, there %isOrAre% %currentPosition% in front of you."
              *
              * Parameters: %isOrAre% (more than 1 use "are", else "is"), %currentPosition% (yes, current queue position)
              */
             alreadyInQueueWaitingTurn: '',
             /**
-             * Default: "✅ You have been added to the queue! Please wait your turn, there %isOrAre% %position% infront of you."
+             * Default: "✅ You have been added to the queue! Please wait your turn, there %isOrAre% %position% in front of you."
              *
              * Parameters: %isOrAre% (more than 1 use "are", else "is"), %position% (total queue position)
              */
@@ -1499,7 +1499,7 @@ export const DEFAULTS = {
                 /**
                  * Default: "/pre 📜 Here's a list of all the items that I have in my inventory:\\n%stocklist%"
                  *
-                 * Parameter: %stocklist% (a join(', \\n') arrau of the items your bot have (up to stock.maximumItems))
+                 * Parameter: %stocklist% (a join(', \\n') array of the items your bot have (up to stock.maximumItems))
                  */
                 reply: ''
             }
