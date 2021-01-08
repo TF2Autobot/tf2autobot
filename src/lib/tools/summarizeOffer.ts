@@ -1,4 +1,12 @@
 import { KeyPrices } from '../../classes/Pricelist';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
+import Bot from '../../classes/Bot';
+
+interface ValueDiff {
+    diff: number;
+    diffRef: number;
+    diffKey: string;
+}
 
 export function summarizeToChat(
     offer: TradeOffer,
@@ -29,10 +37,8 @@ export function summarizeToChat(
     return summary;
 }
 
-import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
-import Bot from '../../classes/Bot';
 
 import { replace } from '../tools/export';
 
@@ -270,10 +276,4 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
     }
 
     return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
-}
-
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
 }
