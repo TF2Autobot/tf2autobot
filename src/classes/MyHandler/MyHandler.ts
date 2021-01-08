@@ -764,7 +764,11 @@ export default class MyHandler extends Handler {
         if (this.bot.isAdmin(offer.partner)) {
             offer.log(
                 'trade',
-                `is from an admin, accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`
+                `is from an admin, accepting. Summary:\n${JSON.stringify(
+                    summarize(offer, this.bot, 'summary-accepting', false),
+                    null,
+                    4
+                )}`
             );
 
             if (isContainsHighValue) {
@@ -798,7 +802,11 @@ export default class MyHandler extends Handler {
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log(
                 'trade',
-                `is a gift offer, accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`
+                `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                    summarize(offer, this.bot, 'summary-accepting', false),
+                    null,
+                    4
+                )}`
             );
             if (isContainsHighValue) {
                 return {
@@ -1492,11 +1500,10 @@ export default class MyHandler extends Handler {
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${summarize(
-                        offer,
-                        this.bot,
-                        'summary-accepting',
-                        false
+                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${JSON.stringify(
+                        summarize(offer, this.bot, 'summary-accepting', false),
+                        null,
+                        4
                     )}`
                 );
 
@@ -1580,7 +1587,10 @@ export default class MyHandler extends Handler {
             }
         }
 
-        offer.log('trade', `accepting. Summary:\n${summarize(offer, this.bot, 'summary-accepting', false)}`);
+        offer.log(
+            'trade',
+            `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
+        );
 
         const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 

@@ -1,19 +1,23 @@
 import { KeyPrices } from '../../classes/Pricelist';
 
 export function summarizeToChat(
-    trade: string,
+    offer: TradeOffer,
+    bot: Bot,
+    type: string,
+    withLink: boolean,
     value: ValueDiff,
     keyPrice: KeyPrices,
     isSteamChat: boolean,
     isOfferSent: boolean | undefined = undefined
 ): string {
+    const generatedSummary = summarize(offer, bot, type, withLink);
+
     const summary =
         `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}${
             isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
         }\n` +
-        trade
-            .replace('Asked:', isSteamChat ? '• Asked:' : '**• Asked:**')
-            .replace('Offered:', isSteamChat ? '• Offered:' : '**• Offered:**') +
+        `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
+        `${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
         '\n──────────────────────' +
         (value.diff > 0
             ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
@@ -32,7 +36,12 @@ import Bot from '../../classes/Bot';
 
 import { replace } from '../tools/export';
 
-export default function summarize(offer: TradeOffer, bot: Bot, type: string, withLink: boolean): string {
+export default function summarize(
+    offer: TradeOffer,
+    bot: Bot,
+    type: string,
+    withLink: boolean
+): { asked: string; offered: string } {
     const value = offer.data('value') as ItemsValue;
     const items = (offer.data('dict') as ItemsDict) || { our: null, their: null };
 
@@ -40,90 +49,70 @@ export default function summarize(offer: TradeOffer, bot: Bot, type: string, wit
         // If trade with ADMINS or Gift
         if (bot.options.tradeSummary.showStockChanges) {
             if (withLink) {
-                return (
-                    'Asked: ' +
-                    summarizeWithLinkWithStockChanges(items.our, bot, 'our', type) +
-                    '\nOffered: ' +
-                    summarizeWithLinkWithStockChanges(items.their, bot, 'their', type)
-                );
+                return {
+                    asked: summarizeWithLinkWithStockChanges(items.our, bot, 'our', type),
+                    offered: summarizeWithLinkWithStockChanges(items.their, bot, 'their', type)
+                };
             } else {
-                return (
-                    'Asked: ' +
-                    summarizeWithoutLinkWithStockChanges(items.our, bot, 'our', type) +
-                    '\nOffered: ' +
-                    summarizeWithoutLinkWithStockChanges(items.their, bot, 'their', type)
-                );
+                return {
+                    asked: summarizeWithoutLinkWithStockChanges(items.our, bot, 'our', type),
+                    offered: summarizeWithoutLinkWithStockChanges(items.their, bot, 'their', type)
+                };
             }
         } else {
             if (withLink) {
-                return (
-                    'Asked: ' +
-                    summarizeWithLinkWithoutStockChanges(items.our, bot) +
-                    '\nOffered: ' +
-                    summarizeWithLinkWithoutStockChanges(items.their, bot)
-                );
+                return {
+                    asked: summarizeWithLinkWithoutStockChanges(items.our, bot),
+                    offered: summarizeWithLinkWithoutStockChanges(items.their, bot)
+                };
             } else {
-                return (
-                    'Asked: ' +
-                    summarizeWithoutLinkWithoutStockChanges(items.our, bot) +
-                    '\nOffered: ' +
-                    summarizeWithoutLinkWithoutStockChanges(items.their, bot)
-                );
+                return {
+                    asked: summarizeWithoutLinkWithoutStockChanges(items.our, bot),
+                    offered: summarizeWithoutLinkWithoutStockChanges(items.their, bot)
+                };
             }
         }
     } else {
         // If trade with trade partner
         if (bot.options.tradeSummary.showStockChanges) {
             if (withLink) {
-                return (
-                    'Asked: ' +
-                    new Currencies(value.our).toString() +
-                    '〚' +
-                    summarizeWithLinkWithStockChanges(items.our, bot, 'our', type) +
-                    '〛\nOffered: ' +
-                    new Currencies(value.their).toString() +
-                    '〚' +
-                    summarizeWithLinkWithStockChanges(items.their, bot, 'their', type) +
-                    '〛'
-                );
+                return {
+                    asked:
+                        `${new Currencies(value.our).toString()}` +
+                        `〚${summarizeWithLinkWithStockChanges(items.our, bot, 'our', type)}〛`,
+                    offered:
+                        `${new Currencies(value.their).toString()}` +
+                        `〚${summarizeWithLinkWithStockChanges(items.their, bot, 'their', type)}〛`
+                };
             } else {
-                return (
-                    'Asked: ' +
-                    new Currencies(value.our).toString() +
-                    '〚' +
-                    summarizeWithoutLinkWithStockChanges(items.our, bot, 'our', type) +
-                    '〛\nOffered: ' +
-                    new Currencies(value.their).toString() +
-                    '〚' +
-                    summarizeWithoutLinkWithStockChanges(items.their, bot, 'their', type) +
-                    '〛'
-                );
+                return {
+                    asked:
+                        `${new Currencies(value.our).toString()}` +
+                        `〚${summarizeWithoutLinkWithStockChanges(items.our, bot, 'our', type)}〛`,
+                    offered:
+                        `${new Currencies(value.their).toString()}` +
+                        `〚${summarizeWithoutLinkWithStockChanges(items.their, bot, 'their', type)}〛`
+                };
             }
         } else {
             if (withLink) {
-                return (
-                    'Asked: ' +
-                    new Currencies(value.our).toString() +
-                    ' (' +
-                    summarizeWithLinkWithoutStockChanges(items.our, bot) +
-                    ')\nOffered: ' +
-                    new Currencies(value.their).toString() +
-                    ' (' +
-                    summarizeWithLinkWithoutStockChanges(items.their, bot) +
-                    ')'
-                );
+                return {
+                    asked:
+                        `${new Currencies(value.our).toString()}` +
+                        ` (${summarizeWithLinkWithoutStockChanges(items.our, bot)})`,
+                    offered:
+                        `${new Currencies(value.their).toString()}` +
+                        ` (${summarizeWithLinkWithoutStockChanges(items.their, bot)})`
+                };
             } else {
-                return (
-                    'Asked: ' +
-                    new Currencies(value.our).toString() +
-                    ' (' +
-                    summarizeWithoutLinkWithoutStockChanges(items.our, bot) +
-                    ')\nOffered: ' +
-                    new Currencies(value.their).toString() +
-                    ' (' +
-                    summarizeWithoutLinkWithoutStockChanges(items.their, bot) +
-                    ')'
-                );
+                return {
+                    asked:
+                        `${new Currencies(value.our).toString()}` +
+                        ` (${summarizeWithoutLinkWithoutStockChanges(items.our, bot)})`,
+                    offered:
+                        `${new Currencies(value.their).toString()}` +
+                        ` (${summarizeWithoutLinkWithoutStockChanges(items.their, bot)})`
+                };
             }
         }
     }

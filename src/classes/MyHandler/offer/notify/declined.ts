@@ -1,5 +1,5 @@
 import { Action, TradeOffer } from 'steam-tradeoffer-manager';
-import { valueDiff, summarize } from '../../../../lib/tools/export';
+import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 
 import Bot from '../../../Bot';
 
@@ -181,7 +181,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
 
     const invalidValueSummary =
         '\n\nSummary:\n' +
-        summarize(offer, bot, 'declined', false).replace('Asked', '  My side').replace('Offered', 'Your side') +
+        summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true) +
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 
