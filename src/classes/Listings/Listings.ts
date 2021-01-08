@@ -243,10 +243,6 @@ export default class Listings {
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);
 
-            const filtered = inventory.getItems[sku]
-                ? inventory.getItems[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
-                : undefined;
-
             // TODO: Check if we are already making a listing for same type of item + intent
 
             if (!hasBuyListing && amountCanBuy > 0) {
@@ -267,7 +263,13 @@ export default class Listings {
                     id: assetids[assetids.length - 1],
                     intent: 1,
                     promoted: matchNew.promoted,
-                    details: this.getDetails(1, matchNew, filtered),
+                    details: this.getDetails(
+                        1,
+                        matchNew,
+                        inventory.getItems[sku]
+                            ? inventory.getItems[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
+                            : undefined
+                    ),
                     currencies: matchNew.sell
                 });
             }
