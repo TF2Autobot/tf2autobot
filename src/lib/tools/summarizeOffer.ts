@@ -25,7 +25,7 @@ export function summarizeToChat(
             isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
         }\n` +
         `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
-        `${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
+        `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
         '\n──────────────────────' +
         (value.diff > 0
             ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
