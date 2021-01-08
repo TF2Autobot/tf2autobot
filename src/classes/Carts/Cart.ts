@@ -463,8 +463,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]}x ${name}`;
+            str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
 
         if (!isDonating) {
@@ -474,8 +473,7 @@ export default abstract class Cart {
                     continue;
                 }
 
-                const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku]}x ${name}`;
+                str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
             }
         }
 

@@ -84,12 +84,16 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                       '\nExample: !message Hi Thanks!'
         );
 
-        const links = generateLinks(steamID.toString());
-        const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-
         // Send a notification to the admin with message contents & details
         if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
-            sendAdminMessage(recipientSteamID.toString(), reply, recipentDetails, links, time.time, bot);
+            sendAdminMessage(
+                recipientSteamID.toString(),
+                reply,
+                recipentDetails,
+                generateLinks(steamID.toString()),
+                timeNow(bot).time,
+                bot
+            );
         } else {
             bot.messageAdmins(
                 `/quote 💬 Message sent to #${recipientSteamID.toString()} (${
@@ -131,10 +135,9 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         }
 
         const links = generateLinks(steamID.toString());
-        const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
 
         if (opt.discordWebhook.messages.enable && opt.discordWebhook.messages.url !== '') {
-            sendPartnerMessage(steamID.toString(), msg, senderDetails, links, time.time, bot);
+            sendPartnerMessage(steamID.toString(), msg, senderDetails, links, timeNow(bot).time, bot);
         } else {
             bot.messageAdmins(
                 `/quote 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +

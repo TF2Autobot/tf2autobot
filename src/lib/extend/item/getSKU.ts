@@ -186,12 +186,13 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     let skin: string | null = null;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (!hasCaseCollection && description.endsWith('Collection')) {
+        if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
             hasCaseCollection = true;
-        } else if (hasCaseCollection && (description.startsWith('✔') || description.startsWith('★'))) {
-            skin = description.substring(1).replace(' War Paint', '').trim();
+        } else if (
+            hasCaseCollection &&
+            (item.descriptions[i].value.startsWith('✔') || item.descriptions[i].value.startsWith('★'))
+        ) {
+            skin = item.descriptions[i].value.substring(1).replace(' War Paint', '').trim();
             break;
         }
     }
@@ -242,9 +243,10 @@ function getOutput(
     let index = -1;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (description == 'You will receive all of the following outputs once all of the inputs are fulfilled.') {
+        if (
+            item.descriptions[i].value ==
+            'You will receive all of the following outputs once all of the inputs are fulfilled.'
+        ) {
             index = i;
             break;
         }

@@ -23,7 +23,7 @@ export function timeCommand(steamID: SteamID, bot: Bot): void {
 
     const custom = opt2.customReply.reply;
 
-    const timeWithEmojis = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
+    const timeWithEmojis = timeNow(bot);
     bot.sendMessage(
         steamID,
         custom

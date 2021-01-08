@@ -697,50 +697,48 @@ export default class MyHandler extends Handler {
                 itemsDict[which][sku] = amount;
 
                 items[which][sku].forEach(item => {
-                    const hv = item.hv;
-
-                    if (hv !== undefined) {
+                    if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
-                        highValue[which].items[sku] = hv;
+                        highValue[which].items[sku] = item.hv;
 
                         // Now check for mention
-                        if (hv.s !== undefined) {
+                        if (item.hv.s !== undefined) {
                             // If spells exist, always mention
                             highValue[which].isMention = true;
                         }
 
                         // Else for other attachments, check if boolean is true
-                        if (hv.sp !== undefined) {
+                        if (item.hv.sp !== undefined) {
                             // Strange parts
-                            for (const pSku in hv.sp) {
-                                if (hv.sp[pSku] === true) {
+                            for (const pSku in item.hv.sp) {
+                                if (item.hv.sp[pSku] === true) {
                                     highValue[which].isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ks !== undefined) {
+                        if (item.hv.ks !== undefined) {
                             // Sheens
-                            for (const pSku in hv.ks) {
-                                if (hv.ks[pSku] === true) {
+                            for (const pSku in item.hv.ks) {
+                                if (item.hv.ks[pSku] === true) {
                                     highValue[which].isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ke !== undefined) {
+                        if (item.hv.ke !== undefined) {
                             // Killstreakers
-                            for (const pSku in hv.ke) {
-                                if (hv.ke[pSku] === true) {
+                            for (const pSku in item.hv.ke) {
+                                if (item.hv.ke[pSku] === true) {
                                     highValue[which].isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.p !== undefined) {
+                        if (item.hv.p !== undefined) {
                             // Painted
-                            for (const pSku in hv.p) {
-                                if (hv.p[pSku] === true) {
+                            for (const pSku in item.hv.p) {
+                                if (item.hv.p[pSku] === true) {
                                     highValue[which].isMention = true;
                                 }
                             }
@@ -943,8 +941,7 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                const assetids = items[which][sku].map(item => item.id);
-                const amount = assetids.length;
+                const amount = items[which][sku].map(item => item.id).length; // assetids
 
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
@@ -1045,7 +1042,7 @@ export default class MyHandler extends Handler {
                             // if their side contains invalid_items, will use our side value
                         ) {
                             skuToCheck = skuToCheck.concat(sku);
-                            assetidsToCheck = assetidsToCheck.concat(assetids);
+                            assetidsToCheck = assetidsToCheck.concat(items[which][sku].map(item => item.id));
                         }
                     } else if (sku === '5021;6' && exchange.contains.items) {
                         // Offer contains keys and we are not trading keys, add key value
@@ -1757,8 +1754,8 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relation = this.bot.client.myFriends[steamID64] as number;
-            if (relation === EFriendRelationship.RequestRecipient) {
+            if ((this.bot.client.myFriends[steamID64] as number) === EFriendRelationship.RequestRecipient) {
+                // relation
                 this.respondToFriendRequest(steamID64);
             }
         }
@@ -1898,11 +1895,13 @@ export default class MyHandler extends Handler {
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
 
             friendsToRemove.forEach(element => {
-                const friend = this.bot.friends.getFriend(element.steamID);
                 this.bot.sendMessage(
                     element.steamID,
                     this.bot.options.customMessage.clearFriends
-                        ? this.bot.options.customMessage.clearFriends.replace(/%name%/g, friend.player_name)
+                        ? this.bot.options.customMessage.clearFriends.replace(
+                              /%name%/g,
+                              this.bot.friends.getFriend(element.steamID).player_name
+                          )
                         : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!'
                 );
                 this.bot.client.removeFriend(element.steamID);
@@ -1959,9 +1958,8 @@ export default class MyHandler extends Handler {
                 continue;
             }
 
-            const relationship = this.bot.client.myGroups[groupID64] as number;
-
-            if (relationship === EClanRelationship.Invited) {
+            if ((this.bot.client.myGroups[groupID64] as number) === EClanRelationship.Invited) {
+                // relation
                 this.bot.client.respondToGroupInvite(groupID64, false);
             }
         }
@@ -2051,10 +2049,8 @@ function noiseMaker(noiseMakerSKUs: string[], items: Dict): [boolean, string[]] 
     const skus: string[] = [];
 
     noiseMakerSKUs.forEach(sku => {
-        const noise = items[sku];
-
-        if (noise !== undefined) {
-            noise.forEach(item => {
+        if (items[sku] !== undefined) {
+            items[sku].forEach(item => {
                 isNot25Uses = item.isFullUses === false;
                 skus.push(sku);
             });

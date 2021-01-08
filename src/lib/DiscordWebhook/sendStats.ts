@@ -10,11 +10,10 @@ import log from '../logger';
 import Bot from '../../classes/Bot';
 
 export default async function sendStats(bot: Bot): Promise<void> {
-    const opt = bot.options.discordWebhook;
+    const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
     const trades = await stats(bot);
     const profits = await profit(bot);
-    const time = timeNow(bot.options.timezone, bot.options.customTimeFormat, bot.options.timeAdditionalNotes);
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
@@ -28,14 +27,14 @@ export default async function sendStats(bot: Bot): Promise<void> {
         : '';
 
     const discordStats: Webhook = {
-        username: opt.displayName ? opt.displayName : botInfo.name,
-        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName ? optDW.displayName : botInfo.name,
+        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content: '',
         embeds: [
             {
                 footer: {
-                    text: `${time.time}`,
-                    icon_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL
+                    text: `${timeNow(bot).time}`,
+                    icon_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL
                 },
                 title: '📊 Statistics 📊',
                 description:
@@ -113,12 +112,12 @@ export default async function sendStats(bot: Bot): Promise<void> {
                         value: `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
                     }
                 ],
-                color: opt.embedColor
+                color: optDW.embedColor
             }
         ]
     };
 
-    sendWebhook(opt.sendStats.url, discordStats, 'statistics')
+    sendWebhook(optDW.sendStats.url, discordStats, 'statistics')
         .then(() => {
             log.debug(`✅ Sent statistics webhook to Discord.`);
         })

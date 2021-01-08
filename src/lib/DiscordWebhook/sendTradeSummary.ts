@@ -1,53 +1,44 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
 
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 
 import { Webhook } from './interfaces';
 
 import log from '../logger';
-import { pure, stats, summarize, summarizeToChat, listItems, replace } from '../tools/export';
+import * as t from '../tools/export';
 
 import Bot from '../../classes/Bot';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
     autokeys: Autokeys,
-    currentItems: number,
     accepted: Accepted,
-    keyPrices: KeyPrices,
-    value: ValueDiff,
     items: ItemSKUList,
-    links: Links,
-    time: string,
     bot: Bot,
-    timeTaken: string,
+    processTime: number,
+    isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
-    const opt = bot.options.discordWebhook;
-
-    const ourItems = items.our;
-    const theirItems = items.their;
+    const optBot = bot.options;
+    const optDW = optBot.discordWebhook;
 
     const itemsName = {
-        invalid: accepted.invalidItems.map(name => replace.itemName(name)), // 🟨_INVALID_ITEMS
-        overstock: accepted.overstocked.map(name => replace.itemName(name)), // 🟦_OVERSTOCKED
-        understock: accepted.understocked.map(name => replace.itemName(name)), // 🟩_UNDERSTOCKED
+        invalid: accepted.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
+        overstock: accepted.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
+        understock: accepted.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
         duped: [],
         dupedFailed: [],
-        highValue: accepted.highValue.map(name => replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
+        highValue: accepted.highValue.map(name => t.replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
     };
 
-    const itemList = listItems(offer, bot, itemsName, false);
-
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
-    const enableMentionOnSpecificSKU = opt.tradeSummary.mentionOwner.enable;
-    const skuToMention = opt.tradeSummary.mentionOwner.itemSkus;
+    const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;
+    const skuToMention = optDW.tradeSummary.mentionOwner.itemSkus;
 
     const isMentionOurItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
-              return ourItems.some(ourItemSKU => {
+              return items.our.some(ourItemSKU => {
                   return ourItemSKU.includes(fromEnv);
               });
           })
@@ -55,7 +46,7 @@ export default async function sendTradeSummary(
 
     const isMentionThierItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
-              return theirItems.some(theirItemSKU => {
+              return items.their.some(theirItemSKU => {
                   return theirItemSKU.includes(fromEnv);
               });
           })
@@ -67,7 +58,7 @@ export default async function sendTradeSummary(
 
     const mentionOwner =
         IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${opt.ownerID}> - Accepted ${
+            ? `<@!${optDW.ownerID}> - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -76,16 +67,11 @@ export default async function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : opt.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
-            ? `<@!${opt.ownerID}>`
+            : optDW.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionThierItems)
+            ? `<@!${optDW.ownerID}>`
             : '';
 
-    const url = opt.tradeSummary.url;
-
-    const botInfo = bot.handler.getBotInfo;
-    const pureStock = pure.stock(bot);
-    const trades = await stats(bot);
-
+    const trades = await t.stats(bot);
     const tradeNumbertoShowStarter = bot.options.statistics.starter;
 
     const tradesMade =
@@ -93,42 +79,35 @@ export default async function sendTradeSummary(
             ? tradeNumbertoShowStarter + trades.totalAcceptedTrades
             : trades.totalAcceptedTrades;
 
-    const summary = summarizeToChat(summarize(offer, bot, 'summary', true), value, keyPrices, false, isOfferSent);
-
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
 
-    const personaName = details.personaName;
-    const avatarFull = details.avatarFull as string;
+    const botInfo = bot.handler.getBotInfo;
+    const keyPrices = bot.pricelist.getKeyPrices;
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.showOnlyMetal.enable);
+    const summary = t.summarizeToChat(t.summarize(offer, bot, 'summary', true), value, keyPrices, false, isOfferSent);
+    const links = t.generateLinks(offer.partner.toString());
+    const misc = optDW.tradeSummary.misc;
 
-    const partnerNameNoFormat = replace.specialChar(personaName);
-
-    const misc = opt.tradeSummary.misc;
-
-    const isShowQuickLinks = misc.showQuickLinks;
-    const isShowKeyRate = misc.showKeyRate;
-    const isShowPureStock = misc.showPureStock;
-    const isShowInventory = misc.showInventory;
-    const AdditionalNotes = misc.note;
-
+    const itemList = t.listItems(offer, bot, itemsName, false);
     const slots = bot.tf2.backpackSlots;
 
     const acceptedTradeSummary: Webhook = {
-        username: opt.displayName ? opt.displayName : botInfo.name,
-        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName ? optDW.displayName : botInfo.name,
+        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content: mentionOwner,
         embeds: [
             {
-                color: opt.embedColor,
+                color: optDW.embedColor,
                 author: {
-                    name: `Trade from: ${personaName} #${tradesMade.toString()}`,
+                    name: `Trade from: ${details.personaName} #${tradesMade.toString()}`,
                     url: links.steam,
-                    icon_url: avatarFull
+                    icon_url: details.avatarFull as string
                 },
                 description:
                     summary +
-                    `\n⏱ **Time taken:** ${timeTaken}\n\n` +
-                    (isShowQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                    `\n⏱ **Time taken:** ${t.convertTime(processTime, optBot.tradeSummary.showTimeTakenInMS)}\n\n` +
+                    (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
                     {
                         name: '__Item list__',
@@ -137,7 +116,7 @@ export default async function sendTradeSummary(
                     {
                         name: `__Status__`,
                         value:
-                            (isShowKeyRate
+                            (misc.showKeyRate
                                 ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                   ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                                   `${
@@ -154,17 +133,21 @@ export default async function sendTradeSummary(
                                           : ''
                                   }`
                                 : '') +
-                            (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
-                            (isShowInventory
-                                ? `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}`
+                            (misc.showPureStock ? `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` : '') +
+                            (misc.showInventory
+                                ? `\n🎒 Total items: ${`${bot.inventoryManager.getInventory().getTotalItems}${
+                                      slots !== undefined ? `/${slots}` : ''
+                                  }`}`
                                 : '') +
-                            (AdditionalNotes
-                                ? (isShowKeyRate || isShowPureStock || isShowInventory ? '\n' : '') + AdditionalNotes
+                            (misc.note
+                                ? (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') + misc.note
                                 : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`)
                     }
                 ],
                 footer: {
-                    text: `#${offer.id} • ${offer.partner.toString()} • ${time} • v${process.env.BOT_VERSION}`
+                    text: `#${offer.id} • ${offer.partner.toString()} • ${t.timeNow(bot).time} • v${
+                        process.env.BOT_VERSION
+                    }`
                 }
             }
         ]
@@ -202,6 +185,8 @@ export default async function sendTradeSummary(
         });
     }
 
+    const url = optDW.tradeSummary.url;
+
     url.forEach((link, i) => {
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => {
@@ -216,25 +201,6 @@ export default async function sendTradeSummary(
                 );
             });
     });
-}
-
-interface Links {
-    steam: string;
-    bptf: string;
-    steamrep: string;
-}
-
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
-}
-
-interface KeyPrices {
-    buy: Currencies;
-    sell: Currencies;
-    src: string;
-    time: number;
 }
 
 interface Accepted {

@@ -96,8 +96,7 @@ export default class Trades {
 
         received.concat(sent).forEach(offer => {
             if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
-                const ourItems = offer.data('_ourItems');
-                if (ourItems !== undefined) {
+                if (offer.data('_ourItems') !== undefined) {
                     // Make sure that offers that are not active does not have items saved
                     offer.data('_ourItems', undefined);
                 }

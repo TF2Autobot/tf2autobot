@@ -189,9 +189,8 @@ export function getItemFromParams(
         const match: SchemaManager.SchemaItem[] = [];
 
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            const schemaItem = bot.schema.raw.schema.items[i];
-            if (schemaItem.item_name === params.name) {
-                match.push(schemaItem);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 
@@ -350,9 +349,8 @@ export function getItemFromParams(
         const match: SchemaManager.SchemaItem[] = [];
 
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            const schemaItem = bot.schema.raw.schema.items[i];
-            if (schemaItem.item_name === params.name) {
-                match.push(schemaItem);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 
@@ -509,10 +507,7 @@ export function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Sc
             continue;
         }
 
-        const amount = dict[sku];
-        const name = schema.getName(SKU.fromString(sku), false);
-
-        summary.push(name + (amount > 1 ? `x${amount}` : ''));
+        summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? `x${dict[sku]}` : '')); // dict[sku] = amount
     }
 
     if (summary.length === 0) {

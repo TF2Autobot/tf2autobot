@@ -677,12 +677,12 @@ export default class Pricelist extends EventEmitter {
 
             // Go through our pricelist
             for (let i = 0; i < old.length; i++) {
-                const currPrice = old[i];
-                if (currPrice.autoprice !== true) {
+                // const currPrice = old[i];
+                if (old[i].autoprice !== true) {
                     continue;
                 }
 
-                const item = SKU.fromString(currPrice.sku);
+                const item = SKU.fromString(old[i].sku);
                 // PricesTF includes "The" in the name, we need to use proper name
                 const name = this.schema.getName(item, true);
 
@@ -692,11 +692,11 @@ export default class Pricelist extends EventEmitter {
 
                     if (name === newestPrice.name) {
                         // Found matching items
-                        if (currPrice.time < newestPrice.time) {
+                        if (old[i].time < newestPrice.time) {
                             // Times don't match, update our price
-                            currPrice.buy = new Currencies(newestPrice.buy);
-                            currPrice.sell = new Currencies(newestPrice.sell);
-                            currPrice.time = newestPrice.time;
+                            old[i].buy = new Currencies(newestPrice.buy);
+                            old[i].sell = new Currencies(newestPrice.sell);
+                            old[i].time = newestPrice.time;
 
                             pricesChanged = true;
                         }

@@ -25,6 +25,7 @@ const dayJSConfig = {
 dayjs.extend(relativeTime, dayJSConfig);
 
 import updateLocale from 'dayjs/plugin/updateLocale';
+
 dayjs.extend(updateLocale);
 
 dayjs.updateLocale('en', {
@@ -46,20 +47,15 @@ dayjs.updateLocale('en', {
     }
 });
 
-export function timeNow(
-    timezone: string,
-    customTimeFormat: string,
-    timeAdditionalNotes: string
-): { timeUnix: number; time: string; emoji: string; note: string } {
-    const timeUnix = dayjs().unix();
+import Bot from '../../classes/Bot';
 
-    const time = dayjs()
-        .tz(timezone ? timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-        .format(customTimeFormat ? customTimeFormat : 'MMMM DD YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: string; note: string } {
+    const opt = bot.options;
 
     const timeEmoji = dayjs()
-        .tz(timezone ? timezone : 'UTC')
+        .tz(opt.timezone ? opt.timezone : 'UTC')
         .format();
+
     const emoji =
         timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
             ? '🕛'
@@ -87,13 +83,13 @@ export function timeNow(
             ? '🕚'
             : '';
 
-    const timeNote = timeAdditionalNotes ? timeAdditionalNotes : '';
-
     const timeWithEmoji = {
-        timeUnix: timeUnix,
-        time: time,
+        timeUnix: dayjs().unix(),
+        time: dayjs()
+            .tz(opt.timezone ? opt.timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM DD YYYY, HH:mm:ss ZZ'), // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
         emoji: emoji,
-        note: timeNote
+        note: opt.timeAdditionalNotes ? opt.timeAdditionalNotes : ''
     };
     return timeWithEmoji;
 }

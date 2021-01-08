@@ -15,6 +15,7 @@ export default function updateListings(
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
+    const weapons = bot.handler.getWeapons;
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
@@ -24,10 +25,7 @@ export default function updateListings(
         // Update listings
         bot.listings.checkBySKU(sku);
 
-        const item = SKU.fromString(sku);
-        const name = bot.schema.getName(item, false);
-
-        const weapons = bot.handler.getWeapons;
+        const name = bot.schema.getName(SKU.fromString(sku), false);
 
         const isNotPureOrWeapons = !(
             (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
@@ -57,13 +55,12 @@ export default function updateListings(
         // Automatically add any INVALID_ITEMS to sell, excluding any item name
         // that have War Paint (could be skins)
 
-        const currentStock = bot.inventoryManager.getInventory().getAmount(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         if (
             inPrice === null &&
             isNotPureOrWeapons &&
-            item.wear === null &&
+            SKU.fromString(sku).wear === null &&
             !highValue.isDisableSKU.includes(sku) &&
             !bot.isAdmin(offer.partner)
         ) {
@@ -91,7 +88,7 @@ export default function updateListings(
         } else if (
             inPrice === null &&
             isNotPureOrWeapons &&
-            item.wear === null &&
+            SKU.fromString(sku).wear === null &&
             highValue.isDisableSKU.includes(sku) && // This is the only difference
             !bot.isAdmin(offer.partner)
         ) {
@@ -186,7 +183,7 @@ export default function updateListings(
             opt.autoRemoveIntentSell.enable &&
             inPrice !== null &&
             inPrice.intent === 1 &&
-            currentStock < 1 &&
+            bot.inventoryManager.getInventory().getAmount(sku) < 1 && // current stock
             isNotPureOrWeapons
         ) {
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,

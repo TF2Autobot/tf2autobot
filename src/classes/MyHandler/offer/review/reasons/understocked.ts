@@ -13,13 +13,16 @@ export default function understocked(meta: Meta, bot: Bot): { note: string; name
     const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[];
 
     understocked.forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
         if (opt.enable && opt.url !== '') {
-            understockedForOur.push(`_${name}_ (can only sell ${el.amountCanTrade})`);
+            understockedForOur.push(
+                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade})`
+            );
         } else {
-            understockedForOur.push(`${name} (can only sell ${el.amountCanTrade})`);
+            understockedForOur.push(
+                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only sell ${el.amountCanTrade})`
+            );
         }
-        understockedForTheir.push(`${el.amountCanTrade} - ${name}`);
+        understockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
     });
 
     const note = bot.options.manualReview.understocked.note

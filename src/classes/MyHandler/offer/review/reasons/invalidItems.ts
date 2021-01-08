@@ -13,13 +13,15 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
     const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[];
 
     invalid.forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
         if (opt.enable && opt.url !== '') {
-            invalidForOur.push(`_${name}_ - ${el.price}`); // show both item name and prices.tf price
+            // show both item name and prices.tf price
+            invalidForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_ - ${el.price}`);
         } else {
-            invalidForOur.push(`${name} - ${el.price}`); // show both item name and prices.tf price
+            // show both item name and prices.tf price
+            invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
         }
-        invalidForTheir.push(name); // only show to trade partner the item name
+        // only show to trade partner the item name
+        invalidForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
     });
 
     const note = bot.options.manualReview.invalidItems.note

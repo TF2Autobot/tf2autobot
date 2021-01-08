@@ -92,17 +92,17 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
 
     let text = '';
     const toJoin: string[] = [];
+
+    let buyPrice: string;
+    let sellPrice: string;
+    let autoprice = 'unknown';
+
     for (const sku in prices) {
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
             continue;
         }
 
-        const name = bot.schema.getName(SKU.fromString(sku), false);
-
         const pricelist = bot.pricelist.getPrice(sku, false);
-        let buyPrice: string;
-        let sellPrice: string;
-        let autoprice = 'unknown';
 
         if (pricelist !== null) {
             buyPrice = pricelist.buy.toString();
@@ -116,8 +116,8 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
         toJoin.push(
             `${
                 isSteamChat
-                    ? `${name} - ${buyPrice} / ${sellPrice} (${autoprice})`
-                    : `_${name}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
+                    ? `${bot.schema.getName(SKU.fromString(sku), false)} - ${buyPrice} / ${sellPrice} (${autoprice})`
+                    : `_${bot.schema.getName(SKU.fromString(sku), false)}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
             }`
         );
     }

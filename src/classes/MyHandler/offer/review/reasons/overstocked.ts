@@ -14,13 +14,16 @@ export default function overstocked(meta: Meta, bot: Bot): { note: string; name:
     const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[];
 
     overstock.forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
         if (opt.enable && opt.url !== '') {
-            overstockedForOur.push(`_${name}_ (can only buy ${el.amountCanTrade})`);
+            overstockedForOur.push(
+                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only buy ${el.amountCanTrade})`
+            );
         } else {
-            overstockedForOur.push(`${name} (can only buy ${el.amountCanTrade})`);
+            overstockedForOur.push(
+                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only buy ${el.amountCanTrade})`
+            );
         }
-        overstockedForTheir.push(`${el.amountCanTrade} - ${name}`);
+        overstockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
     });
 
     const note = bot.options.manualReview.overstocked.note

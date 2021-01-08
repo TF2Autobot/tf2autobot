@@ -31,95 +31,117 @@ export default function profit(bot: Bot): Promise<{ tradeProfit: number; overpri
             const tracker = new itemTracker();
 
             for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
-                if (!(trade.handledByUs && trade.isAccepted)) {
+                // const trade = trades[i];
+                if (!(trades[i].handledByUs && trades[i].isAccepted)) {
                     continue; // trade was not accepted, go to next trade
                 }
+
                 let isGift = false;
-                if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
+
+                if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) {
                     continue; // trade has no items involved (not possible, but who knows)
                 }
-                if (typeof Object.keys(trade.dict.our).length === 'undefined') {
+                if (typeof Object.keys(trades[i].dict.our).length === 'undefined') {
                     isGift = true; // no items on our side, so it is probably gift
-                } else if (Object.keys(trade.dict.our).length > 0) {
+                } else if (Object.keys(trades[i].dict.our).length > 0) {
                     // trade is not a gift
-                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
+                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
                         continue; // trade is missing value object
                     }
-                    if (!(Object.keys(trade.prices).length > 0)) {
+                    if (!(Object.keys(trades[i].prices).length > 0)) {
                         continue; // have no prices, broken data, skip
                     }
                 } else {
                     isGift = true; // no items on our side, so it is probably gift
                 }
 
-                if (typeof trade.value === 'undefined') {
-                    trade.value = {};
+                if (typeof trades[i].value === 'undefined') {
+                    trades[i].value = {};
                 }
 
-                if (typeof trade.value.rate === 'undefined') {
-                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
-                        trade.value = {}; // in case it was gift
+                if (typeof trades[i].value.rate === 'undefined') {
+                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
+                        trades[i].value = {}; // in case it was gift
                     }
-                    trade.value.rate = keyPrice.metal; // set key value to current value if it is not defined
+                    trades[i].value.rate = keyPrice.metal; // set key value to current value if it is not defined
                 }
 
-                for (const sku in trade.dict.their) {
+                for (const sku in trades[i].dict.their) {
                     // item bought
-                    if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
+                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku)) {
                         const itemCount =
-                            typeof trade.dict.their[sku] === 'object'
-                                ? (trade.dict.their[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
-                                : trade.dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+                            typeof trades[i].dict.their[sku] === 'object'
+                                ? (trades[i].dict.their[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trades[i].dict.their[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
-                        const isNotPureOrWeapons = !(
-                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                            ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                        );
+                        // const isNotPureOrWeapons = !(
+                        //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                        //     ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                        // );
 
-                        if (isNotPureOrWeapons) {
+                        if (
+                            !(
+                                (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                                ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                            )
+                        ) {
                             // if it is not currency
                             if (isGift) {
-                                if (!Object.prototype.hasOwnProperty.call(trade, 'prices')) {
-                                    trade.prices = {};
+                                if (!Object.prototype.hasOwnProperty.call(trades[i], 'prices')) {
+                                    trades[i].prices = {};
                                 }
-                                trade.prices[sku] = {
+                                trades[i].prices[sku] = {
                                     // set price to 0 because it's a gift
                                     buy: new Currencies({
                                         keys: 0,
                                         metal: 0
                                     })
                                 };
-                            } else if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
+                            } else if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
 
-                            const prices = trade.prices[sku].buy;
+                            // const prices = trades[i].prices[sku].buy;
 
-                            tradeProfit += tracker.boughtItem(itemCount, sku, prices, trade.value.rate);
+                            tradeProfit += tracker.boughtItem(
+                                itemCount,
+                                sku,
+                                trades[i].prices[sku].buy,
+                                trades[i].value.rate
+                            );
                         }
                     }
                 }
 
-                for (const sku in trade.dict.our) {
-                    if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
+                for (const sku in trades[i].dict.our) {
+                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku)) {
                         const itemCount =
-                            typeof trade.dict.our[sku] === 'object'
-                                ? (trade.dict.our[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
-                                : trade.dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
+                            typeof trades[i].dict.our[sku] === 'object'
+                                ? (trades[i].dict.our[sku]['amount'] as number) // polldata v2.2.0 until v.2.3.5
+                                : trades[i].dict.our[sku]; // polldata before v2.2.0 and/or v3.0.0 or later
 
-                        const isNotPureOrWeapons = !(
-                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                            ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                        );
+                        // const isNotPureOrWeapons = !(
+                        //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                        //     ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                        // );
 
-                        if (isNotPureOrWeapons) {
-                            if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
+                        if (
+                            !(
+                                (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                                ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                            )
+                        ) {
+                            if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
-                            const prices = trade.prices[sku].sell;
+                            // const prices = trades[i].prices[sku].sell;
 
-                            tradeProfit += tracker.soldItem(itemCount, sku, prices, trade.value.rate);
+                            tradeProfit += tracker.soldItem(
+                                itemCount,
+                                sku,
+                                trades[i].prices[sku].sell,
+                                trades[i].value.rate
+                            );
                         }
                     }
                 }
@@ -127,11 +149,11 @@ export default function profit(bot: Bot): Promise<{ tradeProfit: number; overpri
                 if (!isGift) {
                     // calculate overprice profit
                     tradeProfit +=
-                        tracker.convert(trade.value.their, trade.value.rate) -
-                        tracker.convert(trade.value.our, trade.value.rate);
+                        tracker.convert(trades[i].value.their, trades[i].value.rate) -
+                        tracker.convert(trades[i].value.our, trades[i].value.rate);
                     overpriceProfit +=
-                        tracker.convert(trade.value.their, trade.value.rate) -
-                        tracker.convert(trade.value.our, trade.value.rate);
+                        tracker.convert(trades[i].value.their, trades[i].value.rate) -
+                        tracker.convert(trades[i].value.our, trades[i].value.rate);
                 }
             }
 

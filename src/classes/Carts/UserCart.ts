@@ -129,14 +129,12 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const match = this.bot.pricelist.getPrice(sku, true);
-
-            if (match === null) {
+            if (this.bot.pricelist.getPrice(sku, true) === null) {
                 // Ignore items that are no longer in the pricelist
                 continue;
             }
 
-            value += match.sell.toValue(keyPrice.metal) * this.our[sku];
+            value += this.bot.pricelist.getPrice(sku, true).sell.toValue(keyPrice.metal) * this.our[sku];
         }
 
         return Currencies.toCurrencies(value, this.canUseKeys() ? keyPrice.metal : undefined);
@@ -300,23 +298,26 @@ export default class UserCart extends Cart {
 
             // Removes unnessesary items
             for (let i = 0; i < skus.length; i++) {
-                const sku = skus[i];
-
-                if (pickedCurrencies[sku] === undefined) {
+                if (pickedCurrencies[skus[i]] === undefined) {
                     continue;
                 }
 
-                let amount = Math.floor(Math.abs(remaining) / currencyValues[sku]);
-                if (pickedCurrencies[sku] < amount) {
-                    amount = pickedCurrencies[sku];
+                let amount = Math.floor(Math.abs(remaining) / currencyValues[skus[i]]);
+                if (pickedCurrencies[skus[i]] < amount) {
+                    amount = pickedCurrencies[skus[i]];
                 }
 
                 if (amount >= 1) {
-                    remaining += amount * currencyValues[sku];
-                    pickedCurrencies[sku] -= amount;
+                    remaining += amount * currencyValues[skus[i]];
+                    pickedCurrencies[skus[i]] -= amount;
                 }
 
-                log.debug('Iteration', { sku: sku, amount: amount, remaining: remaining, picked: pickedCurrencies });
+                log.debug('Iteration', {
+                    sku: skus[i],
+                    amount: amount,
+                    remaining: remaining,
+                    picked: pickedCurrencies
+                });
             }
         }
 
@@ -572,15 +573,14 @@ export default class UserCart extends Cart {
         const { isBuyer, currencies } = this.getCurrencies();
 
         // We now know who the buyer is, now get their inventory
-        const buyerInventory = isBuyer ? this.bot.inventoryManager.getInventory() : theirInventory;
-        const pureStock = pure.stock(this.bot);
+        const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys(), currencies, buyerInventory, this.bot) < 1) {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
                     " don't have enough pure for this trade." +
-                    (isBuyer ? '\n💰 Current pure stock: ' + pureStock.join(', ').toString() : '')
+                    (isBuyer ? '\n💰 Current pure stock: ' + pure.stock(this.bot).join(', ').toString() : '')
             );
         }
 
@@ -696,13 +696,10 @@ export default class UserCart extends Cart {
             const amount = this.their[sku];
             let assetids = theirInventory.findBySKU(sku, true);
 
-            const match = this.bot.pricelist.getPrice(sku, true, true);
-
-            const item = SKU.fromString(sku);
-
             const addToDupeCheckList =
-                item.effect !== null &&
-                match.buy.toValue(keyPrice.metal) > this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
+                SKU.fromString(sku).effect !== null &&
+                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
+                    this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -785,50 +782,48 @@ export default class UserCart extends Cart {
                     return assetidsOur.includes(item.id);
                 })
                 .forEach(item => {
-                    const hv = item.hv;
-
-                    if (hv !== undefined) {
+                    if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
-                        highValue.our.items[sku] = hv;
+                        highValue.our.items[sku] = item.hv;
 
                         // Now check for mention
-                        if (hv.s !== undefined) {
+                        if (item.hv.s !== undefined) {
                             // If spells exist, always mention
                             highValue.our.isMention = true;
                         }
 
                         // Else for other attachments, check if boolean is true
-                        if (hv.sp !== undefined) {
+                        if (item.hv.sp !== undefined) {
                             // Strange parts
-                            for (const pSku in hv.sp) {
-                                if (hv.sp[pSku] === true) {
+                            for (const pSku in item.hv.sp) {
+                                if (item.hv.sp[pSku] === true) {
                                     highValue.our.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ks !== undefined) {
+                        if (item.hv.ks !== undefined) {
                             // Sheens
-                            for (const pSku in hv.ks) {
-                                if (hv.ks[pSku] === true) {
+                            for (const pSku in item.hv.ks) {
+                                if (item.hv.ks[pSku] === true) {
                                     highValue.our.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ke !== undefined) {
+                        if (item.hv.ke !== undefined) {
                             // Killstreakers
-                            for (const pSku in hv.ke) {
-                                if (hv.ke[pSku] === true) {
+                            for (const pSku in item.hv.ke) {
+                                if (item.hv.ke[pSku] === true) {
                                     highValue.our.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.p !== undefined) {
+                        if (item.hv.p !== undefined) {
                             // Painted
-                            for (const pSku in hv.p) {
-                                if (hv.p[pSku] === true) {
+                            for (const pSku in item.hv.p) {
+                                if (item.hv.p[pSku] === true) {
                                     highValue.our.isMention = true;
                                 }
                             }
@@ -843,50 +838,48 @@ export default class UserCart extends Cart {
                     return assetidsTheir.includes(item.id);
                 })
                 .forEach(item => {
-                    const hv = item.hv;
-
-                    if (hv !== undefined) {
+                    if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
-                        highValue.their.items[sku] = hv;
+                        highValue.their.items[sku] = item.hv;
 
                         // Now check for mention
-                        if (hv.s !== undefined) {
+                        if (item.hv.s !== undefined) {
                             // If spells exist, always mention
                             highValue.their.isMention = true;
                         }
 
                         // Else for other attachments, check if boolean is true
-                        if (hv.sp !== undefined) {
+                        if (item.hv.sp !== undefined) {
                             // Strange parts
-                            for (const pSku in hv.sp) {
-                                if (hv.sp[pSku] === true) {
+                            for (const pSku in item.hv.sp) {
+                                if (item.hv.sp[pSku] === true) {
                                     highValue.their.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ks !== undefined) {
+                        if (item.hv.ks !== undefined) {
                             // Sheens
-                            for (const pSku in hv.ks) {
-                                if (hv.ks[pSku] === true) {
+                            for (const pSku in item.hv.ks) {
+                                if (item.hv.ks[pSku] === true) {
                                     highValue.their.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.ke !== undefined) {
+                        if (item.hv.ke !== undefined) {
                             // Killstreakers
-                            for (const pSku in hv.ke) {
-                                if (hv.ke[pSku] === true) {
+                            for (const pSku in item.hv.ke) {
+                                if (item.hv.ke[pSku] === true) {
                                     highValue.their.isMention = true;
                                 }
                             }
                         }
 
-                        if (hv.p !== undefined) {
+                        if (item.hv.p !== undefined) {
                             // Painted
-                            for (const pSku in hv.p) {
-                                if (hv.p[pSku] === true) {
+                            for (const pSku in item.hv.p) {
+                                if (item.hv.p[pSku] === true) {
                                     highValue.their.isMention = true;
                                 }
                             }
@@ -904,15 +897,13 @@ export default class UserCart extends Cart {
             offer.data('highValue', highValueOut(input));
         }
 
-        const sellerInventory = isBuyer ? theirInventory : ourInventory;
-
         if (required.change !== 0) {
             let change = Math.abs(required.change);
 
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = sellerInventory.getCurrencies(this.bot);
+            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(this.bot); // sellerInventory
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -1055,11 +1046,9 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const entry = this.bot.pricelist.getPrice(sku, true);
-
             itemPrices[sku] = {
-                buy: entry.buy,
-                sell: entry.sell
+                buy: this.bot.pricelist.getPrice(sku, true).buy,
+                sell: this.bot.pricelist.getPrice(sku, true).sell
             };
         }
 
@@ -1072,11 +1061,9 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const entry = this.bot.pricelist.getPrice(sku, true, true);
-
             itemPrices[sku] = {
-                buy: entry.buy,
-                sell: entry.sell
+                buy: this.bot.pricelist.getPrice(sku, true).buy,
+                sell: this.bot.pricelist.getPrice(sku, true).sell
             };
         }
 
@@ -1130,8 +1117,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku]}x ${name}`;
+            str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
 
         if (isBuyer) {
@@ -1145,8 +1131,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.their[sku]}x ${name}`;
+            str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
 
         if (!isBuyer) {

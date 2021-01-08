@@ -492,10 +492,11 @@ export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
     const friendsToRemove = friends.filter(steamid => !friendsToKeep.includes(steamid));
 
     friendsToRemove.forEach(steamid => {
-        const friend = bot.friends.getFriend(steamid);
         bot.sendMessage(
             steamid,
-            `/quote Hey ${friend.player_name}! My owner has performed friendlist clearance. Please feel free to add me again if you want to trade at a later time!`
+            `/quote Hey ${
+                bot.friends.getFriend(steamid).player_name
+            }! My owner has performed friendlist clearance. Please feel free to add me again if you want to trade at a later time!`
         );
         bot.client.removeFriend(steamid);
     });

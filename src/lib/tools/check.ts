@@ -15,10 +15,7 @@ export function getAssetidsWithFullUses(items: DictItem[]): string[] {
 
 export function is5xUses(item: EconItem): boolean {
     for (const content of item.descriptions) {
-        const value = content.value;
-        const color = content.color;
-
-        if (value.includes('This is a limited use item. Uses: 5') && color === '00a000') {
+        if (content.value.includes('This is a limited use item. Uses: 5') && content.color === '00a000') {
             // return some method to true
             return true;
         }
@@ -29,10 +26,7 @@ export function is5xUses(item: EconItem): boolean {
 
 export function is25xUses(item: EconItem): boolean {
     for (const content of item.descriptions) {
-        const value = content.value;
-        const color = content.color;
-
-        if (value.includes('This is a limited use item. Uses: 25') && color === '00a000') {
+        if (content.value.includes('This is a limited use item. Uses: 25') && content.color === '00a000') {
             return true;
         }
     }
@@ -62,12 +56,6 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
 
     for (const content of econ.descriptions) {
         /**
-         * Item description value for Spells and Strange Parts.
-         * For Spell, example: "Halloween: Voices From Below (spell only active during event)
-         */
-        const desc = content.value;
-
-        /**
          * For Strange Parts, example: "(Kills During Halloween: 0)"
          * remove "(" and ": <numbers>)" to get only the part name.
          */
@@ -76,14 +64,11 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             .replace(/: \d+\)/g, '')
             .trim();
 
-        /**
-         * Description color in Hex Triplet format, example: 7ea9d1
-         */
-        const color = content.color;
-
-        const strangePartNames = Object.keys(strangePartsData);
-
-        if (desc.startsWith('Halloween:') && desc.endsWith('(spell only active during event)') && color === '7ea9d1') {
+        if (
+            content.value.startsWith('Halloween:') &&
+            content.value.endsWith('(spell only active during event)') &&
+            content.color === '7ea9d1'
+        ) {
             // Example: "Halloween: Voices From Below (spell only active during event)"
             // where "Voices From Below" is the spell name.
             // Color of this description must be rgb(126, 169, 209) or 7ea9d1
@@ -92,15 +77,15 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             // Get the spell name
             // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
             // from "(spell only active during event)", and trim any whitespaces.
-            const spellName = desc.substring(10, desc.length - 32).trim();
+            const spellName = content.value.substring(10, content.value.length - 32).trim();
 
             // push for storage, example: s-1000
             s.push(spellsData[spellName]);
         } else if (
             (parts === 'Kills' || parts === 'Assists'
                 ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
-                : strangePartNames.includes(parts)) &&
-            color === '756b5e'
+                : Object.keys(strangePartsData).includes(parts)) &&
+            content.color === '756b5e'
         ) {
             // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
             // Else, will scan through Strange Parts Object keys in this.strangeParts()
@@ -116,8 +101,8 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
                 // else no mention and just the name.
                 sp[`${strangePartsData[parts] as string}`] = false;
             }
-        } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-            const extractedName = desc.replace('Killstreaker: ', '').trim();
+        } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Killstreaker: ', '').trim();
             hasKillstreaker = true;
 
             if (killstreakers.includes(extractedName.toLowerCase())) {
@@ -125,8 +110,8 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             } else {
                 ke[`${killstreakersData[extractedName] as string}`] = false;
             }
-        } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-            const extractedName = desc.replace('Sheen: ', '').trim();
+        } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Sheen: ', '').trim();
             hasSheen = true;
 
             if (sheens.includes(extractedName.toLowerCase())) {
@@ -134,8 +119,8 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             } else {
                 ks[`${sheensData[extractedName] as string}`] = false;
             }
-        } else if (desc.startsWith('Paint Color: ') && color === '756b5e') {
-            const extractedName = desc.replace('Paint Color: ', '').trim();
+        } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
+            const extractedName = content.value.replace('Paint Color: ', '').trim();
             hasPaint = true;
 
             if (painted.includes(extractedName.toLowerCase())) {
@@ -180,32 +165,31 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
             continue;
         }
-        const name = bot.schema.getName(SKU.fromString(sku));
 
         let attachments = '';
-        const attributes = items[sku];
+        // const attributes = items[sku];
 
-        if (attributes.s) {
+        if (items[sku].s) {
             attachments += '\n🎃 Spells: ';
             const toJoin: string[] = [];
 
-            attributes.s.forEach(spellSKU => {
+            items[sku].s.forEach(spellSKU => {
                 toJoin.push(getKeyByValue(spellsData, spellSKU));
             });
 
             attachments += toJoin.join(' + ');
         }
 
-        if (attributes.sp) {
+        if (items[sku].sp) {
             attachments += '\n🎰 Parts: ';
             const toJoin: string[] = [];
 
-            for (const sPartSKU in attributes.sp) {
-                if (!Object.prototype.hasOwnProperty.call(attributes.sp, sPartSKU)) {
+            for (const sPartSKU in items[sku].sp) {
+                if (!Object.prototype.hasOwnProperty.call(items[sku].sp, sPartSKU)) {
                     continue;
                 }
 
-                if (attributes.sp[sPartSKU] === true) {
+                if (items[sku].sp[sPartSKU] === true) {
                     toJoin.push(getKeyByValue(strangePartsData, +sPartSKU) + ' (🌟)');
                 } else {
                     toJoin.push(getKeyByValue(strangePartsData, +sPartSKU));
@@ -215,16 +199,16 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             attachments += toJoin.join(' + ');
         }
 
-        if (attributes.ke) {
+        if (items[sku].ke) {
             attachments += '\n🔥 Killstreaker: ';
             const toJoin: string[] = [];
 
-            for (const keSKU in attributes.ke) {
-                if (!Object.prototype.hasOwnProperty.call(attributes.ke, keSKU)) {
+            for (const keSKU in items[sku].ke) {
+                if (!Object.prototype.hasOwnProperty.call(items[sku].ke, keSKU)) {
                     continue;
                 }
 
-                if (attributes.ke[keSKU] === true) {
+                if (items[sku].ke[keSKU] === true) {
                     toJoin.push(getKeyByValue(killstreakersData, keSKU) + ' (🌟)');
                 } else {
                     toJoin.push(getKeyByValue(killstreakersData, keSKU));
@@ -234,16 +218,16 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             }
         }
 
-        if (attributes.ks) {
+        if (items[sku].ks) {
             attachments += '\n✨ Sheen: ';
 
             const toJoin: string[] = [];
-            for (const ksSKU in attributes.ks) {
-                if (!Object.prototype.hasOwnProperty.call(attributes.ks, ksSKU)) {
+            for (const ksSKU in items[sku].ks) {
+                if (!Object.prototype.hasOwnProperty.call(items[sku].ks, ksSKU)) {
                     continue;
                 }
 
-                if (attributes.ks[ksSKU] === true) {
+                if (items[sku].ks[ksSKU] === true) {
                     toJoin.push(getKeyByValue(sheensData, ksSKU) + ' (🌟)');
                 } else {
                     toJoin.push(getKeyByValue(sheensData, ksSKU));
@@ -253,16 +237,16 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             }
         }
 
-        if (attributes.p) {
+        if (items[sku].p) {
             attachments += '\n🎨 Painted: ';
 
             const toJoin: string[] = [];
-            for (const pSKU in attributes.p) {
-                if (!Object.prototype.hasOwnProperty.call(attributes.p, pSKU)) {
+            for (const pSKU in items[sku].p) {
+                if (!Object.prototype.hasOwnProperty.call(items[sku].p, pSKU)) {
                     continue;
                 }
 
-                if (attributes.p[pSKU] === true) {
+                if (items[sku].p[pSKU] === true) {
                     toJoin.push(getKeyByValue(paintedData, pSKU) + ' (🌟)');
                 } else {
                     toJoin.push(getKeyByValue(paintedData, pSKU));
@@ -272,7 +256,7 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             }
         }
 
-        itemsWithName[name] = attachments;
+        itemsWithName[bot.schema.getName(SKU.fromString(sku))] = attachments;
     }
 
     return itemsWithName;

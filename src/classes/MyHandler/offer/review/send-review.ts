@@ -18,8 +18,7 @@ import {
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
-    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-    const pureStock = pure.stock(bot);
+    const time = timeNow(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = generateLinks(offer.partner.toString());
@@ -79,7 +78,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     ? '\n\n' +
                       opt.manualReview.additionalNotes
                           .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
-                          .replace(/%pureStock%/g, pureStock.join(', ').toString())
+                          .replace(/%pureStock%/g, pure.stock(bot).join(', ').toString())
                     : '') +
                 (opt.manualReview.showOwnerCurrentTime
                     ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
@@ -136,7 +135,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
-                `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                `\n💰 Pure stock: ${pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []

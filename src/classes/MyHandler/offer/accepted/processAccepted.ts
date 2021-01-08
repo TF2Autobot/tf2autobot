@@ -20,14 +20,6 @@ export default function processAccepted(
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
 
-    const pureStock = t.pure.stock(bot);
-    const time = t.timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes).time;
-    const links = t.generateLinks(offer.partner.toString());
-    const itemsSKU = itemList(offer);
-    const currentItems = bot.inventoryManager.getInventory().getTotalItems;
-
-    const timeTaken = t.convertTime(processTime, bot.options.tradeSummary.showTimeTakenInMS);
-
     const accepted: Accepted = {
         invalidItems: [],
         overstocked: [],
@@ -55,8 +47,13 @@ export default function processAccepted(
                         el => el.reason === '🟨_INVALID_ITEMS'
                     ) as InvalidItems[];
                     invalid.forEach(el => {
-                        const name = bot.schema.getName(SKU.fromString(el.sku), false);
-                        accepted.invalidItems.push(`${`${isWebhookEnabled ? `_${name}_` : name}`} - ${el.price}`);
+                        accepted.invalidItems.push(
+                            `${`${
+                                isWebhookEnabled
+                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                            }`} - ${el.price}`
+                        );
                     });
                 }
 
@@ -68,9 +65,12 @@ export default function processAccepted(
                     ) as Overstocked[];
 
                     overstocked.forEach(el => {
-                        const name = bot.schema.getName(SKU.fromString(el.sku), false);
                         accepted.overstocked.push(
-                            `${`${isWebhookEnabled ? `_${name}_` : name}`} (amount can buy was ${el.amountCanTrade})`
+                            `${`${
+                                isWebhookEnabled
+                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                            }`} (amount can buy was ${el.amountCanTrade})`
                         );
                     });
                 }
@@ -82,9 +82,12 @@ export default function processAccepted(
                         el.reason.includes('🟩_UNDERSTOCKED')
                     ) as Understocked[];
                     understocked.forEach(el => {
-                        const name = bot.schema.getName(SKU.fromString(el.sku), false);
                         accepted.understocked.push(
-                            `${`${isWebhookEnabled ? `_${name}_` : name}`} (amount can sell was ${el.amountCanTrade})`
+                            `${`${
+                                isWebhookEnabled
+                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                            }`} (amount can sell was ${el.amountCanTrade})`
                         );
                     });
                 }
@@ -171,27 +174,13 @@ export default function processAccepted(
         }
     }
 
-    const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
-
     const offerData = bot.manager.pollData.offerData;
     const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
 
+    const itemsSKU = itemList(offer);
+
     if (isWebhookEnabled) {
-        void sendTradeSummary(
-            offer,
-            autokeys,
-            currentItems,
-            accepted,
-            keyPrices,
-            value,
-            itemsSKU,
-            links,
-            time,
-            bot,
-            timeTaken,
-            isOfferSent
-        );
+        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isTradingKeys, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
@@ -203,6 +192,8 @@ export default function processAccepted(
             highValue: accepted.highValue // 🔶_HIGH_VALUE_ITEMS
         };
 
+        const keyPrices = bot.pricelist.getKeyPrices;
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         bot.messageAdmins(
@@ -221,9 +212,11 @@ export default function processAccepted(
                               : '🛑')
                         : ''
                 }` +
-                `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
-                `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
-                `\n⏱ Time taken: ${timeTaken}` +
+                `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
+                `\n🎒 Total items: ${`${bot.inventoryManager.getInventory().getTotalItems}${
+                    slots !== undefined ? `/${slots}` : ''
+                }`}` +
+                `\n⏱ Time taken: ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );

@@ -194,6 +194,8 @@ export default class Listings {
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
 
+        const inventory = this.bot.inventoryManager.getInventory();
+
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
                 // Alrready have a sell listing, remove the listing
@@ -214,12 +216,10 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                const inventory = this.bot.inventoryManager.getInventory();
-                const items = inventory.getItems;
                 let filtered: DictItem = undefined;
 
                 if (listing.intent === 1) {
-                    filtered = items[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0];
+                    filtered = inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0];
                 }
 
                 const newDetails = this.getDetails(listing.intent, match, filtered);
@@ -241,12 +241,10 @@ export default class Listings {
         const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
-            const inventory = this.bot.inventoryManager.getInventory();
             const assetids = inventory.findBySKU(sku, true);
-            const items = inventory.getItems;
 
-            const filtered = items[sku]
-                ? items[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
+            const filtered = inventory.getItems[sku]
+                ? inventory.getItems[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
                 : undefined;
 
             // TODO: Check if we are already making a listing for same type of item + intent

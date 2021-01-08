@@ -248,30 +248,28 @@ export default class Inventory {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const sku = item.getSKU(schema, optFestivized, optStrangeUnusual);
-
-            const attributes = check.highValue(item, bot);
+            const sku = items[i].getSKU(schema, optFestivized, optStrangeUnusual);
+            const attributes = check.highValue(items[i], bot);
 
             let isDuel5xUses: boolean | null = null;
             if (sku === '241;6') {
-                isDuel5xUses = check.is5xUses(item);
+                isDuel5xUses = check.is5xUses(items[i]);
             }
 
             let isNoiseMaker25xUses: boolean | null = null;
             if (noiseMakerSKUs.includes(sku)) {
-                isNoiseMaker25xUses = check.is25xUses(item);
+                isNoiseMaker25xUses = check.is25xUses(items[i]);
             }
 
             if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
-                (dict[sku] = dict[sku] || []).push({ id: item.id });
+                (dict[sku] = dict[sku] || []).push({ id: items[i].id });
             } else {
                 if (isDuel5xUses !== null) {
-                    (dict[sku] = dict[sku] || []).push({ id: item.id, isFullUses: isDuel5xUses });
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isDuel5xUses });
                 } else if (isNoiseMaker25xUses !== null) {
-                    (dict[sku] = dict[sku] || []).push({ id: item.id, isFullUses: isNoiseMaker25xUses });
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isNoiseMaker25xUses });
                 } else {
-                    (dict[sku] = dict[sku] || []).push({ id: item.id, hv: attributes });
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, hv: attributes });
                 }
             }
         }

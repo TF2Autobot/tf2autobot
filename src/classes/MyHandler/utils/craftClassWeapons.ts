@@ -25,18 +25,14 @@ function craftEachClassWeapons(bot: Bot, weapons: string[], currencies: { [sku: 
     return new Promise(resolve => {
         weapons.forEach((sku1, i) => {
             // first loop
-            const wep1 = currencies[sku1].length;
-
             // check if that weapon1 only have 1 in inventory AND it's not in pricelist
-            const isWep1 = wep1 === 1 && bot.pricelist.getPrice(sku1, true) === null;
+            const isWep1 = currencies[sku1].length === 1 && bot.pricelist.getPrice(sku1, true) === null;
 
             weapons.forEach((sku2, j) => {
                 // second loop inside first loop, but ignore same index (same weapons)
                 if (j !== i) {
-                    const wep2 = currencies[sku2].length;
-
                     // check if that weapon2 only have 1 in inventory AND it's not in pricelist
-                    const isWep2 = wep2 === 1 && bot.pricelist.getPrice(sku2, true) === null;
+                    const isWep2 = currencies[sku2].length === 1 && bot.pricelist.getPrice(sku2, true) === null;
                     if (isWep1 && isWep2) {
                         // if both are different weapons and both wep1 and wep2 conditions are true, call combine function
                         bot.tf2gc.combineClassWeapon([sku1, sku2]);

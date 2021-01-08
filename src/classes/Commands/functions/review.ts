@@ -58,13 +58,10 @@ function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
     let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
 
     for (let i = 0; i < offers.length; i++) {
-        const offer = offers[i];
-
         reply +=
-            `\n- Offer #${offer.id as string} from ${
-                (offer.data as OfferData).partner
-            } (reason: ${(offer.data as OfferData).action.meta.uniqueReasons.join(', ')})` +
-            `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
+            `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner} (reason: ${(offers[i]
+                .data as OfferData).action.meta.uniqueReasons.join(', ')})` +
+            `\n⚠️ Send "!trade ${offers[i].id as string}" for more details.\n`;
     }
 
     return reply;
