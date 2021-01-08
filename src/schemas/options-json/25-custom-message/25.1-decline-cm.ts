@@ -16,7 +16,7 @@ export const declineCMSchema: jsonschema.Schema = {
         duelingNot5Uses: {
             type: 'string'
         },
-        noiseMakerNot5Uses: {
+        noiseMakerNot25Uses: {
             type: 'string'
         },
         highValueItemsNotSelling: {

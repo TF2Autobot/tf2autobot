@@ -933,7 +933,7 @@ export const DEFAULTS = {
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  your offer contains Noise Maker(s) that does not have 25 uses"
              */
-            noiseMakerNot5Uses: '',
+            noiseMakerNot25Uses: '',
             /**
              * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *  you're attempting to purchase %highValueName%, but I am not selling it right now."
@@ -2013,7 +2013,7 @@ export interface DeclineNote {
     crimeAttempt?: string;
     onlyMetal?: string;
     duelingNot5Uses?: string;
-    noiseMakerNot5Uses?: string;
+    noiseMakerNot25Uses?: string;
     highValueItemsNotSelling?: string;
     notTradingKeys?: string;
     notSellingKeys?: string;

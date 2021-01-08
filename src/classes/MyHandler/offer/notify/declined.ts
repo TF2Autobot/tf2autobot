@@ -52,7 +52,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
     } else if (offerReason.reason === 'NOISE_MAKER_NOT_25_USES') {
         //
-        const custom = opt.customMessage.decline.noiseMakerNot5Uses;
+        const custom = opt.customMessage.decline.noiseMakerNot25Uses;
         reply = custom
             ? custom
             : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ' +
