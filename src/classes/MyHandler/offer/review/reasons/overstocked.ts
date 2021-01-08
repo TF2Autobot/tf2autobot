@@ -26,14 +26,13 @@ export default function overstocked(meta: Meta, bot: Bot): { note: string; name:
         overstockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
     });
 
-    const note = bot.options.manualReview.overstocked.note
-        ? `🟦_OVERSTOCKED - ${bot.options.manualReview.overstocked.note}`
-              .replace(/%itemsName%/g, overstockedForTheir.join(', '))
-              .replace(/%isOrAre%/g, pluralize('is', overstockedForTheir.length))
-        : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`;
-    // Default note: I can only buy %itemsName% right now.
-
-    const name = overstockedForOur;
-
-    return { note, name };
+    return {
+        note: bot.options.manualReview.overstocked.note
+            ? `🟦_OVERSTOCKED - ${bot.options.manualReview.overstocked.note}`
+                  .replace(/%itemsName%/g, overstockedForTheir.join(', '))
+                  .replace(/%isOrAre%/g, pluralize('is', overstockedForTheir.length))
+            : `🟦_OVERSTOCKED - I can only buy ${overstockedForTheir.join(', ')} right now.`,
+        // Default note: I can only buy %itemsName% right now.
+        name: overstockedForOur
+    };
 }

@@ -32,17 +32,16 @@ export default function duped(meta: Meta, bot: Bot): { note: string; name: strin
         );
     });
 
-    const note = bot.options.manualReview.duped.note
-        ? `🟫_DUPED_ITEMS - ${bot.options.manualReview.duped.note}`
-              .replace(/%itemsName%/g, dupedItemsNameTheir.join(', '))
-              .replace(/%isOrAre%/g, pluralize('is', dupedItemsNameTheir.length))
-        : `🟫_DUPED_ITEMS - ${dupedItemsNameTheir.join(', ')} ${pluralize(
-              'is',
-              dupedItemsNameTheir.length
-          )} appeared to be duped.`;
-    // Default note: %itemsName% is|are appeared to be duped.
-
-    const name = dupedItemsNameOur;
-
-    return { note, name };
+    return {
+        note: bot.options.manualReview.duped.note
+            ? `🟫_DUPED_ITEMS - ${bot.options.manualReview.duped.note}`
+                  .replace(/%itemsName%/g, dupedItemsNameTheir.join(', '))
+                  .replace(/%isOrAre%/g, pluralize('is', dupedItemsNameTheir.length))
+            : `🟫_DUPED_ITEMS - ${dupedItemsNameTheir.join(', ')} ${pluralize(
+                  'is',
+                  dupedItemsNameTheir.length
+              )} appeared to be duped.`,
+        // Default note: %itemsName% is|are appeared to be duped.
+        name: dupedItemsNameOur
+    };
 }

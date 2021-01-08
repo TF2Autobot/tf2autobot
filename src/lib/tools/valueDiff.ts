@@ -11,13 +11,8 @@ export default function valueDiff(
 ): ValueDiff {
     const value = offer.data('value') as ItemsValue;
 
-    let diff: number;
-    let diffRef: number;
-    let diffKey: string;
     if (!value) {
-        diff = 0;
-        diffRef = 0;
-        diffKey = '';
+        return { diff: 0, diffRef: 0, diffKey: '' };
     } else {
         const newValue: { our: Currency; their: Currency } = {
             our: {
@@ -45,14 +40,17 @@ export default function valueDiff(
             newValue.their.keys = 0;
         }
 
-        diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
-        diffRef = Currencies.toRefined(Math.abs(diff));
-        diffKey = Currencies.toCurrencies(
-            Math.abs(diff),
-            Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
-        ).toString();
+        const diff = Currencies.toScrap(newValue.their.metal) - Currencies.toScrap(newValue.our.metal);
+
+        return {
+            diff: diff,
+            diffRef: Currencies.toRefined(Math.abs(diff)),
+            diffKey: Currencies.toCurrencies(
+                Math.abs(diff),
+                Math.abs(diff) >= keyPrices.sell.metal ? keyPrices.sell.metal : undefined
+            ).toString()
+        };
     }
-    return { diff, diffRef, diffKey };
 }
 
 interface ValueDiff {

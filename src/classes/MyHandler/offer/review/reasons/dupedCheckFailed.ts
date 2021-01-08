@@ -67,14 +67,13 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         }
     });
 
-    const note = bot.options.manualReview.dupedCheckFailed.note
-        ? `🟪_DUPE_CHECK_FAILED - ${bot.options.manualReview.dupedCheckFailed.note}`
-              .replace(/%itemsName%/g, dupedFailedItemsNameTheir.join(', '))
-              .replace(/%isOrAre%/g, pluralize('is', dupedFailedItemsNameTheir.length))
-        : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsNameTheir.join(', ')}.`;
-    // Default note: I failed to check for duped on %itemsName%.
-
-    const name = dupedFailedItemsNameOur;
-
-    return { note, name };
+    return {
+        note: bot.options.manualReview.dupedCheckFailed.note
+            ? `🟪_DUPE_CHECK_FAILED - ${bot.options.manualReview.dupedCheckFailed.note}`
+                  .replace(/%itemsName%/g, dupedFailedItemsNameTheir.join(', '))
+                  .replace(/%isOrAre%/g, pluralize('is', dupedFailedItemsNameTheir.length))
+            : `🟪_DUPE_CHECK_FAILED - I failed to check for duped on ${dupedFailedItemsNameTheir.join(', ')}.`,
+        // Default note: I failed to check for duped on %itemsName%.
+        name: dupedFailedItemsNameOur
+    };
 }

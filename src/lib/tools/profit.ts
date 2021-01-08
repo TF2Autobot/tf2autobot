@@ -19,7 +19,6 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             +bot.options.statistics.profitDataSinceInUnix === 0
                 ? pollData.timestamps[oldestId]
                 : +bot.options.statistics.profitDataSinceInUnix;
-        const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
         const keyPrice = bot.pricelist.getKeyPrice;
         const weapons = bot.handler.getWeapons;
@@ -161,10 +160,11 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             overpay: Currencies.toScrap(bot.options.statistics.lastTotalProfitOverpayInRef)
         };
 
-        tradeProfit = Math.round(tradeProfit + fromPrevious.made);
-        overpriceProfit = Math.round(overpriceProfit + fromPrevious.overpay);
-
-        return { tradeProfit, overpriceProfit, since };
+        return {
+            tradeProfit: Math.round(tradeProfit + fromPrevious.made),
+            overpriceProfit: Math.round(overpriceProfit + fromPrevious.overpay),
+            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day')
+        };
     } else {
         const fromPrevious = {
             made: Currencies.toScrap(bot.options.statistics.lastTotalProfitMadeInRef),
@@ -172,13 +172,13 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
             since: bot.options.statistics.profitDataSinceInUnix
         };
 
-        const tradeProfit = Math.round(fromPrevious.made);
-        const overpriceProfit = Math.round(fromPrevious.overpay);
-
         const timeSince = fromPrevious.since === 0 ? undefined : fromPrevious.since;
-        const since = !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day');
 
-        return { tradeProfit, overpriceProfit, since };
+        return {
+            tradeProfit: Math.round(fromPrevious.made),
+            overpriceProfit: Math.round(fromPrevious.overpay),
+            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day')
+        };
     }
 }
 

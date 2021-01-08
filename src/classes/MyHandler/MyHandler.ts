@@ -239,11 +239,7 @@ export default class MyHandler extends Handler {
     private botSteamID: SteamID;
 
     get getBotInfo(): BotInfo {
-        const name = this.botName;
-        const avatarURL = this.botAvatarURL;
-        const steamID = this.botSteamID;
-        const premium = this.isPremium;
-        return { name, avatarURL, steamID, premium };
+        return { name: this.botName, avatarURL: this.botAvatarURL, steamID: this.botSteamID, premium: this.isPremium };
     }
 
     private autokeysStatus: {
@@ -293,16 +289,10 @@ export default class MyHandler extends Handler {
     }
 
     updateAutokeysStatus(): void {
-        const autokeys = {
-            isEnabled: this.autokeys.isEnabled,
+        this.autokeysStatus = {
             isActive: this.autokeys.isActive,
             isBuying: this.autokeys.status.isBuyingKeys,
             isBanking: this.autokeys.status.isBankingKeys
-        };
-        this.autokeysStatus = {
-            isActive: autokeys.isActive,
-            isBuying: autokeys.isBuying,
-            isBanking: autokeys.isBanking
         };
     }
 
