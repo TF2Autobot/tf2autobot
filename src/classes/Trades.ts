@@ -758,17 +758,6 @@ export default class Trades {
             .getInventory()
             .fetch(this.bot)
             .asCallback(() => {
-                // Update listings
-                const diff = offer.getDiff() || {};
-
-                for (const sku in diff) {
-                    if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
-                        continue;
-                    }
-
-                    this.bot.listings.checkBySKU(sku);
-                }
-
                 this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
