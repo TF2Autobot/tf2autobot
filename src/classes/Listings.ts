@@ -5,23 +5,17 @@ import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
 
-import Bot from '../Bot';
-import { Entry } from '../Pricelist';
-import { BPTFGetUserInfo, UserSteamID } from '../MyHandler/interfaces';
-import * as rep from './export';
+import Bot from './Bot';
+import { Spells, StrangeParts, Sheens, Killstreakers, Painted } from './Options';
+import { Entry } from './Pricelist';
+import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
-import log from '../../lib/logger';
-import { exponentialBackoff } from '../../lib/helpers';
-import {
-    noiseMakerSKUs,
-    strangePartsData,
-    spellsData,
-    killstreakersData,
-    sheensData,
-    paintedData
-} from '../../lib/data';
-import { updateOptionsCommand } from '../Commands/functions/options';
-import { DictItem } from '../Inventory';
+import log from '../lib/logger';
+import { exponentialBackoff } from '../lib/helpers';
+import { noiseMakerSKUs, strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../lib/data';
+
+import { updateOptionsCommand } from './Commands/functions/options';
+import { DictItem } from './Inventory';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -528,9 +522,6 @@ export default class Listings {
         const key = buying ? 'buy' : 'sell';
         const keyPrice = this.bot.pricelist.getKeyPrice.toString();
 
-        const maxStock = entry.max;
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(entry.sku);
-
         let details: string;
 
         let highValueString = '';
@@ -568,14 +559,14 @@ export default class Listings {
                         // Show all
                         hasSpells = true;
                         hv.s.forEach(spell => {
-                            spellNames.push(rep.replaceSpells(getKeyByValue(spellsData, spell), optR.spells));
+                            spellNames.push(replaceSpells(getKeyByValue(spellsData, spell), optR.spells));
                         });
                     } else if (hv.sp !== undefined && optD.showStrangeParts) {
                         for (const pSku in hv.sp) {
                             if (hv.sp[pSku] === true) {
                                 hasStrangeParts = true;
                                 partsNames.push(
-                                    rep.replaceStrangeParts(getKeyByValue(strangePartsData, +pSku), optR.strangeParts)
+                                    replaceStrangeParts(getKeyByValue(strangePartsData, +pSku), optR.strangeParts)
                                 );
                             }
                         }
@@ -584,7 +575,7 @@ export default class Listings {
                             if (hv.ke[pSku] === true) {
                                 hasKillstreaker = true;
                                 killstreakerName.push(
-                                    rep.replaceKillstreaker(getKeyByValue(killstreakersData, pSku), optR.killstreakers)
+                                    replaceKillstreaker(getKeyByValue(killstreakersData, pSku), optR.killstreakers)
                                 );
                             }
                         }
@@ -592,14 +583,14 @@ export default class Listings {
                         for (const pSku in hv.ks) {
                             if (hv.ks[pSku] === true) {
                                 hasSheen = true;
-                                sheenName.push(rep.replaceSheens(getKeyByValue(sheensData, pSku), optR.sheens));
+                                sheenName.push(replaceSheens(getKeyByValue(sheensData, pSku), optR.sheens));
                             }
                         }
                     } else if (hv.p !== undefined && optD.showPainted) {
                         for (const pSku in hv.p) {
                             if (hv.p[pSku] === true) {
                                 hasPaint = true;
-                                paintName.push(rep.replacePainted(getKeyByValue(paintedData, pSku), optR.painted));
+                                paintName.push(replacePainted(getKeyByValue(paintedData, pSku), optR.painted));
                             }
                         }
                     }
@@ -629,12 +620,13 @@ export default class Listings {
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
             // note.buy for buy order listing note.
-            details = entry.note.buy
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
+            details = replaceDetails(
+                entry.note.buy,
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            );
 
             // if %keyPrice% is defined in note.buy value and the item price involved keys,
             // then replace it with current key rate.
@@ -652,72 +644,82 @@ export default class Listings {
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
+            //
         } else if (entry.note && entry.note.sell && intent === 1) {
             // else if note.sell value is defined and not null and intent is selling, then use whatever in the
             // note.sell for sell order listing note.
-            details = entry.note.sell
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString());
+            details = replaceDetails(
+                entry.note.sell,
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            );
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
+
             details =
                 entry.sku === '241;6' && opt.checkUses.duel
                     ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                     : noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker
                     ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
                     : details.replace(/%uses%/g, '');
+            //
         } else if (entry.sku === '241;6' && opt.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
             // this part checks if the item is Dueling Mini-Game.
-            details = this.templates[key]
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+            details = replaceDetails(
+                this.templates[key],
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            ).replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
+            //
         } else if (noiseMakerSKUs.includes(entry.sku) && opt.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
-            details = this.templates[key]
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
-                .replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
+            details = replaceDetails(
+                this.templates[key],
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            ).replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 : details.replace(/%keyPrice%/g, '');
+            //
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
-            details = this.templates[key]
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+            details = replaceDetails(
+                this.templates[key],
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            )
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
+            //
         } else {
             // else if nothing above, then just use template/in config and replace every parameters.
-            details = this.templates[key]
-                .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, maxStock === -1 ? '∞' : maxStock.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
-                .replace(/%amount_trade%/g, this.bot.inventoryManager.amountCanTrade(entry.sku, buying).toString())
+            details = replaceDetails(
+                this.templates[key],
+                entry,
+                key,
+                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
+                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+            )
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
                 .replace(/%uses%/g, '');
+            //
         }
 
         return details + highValueString;
@@ -726,4 +728,245 @@ export default class Listings {
 
 function getKeyByValue(object: { [key: string]: any }, value: any) {
     return Object.keys(object).find(key => object[key] === value);
+}
+
+function replaceDetails(
+    details: string,
+    entry: Entry,
+    key: 'buy' | 'sell',
+    currentStock: number,
+    amountCanTrade: number
+): string {
+    return details
+        .replace(/%price%/g, entry[key].toString())
+        .replace(/%name%/g, entry.name)
+        .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
+        .replace(/%current_stock%/g, currentStock.toString())
+        .replace(/%amount_trade%/g, amountCanTrade.toString());
+}
+
+function replaceSpells(name: string, opt: Spells): string {
+    return name
+        .replace(/Putrescent Pigmentation/, opt['Putrescent Pigmentation'] ? opt['Putrescent Pigmentation'] : 'PP 🍃')
+        .replace(/Die Job/, opt['Die Job'] ? opt['Die Job'] : 'DJ 🍐')
+        .replace(/Chromatic Corruption/, opt['Chromatic Corruption'] ? opt['Chromatic Corruption'] : 'CC 🪀')
+        .replace(/Spectral Spectrum/, opt['Spectral Spectrum'] ? opt['Spectral Spectrum'] : 'Spec 🔵🔴')
+        .replace(/Sinister Staining/, opt['Sinister Staining'] ? opt['Sinister Staining'] : 'Sin 🍈')
+        .replace(/Voices From Below/, opt['Voices From Below'] ? opt['Voices From Below'] : 'VFB 🗣️')
+        .replace(/Team Spirit Footprints/, opt['Team Spirit Footprints'] ? opt['Team Spirit Footprints'] : 'TS-FP 🔵🔴')
+        .replace(/Gangreen Footprints/, opt['Gangreen Footprints'] ? opt['Gangreen Footprints'] : 'GG-FP 🟡')
+        .replace(/Corpse Gray Footprints/, opt['Corpse Gray Footprints'] ? opt['Corpse Gray Footprints'] : 'CG-FP 👽')
+        .replace(
+            /Violent Violet Footprints/,
+            opt['Violent Violet Footprints'] ? opt['Violent Violet Footprints'] : 'VV-FP ♨️'
+        )
+        .replace(
+            /Rotten Orange Footprints/,
+            opt['Rotten Orange Footprints'] ? opt['Rotten Orange Footprints'] : 'RO-FP 🍊'
+        )
+        .replace(
+            /Bruised Purple Footprints/,
+            opt['Bruised Purple Footprints'] ? opt['Bruised Purple Footprints'] : 'BP-FP 🍷'
+        )
+        .replace(/Headless Horseshoes/, opt['Headless Horseshoes'] ? opt['Headless Horseshoes'] : 'HH 🍇')
+        .replace(/Exorcism/, opt.Exorcism ? opt.Exorcism : '👻')
+        .replace(/Pumpkin Bomb/, opt['Pumpkin Bomb'] ? opt['Pumpkin Bomb'] : '🎃💣')
+        .replace(/Halloween Fire/, opt['Halloween Fire'] ? opt['Halloween Fire'] : '🔥🟢');
+}
+
+function replaceStrangeParts(name: string, opt: StrangeParts): string {
+    return name
+        .replace(/Robots Destroyed/, opt['Robots Destroyed'] ? opt['Robots Destroyed'] : 'Robots Destroyed')
+        .replace(/Kills/, opt.Kills ? opt.Kills : 'Kills')
+        .replace(
+            /Airborne Enemy Kills/,
+            opt['Airborne Enemy Kills'] ? opt['Airborne Enemy Kills'] : 'Airborne Enemy Kills'
+        )
+        .replace(/Damage Dealt/, opt['Damage Dealt'] ? opt['Damage Dealt'] : 'Damage Dealt')
+        .replace(/Dominations/, opt.Dominations ? opt.Dominations : 'Dominations')
+        .replace(/Snipers Killed/, opt['Snipers Killed'] ? opt['Snipers Killed'] : 'Snipers Killed')
+        .replace(/Buildings Destroyed/, opt['Buildings Destroyed'] ? opt['Buildings Destroyed'] : 'Buildings Destroyed')
+        .replace(
+            /Projectiles Reflected/,
+            opt['Projectiles Reflected'] ? opt['Projectiles Reflected'] : 'Projectiles Reflected'
+        )
+        .replace(/Headshot Kills/, opt['Headshot Kills'] ? opt['Headshot Kills'] : 'Headshot Kills')
+        .replace(/Medics Killed/, opt['Medics Killed'] ? opt['Medics Killed'] : 'Medics Killed')
+        .replace(/Fires Survived/, opt['Fires Survived'] ? opt['Fires Survived'] : 'Fires Survived')
+        .replace(
+            /Teammates Extinguished/,
+            opt['Teammates Extinguished'] ? opt['Teammates Extinguished'] : 'Teammates Extinguished'
+        )
+        .replace(
+            /Freezecam Taunt Appearances/,
+            opt['Freezecam Taunt Appearances'] ? opt['Freezecam Taunt Appearances'] : 'Freezecam Taunt Appearances'
+        )
+        .replace(/Spies Killed/, opt['Spies Killed'] ? opt['Spies Killed'] : 'Spies Killed')
+        .replace(/Allied Healing Done/, opt['Allied Healing Done'] ? opt['Allied Healing Done'] : 'Allied Healing Done')
+        .replace(/Sappers Removed/, opt['Sappers Removed'] ? opt['Sappers Removed'] : 'Sappers Removed')
+        .replace(/Players Hit/, opt['Players Hit'] ? opt['Players Hit'] : 'Players Hit')
+        .replace(/Gib Kills/, opt['Gib Kills'] ? opt['Gib Kills'] : 'Gib Kills')
+        .replace(/Scouts Killed/, opt['Scouts Killed'] ? opt['Scouts Killed'] : 'Scouts Killed')
+        .replace(/Taunt Kills/, opt['Taunt Kills'] ? opt['Taunt Kills'] : 'Taunt Kills')
+        .replace(/Point Blank Kills/, opt['Point Blank Kills'] ? opt['Point Blank Kills'] : 'Point Blank Kills')
+        .replace(/Soldiers Killed/, opt['Soldiers Killed'] ? opt['Soldiers Killed'] : 'Soldiers Killed')
+        .replace(/Long-Distance Kills/, opt['Long-Distance Kills'] ? opt['Long-Distance Kills'] : 'Long-Distance Kills')
+        .replace(
+            /Giant Robots Destroyed/,
+            opt['Giant Robots Destroyed'] ? opt['Giant Robots Destroyed'] : 'Giant Robots Destroyed'
+        )
+        .replace(/Critical Kills/, opt['Critical Kills'] ? opt['Critical Kills'] : 'Critical Kills')
+        .replace(/Demomen Killed/, opt['Demomen Killed'] ? opt['Demomen Killed'] : 'Demomen Killed')
+        .replace(
+            /Unusual-Wearing Player Kills/,
+            opt['Unusual-Wearing Player Kills'] ? opt['Unusual-Wearing Player Kills'] : 'Unusual-Wearing Player Kills'
+        )
+        .replace(/Assists/, opt.Assists ? opt.Assists : 'Assists')
+        .replace(
+            /Medics Killed That Have Full ÜberCharge/,
+            opt['Medics Killed That Have Full ÜberCharge']
+                ? opt['Medics Killed That Have Full ÜberCharge']
+                : 'Medics Killed That Have Full ÜberCharge'
+        )
+        .replace(
+            /Cloaked Spies Killed/,
+            opt['Cloaked Spies Killed'] ? opt['Cloaked Spies Killed'] : 'Cloaked Spies Killed'
+        )
+        .replace(/Engineers Killed/, opt['Engineers Killed'] ? opt['Engineers Killed'] : 'Engineers Killed')
+        .replace(
+            /Kills While Explosive-Jumping/,
+            opt['Kills While Explosive-Jumping']
+                ? opt['Kills While Explosive-Jumping']
+                : 'Kills While Explosive-Jumping'
+        )
+        .replace(
+            /Kills While Low Health/,
+            opt['Kills While Low Health'] ? opt['Kills While Low Health'] : 'Kills While Low Health'
+        )
+        .replace(
+            /Burning Player Kills/,
+            opt['Burning Player Kills'] ? opt['Burning Player Kills'] : 'Burning Player Kills'
+        )
+        .replace(
+            /Kills While Invuln ÜberCharged/,
+            opt['Kills While Invuln ÜberCharged']
+                ? opt['Kills While Invuln ÜberCharged']
+                : 'Kills While Invuln ÜberCharged'
+        )
+        .replace(/Posthumous Kills/, opt['Posthumous Kills'] ? opt['Posthumous Kills'] : 'Posthumous Kills')
+        .replace(
+            /Not Crit nor MiniCrit Kills/,
+            opt['Not Crit nor MiniCrit Kills'] ? opt['Not Crit nor MiniCrit Kills'] : 'Not Crit nor MiniCrit Kills'
+        )
+        .replace(/Full Health Kills/, opt['Full Health Kills'] ? opt['Full Health Kills'] : 'Full Health Kills')
+        .replace(/Killstreaks Ended/, opt['Killstreaks Ended'] ? opt['Killstreaks Ended'] : 'Killstreaks Ended')
+        .replace(/Defenders Killed/, opt['Defenders Killed'] ? opt['Defenders Killed'] : 'Defenders Killed')
+        .replace(/Revenges/, opt.Revenges ? opt.Revenges : 'Revenges')
+        .replace(
+            /Robot Scouts Destroyed/,
+            opt['Robot Scouts Destroyed'] ? opt['Robot Scouts Destroyed'] : 'Robot Scouts Destroyed'
+        )
+        .replace(/Heavies Killed/, opt['Heavies Killed'] ? opt['Heavies Killed'] : 'Heavies Killed')
+        .replace(/Tanks Destroyed/, opt['Tanks Destroyed'] ? opt['Tanks Destroyed'] : 'Tanks Destroyed')
+        .replace(
+            /Kills During Halloween/,
+            opt['Kills During Halloween'] ? opt['Kills During Halloween'] : 'Kills During Halloween'
+        )
+        .replace(/Pyros Killed/, opt['Pyros Killed'] ? opt['Pyros Killed'] : 'Pyros Killed')
+        .replace(
+            /Submerged Enemy Kills/,
+            opt['Submerged Enemy Kills'] ? opt['Submerged Enemy Kills'] : 'Submerged Enemy Kills'
+        )
+        .replace(
+            /Kills During Victory Time/,
+            opt['Kills During Victory Time'] ? opt['Kills During Victory Time'] : 'Kills During Victory Time'
+        )
+        .replace(
+            /Taunting Player Kills/,
+            opt['Taunting Player Kills'] ? opt['Taunting Player Kills'] : 'Taunting Player Kills'
+        )
+        .replace(
+            /Robot Spies Destroyed/,
+            opt['Robot Spies Destroyed'] ? opt['Robot Spies Destroyed'] : 'Robot Spies Destroyed'
+        )
+        .replace(
+            /Kills Under A Full Moon/,
+            opt['Kills Under A Full Moon'] ? opt['Kills Under A Full Moon'] : 'Kills Under A Full Moon'
+        )
+        .replace(
+            /Robots Killed During Halloween/,
+            opt['Robots Killed During Halloween']
+                ? opt['Robots Killed During Halloween']
+                : 'Robots Killed During Halloween'
+        );
+}
+
+function replaceSheens(name: string, opt: Sheens): string {
+    return name
+        .replace(/Team Shine/, opt['Team Shine'] ? opt['Team Shine'] : '🔵🔴')
+        .replace(/Hot Rod/, opt['Hot Rod'] ? opt['Hot Rod'] : '🎗️')
+        .replace(/Manndarin/, opt.Manndarin ? opt.Manndarin : '🟠')
+        .replace(/Deadly Daffodil/, opt['Deadly Daffodil'] ? opt['Deadly Daffodil'] : '🟡')
+        .replace(/Mean Green/, opt['Mean Green'] ? opt['Mean Green'] : '🟢')
+        .replace(/Agonizing Emerald/, opt['Agonizing Emerald'] ? opt['Agonizing Emerald'] : '🟩')
+        .replace(/Villainous Violet/, opt['Villainous Violet'] ? opt['Villainous Violet'] : '🟣');
+}
+
+function replaceKillstreaker(name: string, opt: Killstreakers): string {
+    return name
+        .replace(/Cerebral Discharge/, opt['Cerebral Discharge'] ? opt['Cerebral Discharge'] : '⚡')
+        .replace(/Fire Horns/, opt['Fire Horns'] ? opt['Fire Horns'] : '🔥🐮')
+        .replace(/Flames/, opt.Flames ? opt.Flames : '🔥')
+        .replace(/Hypno-Beam/, opt['Hypno-Beam'] ? opt['Hypno-Beam'] : '😵💫')
+        .replace(/Incinerator/, opt.Incinerator ? opt.Incinerator : '🚬')
+        .replace(/Singularity/, opt.Singularity ? opt.Singularity : '🔆')
+        .replace(/Tornado/, opt.Tornado ? opt.Tornado : '🌪️');
+}
+
+function replacePainted(name: string, opt: Painted): string {
+    return name
+        .replace(/A Color Similar to Slate/, opt['A Color Similar to Slate'] ? opt['A Color Similar to Slate'] : '🧪')
+        .replace(
+            /A Deep Commitment to Purple/,
+            opt['A Deep Commitment to Purple'] ? opt['A Deep Commitment to Purple'] : '🪀'
+        )
+        .replace(
+            /A Distinctive Lack of Hue/,
+            opt['A Distinctive Lack of Hue'] ? opt['A Distinctive Lack of Hue'] : '🎩'
+        )
+        .replace(/A Mann's Mint/, opt["A Mann's Mint"] ? opt["A Mann's Mint"] : '👽')
+        .replace(/After Eight/, opt['After Eight'] ? opt['After Eight'] : '🏴')
+        .replace(/Aged Moustache Grey/, opt['Aged Moustache Grey'] ? opt['Aged Moustache Grey'] : '👤')
+        .replace(
+            /An Extraordinary Abundance of Tinge/,
+            opt['An Extraordinary Abundance of Tinge'] ? opt['An Extraordinary Abundance of Tinge'] : '🏐'
+        )
+        .replace(/Australium Gold/, opt['Australium Gold'] ? opt['Australium Gold'] : '🏆')
+        .replace(/Color No. 216-190-216/, opt['Color No. 216-190-216'] ? opt['Color No. 216-190-216'] : '🧠')
+        .replace(/Dark Salmon Injustice/, opt['Dark Salmon Injustice'] ? opt['Dark Salmon Injustice'] : '🐚')
+        .replace(/Drably Olive/, opt['Drably Olive'] ? opt['Drably Olive'] : '🥝')
+        .replace(/Indubitably Green/, opt['Indubitably Green'] ? opt['Indubitably Green'] : '🥦')
+        .replace(/Mann Co. Orange/, opt['Mann Co. Orange'] ? opt['Mann Co. Orange'] : '🏀')
+        .replace(/Muskelmannbraun/, opt.Muskelmannbraun ? opt.Muskelmannbraun : '👜')
+        .replace(/Noble Hatter's Violet/, opt["Noble Hatter's Violet"] ? opt["Noble Hatter's Violet"] : '🍇')
+        .replace(/Peculiarly Drab Tincture/, opt['Peculiarly Drab Tincture'] ? opt['Peculiarly Drab Tincture'] : '🪑')
+        .replace(/Pink as Hell/, opt['Pink as Hell'] ? opt['Pink as Hell'] : '🎀')
+        .replace(/Radigan Conagher Brown/, opt['Radigan Conagher Brown'] ? opt['Radigan Conagher Brown'] : '🚪')
+        .replace(
+            /The Bitter Taste of Defeat and Lime/,
+            opt['The Bitter Taste of Defeat and Lime'] ? opt['The Bitter Taste of Defeat and Lime'] : '💚'
+        )
+        .replace(
+            /The Color of a Gentlemann's Business Pants/,
+            opt["The Color of a Gentlemann's Business Pants"] ? opt["The Color of a Gentlemann's Business Pants"] : '🧽'
+        )
+        .replace(/Ye Olde Rustic Colour/, opt['Ye Olde Rustic Colour'] ? opt['Ye Olde Rustic Colour'] : '🥔')
+        .replace(/Zepheniah's Greed/, opt["Zepheniah's Greed"] ? opt["Zepheniah's Greed"] : '🌳')
+        .replace(/An Air of Debonair/, opt['An Air of Debonair'] ? opt['An Air of Debonair'] : '👜🔷')
+        .replace(/Balaclavas Are Forever/, opt['Balaclavas Are Forever'] ? opt['Balaclavas Are Forever'] : '👜🔷')
+        .replace(/Operator's Overalls/, opt["Operator's Overalls"] ? opt["Operator's Overalls"] : '👜🔷')
+        .replace(/Cream Spirit/, opt['Cream Spirit'] ? opt['Cream Spirit'] : '🍘🥮')
+        .replace(/Team Spirit/, opt['Team Spirit'] ? opt['Team Spirit'] : '🔵🔴')
+        .replace(/The Value of Teamwork/, opt['The Value of Teamwork'] ? opt['The Value of Teamwork'] : '👨🏽‍🤝‍👨🏻')
+        .replace(/Waterlogged Lab Coat/, opt['Waterlogged Lab Coat'] ? opt['Waterlogged Lab Coat'] : '👨🏽‍🤝‍👨🏽');
 }

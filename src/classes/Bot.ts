@@ -21,7 +21,7 @@ import InventoryManager from './InventoryManager';
 import Pricelist, { Entry, EntryData } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
-import Listings from './Listings/Listings';
+import Listings from './Listings';
 import TF2GC from './TF2GC';
 import Inventory, { getUnusualEffects } from './Inventory';
 import BotManager from './BotManager';
