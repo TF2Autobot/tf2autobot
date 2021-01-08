@@ -4,11 +4,12 @@
 import { Effect } from '../types/common';
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
-import SchemaManager, { Schema, SchemaItem } from 'tf2-schema-2';
+import SchemaManager, { Schema } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
+// import log from '../lib/logger';
 
 import { noiseMakers } from '../lib/data';
 import { check } from '../lib/tools/export';
@@ -129,26 +130,15 @@ export default class Inventory {
     }
 
     private setItems(items: EconItem[], bot: Bot): void {
-        const tradable: EconItem[] = [];
-        const nonTradable: EconItem[] = [];
-
-        items.forEach(item => {
-            if (item.tradable) {
-                tradable.push(item);
-            } else {
-                nonTradable.push(item);
-            }
-        });
-
         this.tradable = Inventory.createDictionary(
-            tradable,
+            items.filter(item => item.tradable),
             this.schema,
             this.options.normalize.festivized,
             this.options.normalize.strangeUnusual,
             bot
         );
         this.nonTradable = Inventory.createDictionary(
-            nonTradable,
+            items.filter(item => !item.tradable),
             this.schema,
             this.options.normalize.festivized,
             this.options.normalize.strangeUnusual,
@@ -222,16 +212,11 @@ export default class Inventory {
     }
 
     getCurrencies(bot: Bot): { [sku: string]: string[] } {
-        const pure = ['5021;6', '5002;6', '5001;6', '5000;6'];
-
-        const weapons = bot.handler.getWeapons;
-        const combine = pure.concat(weapons);
-
         const toObject: {
             [sku: string]: string[];
         } = {};
 
-        combine.forEach(sku => {
+        ['5021;6', '5002;6', '5001;6', '5000;6'].concat(bot.handler.getWeapons).forEach(sku => {
             toObject[sku] = this.findBySKU(sku);
         });
 
@@ -274,6 +259,7 @@ export default class Inventory {
             }
         }
 
+        // log.debug('dict: ', dict);
         return dict;
     }
 
@@ -294,14 +280,7 @@ export interface DictItem {
 }
 
 export function getUnusualEffects(schema: Schema): Effect[] {
-    return (schema.raw.schema as {
-        items: SchemaItem[];
-        attribute_controlled_attached_particles: Array<{
-            system: string;
-            id: number;
-            name: string;
-        }>;
-    }).attribute_controlled_attached_particles.map(v => {
+    return schema.raw.schema.attribute_controlled_attached_particles.map(v => {
         return { name: v.name, id: v.id };
     });
 }
