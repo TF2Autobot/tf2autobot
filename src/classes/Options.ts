@@ -1560,22 +1560,22 @@ export const DEFAULTS = {
          */
         spells: {
             // 27.1
-            'Putrescent Pigmentation': 'PP 🍃',
-            'Die Job': 'DJ 🍐',
-            'Chromatic Corruption': 'CC 🪀',
-            'Spectral Spectrum': 'Spec 🔵🔴',
-            'Sinister Staining': 'Sin 🍈',
-            'Voices From Below': 'VFB 🗣️',
-            'Team Spirit Footprints': 'TS-FP 🔵🔴',
-            'Gangreen Footprints': 'GG-FP 🟡',
-            'Corpse Gray Footprints': 'CG-FP 👽',
-            'Violent Violet Footprints': 'VV-FP ♨️',
-            'Rotten Orange Footprints': 'RO-FP 🍊',
-            'Bruised Purple Footprints': 'BP-FP 🍷',
-            'Headless Horseshoes': 'HH 🍇',
-            Exorcism: '👻',
-            'Pumpkin Bomb': '🎃💣',
-            'Halloween Fire': '🔥🟢'
+            PP: 'PP 🍃',
+            DJ: 'DJ 🍐',
+            CC: 'CC 🪀',
+            Spec: 'Spec 🔵🔴',
+            Sin: 'Sin 🍈',
+            VFB: 'VFB 🗣️',
+            'TS-FP': 'TS-FP 🔵🔴',
+            'GG-FP': 'GG-FP 🟡',
+            'CG-FP': 'CG-FP 👽',
+            'VV-FP': 'VV-FP ♨️',
+            'RO-FP': 'RO-FP 🍊',
+            'BP-FP': 'BP-FP 🍷',
+            HH: 'HH 🍇',
+            Ex: '👻',
+            PB: '🎃💣',
+            HF: '🔥🟢'
         },
         /**
          * Custom string to be shown in listing note if details.highValue.showSheen set to true
@@ -1608,34 +1608,34 @@ export const DEFAULTS = {
          */
         painted: {
             // 27.4
-            'A Color Similar to Slate': '🧪',
-            'A Deep Commitment to Purple': '🪀',
-            'A Distinctive Lack of Hue': '🎩',
-            "A Mann's Mint": '👽',
+            Slate: '🧪', // A Color Similar to Slate
+            'Deep Purple': '🪀', // A Deep Commitment to Purple
+            Black: '🎩', // A Distinctive Lack of Hue
+            Mint: '👽', // A Mann's Mint
             'After Eight': '🏴',
-            'Aged Moustache Grey': '👤',
-            'An Extraordinary Abundance of Tinge': '🏐',
-            'Australium Gold': '🏆',
-            'Color No. 216-190-216': '🧠',
-            'Dark Salmon Injustice': '🐚',
+            Grey: '👤', // Aged Moustache Grey
+            White: '🏐', // An Extraordinary Abundance of Tinge
+            Gold: '🏆', // Australium Gold
+            '216-190-216': '🧠', // Color No. 216-190-216
+            'Dark Salmon': '🐚', // Dark Salmon Injustice
             'Drably Olive': '🥝',
             'Indubitably Green': '🥦',
-            'Mann Co. Orange': '🏀',
+            Orange: '🏀', // Mann Co. Orange
             Muskelmannbraun: '👜',
-            "Noble Hatter's Violet": '🍇',
-            'Peculiarly Drab Tincture': '🪑',
+            Violet: '🍇', // Noble Hatter's Violet
+            'Drab Tincture': '🪑', // Peculiarly Drab Tincture
             'Pink as Hell': '🎀',
-            'Radigan Conagher Brown': '🚪',
-            'The Bitter Taste of Defeat and Lime': '💚',
-            "The Color of a Gentlemann's Business Pants": '🧽',
-            'Ye Olde Rustic Colour': '🥔',
+            Brown: '🚪', // Radigan Conagher Brown
+            Lime: '💚', // The Bitter Taste of Defeat and Lime
+            'Business Pants': '🧽', // The Color of a Gentlemann's Business Pants
+            'Ye Olde': '🥔', // Ye Olde Rustic Colour
             "Zepheniah's Greed": '🌳',
             'An Air of Debonair': '👜🔷',
             'Balaclavas Are Forever': '👜🔷',
             "Operator's Overalls": '👜🔷',
             'Cream Spirit': '🍘🥮',
             'Team Spirit': '🔵🔴',
-            'The Value of Teamwork': '👨🏽‍🤝‍👨🏻',
+            'Value of Teamwork': '👨🏽‍🤝‍👨🏻', // The Value of Teamwork
             'Waterlogged Lab Coat': '👨🏽‍🤝‍👨🏽'
         },
         /**
@@ -2204,22 +2204,22 @@ export interface DetailsExtra {
 }
 
 export interface Spells {
-    'Putrescent Pigmentation'?: string;
-    'Die Job'?: string;
-    'Chromatic Corruption'?: string;
-    'Spectral Spectrum'?: string;
-    'Sinister Staining'?: string;
-    'Voices From Below'?: string;
-    'Team Spirit Footprints'?: string;
-    'Gangreen Footprints'?: string;
-    'Corpse Gray Footprints'?: string;
-    'Violent Violet Footprints'?: string;
-    'Rotten Orange Footprints'?: string;
-    'Bruised Purple Footprints'?: string;
-    'Headless Horseshoes'?: string;
-    Exorcism?: string;
-    'Pumpkin Bomb'?: string;
-    'Halloween Fire'?: string;
+    PP?: string;
+    DJ?: string;
+    CC?: string;
+    Spec?: string;
+    Sin?: string;
+    VFB?: string;
+    'TS-FP'?: string;
+    'GG-FP'?: string;
+    'CG-FP'?: string;
+    'VV-FP'?: string;
+    'RO-FP'?: string;
+    'BP-FP'?: string;
+    HH?: string;
+    Ex?: string;
+    PB?: string;
+    HF?: string;
 }
 
 export interface Sheens {
@@ -2243,34 +2243,34 @@ export interface Killstreakers {
 }
 
 export interface Painted {
-    'A Color Similar to Slate'?: string;
-    'A Deep Commitment to Purple'?: string;
-    'A Distinctive Lack of Hue'?: string;
-    "A Mann's Mint"?: string;
+    Slate?: string;
+    'Deep Purple'?: string;
+    Black?: string;
+    Mint?: string;
     'After Eight'?: string;
-    'Aged Moustache Grey'?: string;
-    'An Extraordinary Abundance of Tinge'?: string;
-    'Australium Gold'?: string;
-    'Color No. 216-190-216'?: string;
-    'Dark Salmon Injustice'?: string;
+    Grey?: string;
+    White?: string;
+    Gold?: string;
+    '216-190-216'?: string;
+    'Dark Salmon'?: string;
     'Drably Olive'?: string;
     'Indubitably Green'?: string;
-    'Mann Co. Orange'?: string;
+    Orange?: string;
     Muskelmannbraun?: string;
-    "Noble Hatter's Violet"?: string;
-    'Peculiarly Drab Tincture'?: string;
+    Violet?: string;
+    'Drab Tincture'?: string;
     'Pink as Hell'?: string;
-    'Radigan Conagher Brown'?: string;
-    'The Bitter Taste of Defeat and Lime'?: string;
-    "The Color of a Gentlemann's Business Pants"?: string;
-    'Ye Olde Rustic Colour'?: string;
+    Brown?: string;
+    Lime?: string;
+    'Business Pants'?: string;
+    'Ye Olde'?: string;
     "Zepheniah's Greed"?: string;
     'An Air of Debonair'?: string;
     'Balaclavas Are Forever'?: string;
     "Operator's Overalls"?: string;
     'Cream Spirit'?: string;
     'Team Spirit'?: string;
-    'The Value of Teamwork'?: string;
+    'Value of Teamwork'?: string;
     'Waterlogged Lab Coat'?: string;
 }
 

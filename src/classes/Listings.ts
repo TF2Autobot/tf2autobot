@@ -763,31 +763,77 @@ function replaceDetails(
 
 function replaceSpells(name: string, opt: Spells): string {
     return name
-        .replace(/Putrescent Pigmentation/, opt['Putrescent Pigmentation'] ? opt['Putrescent Pigmentation'] : 'PP 🍃')
-        .replace(/Die Job/, opt['Die Job'] ? opt['Die Job'] : 'DJ 🍐')
-        .replace(/Chromatic Corruption/, opt['Chromatic Corruption'] ? opt['Chromatic Corruption'] : 'CC 🪀')
-        .replace(/Spectral Spectrum/, opt['Spectral Spectrum'] ? opt['Spectral Spectrum'] : 'Spec 🔵🔴')
-        .replace(/Sinister Staining/, opt['Sinister Staining'] ? opt['Sinister Staining'] : 'Sin 🍈')
-        .replace(/Voices From Below/, opt['Voices From Below'] ? opt['Voices From Below'] : 'VFB 🗣️')
-        .replace(/Team Spirit Footprints/, opt['Team Spirit Footprints'] ? opt['Team Spirit Footprints'] : 'TS-FP 🔵🔴')
-        .replace(/Gangreen Footprints/, opt['Gangreen Footprints'] ? opt['Gangreen Footprints'] : 'GG-FP 🟡')
-        .replace(/Corpse Gray Footprints/, opt['Corpse Gray Footprints'] ? opt['Corpse Gray Footprints'] : 'CG-FP 👽')
-        .replace(
-            /Violent Violet Footprints/,
-            opt['Violent Violet Footprints'] ? opt['Violent Violet Footprints'] : 'VV-FP ♨️'
-        )
-        .replace(
-            /Rotten Orange Footprints/,
-            opt['Rotten Orange Footprints'] ? opt['Rotten Orange Footprints'] : 'RO-FP 🍊'
-        )
-        .replace(
-            /Bruised Purple Footprints/,
-            opt['Bruised Purple Footprints'] ? opt['Bruised Purple Footprints'] : 'BP-FP 🍷'
-        )
-        .replace(/Headless Horseshoes/, opt['Headless Horseshoes'] ? opt['Headless Horseshoes'] : 'HH 🍇')
-        .replace(/Exorcism/, opt.Exorcism ? opt.Exorcism : '👻')
-        .replace(/Pumpkin Bomb/, opt['Pumpkin Bomb'] ? opt['Pumpkin Bomb'] : '🎃💣')
-        .replace(/Halloween Fire/, opt['Halloween Fire'] ? opt['Halloween Fire'] : '🔥🟢');
+        .replace(/Putrescent Pigmentation/, opt.PP ? opt.PP : 'PP 🍃')
+        .replace(/Die Job/, opt.DJ ? opt.DJ : 'DJ 🍐')
+        .replace(/Chromatic Corruption/, opt.CC ? opt.CC : 'CC 🪀')
+        .replace(/Spectral Spectrum/, opt.Spec ? opt.Spec : 'Spec 🔵🔴')
+        .replace(/Sinister Staining/, opt.Sin ? opt.Sin : 'Sin 🍈')
+        .replace(/Voices From Below/, opt.VFB ? opt.VFB : 'VFB 🗣️')
+        .replace(/Team Spirit Footprints/, opt['TS-FP'] ? opt['TS-FP'] : 'TS-FP 🔵🔴')
+        .replace(/Gangreen Footprints/, opt['GG-FP'] ? opt['GG-FP'] : 'GG-FP 🟡')
+        .replace(/Corpse Gray Footprints/, opt['CG-FP'] ? opt['CG-FP'] : 'CG-FP 👽')
+        .replace(/Violent Violet Footprints/, opt['VV-FP'] ? opt['VV-FP'] : 'VV-FP ♨️')
+        .replace(/Rotten Orange Footprints/, opt['RO-FP'] ? opt['RO-FP'] : 'RO-FP 🍊')
+        .replace(/Bruised Purple Footprints/, opt['BP-FP'] ? opt['BP-FP'] : 'BP-FP 🍷')
+        .replace(/Headless Horseshoes/, opt['HH'] ? opt['HH'] : 'HH 🍇')
+        .replace(/Exorcism/, opt.Ex ? opt.Ex : '👻')
+        .replace(/Pumpkin Bomb/, opt.PB ? opt.PB : '🎃💣')
+        .replace(/Halloween Fire/, opt.HF ? opt.HF : '🔥🟢');
+}
+
+function replaceSheens(name: string, opt: Sheens): string {
+    return name
+        .replace(/Team Shine/, opt['Team Shine'] ? opt['Team Shine'] : '🔵🔴')
+        .replace(/Hot Rod/, opt['Hot Rod'] ? opt['Hot Rod'] : '🎗️')
+        .replace(/Manndarin/, opt.Manndarin ? opt.Manndarin : '🟠')
+        .replace(/Deadly Daffodil/, opt['Deadly Daffodil'] ? opt['Deadly Daffodil'] : '🟡')
+        .replace(/Mean Green/, opt['Mean Green'] ? opt['Mean Green'] : '🟢')
+        .replace(/Agonizing Emerald/, opt['Agonizing Emerald'] ? opt['Agonizing Emerald'] : '🟩')
+        .replace(/Villainous Violet/, opt['Villainous Violet'] ? opt['Villainous Violet'] : '🟣');
+}
+
+function replaceKillstreaker(name: string, opt: Killstreakers): string {
+    return name
+        .replace(/Cerebral Discharge/, opt['Cerebral Discharge'] ? opt['Cerebral Discharge'] : '⚡')
+        .replace(/Fire Horns/, opt['Fire Horns'] ? opt['Fire Horns'] : '🔥🐮')
+        .replace(/Flames/, opt.Flames ? opt.Flames : '🔥')
+        .replace(/Hypno-Beam/, opt['Hypno-Beam'] ? opt['Hypno-Beam'] : '😵💫')
+        .replace(/Incinerator/, opt.Incinerator ? opt.Incinerator : '🚬')
+        .replace(/Singularity/, opt.Singularity ? opt.Singularity : '🔆')
+        .replace(/Tornado/, opt.Tornado ? opt.Tornado : '🌪️');
+}
+
+function replacePainted(name: string, opt: Painted): string {
+    return name
+        .replace(/A Color Similar to Slate/, opt.Slate ? opt.Slate : '🧪')
+        .replace(/A Deep Commitment to Purple/, opt['Deep Purple'] ? opt['Deep Purple'] : '🪀')
+        .replace(/A Distinctive Lack of Hue/, opt.Black ? opt.Black : '🎩')
+        .replace(/A Mann's Mint/, opt.Mint ? opt.Mint : '👽')
+        .replace(/After Eight/, opt['After Eight'] ? opt['After Eight'] : '🏴')
+        .replace(/Aged Moustache Grey/, opt.Grey ? opt.Grey : '👤')
+        .replace(/An Extraordinary Abundance of Tinge/, opt.White ? opt.White : '🏐')
+        .replace(/Australium Gold/, opt.Gold ? opt.Gold : '🏆')
+        .replace(/Color No. 216-190-216/, opt['216-190-216'] ? opt['216-190-216'] : '🧠')
+        .replace(/Dark Salmon Injustice/, opt['Dark Salmon'] ? opt['Dark Salmon'] : '🐚')
+        .replace(/Drably Olive/, opt['Drably Olive'] ? opt['Drably Olive'] : '🥝')
+        .replace(/Indubitably Green/, opt['Indubitably Green'] ? opt['Indubitably Green'] : '🥦')
+        .replace(/Mann Co. Orange/, opt['Orange'] ? opt['Orange'] : '🏀')
+        .replace(/Muskelmannbraun/, opt.Muskelmannbraun ? opt.Muskelmannbraun : '👜')
+        .replace(/Noble Hatter's Violet/, opt.Violet ? opt.Violet : '🍇')
+        .replace(/Peculiarly Drab Tincture/, opt['Drab Tincture'] ? opt['Drab Tincture'] : '🪑')
+        .replace(/Pink as Hell/, opt['Pink as Hell'] ? opt['Pink as Hell'] : '🎀')
+        .replace(/Radigan Conagher Brown/, opt.Brown ? opt.Brown : '🚪')
+        .replace(/The Bitter Taste of Defeat and Lime/, opt.Lime ? opt.Lime : '💚')
+        .replace(/The Color of a Gentlemann's Business Pants/, opt['Business Pants'] ? opt['Business Pants'] : '🧽')
+        .replace(/Ye Olde Rustic Colour/, opt['Ye Olde'] ? opt['Ye Olde'] : '🥔')
+        .replace(/Zepheniah's Greed/, opt["Zepheniah's Greed"] ? opt["Zepheniah's Greed"] : '🌳')
+        .replace(/An Air of Debonair/, opt['An Air of Debonair'] ? opt['An Air of Debonair'] : '👜🔷')
+        .replace(/Balaclavas Are Forever/, opt['Balaclavas Are Forever'] ? opt['Balaclavas Are Forever'] : '👜🔷')
+        .replace(/Operator's Overalls/, opt["Operator's Overalls"] ? opt["Operator's Overalls"] : '👜🔷')
+        .replace(/Cream Spirit/, opt['Cream Spirit'] ? opt['Cream Spirit'] : '🍘🥮')
+        .replace(/Team Spirit/, opt['Team Spirit'] ? opt['Team Spirit'] : '🔵🔴')
+        .replace(/The Value of Teamwork/, opt['Value of Teamwork'] ? opt['Value of Teamwork'] : '👨🏽‍🤝‍👨🏻')
+        .replace(/Waterlogged Lab Coat/, opt['Waterlogged Lab Coat'] ? opt['Waterlogged Lab Coat'] : '👨🏽‍🤝‍👨🏽');
 }
 
 function replaceStrangeParts(name: string, opt: StrangeParts): string {
@@ -915,74 +961,4 @@ function replaceStrangeParts(name: string, opt: StrangeParts): string {
                 ? opt['Robots Killed During Halloween']
                 : 'Robots Killed During Halloween'
         );
-}
-
-function replaceSheens(name: string, opt: Sheens): string {
-    return name
-        .replace(/Team Shine/, opt['Team Shine'] ? opt['Team Shine'] : '🔵🔴')
-        .replace(/Hot Rod/, opt['Hot Rod'] ? opt['Hot Rod'] : '🎗️')
-        .replace(/Manndarin/, opt.Manndarin ? opt.Manndarin : '🟠')
-        .replace(/Deadly Daffodil/, opt['Deadly Daffodil'] ? opt['Deadly Daffodil'] : '🟡')
-        .replace(/Mean Green/, opt['Mean Green'] ? opt['Mean Green'] : '🟢')
-        .replace(/Agonizing Emerald/, opt['Agonizing Emerald'] ? opt['Agonizing Emerald'] : '🟩')
-        .replace(/Villainous Violet/, opt['Villainous Violet'] ? opt['Villainous Violet'] : '🟣');
-}
-
-function replaceKillstreaker(name: string, opt: Killstreakers): string {
-    return name
-        .replace(/Cerebral Discharge/, opt['Cerebral Discharge'] ? opt['Cerebral Discharge'] : '⚡')
-        .replace(/Fire Horns/, opt['Fire Horns'] ? opt['Fire Horns'] : '🔥🐮')
-        .replace(/Flames/, opt.Flames ? opt.Flames : '🔥')
-        .replace(/Hypno-Beam/, opt['Hypno-Beam'] ? opt['Hypno-Beam'] : '😵💫')
-        .replace(/Incinerator/, opt.Incinerator ? opt.Incinerator : '🚬')
-        .replace(/Singularity/, opt.Singularity ? opt.Singularity : '🔆')
-        .replace(/Tornado/, opt.Tornado ? opt.Tornado : '🌪️');
-}
-
-function replacePainted(name: string, opt: Painted): string {
-    return name
-        .replace(/A Color Similar to Slate/, opt['A Color Similar to Slate'] ? opt['A Color Similar to Slate'] : '🧪')
-        .replace(
-            /A Deep Commitment to Purple/,
-            opt['A Deep Commitment to Purple'] ? opt['A Deep Commitment to Purple'] : '🪀'
-        )
-        .replace(
-            /A Distinctive Lack of Hue/,
-            opt['A Distinctive Lack of Hue'] ? opt['A Distinctive Lack of Hue'] : '🎩'
-        )
-        .replace(/A Mann's Mint/, opt["A Mann's Mint"] ? opt["A Mann's Mint"] : '👽')
-        .replace(/After Eight/, opt['After Eight'] ? opt['After Eight'] : '🏴')
-        .replace(/Aged Moustache Grey/, opt['Aged Moustache Grey'] ? opt['Aged Moustache Grey'] : '👤')
-        .replace(
-            /An Extraordinary Abundance of Tinge/,
-            opt['An Extraordinary Abundance of Tinge'] ? opt['An Extraordinary Abundance of Tinge'] : '🏐'
-        )
-        .replace(/Australium Gold/, opt['Australium Gold'] ? opt['Australium Gold'] : '🏆')
-        .replace(/Color No. 216-190-216/, opt['Color No. 216-190-216'] ? opt['Color No. 216-190-216'] : '🧠')
-        .replace(/Dark Salmon Injustice/, opt['Dark Salmon Injustice'] ? opt['Dark Salmon Injustice'] : '🐚')
-        .replace(/Drably Olive/, opt['Drably Olive'] ? opt['Drably Olive'] : '🥝')
-        .replace(/Indubitably Green/, opt['Indubitably Green'] ? opt['Indubitably Green'] : '🥦')
-        .replace(/Mann Co. Orange/, opt['Mann Co. Orange'] ? opt['Mann Co. Orange'] : '🏀')
-        .replace(/Muskelmannbraun/, opt.Muskelmannbraun ? opt.Muskelmannbraun : '👜')
-        .replace(/Noble Hatter's Violet/, opt["Noble Hatter's Violet"] ? opt["Noble Hatter's Violet"] : '🍇')
-        .replace(/Peculiarly Drab Tincture/, opt['Peculiarly Drab Tincture'] ? opt['Peculiarly Drab Tincture'] : '🪑')
-        .replace(/Pink as Hell/, opt['Pink as Hell'] ? opt['Pink as Hell'] : '🎀')
-        .replace(/Radigan Conagher Brown/, opt['Radigan Conagher Brown'] ? opt['Radigan Conagher Brown'] : '🚪')
-        .replace(
-            /The Bitter Taste of Defeat and Lime/,
-            opt['The Bitter Taste of Defeat and Lime'] ? opt['The Bitter Taste of Defeat and Lime'] : '💚'
-        )
-        .replace(
-            /The Color of a Gentlemann's Business Pants/,
-            opt["The Color of a Gentlemann's Business Pants"] ? opt["The Color of a Gentlemann's Business Pants"] : '🧽'
-        )
-        .replace(/Ye Olde Rustic Colour/, opt['Ye Olde Rustic Colour'] ? opt['Ye Olde Rustic Colour'] : '🥔')
-        .replace(/Zepheniah's Greed/, opt["Zepheniah's Greed"] ? opt["Zepheniah's Greed"] : '🌳')
-        .replace(/An Air of Debonair/, opt['An Air of Debonair'] ? opt['An Air of Debonair'] : '👜🔷')
-        .replace(/Balaclavas Are Forever/, opt['Balaclavas Are Forever'] ? opt['Balaclavas Are Forever'] : '👜🔷')
-        .replace(/Operator's Overalls/, opt["Operator's Overalls"] ? opt["Operator's Overalls"] : '👜🔷')
-        .replace(/Cream Spirit/, opt['Cream Spirit'] ? opt['Cream Spirit'] : '🍘🥮')
-        .replace(/Team Spirit/, opt['Team Spirit'] ? opt['Team Spirit'] : '🔵🔴')
-        .replace(/The Value of Teamwork/, opt['The Value of Teamwork'] ? opt['The Value of Teamwork'] : '👨🏽‍🤝‍👨🏻')
-        .replace(/Waterlogged Lab Coat/, opt['Waterlogged Lab Coat'] ? opt['Waterlogged Lab Coat'] : '👨🏽‍🤝‍👨🏽');
 }
