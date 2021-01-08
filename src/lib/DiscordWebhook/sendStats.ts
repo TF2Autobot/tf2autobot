@@ -46,69 +46,69 @@ export default async function sendStats(bot: Bot): Promise<void> {
                     }`,
                 fields: [
                     {
-                        name: 'Type/Duration',
+                        name: '__Type/Duration__',
                         value:
-                            '• Processed:' +
-                            '\n• Accepted:' +
-                            '\n---• Received offer:' +
-                            '\n---• Sent offer:' +
-                            '\n• Declined: ' +
-                            '\n---• Received offer:' +
-                            '\n---• Sent offer:' +
-                            '\n• Skipped:' +
-                            '\n• Traded away:' +
-                            '\n• Canceled:' +
-                            '\n---• by user:' +
-                            '\n---• confirmation failed:' +
-                            '\n---• unknown reason:',
+                            '**• Processed:**' +
+                            '\n**• Accepted:**' +
+                            '\n--- Received offer:' +
+                            '\n--- Sent offer:' +
+                            '\n**• Declined:**' +
+                            '\n--- Received offer:' +
+                            '\n--- Sent offer:' +
+                            '\n**• Skipped:**' +
+                            '\n**• Traded away:**' +
+                            '\n**• Canceled:**' +
+                            '\n--- by user:' +
+                            '\n--- confirmation failed:' +
+                            '\n--- unknown reason:',
                         inline: true
                     },
                     {
-                        name: 'Last 24 hours',
+                        name: '__Last 24 hours__',
                         value:
-                            `${trades.hours24.processed}` +
-                            `\n${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
+                            `**${trades.hours24.processed}**` +
+                            `\n**${trades.hours24.accepted.offer + trades.hours24.accepted.sent}**` +
                             `\n${trades.hours24.accepted.offer}` +
                             `\n${trades.hours24.accepted.sent}` +
-                            `\n${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
+                            `\n**${trades.hours24.decline.offer + trades.hours24.decline.sent}**` +
                             `\n${trades.hours24.decline.offer}` +
                             `\n${trades.hours24.decline.sent}` +
-                            `\n${trades.hours24.skipped}` +
-                            `\n${trades.hours24.invalid}` +
-                            `\n${trades.hours24.canceled.total}` +
+                            `\n**${trades.hours24.skipped}**` +
+                            `\n**${trades.hours24.invalid}**` +
+                            `\n**${trades.hours24.canceled.total}**` +
                             `\n${trades.hours24.canceled.byUser}` +
                             `\n${trades.hours24.canceled.failedConfirmation}` +
                             `\n${trades.hours24.canceled.unknown}`,
                         inline: true
                     },
                     {
-                        name: 'Since beginning of today',
+                        name: '__Since beginning of today__',
                         value:
-                            `${trades.today.processed}` +
-                            `\n${trades.today.accepted.offer + trades.today.accepted.sent}` +
+                            `**${trades.today.processed}**` +
+                            `\n**${trades.today.accepted.offer + trades.today.accepted.sent}**` +
                             `\n${trades.today.accepted.offer}` +
                             `\n${trades.today.accepted.sent}` +
-                            `\n${trades.today.decline.offer + trades.today.decline.sent}` +
+                            `\n**${trades.today.decline.offer + trades.today.decline.sent}**` +
                             `\n${trades.today.decline.offer}` +
                             `\n${trades.today.decline.sent}` +
-                            `\n${trades.today.skipped}` +
-                            `\n${trades.today.invalid}` +
-                            `\n${trades.today.canceled.total}` +
+                            `\n**${trades.today.skipped}**` +
+                            `\n**${trades.today.invalid}**` +
+                            `\n**${trades.today.canceled.total}**` +
                             `\n${trades.today.canceled.byUser}` +
                             `\n${trades.today.canceled.failedConfirmation}` +
                             `\n${trades.today.canceled.unknown}`,
                         inline: true
                     },
                     {
-                        name: `Profit${
-                            profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
+                        name: `__Profit${
+                            profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)__` : '__'
                         }`,
                         value:
                             `• Total made: ${profitmadeFull + profitmadeInRef}` +
                             `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
                     },
                     {
-                        name: 'Key rate',
+                        name: '__Key rate__',
                         value: `${keyPrices.buy.metal}/${keyPrices.sell.metal} ref`
                     }
                 ],
