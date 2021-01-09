@@ -162,102 +162,61 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             continue;
         }
 
-        let attachments = '';
+        let toString = '';
         // const attributes = items[sku];
 
-        if (items[sku].s) {
-            attachments += '\n🎃 Spells: ';
-            const toJoin: string[] = [];
+        const toJoin: string[] = [];
 
-            items[sku].s.forEach(spellSKU => {
-                toJoin.push(getKeyByValue(spellsData, spellSKU));
-            });
+        Object.keys(items[sku]).forEach(attachment => {
+            if (attachment === 's') {
+                toString += '\n🎃 Spells: ';
 
-            attachments += toJoin.join(' + ');
-        }
+                items[sku].s.forEach(spellSKU => {
+                    toJoin.push(getKeyByValue(spellsData, spellSKU));
+                });
 
-        if (items[sku].sp) {
-            attachments += '\n🎰 Parts: ';
-            const toJoin: string[] = [];
+                toString += toJoin.join(' + ');
+                toJoin.length = 0;
+            } else {
+                if (items[sku][attachment]) {
+                    if (attachment === 'sp') toString += '\n🎰 Parts: ';
+                    else if (attachment === 'ke') toString += '\n🔥 Killstreaker: ';
+                    else if (attachment === 'ks') toString += '\n✨ Sheen: ';
+                    else if (attachment === 'p') toString += '\n🎨 Painted: ';
 
-            for (const sPartSKU in items[sku].sp) {
-                if (!Object.prototype.hasOwnProperty.call(items[sku].sp, sPartSKU)) {
-                    continue;
-                }
+                    for (const pSKU in items[sku][attachment]) {
+                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) {
+                            continue;
+                        }
 
-                if (items[sku].sp[sPartSKU] === true) {
-                    toJoin.push(getKeyByValue(strangePartsData, +sPartSKU) + ' (🌟)');
-                } else {
-                    toJoin.push(getKeyByValue(strangePartsData, +sPartSKU));
+                        if (items[sku][attachment as Attachment][pSKU] === true) {
+                            toJoin.push(getAttachmentName(attachment, pSKU) + ' (🌟)');
+                        } else {
+                            toJoin.push(getAttachmentName(attachment, pSKU));
+                        }
+                    }
+
+                    toString += toJoin.join(' + ');
+                    toJoin.length = 0;
                 }
             }
+        });
 
-            attachments += toJoin.join(' + ');
-        }
-
-        if (items[sku].ke) {
-            attachments += '\n🔥 Killstreaker: ';
-            const toJoin: string[] = [];
-
-            for (const keSKU in items[sku].ke) {
-                if (!Object.prototype.hasOwnProperty.call(items[sku].ke, keSKU)) {
-                    continue;
-                }
-
-                if (items[sku].ke[keSKU] === true) {
-                    toJoin.push(getKeyByValue(killstreakersData, keSKU) + ' (🌟)');
-                } else {
-                    toJoin.push(getKeyByValue(killstreakersData, keSKU));
-                }
-
-                attachments += toJoin.join(' + ');
-            }
-        }
-
-        if (items[sku].ks) {
-            attachments += '\n✨ Sheen: ';
-
-            const toJoin: string[] = [];
-            for (const ksSKU in items[sku].ks) {
-                if (!Object.prototype.hasOwnProperty.call(items[sku].ks, ksSKU)) {
-                    continue;
-                }
-
-                if (items[sku].ks[ksSKU] === true) {
-                    toJoin.push(getKeyByValue(sheensData, ksSKU) + ' (🌟)');
-                } else {
-                    toJoin.push(getKeyByValue(sheensData, ksSKU));
-                }
-
-                attachments += toJoin.join(' + ');
-            }
-        }
-
-        if (items[sku].p) {
-            attachments += '\n🎨 Painted: ';
-
-            const toJoin: string[] = [];
-            for (const pSKU in items[sku].p) {
-                if (!Object.prototype.hasOwnProperty.call(items[sku].p, pSKU)) {
-                    continue;
-                }
-
-                if (items[sku].p[pSKU] === true) {
-                    toJoin.push(getKeyByValue(paintedData, pSKU) + ' (🌟)');
-                } else {
-                    toJoin.push(getKeyByValue(paintedData, pSKU));
-                }
-
-                attachments += toJoin.join(' + ');
-            }
-        }
-
-        itemsWithName[bot.schema.getName(SKU.fromString(sku))] = attachments;
+        itemsWithName[bot.schema.getName(SKU.fromString(sku))] = toString;
     }
 
     return itemsWithName;
 }
 
-function getKeyByValue(object: { [key: string]: any }, value: any) {
+type Attachment = 'sp' | 'ke' | 'ks' | 'p';
+
+function getAttachmentName(attachment: string, pSKU: string): string {
+    if (attachment === 'sp') return getKeyByValue(strangePartsData, +pSKU);
+    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
+    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paintedData, pSKU);
+}
+
+function getKeyByValue(object: { [key: string]: any }, value: any): string {
     return Object.keys(object).find(key => object[key] === value);
 }
