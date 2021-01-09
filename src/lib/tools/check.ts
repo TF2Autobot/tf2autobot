@@ -20,8 +20,6 @@ export function is5xUses(item: EconItem): boolean {
             return true;
         }
     }
-
-    return false;
 }
 
 export function is25xUses(item: EconItem): boolean {
@@ -30,8 +28,6 @@ export function is25xUses(item: EconItem): boolean {
             return true;
         }
     }
-
-    return false;
 }
 
 export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<string, never> {
