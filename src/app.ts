@@ -45,6 +45,8 @@ const botManager = new BotManager();
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
+import { Webhook } from './lib/DiscordWebhook/interfaces';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
@@ -52,19 +54,43 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     if (crashed) {
         const botReady = botManager.isBotReady();
 
-        log.error(
-            [
-                'TF2Autobot' +
-                    (!botReady
-                        ? ' failed to start properly, this is most likely a temporary error. See the log:'
-                        : ' crashed! Please create an issue with the following log:'),
-                `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${
-                    process.platform
-                } ${process.arch}}`,
-                'Stack trace:',
-                inspect.inspect(origin)
-            ].join('\r\n')
-        );
+        const errorMessage = [
+            'TF2Autobot' +
+                (!botReady
+                    ? ' failed to start properly, this is most likely a temporary error. See the log:'
+                    : ' crashed! Please create an issue with the following log:'),
+            `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${process.platform} ${
+                process.arch
+            }}`,
+            'Stack trace:',
+            inspect.inspect(origin)
+        ].join('\r\n');
+
+        log.error(errorMessage);
+
+        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url !== '') {
+            const optDW = options.discordWebhook;
+            const sendAlertWebhook: Webhook = {
+                username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
+                avatar_url: optDW.avatarURL ? optDW.avatarURL : '',
+                content: `<@!${optDW.ownerID}>`,
+                embeds: [
+                    {
+                        title: 'Bot crashed!',
+                        description: errorMessage,
+                        color: '16711680',
+                        footer: {
+                            text: String(Date.now())
+                        }
+                    }
+                ]
+            };
+
+            const request = new XMLHttpRequest();
+            request.open('POST', optDW.sendAlert.url);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(JSON.stringify(sendAlertWebhook));
+        }
 
         if (botReady) {
             log.error(
