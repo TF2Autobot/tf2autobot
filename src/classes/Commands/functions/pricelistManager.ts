@@ -16,6 +16,7 @@ import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
+import { craftAll, uncraftAll } from '../../../lib/data';
 
 // Pricelist manager
 
@@ -258,7 +259,11 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     const dict = bot.inventoryManager.getInventory().getItems;
 
     const pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
-    const weapons = bot.handler.getWeapons;
+    const weapons = bot.handler.isWeaponsAsCurrency.enable
+        ? bot.handler.isWeaponsAsCurrency.withUncraft
+            ? craftAll.concat(uncraftAll)
+            : craftAll
+        : [];
     const combine = pure.concat(weapons);
 
     for (const sku in dict) {

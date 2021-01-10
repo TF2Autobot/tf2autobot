@@ -122,7 +122,7 @@ export default class MyHandler extends Handler {
         );
     }
 
-    private get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
+    get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
             enable: this.bot.options.weaponsAsCurrency.enable,
             withUncraft: this.bot.options.weaponsAsCurrency.withUncraft
@@ -178,12 +178,6 @@ export default class MyHandler extends Handler {
 
     get getAutokeysStatus(): GetAutokeysStatus {
         return this.autokeysStatus;
-    }
-
-    private weapons: string[] = [];
-
-    get getWeapons(): string[] {
-        return this.weapons;
     }
 
     private classWeaponsTimeout: NodeJS.Timeout;
@@ -256,9 +250,6 @@ export default class MyHandler extends Handler {
 
         // Get Premium info from backpack.tf
         void this.getBPTFAccountInfo();
-
-        // Shuffle weapons on start
-        this.shuffleWeapons();
 
         // Smelt / combine metal if needed
         keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
@@ -506,19 +497,6 @@ export default class MyHandler extends Handler {
 
     disableSendStats(): void {
         clearTimeout(this.sendStatsTimeout);
-    }
-
-    shuffleWeapons(): void {
-        if (!this.isWeaponsAsCurrency.enable) {
-            return;
-        }
-
-        const weaponsInitial = this.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
-        this.weapons = shuffleArray(weaponsInitial);
-    }
-
-    disableWeaponsAsCurrency(): void {
-        this.weapons.length = 0;
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -858,7 +836,7 @@ export default class MyHandler extends Handler {
                     exchange[which].scrap += value;
                 } else if (
                     this.isWeaponsAsCurrency.enable &&
-                    this.getWeapons.includes(sku) &&
+                    (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     const value = 0.5 * amount;
@@ -870,7 +848,10 @@ export default class MyHandler extends Handler {
                             ? this.bot.pricelist.getPrice(sku, false)
                             : this.bot.pricelist.getPrice(sku, false, true);
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
-                        ? !this.getWeapons.includes(sku)
+                        ? !(
+                              craftAll.includes(sku) ||
+                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
+                          )
                         : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
@@ -1590,9 +1571,6 @@ export default class MyHandler extends Handler {
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
 
-            // Shuffle weapons
-            this.shuffleWeapons();
-
             // Smelt / combine metal
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
@@ -1927,10 +1905,6 @@ export default class MyHandler extends Handler {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
-}
-
-function shuffleArray(arr: string[]): string[] {
-    return arr.sort(() => Math.random() - 0.5);
 }
 
 function filterReasons(reasons: string[]): string[] {

@@ -98,20 +98,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
-            if (typeof knownParams.weaponsAsCurrency === 'object') {
-                if (knownParams.weaponsAsCurrency.enable !== undefined) {
-                    if (knownParams.weaponsAsCurrency.enable === true) {
-                        bot.handler.shuffleWeapons();
-                    } else {
-                        bot.handler.disableWeaponsAsCurrency();
-                    }
-                }
-
-                if (knownParams.weaponsAsCurrency.withUncraft !== undefined) {
-                    bot.handler.shuffleWeapons();
-                }
-            }
-
             if (typeof knownParams.statistics === 'object') {
                 if (knownParams.statistics.sendStats !== undefined) {
                     if (knownParams.statistics.sendStats.enable === true) {

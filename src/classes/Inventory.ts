@@ -11,7 +11,7 @@ import Options from './Options';
 import Bot from './Bot';
 // import log from '../lib/logger';
 
-import { noiseMakers } from '../lib/data';
+import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
 import { check } from '../lib/tools/export';
 
 export default class Inventory {
@@ -211,9 +211,17 @@ export default class Inventory {
             [sku: string]: string[];
         } = {};
 
-        ['5021;6', '5002;6', '5001;6', '5000;6'].concat(bot.handler.getWeapons).forEach(sku => {
-            toObject[sku] = this.findBySKU(sku);
-        });
+        ['5021;6', '5002;6', '5001;6', '5000;6']
+            .concat(
+                bot.handler.isWeaponsAsCurrency.enable
+                    ? bot.handler.isWeaponsAsCurrency.withUncraft
+                        ? craftAll.concat(uncraftAll)
+                        : craftAll
+                    : []
+            )
+            .forEach(sku => {
+                toObject[sku] = this.findBySKU(sku);
+            });
 
         return toObject;
     }

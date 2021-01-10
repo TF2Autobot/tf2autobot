@@ -7,6 +7,7 @@ import { EntryData } from '../../../Pricelist';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
+import { craftAll, uncraftAll } from '../../../../lib/data';
 
 export default function updateListings(
     offer: TradeOffer,
@@ -15,7 +16,11 @@ export default function updateListings(
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
-    const weapons = bot.handler.getWeapons;
+    const weapons = bot.handler.isWeaponsAsCurrency.enable
+        ? bot.handler.isWeaponsAsCurrency.withUncraft
+            ? craftAll.concat(uncraftAll)
+            : craftAll
+        : [];
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {

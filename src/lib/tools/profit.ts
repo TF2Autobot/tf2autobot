@@ -3,6 +3,8 @@ import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies';
 
+import { craftAll, uncraftAll } from '../../lib/data';
+
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
 export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit: number; since: number } {
@@ -21,7 +23,11 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                 : +bot.options.statistics.profitDataSinceInUnix;
 
         const keyPrice = bot.pricelist.getKeyPrice;
-        const weapons = bot.handler.getWeapons;
+        const weapons = bot.handler.isWeaponsAsCurrency.enable
+            ? bot.handler.isWeaponsAsCurrency.withUncraft
+                ? craftAll.concat(uncraftAll)
+                : craftAll
+            : [];
 
         let overpriceProfit = 0;
         let tradeProfit = 0;
