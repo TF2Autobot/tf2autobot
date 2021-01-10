@@ -2,6 +2,7 @@ import { TradeOffer, Prices } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import Bot from '../../classes/Bot';
+import { replace } from '../tools/export';
 
 export default function listItems(
     offer: TradeOffer,
@@ -84,7 +85,7 @@ export default function listItems(
     if (list.length === 0) {
         list = '-';
     }
-    return list;
+    return replace.itemName(list);
 }
 
 function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
