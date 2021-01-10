@@ -262,15 +262,17 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            log.debug('Iteration', {
-                index: index,
-                key: key,
-                amount: amount,
-                remaining: remaining,
-                reverse: reverse,
-                hasReversed: hasReversed,
-                picked: pickedCurrencies
-            });
+            if (!this.bot.handler.isWeaponsAsCurrency.enable) {
+                log.debug('Iteration', {
+                    index: index,
+                    key: key,
+                    amount: amount,
+                    remaining: remaining,
+                    reverse: reverse,
+                    hasReversed: hasReversed,
+                    picked: pickedCurrencies
+                });
+            }
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -312,12 +314,14 @@ export default class UserCart extends Cart {
                     pickedCurrencies[skus[i]] -= amount;
                 }
 
-                log.debug('Iteration', {
-                    sku: skus[i],
-                    amount: amount,
-                    remaining: remaining,
-                    picked: pickedCurrencies
-                });
+                if (!this.bot.handler.isWeaponsAsCurrency.enable) {
+                    log.debug('Iteration', {
+                        sku: skus[i],
+                        amount: amount,
+                        remaining: remaining,
+                        picked: pickedCurrencies
+                    });
+                }
             }
         }
 
