@@ -1320,7 +1320,7 @@ export const DEFAULTS = {
              */
             enable: true,
             /**
-             * Default: "https://discord.gg/ZrVT7mc"
+             * Default: "https://discord.gg/D2GNnp7tv8"
              */
             inviteURL: '',
             customReply: {
@@ -1332,9 +1332,9 @@ export const DEFAULTS = {
                 /**
                  * Default:
                  *   - If discord.inviteURL is not empty:
-                 *       - `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${inviteURL}`
+                 *       - `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`
                  *   - If empty:
-                 *       - "TF2Autobot Discord Server: https://discord.gg/ZrVT7mc"
+                 *       - "TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8"
                  */
                 reply: ''
             }

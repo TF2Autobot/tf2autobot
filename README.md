@@ -11,7 +11,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 [![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/issues)
 [![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/network/members)
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)
-[![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/ZrVT7mc)
+[![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/D2GNnp7tv8)
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
 
 **TF2Autobot made by IdiNium**
@@ -34,7 +34,7 @@ Before you install the bot, there are a few things you will need:
 
 ## Wiki
 
-Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
+Please refer to the [wiki](https://github.com/idinium96/tf2autobot/wiki) for guidance while setting up the bot. For additional support, please join the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8). You can also open an [issue](https://github.com/idinium96/tf2autobot/issues/new/choose).
 
 ## Common Errors and Frequently Asked Questions (FAQ)
 
@@ -42,7 +42,7 @@ If you run into trouble when running the bot, make sure to head to [Common Error
 
 ## Join our Discord server!
 
-Join the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/771188962550611988) channel and react to the first message to get notified whenever an update has been released!
+Join the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/771188962550611988) channel and react to the first message to get notified whenever an update has been released!
 
 <div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 

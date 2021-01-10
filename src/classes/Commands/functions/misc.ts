@@ -303,12 +303,12 @@ export function discordCommand(steamID: SteamID, bot: Bot): void {
 
     if (custom) {
         reply +=
-            'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\n\n' + custom.replace(/%discordurl%/g, inviteURL);
+            'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\n\n' + custom.replace(/%discordurl%/g, inviteURL);
     } else {
         if (inviteURL) {
-            reply += `TF2Autobot Discord Server: https://discord.gg/ZrVT7mc\nOwner's Discord Server: ${inviteURL}`;
+            reply += `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`;
         } else {
-            reply += 'TF2Autobot Discord Server: https://discord.gg/ZrVT7mc';
+            reply += 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
         }
     }
 
