@@ -138,7 +138,7 @@ function summarizeWithoutLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: B
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku), false);
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         summary.push(name + (amount > 1 ? ` x${amount}` : ''));
@@ -165,7 +165,7 @@ function summarizeWithLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: Bot)
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku), false);
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
@@ -199,7 +199,7 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku), false);
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         let oldStock = 0;
@@ -244,7 +244,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku), false);
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         let oldStock = 0;

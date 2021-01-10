@@ -202,7 +202,7 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
             }
         });
 
-        itemsWithName[bot.schema.getName(SKU.fromString(sku))] = toString;
+        itemsWithName[bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')))] = toString;
     }
 
     return itemsWithName;
