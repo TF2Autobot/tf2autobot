@@ -1,5 +1,4 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
 import { Meta } from 'steam-tradeoffer-manager';
 
 import Bot from '../../../Bot';
@@ -23,10 +22,9 @@ export default function processReview(
     };
     missing: string;
     value: { diff: number; diffRef: number; diffKey: string };
-    keyPrices: { buy: Currencies; sell: Currencies };
 } {
-    const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
+    const keyPrices = bot.pricelist.getKeyPrices;
+    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal.enable);
 
     const reasons = meta.uniqueReasons;
 
@@ -90,15 +88,16 @@ export default function processReview(
         missingPureNote = invalidV.missing;
     }
 
-    const notes = reviewReasons;
-    const itemNames = {
-        invalidItems: names.invalidItems,
-        overstocked: names.overstocked,
-        understocked: names.understocked,
-        duped: names.duped,
-        dupedCheckFailed: names.dupedFailed
+    return {
+        notes: reviewReasons,
+        itemNames: {
+            invalidItems: names.invalidItems,
+            overstocked: names.overstocked,
+            understocked: names.understocked,
+            duped: names.duped,
+            dupedCheckFailed: names.dupedFailed
+        },
+        missing: missingPureNote,
+        value: value
     };
-    const missing = missingPureNote;
-
-    return { notes, itemNames, missing, value, keyPrices };
 }

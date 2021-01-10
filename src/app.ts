@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
-process.env.BOT_VERSION = BOT_VERSION;
+
+process.env.BOT_VERSION = BOT_VERSION as string;
 
 import fs from 'fs';
 import path from 'path';
@@ -44,28 +39,12 @@ if (process.env.pm_id === undefined) {
     );
 }
 
-import SchemaManager from 'tf2-schema-2';
-import { getSchema } from './lib/ptf-api';
-
-// Make the schema manager request the schema from PricesTF
-
-/* eslint-disable-next-line @typescript-eslint/unbound-method */
-SchemaManager.prototype.getSchema = function (callback): void {
-    getSchema()
-        .then(schema => {
-            this.setSchema(schema, true);
-            callback(null, this.schema);
-        })
-        .catch(err => {
-            callback(err);
-        });
-};
-
 import BotManager from './classes/BotManager';
 
 const botManager = new BotManager();
 
 import ON_DEATH from 'death';
+import * as inspect from 'util';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
@@ -83,7 +62,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                     process.platform
                 } ${process.arch}}`,
                 'Stack trace:',
-                require('util').inspect(origin)
+                inspect.inspect(origin)
             ].join('\r\n')
         );
 
@@ -93,7 +72,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             );
         }
     } else {
-        log.warn('Received kill signal `' + signalOrErr + '`');
+        log.warn('Received kill signal `' + (signalOrErr as string) + '`');
     }
 
     botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
@@ -105,29 +84,8 @@ process.on('message', message => {
 
         botManager.stop(null, true, false);
     } else {
-        log.warn('Process received unknown message `' + message + '`');
+        log.warn('Process received unknown message `' + (message as string) + '`');
     }
-});
-
-import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
-import CEconItem from 'steamcommunity/classes/CEconItem.js';
-
-['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
-    EconItem.prototype[v] = require('./lib/extend/item/' + v);
-    CEconItem.prototype[v] = require('./lib/extend/item/' + v);
-});
-
-import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
-
-[
-    'log',
-    'summarize',
-    'summarizeWithStockChanges',
-    'getDiff',
-    'summarizeWithLink',
-    'summarizeWithLinkWithStockChanges'
-].forEach(v => {
-    TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
 void botManager.start(options).asCallback(err => {

@@ -10,7 +10,7 @@ import url from 'url';
 // import log from '../../../lib/logger';
 
 import { fixItem } from '../../items';
-import { crates } from '../../data';
+import { crates } from '../../data'; // paintedData
 
 let isCrate = false;
 
@@ -38,6 +38,7 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeUnusual),
             crateseries: getCrateSeries(self)
+            // paint: getPainted(self)
         },
         getOutput(self, schema)
     );
@@ -186,12 +187,13 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     let skin: string | null = null;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (!hasCaseCollection && description.endsWith('Collection')) {
+        if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
             hasCaseCollection = true;
-        } else if (hasCaseCollection && (description.startsWith('✔') || description.startsWith('★'))) {
-            skin = description.substring(1).replace(' War Paint', '').trim();
+        } else if (
+            hasCaseCollection &&
+            (item.descriptions[i].value.startsWith('✔') || item.descriptions[i].value.startsWith('★'))
+        ) {
+            skin = item.descriptions[i].value.substring(1).replace(' War Paint', '').trim();
             break;
         }
     }
@@ -207,7 +209,9 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     const schemaItem = schema.getItemByDefindex(getDefindex(item));
 
     // Remove weapon from skin name
-    skin = skin.replace(schemaItem.item_type_name, '').trim();
+    if (schemaItem !== null) {
+        skin = skin.replace(schemaItem.item_type_name, '').trim();
+    }
 
     return schema.getSkinIdByName(skin);
 }
@@ -240,9 +244,10 @@ function getOutput(
     let index = -1;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (description == 'You will receive all of the following outputs once all of the inputs are fulfilled.') {
+        if (
+            item.descriptions[i].value ==
+            'You will receive all of the following outputs once all of the inputs are fulfilled.'
+        ) {
             index = i;
             break;
         }
@@ -380,3 +385,22 @@ function getCrateSeries(item: EconItem): number | null {
         return null;
     }
 }
+
+// function getPainted(item: EconItem): number | null {
+//     const descriptions = item.descriptions;
+
+//     let foundPaint = false;
+
+//     for (let i = 0; i < descriptions.length; i++) {
+//         if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
+//             foundPaint = true;
+
+//             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
+//             return +(paintedData[name] as string).replace('p', '');
+//         }
+//     }
+
+//     if (!foundPaint) {
+//         return null;
+//     }
+// }

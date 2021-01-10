@@ -4,7 +4,6 @@ import { Webhook } from './interfaces';
 import log from '../logger';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendAdminMessage(
     steamID: string,
@@ -15,7 +14,7 @@ export default function sendAdminMessage(
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
 
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,

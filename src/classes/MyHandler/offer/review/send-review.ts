@@ -5,50 +5,55 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, listItems, summarize, timeNow, generateLinks } from '../../../../lib/tools/export';
+import { pure, listItems, summarizeToChat, timeNow, generateLinks, check } from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
-    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-    const pureStock = pure.stock(bot);
+    const time = timeNow(bot);
 
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
     const links = generateLinks(offer.partner.toString());
 
     const content = processReview(offer, meta, bot, isTradingKeys);
 
-    const hasCustomNote = !!(
-        opt.manualReview.invalidItems.note ||
-        opt.manualReview.overstocked.note ||
-        opt.manualReview.understocked.note ||
-        opt.manualReview.duped.note ||
-        opt.manualReview.dupedCheckFailed.note
+    const hasCustomNote = !(
+        opt.manualReview.invalidItems.note !== '' ||
+        opt.manualReview.overstocked.note !== '' ||
+        opt.manualReview.understocked.note !== '' ||
+        opt.manualReview.duped.note !== '' ||
+        opt.manualReview.dupedCheckFailed.note !== ''
     );
 
     const reasons = meta.uniqueReasons;
 
-    const isShowChanges = bot.options.tradeSummary.showStockChanges;
+    const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
     // Notify partner and admin that the offer is waiting for manual review
     if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
-        bot.sendMessage(
-            offer.partner,
-            (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'Backpack.tf or steamrep.com' : 'Steam') +
-                ' is down and I failed to check your ' +
-                (reasons.includes('⬜_BANNED_CHECK_FAILED') ? 'backpack.tf/steamrep' : 'Escrow (Trade holds)') +
-                ' status, please wait for my owner to manually accept/decline your offer.'
-        );
+        let reply: string;
+
+        if (reasons.includes('⬜_BANNED_CHECK_FAILED')) {
+            const custom = opt.manualReview.bannedCheckFailed.note;
+            reply = custom
+                ? custom
+                : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
+                  ' status, please wait for my owner to manually accept/decline your offer.';
+        } else {
+            const custom = opt.manualReview.escrowCheckFailed.note;
+            reply = custom
+                ? custom
+                : 'Steam is down and I failed to check your Escrow (Trade holds)' +
+                  ' status, please wait for my owner to manually accept/decline your offer.';
+        }
+        bot.sendMessage(offer.partner, reply);
     } else {
         bot.sendMessage(
             offer.partner,
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
-                      (isShowChanges
-                          ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
-                          : offer.summarize(bot.schema)
-                      )
+                      summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
                           .replace('Asked', '  My side')
                           .replace('Offered', 'Your side') +
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -65,7 +70,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     ? '\n\n' +
                       opt.manualReview.additionalNotes
                           .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
-                          .replace(/%pureStock%/g, pureStock.join(', ').toString())
+                          .replace(/%pureStock%/g, pure.stock(bot).join(', ').toString())
                     : '') +
                 (opt.manualReview.showOwnerCurrentTime
                     ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
@@ -76,14 +81,15 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     }
 
     const highValueItems: string[] = [];
-    if (meta && meta.highValue) {
-        if (meta.highValue.has) {
-            const hasHighValue = meta.highValue.has.their;
+    if (meta && meta.highValue && meta.highValue.items) {
+        if (Object.keys(meta.highValue.items.their).length > 0) {
+            const itemsName = check.getHighValueItems(meta.highValue.items.their, bot);
 
-            if (hasHighValue) {
-                meta.highValue.items.their.names.forEach(name => {
-                    highValueItems.push(name);
-                });
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+                highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
         }
     }
@@ -97,14 +103,15 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         highValue: highValueItems
     };
 
-    const list = listItems(items, true);
-
-    if (opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '') {
+    if (isWebhookEnabled) {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
     } else {
-        const currentItems = bot.inventoryManager.getInventory().getTotalItems();
+        const currentItems = bot.inventoryManager.getInventory().getTotalItems;
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
+
+        const list = listItems(offer, bot, items, true);
+
         bot.messageAdmins(
             `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
                 `\nReasons: ${reasons.join(', ')}` +
@@ -113,21 +120,14 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                     ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                     : '') +
-                summarize(
-                    isShowChanges
-                        ? offer.summarizeWithStockChanges(bot.schema, 'review-partner')
-                        : offer.summarize(bot.schema),
-                    content.value,
-                    keyPrices,
-                    true
-                ) +
+                summarizeToChat(offer, bot, 'review-admin', false, content.value, keyPrices, true) +
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                `\n🎒 Total items: ${`${currentItems}${slots !== undefined ? `/${slots}` : ''}`}` +
-                `\n💰 Pure stock: ${pureStock.join(', ').toString()}` +
+                `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
+                `\n💰 Pure stock: ${pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []

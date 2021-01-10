@@ -6,6 +6,21 @@ import stats from './stats';
 import { timeNow, convertTime, uptime } from './time';
 import valueDiff from './valueDiff';
 import listItems from './summarizeItems';
-import summarize from './summarizeOffer';
+import summarize, { summarizeToChat } from './summarizeOffer';
+import profit from './profit';
 
-export { check, generateLinks, pure, replace, stats, timeNow, valueDiff, listItems, summarize, uptime, convertTime };
+export {
+    check,
+    generateLinks,
+    pure,
+    replace,
+    stats,
+    timeNow,
+    valueDiff,
+    listItems,
+    summarize,
+    summarizeToChat,
+    uptime,
+    convertTime,
+    profit
+};

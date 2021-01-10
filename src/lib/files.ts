@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import fs from 'graceful-fs';
 import path from 'path';
 
@@ -29,6 +27,7 @@ export function readFile(p: string, json: boolean): Promise<any> {
 
             let parsed;
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 parsed = JSON.parse(data);
             } catch (err) {
                 return reject(err);
@@ -39,8 +38,7 @@ export function readFile(p: string, json: boolean): Promise<any> {
     });
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function writeFile(p: string, data: any, json: boolean): Promise<void> {
+export function writeFile(p: string, data: unknown, json: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
         let write;
 

@@ -15,8 +15,8 @@ export default function keepMetalSupply(bot: Bot, minScraps: number, minRecs: nu
     }
 
     // let refined = pure.ref;
-    let reclaimed = pureNow.rec;
-    let scrap = pureNow.scrap;
+    const reclaimed = pureNow.rec;
+    const scrap = pureNow.scrap;
 
     // const maxRefined = maximumRefined;
     const maxReclaimed = minRecs + threshold;
@@ -32,22 +32,14 @@ export default function keepMetalSupply(bot: Bot, minScraps: number, minRecs: nu
 
     if (reclaimed > maxReclaimed) {
         combineReclaimed = Math.ceil((reclaimed - maxReclaimed) / 3);
-        // refined += combineReclaimed;
-        reclaimed -= combineReclaimed * 3;
     } else if (minReclaimed > reclaimed) {
         smeltRefined = Math.ceil((minReclaimed - reclaimed) / 3);
-        reclaimed += smeltRefined * 3;
-        // refined -= smeltRefined;
     }
 
     if (scrap > maxScrap) {
         combineScrap = Math.ceil((scrap - maxScrap) / 3);
-        reclaimed += combineScrap;
-        scrap -= combineScrap * 3;
     } else if (minScrap > scrap) {
         smeltReclaimed = Math.ceil((minScrap - scrap) / 3);
-        scrap += smeltReclaimed * 3;
-        reclaimed -= smeltReclaimed;
     }
 
     // TODO: When smelting metal mark the item as being used, then we won't use it when sending offers

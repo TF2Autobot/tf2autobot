@@ -89,7 +89,7 @@ export default abstract class Handler {
      * Called when the pricelist updates
      * @param pricelist - The pricelist
      */
-    abstract onPricelist(pricelist: Entry[]): void;
+    abstract onPricelist(pricelist: Entry[]): Promise<void>;
 
     /**
      * Called when the price of an item changes

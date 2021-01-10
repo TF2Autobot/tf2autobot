@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 
@@ -11,19 +8,33 @@ import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 import { deepMerge } from '../../../lib/tools/deep-merge';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
-import MyHandler from '../../MyHandler/MyHandler';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
+
+    const commands = liveOptions.commands;
+    const detailsExtra = liveOptions.detailsExtra;
+
+    delete liveOptions.commands;
+    delete liveOptions.detailsExtra;
+
     bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: commands }, null, 4)}`);
+    void promiseDelay(1000);
+    bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
 
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
 
     const optionsPath = getOptionsPath(opt.steamAccountName);
     const saveOptions = deepMerge({}, opt) as JsonOptions;
@@ -36,104 +47,23 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
         return;
     }
 
-    // Convert every string required to string (if user input was some numbers)
+    const knownParams = params as JsonOptions;
 
-    if (params.sendOfferMessage !== undefined) {
-        // idk maybe someone want to put their phone number here xD
-        params.sendOfferMessage = String(params.sendOfferMessage);
-    }
-
-    if (typeof params.game === 'object') {
-        if (params.game.customName !== undefined) {
-            // same as above
-            params.game.customName = String(params.game.customName);
-        }
-    }
-
-    if (typeof params.customMessage === 'object') {
-        // maybe they want to put as binary number for these custom messages
-        if (params.customMessage.welcome !== undefined) {
-            params.customMessage.welcome = String(params.customMessage.welcome);
-        }
-        if (params.customMessage.iDontKnowWhatYouMean !== undefined) {
-            params.customMessage.iDontKnowWhatYouMean = String(params.customMessage.iDontKnowWhatYouMean);
-        }
-        if (params.customMessage.how2trade !== undefined) {
-            params.customMessage.how2trade = String(params.customMessage.how2trade);
-        }
-        if (params.customMessage.success !== undefined) {
-            params.customMessage.success = String(params.customMessage.success);
-        }
-        if (params.customMessage.decline !== undefined) {
-            params.customMessage.decline = String(params.customMessage.decline);
-        }
-        if (params.customMessage.tradedAway !== undefined) {
-            params.customMessage.tradedAway = String(params.customMessage.tradedAway);
-        }
-        if (params.customMessage.clearFriends !== undefined) {
-            params.customMessage.clearFriends = String(params.customMessage.clearFriends);
-        }
-    }
-
-    if (typeof params.manualReview === 'object') {
-        // yeah same
-        if (params.manualReview.invalidValue !== undefined) {
-            if (params.manualReview.invalidValue.note !== undefined) {
-                params.manualReview.invalidValue.note = String(params.manualReview.invalidValue.note);
-            }
-            if (params.manualReview.invalidValue.autoDecline !== undefined) {
-                if (params.manualReview.invalidValue.autoDecline.note !== undefined) {
-                    params.manualReview.invalidValue.autoDecline.note = String(
-                        params.manualReview.invalidValue.autoDecline.note
-                    );
-                }
-            }
-        }
-        if (params.manualReview.invalidItems !== undefined) {
-            if (params.manualReview.invalidItems.note !== undefined) {
-                params.manualReview.invalidItems.note = String(params.manualReview.invalidItems.note);
-            }
-        }
-        if (params.manualReview.overstocked !== undefined) {
-            if (params.manualReview.overstocked.note !== undefined) {
-                params.manualReview.overstocked.note = String(params.manualReview.overstocked.note);
-            }
-        }
-        if (params.manualReview.understocked !== undefined) {
-            if (params.manualReview.understocked.note !== undefined) {
-                params.manualReview.understocked.note = String(params.manualReview.understocked.note);
-            }
-        }
-        if (params.manualReview.duped !== undefined) {
-            if (params.manualReview.duped.note !== undefined) {
-                params.manualReview.duped.note = String(params.manualReview.duped.note);
-            }
-        }
-        if (params.manualReview.dupedCheckFailed !== undefined) {
-            if (params.manualReview.dupedCheckFailed.note !== undefined) {
-                params.manualReview.dupedCheckFailed.note = String(params.manualReview.dupedCheckFailed.note);
-            }
-        }
-        if (params.manualReview.additionalNotes !== undefined) {
-            params.manualReview.additionalNotes = String(params.manualReview.additionalNotes);
-        }
-    }
-
-    if (typeof params.discordWebhook === 'object') {
-        if (params.discordWebhook.ownerID !== undefined) {
+    if (typeof knownParams.discordWebhook === 'object') {
+        if (knownParams.discordWebhook.ownerID !== undefined) {
             // THIS IS WHAT IS NEEDED ACTUALLY
-            params.discordWebhook.ownerID = String(params.discordWebhook.ownerID);
+            knownParams.discordWebhook.ownerID = String(knownParams.discordWebhook.ownerID);
         }
-        if (params.discordWebhook.displayName !== undefined) {
-            params.discordWebhook.displayName = String(params.discordWebhook.displayName);
+        if (knownParams.discordWebhook.displayName !== undefined) {
+            knownParams.discordWebhook.displayName = String(knownParams.discordWebhook.displayName);
         }
-        if (params.discordWebhook.embedColor !== undefined) {
+        if (knownParams.discordWebhook.embedColor !== undefined) {
             // AND ALSO THIS
-            params.discordWebhook.embedColor = String(params.discordWebhook.embedColor);
+            knownParams.discordWebhook.embedColor = String(knownParams.discordWebhook.embedColor);
         }
     }
 
-    const result: JsonOptions = deepMerge(saveOptions, params);
+    const result: JsonOptions = deepMerge(saveOptions, knownParams);
 
     const errors = validator(result, 'options');
     if (errors !== null) {
@@ -148,48 +78,71 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             deepMerge(opt, saveOptions);
             const msg = '✅ Updated options!';
 
-            if (typeof params.game === 'object') {
-                if (params.game.playOnlyTF2 !== undefined && params.game.playOnlyTF2 === true) {
+            if (typeof knownParams.game === 'object') {
+                if (knownParams.game.playOnlyTF2 !== undefined && knownParams.game.playOnlyTF2 === true) {
                     bot.client.gamesPlayed([]);
                     bot.client.gamesPlayed(440);
                 }
 
-                if (params.game.customName !== undefined && typeof params.game.customName === 'string') {
+                if (knownParams.game.customName !== undefined && typeof knownParams.game.customName === 'string') {
                     bot.client.gamesPlayed([]);
                     bot.client.gamesPlayed(
-                        (params.game.playOnlyTF2 !== undefined ? params.game.playOnlyTF2 : opt.game.playOnlyTF2)
+                        (
+                            knownParams.game.playOnlyTF2 !== undefined
+                                ? knownParams.game.playOnlyTF2
+                                : opt.game.playOnlyTF2
+                        )
                             ? 440
-                            : [params.game.customName, 440]
+                            : [knownParams.game.customName, 440]
                     );
                 }
             }
 
-            if (typeof params.weaponsAsCurrency === 'object') {
-                if (params.weaponsAsCurrency.enable !== undefined) {
-                    if (params.weaponsAsCurrency.enable === true) {
-                        (bot.handler as MyHandler).shuffleWeapons();
+            if (typeof knownParams.weaponsAsCurrency === 'object') {
+                if (knownParams.weaponsAsCurrency.enable !== undefined) {
+                    if (knownParams.weaponsAsCurrency.enable === true) {
+                        bot.handler.shuffleWeapons();
                     } else {
-                        (bot.handler as MyHandler).disableWeaponsAsCurrency();
+                        bot.handler.disableWeaponsAsCurrency();
                     }
                 }
 
-                if (params.weaponsAsCurrency.withUncraft !== undefined) {
-                    (bot.handler as MyHandler).shuffleWeapons();
+                if (knownParams.weaponsAsCurrency.withUncraft !== undefined) {
+                    bot.handler.shuffleWeapons();
                 }
             }
 
-            if (params.autobump !== undefined) {
-                if (params.autobump === true) {
+            if (typeof knownParams.statistics === 'object') {
+                if (knownParams.statistics.sendStats !== undefined) {
+                    if (knownParams.statistics.sendStats.enable === true) {
+                        bot.handler.sendStats();
+                    } else {
+                        bot.handler.disableSendStats();
+                    }
+
+                    if (knownParams.statistics.sendStats.time !== undefined) {
+                        bot.handler.sendStats();
+                    }
+                }
+            }
+
+            if (knownParams.autobump !== undefined) {
+                if (knownParams.autobump === true) {
                     bot.listings.setupAutorelist();
-                    (bot.handler as MyHandler).disableAutoRefreshListings();
+                    bot.handler.disableAutoRefreshListings();
                 } else {
                     bot.listings.disableAutorelistOption();
-                    (bot.handler as MyHandler).enableAutoRefreshListings();
+                    bot.handler.enableAutoRefreshListings();
                 }
             }
 
-            if (params.autokeys !== undefined) {
-                (bot.handler as MyHandler).autokeys.check();
+            if (knownParams.autokeys !== undefined) {
+                bot.handler.autokeys.check();
+                if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
+                    bot.handler.autokeys.disable();
+                }
+                bot.handler.autokeys.check();
+                bot.handler.updateAutokeysStatus();
             }
 
             if (steamID) return bot.sendMessage(steamID, msg);

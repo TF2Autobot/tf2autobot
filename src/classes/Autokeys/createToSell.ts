@@ -11,7 +11,7 @@ export default function createToSell(minKeys: number, maxKeys: number, bot: Bot)
     const opt = bot.options;
 
     const scrapAdjustment = genScrapAdjustment(opt.autokeys.scrapAdjustment.value, opt.autokeys.scrapAdjustment.enable);
-    const keyPrices = bot.pricelist.getKeyPrices();
+    const keyPrices = bot.pricelist.getKeyPrices;
     let entry;
 
     if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {

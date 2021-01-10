@@ -104,7 +104,7 @@ export default class TF2Inventory {
 
     fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
                     method: 'GET',
@@ -143,7 +143,7 @@ export default class TF2Inventory {
         history?: [];
     }> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/item/' + assetid,
                     method: 'GET',

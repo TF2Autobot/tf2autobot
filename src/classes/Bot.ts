@@ -18,13 +18,12 @@ import semver from 'semver';
 import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
-import Handler from './Handler';
+import Pricelist, { Entry, EntryData } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
-import Listings from './Listings/Listings';
+import Listings from './Listings';
 import TF2GC from './TF2GC';
-import Inventory from './Inventory';
+import Inventory, { getUnusualEffects } from './Inventory';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
@@ -32,14 +31,13 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
+import { Effect } from '../types/common';
 
 export default class Bot {
     // Modules and classes
     readonly botManager: BotManager;
 
     readonly schema: SchemaManager.Schema;
-
-    readonly socket: SocketIOClient.Socket;
 
     readonly bptf: BptfLogin;
 
@@ -63,11 +61,13 @@ export default class Bot {
 
     readonly tf2gc: TF2GC;
 
-    readonly handler: Handler;
+    readonly handler: MyHandler;
 
     readonly inventoryManager: InventoryManager;
 
     readonly pricelist: Pricelist;
+
+    public unusualEffects: Array<Effect>;
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -89,11 +89,52 @@ export default class Bot {
 
     private ready = false;
 
+    private handleLoggedOn: OmitThisParameter<() => void>;
+
+    private handleMessage: OmitThisParameter<(steamID: SteamID, message: string) => void>;
+
+    private handleFriendRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
+
+    private handleGroupRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
+
+    private handleWebSession: OmitThisParameter<(sessionID: string, cookies: string[]) => void>;
+
+    private handleSteamGuard: OmitThisParameter<
+        (domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean) => void
+    >;
+
+    private handleLoginKey: OmitThisParameter<(loginKey: string) => void>;
+
+    private handleError: OmitThisParameter<(err: CustomError) => void>;
+
+    private handleSessionExpired: OmitThisParameter<() => void>;
+
+    private handleConfKeyNeeded: OmitThisParameter<
+        (tag: string, callback: (err: Error | null, time: number, confKey: string) => void) => void
+    >;
+
+    private handlePollData: OmitThisParameter<(pollData: TradeOfferManager.PollData) => void>;
+
+    private handleNewOffer: OmitThisParameter<(offer: TradeOfferManager.TradeOffer) => void>;
+
+    private handleOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
+
+    private handleOfferList: OmitThisParameter<
+        (filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]) => void
+    >;
+
+    private handleHeartbeat: OmitThisParameter<(bumped: number) => void>;
+
+    private handlePricelist: OmitThisParameter<(pricelist: Entry[]) => void>;
+
+    private handlePriceChange: OmitThisParameter<(sku: string, price: Entry | null) => void>;
+
+    private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
+
     constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema();
-        this.socket = this.botManager.getSocket();
 
         this.client = new SteamUser();
         this.community = new SteamCommunity();
@@ -123,7 +164,7 @@ export default class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.socket, this.options);
+        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager(), this.options, this);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
@@ -134,32 +175,28 @@ export default class Bot {
             }
         });
 
-        this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
-        this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
-        this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
-        this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
-        this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
-        this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
-        this.addListener(this.client, 'error', this.onError.bind(this), false);
+        this.handleLoggedOn = this.handler.onLoggedOn.bind(this.handler);
+        this.handleMessage = this.onMessage.bind(this);
+        this.handleFriendRelationship = this.handler.onFriendRelationship.bind(this.handler);
+        this.handleGroupRelationship = this.handler.onGroupRelationship.bind(this.handler);
+        this.handleWebSession = this.onWebSession.bind(this);
+        this.handleSteamGuard = this.onSteamGuard.bind(this);
+        this.handleLoginKey = this.handler.onLoginKey.bind(this.handler);
+        this.handleError = this.onError.bind(this);
 
-        this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
-        this.addListener(this.community, 'confKeyNeeded', this.onConfKeyNeeded.bind(this), false);
+        this.handleSessionExpired = this.onSessionExpired.bind(this);
+        this.handleConfKeyNeeded = this.onConfKeyNeeded.bind(this);
 
-        this.addListener(this.manager, 'pollData', this.handler.onPollData.bind(this.handler), false);
-        this.addListener(this.manager, 'newOffer', this.trades.onNewOffer.bind(this.trades), true);
-        this.addListener(this.manager, 'sentOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
-        this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
-        this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
+        this.handlePollData = this.handler.onPollData.bind(this.handler);
+        this.handleNewOffer = this.trades.onNewOffer.bind(this.trades);
+        this.handleOfferChanged = this.trades.onOfferChanged.bind(this.trades);
+        this.receivedOfferChanged = this.trades.onOfferChanged.bind(this.trades);
+        this.handleOfferList = this.trades.onOfferList.bind(this.trades);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
+        this.handleHeartbeat = this.handler.onHeartbeat.bind(this);
 
-        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
-        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
-    }
-
-    getHandler(): Handler {
-        return this.handler;
+        this.handlePricelist = this.handler.onPricelist.bind(this.handler);
+        this.handlePriceChange = this.handler.onPriceChange.bind(this.handler);
     }
 
     isAdmin(steamID: SteamID | string): boolean {
@@ -176,7 +213,7 @@ export default class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
-        if (this.options.allowBanned) {
+        if (this.options.bypass.bannedPeople.allow) {
             return Promise.resolve(false);
         }
 
@@ -188,7 +225,7 @@ export default class Bot {
     }
 
     checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
-        if (this.options.allowEscrow) {
+        if (this.options.bypass.escrow.allow) {
             return Promise.resolve(false);
         }
 
@@ -224,8 +261,7 @@ export default class Bot {
         return this.ready;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private addListener(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
+    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
@@ -256,7 +292,7 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\nRelease note: https://github.com/idinium96/tf2autobot/releases` +
-                        `\n\nNavigate to your bot folder and run [git stash && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
+                        `\n\nNavigate to your bot folder and run [git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] and then restart your bot.` +
                         `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with [pm2 restart ecosystem.json --update-env] command.` +
                         '\nContact IdiNium if you have any other problem. Thank you.',
                     []
@@ -269,7 +305,7 @@ export default class Bot {
 
     getLatestVersion(): Promise<string> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     method: 'GET',
                     url: 'https://raw.githubusercontent.com/idinium96/tf2autobot/master/package.json',
@@ -294,6 +330,31 @@ export default class Bot {
             pollData?: TradeOfferManager.PollData;
         };
         let cookies: string[];
+
+        this.addListener(this.client, 'loggedOn', this.handleLoggedOn, false);
+        this.addListener(this.client, 'friendMessage', this.handleMessage, true);
+        this.addListener(this.client, 'friendRelationship', this.handleFriendRelationship, true);
+        this.addListener(this.client, 'groupRelationship', this.handleGroupRelationship, true);
+        this.addListener(this.client, 'webSession', this.handleWebSession, false);
+        this.addListener(this.client, 'steamGuard', this.handleSteamGuard, false);
+        this.addListener(this.client, 'loginKey', this.handleLoginKey, false);
+        this.addListener(this.client, 'error', this.handleError, false);
+
+        this.addListener(this.community, 'sessionExpired', this.handleSessionExpired, false);
+        this.addListener(this.community, 'confKeyNeeded', this.handleConfKeyNeeded, false);
+
+        this.addListener(this.manager, 'pollData', this.handlePollData, false);
+        this.addListener(this.manager, 'newOffer', this.handleNewOffer, true);
+        this.addListener(this.manager, 'sentOfferChanged', this.handleOfferChanged, true);
+        this.addListener(this.manager, 'receivedOfferChanged', this.receivedOfferChanged, true);
+        this.addListener(this.manager, 'offerList', this.handleOfferList, true);
+
+        this.addListener(this.listingManager, 'heartbeat', this.handleHeartbeat, true);
+
+        this.addListener(this.pricelist, 'pricelist', this.handlePricelist, false);
+        this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
+
+        this.pricelist.init();
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -376,12 +437,16 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
+                            // Load all unusual effect string names
+                            this.unusualEffects = getUnusualEffects(this.schema);
+
                             // We now know our SteamID, but we still don't have our Steam API key
                             const inventory = new Inventory(
                                 this.client.steamID,
                                 this.manager,
                                 this.schema,
-                                this.options
+                                this.options,
+                                this.unusualEffects
                             );
                             this.inventoryManager.setInventory(inventory);
 
@@ -422,12 +487,12 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        log.info('Initializing bptf-listings...');
+                        log.info('Initializing inventory, bptf-listings, and profile settings');
                         async.parallel(
                             [
                                 (callback): void => {
                                     log.debug('Getting inventory...');
-                                    void this.inventoryManager.getInventory().fetch().asCallback(callback);
+                                    void this.inventoryManager.getInventory().fetch(this).asCallback(callback);
                                 },
                                 (callback): void => {
                                     log.debug('Initializing bptf-listings...');
@@ -758,10 +823,24 @@ export default class Bot {
         this.client.chatMessage(steamID, message);
 
         if (friend === null) {
-            log.info(`Message sent to ${steamID.toString()}: ${message}`);
+            void this.getPartnerDetails(steamID).then(name => {
+                log.info(`Message sent to ${name} (${steamID64}): ${message}`);
+            });
         } else {
             log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
         }
+    }
+
+    private getPartnerDetails(steamID: SteamID | string): Promise<string> {
+        return new Promise(resolve => {
+            this.community.getSteamUser(steamID, (err, user) => {
+                if (err) {
+                    resolve('unknown');
+                } else {
+                    resolve(user.name);
+                }
+            });
+        });
     }
 
     private canSendEvents(): boolean {

@@ -1,269 +1,222 @@
 import SKU from 'tf2-sku-2';
-import { TradeOffer, EconItem } from 'steam-tradeoffer-manager';
+import { EconItem, Items, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 
-import log from '../logger';
-import { strangePartsData, noiseMakerNames } from '../data';
-
+import { strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../data';
 import Bot from '../../classes/Bot';
+import { DictItem } from '../../classes/Inventory';
 
-export function uses(
-    offer: TradeOffer,
-    items: EconItem[],
-    bot: Bot
-): { isNot5Uses: boolean; isNot25Uses: boolean; noiseMakerSKU: string[] } {
-    const ex = {
-        isNot5Uses: false,
-        isNot25Uses: false,
-        noiseMakerSKU: []
-    };
-
-    items.forEach(item => {
-        const isDuelingMiniGame = item.market_hash_name === 'Dueling Mini-Game';
-        const isNoiseMaker = noiseMakerNames.some(name => {
-            return item.market_hash_name.includes(name);
-        });
-
-        if (isDuelingMiniGame && bot.options.checkUses.duel) {
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
-
-                if (
-                    !descriptionValue.includes('This is a limited use item. Uses: 5') &&
-                    descriptionColor === '00a000'
-                ) {
-                    ex.isNot5Uses = true;
-                    offer.log('info', 'contains Dueling Mini-Game that is not 5 uses, declining...');
-                    break;
-                }
-            }
-        } else if (isNoiseMaker && bot.options.checkUses.noiseMaker) {
-            for (let i = 0; i < item.descriptions.length; i++) {
-                const descriptionValue = item.descriptions[i].value;
-                const descriptionColor = item.descriptions[i].color;
-
-                if (
-                    !descriptionValue.includes('This is a limited use item. Uses: 25') &&
-                    descriptionColor === '00a000'
-                ) {
-                    ex.isNot25Uses = true;
-                    ex.noiseMakerSKU.push(
-                        item.getSKU(bot.schema, bot.options.normalize.festivized, bot.options.normalize.strangeUnusual)
-                    );
-                    offer.log('info', `${item.market_hash_name} (${item.assetid}) is not 25 uses.`);
-                    break;
-                }
-            }
-        }
-    });
-    return ex;
+export function getAssetidsWithFullUses(items: DictItem[]): string[] {
+    return items
+        .filter(item => {
+            return item.isFullUses === true;
+        })
+        .map(item => item.id);
 }
 
-export function highValue(
-    econ: EconItem[],
-    sheens: string[],
-    killstreakers: string[],
-    strangeParts: string[],
-    painted: string[],
-    bot: Bot
-): {
-    has: boolean;
-    skus: string[];
-    names: string[];
-    isMention: boolean;
-} {
-    const highValued = {
-        has: false,
-        skus: [],
-        names: [],
-        isMention: false
-    };
-
-    econ.forEach(item => {
-        // tf2-items-format module (will use this once fixed)
-        // const parsed = parseEconItem(
-        //     {
-        //         ...item,
-        //         tradable: item.tradable ? 1 : 0,
-        //         commodity: item.commodity ? 1 : 0,
-        //         marketable: item.marketable ? 1 : 0,
-        //         amount: item.amount + ''
-        //     },
-        //     true,
-        //     true
-        // );
-
-        // let hasSpelled = false;
-        // if (parsed.spells.length > 0) {
-        //     hasSpelled = true;
-        //     hasHighValueOur = true;
-        // }
-
-        // let hasStrangeParts = false;
-        // if (parsed.parts.length > 0) {
-        //     hasStrangeParts = true;
-        //     hasHighValueOur = true;
-        // }
-
-        let hasSpells = false;
-        let hasStrangeParts = false;
-        let hasKillstreaker = false;
-        let hasSheen = false;
-        let hasPaint = false;
-
-        const spellNames: string[] = [];
-        const partsNames: string[] = [];
-        const killstreakerName: string[] = [];
-        const sheenName: string[] = [];
-        const paintName: string[] = [];
-
-        for (let i = 0; i < item.descriptions.length; i++) {
-            // Item description value for Spells and Strange Parts.
-            // For Spell, example: "Halloween: Voices From Below (spell only active during event)"
-            const desc = item.descriptions[i].value;
-
-            // For Strange Parts, example: "(Kills During Halloween: 0)"
-            // remove "(" and ": <numbers>)" to get only the part name.
-            const parts = item.descriptions[i].value
-                .replace('(', '')
-                .replace(/: \d+\)/g, '')
-                .trim();
-
-            // Description color in Hex Triplet format, example: 7ea9d1
-            const color = item.descriptions[i].color;
-
-            // Get strangePartObject and strangePartNames
-            const strangePartNames = Object.keys(strangePartsData);
-
-            if (
-                desc.startsWith('Halloween:') &&
-                desc.endsWith('(spell only active during event)') &&
-                color === '7ea9d1'
-            ) {
-                // Example: "Halloween: Voices From Below (spell only active during event)"
-                // where "Voices From Below" is the spell name.
-                // Color of this description must be rgb(126, 169, 209) or 7ea9d1
-                // https://www.spycolor.com/7ea9d1#
-                hasSpells = true;
-                highValued.has = true;
-                highValued.isMention = true;
-                // Get the spell name
-                // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
-                // from "(spell only active during event)", and trim any whitespaces.
-                const spellName = desc.substring(10, desc.length - 32).trim();
-                spellNames.push(spellName);
-            } else if (
-                (parts === 'Kills' || parts === 'Assists'
-                    ? item.type.includes('Strange') && item.type.includes('Points Scored')
-                    : strangePartNames.includes(parts)) &&
-                color === '756b5e'
-            ) {
-                // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
-                // Else, will scan through Strange Parts Object keys in this.strangeParts()
-                // Color of this description must be rgb(117, 107, 94) or 756b5e
-                // https://www.spycolor.com/756b5e#
-                hasStrangeParts = true;
-                highValued.has = true;
-
-                if (strangeParts.includes(parts.toLowerCase())) {
-                    // if the particular strange part is one of the parts that the user wants,
-                    // then mention and put "(🌟)"
-                    highValued.isMention = true;
-                    partsNames.push(parts + ' (🌟)');
-                } else {
-                    // else no mention and just the name.
-                    partsNames.push(parts);
-                }
-            } else if (desc.startsWith('Killstreaker: ') && color === '7ea9d1') {
-                const extractedName = desc.replace('Killstreaker: ', '').trim();
-                hasKillstreaker = true;
-                highValued.has = true;
-
-                if (killstreakers.includes(extractedName.toLowerCase())) {
-                    highValued.isMention = true;
-                    killstreakerName.push(extractedName + ' (🌟)');
-                } else {
-                    killstreakerName.push(extractedName);
-                }
-            } else if (desc.startsWith('Sheen: ') && color === '7ea9d1') {
-                const extractedName = desc.replace('Sheen: ', '').trim();
-                hasSheen = true;
-                highValued.has = true;
-
-                if (sheens.includes(extractedName.toLowerCase())) {
-                    highValued.isMention = true;
-                    sheenName.push(extractedName + ' (🌟)');
-                } else {
-                    sheenName.push(extractedName);
-                }
-            } else if (desc.startsWith('Paint Color: ') && color === '756b5e') {
-                const extractedName = desc.replace('Paint Color: ', '').trim();
-                hasPaint = true;
-                highValued.has = true;
-
-                if (painted.includes(extractedName.toLowerCase())) {
-                    highValued.isMention = true;
-                    paintName.push(extractedName + ' (🌟)');
-                } else {
-                    paintName.push(extractedName);
-                }
-            }
+export function is5xUses(item: EconItem): boolean {
+    for (const content of item.descriptions) {
+        if (content.value.includes('This is a limited use item. Uses: 5') && content.color === '00a000') {
+            // return some method to true
+            return true;
         }
+    }
+}
 
-        if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
-            const itemSKU = item.getSKU(
-                bot.schema,
-                bot.options.normalize.festivized,
-                bot.options.normalize.strangeUnusual
-            );
-            highValued.skus.push(itemSKU);
+export function is25xUses(item: EconItem): boolean {
+    for (const content of item.descriptions) {
+        if (content.value.includes('This is a limited use item. Uses: 25') && content.color === '00a000') {
+            return true;
+        }
+    }
+}
 
-            const itemObj = SKU.fromString(itemSKU);
+export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<string, never> {
+    const attributes: ItemAttributes = {};
 
-            // If item is an Unusual, then get itemName from schema.
-            const itemName = itemObj.quality === 5 ? bot.schema.getName(itemObj, false) : item.market_hash_name;
+    const strangeParts = bot.handler.getStrangeParts;
+    const killstreakers = bot.handler.getKillstreakers;
+    const sheens = bot.handler.getSheens;
+    const painted = bot.handler.getPainted;
 
-            let itemDescriptions = '';
+    let hasSpells = false;
+    let hasStrangeParts = false;
+    let hasKillstreaker = false;
+    let hasSheen = false;
+    let hasPaint = false;
 
-            if (hasSpells) {
-                itemDescriptions += '\n🎃 Spells: ' + spellNames.join(' + ');
-                // spellOrParts += '\n🎃 Spells: ' + parsed.spells.join(' + '); - tf2-items-format module
-            }
+    const s: string[] = [];
+    const sp: PartialSKUWithMention = {};
+    const ke: PartialSKUWithMention = {};
+    const ks: PartialSKUWithMention = {};
+    const p: PartialSKUWithMention = {};
 
-            if (hasStrangeParts) {
-                itemDescriptions += '\n🎰 Parts: ' + partsNames.join(' + ');
-                // spellOrParts += '\n🎰 Parts: ' + parsed.parts.join(' + '); - tf2-items-format module
-            }
+    for (const content of econ.descriptions) {
+        /**
+         * For Strange Parts, example: "(Kills During Halloween: 0)"
+         * remove "(" and ": <numbers>)" to get only the part name.
+         */
+        const parts = content.value
+            .replace('(', '')
+            .replace(/: \d+\)/g, '')
+            .trim();
 
-            if (hasKillstreaker) {
-                // well, this actually will just have one, but we don't know if there's any that have two 😅
-                itemDescriptions += '\n🔥 Killstreaker: ' + killstreakerName.join(' + ');
-            }
+        if (
+            content.value.startsWith('Halloween:') &&
+            content.value.endsWith('(spell only active during event)') &&
+            content.color === '7ea9d1'
+        ) {
+            // Example: "Halloween: Voices From Below (spell only active during event)"
+            // where "Voices From Below" is the spell name.
+            // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+            // https://www.spycolor.com/7ea9d1#
+            hasSpells = true;
+            // Get the spell name
+            // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+            // from "(spell only active during event)", and trim any whitespaces.
+            const spellName = content.value.substring(10, content.value.length - 32).trim();
 
-            if (hasSheen) {
-                // same as Killstreaker
-                itemDescriptions += '\n✨ Sheen: ' + sheenName.join(' + ');
-            }
+            // push for storage, example: s-1000
+            s.push(spellsData[spellName]);
+        } else if (
+            (parts === 'Kills' || parts === 'Assists'
+                ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
+                : Object.keys(strangePartsData).includes(parts)) &&
+            content.color === '756b5e'
+        ) {
+            // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
+            // Else, will scan through Strange Parts Object keys in this.strangeParts()
+            // Color of this description must be rgb(117, 107, 94) or 756b5e
+            // https://www.spycolor.com/756b5e#
+            hasStrangeParts = true;
 
-            if (hasPaint) {
-                // same as Killstreaker
-                itemDescriptions += '\n🎨 Painted: ' + paintName.join(' + ');
-            }
-
-            log.debug('info', `${itemName} (${item.assetid})${itemDescriptions}`);
-            // parsed.fullName  - tf2-items-format module
-
-            if (
-                bot.options.discordWebhook.tradeSummary.enable &&
-                bot.options.discordWebhook.tradeSummary.url.length > 0
-            ) {
-                highValued.names.push(`_${itemName}_${itemDescriptions}`);
+            if (strangeParts.includes(parts.toLowerCase())) {
+                // if the particular strange part is one of the parts that the user wants,
+                // then mention and put "(🌟)"
+                sp[`${strangePartsData[parts] as string}`] = true;
             } else {
-                highValued.names.push(`${itemName}${itemDescriptions}`);
-                // parsed.fullName  - tf2-items-format module
+                // else no mention and just the name.
+                sp[`${strangePartsData[parts] as string}`] = false;
+            }
+        } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Killstreaker: ', '').trim();
+            hasKillstreaker = true;
+
+            if (killstreakers.includes(extractedName.toLowerCase())) {
+                ke[`${killstreakersData[extractedName] as string}`] = true;
+            } else {
+                ke[`${killstreakersData[extractedName] as string}`] = false;
+            }
+        } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Sheen: ', '').trim();
+            hasSheen = true;
+
+            if (sheens.includes(extractedName.toLowerCase())) {
+                ks[`${sheensData[extractedName] as string}`] = true;
+            } else {
+                ks[`${sheensData[extractedName] as string}`] = false;
+            }
+        } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
+            const extractedName = content.value.replace('Paint Color: ', '').trim();
+            hasPaint = true;
+
+            if (painted.includes(extractedName.toLowerCase())) {
+                p[`${paintedData[extractedName] as string}`] = true;
+            } else {
+                p[`${paintedData[extractedName] as string}`] = false;
             }
         }
-    });
+    }
 
-    return highValued;
+    if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
+        if (hasSpells) {
+            attributes.s = s;
+        }
+
+        if (hasStrangeParts) {
+            attributes.sp = sp;
+        }
+
+        if (hasKillstreaker) {
+            attributes.ke = ke;
+        }
+
+        if (hasSheen) {
+            attributes.ks = ks;
+        }
+
+        if (hasPaint) {
+            attributes.p = p;
+        }
+    }
+
+    return attributes;
+}
+
+export function getHighValueItems(items: Items, bot: Bot): { [name: string]: string } {
+    const itemsWithName: {
+        [name: string]: string;
+    } = {};
+
+    for (const sku in items) {
+        if (!Object.prototype.hasOwnProperty.call(items, sku)) {
+            continue;
+        }
+
+        let toString = '';
+        // const attributes = items[sku];
+
+        const toJoin: string[] = [];
+
+        Object.keys(items[sku]).forEach(attachment => {
+            if (attachment === 's') {
+                toString += '\n🎃 Spells: ';
+
+                items[sku].s.forEach(spellSKU => {
+                    toJoin.push(getKeyByValue(spellsData, spellSKU));
+                });
+
+                toString += toJoin.join(' + ');
+                toJoin.length = 0;
+            } else {
+                if (items[sku][attachment]) {
+                    if (attachment === 'sp') toString += '\n🎰 Parts: ';
+                    else if (attachment === 'ke') toString += '\n🔥 Killstreaker: ';
+                    else if (attachment === 'ks') toString += '\n✨ Sheen: ';
+                    else if (attachment === 'p') toString += '\n🎨 Painted: ';
+
+                    for (const pSKU in items[sku][attachment]) {
+                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) {
+                            continue;
+                        }
+
+                        if (items[sku][attachment as Attachment][pSKU] === true) {
+                            toJoin.push(getAttachmentName(attachment, pSKU) + ' (🌟)');
+                        } else {
+                            toJoin.push(getAttachmentName(attachment, pSKU));
+                        }
+                    }
+
+                    toString += toJoin.join(' + ');
+                    toJoin.length = 0;
+                }
+            }
+        });
+
+        itemsWithName[bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')))] = toString;
+    }
+
+    return itemsWithName;
+}
+
+type Attachment = 'sp' | 'ke' | 'ks' | 'p';
+
+function getAttachmentName(attachment: string, pSKU: string): string {
+    if (attachment === 'sp') return getKeyByValue(strangePartsData, +pSKU);
+    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
+    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paintedData, pSKU);
+}
+
+function getKeyByValue(object: { [key: string]: any }, value: any): string {
+    return Object.keys(object).find(key => object[key] === value);
 }

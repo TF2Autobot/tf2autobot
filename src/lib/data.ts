@@ -453,49 +453,34 @@ export const uncraftAll = [
     '59;6;uncraftable' // Dead Ringer
 ];
 
-export const noiseMakerSKU = [
-    '280;6', // Noise Maker - Black Cat
-    '280;6;uncraftable',
-    '281;6', // Noise Maker - Gremlin
-    '281;6;uncraftable',
-    '282;6', // Noise Maker - Werewolf
-    '282;6;uncraftable',
-    '283;6', // Noise Maker - Witch
-    '283;6;uncraftable',
-    '284;6', // Noise Maker - Banshee
-    '284;6;uncraftable',
-    '286;6', // Noise Maker - Crazy Laugh
-    '286;6;uncraftable',
-    '288;6', // Noise Maker - Stabby
-    '288;6;uncraftable',
-    '362;6', // Noise Maker - Bell
-    '362;6;uncraftable',
-    '364;6', // Noise Maker - Gong
-    '364;6;uncraftable',
-    '365;6', // Noise Maker - Koto
-    '365;6;uncraftable',
-    '365;1', // Genuine Noise Maker - Koto
-    '493;6', // Noise Maker - Fireworks
-    '493;6;uncraftable',
-    '542;6', // Noise Maker - Vuvuzela
-    '542;6;uncraftable',
-    '542;1' // Genuine Noise Maker - Vuvuzela
-];
-
-export const noiseMakerNames = [
-    'Noise Maker - Black Cat',
-    'Noise Maker - Gremlin',
-    'Noise Maker - Werewolf',
-    'Noise Maker - Witch',
-    'Noise Maker - Banshee',
-    'Noise Maker - Crazy Laugh',
-    'Noise Maker - Stabby',
-    'Noise Maker - Bell',
-    'Noise Maker - Gong',
-    'Noise Maker - Koto',
-    'Noise Maker - Fireworks',
-    'Noise Maker - Vuvuzela'
-];
+export const noiseMakers = {
+    '280;6': 'Noise Maker - Black Cat',
+    '280;6;uncraftable': 'Non-Craftable Noise Maker - Black Cat',
+    '281;6': 'Noise Maker - Gremlin',
+    '281;6;uncraftable': 'Non-Craftable Noise Maker - Gremlin',
+    '282;6': 'Noise Maker - Werewolf',
+    '282;6;uncraftable': 'Non-Craftable Noise Maker - Werewolf',
+    '283;6': 'Noise Maker - Witch',
+    '283;6;uncraftable': 'Non-Craftable Noise Maker - Witch',
+    '284;6': 'Noise Maker - Banshee',
+    '284;6;uncraftable': 'Non-Craftable Noise Maker - Banshee',
+    '286;6': 'Noise Maker - Crazy Laugh',
+    '286;6;uncraftable': 'Non-Craftable Noise Maker - Crazy Laugh',
+    '288;6': 'Noise Maker - Stabby',
+    '288;6;uncraftable': 'Non-Craftable Noise Maker - Stabby',
+    '362;6': 'Noise Maker - Bell',
+    '362;6;uncraftable': 'Non-Craftable Noise Maker - Bell',
+    '364;6': 'Noise Maker - Gong',
+    '364;6;uncraftable': 'Non-Craftable Noise Maker - Gong',
+    '365;6': 'Noise Maker - Koto',
+    '365;6;uncraftable': 'Non-Craftable Noise Maker - Koto',
+    '365;1': 'Genuine Noise Maker - Koto',
+    '493;6': 'Noise Maker - Fireworks',
+    '493;6;uncraftable': 'Non-Craftable Noise Maker - Fireworks',
+    '542;6': 'Noise Maker - Vuvuzela',
+    '542;6;uncraftable': 'Non-Craftable Noise Maker - Vuvuzela',
+    '542;1': 'Genuine Noise Maker - Vuvuzela'
+};
 
 export const strangePartsData = {
     // Most Strange Parts name will change once applied/attached.
@@ -553,57 +538,76 @@ export const strangePartsData = {
     'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
 };
 
-export const sheensData = [
-    'Team Shine', //            ks-1
-    'Deadly Daffodil', //       ks-2
-    'Manndarin', //             ks-3
-    'Mean Green', //            ks-4
-    'Agonizing Emerald', //     ks-5
-    'Villainous Violet', //     ks-6
-    'Hot Rod' //                ks-7
-];
+export const sheensData = {
+    'Team Shine': 'ks-1',
+    'Deadly Daffodil': 'ks-2',
+    Manndarin: 'ks-3',
+    'Mean Green': 'ks-4',
+    'Agonizing Emerald': 'ks-5',
+    'Villainous Violet': 'ks-6',
+    'Hot Rod': 'ks-7'
+};
 
-export const killstreakersData = [
-    'Fire Horns', //            ke-2002
-    'Cerebral Discharge', //    ke-2003
-    'Tornado', //               ke-2004
-    'Flames', //                ke-2005
-    'Singularity', //           ke-2006
-    'Incinerator', //           ke-2007
-    'Hypno-Beam' //             ke-2008
-];
+export const killstreakersData = {
+    'Fire Horns': 'ke-2002',
+    'Cerebral Discharge': 'ke-2002',
+    Tornado: 'ke-2002',
+    Flames: 'ke-2002',
+    Singularity: 'ke-2002',
+    Incinerator: 'ke-2002',
+    'Hypno-Beam': 'ke-2002'
+};
 
-// export const paintedData = [
-//     'A Color Similar to Slate',              p3100495
-//     'A Deep Commitment to Purple',           p8208497
-//     'A Distinctive Lack of Hue',             p1315860
-//     "A Mann's Mint",                         p12377523
-//     'After Eight',                           p2960676
-//     'Aged Moustache Grey',                   p8289918
-//     'An Extraordinary Abundance of Tinge',   p15132390
-//     'Australium Gold',                       p15185211
-//     'Color No. 216-190-216',                 p14204632
-//     'Dark Salmon Injustice',                 p15308410
-//     'Drably Olive',                          p8421376
-//     'Indubitably Green',                     p7511618
-//     'Mann Co. Orange',                       p13595446
-//     'Muskelmannbraun',                       p10843461
-//     "Noble Hatter's Violet",                 p5322826
-//     'Peculiarly Drab Tincture',              p12955537
-//     'Pink as Hell',                          p16738740
-//     'Radigan Conagher Brown',                p6901050
-//     'The Bitter Taste of Defeat and Lime',   p3329330
-//     "The Color of a Gentlemann's Business Pants",    p15787660
-//     'Ye Olde Rustic Colour',                 p8154199
-//     "Zepheniah's Greed",                     p4345659
-//     'An Air of Debonair',                    p6637376
-//     'Balaclavas Are Forever',                p3874595
-//     'Cream Spirit',                          p12807213
-//     "Operator's Overalls",                   p4732984
-//     'Team Spirit',                           p12073019
-//     'The Value of Teamwork',                 p8400928
-//     'Waterlogged Lab Coat'                   p11049612
-// ];
+export const paintedData = {
+    'A Color Similar to Slate': 'p3100495',
+    'A Deep Commitment to Purple': 'p8208497',
+    'A Distinctive Lack of Hue': 'p1315860',
+    "A Mann's Mint": 'p12377523',
+    'After Eight': 'p2960676',
+    'Aged Moustache Grey': 'p8289918',
+    'An Extraordinary Abundance of Tinge': 'p15132390',
+    'Australium Gold': 'p15185211',
+    'Color No. 216-190-216': 'p14204632',
+    'Dark Salmon Injustice': 'p15308410',
+    'Drably Olive': 'p8421376',
+    'Indubitably Green': 'p7511618',
+    'Mann Co. Orange': 'p13595446',
+    Muskelmannbraun: 'p10843461',
+    "Noble Hatter's Violet": 'p5322826',
+    'Peculiarly Drab Tincture': 'p12955537',
+    'Pink as Hell': 'p16738740',
+    'Radigan Conagher Brown': 'p6901050',
+    'The Bitter Taste of Defeat and Lime': 'p3329330',
+    "The Color of a Gentlemann's Business Pants": 'p15787660',
+    'Ye Olde Rustic Colour': 'p8154199',
+    "Zepheniah's Greed": 'p4345659',
+    'An Air of Debonair': 'p6637376',
+    'Balaclavas Are Forever': 'p3874595',
+    'Cream Spirit': 'p12807213',
+    "Operator's Overalls": 'p4732984',
+    'Team Spirit': 'p12073019',
+    'The Value of Teamwork': 'p8400928',
+    'Waterlogged Lab Coat': 'p11049612'
+};
+
+export const spellsData = {
+    'Team Spirit Footprints': 's-1000',
+    'Gangreen Footprints': 's-1001',
+    'Corpse Gray Footprints': 's-1002',
+    'Violent Violet Footprints': 's-1003',
+    'Rotten Orange Footprints': 's-1004',
+    'Bruised Purple Footprints': 's-1005',
+    'Headless Horseshoes': 's-1006',
+    'Putrescent Pigmentation': 's-2000',
+    'Die Job': 's-2001',
+    'Chromatic Corruption': 's-2002',
+    'Spectral Spectrum': 's-2003',
+    'Sinister Staining': 's-2004',
+    'Voices From Below': 's-3000',
+    Exorcism: 's-4000',
+    'Pumpkin Bomb': 's-5000',
+    'Halloween Fire': 's-6000'
+};
 
 export const giftWords = [
     'gift',

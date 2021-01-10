@@ -6,8 +6,7 @@ export function exponentialBackoff(n: number, base = 1000): number {
 
 export function parseJSON(json: string): UnknownDictionaryKnownValues | null {
     try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return JSON.parse(json);
+        return JSON.parse(json) as UnknownDictionaryKnownValues;
     } catch (err) {
         return null;
     }

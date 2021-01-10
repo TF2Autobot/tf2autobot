@@ -35,6 +35,8 @@ const ADMIN_COMMANDS: string[] = [
     '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
     '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
     '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+    '!autoadd [Listing-parameters] - Perform automatic add items based on items in your backpack (about 2 seconds every item) 🤖',
+    '!stopautoadd - Stop automatic add items operation 🛑',
     '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
     '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
     '!shuffle - Shuffle pricelist entries.',
@@ -45,14 +47,17 @@ const ADMIN_COMMANDS: string[] = [
     '!message <steamid> <your message> - Send a message to a specific user 💬',
     '!block <steamid> - Block a specific user',
     '!unblock <steamid> - Unblock a specific user',
+    '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
     '!stop - Stop the bot 🔴',
     '!restart - Restart the bot 🔄',
+    '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
     "!refreshautokeys - Refresh the bot's autokeys settings.",
     '!refreshlist - Refresh sell listings 🔄',
     "!name <new_name> - Change the bot's name",
     "!avatar <image_URL> - Change the bot's avatar",
     '!resetqueue - Reset the queue position to 0\n\n✨=== Bot status ===✨',
     '!stats - Get statistics for accepted trades 📊',
+    '!statsdw - Send statistics to Discord Webhook 📊',
     "!inventory - Get the bot's current inventory spaces 🎒",
     '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
     '!trades - Get a list of trade offers pending for manual review 🔍',
@@ -90,20 +95,49 @@ export function helpCommand(steamID: SteamID, bot: Bot): void {
                   '\n• <a> = Replace "a" with relevant content' +
                   '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
                 : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
-        }\n\n📜 Here's a list of my commands:\n- ${isAdmin ? ADMIN_COMMANDS.join('\n- ') : COMMANDS.join('\n- ')}`
+        }\n\n📜 Here's a list of my commands:\n- ${
+            isAdmin ? generateAdminCommands(ADMIN_COMMANDS) : generatePartnerCommands(COMMANDS)
+        }`
     );
 }
 
+function generateAdminCommands(commands: string[]): string {
+    return commands.join('\n- ');
+}
+
+function generatePartnerCommands(commands: string[]): string {
+    return commands.join('\n- ');
+}
+
 export function moreCommand(steamID: SteamID, bot: Bot): void {
-    bot.sendMessage(steamID, `Advanced commands list:\n- ${MORE.join('\n- ')}`);
+    const opt = bot.options.commands.more;
+
+    if (!opt.enable) {
+        if (!bot.isAdmin(steamID)) {
+            const custom = opt.customReply.disabled;
+            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            return;
+        }
+    }
+
+    bot.sendMessage(steamID, `Advanced commands list:\n- ${generateMoreCommands(MORE)}`);
+}
+
+function generateMoreCommands(commands: string[]): string {
+    return commands.join('\n- ');
 }
 
 export function howToTradeCommand(steamID: SteamID, bot: Bot): void {
+    const custom = bot.options.commands.how2trade.customReply.reply;
+
     bot.sendMessage(
         steamID,
-        bot.options.customMessage.how2trade
-            ? bot.options.customMessage.how2trade
-            : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
-                  '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or "!sellcart [amount] <item name>" commands.'
+        custom
+            ? custom
+            : '/quote You can either send me an offer yourself, or use one of my commands to request a trade. ' +
+                  'Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more, ' +
+                  'just add the [amount] - "!buy 2 Team Captain". Type "!help" for all the commands.' +
+                  '\nYou can also buy or sell multiple items by using the "!buycart [amount] <item name>" or ' +
+                  '"!sellcart [amount] <item name>" commands.'
     );
 }

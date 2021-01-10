@@ -16,6 +16,6 @@
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true
     },
-    "exclude": ["./node_modules"],
+    "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],
     "include": ["./src"]
 }

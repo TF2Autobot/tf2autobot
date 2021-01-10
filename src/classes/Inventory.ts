@@ -1,30 +1,66 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { UnknownDictionary } from '../types/common';
+import { Effect } from '../types/common';
 import SteamID from 'steamid';
-import TradeOfferManager, { EconItem } from 'steam-tradeoffer-manager';
-import SchemaManager from 'tf2-schema-2';
+import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
+import SchemaManager, { Schema } from 'tf2-schema-2';
+import SKU from 'tf2-sku-2';
 import Options from './Options';
 
-import { craftAll, uncraftAll } from '../lib/data';
+import Bot from './Bot';
+// import log from '../lib/logger';
+
+import { noiseMakers } from '../lib/data';
+import { check } from '../lib/tools/export';
 
 export default class Inventory {
     private readonly steamID: SteamID;
+
+    get getSteamID(): SteamID {
+        return this.steamID;
+    }
 
     private readonly manager: TradeOfferManager;
 
     private readonly schema: SchemaManager.Schema;
 
-    private tradable: UnknownDictionary<string[]> = {};
+    private tradable: Dict = {};
 
-    private nonTradable: UnknownDictionary<string[]> = {};
+    get getItems(): Dict {
+        return this.tradable;
+    }
 
-    private tradableEcon: EconItem[] = [];
+    private nonTradable: Dict = {};
+
+    get getTotalItems(): number {
+        let items = 0;
+        const amountTradable = this.tradable;
+        for (const sku in amountTradable) {
+            if (!Object.prototype.hasOwnProperty.call(amountTradable, sku)) {
+                continue;
+            }
+            items += amountTradable[sku].length;
+        }
+        const amountNonTradable = this.nonTradable;
+        for (const sku in amountNonTradable) {
+            if (!Object.prototype.hasOwnProperty.call(amountNonTradable, sku)) {
+                continue;
+            }
+            items += amountNonTradable[sku].length;
+        }
+        return items;
+    }
 
     private options: Options;
 
-    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
+    constructor(
+        steamID: SteamID | string,
+        manager: TradeOfferManager,
+        schema: SchemaManager.Schema,
+        options: Options,
+        public unusualEffects: Array<Effect>
+    ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
@@ -36,44 +72,21 @@ export default class Inventory {
         items: EconItem[],
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
-        options: Options
+        options: Options,
+        unusualEffects: Array<Effect>,
+        bot: Bot
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options);
+        const inventory = new Inventory(steamID, manager, schema, options, unusualEffects);
 
         // Funny how typescript allows calling a private function from a static function
-        inventory.setItems(items);
+        inventory.setItems(items, bot);
 
         return inventory;
     }
 
-    getSteamID(): SteamID {
-        return this.steamID;
-    }
-
-    getItems(): UnknownDictionary<string[]> {
-        return this.tradable;
-    }
-
-    getItemsEcon(): EconItem[] {
-        return this.tradableEcon;
-    }
-
-    getTotalItems(): number {
-        let items = 0;
-        const amountTradable = this.tradable;
-        for (const sku in amountTradable) {
-            items += amountTradable[sku].length;
-        }
-        const amountNonTradable = this.nonTradable;
-        for (const sku in amountNonTradable) {
-            items += amountNonTradable[sku].length;
-        }
-        return items;
-    }
-
     addItem(sku: string, assetid: string): void {
         const items = this.tradable;
-        (items[sku] = items[sku] || []).push(assetid);
+        (items[sku] = items[sku] || []).push({ id: assetid });
     }
 
     removeItem(assetid: string): void;
@@ -87,7 +100,7 @@ export default class Inventory {
 
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
-                const assetids = items[sku];
+                const assetids = items[sku].map(item => item.id);
 
                 const index = assetids.indexOf(assetid);
 
@@ -102,45 +115,34 @@ export default class Inventory {
         }
     }
 
-    fetch(): Promise<void> {
+    fetch(bot: Bot): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.manager.getUserInventoryContents(this.getSteamID(), 440, '2', false, (err, items) => {
+            this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
                 if (err) {
                     return reject(err);
                 }
 
-                this.setItems(items);
+                this.setItems(items, bot);
 
                 resolve();
             });
         });
     }
 
-    private setItems(items: EconItem[]): void {
-        const tradable: EconItem[] = [];
-        const nonTradable: EconItem[] = [];
-
-        items.forEach(item => {
-            if (item.tradable) {
-                tradable.push(item);
-            } else {
-                nonTradable.push(item);
-            }
-        });
-
-        this.tradableEcon = tradable;
-
+    private setItems(items: EconItem[], bot: Bot): void {
         this.tradable = Inventory.createDictionary(
-            tradable,
+            items.filter(item => item.tradable),
             this.schema,
             this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual
+            this.options.normalize.strangeUnusual,
+            bot
         );
         this.nonTradable = Inventory.createDictionary(
-            nonTradable,
+            items.filter(item => !item.tradable),
             this.schema,
             this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual
+            this.options.normalize.strangeUnusual,
+            bot
         );
     }
 
@@ -150,7 +152,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.tradable[sku].includes(assetid)) {
+            if (!this.tradable[sku].find(item => item.id.includes(assetid))) {
                 continue;
             }
 
@@ -162,7 +164,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.nonTradable[sku].includes(assetid)) {
+            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) {
                 continue;
             }
 
@@ -177,28 +179,44 @@ export default class Inventory {
 
         if (tradableOnly) {
             // Copies the array
-            return tradable.slice(0);
+            return tradable.map(item => (item ? item.id : undefined)).slice(0);
         }
 
         const nonTradable = this.nonTradable[sku] || [];
 
-        return nonTradable.concat(tradable);
+        return nonTradable
+            .map(item => (item ? item.id : undefined))
+            .concat(tradable.map(item => (item ? item.id : undefined)));
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
         return this.findBySKU(sku, tradableOnly).length;
     }
 
-    getCurrencies(): { [sku: string]: string[] } {
-        const pure = ['5021;6', '5002;6', '5001;6', '5000;6'];
-        const weapons = craftAll.concat(uncraftAll);
-        const combine = pure.concat(weapons);
+    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
+        const s = SKU.fromString(sku);
+        if (s.quality === 5) {
+            // generic getAmount so return total that match the generic sku type
+            return (
+                this.unusualEffects
+                    .map(e => {
+                        s.effect = e.id;
+                        return this.getAmount(SKU.fromObject(s), tradableOnly);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            );
+        } else {
+            return this.getAmount(sku, tradableOnly);
+        }
+    }
 
+    getCurrencies(bot: Bot): { [sku: string]: string[] } {
         const toObject: {
             [sku: string]: string[];
         } = {};
 
-        combine.forEach(sku => {
+        ['5021;6', '5002;6', '5001;6', '5000;6'].concat(bot.handler.getWeapons).forEach(sku => {
             toObject[sku] = this.findBySKU(sku);
         });
 
@@ -208,17 +226,106 @@ export default class Inventory {
     private static createDictionary(
         items: EconItem[],
         schema: SchemaManager.Schema,
-        normalizeFestivizedItems: boolean,
-        normalizeStrangeUnusual: boolean
-    ): UnknownDictionary<string[]> {
-        const dict: UnknownDictionary<string[]> = {};
+        optFestivized: boolean,
+        optStrangeUnusual: boolean,
+        bot: Bot
+    ): Dict {
+        const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const sku = item.getSKU(schema, normalizeFestivizedItems, normalizeStrangeUnusual);
-            (dict[sku] = dict[sku] || []).push(item.id);
+            const sku = items[i].getSKU(schema, optFestivized, optStrangeUnusual);
+            const attributes = check.highValue(items[i], bot);
+
+            let isDuel5xUses: boolean | null = null;
+            if (sku === '241;6') {
+                isDuel5xUses = check.is5xUses(items[i]);
+            }
+
+            let isNoiseMaker25xUses: boolean | null = null;
+            if (Object.keys(noiseMakers).includes(sku)) {
+                isNoiseMaker25xUses = check.is25xUses(items[i]);
+            }
+
+            if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
+                (dict[sku] = dict[sku] || []).push({ id: items[i].id });
+            } else {
+                if (isDuel5xUses !== null) {
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isDuel5xUses });
+                } else if (isNoiseMaker25xUses !== null) {
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isNoiseMaker25xUses });
+                } else {
+                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, hv: attributes });
+                }
+            }
         }
 
+        // log.debug('dict: ', dict);
         return dict;
     }
+
+    clearFetch(): void {
+        this.tradable = undefined;
+        this.nonTradable = undefined;
+    }
+}
+
+export interface Dict {
+    [sku: string]: DictItem[];
+}
+
+export interface DictItem {
+    id: string;
+    hv?: ItemAttributes;
+    isFullUses?: boolean;
+}
+
+export function getUnusualEffects(schema: Schema): Effect[] {
+    return schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+        return { name: v.name, id: v.id };
+    });
+}
+
+/**
+ * Function replaces specific effect string in name with 'Unusual'.
+ *
+ * If hat is named Sunbeams Team Captain, function will return the name Unusual
+ * Team Captain and an effect id of 17. If the hat doesn't match, the name will just be what
+ * was passed in. Ie Team Captain just returns Team Captain and the effect will be undefined.
+ *
+ * @param name - hat name
+ * @param effects - Array of all unusual effects
+ */
+export function genericNameAndMatch(name: string, effects: Effect[]): { name: string; effect: Effect } {
+    const effectMatch = effects.find(e => name.startsWith(e.name));
+    return { name: effectMatch ? name.replace(effectMatch.name, 'Unusual') : name, effect: effectMatch };
+}
+
+/**
+ * Function looks up the amount of SKU the bot can trade specifically and
+ * generically.
+ *
+ * If the bot is set to only buy generic of a SKU, the amountCanTradeGeneric
+ * will be larger and the match name will be the generic name otherwise the
+ * name will be set to the specific SKU.
+ * @param sku - string
+ * @param bot - bot so we can look up amountCanTrade
+ * @param buying - toggle tally only items that we are buying
+ */
+export function getSkuAmountCanTrade(
+    sku: string,
+    bot: Bot,
+    buying = true
+): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
+    const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
+    return {
+        amountCanTradeGeneric: amountCanTradeGeneric,
+        amountCanTrade: amountCanTrade,
+        mostCanTrade: mostCanTrade,
+        name:
+            amountCanTrade > amountCanTradeGeneric
+                ? bot.schema.getName(SKU.fromString(sku))
+                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.unusualEffects).name
+    };
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import TradeOfferManager, { EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -78,7 +78,7 @@ export default class Trades {
         this.bot.manager.pollData = pollData;
     }
 
-    onNewOffer(offer: TradeOfferManager.TradeOffer): void {
+    onNewOffer(offer: TradeOffer): void {
         if (offer.isGlitched()) {
             offer.log('debug', 'is glitched');
             return;
@@ -89,15 +89,14 @@ export default class Trades {
         this.enqueueOffer(offer);
     }
 
-    onOfferList(filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]): void {
+    onOfferList(filter: number, sent: TradeOffer[], received: TradeOffer[]): void {
         // Go through all offers and add offers that we have not checked
 
         this.pollCount++;
 
         received.concat(sent).forEach(offer => {
             if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
-                const ourItems = offer.data('_ourItems');
-                if (ourItems !== undefined) {
+                if (offer.data('_ourItems') !== undefined) {
                     // Make sure that offers that are not active does not have items saved
                     offer.data('_ourItems', undefined);
                 }
@@ -196,8 +195,8 @@ export default class Trades {
     getOffers(
         includeInactive = false
     ): Promise<{
-        sent: TradeOfferManager.TradeOffer[];
-        received: TradeOfferManager.TradeOffer[];
+        sent: TradeOffer[];
+        received: TradeOffer[];
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
@@ -224,7 +223,7 @@ export default class Trades {
         });
     }
 
-    private enqueueOffer(offer: TradeOfferManager.TradeOffer): void {
+    private enqueueOffer(offer: TradeOffer): void {
         if (!this.receivedOffers.includes(offer.id)) {
             offer.itemsToGive.forEach(item => this.setItemInTrade(item.assetid));
 
@@ -255,7 +254,7 @@ export default class Trades {
         }
     }
 
-    private handlerProcessOffer(offer: TradeOfferManager.TradeOffer): void {
+    private handlerProcessOffer(offer: TradeOffer): void {
         log.debug('Giving offer to handler');
 
         const start = dayjs().valueOf();
@@ -369,7 +368,7 @@ export default class Trades {
         });
     }
 
-    getOffer(offerId: string, attempts = 0): Promise<TradeOfferManager.TradeOffer> {
+    getOffer(offerId: string, attempts = 0): Promise<TradeOffer> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffer(offerId, (err, offer) => {
                 attempts++;
@@ -412,7 +411,7 @@ export default class Trades {
         });
     }
 
-    private acceptOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    private acceptOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -422,26 +421,26 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    return reject(err);
+                    reject(err);
                 }
 
                 offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
 
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
-                    this.acceptConfirmation(offer).catch(() => {
-                        // catch errors like a boss
+                    this.acceptConfirmation(offer).catch(err => {
+                        log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
                     });
                 }
 
-                return resolve(status);
+                resolve(status);
             });
         });
     }
 
-    acceptConfirmation(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    acceptConfirmation(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
-            log.debug('Accepting mobile confirmation...', {
+            log.debug(`Accepting mobile confirmation...`, {
                 offerId: offer.id
             });
 
@@ -454,7 +453,6 @@ export default class Trades {
                 offer.data('confirmationTime', confirmationTime);
 
                 if (err) {
-                    log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
                     return reject(err);
                 }
 
@@ -463,7 +461,7 @@ export default class Trades {
         });
     }
 
-    private acceptOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.accept((err: CustomError, status) => {
                 attempts++;
@@ -495,7 +493,7 @@ export default class Trades {
         });
     }
 
-    private declineOffer(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    private declineOffer(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -513,7 +511,7 @@ export default class Trades {
         });
     }
 
-    sendOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    sendOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.data('partner', offer.partner.getSteamID64());
 
@@ -549,7 +547,7 @@ export default class Trades {
         });
     }
 
-    private sendOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private sendOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.send((err: CustomError, status) => {
                 attempts++;
@@ -572,7 +570,7 @@ export default class Trades {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
                         void this.bot.inventoryManager
                             .getInventory()
-                            .fetch()
+                            .fetch(this.bot)
                             .asCallback(() => {
                                 reject(err);
                             });
@@ -649,7 +647,7 @@ export default class Trades {
         });
     }
 
-    checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
+    checkEscrow(offer: TradeOffer): Promise<boolean> {
         log.debug('Checking escrow');
 
         return new Promise((resolve, reject) => {
@@ -692,7 +690,7 @@ export default class Trades {
         });
     }
 
-    onOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number): void {
+    onOfferChanged(offer: TradeOffer, oldState: number): void {
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
         offer.log(
@@ -758,19 +756,8 @@ export default class Trades {
 
         void this.bot.inventoryManager
             .getInventory()
-            .fetch()
+            .fetch(this.bot)
             .asCallback(() => {
-                // Update listings
-                const diff = offer.getDiff() || {};
-
-                for (const sku in diff) {
-                    if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
-                        continue;
-                    }
-
-                    this.bot.listings.checkBySKU(sku);
-                }
-
                 this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });
     }
@@ -800,7 +787,7 @@ export default class Trades {
         }
     }
 
-    static offerEquals(a: TradeOfferManager.TradeOffer, b: TradeOfferManager.TradeOffer): boolean {
+    static offerEquals(a: TradeOffer, b: TradeOffer): boolean {
         return (
             a.isOurOffer === b.isOurOffer &&
             a.partner.getSteamID64() === b.partner.getSteamID64() &&
@@ -845,3 +832,7 @@ export default class Trades {
         };
     }
 }
+
+// function promiseDelay(ms: number): Promise<void> {
+//     return new Promise(resolve => setTimeout(() => resolve(), ms));
+// }

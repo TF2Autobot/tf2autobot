@@ -100,7 +100,7 @@ export default class Autokeys {
 
         const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
 
-        const currKeyPrice = this.bot.pricelist.getKeyPrices();
+        const currKeyPrice = this.bot.pricelist.getKeyPrices;
 
         if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
@@ -120,11 +120,11 @@ export default class Autokeys {
          */
         const isBuyingKeys = currRef > userMaxRef && currKeys < userMaxKeys;
         /*
-        //        <——————————————————————————————————○            \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //                                           ○——————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //      <————————————○      \
+        // Keys ----|--------|---->  ⟩ AND
+        //                   ○————> /
+        // Refs ----|--------|---->
+        //         min     max
         */
 
         /**
@@ -132,11 +132,11 @@ export default class Autokeys {
          */
         const isSellingKeys = currRef < userMinRef && currKeys > userMinKeys;
         /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————○                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //          ○—————————————> \
+        // Keys ----|--------|---->  ⟩ AND
+        //      <———○               /
+        // Refs ----|--------|---->
+        //         min      max
         */
 
         /**
@@ -147,11 +147,13 @@ export default class Autokeys {
             (currRef >= userMaxRef && currKeys >= userMaxKeys) ||
             (currRef >= userMinRef && currRef <= userMaxRef && currKeys <= userMaxKeys);
         /*
-        //        <——————————————————————————————————●·····>      \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ●————————————————————————————●·····>      /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //      <————————————●····> \
+        // Keys ----|--------|---->  ⟩ AND
+        //          ●————————●····> /
+        // Refs ----|--------|---->
+        //         min      max
+        //                 ^^|^^
+        //                   OR
         */
 
         /**
@@ -164,11 +166,11 @@ export default class Autokeys {
          */
         const isBankingKeys = currRef > userMinRef && currRef < userMaxRef && currKeys > userMinKeys;
         /*
-        //              ○———————————————————————————————————>     \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○————————————————————————————○            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //          ○—————————————> \
+        // Keys ----|--------|---->  ⟩ AND
+        //          ○————————○      /
+        // Refs ----|-------|---->
+        //         min     max
         */
 
         /**
@@ -177,11 +179,11 @@ export default class Autokeys {
          */
         const isBankingBuyKeysWithEnoughRefs = currRef > userMinRef && currKeys <= userMinKeys;
         /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //              ○———————————————————————————————————>     /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //      <———●               \
+        // Keys ----|--------|---->  ⟩ AND
+        //          ○—————————————> /
+        // Refs ----|--------|---->
+        //         min      max
         */
 
         /**
@@ -189,11 +191,11 @@ export default class Autokeys {
          */
         const isRemoveBankingKeys = currRef <= userMaxRef && currKeys <= userMinKeys;
         /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <——————————————————————————————————●            /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //      <———●               \
+        // Keys ----|--------|---->  ⟩ AND
+        //      <————————————●      /
+        // Refs ----|--------|---->
+        //         min      max
         */
 
         const isAlreadyAlert = this.status.checkAlertOnLowPure;
@@ -203,11 +205,11 @@ export default class Autokeys {
          */
         const isAlertAdmins = currRef <= userMinRef && currKeys <= userMinKeys;
         /*
-        //        <—————●                                         \
-        // Keys --------|----------------------------|---------->  ⟩ AND
-        //        <—————●                                         /
-        // Refs --------|----------------------------|---------->
-        //             min                          max
+        //      <———●               \
+        // Keys ----|--------|---->  ⟩ AND
+        //      <———●               /
+        // Refs ----|--------|---->
+        //         min      max
         */
 
         const isAlreadyUpdatedToBank = this.status.alreadyUpdatedToBank;
@@ -232,6 +234,8 @@ export default class Autokeys {
 
             if (setMinKeys === setMaxKeys) {
                 setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 1;
             }
             //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
@@ -244,6 +248,8 @@ export default class Autokeys {
 
             if (setMinKeys === setMaxKeys) {
                 setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 2;
             }
             //
         } else if (isSellingKeys) {
@@ -256,6 +262,8 @@ export default class Autokeys {
 
             if (setMinKeys === setMaxKeys) {
                 setMinKeys -= 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 1;
             }
             //
         } else if (isBankingKeys && isEnableKeyBanking) {
@@ -268,11 +276,11 @@ export default class Autokeys {
 
             if (setMinKeys === setMaxKeys) {
                 setMinKeys -= 1;
-            }
-
-            if (setMaxKeys - setMinKeys === 1) {
+            } else if (setMaxKeys - setMinKeys === 1) {
                 // When banking, the bot should be able to both buy and sell keys.
                 setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 2;
             }
         }
 
@@ -418,7 +426,7 @@ export default class Autokeys {
                 };
                 this.isActive = false;
                 const msg = 'I am now low on both keys and refs.';
-                if (opt.sendAlert) {
+                if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                     if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                         sendAlert('lowPure', this.bot, msg);
                     } else {
@@ -518,7 +526,7 @@ export default class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
@@ -639,7 +647,7 @@ export default class Autokeys {
                     };
                     this.isActive = false;
                     const msg = 'I am now low on both keys and refs.';
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
@@ -669,7 +677,7 @@ export default class Autokeys {
     }
 
     disable(): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices();
+        const keyPrices = this.bot.pricelist.getKeyPrices;
         const opt = this.bot.options;
         let entry;
         if (keyPrices.src !== 'manual') {

@@ -2,7 +2,6 @@ import { timeNow } from '../tools/time';
 import { Webhook } from './interfaces';
 
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 import { sendWebhook } from './utils';
 
 import log from '../logger';
@@ -15,10 +14,6 @@ export default function sendAlert(
     err: any | null = null,
     items: string[] | null = null
 ): void {
-    const opt = bot.options;
-
-    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-
     let title: string;
     let description: string;
     let color: string;
@@ -57,16 +52,18 @@ export default function sendAlert(
         color = '8323327'; // purple
     }
 
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
-
-    const webhook = opt.discordWebhook;
+    const botInfo = bot.handler.getBotInfo;
+    const optDW = bot.options.discordWebhook;
 
     const sendAlertWebhook: Webhook = {
-        username: webhook.displayName ? webhook.displayName : botInfo.name,
-        avatar_url: webhook.avatarURL ? webhook.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName ? optDW.displayName : botInfo.name,
+        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content:
-            type === 'highValue' || type === 'highValuedDisabled' || type === 'failedRestartError'
-                ? `<@!${webhook.ownerID}>`
+            type === 'highValue' ||
+            type === 'highValuedDisabled' ||
+            type === 'highValuedInvalidItems' ||
+            type === 'failedRestartError'
+                ? `<@!${optDW.ownerID}>`
                 : '',
         embeds: [
             {
@@ -74,13 +71,13 @@ export default function sendAlert(
                 description: description,
                 color: color,
                 footer: {
-                    text: time.time
+                    text: timeNow(bot).time
                 }
             }
         ]
     };
 
-    sendWebhook(webhook.sendAlert.url, sendAlertWebhook, 'alert')
+    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => {
             log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
         })
