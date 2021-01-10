@@ -32,14 +32,10 @@ export default function sendWebHookPriceUpdateV1(
     if (!itemImageUrl || !item) {
         itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
     } else if (Object.keys(paintCan).includes(newSku)) {
-        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
-            paintCan[newSku] as string
-        }512fx512f`;
+        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
     } else if (item.australium === true) {
         const australiumSKU = parts[0] + ';11;australium';
-        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${
-            australiumImageURL[australiumSKU] as string
-        }512fx512f`;
+        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
     } else if (item.defindex === 266) {
         itemImageUrlPrint =
             'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
@@ -66,7 +62,7 @@ export default function sendWebHookPriceUpdateV1(
     }
 
     const qualityItem = parts[1];
-    const qualityColorPrint = qualityColor[qualityItem] as string;
+    const qualityColorPrint = qualityColor[qualityItem];
 
     const opt = options.discordWebhook;
 

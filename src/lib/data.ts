@@ -1,4 +1,4 @@
-export const craftWeapons = {
+export const craftWeapons: { [charClass: string]: string[] } = {
     scout: [
         '45;6', // Force-A-Nature               == Scout/Primary ==
         '220;6', // Shortstop
@@ -453,7 +453,7 @@ export const uncraftAll = [
     '59;6;uncraftable' // Dead Ringer
 ];
 
-export const noiseMakers = {
+export const noiseMakers: { [sku: string]: string } = {
     '280;6': 'Noise Maker - Black Cat',
     '280;6;uncraftable': 'Non-Craftable Noise Maker - Black Cat',
     '281;6': 'Noise Maker - Gremlin',
@@ -482,7 +482,7 @@ export const noiseMakers = {
     '542;1': 'Genuine Noise Maker - Vuvuzela'
 };
 
-export const strangePartsData = {
+export const strangePartsData: { [name: string]: number } = {
     // Most Strange Parts name will change once applied/attached.
     'Robots Destroyed': 6026, //              checked               ----- more than 1 keys ↓
     Kills: 6060, //                           checked
@@ -538,7 +538,7 @@ export const strangePartsData = {
     'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
 };
 
-export const sheensData = {
+export const sheensData: { [name: string]: string } = {
     'Team Shine': 'ks-1',
     'Deadly Daffodil': 'ks-2',
     Manndarin: 'ks-3',
@@ -548,7 +548,7 @@ export const sheensData = {
     'Hot Rod': 'ks-7'
 };
 
-export const killstreakersData = {
+export const killstreakersData: { [name: string]: string } = {
     'Fire Horns': 'ke-2002',
     'Cerebral Discharge': 'ke-2002',
     Tornado: 'ke-2002',
@@ -558,7 +558,7 @@ export const killstreakersData = {
     'Hypno-Beam': 'ke-2002'
 };
 
-export const paintedData = {
+export const paintedData: { [name: string]: string } = {
     'A Color Similar to Slate': 'p3100495',
     'A Deep Commitment to Purple': 'p8208497',
     'A Distinctive Lack of Hue': 'p1315860',
@@ -590,7 +590,7 @@ export const paintedData = {
     'Waterlogged Lab Coat': 'p11049612'
 };
 
-export const spellsData = {
+export const spellsData: { [name: string]: string } = {
     'Team Spirit Footprints': 's-1000',
     'Gangreen Footprints': 's-1001',
     'Corpse Gray Footprints': 's-1002',
@@ -633,7 +633,7 @@ export const giftWords = [
     'cute' // right?
 ];
 
-export const ignoreWords = {
+export const ignoreWords: { [type: string]: string[] } = {
     startsWith: [
         'I',
         '❌',
@@ -688,7 +688,7 @@ export const ignoreWords = {
     endsWith: ['cart.', 'checkout.', '✅']
 };
 
-export const crates = {
+export const crates: { [type: string]: { [name: string]: number } } = {
     is5022: {
         'Mann Co. Supply Crate Series #1': 1,
         'Mann Co. Supply Crate Series #3': 3,
@@ -828,7 +828,7 @@ export const crates = {
     }
 };
 
-export const australiumImageURL = {
+export const australiumImageURL: { [name: string]: string } = {
     // Australium Ambassador
     '61;11;australium':
         'IUwYcXxrxqzlHh9rZCv2ADN8Mmsgy4N4MgGBvxVQuY7G2ZW8zJlfDUKJYCqxp8lnuW34wvJM3DIHgr-8CcAu9qsKYZG08QCvM/',
@@ -888,7 +888,7 @@ export const australiumImageURL = {
     '197;11;australium': 'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
 };
 
-export const paintCan = {
+export const paintCan: { [name: string]: string } = {
     // A Color Similar to Slate
     '5052;6':
         'TbL_ROFcpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvOvr1MdQ/',
@@ -978,7 +978,7 @@ export const paintCan = {
         'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/'
 };
 
-export const qualityColor = {
+export const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
     '3': '4678289', // Vintage - #476291

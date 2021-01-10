@@ -548,11 +548,11 @@ export default class MyHandler extends Handler {
     sendStats(): void {
         clearTimeout(this.sendStatsTimeout);
 
-        const opt = this.bot.options;
-
         if (this.sendStatsEnabled) {
             this.sendStatsTimeout = setInterval(() => {
+                const opt = this.bot.options;
                 let times: string[];
+
                 if (opt.statistics.sendStats.time.length === 0) {
                     times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
                 } else {

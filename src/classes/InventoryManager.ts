@@ -35,8 +35,7 @@ export default class InventoryManager {
         let genericCheck = generics;
 
         // if we looking at amount we can trade and the sku is a generic unusual always set generic to true
-        const genericMatch = new RegExp('^[0-9]*;5$');
-        const isGenericSku = genericMatch.test(sku);
+        const isGenericSku = /^[0-9]*;5$/.test(sku);
         if (isGenericSku) genericCheck = true;
 
         // Amount in inventory

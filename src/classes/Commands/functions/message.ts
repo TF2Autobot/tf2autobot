@@ -32,9 +32,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         const parts = message.split(' ');
         const steamIdAndMessage = CommandParser.removeCommand(message);
         // Use regex
-        const steamIDReg = new RegExp(
-            /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?])$/
-        );
+        const steamIDReg = /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?])$/;
 
         let steamIDString: string;
 

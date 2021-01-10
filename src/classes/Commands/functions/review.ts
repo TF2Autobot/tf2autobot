@@ -142,7 +142,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
 
 export async function accepttradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
+    const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
         bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
@@ -223,7 +223,7 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
 
 export async function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerIdRegex = new RegExp(/\d+/).exec(offerIdAndMessage);
+    const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
         bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');

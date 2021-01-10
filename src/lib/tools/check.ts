@@ -92,37 +92,37 @@ export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<str
             if (strangeParts.includes(parts.toLowerCase())) {
                 // if the particular strange part is one of the parts that the user wants,
                 // then mention and put "(🌟)"
-                sp[`${strangePartsData[parts] as string}`] = true;
+                sp[`${strangePartsData[parts]}`] = true;
             } else {
                 // else no mention and just the name.
-                sp[`${strangePartsData[parts] as string}`] = false;
+                sp[`${strangePartsData[parts]}`] = false;
             }
         } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Killstreaker: ', '').trim();
             hasKillstreaker = true;
 
             if (killstreakers.includes(extractedName.toLowerCase())) {
-                ke[`${killstreakersData[extractedName] as string}`] = true;
+                ke[`${killstreakersData[extractedName]}`] = true;
             } else {
-                ke[`${killstreakersData[extractedName] as string}`] = false;
+                ke[`${killstreakersData[extractedName]}`] = false;
             }
         } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Sheen: ', '').trim();
             hasSheen = true;
 
             if (sheens.includes(extractedName.toLowerCase())) {
-                ks[`${sheensData[extractedName] as string}`] = true;
+                ks[`${sheensData[extractedName]}`] = true;
             } else {
-                ks[`${sheensData[extractedName] as string}`] = false;
+                ks[`${sheensData[extractedName]}`] = false;
             }
         } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
             const extractedName = content.value.replace('Paint Color: ', '').trim();
             hasPaint = true;
 
             if (painted.includes(extractedName.toLowerCase())) {
-                p[`${paintedData[extractedName] as string}`] = true;
+                p[`${paintedData[extractedName]}`] = true;
             } else {
-                p[`${paintedData[extractedName] as string}`] = false;
+                p[`${paintedData[extractedName]}`] = false;
             }
         }
     }
