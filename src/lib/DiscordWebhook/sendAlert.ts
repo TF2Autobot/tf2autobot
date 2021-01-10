@@ -11,7 +11,7 @@ export default function sendAlert(
     bot: Bot,
     msg: string | null = null,
     position: number | null = null,
-    err: Error | null = null,
+    err: any | null = null,
     items: string[] | null = null
 ): void {
     let title: string;
@@ -30,9 +30,9 @@ export default function sendAlert(
         title = 'Automatic restart failed - no PM2';
         description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
         color = '16711680'; // red
-    } else if (type === 'failedError') {
+    } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
-        description = `❌ An error occurred while trying to restart: ${err.message}`;
+        description = `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`;
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
@@ -59,7 +59,10 @@ export default function sendAlert(
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content:
-            type === 'highValue' || type === 'highValuedDisabled' || type === 'highValuedInvalidItems'
+            type === 'highValue' ||
+            type === 'highValuedDisabled' ||
+            type === 'highValuedInvalidItems' ||
+            type === 'failedRestartError'
                 ? `<@!${optDW.ownerID}>`
                 : '',
         embeds: [
