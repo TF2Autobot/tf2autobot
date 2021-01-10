@@ -616,11 +616,27 @@ export default class UserCart extends Cart {
 
         const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys());
 
+        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
+            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? craftAll.concat(uncraftAll)
+                : craftAll
+            : [];
+
+        let addWeapons = 0;
+        if (this.bot.options.weaponsAsCurrency.enable) {
+            weapons.forEach(sku => {
+                addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
+            });
+        }
+
         // Add the value that the buyer pays to the exchange
         exchange[isBuyer ? 'our' : 'their'].value += currencies.toValue(keyPrice.metal);
         exchange[isBuyer ? 'our' : 'their'].keys += required.currencies['5021;6'];
         exchange[isBuyer ? 'our' : 'their'].scrap +=
-            required.currencies['5002;6'] * 9 + required.currencies['5001;6'] * 3 + required.currencies['5000;6'];
+            required.currencies['5002;6'] * 9 +
+            required.currencies['5001;6'] * 3 +
+            required.currencies['5000;6'] +
+            addWeapons;
 
         // Add items to offer
 
@@ -847,8 +863,7 @@ export default class UserCart extends Cart {
                     value = 1;
                 } else if (
                     this.bot.handler.isWeaponsAsCurrency.enable &&
-                    (craftAll.includes(sku) ||
-                        (this.bot.handler.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
+                    weapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
