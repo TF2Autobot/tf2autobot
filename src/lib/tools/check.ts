@@ -2,8 +2,9 @@ import SKU from 'tf2-sku-2';
 import { EconItem, Items, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 
 import { strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../data';
-import Bot from '../../classes/Bot';
 import { DictItem } from '../../classes/Inventory';
+import Bot from '../../classes/Bot';
+import Options from '../../classes/Options';
 
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
     return items
@@ -30,13 +31,25 @@ export function is25xUses(item: EconItem): boolean {
     }
 }
 
-export function highValue(econ: EconItem, bot: Bot): ItemAttributes | Record<string, never> {
+export function highValue(econ: EconItem, opt: Options): ItemAttributes | Record<string, never> {
     const attributes: ItemAttributes = {};
 
-    const strangeParts = bot.handler.getStrangeParts;
-    const killstreakers = bot.handler.getKillstreakers;
-    const sheens = bot.handler.getSheens;
-    const painted = bot.handler.getPainted;
+    const strangeParts =
+        opt.highValue.strangeParts === [] || opt.highValue.strangeParts === ['']
+            ? Object.keys(strangePartsData)
+            : opt.highValue.strangeParts;
+
+    const killstreakers =
+        opt.highValue.killstreakers === [] || opt.highValue.killstreakers === ['']
+            ? Object.keys(killstreakersData)
+            : opt.highValue.killstreakers;
+
+    const sheens =
+        opt.highValue.sheens === [] || opt.highValue.sheens === [''] ? Object.keys(sheensData) : opt.highValue.sheens;
+    const painted =
+        opt.highValue.painted === [] || opt.highValue.painted === ['']
+            ? Object.keys(paintedData)
+            : opt.highValue.painted;
 
     let hasSpells = false;
     let hasStrangeParts = false;

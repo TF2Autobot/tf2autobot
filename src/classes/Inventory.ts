@@ -73,13 +73,12 @@ export default class Inventory {
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
-        unusualEffects: Array<Effect>,
-        bot: Bot
+        unusualEffects: Array<Effect>
     ): Inventory {
         const inventory = new Inventory(steamID, manager, schema, options, unusualEffects);
 
         // Funny how typescript allows calling a private function from a static function
-        inventory.setItems(items, bot);
+        inventory.setItems(items);
 
         return inventory;
     }
@@ -115,34 +114,30 @@ export default class Inventory {
         }
     }
 
-    fetch(bot: Bot): Promise<void> {
+    fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
                 if (err) {
                     return reject(err);
                 }
 
-                this.setItems(items, bot);
+                this.setItems(items);
 
                 resolve();
             });
         });
     }
 
-    private setItems(items: EconItem[], bot: Bot): void {
+    private setItems(items: EconItem[]): void {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
-            this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual,
-            bot
+            this.options
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
-            this.options.normalize.festivized,
-            this.options.normalize.strangeUnusual,
-            bot
+            this.options
         );
     }
 
@@ -223,18 +218,12 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(
-        items: EconItem[],
-        schema: SchemaManager.Schema,
-        optFestivized: boolean,
-        optStrangeUnusual: boolean,
-        bot: Bot
-    ): Dict {
+    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema, opt: Options): Dict {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
-            const sku = items[i].getSKU(schema, optFestivized, optStrangeUnusual);
-            const attributes = check.highValue(items[i], bot);
+            const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
+            const attributes = check.highValue(items[i], opt);
 
             let isDuel5xUses: boolean | null = null;
             if (sku === '241;6') {

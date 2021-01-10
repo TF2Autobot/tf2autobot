@@ -570,7 +570,7 @@ export default class Trades {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
                         void this.bot.inventoryManager
                             .getInventory()
-                            .fetch(this.bot)
+                            .fetch()
                             .asCallback(() => {
                                 reject(err);
                             });
@@ -756,7 +756,7 @@ export default class Trades {
 
         void this.bot.inventoryManager
             .getInventory()
-            .fetch(this.bot)
+            .fetch()
             .asCallback(() => {
                 this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
             });

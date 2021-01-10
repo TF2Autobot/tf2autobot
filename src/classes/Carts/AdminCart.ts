@@ -115,7 +115,7 @@ export default class AdminCart extends Cart {
                 this.bot.unusualEffects
             );
 
-            void theirInventory.fetch(this.bot).asCallback(err => {
+            void theirInventory.fetch().asCallback(err => {
                 if (err) {
                     return reject('Failed to load inventories (Steam might be down)');
                 }

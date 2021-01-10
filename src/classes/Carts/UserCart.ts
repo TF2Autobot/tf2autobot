@@ -494,7 +494,7 @@ export default class UserCart extends Cart {
         );
 
         try {
-            await theirInventory.fetch(this.bot);
+            await theirInventory.fetch();
         } catch (err) {
             return Promise.reject('Failed to load inventories (Steam might be down)');
         }

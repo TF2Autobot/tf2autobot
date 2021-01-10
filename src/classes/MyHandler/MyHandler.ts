@@ -43,16 +43,7 @@ import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
-import {
-    craftAll,
-    uncraftAll,
-    giftWords,
-    sheensData,
-    killstreakersData,
-    strangePartsData,
-    paintedData,
-    noiseMakers
-} from '../../lib/data';
+import { craftAll, uncraftAll, giftWords, noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, check, uptime } from '../../lib/tools/export';
 
@@ -146,70 +137,7 @@ export default class MyHandler extends Handler {
         return Currencies.toScrap(this.bot.options.offerReceived.invalidValue.exceptionValue.valueInRef);
     }
 
-    private get invalidValueExceptionSKU(): string[] {
-        // check if manualReview.invalidValue.exceptionValue.skus is an empty array
-        const invalidValueExceptionSKU = this.bot.options.offerReceived.invalidValue.exceptionValue.skus;
-        if (invalidValueExceptionSKU === []) {
-            log.warn(
-                'You did not set manualReview.invalidValue.exceptionValue.skus array, resetting to apply only for Unusual and Australium'
-            );
-            return [';5;u', ';11;australium'];
-        } else {
-            return invalidValueExceptionSKU;
-        }
-    }
-
     private hasInvalidValueException = false;
-
-    get getSheens(): string[] {
-        // check if highValue.sheens is an empty array
-        const sheens = this.bot.options.highValue.sheens;
-        if (sheens === [] || (sheens.length > 0 && sheens[0] === '')) {
-            log.warn(
-                'You did not set highValue.sheens array in your options.json file, will mention/disable all sheens.'
-            );
-            return Object.keys(sheensData).map(sheen => sheen.toLowerCase().trim());
-        } else {
-            return sheens.map(sheen => sheen.toLowerCase().trim());
-        }
-    }
-
-    get getKillstreakers(): string[] {
-        // check if highValue.killstreakers is an empty array
-        const killstreakers = this.bot.options.highValue.killstreakers;
-        if (killstreakers === [] || (killstreakers.length > 0 && killstreakers[0] === '')) {
-            log.warn(
-                'You did not set highValue.killstreakers array in your options.json file, will mention/disable all killstreakers.'
-            );
-            return Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase().trim());
-        } else {
-            return killstreakers.map(killstreaker => killstreaker.toLowerCase().trim());
-        }
-    }
-
-    get getStrangeParts(): string[] {
-        const strangeParts = this.bot.options.highValue.strangeParts;
-        if (strangeParts === [] || (strangeParts.length > 0 && strangeParts[0] === '')) {
-            log.warn(
-                'You did not set highValue.strangeParts array in your options.json file, will mention/disable all strangeParts.'
-            );
-            return Object.keys(strangePartsData).map(strangePart => strangePart.toLowerCase().trim());
-        } else {
-            return strangeParts.map(strangePart => strangePart.toLowerCase().trim());
-        }
-    }
-
-    get getPainted(): string[] {
-        const painted = this.bot.options.highValue.painted;
-        if (painted === [] || (painted.length > 0 && painted[0] === '')) {
-            log.warn(
-                'You did not set highValue.painted array in your options.json file, will mention/disable all painted item.'
-            );
-            return Object.keys(paintedData).map(paint => paint.toLowerCase().trim());
-        } else {
-            return painted.map(paint => paint.toLowerCase().trim());
-        }
-    }
 
     private get sendStatsEnabled(): boolean {
         return this.bot.options.statistics.sendStats.enable;
@@ -610,8 +538,7 @@ export default class MyHandler extends Handler {
             this.bot.manager,
             this.bot.schema,
             this.bot.options,
-            this.bot.unusualEffects,
-            this.bot
+            this.bot.unusualEffects
         );
 
         const theirItems = Inventory.fromItems(
@@ -620,8 +547,7 @@ export default class MyHandler extends Handler {
             this.bot.manager,
             this.bot.schema,
             this.bot.options,
-            this.bot.unusualEffects,
-            this.bot
+            this.bot.unusualEffects
         );
 
         const items = {
@@ -1178,7 +1104,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const exceptionSKU = this.invalidValueExceptionSKU;
+        const exceptionSKU = this.bot.options.offerReceived.invalidValue.exceptionValue.skus;
         const itemsList = itemList(offer);
         const ourItemsSKU = itemsList.our;
         const theirItemsSKU = itemsList.their;
