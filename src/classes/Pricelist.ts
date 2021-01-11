@@ -746,14 +746,8 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(data.sell)
             };
 
-            const currGlobal = {
-                buy: this.globalKeyPrices.buy.metal,
-                sell: this.globalKeyPrices.sell.metal
-            };
-            const currPTF = {
-                buy: this.currentPTFKeyPrices.buy.metal,
-                sell: this.currentPTFKeyPrices.sell.metal
-            };
+            const currGlobal = this.globalKeyPrices;
+            const currPTF = this.currentPTFKeyPrices;
 
             const isEnableScrapAdjustmentWithAutoprice =
                 opt.autokeys.enable &&
