@@ -257,13 +257,15 @@ export default class Inventory {
             for (let i = 0; i < paintCans.length; i++) {
                 if (paintCans[i].attributes === undefined) continue;
 
-                toObject[paintCans[i].name] = `p${paintCans[i].attributes[0].value}`;
+                toObject[paintCans[i].item_name] = `p${paintCans[i].attributes[0].value}`;
             }
 
             return toObject;
         };
 
         const paints = getPaints(schema);
+
+        // log.debug('paints: ', paints);
 
         for (let i = 0; i < items.length; i++) {
             const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
