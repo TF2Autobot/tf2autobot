@@ -737,15 +737,15 @@ export default class Pricelist extends EventEmitter {
 
         const match = this.getPrice(data.sku);
 
-        /**
-         * New received prices data.
-         */
-        const newPTF = {
-            buy: new Currencies(data.buy),
-            sell: new Currencies(data.sell)
-        };
-
         if (data.sku === '5021;6') {
+            /**
+             * New received prices data.
+             */
+            const newPTF = {
+                buy: new Currencies(data.buy),
+                sell: new Currencies(data.sell)
+            };
+
             const currGlobal = {
                 buy: this.globalKeyPrices.buy.metal,
                 sell: this.globalKeyPrices.sell.metal
@@ -785,8 +785,8 @@ export default class Pricelist extends EventEmitter {
         }
 
         if (match !== null && match.autoprice) {
-            match.buy = newPTF.buy;
-            match.sell = newPTF.sell;
+            match.buy = new Currencies(data.buy);
+            match.sell = new Currencies(data.sell);
             match.time = data.time;
 
             this.priceChanged(match.sku, match);
