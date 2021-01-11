@@ -729,8 +729,6 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: GetItemPriceResponse): void {
-        const opt = this.options;
-
         if (data.source !== 'bptf') {
             return;
         }
@@ -750,8 +748,8 @@ export default class Pricelist extends EventEmitter {
             const currPTF = this.currentPTFKeyPrices;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                opt.autokeys.enable &&
-                opt.autokeys.scrapAdjustment.enable &&
+                this.options.autokeys.enable &&
+                this.options.autokeys.scrapAdjustment.enable &&
                 currGlobal.buy === currPTF.buy &&
                 currGlobal.sell === currPTF.sell;
 
@@ -785,10 +783,12 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (opt.discordWebhook.priceUpdate.enable && opt.discordWebhook.priceUpdate.url !== '') {
+            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
                 const time = dayjs()
-                    .tz(opt.timezone ? opt.timezone : 'UTC')
-                    .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ');
+                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
+                    .format(
+                        this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
+                    );
 
                 sendWebHookPriceUpdateV1(
                     data.sku,
