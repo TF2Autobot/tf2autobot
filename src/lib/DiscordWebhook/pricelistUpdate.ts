@@ -12,7 +12,6 @@ import { paintCan, australiumImageURL, qualityColor } from '../data';
 
 export default function sendWebHookPriceUpdateV1(
     sku: string,
-    name: string,
     newPrice: Entry,
     time: string,
     schema: SchemaManager.Schema,
@@ -73,7 +72,7 @@ export default function sendWebHookPriceUpdateV1(
         embeds: [
             {
                 author: {
-                    name: name,
+                    name: schema.getName(SKU.fromString(sku), false),
                     url: `https://www.prices.tf/items/${sku}`,
                     icon_url:
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'

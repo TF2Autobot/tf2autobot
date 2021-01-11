@@ -790,14 +790,7 @@ export default class Pricelist extends EventEmitter {
                         this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                sendWebHookPriceUpdateV1(
-                    data.sku,
-                    this.schema.getName(SKU.fromString(match.sku), false),
-                    match,
-                    time,
-                    this.schema,
-                    this.options
-                );
+                sendWebHookPriceUpdateV1(data.sku, match, time, this.schema, this.options);
                 // this.priceChanges.push({
                 //     sku: data.sku,
                 //     name: this.schema.getName(SKU.fromString(match.sku), false),
