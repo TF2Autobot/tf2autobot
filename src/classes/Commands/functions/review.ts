@@ -1,10 +1,10 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Action, OfferData } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { Action, OfferData, OurTheirItemsDict } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-
-import { summarizeItems } from './utils';
+import SKU from 'tf2-sku-2';
+import SchemaManager from 'tf2-schema-2';
 
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -107,6 +107,28 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     const value = offerData.value;
 
     const items = offerData.dict || { our: null, their: null };
+
+    const summarizeItems = (dict: OurTheirItemsDict, schema: SchemaManager.Schema) => {
+        if (dict === null) {
+            return 'unknown items';
+        }
+
+        const summary: string[] = [];
+
+        for (const sku in dict) {
+            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+                continue;
+            }
+
+            summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? `x${dict[sku]}` : '')); // dict[sku] = amount
+        }
+
+        if (summary.length === 0) {
+            return 'nothing';
+        }
+
+        return summary.join(', ');
+    };
 
     if (!value) {
         reply +=

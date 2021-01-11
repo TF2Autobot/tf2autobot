@@ -9,9 +9,7 @@ import levenshtein from 'js-levenshtein';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 
-import { craftAll, uncraftAll } from '../../../lib/data';
 import { fixItem } from '../../../lib/items';
-import { OurTheirItemsDict } from 'steam-tradeoffer-manager';
 import { genericNameAndMatch } from '../../Inventory';
 
 export function getItemAndAmount(
@@ -418,78 +416,6 @@ export function getItemFromParams(
     return fixItem(item, bot.schema);
 }
 
-export function craftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
-
-    craftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: amount
-            });
-        }
-    });
-
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        return b.amount - a.amount;
-    });
-
-    const craftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return craftWeaponsStock;
-}
-
-export function uncraftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
-
-    uncraftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: bot.inventoryManager.getInventory().getAmount(sku)
-            });
-        }
-    });
-
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        return b.amount - a.amount;
-    });
-
-    const uncraftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return uncraftWeaponsStock;
-}
-
 export function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
 }
@@ -498,30 +424,4 @@ export function testSKU(sku: string): boolean {
     return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
         sku
     );
-}
-
-export function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
-
-    const summary: string[] = [];
-
-    for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
-
-        summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? `x${dict[sku]}` : '')); // dict[sku] = amount
-    }
-
-    if (summary.length === 0) {
-        return 'nothing';
-    }
-
-    return summary.join(', ');
-}
-
-export function shufflePricelist(arr: Entry[]): Entry[] {
-    return arr.sort(() => Math.random() - 0.5);
 }

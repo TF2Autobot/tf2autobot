@@ -826,6 +826,19 @@ export default class UserCart extends Cart {
             their: getHighValue.their
         };
 
+        const highValueOut = (info: HighValueInput) => {
+            return {
+                items: {
+                    our: info.our.items,
+                    their: info.their.items
+                },
+                isMention: {
+                    our: info.our.isMention,
+                    their: info.their.isMention
+                }
+            } as HighValueOutput;
+        };
+
         if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
             offer.data('highValue', highValueOut(input));
         }
@@ -1075,19 +1088,6 @@ export default class UserCart extends Cart {
 
         return str;
     }
-}
-
-function highValueOut(info: HighValueInput): HighValueOutput {
-    return {
-        items: {
-            our: info.our.items,
-            their: info.their.items
-        },
-        isMention: {
-            our: info.our.isMention,
-            their: info.their.isMention
-        }
-    };
 }
 
 interface GetHighValue {

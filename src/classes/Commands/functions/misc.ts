@@ -2,10 +2,9 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 
-import { craftWeapons, uncraftWeapons } from './utils';
-
 import Bot from '../../Bot';
 
+import { craftAll, uncraftAll } from '../../../lib/data';
 import { pure, timeNow, uptime } from '../../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
@@ -212,6 +211,42 @@ export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
+    const craftWeapons = (bot: Bot) => {
+        const items: { amount: number; name: string }[] = [];
+
+        craftAll.forEach(sku => {
+            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: bot.schema.getName(SKU.fromString(sku), false),
+                    amount: amount
+                });
+            }
+        });
+
+        items.sort((a, b) => {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const craftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
+            }
+        }
+        return craftWeaponsStock;
+    };
+
     const craftWeaponStock = craftWeapons(bot);
 
     let reply: string;
@@ -238,6 +273,42 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
             return;
         }
     }
+
+    const uncraftWeapons = (bot: Bot) => {
+        const items: { amount: number; name: string }[] = [];
+
+        uncraftAll.forEach(sku => {
+            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            if (amount > 0) {
+                items.push({
+                    name: bot.schema.getName(SKU.fromString(sku), false),
+                    amount: bot.inventoryManager.getInventory().getAmount(sku)
+                });
+            }
+        });
+
+        items.sort((a, b) => {
+            if (a.amount === b.amount) {
+                if (a.name < b.name) {
+                    return -1;
+                } else if (a.name > b.name) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            return b.amount - a.amount;
+        });
+
+        const uncraftWeaponsStock: string[] = [];
+
+        if (items.length > 0) {
+            for (let i = 0; i < items.length; i++) {
+                uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
+            }
+        }
+        return uncraftWeaponsStock;
+    };
 
     const uncraftWeaponStock = uncraftWeapons(bot);
 

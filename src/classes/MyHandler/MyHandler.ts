@@ -624,6 +624,19 @@ export default class MyHandler extends Handler {
             their: getHighValue.their
         };
 
+        const highValueMeta = (info: HighValueInput) => {
+            return {
+                items: {
+                    our: info.our.items,
+                    their: info.their.items
+                },
+                isMention: {
+                    our: info.our.isMention,
+                    their: info.their.isMention
+                }
+            } as HighValueOutput;
+        };
+
         const isContainsHighValue =
             Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0;
 
@@ -735,8 +748,23 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.checkUses.noiseMaker && offerSKUs.some(sku => Object.keys(noiseMakers).includes(sku))) {
-            const [isNot25Uses, skus] = noiseMaker(Object.keys(noiseMakers), items.their);
+            const noiseMaker = (noiseMakerSKUs: string[], items: Dict) => {
+                let isNot25Uses = false;
+                const skus: string[] = [];
 
+                noiseMakerSKUs.forEach(sku => {
+                    if (items[sku] !== undefined) {
+                        items[sku].forEach(item => {
+                            isNot25Uses = item.isFullUses === false;
+                            skus.push(sku);
+                        });
+                    }
+                });
+
+                return [isNot25Uses, skus] as [boolean, string[]];
+            };
+
+            const [isNot25Uses, skus] = noiseMaker(Object.keys(noiseMakers), items.their);
             const isHasNoiseMaker = skus.some(sku => {
                 return checkExist.getPrice(sku, true) !== null;
             });
@@ -1127,6 +1155,19 @@ export default class MyHandler extends Handler {
                 this.hasInvalidValueException = true;
             }
         }
+
+        const filterReasons = (reasons: string[]) => {
+            const filtered: string[] = [];
+
+            // Filter out duplicate reasons
+            reasons.forEach(reason => {
+                if (!filtered.includes(reason)) {
+                    filtered.push(reason);
+                }
+            });
+
+            return filtered;
+        };
 
         if (!manualReviewEnabled) {
             if (hasOverstock) {
@@ -1904,48 +1945,6 @@ export default class MyHandler extends Handler {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
-}
-
-function filterReasons(reasons: string[]): string[] {
-    const filtered: string[] = [];
-
-    // Filter out duplicate reasons
-    reasons.forEach(reason => {
-        if (!filtered.includes(reason)) {
-            filtered.push(reason);
-        }
-    });
-
-    return filtered;
-}
-
-function noiseMaker(noiseMakerSKUs: string[], items: Dict): [boolean, string[]] {
-    let isNot25Uses = false;
-    const skus: string[] = [];
-
-    noiseMakerSKUs.forEach(sku => {
-        if (items[sku] !== undefined) {
-            items[sku].forEach(item => {
-                isNot25Uses = item.isFullUses === false;
-                skus.push(sku);
-            });
-        }
-    });
-
-    return [isNot25Uses, skus];
-}
-
-function highValueMeta(info: HighValueInput): HighValueOutput {
-    return {
-        items: {
-            our: info.our.items,
-            their: info.their.items
-        },
-        isMention: {
-            our: info.our.isMention,
-            their: info.their.isMention
-        }
-    };
 }
 
 interface OnRun {

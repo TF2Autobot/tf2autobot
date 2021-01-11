@@ -8,7 +8,7 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 
-import { removeLinkProtocol, testSKU, getItemFromParams, shufflePricelist } from './utils';
+import { removeLinkProtocol, testSKU, getItemFromParams } from './utils';
 
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -830,6 +830,59 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         entryData[property] = params[property];
     }
 
+    const generateUpdateReply = (bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry) => {
+        const keyPrice = bot.pricelist.getKeyPrice.metal;
+        const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
+        return (
+            `\n💲 Buy: ${
+                oldEntry.buy.toValue(keyPrice) !== newEntry.buy.toValue(keyPrice)
+                    ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
+                    : newEntry.buy.toString()
+            } | Sell: ${
+                oldEntry.sell.toValue(keyPrice) !== newEntry.sell.toValue(keyPrice)
+                    ? `${oldEntry.sell.toString()} → ${newEntry.sell.toString()}`
+                    : newEntry.sell.toString()
+            }` +
+            `\n📦 Stock: ${amount}` +
+            ` | Min: ${oldEntry.min !== newEntry.min ? `${oldEntry.min} → ${newEntry.min}` : newEntry.min} | Max: ${
+                oldEntry.max !== newEntry.max ? `${oldEntry.max} → ${newEntry.max}` : newEntry.max
+            }` +
+            `\n🛒 Intent: ${
+                oldEntry.intent !== newEntry.intent
+                    ? `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'} → ${
+                          newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'
+                      }`
+                    : `${newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'}`
+            }` +
+            `\n📋 Enabled: ${
+                oldEntry.enabled !== newEntry.enabled
+                    ? `${oldEntry.enabled ? '✅' : '❌'} → ${newEntry.enabled ? '✅' : '❌'}`
+                    : `${newEntry.enabled ? '✅' : '❌'}`
+            }` +
+            `\n🔄 Autoprice: ${
+                oldEntry.autoprice !== newEntry.autoprice
+                    ? `${oldEntry.autoprice ? '✅' : '❌'} → ${newEntry.autoprice ? '✅' : '❌'}`
+                    : `${newEntry.autoprice ? '✅' : '❌'}`
+            }` +
+            (isPremium
+                ? `\n📢 Promoted: ${
+                      oldEntry.promoted !== newEntry.promoted
+                          ? `${oldEntry.promoted === 1 ? '✅' : '❌'} → ${newEntry.promoted === 1 ? '✅' : '❌'}`
+                          : `${newEntry.promoted === 1 ? '✅' : '❌'}`
+                  }`
+                : '') +
+            `${
+                newEntry.group !== 'all'
+                    ? `\n🔰 Group: ${
+                          oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
+                      }`
+                    : ''
+            }` +
+            `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
+        );
+    };
+
     bot.pricelist
         .updatePrice(entryData, true, PricelistChangedSource.Command)
         .then(entry => {
@@ -845,59 +898,6 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                     (err.body && err.body.message ? err.body.message : err.message)
             );
         });
-}
-
-function generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
-    const keyPrice = bot.pricelist.getKeyPrice.metal;
-    const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
-    return (
-        `\n💲 Buy: ${
-            oldEntry.buy.toValue(keyPrice) !== newEntry.buy.toValue(keyPrice)
-                ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
-                : newEntry.buy.toString()
-        } | Sell: ${
-            oldEntry.sell.toValue(keyPrice) !== newEntry.sell.toValue(keyPrice)
-                ? `${oldEntry.sell.toString()} → ${newEntry.sell.toString()}`
-                : newEntry.sell.toString()
-        }` +
-        `\n📦 Stock: ${amount}` +
-        ` | Min: ${oldEntry.min !== newEntry.min ? `${oldEntry.min} → ${newEntry.min}` : newEntry.min} | Max: ${
-            oldEntry.max !== newEntry.max ? `${oldEntry.max} → ${newEntry.max}` : newEntry.max
-        }` +
-        `\n🛒 Intent: ${
-            oldEntry.intent !== newEntry.intent
-                ? `${oldEntry.intent === 2 ? 'bank' : oldEntry.intent === 1 ? 'sell' : 'buy'} → ${
-                      newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'
-                  }`
-                : `${newEntry.intent === 2 ? 'bank' : newEntry.intent === 1 ? 'sell' : 'buy'}`
-        }` +
-        `\n📋 Enabled: ${
-            oldEntry.enabled !== newEntry.enabled
-                ? `${oldEntry.enabled ? '✅' : '❌'} → ${newEntry.enabled ? '✅' : '❌'}`
-                : `${newEntry.enabled ? '✅' : '❌'}`
-        }` +
-        `\n🔄 Autoprice: ${
-            oldEntry.autoprice !== newEntry.autoprice
-                ? `${oldEntry.autoprice ? '✅' : '❌'} → ${newEntry.autoprice ? '✅' : '❌'}`
-                : `${newEntry.autoprice ? '✅' : '❌'}`
-        }` +
-        (isPremium
-            ? `\n📢 Promoted: ${
-                  oldEntry.promoted !== newEntry.promoted
-                      ? `${oldEntry.promoted === 1 ? '✅' : '❌'} → ${newEntry.promoted === 1 ? '✅' : '❌'}`
-                      : `${newEntry.promoted === 1 ? '✅' : '❌'}`
-              }`
-            : '') +
-        `${
-            newEntry.group !== 'all'
-                ? `\n🔰 Group: ${
-                      oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
-                  }`
-                : ''
-        }` +
-        `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-        `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
-    );
 }
 
 let executed = false;
@@ -926,6 +926,10 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
     } else {
         clearTimeout(executeTimeout);
         lastExecutedTime = dayjs().valueOf();
+
+        const shufflePricelist = (arr: Entry[]) => {
+            return arr.sort(() => Math.random() - 0.5);
+        };
 
         await bot.handler.onPricelist(shufflePricelist(pricelist));
         bot.sendMessage(steamID, '✅ Pricelist shuffled!');
