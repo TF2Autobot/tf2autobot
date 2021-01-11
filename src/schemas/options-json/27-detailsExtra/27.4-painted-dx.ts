@@ -4,34 +4,34 @@ export const paintedDxSchema: jsonschema.Schema = {
     id: 'painted-dx',
     type: 'object',
     properties: {
-        Slate: {
+        'A Color Similar to Slate': {
             type: 'string'
         },
-        'Deep Purple': {
+        'A Deep Commitment to Purple': {
             type: 'string'
         },
-        Black: {
+        'A Distinctive Lack of Hue': {
             type: 'string'
         },
-        Mint: {
+        "A Mann's Mint": {
             type: 'string'
         },
         'After Eight': {
             type: 'string'
         },
-        Grey: {
+        'Aged Moustache Grey': {
             type: 'string'
         },
-        White: {
+        'An Extraordinary Abundance of Tinge': {
             type: 'string'
         },
-        Gold: {
+        'Australium Gold': {
             type: 'string'
         },
-        '216-190-216': {
+        'Color No. 216-190-216': {
             type: 'string'
         },
-        'Dark Salmon': {
+        'Dark Salmon Injustice': {
             type: 'string'
         },
         'Drably Olive': {
@@ -40,31 +40,31 @@ export const paintedDxSchema: jsonschema.Schema = {
         'Indubitably Green': {
             type: 'string'
         },
-        Orange: {
+        'Mann Co. Orange': {
             type: 'string'
         },
         Muskelmannbraun: {
             type: 'string'
         },
-        Violet: {
+        "Noble Hatter's Violet": {
             type: 'string'
         },
-        'Drab Tincture': {
+        'Peculiarly Drab Tincture': {
             type: 'string'
         },
         'Pink as Hell': {
             type: 'string'
         },
-        Brown: {
+        'Radigan Conagher Brown': {
             type: 'string'
         },
-        Lime: {
+        'The Bitter Taste of Defeat and Lime': {
             type: 'string'
         },
-        'Business Pants': {
+        "The Color of a Gentlemann's Business Pants": {
             type: 'string'
         },
-        'Ye Olde': {
+        'Ye Olde Rustic Colour': {
             type: 'string'
         },
         "Zepheniah's Greed": {
@@ -85,7 +85,7 @@ export const paintedDxSchema: jsonschema.Schema = {
         'Team Spirit': {
             type: 'string'
         },
-        'Value of Teamwork': {
+        'The Value of Teamwork': {
             type: 'string'
         },
         'Waterlogged Lab Coat': {

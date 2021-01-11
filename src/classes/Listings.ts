@@ -6,7 +6,6 @@ import async from 'async';
 import dayjs from 'dayjs';
 
 import Bot from './Bot';
-import { Spells, StrangeParts, Sheens, Killstreakers, Painted } from './Options';
 import { Entry } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
@@ -553,12 +552,17 @@ export default class Listings {
             if (item) {
                 const hv = item.hv;
 
+                const getKeyByValue = (object: { [key: string]: any }, value: any) => {
+                    return Object.keys(object).find(key => object[key] === value);
+                };
+
                 if (hv) {
                     if (hv.s !== undefined && optD.showSpells) {
                         // Show all
                         hasSpells = true;
                         hv.s.forEach(spell => {
-                            spellNames.push(replaceSpells(getKeyByValue(spellsData, spell), optR.spells));
+                            const name = getKeyByValue(spellsData, spell);
+                            spellNames.push(name.replace(name, optR.spells[name]));
                         });
                     } else if (hv.sp !== undefined && optD.showStrangeParts) {
                         for (const pSku in hv.sp) {
@@ -568,8 +572,9 @@ export default class Listings {
 
                             if (hv.sp[pSku] === true) {
                                 hasStrangeParts = true;
+                                const name = getKeyByValue(strangePartsData, +pSku);
                                 partsNames.push(
-                                    replaceStrangeParts(getKeyByValue(strangePartsData, +pSku), optR.strangeParts)
+                                    name.replace(name, optR.strangeParts[name] ? optR.strangeParts[name] : name)
                                 );
                             }
                         }
@@ -581,8 +586,9 @@ export default class Listings {
 
                             if (hv.ke[pSku] === true) {
                                 hasKillstreaker = true;
+                                const name = getKeyByValue(killstreakersData, pSku);
                                 killstreakerName.push(
-                                    replaceKillstreaker(getKeyByValue(killstreakersData, pSku), optR.killstreakers)
+                                    name.replace(getKeyByValue(killstreakersData, pSku), optR.killstreakers[name])
                                 );
                             }
                         }
@@ -594,7 +600,8 @@ export default class Listings {
 
                             if (hv.ks[pSku] === true) {
                                 hasSheen = true;
-                                sheenName.push(replaceSheens(getKeyByValue(sheensData, pSku), optR.sheens));
+                                const name = getKeyByValue(sheensData, pSku);
+                                sheenName.push(name.replace(name, optR.sheens[name]));
                             }
                         }
                     } else if (hv.p !== undefined && optD.showPainted) {
@@ -605,7 +612,8 @@ export default class Listings {
 
                             if (hv.p[pSku] === true) {
                                 hasPaint = true;
-                                paintName.push(replacePainted(getKeyByValue(paints, pSku), optR.painted));
+                                const name = getKeyByValue(paints, pSku);
+                                paintName.push(name.replace(name, optR.painted[name]));
                             }
                         }
                     }
@@ -631,6 +639,21 @@ export default class Listings {
         }
 
         const optDs = this.bot.options.details.uses;
+
+        const replaceDetails = (
+            details: string,
+            entry: Entry,
+            key: 'buy' | 'sell',
+            currentStock: number,
+            amountCanTrade: number
+        ) => {
+            return details
+                .replace(/%price%/g, entry[key].toString())
+                .replace(/%name%/g, entry.name)
+                .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
+                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%amount_trade%/g, amountCanTrade.toString());
+        };
 
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
@@ -739,225 +762,4 @@ export default class Listings {
 
         return details + highValueString;
     }
-}
-
-function getKeyByValue(object: { [key: string]: any }, value: any) {
-    return Object.keys(object).find(key => object[key] === value);
-}
-
-function replaceDetails(
-    details: string,
-    entry: Entry,
-    key: 'buy' | 'sell',
-    currentStock: number,
-    amountCanTrade: number
-): string {
-    return details
-        .replace(/%price%/g, entry[key].toString())
-        .replace(/%name%/g, entry.name)
-        .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-        .replace(/%current_stock%/g, currentStock.toString())
-        .replace(/%amount_trade%/g, amountCanTrade.toString());
-}
-
-function replaceSpells(name: string, opt: Spells): string {
-    return name
-        .replace(/Putrescent Pigmentation/, opt.PP ? opt.PP : 'PP 🍃')
-        .replace(/Die Job/, opt.DJ ? opt.DJ : 'DJ 🍐')
-        .replace(/Chromatic Corruption/, opt.CC ? opt.CC : 'CC 🪀')
-        .replace(/Spectral Spectrum/, opt.Spec ? opt.Spec : 'Spec 🔵🔴')
-        .replace(/Sinister Staining/, opt.Sin ? opt.Sin : 'Sin 🍈')
-        .replace(/Voices From Below/, opt.VFB ? opt.VFB : 'VFB 🗣️')
-        .replace(/Team Spirit Footprints/, opt['TS-FP'] ? opt['TS-FP'] : 'TS-FP 🔵🔴')
-        .replace(/Gangreen Footprints/, opt['GG-FP'] ? opt['GG-FP'] : 'GG-FP 🟡')
-        .replace(/Corpse Gray Footprints/, opt['CG-FP'] ? opt['CG-FP'] : 'CG-FP 👽')
-        .replace(/Violent Violet Footprints/, opt['VV-FP'] ? opt['VV-FP'] : 'VV-FP ♨️')
-        .replace(/Rotten Orange Footprints/, opt['RO-FP'] ? opt['RO-FP'] : 'RO-FP 🍊')
-        .replace(/Bruised Purple Footprints/, opt['BP-FP'] ? opt['BP-FP'] : 'BP-FP 🍷')
-        .replace(/Headless Horseshoes/, opt['HH'] ? opt['HH'] : 'HH 🍇')
-        .replace(/Exorcism/, opt.Ex ? opt.Ex : '👻')
-        .replace(/Pumpkin Bomb/, opt.PB ? opt.PB : '🎃💣')
-        .replace(/Halloween Fire/, opt.HF ? opt.HF : '🔥🟢');
-}
-
-function replaceSheens(name: string, opt: Sheens): string {
-    return name
-        .replace(/Team Shine/, opt['Team Shine'] ? opt['Team Shine'] : '🔵🔴')
-        .replace(/Hot Rod/, opt['Hot Rod'] ? opt['Hot Rod'] : '🎗️')
-        .replace(/Manndarin/, opt.Manndarin ? opt.Manndarin : '🟠')
-        .replace(/Deadly Daffodil/, opt['Deadly Daffodil'] ? opt['Deadly Daffodil'] : '🟡')
-        .replace(/Mean Green/, opt['Mean Green'] ? opt['Mean Green'] : '🟢')
-        .replace(/Agonizing Emerald/, opt['Agonizing Emerald'] ? opt['Agonizing Emerald'] : '🟩')
-        .replace(/Villainous Violet/, opt['Villainous Violet'] ? opt['Villainous Violet'] : '🟣');
-}
-
-function replaceKillstreaker(name: string, opt: Killstreakers): string {
-    return name
-        .replace(/Cerebral Discharge/, opt['Cerebral Discharge'] ? opt['Cerebral Discharge'] : '⚡')
-        .replace(/Fire Horns/, opt['Fire Horns'] ? opt['Fire Horns'] : '🔥🐮')
-        .replace(/Flames/, opt.Flames ? opt.Flames : '🔥')
-        .replace(/Hypno-Beam/, opt['Hypno-Beam'] ? opt['Hypno-Beam'] : '😵💫')
-        .replace(/Incinerator/, opt.Incinerator ? opt.Incinerator : '🚬')
-        .replace(/Singularity/, opt.Singularity ? opt.Singularity : '🔆')
-        .replace(/Tornado/, opt.Tornado ? opt.Tornado : '🌪️');
-}
-
-function replacePainted(name: string, opt: Painted): string {
-    return name
-        .replace(/A Color Similar to Slate/, opt.Slate ? opt.Slate : '🧪')
-        .replace(/A Deep Commitment to Purple/, opt['Deep Purple'] ? opt['Deep Purple'] : '🪀')
-        .replace(/A Distinctive Lack of Hue/, opt.Black ? opt.Black : '🎩')
-        .replace(/A Mann's Mint/, opt.Mint ? opt.Mint : '👽')
-        .replace(/After Eight/, opt['After Eight'] ? opt['After Eight'] : '🏴')
-        .replace(/Aged Moustache Grey/, opt.Grey ? opt.Grey : '👤')
-        .replace(/An Extraordinary Abundance of Tinge/, opt.White ? opt.White : '🏐')
-        .replace(/Australium Gold/, opt.Gold ? opt.Gold : '🏆')
-        .replace(/Color No. 216-190-216/, opt['216-190-216'] ? opt['216-190-216'] : '🧠')
-        .replace(/Dark Salmon Injustice/, opt['Dark Salmon'] ? opt['Dark Salmon'] : '🐚')
-        .replace(/Drably Olive/, opt['Drably Olive'] ? opt['Drably Olive'] : '🥝')
-        .replace(/Indubitably Green/, opt['Indubitably Green'] ? opt['Indubitably Green'] : '🥦')
-        .replace(/Mann Co. Orange/, opt['Orange'] ? opt['Orange'] : '🏀')
-        .replace(/Muskelmannbraun/, opt.Muskelmannbraun ? opt.Muskelmannbraun : '👜')
-        .replace(/Noble Hatter's Violet/, opt.Violet ? opt.Violet : '🍇')
-        .replace(/Peculiarly Drab Tincture/, opt['Drab Tincture'] ? opt['Drab Tincture'] : '🪑')
-        .replace(/Pink as Hell/, opt['Pink as Hell'] ? opt['Pink as Hell'] : '🎀')
-        .replace(/Radigan Conagher Brown/, opt.Brown ? opt.Brown : '🚪')
-        .replace(/The Bitter Taste of Defeat and Lime/, opt.Lime ? opt.Lime : '💚')
-        .replace(/The Color of a Gentlemann's Business Pants/, opt['Business Pants'] ? opt['Business Pants'] : '🧽')
-        .replace(/Ye Olde Rustic Colour/, opt['Ye Olde'] ? opt['Ye Olde'] : '🥔')
-        .replace(/Zepheniah's Greed/, opt["Zepheniah's Greed"] ? opt["Zepheniah's Greed"] : '🌳')
-        .replace(/An Air of Debonair/, opt['An Air of Debonair'] ? opt['An Air of Debonair'] : '👜🔷')
-        .replace(/Balaclavas Are Forever/, opt['Balaclavas Are Forever'] ? opt['Balaclavas Are Forever'] : '👜🔷')
-        .replace(/Operator's Overalls/, opt["Operator's Overalls"] ? opt["Operator's Overalls"] : '👜🔷')
-        .replace(/Cream Spirit/, opt['Cream Spirit'] ? opt['Cream Spirit'] : '🍘🥮')
-        .replace(/Team Spirit/, opt['Team Spirit'] ? opt['Team Spirit'] : '🔵🔴')
-        .replace(/The Value of Teamwork/, opt['Value of Teamwork'] ? opt['Value of Teamwork'] : '👨🏽‍🤝‍👨🏻')
-        .replace(/Waterlogged Lab Coat/, opt['Waterlogged Lab Coat'] ? opt['Waterlogged Lab Coat'] : '👨🏽‍🤝‍👨🏽');
-}
-
-function replaceStrangeParts(name: string, opt: StrangeParts): string {
-    return name
-        .replace(/Robots Destroyed/, opt['Robots Destroyed'] ? opt['Robots Destroyed'] : 'Robots Destroyed')
-        .replace(/Kills/, opt.Kills ? opt.Kills : 'Kills')
-        .replace(
-            /Airborne Enemy Kills/,
-            opt['Airborne Enemy Kills'] ? opt['Airborne Enemy Kills'] : 'Airborne Enemy Kills'
-        )
-        .replace(/Damage Dealt/, opt['Damage Dealt'] ? opt['Damage Dealt'] : 'Damage Dealt')
-        .replace(/Dominations/, opt.Dominations ? opt.Dominations : 'Dominations')
-        .replace(/Snipers Killed/, opt['Snipers Killed'] ? opt['Snipers Killed'] : 'Snipers Killed')
-        .replace(/Buildings Destroyed/, opt['Buildings Destroyed'] ? opt['Buildings Destroyed'] : 'Buildings Destroyed')
-        .replace(
-            /Projectiles Reflected/,
-            opt['Projectiles Reflected'] ? opt['Projectiles Reflected'] : 'Projectiles Reflected'
-        )
-        .replace(/Headshot Kills/, opt['Headshot Kills'] ? opt['Headshot Kills'] : 'Headshot Kills')
-        .replace(/Medics Killed/, opt['Medics Killed'] ? opt['Medics Killed'] : 'Medics Killed')
-        .replace(/Fires Survived/, opt['Fires Survived'] ? opt['Fires Survived'] : 'Fires Survived')
-        .replace(
-            /Teammates Extinguished/,
-            opt['Teammates Extinguished'] ? opt['Teammates Extinguished'] : 'Teammates Extinguished'
-        )
-        .replace(
-            /Freezecam Taunt Appearances/,
-            opt['Freezecam Taunt Appearances'] ? opt['Freezecam Taunt Appearances'] : 'Freezecam Taunt Appearances'
-        )
-        .replace(/Spies Killed/, opt['Spies Killed'] ? opt['Spies Killed'] : 'Spies Killed')
-        .replace(/Allied Healing Done/, opt['Allied Healing Done'] ? opt['Allied Healing Done'] : 'Allied Healing Done')
-        .replace(/Sappers Removed/, opt['Sappers Removed'] ? opt['Sappers Removed'] : 'Sappers Removed')
-        .replace(/Players Hit/, opt['Players Hit'] ? opt['Players Hit'] : 'Players Hit')
-        .replace(/Gib Kills/, opt['Gib Kills'] ? opt['Gib Kills'] : 'Gib Kills')
-        .replace(/Scouts Killed/, opt['Scouts Killed'] ? opt['Scouts Killed'] : 'Scouts Killed')
-        .replace(/Taunt Kills/, opt['Taunt Kills'] ? opt['Taunt Kills'] : 'Taunt Kills')
-        .replace(/Point Blank Kills/, opt['Point Blank Kills'] ? opt['Point Blank Kills'] : 'Point Blank Kills')
-        .replace(/Soldiers Killed/, opt['Soldiers Killed'] ? opt['Soldiers Killed'] : 'Soldiers Killed')
-        .replace(/Long-Distance Kills/, opt['Long-Distance Kills'] ? opt['Long-Distance Kills'] : 'Long-Distance Kills')
-        .replace(
-            /Giant Robots Destroyed/,
-            opt['Giant Robots Destroyed'] ? opt['Giant Robots Destroyed'] : 'Giant Robots Destroyed'
-        )
-        .replace(/Critical Kills/, opt['Critical Kills'] ? opt['Critical Kills'] : 'Critical Kills')
-        .replace(/Demomen Killed/, opt['Demomen Killed'] ? opt['Demomen Killed'] : 'Demomen Killed')
-        .replace(
-            /Unusual-Wearing Player Kills/,
-            opt['Unusual-Wearing Player Kills'] ? opt['Unusual-Wearing Player Kills'] : 'Unusual-Wearing Player Kills'
-        )
-        .replace(/Assists/, opt.Assists ? opt.Assists : 'Assists')
-        .replace(
-            /Medics Killed That Have Full ÜberCharge/,
-            opt['Medics Killed That Have Full ÜberCharge']
-                ? opt['Medics Killed That Have Full ÜberCharge']
-                : 'Medics Killed That Have Full ÜberCharge'
-        )
-        .replace(
-            /Cloaked Spies Killed/,
-            opt['Cloaked Spies Killed'] ? opt['Cloaked Spies Killed'] : 'Cloaked Spies Killed'
-        )
-        .replace(/Engineers Killed/, opt['Engineers Killed'] ? opt['Engineers Killed'] : 'Engineers Killed')
-        .replace(
-            /Kills While Explosive-Jumping/,
-            opt['Kills While Explosive-Jumping']
-                ? opt['Kills While Explosive-Jumping']
-                : 'Kills While Explosive-Jumping'
-        )
-        .replace(
-            /Kills While Low Health/,
-            opt['Kills While Low Health'] ? opt['Kills While Low Health'] : 'Kills While Low Health'
-        )
-        .replace(
-            /Burning Player Kills/,
-            opt['Burning Player Kills'] ? opt['Burning Player Kills'] : 'Burning Player Kills'
-        )
-        .replace(
-            /Kills While Invuln ÜberCharged/,
-            opt['Kills While Invuln ÜberCharged']
-                ? opt['Kills While Invuln ÜberCharged']
-                : 'Kills While Invuln ÜberCharged'
-        )
-        .replace(/Posthumous Kills/, opt['Posthumous Kills'] ? opt['Posthumous Kills'] : 'Posthumous Kills')
-        .replace(
-            /Not Crit nor MiniCrit Kills/,
-            opt['Not Crit nor MiniCrit Kills'] ? opt['Not Crit nor MiniCrit Kills'] : 'Not Crit nor MiniCrit Kills'
-        )
-        .replace(/Full Health Kills/, opt['Full Health Kills'] ? opt['Full Health Kills'] : 'Full Health Kills')
-        .replace(/Killstreaks Ended/, opt['Killstreaks Ended'] ? opt['Killstreaks Ended'] : 'Killstreaks Ended')
-        .replace(/Defenders Killed/, opt['Defenders Killed'] ? opt['Defenders Killed'] : 'Defenders Killed')
-        .replace(/Revenges/, opt.Revenges ? opt.Revenges : 'Revenges')
-        .replace(
-            /Robot Scouts Destroyed/,
-            opt['Robot Scouts Destroyed'] ? opt['Robot Scouts Destroyed'] : 'Robot Scouts Destroyed'
-        )
-        .replace(/Heavies Killed/, opt['Heavies Killed'] ? opt['Heavies Killed'] : 'Heavies Killed')
-        .replace(/Tanks Destroyed/, opt['Tanks Destroyed'] ? opt['Tanks Destroyed'] : 'Tanks Destroyed')
-        .replace(
-            /Kills During Halloween/,
-            opt['Kills During Halloween'] ? opt['Kills During Halloween'] : 'Kills During Halloween'
-        )
-        .replace(/Pyros Killed/, opt['Pyros Killed'] ? opt['Pyros Killed'] : 'Pyros Killed')
-        .replace(
-            /Submerged Enemy Kills/,
-            opt['Submerged Enemy Kills'] ? opt['Submerged Enemy Kills'] : 'Submerged Enemy Kills'
-        )
-        .replace(
-            /Kills During Victory Time/,
-            opt['Kills During Victory Time'] ? opt['Kills During Victory Time'] : 'Kills During Victory Time'
-        )
-        .replace(
-            /Taunting Player Kills/,
-            opt['Taunting Player Kills'] ? opt['Taunting Player Kills'] : 'Taunting Player Kills'
-        )
-        .replace(
-            /Robot Spies Destroyed/,
-            opt['Robot Spies Destroyed'] ? opt['Robot Spies Destroyed'] : 'Robot Spies Destroyed'
-        )
-        .replace(
-            /Kills Under A Full Moon/,
-            opt['Kills Under A Full Moon'] ? opt['Kills Under A Full Moon'] : 'Kills Under A Full Moon'
-        )
-        .replace(
-            /Robots Killed During Halloween/,
-            opt['Robots Killed During Halloween']
-                ? opt['Robots Killed During Halloween']
-                : 'Robots Killed During Halloween'
-        );
 }

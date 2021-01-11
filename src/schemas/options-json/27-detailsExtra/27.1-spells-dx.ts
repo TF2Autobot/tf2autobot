@@ -4,52 +4,52 @@ export const spellsDxSchema: jsonschema.Schema = {
     id: 'spells-dx',
     type: 'object',
     properties: {
-        PP: {
+        'Putrescent Pigmentation': {
             type: 'string'
         },
-        DJ: {
+        'Die Job': {
             type: 'string'
         },
-        CC: {
+        'Chromatic Corruption': {
             type: 'string'
         },
-        Spec: {
+        'Spectral Spectrum': {
             type: 'string'
         },
-        Sin: {
+        'Sinister Staining': {
             type: 'string'
         },
-        VFB: {
+        'Voices From Below': {
             type: 'string'
         },
-        'TS-FP': {
+        'Team Spirit Footprints': {
             type: 'string'
         },
-        'GG-FP': {
+        'Gangreen Footprints': {
             type: 'string'
         },
-        'CG-FP': {
+        'Corpse Gray Footprints': {
             type: 'string'
         },
-        'VV-FP': {
+        'Violent Violet Footprints': {
             type: 'string'
         },
-        'RO-FP': {
+        'Rotten Orange Footprints': {
             type: 'string'
         },
-        'BP-FP': {
+        'Bruised Purple Footprints': {
             type: 'string'
         },
-        HH: {
+        'Headless Horseshoes': {
             type: 'string'
         },
-        Ex: {
+        Exorcism: {
             type: 'string'
         },
-        PB: {
+        'Pumpkin Bomb': {
             type: 'string'
         },
-        HF: {
+        'Halloween Fire': {
             type: 'string'
         }
     },
