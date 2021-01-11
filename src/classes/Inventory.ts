@@ -122,15 +122,37 @@ export default class Inventory {
     }
 
     private setItems(items: EconItem[]): void {
+        const getPaints = (schema: SchemaManager.Schema) => {
+            const paintCans = schema.raw.schema.items.filter(
+                item => item.name.includes('Paint Can') && item.name !== 'Paint Can'
+            );
+            const toObject: {
+                [name: string]: string;
+            } = {};
+
+            for (let i = 0; i < paintCans.length; i++) {
+                if (paintCans[i].attributes === undefined) continue;
+
+                toObject[paintCans[i].item_name] = `p${paintCans[i].attributes[0].value}`;
+            }
+
+            return toObject;
+        };
+
+        const paints = getPaints(this.schema);
+        // log.debug('paints: ', paints);
+
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
-            this.options
+            this.options,
+            paints
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
-            this.options
+            this.options,
+            paints
         );
     }
 
@@ -243,29 +265,13 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema, opt: Options): Dict {
+    private static createDictionary(
+        items: EconItem[],
+        schema: SchemaManager.Schema,
+        opt: Options,
+        paints: Paints
+    ): Dict {
         const dict: Dict = {};
-
-        const getPaints = (schema: SchemaManager.Schema) => {
-            const paintCans = schema.raw.schema.items.filter(
-                item => item.name.includes('Paint Can') && item.name !== 'Paint Can'
-            );
-            const toObject: {
-                [name: string]: string;
-            } = {};
-
-            for (let i = 0; i < paintCans.length; i++) {
-                if (paintCans[i].attributes === undefined) continue;
-
-                toObject[paintCans[i].item_name] = `p${paintCans[i].attributes[0].value}`;
-            }
-
-            return toObject;
-        };
-
-        const paints = getPaints(schema);
-
-        // log.debug('paints: ', paints);
 
         for (let i = 0; i < items.length; i++) {
             const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
