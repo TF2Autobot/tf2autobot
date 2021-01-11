@@ -8,3 +8,7 @@ export interface Effect {
     name: string;
     id: number;
 }
+
+export interface Paints {
+    [name: string]: string;
+}

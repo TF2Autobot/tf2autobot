@@ -12,10 +12,11 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakers, strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../lib/data';
+import { noiseMakers, strangePartsData, spellsData, killstreakersData, sheensData } from '../lib/data';
 
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
+import { Paints } from '../types/common';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -210,13 +211,12 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                let filtered: DictItem = undefined;
-
-                if (listing.intent === 1) {
-                    filtered = inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0];
-                }
-
-                const newDetails = this.getDetails(listing.intent, match, filtered);
+                const newDetails = this.getDetails(
+                    listing.intent,
+                    match,
+                    inventory.getPaints(this.bot.schema),
+                    inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
+                );
 
                 if (listing.details !== newDetails || listing.promoted !== match.promoted) {
                     // Listing details or promoted don't match, update listing with new details and price
@@ -245,7 +245,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
-                    details: this.getDetails(0, matchNew),
+                    details: this.getDetails(0, matchNew, inventory.getPaints(this.bot.schema)),
                     currencies: matchNew.buy
                 });
             }
@@ -260,9 +260,8 @@ export default class Listings {
                     details: this.getDetails(
                         1,
                         matchNew,
-                        inventory.getItems[sku]
-                            ? inventory.getItems[sku].filter(item => item.id === assetids[assetids.length - 1])[0]
-                            : undefined
+                        inventory.getPaints(this.bot.schema),
+                        inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
                     ),
                     currencies: matchNew.sell
                 });
@@ -516,7 +515,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, entry: Entry, item?: DictItem): string {
+    private getDetails(intent: 0 | 1, entry: Entry, paints: Paints, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -606,7 +605,7 @@ export default class Listings {
 
                             if (hv.p[pSku] === true) {
                                 hasPaint = true;
-                                paintName.push(replacePainted(getKeyByValue(paintedData, pSku), optR.painted));
+                                paintName.push(replacePainted(getKeyByValue(paints, pSku), optR.painted));
                             }
                         }
                     }

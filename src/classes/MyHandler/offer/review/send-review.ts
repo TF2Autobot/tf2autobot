@@ -83,7 +83,8 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const highValueItems: string[] = [];
     if (meta && meta.highValue && meta.highValue.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const itemsName = check.getHighValueItems(meta.highValue.items.their, bot);
+            const paints = bot.inventoryManager.getInventory().getPaints(bot.schema);
+            const itemsName = check.getHighValueItems(meta.highValue.items.their, bot, paints);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {

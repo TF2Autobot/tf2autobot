@@ -1,10 +1,11 @@
 import SKU from 'tf2-sku-2';
 import { EconItem, Items, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 
-import { strangePartsData, spellsData, killstreakersData, sheensData, paintedData } from '../data';
+import { strangePartsData, spellsData, killstreakersData, sheensData } from '../data';
 import { DictItem } from '../../classes/Inventory';
 import Bot from '../../classes/Bot';
 import Options from '../../classes/Options';
+import { Paints } from '../../types/common';
 
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
     return items
@@ -31,7 +32,7 @@ export function is25xUses(item: EconItem): boolean {
     }
 }
 
-export function highValue(econ: EconItem, opt: Options): ItemAttributes | Record<string, never> {
+export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAttributes | Record<string, never> {
     const attributes: ItemAttributes = {};
 
     const strangeParts =
@@ -47,9 +48,7 @@ export function highValue(econ: EconItem, opt: Options): ItemAttributes | Record
     const sheens =
         opt.highValue.sheens === [] || opt.highValue.sheens === [''] ? Object.keys(sheensData) : opt.highValue.sheens;
     const painted =
-        opt.highValue.painted === [] || opt.highValue.painted === ['']
-            ? Object.keys(paintedData)
-            : opt.highValue.painted;
+        opt.highValue.painted === [] || opt.highValue.painted === [''] ? Object.keys(paints) : opt.highValue.painted;
 
     let hasSpells = false;
     let hasStrangeParts = false;
@@ -133,9 +132,9 @@ export function highValue(econ: EconItem, opt: Options): ItemAttributes | Record
             hasPaint = true;
 
             if (painted.includes(extractedName.toLowerCase())) {
-                p[`${paintedData[extractedName]}`] = true;
+                p[`${paints[extractedName]}`] = true;
             } else {
-                p[`${paintedData[extractedName]}`] = false;
+                p[`${paints[extractedName]}`] = false;
             }
         }
     }
@@ -165,7 +164,7 @@ export function highValue(econ: EconItem, opt: Options): ItemAttributes | Record
     return attributes;
 }
 
-export function getHighValueItems(items: Items, bot: Bot): { [name: string]: string } {
+export function getHighValueItems(items: Items, bot: Bot, paints: Paints): { [name: string]: string } {
     const itemsWithName: {
         [name: string]: string;
     } = {};
@@ -203,9 +202,9 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
                         }
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
-                            toJoin.push(getAttachmentName(attachment, pSKU) + ' (🌟)');
+                            toJoin.push(getAttachmentName(attachment, pSKU, paints) + ' (🌟)');
                         } else {
-                            toJoin.push(getAttachmentName(attachment, pSKU));
+                            toJoin.push(getAttachmentName(attachment, pSKU, paints));
                         }
                     }
 
@@ -223,11 +222,11 @@ export function getHighValueItems(items: Items, bot: Bot): { [name: string]: str
 
 type Attachment = 'sp' | 'ke' | 'ks' | 'p';
 
-function getAttachmentName(attachment: string, pSKU: string): string {
+function getAttachmentName(attachment: string, pSKU: string, paints: Paints): string {
     if (attachment === 'sp') return getKeyByValue(strangePartsData, +pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paintedData, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
 }
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
