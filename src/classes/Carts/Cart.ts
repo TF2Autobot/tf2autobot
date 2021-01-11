@@ -134,8 +134,13 @@ export default abstract class Cart {
         const pSku = SKU.fromString(sku);
         if (pSku.quality === 5) {
             // try to count all unusual types
+            const getUnusualEffects = () => {
+                return this.bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+                    return { name: v.name, id: v.id };
+                });
+            };
             return (
-                this.bot.unusualEffects
+                getUnusualEffects()
                     .map(e => {
                         pSku.effect = e.id;
                         const s = SKU.fromObject(pSku);

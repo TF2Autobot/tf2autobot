@@ -312,12 +312,6 @@ export interface DictItem {
     isFullUses?: boolean;
 }
 
-export function getUnusualEffects(schema: Schema): Effect[] {
-    return schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-        return { name: v.name, id: v.id };
-    });
-}
-
 /**
  * Function replaces specific effect string in name with 'Unusual'.
  *
@@ -352,6 +346,11 @@ export function getSkuAmountCanTrade(
     const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying);
     const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
+    const getUnusualEffects = () => {
+        return bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+            return { name: v.name, id: v.id };
+        });
+    };
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,
         amountCanTrade: amountCanTrade,
@@ -359,6 +358,6 @@ export function getSkuAmountCanTrade(
         name:
             amountCanTrade > amountCanTradeGeneric
                 ? bot.schema.getName(SKU.fromString(sku))
-                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.unusualEffects).name
+                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), getUnusualEffects()).name
     };
 }

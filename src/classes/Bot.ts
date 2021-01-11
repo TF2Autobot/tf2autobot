@@ -23,7 +23,7 @@ import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
 import TF2GC from './TF2GC';
-import Inventory, { getUnusualEffects } from './Inventory';
+import Inventory from './Inventory';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
@@ -31,7 +31,6 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
-import { Effect } from '../types/common';
 
 export default class Bot {
     // Modules and classes
@@ -66,8 +65,6 @@ export default class Bot {
     readonly inventoryManager: InventoryManager;
 
     readonly pricelist: Pricelist;
-
-    public unusualEffects: Array<Effect>;
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -438,7 +435,12 @@ export default class Bot {
                             log.info('Signed in to Steam!');
 
                             // Load all unusual effect string names
-                            this.unusualEffects = getUnusualEffects(this.schema);
+
+                            const getUnusualEffects = (schema: SchemaManager.Schema) => {
+                                return schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+                                    return { name: v.name, id: v.id };
+                                });
+                            };
 
                             // We now know our SteamID, but we still don't have our Steam API key
                             const inventory = new Inventory(
@@ -446,7 +448,7 @@ export default class Bot {
                                 this.manager,
                                 this.schema,
                                 this.options,
-                                this.unusualEffects
+                                getUnusualEffects(this.schema)
                             );
                             this.inventoryManager.setInventory(inventory);
 

@@ -80,7 +80,12 @@ export function getItemAndAmount(
         let closestMatch: Entry = null;
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
-        const genericEffect = genericNameAndMatch(name, bot.unusualEffects);
+        const getUnusualEffects = () => {
+            return bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+                return { name: v.name, id: v.id };
+            });
+        };
+        const genericEffect = genericNameAndMatch(name, getUnusualEffects());
         for (const pricedItem of bot.pricelist.getPrices) {
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
