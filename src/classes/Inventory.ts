@@ -122,24 +122,7 @@ export default class Inventory {
     }
 
     private setItems(items: EconItem[]): void {
-        const getPaints = (schema: SchemaManager.Schema) => {
-            const paintCans = schema.raw.schema.items.filter(
-                item => item.name.includes('Paint Can') && item.name !== 'Paint Can'
-            );
-            const toObject: {
-                [name: string]: string;
-            } = {};
-
-            for (let i = 0; i < paintCans.length; i++) {
-                if (paintCans[i].attributes === undefined) continue;
-
-                toObject[paintCans[i].item_name] = `p${paintCans[i].attributes[0].value}`;
-            }
-
-            return toObject;
-        };
-
-        const paints = getPaints(this.schema);
+        const paints = this.getPaints(this.schema);
         // log.debug('paints: ', paints);
 
         this.tradable = Inventory.createDictionary(
@@ -259,7 +242,7 @@ export default class Inventory {
         for (let i = 0; i < paintCans.length; i++) {
             if (paintCans[i].attributes === undefined) continue;
 
-            toObject[paintCans[i].name] = `p${paintCans[i].attributes[0].value}`;
+            toObject[paintCans[i].item_name] = `p${paintCans[i].attributes[0].value}`;
         }
 
         return toObject;
