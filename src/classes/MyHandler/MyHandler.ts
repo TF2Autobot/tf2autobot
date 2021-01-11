@@ -510,21 +510,12 @@ export default class MyHandler extends Handler {
 
         const opt = this.bot.options;
 
-        const getUnusualEffects = () => {
-            return this.bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                return { name: v.name, id: v.id };
-            });
-        };
-
-        const effects = getUnusualEffects();
-
         const ourItems = Inventory.fromItems(
             this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options,
-            effects
+            this.bot.options
         );
 
         const theirItems = Inventory.fromItems(
@@ -532,8 +523,7 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options,
-            effects
+            this.bot.options
         );
 
         const items = {

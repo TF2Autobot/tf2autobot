@@ -54,13 +54,7 @@ export default class Inventory {
 
     private options: Options;
 
-    constructor(
-        steamID: SteamID | string,
-        manager: TradeOfferManager,
-        schema: SchemaManager.Schema,
-        options: Options,
-        public unusualEffects: Array<Effect>
-    ) {
+    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
@@ -72,10 +66,9 @@ export default class Inventory {
         items: EconItem[],
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
-        options: Options,
-        unusualEffects: Array<Effect>
+        options: Options
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, unusualEffects);
+        const inventory = new Inventory(steamID, manager, schema, options);
 
         // Funny how typescript allows calling a private function from a static function
         inventory.setItems(items);
@@ -190,10 +183,17 @@ export default class Inventory {
 
     getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
         const s = SKU.fromString(sku);
+
+        const getUnusualEffects = () => {
+            return this.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+                return { name: v.name, id: v.id };
+            });
+        };
+
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
             return (
-                this.unusualEffects
+                getUnusualEffects()
                     .map(e => {
                         s.effect = e.id;
                         return this.getAmount(SKU.fromObject(s), tradableOnly);

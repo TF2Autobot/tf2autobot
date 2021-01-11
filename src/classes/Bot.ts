@@ -434,21 +434,12 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
-                            // Load all unusual effect string names
-
-                            const getUnusualEffects = () => {
-                                return this.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                                    return { name: v.name, id: v.id };
-                                });
-                            };
-
                             // We now know our SteamID, but we still don't have our Steam API key
                             const inventory = new Inventory(
                                 this.client.steamID,
                                 this.manager,
                                 this.schema,
-                                this.options,
-                                getUnusualEffects()
+                                this.options
                             );
                             this.inventoryManager.setInventory(inventory);
 

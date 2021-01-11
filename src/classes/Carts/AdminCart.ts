@@ -107,19 +107,7 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const getUnusualEffects = () => {
-                return this.bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                    return { name: v.name, id: v.id };
-                });
-            };
-
-            const theirInventory = new Inventory(
-                this.partner,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                getUnusualEffects()
-            );
+            const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
