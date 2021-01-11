@@ -436,8 +436,8 @@ export default class Bot {
 
                             // Load all unusual effect string names
 
-                            const getUnusualEffects = (schema: SchemaManager.Schema) => {
-                                return schema.raw.schema.attribute_controlled_attached_particles.map(v => {
+                            const getUnusualEffects = () => {
+                                return this.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
                                     return { name: v.name, id: v.id };
                                 });
                             };
@@ -448,7 +448,7 @@ export default class Bot {
                                 this.manager,
                                 this.schema,
                                 this.options,
-                                getUnusualEffects(this.schema)
+                                getUnusualEffects()
                             );
                             this.inventoryManager.setInventory(inventory);
 
