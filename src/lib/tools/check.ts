@@ -101,7 +101,7 @@ export function highValue(
             s.push(spellsData[spellName]);
         } else if (
             (partsString === 'Kills' || partsString === 'Assists'
-                ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
+                ? econ.getTag('Type') === 'Cosmetic'
                 : Object.keys(parts).includes(partsString)) &&
             content.color === '756b5e'
         ) {
