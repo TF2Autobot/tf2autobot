@@ -608,13 +608,19 @@ export default class UserCart extends Cart {
             '5000;6': buyerCurrenciesWithAssetids['5000;6'].length
         };
 
-        const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys());
-
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft
                 ? craftAll.concat(uncraftAll)
                 : craftAll
             : [];
+
+        if (this.bot.options.weaponsAsCurrency.enable) {
+            weapons.forEach(sku => {
+                buyerCurrenciesCount[sku] = buyerCurrenciesWithAssetids[sku].length;
+            });
+        }
+
+        const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys());
 
         let addWeapons = 0;
         if (this.bot.options.weaponsAsCurrency.enable) {
