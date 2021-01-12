@@ -8,6 +8,7 @@ import valueDiff from './valueDiff';
 import listItems from './summarizeItems';
 import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
+import * as getFromSchema from './getFromSchema';
 
 export {
     check,
@@ -22,5 +23,6 @@ export {
     summarizeToChat,
     uptime,
     convertTime,
-    profit
+    profit,
+    getFromSchema
 };

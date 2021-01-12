@@ -13,6 +13,7 @@ import { getPricelist, getPrice, GetItemPriceResponse, Item } from '../lib/ptf-a
 import validator from '../lib/validator';
 
 import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
+import { getUnusualEffects } from '../lib/tools/getFromSchema';
 import SocketManager from './MyHandler/SocketManager';
 
 export enum PricelistChangedSource {
@@ -221,13 +222,7 @@ export default class Pricelist extends EventEmitter {
             // otherwise we would mutate the existing generic entry
             match = match.clone();
 
-            const getUnusualEffects = () => {
-                return this.bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                    return { name: v.name, id: v.id };
-                });
-            };
-
-            const effectMatch = getUnusualEffects().find(e => pSku.effect === e.id);
+            const effectMatch = getUnusualEffects(this.bot.schema).find(e => pSku.effect === e.id);
             match.name = match.name.replace('Unusual', effectMatch.name);
             match.sku = sku;
             // change any other options if needed here (possible spot for config)
@@ -504,13 +499,7 @@ export default class Pricelist extends EventEmitter {
             // try to find a generic price
             const name = this.schema.getName(pSku, false);
 
-            const getUnusualEffects = () => {
-                return this.bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                    return { name: v.name, id: v.id };
-                });
-            };
-
-            const effectMatch = getUnusualEffects().find(e => pSku.effect === e.id);
+            const effectMatch = getUnusualEffects(this.bot.schema).find(e => pSku.effect === e.id);
             if (effectMatch)
                 // this means the sku given had a matching effect so we are going from a specific to generic
                 return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));

@@ -12,6 +12,7 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
+import { getFromSchema } from '../lib/tools/export';
 
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
@@ -213,8 +214,8 @@ export default class Listings {
                 const newDetails = this.getDetails(
                     listing.intent,
                     match,
-                    inventory.getPaints(this.bot.schema),
-                    inventory.getStrangeParts(this.bot.schema),
+                    getFromSchema.getPaints(this.bot.schema),
+                    getFromSchema.getStrangeParts(this.bot.schema),
                     inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                 );
 
@@ -248,8 +249,8 @@ export default class Listings {
                     details: this.getDetails(
                         0,
                         matchNew,
-                        inventory.getPaints(this.bot.schema),
-                        inventory.getStrangeParts(this.bot.schema)
+                        getFromSchema.getPaints(this.bot.schema),
+                        getFromSchema.getStrangeParts(this.bot.schema)
                     ),
                     currencies: matchNew.buy
                 });
@@ -265,8 +266,8 @@ export default class Listings {
                     details: this.getDetails(
                         1,
                         matchNew,
-                        inventory.getPaints(this.bot.schema),
-                        inventory.getStrangeParts(this.bot.schema),
+                        getFromSchema.getPaints(this.bot.schema),
+                        getFromSchema.getStrangeParts(this.bot.schema),
                         inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
                     ),
                     currencies: matchNew.sell

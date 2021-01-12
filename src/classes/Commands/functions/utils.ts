@@ -10,6 +10,7 @@ import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 
 import { fixItem } from '../../../lib/items';
+import { getUnusualEffects } from '../../../lib/tools/getFromSchema';
 import { genericNameAndMatch } from '../../Inventory';
 
 export function getItemAndAmount(
@@ -78,12 +79,7 @@ export function getItemAndAmount(
         let closestMatch: Entry = null;
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
-        const getUnusualEffects = () => {
-            return bot.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                return { name: v.name, id: v.id };
-            });
-        };
-        const genericEffect = genericNameAndMatch(name, getUnusualEffects());
+        const genericEffect = genericNameAndMatch(name, getUnusualEffects(bot.schema));
         for (const pricedItem of bot.pricelist.getPrices) {
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);

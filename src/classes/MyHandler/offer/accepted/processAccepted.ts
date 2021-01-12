@@ -94,15 +94,13 @@ export default function processAccepted(
         }
 
         if (offerReceived.meta && offerReceived.meta.highValue && offerReceived.meta.highValue['has'] === undefined) {
-            const inventory = bot.inventoryManager.getInventory();
-
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.their,
                     bot,
-                    inventory.getPaints(bot.schema),
-                    inventory.getStrangeParts(bot.schema)
+                    t.getFromSchema.getPaints(bot.schema),
+                    t.getFromSchema.getStrangeParts(bot.schema)
                 );
 
                 for (const name in itemsName) {
@@ -127,8 +125,8 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.our,
                     bot,
-                    inventory.getPaints(bot.schema),
-                    inventory.getStrangeParts(bot.schema)
+                    t.getFromSchema.getPaints(bot.schema),
+                    t.getFromSchema.getStrangeParts(bot.schema)
                 );
 
                 for (const name in itemsName) {
@@ -147,14 +145,13 @@ export default function processAccepted(
         }
     } else if (offerSent && offerSent['has'] === undefined) {
         // This is for offer that bot created from commands
-        const inventory = bot.inventoryManager.getInventory();
 
         if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
             const itemsName = t.check.getHighValueItems(
                 offerSent.items.their,
                 bot,
-                inventory.getPaints(bot.schema),
-                inventory.getStrangeParts(bot.schema)
+                t.getFromSchema.getPaints(bot.schema),
+                t.getFromSchema.getStrangeParts(bot.schema)
             );
 
             for (const name in itemsName) {
@@ -178,8 +175,8 @@ export default function processAccepted(
             const itemsName = t.check.getHighValueItems(
                 offerSent.items.our,
                 bot,
-                inventory.getPaints(bot.schema),
-                inventory.getStrangeParts(bot.schema)
+                t.getFromSchema.getPaints(bot.schema),
+                t.getFromSchema.getStrangeParts(bot.schema)
             );
 
             for (const name in itemsName) {

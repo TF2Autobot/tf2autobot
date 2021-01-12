@@ -5,15 +5,15 @@ import Bot from '../../../Bot';
 import processReview from './process-review';
 
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import { pure, listItems, summarizeToChat, timeNow, generateLinks, check } from '../../../../lib/tools/export';
+import * as t from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
-    const time = timeNow(bot);
+    const time = t.timeNow(bot);
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const links = generateLinks(offer.partner.toString());
+    const links = t.generateLinks(offer.partner.toString());
 
     const content = processReview(offer, meta, bot, isTradingKeys);
 
@@ -53,7 +53,8 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
                     ? '\n\nOffer Summary:\n' +
-                      summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
+                      t
+                          .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
                           .replace('Asked', '  My side')
                           .replace('Offered', 'Your side') +
                       (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -70,7 +71,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     ? '\n\n' +
                       opt.manualReview.additionalNotes
                           .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
-                          .replace(/%pureStock%/g, pure.stock(bot).join(', ').toString())
+                          .replace(/%pureStock%/g, t.pure.stock(bot).join(', ').toString())
                     : '') +
                 (opt.manualReview.showOwnerCurrentTime
                     ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
@@ -83,12 +84,11 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const highValueItems: string[] = [];
     if (meta && meta.highValue && meta.highValue.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const inventory = bot.inventoryManager.getInventory();
-            const itemsName = check.getHighValueItems(
+            const itemsName = t.check.getHighValueItems(
                 meta.highValue.items.their,
                 bot,
-                inventory.getPaints(bot.schema),
-                inventory.getStrangeParts(bot.schema)
+                t.getFromSchema.getPaints(bot.schema),
+                t.getFromSchema.getStrangeParts(bot.schema)
             );
 
             for (const name in itemsName) {
@@ -116,7 +116,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
 
-        const list = listItems(offer, bot, items, true);
+        const list = t.listItems(offer, bot, items, true);
 
         bot.messageAdmins(
             `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
@@ -126,14 +126,14 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                     : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                     ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
                     : '') +
-                summarizeToChat(offer, bot, 'review-admin', false, content.value, keyPrices, true) +
+                t.summarizeToChat(offer, bot, 'review-admin', false, content.value, keyPrices, true) +
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
-                `\n💰 Pure stock: ${pure.stock(bot).join(', ').toString()}` +
+                `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []
