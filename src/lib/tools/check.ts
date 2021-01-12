@@ -1,11 +1,11 @@
 import SKU from 'tf2-sku-2';
 import { EconItem, Items, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 
-import { strangePartsData, spellsData, killstreakersData, sheensData } from '../data';
+import { spellsData, killstreakersData, sheensData } from '../data';
 import { DictItem } from '../../classes/Inventory';
 import Bot from '../../classes/Bot';
 import Options from '../../classes/Options';
-import { Paints } from '../../types/common';
+import { Paints, StrangeParts } from '../../types/common';
 
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
     return items
@@ -32,23 +32,33 @@ export function is25xUses(item: EconItem): boolean {
     }
 }
 
-export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAttributes | Record<string, never> {
+export function highValue(
+    econ: EconItem,
+    opt: Options,
+    paints: Paints,
+    parts: StrangeParts
+): ItemAttributes | Record<string, never> {
     const attributes: ItemAttributes = {};
 
     const strangeParts =
         opt.highValue.strangeParts === [] || opt.highValue.strangeParts === ['']
-            ? Object.keys(strangePartsData)
-            : opt.highValue.strangeParts;
+            ? Object.keys(parts).map(part => part.toLowerCase())
+            : opt.highValue.strangeParts.map(part => part.toLowerCase());
 
     const killstreakers =
         opt.highValue.killstreakers === [] || opt.highValue.killstreakers === ['']
-            ? Object.keys(killstreakersData)
-            : opt.highValue.killstreakers;
+            ? Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase())
+            : opt.highValue.killstreakers.map(killstreaker => killstreaker.toLowerCase());
 
     const sheens =
-        opt.highValue.sheens === [] || opt.highValue.sheens === [''] ? Object.keys(sheensData) : opt.highValue.sheens;
+        opt.highValue.sheens === [] || opt.highValue.sheens === ['']
+            ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
+            : opt.highValue.sheens.map(sheen => sheen.toLowerCase());
+
     const painted =
-        opt.highValue.painted === [] || opt.highValue.painted === [''] ? Object.keys(paints) : opt.highValue.painted;
+        opt.highValue.painted === [] || opt.highValue.painted === ['']
+            ? Object.keys(paints).map(paint => paint.toLowerCase())
+            : opt.highValue.painted.map(paint => paint.toLowerCase());
 
     let hasSpells = false;
     let hasStrangeParts = false;
@@ -67,7 +77,7 @@ export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAtt
          * For Strange Parts, example: "(Kills During Halloween: 0)"
          * remove "(" and ": <numbers>)" to get only the part name.
          */
-        const parts = content.value
+        const partsString = content.value
             .replace('(', '')
             .replace(/: \d+\)/g, '')
             .trim();
@@ -90,9 +100,9 @@ export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAtt
             // push for storage, example: s-1000
             s.push(spellsData[spellName]);
         } else if (
-            (parts === 'Kills' || parts === 'Assists'
+            (partsString === 'Kills' || partsString === 'Assists'
                 ? econ.type.includes('Strange') && econ.type.includes('Points Scored')
-                : Object.keys(strangePartsData).includes(parts)) &&
+                : Object.keys(parts).includes(partsString)) &&
             content.color === '756b5e'
         ) {
             // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
@@ -101,13 +111,13 @@ export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAtt
             // https://www.spycolor.com/756b5e#
             hasStrangeParts = true;
 
-            if (strangeParts.includes(parts.toLowerCase())) {
+            if (strangeParts.includes(partsString.toLowerCase())) {
                 // if the particular strange part is one of the parts that the user wants,
                 // then mention and put "(🌟)"
-                sp[`${strangePartsData[parts]}`] = true;
+                sp[`${parts[partsString]}`] = true;
             } else {
                 // else no mention and just the name.
-                sp[`${strangePartsData[parts]}`] = false;
+                sp[`${parts[partsString]}`] = false;
             }
         } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Killstreaker: ', '').trim();
@@ -164,7 +174,12 @@ export function highValue(econ: EconItem, opt: Options, paints: Paints): ItemAtt
     return attributes;
 }
 
-export function getHighValueItems(items: Items, bot: Bot, paints: Paints): { [name: string]: string } {
+export function getHighValueItems(
+    items: Items,
+    bot: Bot,
+    paints: Paints,
+    parts: StrangeParts
+): { [name: string]: string } {
     const itemsWithName: {
         [name: string]: string;
     } = {};
@@ -202,9 +217,9 @@ export function getHighValueItems(items: Items, bot: Bot, paints: Paints): { [na
                         }
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
-                            toJoin.push(getAttachmentName(attachment, pSKU, paints) + ' (🌟)');
+                            toJoin.push(getAttachmentName(attachment, pSKU, paints, parts) + ' (🌟)');
                         } else {
-                            toJoin.push(getAttachmentName(attachment, pSKU, paints));
+                            toJoin.push(getAttachmentName(attachment, pSKU, paints, parts));
                         }
                     }
 
@@ -222,8 +237,8 @@ export function getHighValueItems(items: Items, bot: Bot, paints: Paints): { [na
 
 type Attachment = 'sp' | 'ke' | 'ks' | 'p';
 
-function getAttachmentName(attachment: string, pSKU: string, paints: Paints): string {
-    if (attachment === 'sp') return getKeyByValue(strangePartsData, +pSKU);
+function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
+    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);

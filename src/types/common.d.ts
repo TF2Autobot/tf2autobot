@@ -12,3 +12,7 @@ export interface Effect {
 export interface Paints {
     [name: string]: string;
 }
+
+export interface StrangeParts {
+    [name: string]: string;
+}

@@ -482,61 +482,61 @@ export const noiseMakers: { [sku: string]: string } = {
     '542;1': 'Genuine Noise Maker - Vuvuzela'
 };
 
-export const strangePartsData: { [name: string]: number } = {
-    // Most Strange Parts name will change once applied/attached.
-    'Robots Destroyed': 6026, //              checked               ----- more than 1 keys ↓
-    Kills: 6060, //                           checked
-    'Airborne Enemy Kills': 6012, //          was "Airborne Enemies Killed"
-    'Damage Dealt': 6056, //                  checked
-    Dominations: 6016, //                     was "Domination Kills"
-    'Snipers Killed': 6005, //                checked
-    'Buildings Destroyed': 6009, //           checked
-    'Projectiles Reflected': 6010, //         checked
-    'Headshot Kills': 6011, //                checked
-    'Medics Killed': 6007, //                 checked
-    'Fires Survived': 6057, //                checked
-    'Teammates Extinguished': 6020, //        checked
-    'Freezecam Taunt Appearances': 6055, //   checked
-    'Spies Killed': 6008, //                  checked
-    'Allied Healing Done': 6058, //           checked
-    'Sappers Removed': 6025, //               was "Sappers Destroyed"
-    'Players Hit': 6064, //                   was "Player Hits"
-    'Gib Kills': 6013, //                     checked
-    'Scouts Killed': 6003, //                 checked
-    'Taunt Kills': 6051, //                   was "Kills with a Taunt Attack"
-    'Point Blank Kills': 6059, //             was "Point-Blank Kills"
-    'Soldiers Killed': 6002, //               checked               ----- more than 1 keys ↑
-    'Long-Distance Kills': 6039, //           checked
-    'Giant Robots Destroyed': 6028, //        checked
-    'Critical Kills': 6021, //                checked
-    'Demomen Killed': 6001, //                checked
-    'Unusual-Wearing Player Kills': 6052, //  checked
-    Assists: 6065, //                         checked
-    'Medics Killed That Have Full ÜberCharge': 6023, // checked
-    'Cloaked Spies Killed': 6024, //          checked
-    'Engineers Killed': 6004, //              checked
-    'Kills While Explosive-Jumping': 6022, // was "Kills While Explosive Jumping"
-    'Kills While Low Health': 6032, //        was "Low-Health Kills"
-    'Burning Player Kills': 6053, //          was "Burning Enemy Kills"
-    'Kills While Invuln ÜberCharged': 6037, // was "Kills While Übercharged"
-    'Posthumous Kills': 6019, //              checked
-    'Not Crit nor MiniCrit Kills': 6063, //   checked
-    'Full Health Kills': 6061, //             checked
-    'Killstreaks Ended': 6054, //             checked
-    'Defenders Killed': 6035, //              was "Defender Kills"
-    Revenges: 6018, //                        was "Revenge Kills"
-    'Robot Scouts Destroyed': 6042, //        checked
-    'Heavies Killed': 6000, //                checked
-    'Tanks Destroyed': 6038, //               checked
-    'Kills During Halloween': 6033, //        was "Halloween Kills"
-    'Pyros Killed': 6006, //                  checked
-    'Submerged Enemy Kills': 6036, //         was "Underwater Kills"
-    'Kills During Victory Time': 6041, //     checked
-    'Taunting Player Kills': 6062, //         checked
-    'Robot Spies Destroyed': 6048, //         checked
-    'Kills Under A Full Moon': 6015, //       was "Full Moon Kills"
-    'Robots Killed During Halloween': 6034 // was "Robots Destroyed During Halloween"
-};
+// export const strangePartsData: { [name: string]: number } = {
+//     // Most Strange Parts name will change once applied/attached.
+//     'Robots Destroyed': 6026 (sp39), //              checked               ----- more than 1 keys ↓
+//     Kills: 6060 (sp87), //                           checked
+//     'Airborne Enemy Kills': 6012 (sp22), //          was "Airborne Enemies Killed"
+//     'Damage Dealt': 6056 (sp82), //                  checked
+//     Dominations: 6016 (sp28), //                     was "Domination Kills"
+//     'Snipers Killed': 6005 (sp11), //                checked
+//     'Buildings Destroyed': 6009 (sp19), //           checked
+//     'Projectiles Reflected': 6010 (sp20), //         checked
+//     'Headshot Kills': 6011 (sp21), //                checked
+//     'Medics Killed': 6007 (sp18), //                 checked
+//     'Fires Survived': 6057 (sp83), //                checked
+//     'Teammates Extinguished': 6020 (sp32), //        checked
+//     'Freezecam Taunt Appearances': 6055 (sp81), //   checked
+//     'Spies Killed': 6008 (sp16), //                  checked
+//     'Allied Healing Done': 6058 (sp84), //           checked
+//     'Sappers Removed': 6025 (sp36), //               was "Sappers Destroyed"
+//     'Players Hit': 6064 (sp94), //                   was "Player Hits"
+//     'Gib Kills': 6013 (sp23), //                     checked
+//     'Scouts Killed': 6003 (sp10), //                 checked
+//     'Taunt Kills': 6051 (sp77), //                   was "Kills with a Taunt Attack"
+//     'Point Blank Kills': 6059 (sp85), //             was "Point-Blank Kills"
+//     'Soldiers Killed': 6002 (sp12), //               checked               ----- more than 1 keys ↑
+//     'Long-Distance Kills': 6039 (sp62), //           checked
+//     'Giant Robots Destroyed': 6028 (sp40), //        checked
+//     'Critical Kills': 6021 (sp33), //                checked
+//     'Demomen Killed': 6001 (sp13), //                checked
+//     'Unusual-Wearing Player Kills': 6052 (sp78), //  checked
+//     Assists: 6065 (sp95), //                         checked
+//     'Medics Killed That Have Full ÜberCharge': 6023 (sp38), // checked
+//     'Cloaked Spies Killed': 6024 (sp37), //          checked
+//     'Engineers Killed': 6004 (sp17), //              checked
+//     'Kills While Explosive-Jumping': 6022 (sp34), // was "Kills While Explosive Jumping"
+//     'Kills While Low Health': 6032 (sp44), //        was "Low-Health Kills"
+//     'Burning Player Kills': 6053 (sp79), //          was "Burning Enemy Kills"
+//     'Kills While Invuln ÜberCharged': 6037 (sp49), // was "Kills While Übercharged"
+//     'Posthumous Kills': 6019 (sp31), //              checked
+//     'Not Crit nor MiniCrit Kills': 6063 (sp93), //   checked
+//     'Full Health Kills': 6061 (sp88), //             checked
+//     'Killstreaks Ended': 6054 (sp80), //             checked
+//     'Defenders Killed': 6035 (sp47), //              was "Defender Kills"
+//     Revenges: 6018 (sp30), //                        was "Revenge Kills"
+//     'Robot Scouts Destroyed': 6042 (sp68), //        checked
+//     'Heavies Killed': 6000 (sp14), //                checked
+//     'Tanks Destroyed': 6038 (sp61), //               checked
+//     'Kills During Halloween': 6033 (sp45), //        was "Halloween Kills"
+//     'Pyros Killed': 6006 (sp15), //                  checked
+//     'Submerged Enemy Kills': 6036 (sp48), //         was "Underwater Kills"
+//     'Kills During Victory Time': 6041 (sp67), //     checked
+//     'Taunting Player Kills': 6062 (sp89), //         checked
+//     'Robot Spies Destroyed': 6048 (sp74), //         checked
+//     'Kills Under A Full Moon': 6015 (sp27), //       was "Full Moon Kills"
+//     'Robots Killed During Halloween': 6034 (sp46) // was "Robots Destroyed During Halloween"
+// };
 
 export const sheensData: { [name: string]: string } = {
     'Team Shine': 'ks-1',

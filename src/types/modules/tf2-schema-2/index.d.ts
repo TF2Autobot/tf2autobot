@@ -71,6 +71,12 @@ declare module 'tf2-schema-2' {
             name: string;
         }
 
+        interface SchemaStrangeParts {
+            type: number;
+            type_name: string;
+            level_data: string;
+        }
+
         export interface SchemaItem {
             name: string;
             defindex: number;
@@ -179,6 +185,7 @@ declare module 'tf2-schema-2' {
                     attributes: SchemaAttribute[];
                     item_sets: ItemSet[];
                     attribute_controlled_attached_particles: SchemaAttributeControlledAttachedParticle[];
+                    kill_eater_score_types: SchemaStrangeParts[];
                     items: SchemaItem[];
                     paintkits: Record<string, string>;
                 };
