@@ -922,6 +922,15 @@ export default class MyHandler extends Handler {
                                 amountCanTrade: amountCanTrade
                             });
 
+                            log.debug('OVERSTOCKED', {
+                                offer: offer,
+                                sku: sku,
+                                which: which,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade,
+                                notIncludeCraftweapons: notIncludeCraftweapons
+                            });
+
                             this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
@@ -1090,6 +1099,13 @@ export default class MyHandler extends Handler {
                         reason: '🟦_OVERSTOCKED',
                         sku: '5021;6',
                         buying: isBuying,
+                        diff: diff,
+                        amountCanTrade: amountCanTrade
+                    });
+
+                    log.debug('OVERSTOCKED', {
+                        offer: offer,
+                        sku: '5021;6',
                         diff: diff,
                         amountCanTrade: amountCanTrade
                     });
