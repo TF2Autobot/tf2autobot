@@ -189,16 +189,11 @@ export default class Inventory {
     getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
         const s = SKU.fromString(sku);
 
-        const getUnusualEffects = () => {
-            return this.schema.raw.schema.attribute_controlled_attached_particles.map(v => {
-                return { name: v.name, id: v.id };
-            });
-        };
-
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
             return (
-                getUnusualEffects()
+                getFromSchema
+                    .getUnusualEffects(this.schema)
                     .map(e => {
                         s.effect = e.id;
                         return this.getAmount(SKU.fromObject(s), tradableOnly);
