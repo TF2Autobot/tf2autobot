@@ -213,6 +213,11 @@ export default class Pricelist extends EventEmitter {
 
         if (index === -1 && (!generics || (generics && gindex === -1))) {
             // Did not find a match
+            log.debug('src/Pricelist: getPrice(...) - Did not find a match', {
+                index: index,
+                generics: generics,
+                gindex: gindex
+            });
             return null;
         }
 
@@ -225,13 +230,33 @@ export default class Pricelist extends EventEmitter {
             const effectMatch = getUnusualEffects(this.bot.schema).find(e => pSku.effect === e.id);
             match.name = match.name.replace('Unusual', effectMatch.name);
             match.sku = sku;
+
+            log.debug('src/Pricelist: getPrice(...) - we found a generic match for a specific sku', {
+                index: index,
+                generics: generics,
+                gindex: gindex,
+                match: match
+            });
             // change any other options if needed here (possible spot for config)
         }
 
         if (onlyEnabled && !match.enabled) {
             // Item is not enabled
+            log.debug('src/Pricelist: getPrice(...) - Item is not enabled', {
+                index: index,
+                generics: generics,
+                gindex: gindex,
+                match: match
+            });
             return null;
         }
+
+        log.debug('src/Pricelist: getPrice(...) - Item found', {
+            index: index,
+            generics: generics,
+            gindex: gindex,
+            match: match
+        });
 
         return match;
     }
@@ -487,8 +512,14 @@ export default class Pricelist extends EventEmitter {
     getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
         const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
+        const findIndex = this.prices.findIndex(entry => entry.name === name);
 
-        return this.prices.findIndex(entry => entry.name === name);
+        log.debug('src/Pricelist: getIndex(...)', {
+            name: name,
+            findIndex: findIndex
+        });
+
+        return findIndex;
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
@@ -500,12 +531,39 @@ export default class Pricelist extends EventEmitter {
             const name = this.schema.getName(pSku, false);
 
             const effectMatch = getUnusualEffects(this.bot.schema).find(e => pSku.effect === e.id);
-            if (effectMatch)
+            if (effectMatch) {
                 // this means the sku given had a matching effect so we are going from a specific to generic
-                return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
-            // this means the sku given was already generic so we just return the index of the generic
-            else return this.getIndex(null, pSku);
+                const findIndex = this.prices.findIndex(
+                    entry => entry.name === name.replace(effectMatch.name, 'Unusual')
+                );
+                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality === 5, match', {
+                    sku: sku,
+                    parsedSku: parsedSku,
+                    pSku: pSku,
+                    name: name,
+                    effectMatch: effectMatch,
+                    findIndex: findIndex
+                });
+                return findIndex;
+            } else {
+                // this means the sku given was already generic so we just return the index of the generic
+                const callGetIndex = this.getIndex(null, pSku);
+                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality === 5, already generic', {
+                    sku: sku,
+                    parsedSku: parsedSku,
+                    pSku: pSku,
+                    name: name,
+                    effectMatch: effectMatch,
+                    callGetIndex: callGetIndex
+                });
+                return callGetIndex;
+            }
         } else {
+            log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5, return -1', {
+                sku: sku,
+                parsedSku: parsedSku,
+                pSku: pSku
+            });
             return -1;
         }
     }

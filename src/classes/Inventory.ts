@@ -9,7 +9,7 @@ import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
-// import log from '../lib/logger';
+import log from '../lib/logger';
 
 import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
 import { check, getFromSchema } from '../lib/tools/export';
@@ -172,18 +172,39 @@ export default class Inventory {
 
         if (tradableOnly) {
             // Copies the array
-            return tradable.map(item => (item ? item.id : undefined)).slice(0);
+            const mapTradable = tradable.map(item => (item ? item.id : undefined));
+            const sliceTradable = mapTradable.slice(0);
+            // const toReturn = tradable.map(item => (item ? item.id : undefined)).slice(0);
+            log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
+                mapTradable: mapTradable,
+                sliceTradable: sliceTradable
+            });
+            return sliceTradable;
         }
 
         const nonTradable = this.nonTradable[sku] || [];
 
-        return nonTradable
-            .map(item => (item ? item.id : undefined))
-            .concat(tradable.map(item => (item ? item.id : undefined)));
+        const mapUntradable = nonTradable.map(item => (item ? item.id : undefined));
+        const mapTradable = tradable.map(item => (item ? item.id : undefined));
+        const concatBoth = mapUntradable.concat(mapTradable);
+
+        // const toReturn = nonTradable
+        //     .map(item => (item ? item.id : undefined))
+        //     .concat(tradable.map(item => (item ? item.id : undefined)));
+
+        log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
+            mapUntradable: mapUntradable,
+            mapTradable: mapTradable,
+            concatBoth: concatBoth
+        });
+
+        return concatBoth;
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
-        return this.findBySKU(sku, tradableOnly).length;
+        const amount = this.findBySKU(sku, tradableOnly).length;
+        log.debug('src/Inventory: getAmount', amount);
+        return amount;
     }
 
     getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
@@ -191,18 +212,33 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
-            return (
-                getFromSchema
-                    .getUnusualEffects(this.schema)
-                    .map(e => {
-                        s.effect = e.id;
-                        return this.getAmount(SKU.fromObject(s), tradableOnly);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            const getUnusual = getFromSchema.getUnusualEffects(this.schema);
+            const mapUnusual = getUnusual.map(e => {
+                s.effect = e.id;
+                return this.getAmount(SKU.fromObject(s), tradableOnly);
+            });
+            const reduceUnusual = mapUnusual.reduce((total, currentTotal) =>
+                total ? total + currentTotal : currentTotal
             );
+            // const toReturn = getFromSchema
+            //     .getUnusualEffects(this.schema)
+            //     .map(e => {
+            //         s.effect = e.id;
+            //         return this.getAmount(SKU.fromObject(s), tradableOnly);
+            //     })
+            //     // add up total found; total is undefined to being with
+            //     .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
+
+            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality === 5', {
+                getUnusual: getUnusual,
+                mapUnusual: mapUnusual,
+                reduceUnusual: reduceUnusual
+            });
+            return reduceUnusual;
         } else {
-            return this.getAmount(sku, tradableOnly);
+            const callGetAmount = this.getAmount(sku, tradableOnly);
+            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5', callGetAmount);
+            return callGetAmount;
         }
     }
 

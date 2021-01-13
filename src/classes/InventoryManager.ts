@@ -3,6 +3,7 @@ import Bot from './Bot';
 
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
+import log from '../lib/logger';
 
 export default class InventoryManager {
     private inventory: Inventory = null;
@@ -48,16 +49,46 @@ export default class InventoryManager {
 
         if (match === null) {
             // No price for item
+            log.debug('src/InventoryManager: amountCanTrade(...) - No price for item, return 0', {
+                sku: sku,
+                buying: buying,
+                generics: generics,
+                isGenericSku: isGenericSku,
+                genericCheck: genericCheck,
+                amount: amount,
+                match: match
+            });
             return 0;
         }
 
         if (buying && match.max === -1) {
             // We are buying, and we don't have a limit
+            log.debug(
+                `src/InventoryManager: amountCanTrade(...) - We are buying, and we don't have a limit, return Infinity`,
+                {
+                    sku: sku,
+                    buying: buying,
+                    generics: generics,
+                    isGenericSku: isGenericSku,
+                    genericCheck: genericCheck,
+                    amount: amount,
+                    match: match
+                }
+            );
             return Infinity;
         }
 
         if (match.intent !== 2 && match.intent !== (buying ? 0 : 1)) {
             // We are not buying / selling the item
+            log.debug('We are not buying / selling the item, return 0', {
+                sku: sku,
+                buying: buying,
+                generics: generics,
+                isGenericSku: isGenericSku,
+                genericCheck: genericCheck,
+                amount: amount,
+                match: match
+            });
             return 0;
         }
 
@@ -68,8 +99,29 @@ export default class InventoryManager {
 
         if (canTrade > 0) {
             // We can buy / sell the item
+            log.debug('We can buy / sell the item, return canTrade', {
+                sku: sku,
+                buying: buying,
+                generics: generics,
+                isGenericSku: isGenericSku,
+                genericCheck: genericCheck,
+                amount: amount,
+                match: match,
+                canTrade: canTrade
+            });
             return canTrade;
         }
+
+        log.debug('Nothing match, return 0', {
+            sku: sku,
+            buying: buying,
+            generics: generics,
+            isGenericSku: isGenericSku,
+            genericCheck: genericCheck,
+            amount: amount,
+            match: match,
+            canTrade: canTrade
+        });
 
         return 0;
     }
