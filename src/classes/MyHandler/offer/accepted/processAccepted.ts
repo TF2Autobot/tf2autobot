@@ -12,7 +12,6 @@ export default function processAccepted(
     offer: TradeOffer,
     autokeys: Autokeys,
     bot: Bot,
-    isTradingKeys: boolean,
     processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
     const opt = bot.options;
@@ -200,7 +199,7 @@ export default function processAccepted(
     const itemsSKU = itemList(offer);
 
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isTradingKeys, isOfferSent);
+        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
@@ -213,7 +212,7 @@ export default function processAccepted(
         };
 
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, opt.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         bot.messageAdmins(
@@ -221,7 +220,7 @@ export default function processAccepted(
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                 t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
-                `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                `\n\n🔑 Key rate: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `${
                     autokeys.isEnabled

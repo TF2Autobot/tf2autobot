@@ -669,7 +669,7 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot, auto: Autokeys): stri
     let reply =
         (isAdmin ? 'Your ' : 'My ') +
         `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
-    reply += `\n       Key price: ${keyPrices.buy.metal}/${keyPrices.sell.toString()} (${
+    reply += `\n      Key prices: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()} (${
         keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
     })`;
     reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;

@@ -7,7 +7,7 @@ import processReview from './process-review';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 
-export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
+export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): void {
     const opt = bot.options;
 
     const time = t.timeNow(bot);
@@ -15,7 +15,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
 
-    const content = processReview(offer, meta, bot, isTradingKeys);
+    const content = processReview(offer, meta, bot);
 
     const hasCustomNote = !(
         opt.manualReview.invalidItems.note !== '' ||
@@ -70,7 +70,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 (opt.manualReview.additionalNotes
                     ? '\n\n' +
                       opt.manualReview.additionalNotes
-                          .replace(/%keyRate%/g, `${keyPrices.sell.metal.toString()} ref`)
+                          .replace(/%keyRate%/g, `${keyPrices.buy.toString()}/${keyPrices.sell.toString()}`)
                           .replace(/%pureStock%/g, t.pure.stock(bot).join(', ').toString())
                     : '') +
                 (opt.manualReview.showOwnerCurrentTime
@@ -130,7 +130,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-                `\n\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                `\n\n🔑 Key rate: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
                 `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +

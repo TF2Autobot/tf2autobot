@@ -526,7 +526,7 @@ export default class Listings {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
-        const keyPrice = this.bot.pricelist.getKeyPrice.toString();
+        const keyPrices = this.bot.pricelist.getKeyPrices;
 
         let details: string;
 
@@ -678,7 +678,7 @@ export default class Listings {
             // then replace it with current key rate.
             // else just empty string.
             details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrices.buy.toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
 
             // if %uses% is defined in note.buy value and the item is Dueling Mini-Game and only accept
@@ -703,7 +703,7 @@ export default class Listings {
             );
 
             details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrices.sell.toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
 
             details =
@@ -725,7 +725,7 @@ export default class Listings {
             ).replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrices[key].toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
             //
         } else if (Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker) {
@@ -739,7 +739,7 @@ export default class Listings {
             ).replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrices[key].toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
             //
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
@@ -763,7 +763,7 @@ export default class Listings {
                 this.bot.inventoryManager.getInventory().getAmount(entry.sku),
                 this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
             )
-                .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice + '/key')
+                .replace(/%keyPrice%/g, 'Key rate: ' + keyPrices[key].toString() + '/key')
                 .replace(/%uses%/g, '');
             //
         }

@@ -3,12 +3,7 @@ import Currencies from 'tf2-currencies';
 import { Currency } from '../../types/TeamFortress2';
 import { KeyPrices } from '../../classes/Pricelist';
 
-export default function valueDiff(
-    offer: TradeOffer,
-    keyPrices: KeyPrices,
-    isTradingKeys: boolean,
-    enableShowOnlyMetal: boolean
-): ValueDiff {
+export default function valueDiff(offer: TradeOffer, keyPrices: KeyPrices, enableShowOnlyMetal: boolean): ValueDiff {
     const value = offer.data('value') as ItemsValue;
 
     if (!value) {
@@ -34,8 +29,7 @@ export default function valueDiff(
 
             // If trading keys, then their side need to use buying key price.
             newValue.their.metal = Currencies.toRefined(
-                Currencies.toScrap(newValue.their.metal) +
-                    newValue.their.keys * (isTradingKeys ? keyPrices.buy.toValue() : keyPrices.sell.toValue())
+                Currencies.toScrap(newValue.their.metal) + newValue.their.keys * keyPrices.buy.toValue()
             );
             newValue.their.keys = 0;
         }

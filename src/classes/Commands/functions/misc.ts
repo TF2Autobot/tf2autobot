@@ -85,9 +85,8 @@ export function rateCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const key = bot.pricelist.getKeyPrices;
-    const keyPrice = key.sell.toString();
-    const keyRateSource = key.src;
+    const keyPrices = bot.pricelist.getKeyPrices;
+    const keyRateSource = keyPrices.src;
 
     const custom = opt.customReply.reply;
     const source = keyRateSource === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf';
@@ -96,16 +95,17 @@ export function rateCommand(steamID: SteamID, bot: Bot): void {
         steamID,
         custom
             ? custom
-                  .replace(/%keyprice%/g, keyPrice)
-                  .replace(/%keyrate%/g, `${key.buy.metal} / ${key.sell.toString()}`)
+                  .replace(/%keypriceSell%/g, keyPrices.sell.toString())
+                  .replace(/%keypriceBuy%/g, keyPrices.buy.toString())
+                  .replace(/%keyrate%/g, `${keyPrices.buy.metal} / ${keyPrices.sell.toString()}`)
                   .replace(/%source%/g, source)
             : 'I value 🔑 Mann Co. Supply Crate Keys at ' +
-                  keyPrice +
-                  '. This means that one key is the same as ' +
-                  keyPrice +
-                  ', and ' +
-                  keyPrice +
-                  ' is the same as one key.' +
+                  `${keyPrices.buy.toString()} when I am buying, and ${keyPrices.sell.toString()} when I am selling.` +
+                  '\n\nIn other words,' +
+                  `\n• Whenever I am buying stuff from you, if the trade involves Mann Co. Supply Crate Key,` +
+                  ` I will use ${keyPrices.buy.toString()} as my conversion rate.` +
+                  `\n• Whenever I am selling stuff to you, if the trade involves Mann Co. Supply Crate Key,` +
+                  ` I will use ${keyPrices.sell.toString()} as my conversion rate.` +
                   `\n\nKey rate source: ${source}`
     );
 }

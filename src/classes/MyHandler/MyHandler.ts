@@ -143,8 +143,6 @@ export default class MyHandler extends Handler {
         return this.bot.options.statistics.sendStats.enable;
     }
 
-    private isTradingKeys = false;
-
     private get customGameName(): string {
         // check if game.customName is more than 60 characters.
         const customGameName = this.bot.options.game.customName;
@@ -828,7 +826,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const keyPrices = this.bot.pricelist.getKeyPrices;
 
         let hasOverstock = false;
 
@@ -891,7 +889,7 @@ export default class MyHandler extends Handler {
                         // If we found a matching price and the item is not a key, or the we are not trading items (meaning that we are trading keys) then add the price of the item
 
                         // Add value of items
-                        exchange[which].value += match[intentString].toValue(keyPrice.metal) * amount;
+                        exchange[which].value += match[intentString].toValue(keyPrices[intentString].metal) * amount;
                         exchange[which].keys += match[intentString].keys * amount;
                         exchange[which].scrap += Currencies.toScrap(match[intentString].metal) * amount;
 
@@ -955,9 +953,9 @@ export default class MyHandler extends Handler {
                             this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                         }
 
-                        const buyPrice = match.buy.toValue(keyPrice.metal);
-                        const sellPrice = match.sell.toValue(keyPrice.metal);
-                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPrice.toValue();
+                        const buyPrice = match.buy.toValue(keyPrices.buy.metal);
+                        const sellPrice = match.sell.toValue(keyPrices.sell.metal);
+                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPrices.buy.toValue();
 
                         if (
                             buying && // check only items on their side
@@ -969,7 +967,7 @@ export default class MyHandler extends Handler {
                         }
                     } else if (sku === '5021;6' && exchange.contains.items) {
                         // Offer contains keys and we are not trading keys, add key value
-                        exchange[which].value += keyPrice.toValue() * amount;
+                        exchange[which].value += keyPrices[intentString].toValue() * amount;
                         exchange[which].keys += amount;
                     } else if (
                         (match === null && notIncludeCraftweapons) ||
@@ -1009,17 +1007,19 @@ export default class MyHandler extends Handler {
                                 // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
                                 // and the item is not enabled=false,
                                 // then give that item price and include in exchange
-                                exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
+                                exchange[which].value +=
+                                    price[intentString].toValue(keyPrices[intentString].metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
                                 exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                             }
                             const valueInRef = {
-                                buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
-                                sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
+                                buy: Currencies.toRefined(price.buy.toValue(keyPrices.buy.metal)),
+                                sell: Currencies.toRefined(price.sell.toValue(keyPrices.sell.metal))
                             };
 
                             itemSuggestedValue =
-                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >=
+                                keyPrices[intentString].metal
                                     ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
                                       ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
                                     : `${price.buy.toString()} / ${price.sell.toString()}`;
@@ -1039,9 +1039,9 @@ export default class MyHandler extends Handler {
 
         // Doing this so that the prices will always be displayed as only metal
         if (opt.showOnlyMetal.enable) {
-            exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
+            exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
             exchange.our.keys = 0;
-            exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
+            exchange.their.scrap += exchange.their.keys * keyPrices.buy.toValue();
             exchange.their.keys = 0;
         }
 
@@ -1056,7 +1056,7 @@ export default class MyHandler extends Handler {
                 keys: exchange.their.keys,
                 metal: Currencies.toRefined(exchange.their.scrap)
             },
-            rate: keyPrice.metal
+            rate: keyPrices.sell.metal
         });
 
         offer.data('prices', itemPrices);
@@ -1087,7 +1087,6 @@ export default class MyHandler extends Handler {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'] as number | null;
                 // If the diff is greater than 0 then we are buying, less than is selling
-                this.isTradingKeys = true;
 
                 const isBuying = diff > 0;
                 const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
@@ -1586,8 +1585,7 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
                     acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    declined(offer, this.bot, this.isTradingKeys);
-                    this.isTradingKeys = false; // reset
+                    declined(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
@@ -1619,9 +1617,7 @@ export default class MyHandler extends Handler {
                     isBanking: autokeys.isBanking
                 };
 
-                const result = processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
-
-                this.isTradingKeys = false; // reset
+                const result = processAccepted(offer, autokeys, this.bot, processTime);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -1663,8 +1659,7 @@ export default class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            sendReview(offer, this.bot, meta, this.isTradingKeys);
-            this.isTradingKeys = false; // reset
+            sendReview(offer, this.bot, meta);
             return;
         }
     }

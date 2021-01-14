@@ -3,12 +3,12 @@ import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 
 import Bot from '../../../Bot';
 
-export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+export default function declined(offer: TradeOffer, bot: Bot): void {
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, opt.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
 
     offer.data('isDeclined', true);

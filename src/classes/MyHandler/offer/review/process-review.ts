@@ -9,8 +9,7 @@ import { valueDiff } from '../../../../lib/tools/export';
 export default function processReview(
     offer: TradeOffer,
     meta: Meta,
-    bot: Bot,
-    isTradingKeys: boolean
+    bot: Bot
 ): {
     notes: string[];
     itemNames: {
@@ -24,7 +23,7 @@ export default function processReview(
     value: { diff: number; diffRef: number; diffKey: string };
 } {
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, bot.options.showOnlyMetal.enable);
 
     const reasons = meta.uniqueReasons;
 

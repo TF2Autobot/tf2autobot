@@ -831,15 +831,15 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     }
 
     const generateUpdateReply = (bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry) => {
-        const keyPrice = bot.pricelist.getKeyPrice.metal;
+        const keyPrices = bot.pricelist.getKeyPrices;
         const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
         return (
             `\n💲 Buy: ${
-                oldEntry.buy.toValue(keyPrice) !== newEntry.buy.toValue(keyPrice)
+                oldEntry.buy.toValue(keyPrices.buy.metal) !== newEntry.buy.toValue(keyPrices.buy.metal)
                     ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
                     : newEntry.buy.toString()
             } | Sell: ${
-                oldEntry.sell.toValue(keyPrice) !== newEntry.sell.toValue(keyPrice)
+                oldEntry.sell.toValue(keyPrices.sell.metal) !== newEntry.sell.toValue(keyPrices.sell.metal)
                     ? `${oldEntry.sell.toString()} → ${newEntry.sell.toString()}`
                     : newEntry.sell.toString()
             }` +
