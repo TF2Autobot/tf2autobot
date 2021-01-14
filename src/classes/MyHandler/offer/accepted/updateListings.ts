@@ -82,10 +82,9 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, false)
-                .then(data => {
+                .addPrice(entry, true)
+                .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                    bot.listings.checkBySKU(data.sku, data);
                 })
                 .catch((err: Error) => {
                     log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
