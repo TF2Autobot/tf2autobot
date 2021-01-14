@@ -8,67 +8,46 @@ import { EntryData, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
 
 export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot): void {
+    const optSA = bot.options.autokeys.scrapAdjustment;
+    const optD = bot.options.details;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const opt = bot.options;
-    let entry;
+    const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
 
-    const scrapAdjustment = genScrapAdjustment(opt.autokeys.scrapAdjustment.value, opt.autokeys.scrapAdjustment.enable);
-    if (keyPrices.src !== 'manual' && !scrapAdjustment.enabled) {
-        entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 1,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
-            }
-        } as EntryData;
-    } else if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
-        entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: false,
-            sell: {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            },
-            buy: {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            },
-            min: minKeys,
-            max: maxKeys,
-            intent: 1,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
-            }
-        } as EntryData;
+    const entry: EntryData = {
+        sku: '5021;6',
+        enabled: true,
+        autoprice: true,
+        min: minKeys,
+        max: maxKeys,
+        intent: 1,
+        note: {
+            buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.buy,
+            sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.sell
+        }
+    };
+
+    if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
+        entry.autoprice = false;
+        entry.buy = {
+            keys: 0,
+            metal: keyPrices.buy.metal
+        };
+        entry.sell = {
+            keys: 0,
+            metal: keyPrices.sell.metal
+        };
     } else if (scrapAdjustment.enabled) {
-        entry = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: false,
-            sell: {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.sell.toValue() - scrapAdjustment.value)
-            },
-            buy: {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.buy.toValue() - scrapAdjustment.value)
-            },
-            min: minKeys,
-            max: maxKeys,
-            intent: 1,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.details.sell
-            }
-        } as EntryData;
+        entry.autoprice = false;
+        entry.buy = {
+            keys: 0,
+            metal: Currencies.toRefined(keyPrices.sell.toValue() - scrapAdjustment.value)
+        };
+        entry.sell = {
+            keys: 0,
+            metal: Currencies.toRefined(keyPrices.buy.toValue() - scrapAdjustment.value)
+        };
     }
+
     bot.pricelist
         .updatePrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => {
