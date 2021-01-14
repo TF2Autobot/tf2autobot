@@ -80,7 +80,7 @@ export default class InventoryManager {
 
         if (match.intent !== 2 && match.intent !== (buying ? 0 : 1)) {
             // We are not buying / selling the item
-            log.debug('We are not buying / selling the item, return 0', {
+            log.debug('src/InventoryManager: amountCanTrade(...) - We are not buying / selling the item, return 0', {
                 sku: sku,
                 buying: buying,
                 generics: generics,
@@ -99,7 +99,7 @@ export default class InventoryManager {
 
         if (canTrade > 0) {
             // We can buy / sell the item
-            log.debug('We can buy / sell the item, return canTrade', {
+            log.debug('src/InventoryManager: amountCanTrade(...) - We can buy / sell the item, return canTrade', {
                 sku: sku,
                 buying: buying,
                 generics: generics,
@@ -112,7 +112,7 @@ export default class InventoryManager {
             return canTrade;
         }
 
-        log.debug('Nothing match, return 0', {
+        log.debug('src/InventoryManager: amountCanTrade(...) - Nothing match, return 0', {
             sku: sku,
             buying: buying,
             generics: generics,
