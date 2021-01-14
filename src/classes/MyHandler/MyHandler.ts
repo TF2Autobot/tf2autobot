@@ -1042,7 +1042,7 @@ export default class MyHandler extends Handler {
         if (opt.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
             exchange.our.keys = 0;
-            exchange.their.scrap += exchange.their.keys * keyPrices.buy.toValue();
+            exchange.their.scrap += exchange.their.keys * keyPrices.sell.toValue();
             exchange.their.keys = 0;
         }
 
