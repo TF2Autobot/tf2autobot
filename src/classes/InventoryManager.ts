@@ -29,7 +29,7 @@ export default class InventoryManager {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }
 
-    amountCanTrade(sku: string, buying: boolean, generics = false): number {
+    amountCanTrade(sku: string, buying: boolean, generics = false, showLog: boolean): number {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
@@ -42,30 +42,17 @@ export default class InventoryManager {
         // Amount in inventory
         const amount = genericCheck
             ? this.inventory.getAmountOfGenerics(sku, true)
-            : this.inventory.getAmount(sku, true);
+            : this.inventory.getAmount(sku, true, true);
 
         // Pricelist entry
-        const match = genericCheck ? this.pricelist.getPrice(sku, true, true) : this.pricelist.getPrice(sku, true);
+        const match = genericCheck
+            ? this.pricelist.getPrice(sku, true, true, true)
+            : this.pricelist.getPrice(sku, true);
 
         if (match === null) {
             // No price for item
-            log.debug('src/InventoryManager: amountCanTrade(...) - No price for item, return 0', {
-                sku: sku,
-                buying: buying,
-                generics: generics,
-                isGenericSku: isGenericSku,
-                genericCheck: genericCheck,
-                amount: amount,
-                match: match
-            });
-            return 0;
-        }
-
-        if (buying && match.max === -1) {
-            // We are buying, and we don't have a limit
-            log.debug(
-                `src/InventoryManager: amountCanTrade(...) - We are buying, and we don't have a limit, return Infinity`,
-                {
+            if (showLog) {
+                log.debug('src/InventoryManager: amountCanTrade(...) - No price for item, return 0', {
                     sku: sku,
                     buying: buying,
                     generics: generics,
@@ -73,22 +60,49 @@ export default class InventoryManager {
                     genericCheck: genericCheck,
                     amount: amount,
                     match: match
-                }
-            );
+                });
+            }
+
+            return 0;
+        }
+
+        if (buying && match.max === -1) {
+            // We are buying, and we don't have a limit
+            if (showLog) {
+                log.debug(
+                    `src/InventoryManager: amountCanTrade(...) - We are buying, and we don't have a limit, return Infinity`,
+                    {
+                        sku: sku,
+                        buying: buying,
+                        generics: generics,
+                        isGenericSku: isGenericSku,
+                        genericCheck: genericCheck,
+                        amount: amount,
+                        match: match
+                    }
+                );
+            }
+
             return Infinity;
         }
 
         if (match.intent !== 2 && match.intent !== (buying ? 0 : 1)) {
             // We are not buying / selling the item
-            log.debug('src/InventoryManager: amountCanTrade(...) - We are not buying / selling the item, return 0', {
-                sku: sku,
-                buying: buying,
-                generics: generics,
-                isGenericSku: isGenericSku,
-                genericCheck: genericCheck,
-                amount: amount,
-                match: match
-            });
+            if (showLog) {
+                log.debug(
+                    'src/InventoryManager: amountCanTrade(...) - We are not buying / selling the item, return 0',
+                    {
+                        sku: sku,
+                        buying: buying,
+                        generics: generics,
+                        isGenericSku: isGenericSku,
+                        genericCheck: genericCheck,
+                        amount: amount,
+                        match: match
+                    }
+                );
+            }
+
             return 0;
         }
 
@@ -99,7 +113,24 @@ export default class InventoryManager {
 
         if (canTrade > 0) {
             // We can buy / sell the item
-            log.debug('src/InventoryManager: amountCanTrade(...) - We can buy / sell the item, return canTrade', {
+            if (showLog) {
+                log.debug('src/InventoryManager: amountCanTrade(...) - We can buy / sell the item, return canTrade', {
+                    sku: sku,
+                    buying: buying,
+                    generics: generics,
+                    isGenericSku: isGenericSku,
+                    genericCheck: genericCheck,
+                    amount: amount,
+                    match: match,
+                    canTrade: canTrade
+                });
+            }
+
+            return canTrade;
+        }
+
+        if (showLog) {
+            log.debug('src/InventoryManager: amountCanTrade(...) - Nothing match, return 0', {
                 sku: sku,
                 buying: buying,
                 generics: generics,
@@ -109,19 +140,7 @@ export default class InventoryManager {
                 match: match,
                 canTrade: canTrade
             });
-            return canTrade;
         }
-
-        log.debug('src/InventoryManager: amountCanTrade(...) - Nothing match, return 0', {
-            sku: sku,
-            buying: buying,
-            generics: generics,
-            isGenericSku: isGenericSku,
-            genericCheck: genericCheck,
-            amount: amount,
-            match: match,
-            canTrade: canTrade
-        });
 
         return 0;
     }

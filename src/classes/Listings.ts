@@ -174,20 +174,20 @@ export default class Listings {
         });
     }
 
-    checkBySKU(sku: string, data?: Entry | null, generics = false): void {
+    checkBySKU(sku: string, data?: Entry | null, generics = false, showLog = false): void {
         if (!this.isCreateListing) {
             return;
         }
 
         const item = SKU.fromString(sku);
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, showLog);
 
         let hasBuyListing = item.paintkit !== null;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
+        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, showLog);
+        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, showLog);
 
         const inventory = this.bot.inventoryManager.getInventory;
 
@@ -233,10 +233,11 @@ export default class Listings {
             }
         });
 
-        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew =
+            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, showLog);
 
         if (matchNew !== null && matchNew.enabled === true) {
-            const assetids = inventory.findBySKU(sku, true);
+            const assetids = inventory.findBySKU(sku, true, showLog);
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
@@ -672,8 +673,8 @@ export default class Listings {
                 entry.note.buy,
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             );
 
             // if %keyPrice% is defined in note.buy value and the item price involved keys,
@@ -700,8 +701,8 @@ export default class Listings {
                 entry.note.sell,
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             );
 
             details = entry[key].toString().includes('key')
@@ -722,8 +723,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             ).replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
@@ -736,8 +737,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             ).replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
@@ -750,8 +751,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             )
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
@@ -762,8 +763,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                inventory.getInventory.getAmount(entry.sku),
-                inventory.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku, true, false),
+                inventory.amountCanTrade(entry.sku, buying, false, false)
             )
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrices[key].toString() + '/key')
                 .replace(/%uses%/g, '');

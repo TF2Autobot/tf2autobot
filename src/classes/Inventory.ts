@@ -167,7 +167,7 @@ export default class Inventory {
         return null;
     }
 
-    findBySKU(sku: string, tradableOnly = true): string[] {
+    findBySKU(sku: string, tradableOnly = true, showLog = false): string[] {
         const tradable = this.tradable[sku] || [];
 
         if (tradableOnly) {
@@ -175,10 +175,13 @@ export default class Inventory {
             const mapTradable = tradable.map(item => (item ? item.id : undefined));
             const sliceTradable = mapTradable.slice(0);
             // const toReturn = tradable.map(item => (item ? item.id : undefined)).slice(0);
-            log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
-                mapTradable: mapTradable,
-                sliceTradable: sliceTradable
-            });
+            if (showLog) {
+                log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
+                    mapTradable: mapTradable,
+                    sliceTradable: sliceTradable
+                });
+            }
+
             return sliceTradable;
         }
 
@@ -192,18 +195,23 @@ export default class Inventory {
         //     .map(item => (item ? item.id : undefined))
         //     .concat(tradable.map(item => (item ? item.id : undefined)));
 
-        log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
-            mapUntradable: mapUntradable,
-            mapTradable: mapTradable,
-            concatBoth: concatBoth
-        });
+        if (showLog) {
+            log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
+                mapUntradable: mapUntradable,
+                mapTradable: mapTradable,
+                concatBoth: concatBoth
+            });
+        }
 
         return concatBoth;
     }
 
-    getAmount(sku: string, tradableOnly?: boolean): number {
-        const amount = this.findBySKU(sku, tradableOnly).length;
-        log.debug('src/Inventory: getAmount', amount);
+    getAmount(sku: string, tradableOnly?: boolean, showLog?: boolean): number {
+        const amount = this.findBySKU(sku, tradableOnly, showLog).length;
+        if (showLog) {
+            log.debug('src/Inventory: getAmount', amount);
+        }
+
         return amount;
     }
 
@@ -215,7 +223,7 @@ export default class Inventory {
             const getUnusual = getFromSchema.getUnusualEffects(this.schema);
             const mapUnusual = getUnusual.map(e => {
                 s.effect = e.id;
-                return this.getAmount(SKU.fromObject(s), tradableOnly);
+                return this.getAmount(SKU.fromObject(s), tradableOnly, true);
             });
             const reduceUnusual = mapUnusual.reduce((total, currentTotal) =>
                 total ? total + currentTotal : currentTotal
@@ -236,7 +244,7 @@ export default class Inventory {
             });
             return reduceUnusual;
         } else {
-            const callGetAmount = this.getAmount(sku, tradableOnly);
+            const callGetAmount = this.getAmount(sku, tradableOnly, true);
             log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5', callGetAmount);
             return callGetAmount;
         }
@@ -256,7 +264,7 @@ export default class Inventory {
                     : []
             )
             .forEach(sku => {
-                toObject[sku] = this.findBySKU(sku);
+                toObject[sku] = this.findBySKU(sku, true, false);
             });
 
         return toObject;
@@ -349,8 +357,8 @@ export function getSkuAmountCanTrade(
     bot: Bot,
     buying = true
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, true);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, true);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,
