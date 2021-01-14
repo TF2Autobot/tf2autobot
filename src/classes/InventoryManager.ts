@@ -42,7 +42,7 @@ export default class InventoryManager {
         // Amount in inventory
         const amount = genericCheck
             ? this.inventory.getAmountOfGenerics(sku, true)
-            : this.inventory.getAmount(sku, true, true);
+            : this.inventory.getAmount(sku, true, false);
 
         // Pricelist entry
         const match = genericCheck
