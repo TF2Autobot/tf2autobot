@@ -48,7 +48,7 @@ export default function sendOfferReview(
     };
 
     const slots = bot.tf2.backpackSlots;
-    const currentItems = bot.inventoryManager.getInventory().getTotalItems;
+    const currentItems = bot.inventoryManager.getInventory.getTotalItems;
 
     const summary = summarizeToChat(offer, bot, 'review-admin', true, value, keyPrices, false);
     const itemList = listItems(offer, bot, itemsName, false);

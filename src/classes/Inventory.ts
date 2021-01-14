@@ -71,7 +71,7 @@ export default class Inventory {
         const inventory = new Inventory(steamID, manager, schema, options);
 
         // Funny how typescript allows calling a private function from a static function
-        inventory.setItems(items);
+        inventory.setItems = items;
 
         return inventory;
     }
@@ -114,14 +114,14 @@ export default class Inventory {
                     return reject(err);
                 }
 
-                this.setItems(items);
+                this.setItems = items;
 
                 resolve();
             });
         });
     }
 
-    private setItems(items: EconItem[]): void {
+    private set setItems(items: EconItem[]) {
         // log.debug('parts: ', parts);
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),

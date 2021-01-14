@@ -121,7 +121,8 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const dict = bot.inventoryManager.getInventory().getItems;
+    const inventory = bot.inventoryManager.getInventory;
+    const dict = inventory.getItems;
 
     const items: { amount: number; name: string }[] = [];
 
@@ -156,19 +157,19 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
     const pure = [
         {
             name: 'Mann Co. Supply Crate Key',
-            amount: bot.inventoryManager.getInventory().getAmount('5021;6')
+            amount: inventory.getAmount('5021;6')
         },
         {
             name: 'Refined Metal',
-            amount: bot.inventoryManager.getInventory().getAmount('5002;6')
+            amount: inventory.getAmount('5002;6')
         },
         {
             name: 'Reclaimed Metal',
-            amount: bot.inventoryManager.getInventory().getAmount('5001;6')
+            amount: inventory.getAmount('5001;6')
         },
         {
             name: 'Scrap Metal',
-            amount: bot.inventoryManager.getInventory().getAmount('5000;6')
+            amount: inventory.getAmount('5000;6')
         }
     ];
 
@@ -215,7 +216,7 @@ export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
         const items: { amount: number; name: string }[] = [];
 
         craftAll.forEach(sku => {
-            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            const amount = bot.inventoryManager.getInventory.getAmount(sku);
             if (amount > 0) {
                 items.push({
                     name: bot.schema.getName(SKU.fromString(sku), false),
@@ -278,11 +279,11 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
         const items: { amount: number; name: string }[] = [];
 
         uncraftAll.forEach(sku => {
-            const amount = bot.inventoryManager.getInventory().getAmount(sku);
+            const amount = bot.inventoryManager.getInventory.getAmount(sku);
             if (amount > 0) {
                 items.push({
                     name: bot.schema.getName(SKU.fromString(sku), false),
-                    amount: bot.inventoryManager.getInventory().getAmount(sku)
+                    amount: amount
                 });
             }
         });
@@ -338,8 +339,7 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    const admins = bot.getAdmins();
-    const firstAdmin = admins[0];
+    const firstAdmin = bot.getAdmins[0];
 
     const custom = opt.customReply.reply;
     const steamURL = `https://steamcommunity.com/profiles/${firstAdmin.toString()}`;
@@ -367,19 +367,19 @@ export function discordCommand(steamID: SteamID, bot: Bot): void {
         }
     }
 
-    let reply = '';
+    let reply: string;
 
     const custom = opt.customReply.reply;
-    const inviteURL = bot.options.commands.discord.inviteURL;
+    const inviteURL = opt.inviteURL;
 
     if (custom) {
-        reply +=
+        reply =
             'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\n\n' + custom.replace(/%discordurl%/g, inviteURL);
     } else {
         if (inviteURL) {
-            reply += `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`;
+            reply = `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`;
         } else {
-            reply += 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
+            reply = 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
         }
     }
 

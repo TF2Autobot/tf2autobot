@@ -13,10 +13,8 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 
 import Autokeys from '../../Autokeys/Autokeys';
-import CartQueue from '../../Carts/CartQueue';
 
 import log from '../../../lib/logger';
-
 import { pure } from '../../../lib/tools/export';
 
 // Bot manager commands
@@ -35,7 +33,7 @@ export function expandCommand(steamID: SteamID, message: string, bot: Bot): void
         item.craftable = false;
     }
 
-    const assetids = bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
+    const assetids = bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
 
     const name = bot.schema.getName(item);
 
@@ -65,7 +63,7 @@ export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
     }
 
     if (params.assetid !== undefined && params.sku === undefined) {
-        const ourInventory = bot.inventoryManager.getInventory();
+        const ourInventory = bot.inventoryManager.getInventory;
 
         const targetedAssetId = params.assetid as string;
         const sku = ourInventory.findByAssetid(targetedAssetId);
@@ -152,7 +150,7 @@ export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
         item.tradable = !untrade;
     }
 
-    const assetids = bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
+    const assetids = bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
 
     const name = bot.schema.getName(item, false);
 
@@ -210,7 +208,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
 
     if (params.assetid !== undefined && params.sku === undefined) {
         // This most likely not working with Non-Tradable items.
-        const ourInventory = bot.inventoryManager.getInventory();
+        const ourInventory = bot.inventoryManager.getInventory;
 
         const targetedAssetId = params.assetid as string;
         const sku = ourInventory.findByAssetid(targetedAssetId);
@@ -323,7 +321,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
         item.tradable = !untrade;
     }
 
-    const assetids = bot.inventoryManager.getInventory().findBySKU(SKU.fromObject(item), false);
+    const assetids = bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
 
     const name = bot.schema.getName(item, false);
 
@@ -486,10 +484,7 @@ export function unblockCommand(steamID: SteamID, message: string, bot: Bot): voi
 }
 
 export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
-    const friends = bot.friends.getFriends();
-    const friendsToKeep = bot.handler.friendsToKeep;
-
-    const friendsToRemove = friends.filter(steamid => !friendsToKeep.includes(steamid));
+    const friendsToRemove = bot.friends.getFriends.filter(steamid => !bot.handler.friendsToKeep.includes(steamid));
 
     friendsToRemove.forEach(steamid => {
         bot.sendMessage(
@@ -552,7 +547,7 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
             `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
-        bot.checkForUpdates()
+        bot.checkForUpdates
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
                     bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
@@ -712,11 +707,6 @@ export function refreshAutokeysCommand(steamID: SteamID, bot: Bot, auto: Autokey
 
     auto.refresh();
     bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
-}
-
-export function resetQueueCommand(steamID: SteamID, bot: Bot, cartQueue: CartQueue): void {
-    cartQueue.resetQueue();
-    bot.sendMessage(steamID, '✅ Successfully reset queue!');
 }
 
 export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {

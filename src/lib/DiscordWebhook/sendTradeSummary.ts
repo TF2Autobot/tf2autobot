@@ -134,7 +134,7 @@ export default async function sendTradeSummary(
                                 : '') +
                             (misc.showPureStock ? `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` : '') +
                             (misc.showInventory
-                                ? `\n🎒 Total items: ${bot.inventoryManager.getInventory().getTotalItems}${
+                                ? `\n🎒 Total items: ${bot.inventoryManager.getInventory.getTotalItems}${
                                       slots !== undefined ? `/${slots}` : ''
                                   }`
                                 : '') +

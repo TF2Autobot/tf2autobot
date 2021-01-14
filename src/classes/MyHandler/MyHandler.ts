@@ -80,7 +80,7 @@ export default class MyHandler extends Handler {
     get friendsToKeep(): string[] {
         if (!this.friendsToKeepStore) {
             const friendsToKeep = this.bot.options.keep.concat(
-                this.bot.getAdmins().map(steamID => steamID.getSteamID64())
+                this.bot.getAdmins.map(steamID => steamID.getSteamID64())
             );
             if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
                 friendsToKeep.forEach(steamID64 => {
@@ -316,7 +316,7 @@ export default class MyHandler extends Handler {
     }
 
     onLoggedOn(): void {
-        if (this.bot.isReady()) {
+        if (this.bot.isReady) {
             this.bot.client.setPersona(EPersonaState.Online);
             this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
@@ -484,7 +484,7 @@ export default class MyHandler extends Handler {
                     if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
                         sendStats(this.bot);
                     } else {
-                        this.bot.getAdmins().forEach(admin => {
+                        this.bot.getAdmins.forEach(admin => {
                             statsCommand(admin, this.bot);
                         });
                     }
@@ -513,7 +513,7 @@ export default class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            opt
         );
 
         const theirItems = Inventory.fromItems(
@@ -521,7 +521,7 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            this.bot.options
+            opt
         );
 
         const items = {
@@ -1131,7 +1131,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const exceptionSKU = this.bot.options.offerReceived.invalidValue.exceptionValue.skus;
+        const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
         const itemsList = itemList(offer);
         const ourItemsSKU = itemsList.our;
         const theirItemsSKU = itemsList.their;
@@ -1697,7 +1697,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        this.bot.getAdmins().forEach(steamID => {
+        this.bot.getAdmins.forEach(steamID => {
             if (!this.bot.friends.isFriend(steamID)) {
                 log.info(`Not friends with admin ${steamID.toString()}, sending friend request...`);
                 this.bot.client.addFriend(steamID, err => {
@@ -1792,7 +1792,7 @@ export default class MyHandler extends Handler {
 
     private checkFriendsCount(steamIDToIgnore?: SteamID | string): void {
         log.debug('Checking friends count');
-        const friends = this.bot.friends.getFriends();
+        const friends = this.bot.friends.getFriends;
 
         const friendslistBuffer = 20;
 

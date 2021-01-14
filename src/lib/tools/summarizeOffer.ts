@@ -203,7 +203,7 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         let oldStock = 0;
-        const currentStock = bot.inventoryManager.getInventory().getAmount(sku, true);
+        const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
         if (type === 'summary-accepted') {
@@ -248,7 +248,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
         const name = replace.itemName(generateName ? generateName : 'unknown');
 
         let oldStock = 0;
-        const currentStock = bot.inventoryManager.getInventory().getAmount(sku, true);
+        const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
         if (type === 'summary-accepted') {

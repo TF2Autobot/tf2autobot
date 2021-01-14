@@ -52,7 +52,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
 
     if (crashed) {
-        const botReady = botManager.isBotReady();
+        const botReady = botManager.isBotReady;
 
         const errorMessage = [
             'TF2Autobot' +

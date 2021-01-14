@@ -15,8 +15,7 @@ import { fixItem } from '../../../lib/items';
 import { getSales, GetItemSalesResponse, requestCheck, getPrice, RequestCheckResponse } from '../../../lib/ptf-api';
 
 export async function getSalesCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
-    message = removeLinkProtocol(message);
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
@@ -114,8 +113,7 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
 // Request commands
 
 export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): void {
-    message = removeLinkProtocol(message);
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
@@ -210,8 +208,7 @@ export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<
 }
 
 export async function checkCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
-    message = removeLinkProtocol(message);
-    const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);

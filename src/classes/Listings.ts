@@ -72,7 +72,7 @@ export default class Listings {
 
     disableAutorelistOption(): void {
         this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.disableAutoRelist();
+        this.disableAutoRelist = true;
     }
 
     private enableAutoRelist(): void {
@@ -97,7 +97,7 @@ export default class Listings {
                     }
                 ],
                 (item, callback) => {
-                    if (this.bot.botManager.isStopping()) {
+                    if (this.bot.botManager.isStopping) {
                         return;
                     }
 
@@ -119,7 +119,7 @@ export default class Listings {
     private checkAccountInfo(): void {
         log.debug('Checking account info');
 
-        void this.getAccountInfo().asCallback((err, info) => {
+        void this.getAccountInfo.asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
                 return;
@@ -127,7 +127,7 @@ export default class Listings {
 
             if (this.autoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
-                this.disableAutoRelist();
+                this.disableAutoRelist = true;
             } else if (!this.autoRelistEnabled && info.premium !== 1) {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
@@ -140,14 +140,14 @@ export default class Listings {
         });
     }
 
-    private disableAutoRelist(): void {
+    private set disableAutoRelist(setValue: boolean) {
         clearTimeout(this.autoRelistTimeout);
-        this.autoRelistEnabled = false;
+        this.autoRelistEnabled = setValue;
 
         log.debug('Disabled autorelist');
     }
 
-    private getAccountInfo(): Promise<UserSteamID> {
+    private get getAccountInfo(): Promise<UserSteamID> {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
@@ -189,7 +189,7 @@ export default class Listings {
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
 
-        const inventory = this.bot.inventoryManager.getInventory();
+        const inventory = this.bot.inventoryManager.getInventory;
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -295,7 +295,7 @@ export default class Listings {
 
                 this.checkingAllListings = true;
 
-                const inventory = this.bot.inventoryManager.getInventory();
+                const inventory = this.bot.inventoryManager.getInventory;
 
                 const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
                     return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
@@ -364,7 +364,7 @@ export default class Listings {
 
                 this.checkingAllListings = true;
 
-                const inventory = this.bot.inventoryManager.getInventory();
+                const inventory = this.bot.inventoryManager.getInventory;
 
                 const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
                     return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
@@ -663,6 +663,8 @@ export default class Listings {
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
 
+        const inventory = this.bot.inventoryManager;
+
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
             // note.buy for buy order listing note.
@@ -670,8 +672,8 @@ export default class Listings {
                 entry.note.buy,
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             );
 
             // if %keyPrice% is defined in note.buy value and the item price involved keys,
@@ -698,8 +700,8 @@ export default class Listings {
                 entry.note.sell,
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             );
 
             details = entry[key].toString().includes('key')
@@ -720,8 +722,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             ).replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
@@ -734,8 +736,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             ).replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
 
             details = entry[key].toString().includes('key')
@@ -748,8 +750,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             )
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
@@ -760,8 +762,8 @@ export default class Listings {
                 this.templates[key],
                 entry,
                 key,
-                this.bot.inventoryManager.getInventory().getAmount(entry.sku),
-                this.bot.inventoryManager.amountCanTrade(entry.sku, buying)
+                inventory.getInventory.getAmount(entry.sku),
+                inventory.amountCanTrade(entry.sku, buying)
             )
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrices[key].toString() + '/key')
                 .replace(/%uses%/g, '');

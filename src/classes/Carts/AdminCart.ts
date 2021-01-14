@@ -12,7 +12,7 @@ export default class AdminCart extends Cart {
 
     constructOffer(): Promise<string> {
         return new Promise((resolve, reject) => {
-            if (this.isEmpty()) {
+            if (this.isEmpty) {
                 return reject('cart is empty');
             }
 
@@ -21,7 +21,7 @@ export default class AdminCart extends Cart {
             const alteredMessages: string[] = [];
 
             // Add our items
-            const ourInventory = this.bot.inventoryManager.getInventory();
+            const ourInventory = this.bot.inventoryManager.getInventory;
 
             for (const sku in this.our) {
                 if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {

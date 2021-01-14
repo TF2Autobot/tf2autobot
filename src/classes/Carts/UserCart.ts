@@ -37,7 +37,7 @@ export default class UserCart extends Cart {
         const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
-        const theirItemsValue = this.getTheirCurrencies().toValue(keyPrices.buy.metal);
+        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrices.buy.metal);
 
         const minimumKeysDupeCheck = this.bot.handler.minimumKeysDupeCheck * keyPrices.buy.toValue();
 
@@ -80,7 +80,7 @@ export default class UserCart extends Cart {
         this.offer.data('_dupeCheck', undefined);
     }
 
-    canUseKeys(): boolean {
+    private get canUseKeys(): boolean {
         if (this.getOurCount('5021;6') !== 0 || this.getTheirCount('5021;6') !== 0) {
             // The trade contains keys, don't use keys for currencies
             return false;
@@ -92,16 +92,16 @@ export default class UserCart extends Cart {
     /**
      * Figure our who the buyer is and get relative currencies
      */
-    getCurrencies(): { isBuyer: boolean; currencies: Currencies } {
-        const ourCurrencies = this.getOurCurrencies();
-        const theirCurrencies = this.getTheirCurrencies();
+    private get getCurrencies(): { isBuyer: boolean; currencies: Currencies } {
+        const ourCurrencies = this.getOurCurrencies;
+        const theirCurrencies = this.getTheirCurrencies;
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
         const ourValue = ourCurrencies.toValue(keyPrices.sell.metal);
         const theirValue = theirCurrencies.toValue(keyPrices.buy.metal);
 
-        const useKeys = this.canUseKeys();
+        const useKeys = this.canUseKeys;
 
         if (ourValue >= theirValue) {
             // Our value is greater, we are selling
@@ -118,7 +118,7 @@ export default class UserCart extends Cart {
         }
     }
 
-    getOurCurrencies(): Currencies {
+    private get getOurCurrencies(): Currencies {
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
         let value = 0;
@@ -137,10 +137,10 @@ export default class UserCart extends Cart {
             value += this.bot.pricelist.getPrice(sku, true).sell.toValue(keyPrices.sell.metal) * this.our[sku];
         }
 
-        return Currencies.toCurrencies(value, this.canUseKeys() ? keyPrices.sell.metal : undefined);
+        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrices.sell.metal : undefined);
     }
 
-    getTheirCurrencies(): Currencies {
+    private get getTheirCurrencies(): Currencies {
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
         let value = 0;
@@ -161,7 +161,7 @@ export default class UserCart extends Cart {
             value += match.buy.toValue(keyPrices.buy.metal) * this.their[sku];
         }
 
-        return Currencies.toCurrencies(value, this.canUseKeys() ? keyPrices.buy.metal : undefined);
+        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrices.buy.metal : undefined);
     }
 
     private getRequired(
@@ -294,7 +294,7 @@ export default class UserCart extends Cart {
             index += reverse ? -1 : 1;
         }
 
-        log.debug('Done picking currencies', { remaining: remaining, picked: pickedCurrencies });
+        // log.debug('Done picking currencies', { remaining: remaining, picked: pickedCurrencies });
 
         if (remaining < 0) {
             log.debug('Picked too much value, removing...');
@@ -337,7 +337,7 @@ export default class UserCart extends Cart {
     summarizeOur(): string[] {
         const summary = super.summarizeOur();
 
-        const { isBuyer } = this.getCurrencies();
+        const { isBuyer } = this.getCurrencies;
 
         let addWeapons = 0;
 
@@ -355,7 +355,7 @@ export default class UserCart extends Cart {
         }
 
         if (isBuyer) {
-            const keys = this.canUseKeys() ? ourDict['5021;6'] || 0 : 0;
+            const keys = this.canUseKeys ? ourDict['5021;6'] || 0 : 0;
 
             const currencies = new Currencies({
                 keys: keys,
@@ -378,7 +378,7 @@ export default class UserCart extends Cart {
     summarizeTheir(): string[] {
         const summary = super.summarizeTheir();
 
-        const { isBuyer } = this.getCurrencies();
+        const { isBuyer } = this.getCurrencies;
 
         let addWeapons = 0;
 
@@ -396,7 +396,7 @@ export default class UserCart extends Cart {
         }
 
         if (!isBuyer) {
-            const keys = this.canUseKeys() ? theirDict['5021;6'] || 0 : 0;
+            const keys = this.canUseKeys ? theirDict['5021;6'] || 0 : 0;
 
             const currencies = new Currencies({
                 keys: keys,
@@ -417,7 +417,7 @@ export default class UserCart extends Cart {
     }
 
     async constructOffer(): Promise<string> {
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return Promise.reject('cart is empty');
         }
 
@@ -431,7 +431,7 @@ export default class UserCart extends Cart {
         };
 
         // Add our items
-        const ourInventory = this.bot.inventoryManager.getInventory();
+        const ourInventory = this.bot.inventoryManager.getInventory;
         this.ourInventoryCount = ourInventory.getTotalItems;
 
         for (const sku in this.our) {
@@ -490,7 +490,7 @@ export default class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, this.bot.options);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt);
 
         try {
             await theirInventory.fetch();
@@ -556,7 +556,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return Promise.reject(alteredMessages.join(', '));
         }
 
@@ -573,19 +573,14 @@ export default class UserCart extends Cart {
         // Add values to the offer
 
         // Figure out who the buyer is and what they are offering
-        const { isBuyer, currencies } = this.getCurrencies();
+        const { isBuyer, currencies } = this.getCurrencies;
 
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
         if (
-            this.bot.inventoryManager.amountCanAfford(
-                this.canUseKeys(),
-                isBuyer,
-                currencies,
-                buyerInventory,
-                this.bot
-            ) < 1
+            this.bot.inventoryManager.amountCanAfford(this.canUseKeys, isBuyer, currencies, buyerInventory, this.bot) <
+            1
         ) {
             // Buyer can't afford the items
             return Promise.reject(
@@ -597,8 +592,8 @@ export default class UserCart extends Cart {
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
-        const ourItemsValue = this.getOurCurrencies().toValue(keyPrices.sell.metal);
-        const theirItemsValue = this.getTheirCurrencies().toValue(keyPrices.buy.metal);
+        const ourItemsValue = this.getOurCurrencies.toValue(keyPrices.sell.metal);
+        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrices.buy.metal);
 
         // Create exchange object with our and their items values
         const exchange = {
@@ -623,16 +618,16 @@ export default class UserCart extends Cart {
                 : craftAll
             : [];
 
-        if (this.bot.options.weaponsAsCurrency.enable) {
+        if (opt.weaponsAsCurrency.enable) {
             weapons.forEach(sku => {
                 buyerCurrenciesCount[sku] = buyerCurrenciesWithAssetids[sku].length;
             });
         }
 
-        const required = this.getRequired(buyerCurrenciesCount, isBuyer, currencies, this.canUseKeys());
+        const required = this.getRequired(buyerCurrenciesCount, isBuyer, currencies, this.canUseKeys);
 
         let addWeapons = 0;
-        if (this.bot.options.weaponsAsCurrency.enable) {
+        if (opt.weaponsAsCurrency.enable) {
             weapons.forEach(sku => {
                 addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
             });
@@ -664,7 +659,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (this.bot.options.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
+                if (opt.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -895,11 +890,7 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
-                        if (
-                            !isBuyer &&
-                            this.bot.options.skipItemsInTrade.enable &&
-                            this.bot.trades.isInTrade(currencies[sku][i])
-                        ) {
+                        if (!isBuyer && opt.skipItemsInTrade.enable && this.bot.trades.isInTrade(currencies[sku][i])) {
                             isSkipped = true;
                             continue;
                         }
@@ -962,7 +953,7 @@ export default class UserCart extends Cart {
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
                 if (
                     isBuyer &&
-                    this.bot.options.skipItemsInTrade.enable &&
+                    opt.skipItemsInTrade.enable &&
                     this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
                 ) {
                     isSkipped = true;
@@ -1064,11 +1055,11 @@ export default class UserCart extends Cart {
 
     // We Override the toString function so that the currencies are added
     toString(): string {
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return 'Your cart is empty.';
         }
 
-        const { isBuyer, currencies } = this.getCurrencies();
+        const { isBuyer, currencies } = this.getCurrencies;
 
         let str = '🛒== YOUR CART ==🛒';
 

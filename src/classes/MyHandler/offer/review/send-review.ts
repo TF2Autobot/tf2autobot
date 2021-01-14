@@ -112,7 +112,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): voi
     if (isWebhookEnabled) {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
     } else {
-        const currentItems = bot.inventoryManager.getInventory().getTotalItems;
+        const currentItems = bot.inventoryManager.getInventory.getTotalItems;
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
 

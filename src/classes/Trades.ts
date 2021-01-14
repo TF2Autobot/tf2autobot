@@ -71,7 +71,7 @@ export default class Trades {
             const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
 
             for (let i = 0; i < items.length; i++) {
-                this.setItemInTrade(items[i].assetid);
+                this.setItemInTrade = items[i].assetid;
             }
         }
 
@@ -225,7 +225,9 @@ export default class Trades {
 
     private enqueueOffer(offer: TradeOffer): void {
         if (!this.receivedOffers.includes(offer.id)) {
-            offer.itemsToGive.forEach(item => this.setItemInTrade(item.assetid));
+            offer.itemsToGive.forEach(item => {
+                this.setItemInTrade = item.assetid;
+            });
 
             offer.data('partner', offer.partner.getSteamID64());
 
@@ -518,7 +520,7 @@ export default class Trades {
             const ourItems: TradeOfferManager.TradeOfferItem[] = [];
 
             offer.itemsToGive.forEach(item => {
-                this.setItemInTrade(item.assetid);
+                this.setItemInTrade = item.assetid;
                 ourItems.push(Trades.mapItem(item));
             });
 
@@ -536,7 +538,9 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    offer.itemsToGive.forEach(item => this.unsetItemInTrade(item.assetid));
+                    offer.itemsToGive.forEach(item => {
+                        this.unsetItemInTrade = item.assetid;
+                    });
                     return reject(err);
                 }
 
@@ -568,12 +572,9 @@ export default class Trades {
 
                     if (err.eresult === TradeOfferManager.EResult['Revoked']) {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
-                        void this.bot.inventoryManager
-                            .getInventory()
-                            .fetch()
-                            .asCallback(() => {
-                                reject(err);
-                            });
+                        void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+                            reject(err);
+                        });
                         return;
                     } else if (err.eresult === TradeOfferManager.EResult['Timeout']) {
                         // The offer may or may not have been made, will wait some time and check if if we can find a matching offer
@@ -716,7 +717,9 @@ export default class Trades {
             // Offer is active
 
             // Mark items as in trade
-            offer.itemsToGive.forEach(item => this.setItemInTrade(item.id));
+            offer.itemsToGive.forEach(item => {
+                this.setItemInTrade = item.id;
+            });
 
             if (offer.isOurOffer && offer.data('_ourItems') === undefined) {
                 // Items are not saved for sent offer, save them
@@ -727,7 +730,9 @@ export default class Trades {
             }
         } else {
             // Offer is not active and the items are no longer in trade
-            offer.itemsToGive.forEach(item => this.unsetItemInTrade(item.assetid));
+            offer.itemsToGive.forEach(item => {
+                this.unsetItemInTrade = item.assetid;
+            });
 
             // Unset items
             offer.data('_ourItems', undefined);
@@ -752,17 +757,14 @@ export default class Trades {
 
         offer.data('isAccepted', true);
 
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory().removeItem(item.assetid));
+        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
 
-        void this.bot.inventoryManager
-            .getInventory()
-            .fetch()
-            .asCallback(() => {
-                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
-            });
+        void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+            this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
+        });
     }
 
-    private setItemInTrade(assetid: string): void {
+    private set setItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
         if (index === -1) {
@@ -779,7 +781,7 @@ export default class Trades {
         this.itemsInTrade = fixDuplicate;
     }
 
-    private unsetItemInTrade(assetid: string): void {
+    private set unsetItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
         if (index !== -1) {

@@ -47,24 +47,24 @@ export default class TF2Inventory {
 
     private items: TF2Item[] = [];
 
-    private slots: number = null;
+    // private slots: number = null;
 
     constructor(steamID: SteamID | string, manager: TradeOfferManager) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
     }
 
-    getSteamID(): SteamID {
+    get getSteamID(): SteamID {
         return this.steamID;
     }
 
-    getItems(): TF2Item[] {
+    get getItems(): TF2Item[] {
         return this.items;
     }
 
-    getSlots(): number {
-        return this.slots;
-    }
+    // get getSlots(): number {
+    //     return this.slots;
+    // }
 
     async isDuped(assetid: string): Promise<boolean | null> {
         // Check if the item exists on backpack.tf and if it is duped
@@ -77,12 +77,12 @@ export default class TF2Inventory {
         // Inventory is not updated on bptf, get the original id
 
         // Fetch inventory using TF2 GetPlayerItems API if we haven't already
-        if (this.getItems().length === 0) {
+        if (this.getItems.length === 0) {
             await this.fetch();
         }
 
         // Find item in the inventory
-        const item = this.getItems().find(item => item.id.toString() == assetid);
+        const item = this.getItems.find(item => item.id.toString() == assetid);
 
         if (item === undefined) {
             // Could not find the item in the inventory, failed to check if the item is duped
@@ -110,7 +110,7 @@ export default class TF2Inventory {
                     method: 'GET',
                     qs: {
                         key: this.manager.apiKey,
-                        steamid: this.getSteamID().toString()
+                        steamid: this.getSteamID.toString()
                     },
                     json: true,
                     gzip: true
@@ -126,7 +126,7 @@ export default class TF2Inventory {
                         return reject(err);
                     }
 
-                    this.slots = body.result.num_backpack_slots;
+                    // this.slots = body.result.num_backpack_slots;
                     this.items = body.result.items;
 
                     return resolve();

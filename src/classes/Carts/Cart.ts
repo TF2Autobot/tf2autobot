@@ -68,60 +68,60 @@ export default abstract class Cart {
         } else {
             this.bot = args[2];
 
-            this.setToken(args[1]);
+            this.setToken = args[1];
         }
     }
 
-    isCanceled(): boolean {
+    get isCanceled(): boolean {
         return this.canceled;
     }
 
-    setCanceled(reason: string): void {
+    set setCanceled(reason: string) {
         this.canceled = true;
         this.cancelReason = reason;
     }
 
-    getToken(): string {
-        return this.token;
-    }
+    // getToken(): string {
+    //     return this.token;
+    // }
 
-    setToken(token: string | null): void {
+    private set setToken(token: string | null) {
         this.token = token;
     }
 
-    getNotify(): boolean {
-        return this.notify;
-    }
+    // getNotify(): boolean {
+    //     return this.notify;
+    // }
 
-    setNotify(allowed: boolean): void {
+    set setNotify(allowed: boolean) {
         this.notify = allowed;
     }
 
-    isDonating(isDonation: boolean): void {
+    set isDonating(isDonation: boolean) {
         this.donation = isDonation;
     }
 
-    isBuyingPremium(isBuyingPremium: boolean): void {
+    set isBuyingPremium(isBuyingPremium: boolean) {
         this.buyPremium = isBuyingPremium;
     }
 
-    sendNotification(message: string): void {
+    set sendNotification(message: string) {
         if (this.notify) {
             this.bot.sendMessage(this.partner, message);
         }
     }
 
-    isMade(): boolean {
+    get isMade(): boolean {
         return this.offer?.state !== TradeOfferManager.ETradeOfferState['Invalid'];
     }
 
-    getOffer(): TradeOffer | null {
+    get getOffer(): TradeOffer | null {
         return this.offer;
     }
 
-    getCancelReason(): string | undefined {
-        return this.cancelReason;
-    }
+    // getCancelReason(): string | undefined {
+    //     return this.cancelReason;
+    // }
 
     getOurCount(sku: string): number {
         return this.our[sku] || 0;
@@ -190,12 +190,7 @@ export default abstract class Cart {
         }
     }
 
-    clear(): void {
-        this.our = {};
-        this.their = {};
-    }
-
-    isEmpty(): boolean {
+    get isEmpty(): boolean {
         return Object.keys(this.our).length === 0 && Object.keys(this.their).length === 0;
     }
 
@@ -301,7 +296,7 @@ export default abstract class Cart {
     sendOffer(): Promise<string | void> {
         const opt = this.bot.options;
 
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return Promise.reject("❌ I don't or you don't have enough items for this trade");
         }
 
@@ -329,7 +324,7 @@ export default abstract class Cart {
             this.offer.data('notify', true);
         }
 
-        if (this.isCanceled()) {
+        if (this.isCanceled) {
             return Promise.reject('Offer was canceled');
         }
 
@@ -339,7 +334,7 @@ export default abstract class Cart {
 
         return this.preSendOffer()
             .then(() => {
-                if (this.isCanceled()) {
+                if (this.isCanceled) {
                     return Promise.reject('Offer was canceled');
                 }
 
@@ -398,7 +393,7 @@ export default abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const ourUsedSlots = this.ourInventoryCount;
-                    const outTotalSlots = this.bot.tf2.backpackSlots;
+                    const ourTotalSlots = this.bot.tf2.backpackSlots;
 
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
@@ -410,7 +405,7 @@ export default abstract class Cart {
                         `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
                         `\n⬅️ I would have received ${theirNumItems} item(s) → ${
                             ourUsedSlots + theirNumItems
-                        } / ${outTotalSlots} slots used` +
+                        } / ${ourTotalSlots} slots used` +
                         `\n➡️ They would have received ${ourNumItems} item(s) → ${
                             theirUsedSlots + ourNumItems
                         } / ${theirTotalSlots} slots used`;
@@ -423,11 +418,11 @@ export default abstract class Cart {
                     }
                     return Promise.reject(
                         `It appears as if ${
-                            ourUsedSlots + theirNumItems > outTotalSlots ? 'my' : 'your'
+                            ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
                         } backpack is full!` +
                             `\n⬅️ I would have received ${theirNumItems} item(s) → ${
                                 ourUsedSlots + theirNumItems
-                            } / ${outTotalSlots} slots used` +
+                            } / ${ourTotalSlots} slots used` +
                             `\n➡️ You would have received ${ourNumItems} item(s) → ${
                                 theirUsedSlots + ourNumItems
                             } / ${theirTotalSlots} slots used` +
@@ -450,7 +445,7 @@ export default abstract class Cart {
     }
 
     toString(isDonating: boolean): string {
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return '❌ Your cart is empty.';
         }
 
@@ -505,7 +500,7 @@ export default abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, enableCraftweaponAsCurrency: boolean, isDonating: boolean): string {
+    static stringify(steamID: SteamID, isDonating: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {

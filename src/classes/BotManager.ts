@@ -69,20 +69,20 @@ export default class BotManager {
         };
     }
 
-    getSchema(): SchemaManager.Schema | null {
+    get getSchema(): SchemaManager.Schema | null {
         return this.schemaManager.schema;
     }
 
-    getSocketManager(): SocketManager {
+    get getSocketManager(): SocketManager {
         return this.socketManager;
     }
 
-    isStopping(): boolean {
+    get isStopping(): boolean {
         return this.stopping || this.stopRequested;
     }
 
-    isBotReady(): boolean {
-        return this.bot !== null && this.bot.isReady();
+    get isBotReady(): boolean {
+        return this.bot !== null && this.bot.isReady;
     }
 
     start(options: Options): Promise<void> {
@@ -116,7 +116,7 @@ export default class BotManager {
                     }
                 ],
                 (item, callback) => {
-                    if (this.isStopping()) {
+                    if (this.isStopping) {
                         // Shutdown is requested, stop the bot
                         this.stop(null, false, false);
                         return;
@@ -129,7 +129,7 @@ export default class BotManager {
                         return reject(err);
                     }
 
-                    if (this.isStopping()) {
+                    if (this.isStopping) {
                         // Shutdown is requested, stop the bot
                         this.stop(null, false, false);
                         return;
@@ -157,7 +157,7 @@ export default class BotManager {
             return;
         }
 
-        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady()) {
+        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) {
             return;
         }
 

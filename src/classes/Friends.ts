@@ -51,7 +51,7 @@ export default class Friends {
         return relation === EFriendRelationship.Friend;
     }
 
-    getFriends(): string[] {
+    get getFriends(): string[] {
         const friends: string[] = [];
 
         for (const steamID64 in this.bot.client.myFriends) {
@@ -67,7 +67,7 @@ export default class Friends {
         return friends;
     }
 
-    getMaxFriends(): Promise<number> {
+    get getMaxFriends(): Promise<number> {
         const options: OptionsWithUri = {
             uri: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
             method: 'GET',

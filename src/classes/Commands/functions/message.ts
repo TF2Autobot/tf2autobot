@@ -114,7 +114,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         );
         return;
     } else {
-        const admins = bot.getAdmins();
+        const admins = bot.getAdmins;
         if (!admins || admins.length === 0) {
             // Just default to same message as if it was disabled
             bot.sendMessage(steamID, custom.disabled ? custom.disabled : '❌ The owner has disabled messages.');

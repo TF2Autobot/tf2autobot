@@ -256,7 +256,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     const pricelist = bot.pricelist.getPrices;
 
-    const dict = bot.inventoryManager.getInventory().getItems;
+    const dict = bot.inventoryManager.getInventory.getItems;
 
     const pure = ['5021;6', '5000;6', '5001;6', '5002;6'];
     const weapons = bot.handler.isWeaponsAsCurrency.enable
@@ -366,7 +366,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-    const amount = bot.inventoryManager.getInventory().getAmount(entry.sku);
+    const amount = bot.inventoryManager.getInventory.getAmount(entry.sku);
     return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
         `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
@@ -832,7 +832,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
 
     const generateUpdateReply = (bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry) => {
         const keyPrices = bot.pricelist.getKeyPrices;
-        const amount = bot.inventoryManager.getInventory().getAmount(oldEntry.sku);
+        const amount = bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
         return (
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrices.buy.metal) !== newEntry.buy.toValue(keyPrices.buy.metal)

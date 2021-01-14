@@ -188,7 +188,7 @@ export default function updateListings(
             opt.autoRemoveIntentSell.enable &&
             inPrice !== null &&
             inPrice.intent === 1 &&
-            bot.inventoryManager.getInventory().getAmount(sku) < 1 && // current stock
+            bot.inventoryManager.getInventory.getAmount(sku) < 1 && // current stock
             isNotPureOrWeapons
         ) {
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,

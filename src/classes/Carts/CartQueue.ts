@@ -15,7 +15,7 @@ export default class CartQueue {
 
     private busy = false;
 
-    private queuePositionCheck;
+    private queuePositionCheck: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -115,11 +115,6 @@ export default class CartQueue {
         return true;
     }
 
-    resetQueue(): void {
-        log.debug('Queue reset initialized.');
-        this.carts.splice(0);
-    }
-
     getPosition(steamID: SteamID | string): number {
         const steamID64 = steamID.toString();
         return this.carts.findIndex(cart => cart.partner.toString() === steamID64);
@@ -156,11 +151,9 @@ export default class CartQueue {
             .then(alteredMessage => {
                 log.debug('Constructed offer');
                 if (alteredMessage) {
-                    cart.sendNotification(
-                        custom.alteredOffer
-                            ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
-                            : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
-                    );
+                    cart.sendNotification = custom.alteredOffer
+                        ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
+                        : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`;
                 }
 
                 const summarize = cart.summarize(isDonating, isBuyingPremium);
@@ -177,7 +170,7 @@ export default class CartQueue {
                     ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
                     : `⌛ Please wait while I process your offer! ${summarize}.`;
 
-                cart.sendNotification(sendNotification);
+                cart.sendNotification = sendNotification;
 
                 log.debug('Sending offer...');
                 return cart.sendOffer();
@@ -197,29 +190,27 @@ export default class CartQueue {
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
                         : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
 
-                    cart.sendNotification(sendNotification);
+                    cart.sendNotification = sendNotification;
 
                     log.debug('Accepting mobile confirmation...');
 
                     // Wait for confirmation to be accepted
-                    return this.bot.trades.acceptConfirmation(cart.getOffer()).reflect();
+                    return this.bot.trades.acceptConfirmation(cart.getOffer).reflect();
                 }
             })
             .catch(err => {
                 if (!(err instanceof Error)) {
-                    cart.sendNotification(`❌ I failed to make the offer! Reason: ${err as string}.`);
+                    cart.sendNotification = `❌ I failed to make the offer! Reason: ${err as string}.`;
                 } else {
                     log.warn('Failed to make offer');
                     log.error(inspect.inspect(err));
 
                     if (err.message.includes("cause: 'TargetCannotTrade'")) {
-                        cart.sendNotification(
-                            "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
-                        );
+                        cart.sendNotification =
+                            "❌ You're unable to trade. More information will be shown to you if you invite me to trade.";
                     } else {
-                        cart.sendNotification(
-                            '❌ Something went wrong while trying to make the offer, try again later!'
-                        );
+                        cart.sendNotification =
+                            '❌ Something went wrong while trying to make the offer, try again later!';
                     }
                 }
             })

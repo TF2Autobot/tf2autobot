@@ -17,17 +17,17 @@ export default class InventoryManager {
         this.pricelist = pricelist;
     }
 
-    setInventory(inventory: Inventory): void {
+    set setInventory(inventory: Inventory) {
         this.inventory = inventory;
     }
 
-    getInventory(): Inventory {
+    get getInventory(): Inventory {
         return this.inventory;
     }
 
-    isOverstocked(sku: string, buying: boolean, diff: number): boolean {
-        return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
-    }
+    // isOverstocked(sku: string, buying: boolean, diff: number): boolean {
+    //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
+    // }
 
     amountCanTrade(sku: string, buying: boolean, generics = false): number {
         if (this.inventory === undefined) {

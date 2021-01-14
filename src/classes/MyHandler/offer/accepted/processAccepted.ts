@@ -232,7 +232,7 @@ export default function processAccepted(
                         : ''
                 }` +
                 `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
-                `\n🎒 Total items: ${bot.inventoryManager.getInventory().getTotalItems}${
+                `\n🎒 Total items: ${bot.inventoryManager.getInventory.getTotalItems}${
                     slots !== undefined ? `/${slots}` : ''
                 }` +
                 `\n⏱ Time taken: ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +

@@ -639,7 +639,7 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
 
-                const old = this.getOld();
+                const old = this.getOld;
 
                 if (old.length === 0) {
                     return;
@@ -859,7 +859,7 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private getOld(): Entry[] {
+    private get getOld(): Entry[] {
         if (this.maxAge <= 0) {
             return this.prices;
         }

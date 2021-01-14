@@ -84,7 +84,7 @@ export function statsDWCommand(steamID: SteamID, bot: Bot): void {
 }
 
 export function inventoryCommand(steamID: SteamID, bot: Bot): void {
-    const currentItems = bot.inventoryManager.getInventory().getTotalItems;
+    const currentItems = bot.inventoryManager.getInventory.getTotalItems;
     bot.sendMessage(
         steamID,
         `🎒 My current items in my inventory: ${String(currentItems) + '/' + String(bot.tf2.backpackSlots)}`
@@ -94,7 +94,7 @@ export function inventoryCommand(steamID: SteamID, bot: Bot): void {
 export function versionCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`);
 
-    bot.checkForUpdates()
+    bot.checkForUpdates
         .then(({ hasNewVersion, latestVersion }) => {
             if (!hasNewVersion) {
                 bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');

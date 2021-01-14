@@ -131,7 +131,7 @@ export default class Bot {
     constructor(botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
-        this.schema = this.botManager.getSchema();
+        this.schema = this.botManager.getSchema;
 
         this.client = new SteamUser();
         this.community = new SteamCommunity();
@@ -161,7 +161,7 @@ export default class Bot {
 
         this.handler = new MyHandler(this);
 
-        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager(), this.options, this);
+        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager, this.options, this);
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
@@ -201,12 +201,8 @@ export default class Bot {
         return this.admins.some(adminSteamID => adminSteamID.toString() === steamID64);
     }
 
-    getAdmins(): SteamID[] {
+    get getAdmins(): SteamID[] {
         return this.admins;
-    }
-
-    getAlertTypes(): string[] {
-        return this.alertTypes;
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
@@ -250,11 +246,11 @@ export default class Bot {
             });
     }
 
-    setReady(): void {
-        this.ready = true;
+    set setReady(isReady: boolean) {
+        this.ready = isReady;
     }
 
-    isReady(): boolean {
+    get isReady(): boolean {
         return this.ready;
     }
 
@@ -269,18 +265,18 @@ export default class Bot {
     }
 
     startVersionChecker(): void {
-        void this.checkForUpdates();
+        void this.checkForUpdates;
 
         // Check for updates every 10 minutes
         setInterval(() => {
-            this.checkForUpdates().catch((err: Error) => {
+            this.checkForUpdates.catch((err: Error) => {
                 log.warn('Failed to check for updates: ', err);
             });
         }, 10 * 60 * 1000);
     }
 
-    checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
-        return this.getLatestVersion().then(latestVersion => {
+    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
+        return this.getLatestVersion.then(latestVersion => {
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
 
             if (this.lastNotifiedVersion !== latestVersion && hasNewVersion) {
@@ -300,7 +296,7 @@ export default class Bot {
         });
     }
 
-    getLatestVersion(): Promise<string> {
+    private get getLatestVersion(): Promise<string> {
         return new Promise((resolve, reject) => {
             void request(
                 {
@@ -372,7 +368,7 @@ export default class Bot {
 
                             if (data.loginAttempts) {
                                 log.debug('Setting login attempts');
-                                this.setLoginAttempts(data.loginAttempts);
+                                this.setLoginAttempts = data.loginAttempts;
                             }
 
                             return callback(null);
@@ -394,7 +390,7 @@ export default class Bot {
                             'Checking account limitations - Please disable this in the config by setting `SKIP_ACCOUNT_LIMITATIONS` to true'
                         );
 
-                        void this.getAccountLimitations().asCallback((err, limitations) => {
+                        void this.getAccountLimitations.asCallback((err, limitations) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -441,7 +437,7 @@ export default class Bot {
                                 this.schema,
                                 this.options
                             );
-                            this.inventoryManager.setInventory(inventory);
+                            this.inventoryManager.setInventory = inventory;
 
                             return callback(null);
                         };
@@ -471,7 +467,7 @@ export default class Bot {
                             'You have not included the backpack.tf API key or access token in the environment variables'
                         );
 
-                        void this.getBptfAPICredentials().asCallback(err => {
+                        void this.getBptfAPICredentials.asCallback(err => {
                             if (err) {
                                 return callback(err);
                             }
@@ -485,7 +481,7 @@ export default class Bot {
                             [
                                 (callback): void => {
                                     log.debug('Getting inventory...');
-                                    void this.inventoryManager.getInventory().fetch().asCallback(callback);
+                                    void this.inventoryManager.getInventory.fetch().asCallback(callback);
                                 },
                                 (callback): void => {
                                     log.debug('Initializing bptf-listings...');
@@ -520,7 +516,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
-                        void this.friends.getMaxFriends().asCallback(callback);
+                        void this.friends.getMaxFriends.asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Creating listings...');
@@ -528,7 +524,7 @@ export default class Bot {
                     }
                 ],
                 (item, callback) => {
-                    if (this.botManager.isStopping()) {
+                    if (this.botManager.isStopping) {
                         // Shutdown is requested, break out of the startup process
                         return resolve();
                     }
@@ -540,14 +536,14 @@ export default class Bot {
                         return reject(err);
                     }
 
-                    if (this.botManager.isStopping()) {
+                    if (this.botManager.isStopping) {
                         // Shutdown is requested, break out of the startup process
                         return resolve();
                     }
 
                     this.manager.pollInterval = 1000;
 
-                    this.setReady();
+                    this.setReady = true;
                     this.handler.onReady();
 
                     this.manager.doPoll();
@@ -579,7 +575,7 @@ export default class Bot {
     getWebSession(eventOnly = false): Promise<string[]> {
         return new Promise((resolve, reject) => {
             if (!eventOnly) {
-                const cookies = this.getCookies();
+                const cookies = this.getCookies;
                 if (cookies.length !== 0) {
                     return resolve(cookies);
                 }
@@ -600,7 +596,7 @@ export default class Bot {
         });
     }
 
-    getAccountLimitations(): Promise<{
+    private get getAccountLimitations(): Promise<{
         limited: boolean;
         communityBanned: boolean;
         locked: boolean;
@@ -631,7 +627,7 @@ export default class Bot {
         });
     }
 
-    private getCookies(): string[] {
+    private get getCookies(): string[] {
         return this.community._jar
             .getCookies('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
@@ -640,29 +636,27 @@ export default class Bot {
             });
     }
 
-    private getBptfAPICredentials(): Promise<{
+    private get getBptfAPICredentials(): Promise<{
         apiKey: string;
         accessToken: string;
     }> {
         return this.bptfLogin().then(() => {
             log.verbose('Getting API key and access token...');
 
-            return Promise.all([this.getOrCreateBptfAPIKey(), this.getBptfAccessToken()]).then(
-                ([apiKey, accessToken]) => {
-                    log.verbose('Got backpack.tf API key and access token!');
+            return Promise.all([this.getOrCreateBptfAPIKey, this.getBptfAccessToken]).then(([apiKey, accessToken]) => {
+                log.verbose('Got backpack.tf API key and access token!');
 
-                    this.options.bptfAPIKey = apiKey;
-                    this.options.bptfAccessToken = accessToken;
+                this.options.bptfAPIKey = apiKey;
+                this.options.bptfAccessToken = accessToken;
 
-                    this.handler.onBptfAuth({ apiKey, accessToken });
+                this.handler.onBptfAuth({ apiKey, accessToken });
 
-                    return { apiKey, accessToken };
-                }
-            );
+                return { apiKey, accessToken };
+            });
         });
     }
 
-    private getBptfAccessToken(): Promise<string> {
+    private get getBptfAccessToken(): Promise<string> {
         return new Promise((resolve, reject) => {
             this.bptf.getAccessToken((err, accessToken) => {
                 if (err) {
@@ -674,7 +668,7 @@ export default class Bot {
         });
     }
 
-    private getOrCreateBptfAPIKey(): Promise<string> {
+    private get getOrCreateBptfAPIKey(): Promise<string> {
         return new Promise((resolve, reject) => {
             this.bptf.getAPIKey((err, apiKey) => {
                 if (err) {
@@ -837,7 +831,7 @@ export default class Bot {
     }
 
     private canSendEvents(): boolean {
-        return this.ready && !this.botManager.isStopping();
+        return this.ready && !this.botManager.isStopping;
     }
 
     private onMessage(steamID: SteamID, message: string): void {
@@ -863,7 +857,7 @@ export default class Bot {
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
         log.debug('Conf key needed');
 
-        void this.getTimeOffset().asCallback((err, offset) => {
+        void this.getTimeOffset.asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
             const confKey = SteamTotp.getConfirmationKey(this.options.steamIdentitySecret, time, tag);
 
@@ -928,7 +922,7 @@ export default class Bot {
     private async generateAuthCode(): Promise<string> {
         let offset: number;
         try {
-            offset = await this.getTimeOffset();
+            offset = await this.getTimeOffset;
         } catch (err) {
             // ignore error
         }
@@ -936,7 +930,7 @@ export default class Bot {
         return SteamTotp.generateAuthCode(this.options.steamSharedSecret, offset);
     }
 
-    private getTimeOffset(): Promise<number> {
+    private get getTimeOffset(): Promise<number> {
         return new Promise((resolve, reject) => {
             if (this.timeOffset !== null) {
                 return resolve(this.timeOffset);
@@ -955,7 +949,7 @@ export default class Bot {
     }
 
     private loginWait(): number {
-        const attemptsWithinPeriod = this.getLoginAttemptsWithinPeriod();
+        const attemptsWithinPeriod = this.getLoginAttemptsWithinPeriod;
 
         let wait = 0;
 
@@ -977,11 +971,11 @@ export default class Bot {
         return wait;
     }
 
-    private setLoginAttempts(attempts: number[]): void {
+    private set setLoginAttempts(attempts: number[]) {
         this.loginAttempts = attempts.map(time => dayjs.unix(time));
     }
 
-    private getLoginAttemptsWithinPeriod(): dayjs.Dayjs[] {
+    private get getLoginAttemptsWithinPeriod(): dayjs.Dayjs[] {
         const now = dayjs();
 
         return this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);

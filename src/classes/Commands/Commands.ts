@@ -67,7 +67,7 @@ export default class Commands {
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, opt.weaponsAsCurrency.enable);
+            this.cartCommand(steamID);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -146,8 +146,6 @@ export default class Commands {
             c.manager.refreshAutokeysCommand(steamID, this.bot, this.autokeys);
         } else if (command === 'refreshlist' && isAdmin) {
             c.manager.refreshListingsCommand(steamID, this.bot);
-        } else if (command === 'resetqueue') {
-            c.manager.resetQueueCommand(steamID, this.bot, this.cartQueue);
         } else if (command === 'stats' && isAdmin) {
             c.botStatus.statsCommand(steamID, this.bot);
         } else if (command === 'statsdw' && isAdmin) {
@@ -181,7 +179,7 @@ export default class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, opt.weaponsAsCurrency.enable);
+            this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
         } else if (isNoReply) {
@@ -270,7 +268,7 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory().getAmount(match.sku)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku)}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
@@ -312,7 +310,7 @@ export default class Commands {
         const amount = info.amount;
 
         const cart = new UserCart(steamID, this.bot);
-        cart.setNotify(true);
+        cart.setNotify = true;
 
         cart.addOurItem(match.sku, amount);
 
@@ -340,7 +338,7 @@ export default class Commands {
         const amount = info.amount;
 
         const cart = new UserCart(steamID, this.bot);
-        cart.setNotify(true);
+        cart.setNotify = true;
 
         cart.addTheirItem(match.sku, amount);
 
@@ -381,7 +379,7 @@ export default class Commands {
         const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
 
         const cartAmount = cart.getOurCount(match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(match.sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(match.sku);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, false) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
@@ -507,7 +505,7 @@ export default class Commands {
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
+    private cartCommand(steamID: SteamID): void {
         const opt = this.bot.options.commands.cart;
 
         if (!opt.enable) {
@@ -525,7 +523,7 @@ export default class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, false));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, false));
     }
 
     private clearCartCommand(steamID: SteamID): void {
@@ -554,9 +552,9 @@ export default class Commands {
             return;
         }
 
-        cart.setNotify(true);
+        cart.setNotify = true;
 
-        cart.isDonating(false);
+        cart.isDonating = false;
 
         this.addCartToQueue(cart, false, false);
     }
@@ -576,7 +574,7 @@ export default class Commands {
             // The user is in the queue and the offer is already being processed
             const cart = this.cartQueue.getCart(steamID);
 
-            if (cart.isMade()) {
+            if (cart.isMade) {
                 this.bot.sendMessage(
                     steamID,
                     custom.isBeingSent
@@ -584,7 +582,7 @@ export default class Commands {
                         : '⚠️ Your offer is already being sent! Please try again when the offer is active.'
                 );
                 return;
-            } else if (cart.isCanceled()) {
+            } else if (cart.isCanceled) {
                 this.bot.sendMessage(
                     steamID,
                     custom.isCancelling
@@ -594,7 +592,7 @@ export default class Commands {
                 return;
             }
 
-            cart.setCanceled('BY_USER');
+            cart.setCanceled = 'BY_USER';
         } else if (positionInQueue !== -1) {
             // The user is in the queue
             this.cartQueue.dequeue(steamID);
@@ -808,7 +806,7 @@ export default class Commands {
         const cart = AdminCart.getCart(steamID) || new AdminCart(steamID, this.bot);
 
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku);
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
@@ -898,7 +896,7 @@ export default class Commands {
         const cart = DonateCart.getCart(steamID) || new DonateCart(steamID, this.bot);
 
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku);
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
         // Correct trade if needed
@@ -958,14 +956,14 @@ export default class Commands {
 
         this.isDonating = false;
 
-        cart.setNotify(true);
+        cart.setNotify = true;
 
-        cart.isDonating(true);
+        cart.isDonating = true;
 
         this.addCartToQueue(cart, true, false);
     }
 
-    private donateCartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
+    private donateCartCommand(steamID: SteamID): void {
         if (!this.isDonating) {
             this.bot.sendMessage(
                 steamID,
@@ -973,7 +971,7 @@ export default class Commands {
             );
             return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, true));
     }
 
     private buyBPTFPremiumCommand(steamID: SteamID, message: string): void {
@@ -1011,7 +1009,7 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount('5021;6');
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6');
 
         if (ourAmount < amountKeys) {
             this.bot.sendMessage(
@@ -1045,9 +1043,9 @@ export default class Commands {
 
         Cart.addCart(cart);
 
-        cart.setNotify(true);
+        cart.setNotify = true;
 
-        cart.isBuyingPremium(true);
+        cart.isBuyingPremium = true;
 
         this.addCartToQueue(cart, false, true);
     }
