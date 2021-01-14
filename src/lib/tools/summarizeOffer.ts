@@ -27,7 +27,7 @@ export function summarizeToChat(
         `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
         `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
         '\n──────────────────────' +
-        (value.diff > 0
+        (value.diff > 0 && !['review-partner', 'declined'].includes(type)
             ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : value.diff < 0
