@@ -65,7 +65,7 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
                         inline: true
                     },
                     {
-                        name: '__Last 24 hours__',
+                        name: '__< 24 hours__',
                         value:
                             `**${trades.hours24.processed}**` +
                             `\n**${trades.hours24.accepted.offer + trades.hours24.accepted.sent}**` +
@@ -83,7 +83,7 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
                         inline: true
                     },
                     {
-                        name: '__Since beginning of today__',
+                        name: '__Today__',
                         value:
                             `**${trades.today.processed}**` +
                             `\n**${trades.today.accepted.offer + trades.today.accepted.sent}**` +
