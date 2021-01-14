@@ -52,8 +52,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): voi
             offer.partner,
             `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
                 (opt.manualReview.showOfferSummary
-                    ? '\n\nOffer Summary:\n' +
-                      t
+                    ? t
                           .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
                           .replace('Asked', '  My side')
                           .replace('Offered', 'Your side') +
