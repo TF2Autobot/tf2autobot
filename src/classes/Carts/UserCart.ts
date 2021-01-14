@@ -174,12 +174,12 @@ export default class UserCart extends Cart {
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
-        const value = price.toValue(useKeys ? keyPrices[isBuyer ? 'buy' : 'sell'].metal : undefined);
+        const value = price.toValue(useKeys ? keyPrices[isBuyer ? 'sell' : 'buy'].metal : undefined);
 
         const currencyValues: {
             [sku: string]: number;
         } = {
-            '5021;6': useKeys ? keyPrices[isBuyer ? 'buy' : 'sell'].toValue() : -1,
+            '5021;6': useKeys ? keyPrices[isBuyer ? 'sell' : 'buy'].toValue() : -1,
             '5002;6': 9,
             '5001;6': 3,
             '5000;6': 1
