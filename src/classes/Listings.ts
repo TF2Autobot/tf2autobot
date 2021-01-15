@@ -573,7 +573,9 @@ export default class Listings {
                             const name = getKeyByValue(spellsData, spell);
                             spellNames.push(name.replace(name, optR.spells[name]));
                         });
-                    } else if (hv.sp !== undefined && optD.showStrangeParts) {
+                    }
+
+                    if (hv.sp !== undefined && optD.showStrangeParts) {
                         for (const pSku in hv.sp) {
                             if (!Object.prototype.hasOwnProperty.call(hv.sp, pSku)) {
                                 continue;
@@ -587,7 +589,9 @@ export default class Listings {
                                 );
                             }
                         }
-                    } else if (hv.ke !== undefined && optD.showKillstreaker) {
+                    }
+
+                    if (hv.ke !== undefined && optD.showKillstreaker) {
                         for (const pSku in hv.ke) {
                             if (!Object.prototype.hasOwnProperty.call(hv.ke, pSku)) {
                                 continue;
@@ -601,7 +605,9 @@ export default class Listings {
                                 );
                             }
                         }
-                    } else if (hv.ks !== undefined && optD.showSheen) {
+                    }
+
+                    if (hv.ks !== undefined && optD.showSheen) {
                         for (const pSku in hv.ks) {
                             if (!Object.prototype.hasOwnProperty.call(hv.ks, pSku)) {
                                 continue;
@@ -613,7 +619,9 @@ export default class Listings {
                                 sheenName.push(name.replace(name, optR.sheens[name]));
                             }
                         }
-                    } else if (hv.p !== undefined && optD.showPainted) {
+                    }
+
+                    if (hv.p !== undefined && optD.showPainted) {
                         for (const pSku in hv.p) {
                             if (!Object.prototype.hasOwnProperty.call(hv.p, pSku)) {
                                 continue;
