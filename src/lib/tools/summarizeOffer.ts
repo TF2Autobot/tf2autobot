@@ -27,12 +27,14 @@ export function summarizeToChat(
         `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
         `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
         '\n──────────────────────' +
-        (value.diff > 0 && ['summary-accepted', 'review-admin'].includes(type)
-            ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
-            : value.diff < 0
-            ? `\n📉 ${isSteamChat ? 'Loss from underpay:' : '***Loss from underpay:***'} ${value.diffRef} ref` +
-              (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+        (['summary-accepted', 'review-admin'].includes(type)
+            ? value.diff > 0
+                ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
+                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                : value.diff < 0
+                ? `\n📉 ${isSteamChat ? 'Loss from underpay:' : '***Loss from underpay:***'} ${value.diffRef} ref` +
+                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                : ''
             : '')
     );
 }
