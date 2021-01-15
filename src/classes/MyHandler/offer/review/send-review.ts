@@ -86,8 +86,8 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
             const itemsName = t.check.getHighValueItems(
                 meta.highValue.items.their,
                 bot,
-                t.getFromSchema.getPaints(bot.schema),
-                t.getFromSchema.getStrangeParts(bot.schema)
+                bot.schema.getPaints(),
+                bot.schema.getStrangeParts()
             );
 
             for (const name in itemsName) {

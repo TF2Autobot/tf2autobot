@@ -99,8 +99,8 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.their,
                     bot,
-                    t.getFromSchema.getPaints(bot.schema),
-                    t.getFromSchema.getStrangeParts(bot.schema)
+                    bot.schema.getPaints(),
+                    bot.schema.getStrangeParts()
                 );
 
                 for (const name in itemsName) {
@@ -125,8 +125,8 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.our,
                     bot,
-                    t.getFromSchema.getPaints(bot.schema),
-                    t.getFromSchema.getStrangeParts(bot.schema)
+                    bot.schema.getPaints(),
+                    bot.schema.getStrangeParts()
                 );
 
                 for (const name in itemsName) {
@@ -150,8 +150,8 @@ export default function processAccepted(
             const itemsName = t.check.getHighValueItems(
                 offerSent.items.their,
                 bot,
-                t.getFromSchema.getPaints(bot.schema),
-                t.getFromSchema.getStrangeParts(bot.schema)
+                bot.schema.getPaints(),
+                bot.schema.getStrangeParts()
             );
 
             for (const name in itemsName) {
@@ -175,8 +175,8 @@ export default function processAccepted(
             const itemsName = t.check.getHighValueItems(
                 offerSent.items.our,
                 bot,
-                t.getFromSchema.getPaints(bot.schema),
-                t.getFromSchema.getStrangeParts(bot.schema)
+                bot.schema.getPaints(),
+                bot.schema.getStrangeParts()
             );
 
             for (const name in itemsName) {

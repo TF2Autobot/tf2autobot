@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { Effect, Paints, StrangeParts } from '../types/common';
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager, { Effect } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 
@@ -12,7 +11,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 
 import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
-import { check, getFromSchema } from '../lib/tools/export';
+import { check } from '../lib/tools/export';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -126,16 +125,12 @@ export default class Inventory {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
-            this.options,
-            getFromSchema.getPaints(this.schema),
-            getFromSchema.getStrangeParts(this.schema)
+            this.options
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
-            this.options,
-            getFromSchema.getPaints(this.schema),
-            getFromSchema.getStrangeParts(this.schema)
+            this.options
         );
     }
 
@@ -220,7 +215,7 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
-            const getUnusual = getFromSchema.getUnusualEffects(this.schema);
+            const getUnusual = this.schema.getUnusualEffects();
             const mapUnusual = getUnusual.map(e => {
                 s.effect = e.id;
                 return this.getAmount(SKU.fromObject(s), tradableOnly, true);
@@ -270,18 +265,12 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(
-        items: EconItem[],
-        schema: SchemaManager.Schema,
-        opt: Options,
-        paints: Paints,
-        parts: StrangeParts
-    ): Dict {
+    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema, opt: Options): Dict {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
             const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
-            const attributes = check.highValue(items[i], opt, paints, parts);
+            const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 
             let isDuel5xUses: boolean | null = null;
             if (sku === '241;6') {
@@ -367,9 +356,7 @@ export function getSkuAmountCanTrade(
         name:
             amountCanTrade > amountCanTradeGeneric
                 ? bot.schema.getName(SKU.fromString(sku))
-                : genericNameAndMatch(
-                      bot.schema.getName(SKU.fromString(sku), false),
-                      getFromSchema.getUnusualEffects(bot.schema)
-                  ).name
+                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.schema.getUnusualEffects())
+                      .name
     };
 }

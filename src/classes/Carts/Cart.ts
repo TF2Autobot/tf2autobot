@@ -11,7 +11,6 @@ import { UnknownDictionary } from '../../types/common';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { getUnusualEffects } from '../../lib/tools/getFromSchema';
 
 import Bot from '../Bot';
 
@@ -136,7 +135,8 @@ export default abstract class Cart {
         if (pSku.quality === 5) {
             // try to count all unusual types
             return (
-                getUnusualEffects(this.bot.schema)
+                this.bot.schema
+                    .getUnusualEffects()
                     .map(e => {
                         pSku.effect = e.id;
                         const s = SKU.fromObject(pSku);

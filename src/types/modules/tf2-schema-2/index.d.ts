@@ -168,6 +168,19 @@ declare module 'tf2-schema-2' {
             outputQuality?: number;
         }
 
+        export interface Effect {
+            name: string;
+            id: number;
+        }
+
+        export interface Paints {
+            [name: string]: string;
+        }
+
+        export interface StrangeParts {
+            [name: string]: string;
+        }
+
         export class Schema {
             static getOverview(apiKey: string, callback: (err: any, result?: Record<string, unknown>) => void): void;
 
@@ -218,6 +231,14 @@ declare module 'tf2-schema-2' {
             getSkinIdByName(name: string): number | null;
 
             getName(item: Item, proper?: boolean): string | null;
+
+            getUnusualEffects(): Effect[];
+
+            getPaintByDecimal(decimal: number): string | null;
+
+            getPaints(): Paints;
+
+            getStrangeParts(): StrangeParts;
 
             toJSON(): { version: string; time: number; raw: Record<string, any> };
         }

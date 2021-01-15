@@ -12,11 +12,9 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import { getFromSchema } from '../lib/tools/export';
 
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
-import { Paints, StrangeParts } from '../types/common';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -214,8 +212,6 @@ export default class Listings {
                 const newDetails = this.getDetails(
                     listing.intent,
                     match,
-                    getFromSchema.getPaints(this.bot.schema),
-                    getFromSchema.getStrangeParts(this.bot.schema),
                     inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                 );
 
@@ -247,12 +243,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
-                    details: this.getDetails(
-                        0,
-                        matchNew,
-                        getFromSchema.getPaints(this.bot.schema),
-                        getFromSchema.getStrangeParts(this.bot.schema)
-                    ),
+                    details: this.getDetails(0, matchNew),
                     currencies: matchNew.buy
                 });
             }
@@ -267,8 +258,6 @@ export default class Listings {
                     details: this.getDetails(
                         1,
                         matchNew,
-                        getFromSchema.getPaints(this.bot.schema),
-                        getFromSchema.getStrangeParts(this.bot.schema),
                         inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
                     ),
                     currencies: matchNew.sell
@@ -523,7 +512,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, entry: Entry, paints: Paints, parts: StrangeParts, item?: DictItem): string {
+    private getDetails(intent: 0 | 1, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -583,7 +572,7 @@ export default class Listings {
 
                             if (hv.sp[pSku] === true) {
                                 hasStrangeParts = true;
-                                const name = getKeyByValue(parts, pSku);
+                                const name = getKeyByValue(this.bot.schema.getStrangeParts(), pSku);
                                 partsNames.push(
                                     name.replace(name, optR.strangeParts[name] ? optR.strangeParts[name] : name)
                                 );
@@ -629,7 +618,7 @@ export default class Listings {
 
                             if (hv.p[pSku] === true) {
                                 hasPaint = true;
-                                const name = getKeyByValue(paints, pSku);
+                                const name = getKeyByValue(this.bot.schema.getPaints(), pSku);
                                 paintName.push(name.replace(name, optR.painted[name]));
                             }
                         }

@@ -5,7 +5,7 @@ import { spellsData, killstreakersData, sheensData } from '../data';
 import { DictItem } from '../../classes/Inventory';
 import Bot from '../../classes/Bot';
 import Options from '../../classes/Options';
-import { Paints, StrangeParts } from '../../types/common';
+import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
     return items

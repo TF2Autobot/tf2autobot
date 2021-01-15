@@ -45,7 +45,7 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { craftAll, uncraftAll, giftWords, noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, check, uptime, getFromSchema } from '../../lib/tools/export';
+import { summarize, check, uptime } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 
@@ -792,8 +792,8 @@ export default class MyHandler extends Handler {
             const itemsName = check.getHighValueItems(
                 getHighValue.our.items,
                 this.bot,
-                getFromSchema.getPaints(this.bot.schema),
-                getFromSchema.getStrangeParts(this.bot.schema)
+                this.bot.schema.getPaints(),
+                this.bot.schema.getStrangeParts()
             );
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
