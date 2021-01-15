@@ -250,15 +250,15 @@ export default class Inventory {
         }
     }
 
-    getCurrencies(bot: Bot): { [sku: string]: string[] } {
+    get getCurrencies(): { [sku: string]: string[] } {
         const toObject: {
             [sku: string]: string[];
         } = {};
 
         ['5021;6', '5002;6', '5001;6', '5000;6']
             .concat(
-                bot.handler.isWeaponsAsCurrency.enable
-                    ? bot.handler.isWeaponsAsCurrency.withUncraft
+                this.options.weaponsAsCurrency.enable
+                    ? this.options.weaponsAsCurrency.withUncraft
                         ? craftAll.concat(uncraftAll)
                         : craftAll
                     : []
