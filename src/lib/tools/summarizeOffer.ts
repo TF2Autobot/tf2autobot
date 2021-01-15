@@ -11,7 +11,7 @@ interface ValueDiff {
 export function summarizeToChat(
     offer: TradeOffer,
     bot: Bot,
-    type: string,
+    type: SummarizeType,
     withLink: boolean,
     value: ValueDiff,
     keyPrice: KeyPrices,
@@ -27,7 +27,7 @@ export function summarizeToChat(
         `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
         `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
         '\n──────────────────────' +
-        (value.diff > 0 && !['review-partner', 'declined'].includes(type)
+        (value.diff > 0 && ['summary-accepted', 'review-admin'].includes(type)
             ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
               (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
             : value.diff < 0
@@ -37,6 +37,8 @@ export function summarizeToChat(
     );
 }
 
+type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
+
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
 
@@ -45,7 +47,7 @@ import { replace } from '../tools/export';
 export default function summarize(
     offer: TradeOffer,
     bot: Bot,
-    type: string,
+    type: SummarizeType,
     withLink: boolean
 ): { asked: string; offered: string } {
     const value = offer.data('value') as ItemsValue;
