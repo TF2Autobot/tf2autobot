@@ -3,12 +3,12 @@ import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 
 import Bot from '../../../Bot';
 
-export default function declined(offer: TradeOffer, bot: Bot): void {
+export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, opt.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
 
     offer.data('isDeclined', true);
@@ -179,21 +179,10 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         //
     }
 
-    const summary = summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true);
     const invalidValueSummary =
-        summary +
+        summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true) +
         "\n[You're missing: " +
-        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`) +
-        (summary.includes('Mann Co. Supply Crate Key')
-            ? '\n\nI value 🔑 Mann Co. Supply Crate Keys at ' +
-              `${keyPrices.buy.toString()} when I am buying, and ${keyPrices.sell.toString()} when I am selling.` +
-              '\n\nIn other words,' +
-              `\n• Whenever I am buying stuff from you, if the trade involves Mann Co. Supply Crate Key,` +
-              ` I will use ${keyPrices.buy.toString()} as my conversion rate.` +
-              `\n• Whenever I am selling stuff to you, if the trade involves Mann Co. Supply Crate Key,` +
-              ` I will use ${keyPrices.sell.toString()} as my conversion rate.` +
-              `\n\nKey rate source: ${keyPrices.src}`
-            : '');
+        (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 
     bot.sendMessage(offer.partner, reply + (reasonForInvalidValue ? invalidValueSummary : ''));
 }

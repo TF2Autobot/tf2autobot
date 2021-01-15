@@ -17,6 +17,7 @@ export default async function sendTradeSummary(
     items: ItemSKUList,
     bot: Bot,
     processTime: number,
+    isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
     const optBot = bot.options;
@@ -83,7 +84,7 @@ export default async function sendTradeSummary(
 
     const botInfo = bot.handler.getBotInfo;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, optBot.showOnlyMetal.enable);
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.showOnlyMetal.enable);
     const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
     const links = t.generateLinks(offer.partner.toString());
     const misc = optDW.tradeSummary.misc;

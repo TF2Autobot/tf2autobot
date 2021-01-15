@@ -144,10 +144,10 @@ export default class InventoryManager {
         return 0;
     }
 
-    amountCanAfford(useKeys: boolean, isBuyer: boolean, price: Currencies, inventory: Inventory): number {
-        const keyPrices = this.pricelist.getKeyPrices;
+    amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory): number {
+        const keyPrice = this.pricelist.getKeyPrice;
 
-        const value = price.toValue(keyPrices[isBuyer ? 'buy' : 'sell'].metal);
+        const value = price.toValue(keyPrice.metal);
 
         const buyerCurrencies = inventory.getCurrencies;
 
@@ -157,7 +157,7 @@ export default class InventoryManager {
             buyerCurrencies['5000;6'].length;
 
         if (useKeys) {
-            totalValue += buyerCurrencies['5021;6'].length * keyPrices[isBuyer ? 'buy' : 'sell'].toValue();
+            totalValue += buyerCurrencies['5021;6'].length * keyPrice.toValue();
         }
 
         return Math.floor(totalValue / value);

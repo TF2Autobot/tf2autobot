@@ -103,7 +103,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
         `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
 
-    const keyPrices = bot.pricelist.getKeyPrices;
+    const keyPrice = bot.pricelist.getKeyPrice;
     const value = offerData.value;
 
     const items = offerData.dict || { our: null, their: null };
@@ -135,8 +135,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
             'Asked: ' + summarizeItems(items.our, bot.schema) + '\nOffered: ' + summarizeItems(items.their, bot.schema);
     } else {
         const valueDiff =
-            new Currencies(value.their).toValue(keyPrices.buy.metal) -
-            new Currencies(value.our).toValue(keyPrices.sell.metal);
+            new Currencies(value.their).toValue(keyPrice.metal) - new Currencies(value.our).toValue(keyPrice.metal);
         const valueDiffRef = Currencies.toRefined(Currencies.toScrap(Math.abs(valueDiff * (1 / 9)))).toString();
         reply +=
             'Asked: ' +

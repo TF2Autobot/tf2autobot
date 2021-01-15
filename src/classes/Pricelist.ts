@@ -160,7 +160,6 @@ export default class Pricelist extends EventEmitter {
         return this.globalKeyPrices;
     }
 
-    /** used only in profit calculation */
     get getKeyPrice(): Currencies {
         return this.globalKeyPrices.sell;
     }

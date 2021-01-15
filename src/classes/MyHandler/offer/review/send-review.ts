@@ -7,7 +7,7 @@ import processReview from './process-review';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 
-export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): void {
+export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const time = t.timeNow(bot);
@@ -15,7 +15,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): voi
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
 
-    const content = processReview(offer, meta, bot);
+    const content = processReview(offer, meta, bot, isTradingKeys);
 
     const hasCustomNote = !(
         opt.manualReview.invalidItems.note !== '' ||

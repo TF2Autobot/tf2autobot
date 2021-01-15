@@ -35,11 +35,11 @@ export default class UserCart extends Cart {
         // TODO: Check for dupes
 
         const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
-        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrices.buy.metal);
+        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrice.metal);
 
-        const minimumKeysDupeCheck = this.bot.handler.minimumKeysDupeCheck * keyPrices.buy.toValue();
+        const minimumKeysDupeCheck = this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
         if (isDupedCheckEnabled && theirItemsValue > minimumKeysDupeCheck) {
             const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
@@ -96,10 +96,10 @@ export default class UserCart extends Cart {
         const ourCurrencies = this.getOurCurrencies;
         const theirCurrencies = this.getTheirCurrencies;
 
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
-        const ourValue = ourCurrencies.toValue(keyPrices.sell.metal);
-        const theirValue = theirCurrencies.toValue(keyPrices.buy.metal);
+        const ourValue = ourCurrencies.toValue(keyPrice.metal);
+        const theirValue = theirCurrencies.toValue(keyPrice.metal);
 
         const useKeys = this.canUseKeys;
 
@@ -107,19 +107,19 @@ export default class UserCart extends Cart {
             // Our value is greater, we are selling
             return {
                 isBuyer: false,
-                currencies: Currencies.toCurrencies(ourValue - theirValue, useKeys ? keyPrices.sell.metal : undefined)
+                currencies: Currencies.toCurrencies(ourValue - theirValue, useKeys ? keyPrice.metal : undefined)
             };
         } else {
             // Our value is smaller, we are buying
             return {
                 isBuyer: true,
-                currencies: Currencies.toCurrencies(theirValue - ourValue, useKeys ? keyPrices.buy.metal : undefined)
+                currencies: Currencies.toCurrencies(theirValue - ourValue, useKeys ? keyPrice.metal : undefined)
             };
         }
     }
 
     private get getOurCurrencies(): Currencies {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         let value = 0;
 
@@ -134,14 +134,14 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += this.bot.pricelist.getPrice(sku, true).sell.toValue(keyPrices.sell.metal) * this.our[sku];
+            value += this.bot.pricelist.getPrice(sku, true).sell.toValue(keyPrice.metal) * this.our[sku];
         }
 
-        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrices.sell.metal : undefined);
+        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrice.metal : undefined);
     }
 
     private get getTheirCurrencies(): Currencies {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         let value = 0;
 
@@ -158,28 +158,27 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            value += match.buy.toValue(keyPrices.buy.metal) * this.their[sku];
+            value += match.buy.toValue(keyPrice.metal) * this.their[sku];
         }
 
-        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrices.buy.metal : undefined);
+        return Currencies.toCurrencies(value, this.canUseKeys ? keyPrice.metal : undefined);
     }
 
     private getRequired(
         buyerCurrencies: { [sku: string]: number },
-        isBuyer: boolean,
         price: Currencies,
         useKeys: boolean
     ): { currencies: { [sku: string]: number }; change: number } {
         log.debug('Getting required currencies');
 
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
-        const value = price.toValue(useKeys ? keyPrices[isBuyer ? 'buy' : 'sell'].metal : undefined);
+        const value = price.toValue(useKeys ? keyPrice.metal : undefined);
 
         const currencyValues: {
             [sku: string]: number;
         } = {
-            '5021;6': useKeys ? keyPrices[isBuyer ? 'buy' : 'sell'].toValue() : -1,
+            '5021;6': useKeys ? keyPrice.toValue() : -1,
             '5002;6': 9,
             '5001;6': 3,
             '5000;6': 1
@@ -578,7 +577,7 @@ export default class UserCart extends Cart {
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, isBuyer, currencies, buyerInventory) < 1) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory) < 1) {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
@@ -587,10 +586,10 @@ export default class UserCart extends Cart {
             );
         }
 
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
-        const ourItemsValue = this.getOurCurrencies.toValue(keyPrices.sell.metal);
-        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrices.buy.metal);
+        const ourItemsValue = this.getOurCurrencies.toValue(keyPrice.metal);
+        const theirItemsValue = this.getTheirCurrencies.toValue(keyPrice.metal);
 
         // Create exchange object with our and their items values
         const exchange = {
@@ -621,7 +620,7 @@ export default class UserCart extends Cart {
             });
         }
 
-        const required = this.getRequired(buyerCurrenciesCount, isBuyer, currencies, this.canUseKeys);
+        const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys);
 
         let addWeapons = 0;
         if (opt.weaponsAsCurrency.enable) {
@@ -631,7 +630,7 @@ export default class UserCart extends Cart {
         }
 
         // Add the value that the buyer pays to the exchange
-        exchange[isBuyer ? 'our' : 'their'].value += currencies.toValue(keyPrices[isBuyer ? 'sell' : 'buy'].metal);
+        exchange[isBuyer ? 'our' : 'their'].value += currencies.toValue(keyPrice.metal);
         exchange[isBuyer ? 'our' : 'their'].keys += required.currencies['5021;6'];
         exchange[isBuyer ? 'our' : 'their'].scrap +=
             required.currencies['5002;6'] * 9 +
@@ -712,8 +711,8 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 SKU.fromString(sku).effect !== null &&
-                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrices.buy.metal) >
-                    this.bot.handler.minimumKeysDupeCheck * keyPrices.buy.toValue();
+                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
+                    this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             theirItemsCount += amount;
             let missing = amount;
@@ -1018,9 +1017,9 @@ export default class UserCart extends Cart {
 
         // Doing this so that the prices will always be displayed as only metal
         if (opt.showOnlyMetal.enable) {
-            exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
+            exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
-            exchange.their.scrap += exchange.their.keys * keyPrices.sell.toValue();
+            exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
             exchange.their.keys = 0;
         }
 
@@ -1036,7 +1035,7 @@ export default class UserCart extends Cart {
                 keys: exchange.their.keys,
                 metal: Currencies.toRefined(exchange.their.scrap)
             },
-            rate: keyPrices.sell.metal
+            rate: keyPrice.metal
         });
         offer.data('prices', itemPrices);
 

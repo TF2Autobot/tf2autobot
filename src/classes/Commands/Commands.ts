@@ -221,7 +221,7 @@ export default class Commands {
         const isBuying = match.intent === 0 || match.intent === 2;
         const isSelling = match.intent === 1 || match.intent === 2;
 
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const isKey = match.sku === '5021;6';
 
@@ -237,8 +237,8 @@ export default class Commands {
                 amount === 1
                     ? match.buy
                     : Currencies.toCurrencies(
-                          match.buy.toValue(keyPrices.buy.metal) * amount,
-                          isKey ? undefined : keyPrices.buy.metal
+                          match.buy.toValue(keyPrice.metal) * amount,
+                          isKey ? undefined : keyPrice.metal
                       );
 
             reply += `${pluralize(match.name, 2)} for ${currencies.toString()}`;
@@ -249,8 +249,8 @@ export default class Commands {
                 amount === 1
                     ? match.sell
                     : Currencies.toCurrencies(
-                          match.sell.toValue(keyPrices.sell.metal) * amount,
-                          isKey ? undefined : keyPrices.sell.metal
+                          match.sell.toValue(keyPrice.metal) * amount,
+                          isKey ? undefined : keyPrice.metal
                       );
 
             if (reply === '') {

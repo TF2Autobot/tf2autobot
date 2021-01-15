@@ -12,6 +12,7 @@ export default function processAccepted(
     offer: TradeOffer,
     autokeys: Autokeys,
     bot: Bot,
+    isTradingKeys: boolean,
     processTime: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
     const opt = bot.options;
@@ -199,7 +200,7 @@ export default function processAccepted(
     const itemsSKU = itemList(offer);
 
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isOfferSent);
+        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isTradingKeys, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
@@ -212,7 +213,7 @@ export default function processAccepted(
         };
 
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, opt.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         bot.messageAdmins(
