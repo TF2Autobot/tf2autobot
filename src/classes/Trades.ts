@@ -423,7 +423,7 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    reject(err);
+                    return reject(err);
                 }
 
                 offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
@@ -432,10 +432,11 @@ export default class Trades {
                     // Maybe wait for confirmation to be accepted and then resolve?
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
+                        return reject(err);
                     });
                 }
 
-                resolve(status);
+                return resolve(status);
             });
         });
     }
