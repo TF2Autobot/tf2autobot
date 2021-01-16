@@ -525,7 +525,7 @@ export default class MyHandler extends Handler {
             this.bot.manager,
             this.bot.schema,
             opt,
-            false
+            true
         );
 
         const items = {
