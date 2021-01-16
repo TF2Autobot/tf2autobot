@@ -577,35 +577,38 @@ export default class Pricelist extends EventEmitter {
                 return callGetIndex;
             }
         } else {
-            const defindex = sku.split(';')[0];
-            if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
-                const name = this.schema.getName(pSku, false);
+            if (sku) {
+                const defindex = sku.split(';')[0];
+                if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
+                    const name = this.schema.getName(pSku, false);
 
-                const paintsNameAndColor: { name: string; color: number }[] = [];
-                const paintData = this.bot.schema.getPaints();
-                Object.keys(paintData).forEach(name => {
-                    paintsNameAndColor.push({ name: name, color: +paintData[name].replace('p', '') });
-                });
+                    const paintsNameAndColor: { name: string; color: number }[] = [];
+                    const paintData = this.bot.schema.getPaints();
+                    Object.keys(paintData).forEach(name => {
+                        paintsNameAndColor.push({ name: name, color: +paintData[name].replace('p', '') });
+                    });
 
-                const paintedMatch = paintsNameAndColor.find(p => pSku.paint === p.color);
+                    const paintedMatch = paintsNameAndColor.find(p => pSku.paint === p.color);
 
-                if (paintedMatch) {
-                    const findIndex = this.prices.findIndex(
-                        entry =>
-                            entry.name === name.replace(paintedMatch.name, '').replace(' (Paint: ', '').replace(')', '')
-                    );
+                    if (paintedMatch) {
+                        const findIndex = this.prices.findIndex(
+                            entry =>
+                                entry.name ===
+                                name.replace(paintedMatch.name, '').replace(' (Paint: ', '').replace(')', '')
+                        );
 
-                    if (showLog) {
-                        log.debug('src/Pricelist: getIndexWithGenerics(...) - Painted, match', {
-                            sku: sku,
-                            parsedSku: parsedSku,
-                            pSku: pSku,
-                            name: name,
-                            paintedMatch: paintedMatch,
-                            findIndex: findIndex
-                        });
+                        if (showLog) {
+                            log.debug('src/Pricelist: getIndexWithGenerics(...) - Painted, match', {
+                                sku: sku,
+                                parsedSku: parsedSku,
+                                pSku: pSku,
+                                name: name,
+                                paintedMatch: paintedMatch,
+                                findIndex: findIndex
+                            });
+                        }
+                        return findIndex;
                     }
-                    return findIndex;
                 }
             } else {
                 if (showLog) {
