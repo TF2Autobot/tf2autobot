@@ -8,7 +8,7 @@ import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
-// import log from '../lib/logger';
+import log from '../lib/logger';
 
 import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
 import { check } from '../lib/tools/export';
@@ -174,22 +174,49 @@ export default class Inventory {
         return null;
     }
 
-    findBySKU(sku: string, tradableOnly = true): string[] {
+    findBySKU(sku: string, tradableOnly = true, showLog = false): string[] {
         const tradable = this.tradable[sku] || [];
 
         if (tradableOnly) {
             // Copies the array
-            return tradable.map(item => (item ? item.id : undefined)).slice(0);
+            // return tradable.map(item => (item ? item.id : undefined)).slice(0);
+            const mapTradable = tradable.map(item => (item ? item.id : undefined));
+            const sliceTradable = mapTradable.slice(0);
+            if (showLog) {
+                log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
+                    mapTradable: mapTradable,
+                    sliceTradable: sliceTradable
+                });
+            }
+
+            return sliceTradable;
         }
 
         const nonTradable = this.nonTradable[sku] || [];
-        return nonTradable
-            .map(item => (item ? item.id : undefined))
-            .concat(tradable.map(item => (item ? item.id : undefined)));
+        // return nonTradable
+        //     .map(item => (item ? item.id : undefined))
+        //     .concat(tradable.map(item => (item ? item.id : undefined)));
+        const mapUntradable = nonTradable.map(item => (item ? item.id : undefined));
+        const mapTradable = tradable.map(item => (item ? item.id : undefined));
+        const concatBoth = mapUntradable.concat(mapTradable);
+
+        if (showLog) {
+            log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
+                mapUntradable: mapUntradable,
+                mapTradable: mapTradable,
+                concatBoth: concatBoth
+            });
+        }
+
+        return concatBoth;
     }
 
-    getAmount(sku: string, tradableOnly?: boolean): number {
-        const amount = this.findBySKU(sku, tradableOnly).length;
+    getAmount(sku: string, tradableOnly?: boolean, showLog?: boolean): number {
+        // return this.findBySKU(sku, tradableOnly).length;
+        const amount = this.findBySKU(sku, tradableOnly, showLog).length;
+        if (showLog) {
+            log.debug('src/Inventory: getAmount', amount);
+        }
         return amount;
     }
 
@@ -198,18 +225,35 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
-            return (
-                this.schema
-                    .getUnusualEffects()
-                    .map(e => {
-                        s.effect = e.id;
-                        return this.getAmount(SKU.fromObject(s), tradableOnly);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            // return (
+            //     this.schema
+            //         .getUnusualEffects()
+            //         .map(e => {
+            //             s.effect = e.id;
+            //             return this.getAmount(SKU.fromObject(s), tradableOnly);
+            //         })
+            //         // add up total found; total is undefined to being with
+            //         .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            // );
+            const getUnusual = this.schema.getUnusualEffects();
+            const mapUnusual = getUnusual.map(e => {
+                s.effect = e.id;
+                return this.getAmount(SKU.fromObject(s), tradableOnly, true);
+            });
+            const reduceUnusual = mapUnusual.reduce((total, currentTotal) =>
+                total ? total + currentTotal : currentTotal
             );
+            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality === 5', {
+                getUnusual: getUnusual,
+                mapUnusual: mapUnusual,
+                reduceUnusual: reduceUnusual
+            });
+            return reduceUnusual;
         } else {
-            return this.getAmount(sku, tradableOnly);
+            // return this.getAmount(sku, tradableOnly);
+            const callGetAmount = this.getAmount(sku, tradableOnly, true);
+            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5', callGetAmount);
+            return callGetAmount;
         }
     }
 
@@ -324,8 +368,8 @@ export function getSkuAmountCanTrade(
     bot: Bot,
     buying = true
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, true);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, true);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,
