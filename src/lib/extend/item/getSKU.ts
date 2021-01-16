@@ -17,7 +17,8 @@ let isCrate = false;
 export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
-    normalizeStrangeUnusual: boolean
+    normalizeStrangeUnusual: boolean,
+    normalizePainted: boolean
 ): string {
     const self = this as EconItem;
 
@@ -38,7 +39,7 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeUnusual),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, schema)
+            paint: getPainted(self, schema, normalizePainted)
         },
         getOutput(self, schema)
     );
@@ -386,7 +387,11 @@ function getCrateSeries(item: EconItem): number | null {
     }
 }
 
-function getPainted(item: EconItem, schema: SchemaManager.Schema): number | null {
+function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePainted: boolean): number | null {
+    if (normalizePainted) {
+        return null;
+    }
+
     const descriptions = item.descriptions;
 
     const paints = schema.getPaints();

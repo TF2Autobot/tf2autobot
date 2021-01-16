@@ -236,7 +236,12 @@ export default class Inventory {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
-            const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
+            const sku = items[i].getSKU(
+                schema,
+                opt.normalize.festivized,
+                opt.normalize.strangeUnusual,
+                opt.normalize.painted
+            );
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 
             let isDuel5xUses: boolean | null = null;
