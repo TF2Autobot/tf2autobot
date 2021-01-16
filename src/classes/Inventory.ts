@@ -8,7 +8,7 @@ import SKU from 'tf2-sku-2';
 import Options from './Options';
 
 import Bot from './Bot';
-import log from '../lib/logger';
+// import log from '../lib/logger';
 
 import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
 import { check } from '../lib/tools/export';
@@ -162,51 +162,22 @@ export default class Inventory {
         return null;
     }
 
-    findBySKU(sku: string, tradableOnly = true, showLog = false): string[] {
+    findBySKU(sku: string, tradableOnly = true): string[] {
         const tradable = this.tradable[sku] || [];
 
         if (tradableOnly) {
             // Copies the array
-            const mapTradable = tradable.map(item => (item ? item.id : undefined));
-            const sliceTradable = mapTradable.slice(0);
-            // const toReturn = tradable.map(item => (item ? item.id : undefined)).slice(0);
-            if (showLog) {
-                log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
-                    mapTradable: mapTradable,
-                    sliceTradable: sliceTradable
-                });
-            }
-
-            return sliceTradable;
+            return tradable.map(item => (item ? item.id : undefined)).slice(0);
         }
 
         const nonTradable = this.nonTradable[sku] || [];
-
-        const mapUntradable = nonTradable.map(item => (item ? item.id : undefined));
-        const mapTradable = tradable.map(item => (item ? item.id : undefined));
-        const concatBoth = mapUntradable.concat(mapTradable);
-
-        // const toReturn = nonTradable
-        //     .map(item => (item ? item.id : undefined))
-        //     .concat(tradable.map(item => (item ? item.id : undefined)));
-
-        if (showLog) {
-            log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
-                mapUntradable: mapUntradable,
-                mapTradable: mapTradable,
-                concatBoth: concatBoth
-            });
-        }
-
-        return concatBoth;
+        return nonTradable
+            .map(item => (item ? item.id : undefined))
+            .concat(tradable.map(item => (item ? item.id : undefined)));
     }
 
-    getAmount(sku: string, tradableOnly?: boolean, showLog?: boolean): number {
-        const amount = this.findBySKU(sku, tradableOnly, showLog).length;
-        if (showLog) {
-            log.debug('src/Inventory: getAmount', amount);
-        }
-
+    getAmount(sku: string, tradableOnly?: boolean): number {
+        const amount = this.findBySKU(sku, tradableOnly).length;
         return amount;
     }
 
@@ -215,50 +186,29 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
-            const getUnusual = this.schema.getUnusualEffects();
-            const mapUnusual = getUnusual.map(e => {
-                s.effect = e.id;
-                return this.getAmount(SKU.fromObject(s), tradableOnly, true);
-            });
-            const reduceUnusual = mapUnusual.reduce((total, currentTotal) =>
-                total ? total + currentTotal : currentTotal
+            return (
+                this.schema
+                    .getUnusualEffects()
+                    .map(e => {
+                        s.effect = e.id;
+                        return this.getAmount(SKU.fromObject(s), tradableOnly);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
             );
-            // const toReturn = getFromSchema
-            //     .getUnusualEffects(this.schema)
-            //     .map(e => {
-            //         s.effect = e.id;
-            //         return this.getAmount(SKU.fromObject(s), tradableOnly);
-            //     })
-            //     // add up total found; total is undefined to being with
-            //     .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
-
-            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality === 5', {
-                getUnusual: getUnusual,
-                mapUnusual: mapUnusual,
-                reduceUnusual: reduceUnusual
-            });
-            return reduceUnusual;
         } else {
-            const defindex = sku.split(';')[0];
-
-            if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
-                const mapPaint = Object.values(this.schema.getPaints()).map(pSku => {
-                    s.paint = +pSku.replace('p', '');
-                    return this.getAmount(SKU.fromObject(s), tradableOnly, true);
-                });
-                const reducePaint = mapPaint.reduce((total, currentTotal) =>
-                    total ? total + currentTotal : currentTotal
-                );
-                log.debug('src/Inventory: getAmountOfGenerics(...) - Painted', {
-                    mapUnusual: mapPaint,
-                    reduceUnusual: reducePaint
-                });
-                return reducePaint;
-            } else {
-                const callGetAmount = this.getAmount(sku, tradableOnly, true);
-                log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5 && !Painted', callGetAmount);
-                return callGetAmount;
+            if (sku) {
+                const defindex = sku.split(';')[0];
+                if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
+                    return Object.values(this.schema.getPaints())
+                        .map(pSku => {
+                            s.paint = +pSku.replace('p', '');
+                            return this.getAmount(SKU.fromObject(s), tradableOnly);
+                        })
+                        .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
+                }
             }
+            return this.getAmount(sku, tradableOnly);
         }
     }
 
@@ -276,7 +226,7 @@ export default class Inventory {
                     : []
             )
             .forEach(sku => {
-                toObject[sku] = this.findBySKU(sku, true, false);
+                toObject[sku] = this.findBySKU(sku, true);
             });
 
         return toObject;
@@ -364,8 +314,8 @@ export function getSkuAmountCanTrade(
     buying = true
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
     const paintableItems = bot.schema.getPaintableItemDefindexes();
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, paintableItems, true);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, paintableItems, true);
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, paintableItems);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, paintableItems);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,

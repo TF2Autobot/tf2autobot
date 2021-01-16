@@ -280,8 +280,7 @@ export default class Commands {
                 match.sku,
                 false,
                 false,
-                paintableItems,
-                true
+                paintableItems
             )}`;
         }
 
@@ -389,7 +388,7 @@ export default class Commands {
         const cartAmount = cart.getOurCount(match.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
         const amountCanTrade =
-            this.bot.inventoryManager.amountCanTrade(match.sku, false, false, paintableItems, true) - cartAmount;
+            this.bot.inventoryManager.amountCanTrade(match.sku, false, false, paintableItems) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
 

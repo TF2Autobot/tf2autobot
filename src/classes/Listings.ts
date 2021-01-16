@@ -172,7 +172,7 @@ export default class Listings {
         });
     }
 
-    checkBySKU(sku: string, data?: Entry | null, generics = false, showLog = false): void {
+    checkBySKU(sku: string, data?: Entry | null, generics = false): void {
         if (!this.isCreateListing) {
             return;
         }
@@ -181,15 +181,13 @@ export default class Listings {
 
         const paintableItems = this.bot.schema.getPaintableItemDefindexes();
         const match =
-            data && data.enabled === false
-                ? null
-                : this.bot.pricelist.getPrice(sku, true, generics, paintableItems, showLog);
+            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, paintableItems);
 
         let hasBuyListing = item.paintkit !== null;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, paintableItems, showLog);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, paintableItems, showLog);
+        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, paintableItems);
+        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, paintableItems);
 
         const inventory = this.bot.inventoryManager.getInventory;
 
@@ -239,12 +237,10 @@ export default class Listings {
         });
 
         const matchNew =
-            data && data.enabled === false
-                ? null
-                : this.bot.pricelist.getPrice(sku, true, generics, paintableItems, showLog);
+            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, paintableItems);
 
         if (matchNew !== null && matchNew.enabled === true) {
-            const assetids = inventory.findBySKU(sku, true, showLog);
+            const assetids = inventory.findBySKU(sku, true);
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
@@ -663,7 +659,7 @@ export default class Listings {
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getInventory.getAmount(entry.sku, true, false).toString())
+                .replace(/%current_stock%/g, inventory.getInventory.getAmount(entry.sku, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
 

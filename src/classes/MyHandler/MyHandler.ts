@@ -879,7 +879,7 @@ export default class MyHandler extends Handler {
                     const match =
                         which === 'our'
                             ? this.bot.pricelist.getPrice(sku)
-                            : this.bot.pricelist.getPrice(sku, false, true, paintableItems, true);
+                            : this.bot.pricelist.getPrice(sku, false, true, paintableItems);
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !(
                               craftAll.includes(sku) ||
@@ -910,8 +910,7 @@ export default class MyHandler extends Handler {
                             sku,
                             isBuying,
                             which === 'their',
-                            paintableItems,
-                            true
+                            paintableItems
                         ); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
@@ -1094,7 +1093,7 @@ export default class MyHandler extends Handler {
                 this.isTradingKeys = true;
 
                 const isBuying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying, false, [], true);
+                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying, false, []);
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many

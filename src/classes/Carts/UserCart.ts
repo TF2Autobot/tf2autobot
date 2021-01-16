@@ -712,7 +712,7 @@ export default class UserCart extends Cart {
             const paintable = this.bot.schema.getPaintableItemDefindexes();
             const addToDupeCheckList =
                 SKU.fromString(sku).effect !== null &&
-                this.bot.pricelist.getPrice(sku, true, true, paintable, true).buy.toValue(keyPrice.metal) >
+                this.bot.pricelist.getPrice(sku, true, true, paintable).buy.toValue(keyPrice.metal) >
                     this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             theirItemsCount += amount;
