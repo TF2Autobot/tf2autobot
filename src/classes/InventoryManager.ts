@@ -28,24 +28,26 @@ export default class InventoryManager {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }
 
-    amountCanTrade(sku: string, buying: boolean, generics = false, showLog: boolean): number {
+    amountCanTrade(sku: string, buying: boolean, generics = false, paintable: number[], showLog: boolean): number {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
         let genericCheck = generics;
 
-        // if we looking at amount we can trade and the sku is a generic unusual always set generic to true
-        const isGenericSku = /^[0-9]*;5$/.test(sku);
+        // if we looking at amount we can trade and the sku is a generic unusual
+        // or paintable cosmetics, always set generic to true
+        const defindex = sku.split(';')[0];
+        const isGenericSku = /^[0-9]*;5$/.test(sku) || (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex));
         if (isGenericSku) genericCheck = true;
 
         // Amount in inventory
         const amount = genericCheck
-            ? this.inventory.getAmountOfGenerics(sku, true)
+            ? this.inventory.getAmountOfGenerics(sku, true, paintable)
             : this.inventory.getAmount(sku, true, false);
 
         // Pricelist entry
         const match = genericCheck
-            ? this.pricelist.getPrice(sku, true, true, true)
+            ? this.pricelist.getPrice(sku, true, true, paintable, true)
             : this.pricelist.getPrice(sku, true);
 
         if (match === null) {

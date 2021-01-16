@@ -179,13 +179,17 @@ export default class Listings {
 
         const item = SKU.fromString(sku);
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, showLog);
+        const paintableItems = this.bot.schema.getPaintableItemDefindexes();
+        const match =
+            data && data.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice(sku, true, generics, paintableItems, showLog);
 
         let hasBuyListing = item.paintkit !== null;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, showLog);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, showLog);
+        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, paintableItems, showLog);
+        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, paintableItems, showLog);
 
         const inventory = this.bot.inventoryManager.getInventory;
 
@@ -209,41 +213,48 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                const newDetails = this.getDetails(
-                    listing.intent,
-                    match,
-                    inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
-                );
+                if (listing.intent === 0 && /;p[0-9]*/.test(sku)) {
+                    // do nothing
+                } else {
+                    const newDetails = this.getDetails(
+                        listing.intent,
+                        listing.intent === 0 ? amountCanBuy : amountCanSell,
+                        match,
+                        inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
+                    );
 
-                if (listing.details !== newDetails || listing.promoted !== match.promoted) {
-                    // Listing details or promoted don't match, update listing with new details and price
-                    const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
+                    if (listing.details !== newDetails || listing.promoted !== match.promoted) {
+                        // Listing details or promoted don't match, update listing with new details and price
+                        const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
-                    listing.update({
-                        time: match.time || dayjs().unix(),
-                        currencies: currencies,
-                        promoted: listing.intent === 0 ? 0 : match.promoted,
-                        details: newDetails
-                    });
+                        listing.update({
+                            time: match.time || dayjs().unix(),
+                            currencies: currencies,
+                            promoted: listing.intent === 0 ? 0 : match.promoted,
+                            details: newDetails
+                        });
+                    }
                 }
             }
         });
 
         const matchNew =
-            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, showLog);
+            data && data.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice(sku, true, generics, paintableItems, showLog);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true, showLog);
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
-            if (!hasBuyListing && amountCanBuy > 0) {
+            if (!hasBuyListing && amountCanBuy > 0 && !/;p[0-9]*/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
-                    details: this.getDetails(0, matchNew),
+                    details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
                 });
             }
@@ -257,6 +268,7 @@ export default class Listings {
                     promoted: matchNew.promoted,
                     details: this.getDetails(
                         1,
+                        amountCanSell,
                         matchNew,
                         inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
                     ),
@@ -512,7 +524,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, entry: Entry, item?: DictItem): string {
+    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -646,18 +658,12 @@ export default class Listings {
 
         const optDs = this.bot.options.details.uses;
 
-        const replaceDetails = (
-            details: string,
-            entry: Entry,
-            key: 'buy' | 'sell',
-            currentStock: number,
-            amountCanTrade: number
-        ) => {
+        const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             return details
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, currentStock.toString())
+                .replace(/%current_stock%/g, inventory.getInventory.getAmount(entry.sku, true, false).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
 
@@ -666,13 +672,7 @@ export default class Listings {
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the
             // note.buy for buy order listing note.
-            details = replaceDetails(
-                entry.note.buy,
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            );
+            details = replaceDetails(entry.note.buy, entry, key);
 
             // if %keyPrice% is defined in note.buy value and the item price involved keys,
             // then replace it with current key rate.
@@ -694,13 +694,7 @@ export default class Listings {
         } else if (entry.note && entry.note.sell && intent === 1) {
             // else if note.sell value is defined and not null and intent is selling, then use whatever in the
             // note.sell for sell order listing note.
-            details = replaceDetails(
-                entry.note.sell,
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            );
+            details = replaceDetails(entry.note.sell, entry, key);
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
@@ -716,13 +710,10 @@ export default class Listings {
         } else if (entry.sku === '241;6' && opt.checkUses.duel) {
             // else if note.buy or note.sell are both null, use template/in config file.
             // this part checks if the item is Dueling Mini-Game.
-            details = replaceDetails(
-                this.templates[key],
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            ).replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)');
+            details = replaceDetails(this.templates[key], entry, key).replace(
+                /%uses%/g,
+                optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)'
+            );
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
@@ -730,13 +721,10 @@ export default class Listings {
             //
         } else if (Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker) {
             // this part checks if the item is Noise Maker.
-            details = replaceDetails(
-                this.templates[key],
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            ).replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)');
+            details = replaceDetails(this.templates[key], entry, key).replace(
+                /%uses%/g,
+                optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
+            );
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
@@ -744,25 +732,13 @@ export default class Listings {
             //
         } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
             // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
-            details = replaceDetails(
-                this.templates[key],
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            )
+            details = replaceDetails(this.templates[key], entry, key)
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
             //
         } else {
             // else if nothing above, then just use template/in config and replace every parameters.
-            details = replaceDetails(
-                this.templates[key],
-                entry,
-                key,
-                inventory.getInventory.getAmount(entry.sku, true, false),
-                inventory.amountCanTrade(entry.sku, buying, false, false)
-            )
+            details = replaceDetails(this.templates[key], entry, key)
                 .replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
                 .replace(/%uses%/g, '');
             //

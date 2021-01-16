@@ -210,7 +210,7 @@ export default class Inventory {
         return amount;
     }
 
-    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
+    getAmountOfGenerics(sku: string, tradableOnly?: boolean, paintable?: number[]): number {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
@@ -239,9 +239,26 @@ export default class Inventory {
             });
             return reduceUnusual;
         } else {
-            const callGetAmount = this.getAmount(sku, tradableOnly, true);
-            log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5', callGetAmount);
-            return callGetAmount;
+            const defindex = sku.split(';')[0];
+
+            if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
+                const mapPaint = Object.values(this.schema.getPaints()).map(pSku => {
+                    s.paint = +pSku.replace('p', '');
+                    return this.getAmount(SKU.fromObject(s), tradableOnly, true);
+                });
+                const reducePaint = mapPaint.reduce((total, currentTotal) =>
+                    total ? total + currentTotal : currentTotal
+                );
+                log.debug('src/Inventory: getAmountOfGenerics(...) - Painted', {
+                    mapUnusual: mapPaint,
+                    reduceUnusual: reducePaint
+                });
+                return reducePaint;
+            } else {
+                const callGetAmount = this.getAmount(sku, tradableOnly, true);
+                log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5 && !Painted', callGetAmount);
+                return callGetAmount;
+            }
         }
     }
 
@@ -346,8 +363,9 @@ export function getSkuAmountCanTrade(
     bot: Bot,
     buying = true
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, true);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, true);
+    const paintableItems = bot.schema.getPaintableItemDefindexes();
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, paintableItems, true);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, paintableItems, true);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,

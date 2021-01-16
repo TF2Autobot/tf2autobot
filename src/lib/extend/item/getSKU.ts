@@ -10,7 +10,7 @@ import url from 'url';
 // import log from '../../../lib/logger';
 
 import { fixItem } from '../../items';
-import { crates } from '../../data'; // paintedData
+import { crates } from '../../data';
 
 let isCrate = false;
 
@@ -37,8 +37,8 @@ export = function (
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeUnusual),
-            crateseries: getCrateSeries(self)
-            // paint: getPainted(self)
+            crateseries: getCrateSeries(self),
+            paint: getPainted(self, schema)
         },
         getOutput(self, schema)
     );
@@ -386,21 +386,22 @@ function getCrateSeries(item: EconItem): number | null {
     }
 }
 
-// function getPainted(item: EconItem): number | null {
-//     const descriptions = item.descriptions;
+function getPainted(item: EconItem, schema: SchemaManager.Schema): number | null {
+    const descriptions = item.descriptions;
 
-//     let foundPaint = false;
+    const paints = schema.getPaints();
+    let foundPaint = false;
 
-//     for (let i = 0; i < descriptions.length; i++) {
-//         if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
-//             foundPaint = true;
+    for (let i = 0; i < descriptions.length; i++) {
+        if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
+            foundPaint = true;
 
-//             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-//             return +(paintedData[name] as string).replace('p', '');
-//         }
-//     }
+            const name = descriptions[i].value.replace('Paint Color: ', '').trim();
+            return +paints[name].replace('p', '');
+        }
+    }
 
-//     if (!foundPaint) {
-//         return null;
-//     }
-// }
+    if (!foundPaint) {
+        return null;
+    }
+}

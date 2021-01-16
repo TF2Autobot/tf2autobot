@@ -221,6 +221,7 @@ export default class Commands {
         const isBuying = match.intent === 0 || match.intent === 2;
         const isSelling = match.intent === 1 || match.intent === 2;
 
+        const paintableItems = this.bot.schema.getPaintableItemDefindexes();
         const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const isKey = match.sku === '5021;6';
@@ -275,7 +276,13 @@ export default class Commands {
         }
 
         if (isSelling && match.min !== 0) {
-            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false, false, true)}`;
+            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(
+                match.sku,
+                false,
+                false,
+                paintableItems,
+                true
+            )}`;
         }
 
         reply += '. ';
@@ -377,10 +384,12 @@ export default class Commands {
         let amount = info.amount;
 
         const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
+        const paintableItems = this.bot.schema.getPaintableItemDefindexes();
 
         const cartAmount = cart.getOurCount(match.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, false, false, true) - cartAmount;
+        const amountCanTrade =
+            this.bot.inventoryManager.amountCanTrade(match.sku, false, false, paintableItems, true) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
 

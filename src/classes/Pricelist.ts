@@ -204,11 +204,11 @@ export default class Pricelist extends EventEmitter {
         return !onlyEnabled || match.enabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false, generics = false, showLog = false): Entry | null {
+    getPrice(sku: string, onlyEnabled = false, generics = false, paintable?: number[], showLog = false): Entry | null {
         const pSku = SKU.fromString(sku);
         // Index of of item in pricelist
         const index = this.getIndex(null, pSku, showLog);
-        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku, showLog) : -1;
+        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku, paintable || [], showLog) : -1;
 
         if (index === -1 && (!generics || (generics && gindex === -1))) {
             // Did not find a match
@@ -535,7 +535,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
-    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item, showLog?: boolean): number {
+    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item, paintable?: number[], showLog?: boolean): number {
         // Get name of item
         const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
         if (pSku.quality === 5) {
@@ -577,15 +577,46 @@ export default class Pricelist extends EventEmitter {
                 return callGetIndex;
             }
         } else {
-            if (showLog) {
-                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5, return -1', {
-                    sku: sku,
-                    parsedSku: parsedSku,
-                    pSku: pSku
-                });
-            }
+            const defindex = sku.split(';')[0];
+            if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
+                const name = this.schema.getName(pSku, false);
 
-            return -1;
+                const paintsNameAndColor: { name: string; color: number }[] = [];
+                const paintData = this.bot.schema.getPaints();
+                Object.keys(paintData).forEach(name => {
+                    paintsNameAndColor.push({ name: name, color: +paintData[name].replace('p', '') });
+                });
+
+                const paintedMatch = paintsNameAndColor.find(p => pSku.paint === p.color);
+
+                if (paintedMatch) {
+                    const findIndex = this.prices.findIndex(
+                        entry =>
+                            entry.name === name.replace(paintedMatch.name, '').replace(' (Paint: ', '').replace(')', '')
+                    );
+
+                    if (showLog) {
+                        log.debug('src/Pricelist: getIndexWithGenerics(...) - Painted, match', {
+                            sku: sku,
+                            parsedSku: parsedSku,
+                            pSku: pSku,
+                            name: name,
+                            paintedMatch: paintedMatch,
+                            findIndex: findIndex
+                        });
+                    }
+                    return findIndex;
+                }
+            } else {
+                if (showLog) {
+                    log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5 && !Painted, return -1', {
+                        sku: sku,
+                        parsedSku: parsedSku,
+                        pSku: pSku
+                    });
+                }
+                return -1;
+            }
         }
     }
 

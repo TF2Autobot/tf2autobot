@@ -166,6 +166,7 @@ declare module 'tf2-schema-2' {
             crateseries?: number;
             output?: number;
             outputQuality?: number;
+            paint?: number;
         }
 
         export interface Effect {
@@ -239,6 +240,8 @@ declare module 'tf2-schema-2' {
             getPaints(): Paints;
 
             getStrangeParts(): StrangeParts;
+
+            getPaintableItemDefindexes(): number[];
 
             toJSON(): { version: string; time: number; raw: Record<string, any> };
         }
