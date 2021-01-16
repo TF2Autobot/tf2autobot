@@ -515,7 +515,8 @@ export default class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            opt,
+            opt.normalize.painted
         );
 
         const theirItems = Inventory.fromItems(
@@ -523,7 +524,8 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            opt,
+            false
         );
 
         const items = {

@@ -53,11 +53,20 @@ export default class Inventory {
 
     private options: Options;
 
-    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
+    private isNormalizePainted: boolean;
+
+    constructor(
+        steamID: SteamID | string,
+        manager: TradeOfferManager,
+        schema: SchemaManager.Schema,
+        options: Options,
+        isNormalizePainted: boolean
+    ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
         this.options = options;
+        this.isNormalizePainted = isNormalizePainted;
     }
 
     static fromItems(
@@ -65,9 +74,10 @@ export default class Inventory {
         items: EconItem[],
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
-        options: Options
+        options: Options,
+        isNormalizePainted: boolean
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options);
+        const inventory = new Inventory(steamID, manager, schema, options, isNormalizePainted);
 
         // Funny how typescript allows calling a private function from a static function
         inventory.setItems = items;
@@ -125,12 +135,14 @@ export default class Inventory {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
-            this.options
+            this.options,
+            this.isNormalizePainted
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
-            this.options
+            this.options,
+            false
         );
     }
 
@@ -221,7 +233,12 @@ export default class Inventory {
         return toObject;
     }
 
-    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema, opt: Options): Dict {
+    private static createDictionary(
+        items: EconItem[],
+        schema: SchemaManager.Schema,
+        opt: Options,
+        normalizePainted: boolean
+    ): Dict {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
@@ -229,7 +246,7 @@ export default class Inventory {
                 schema,
                 opt.normalize.festivized,
                 opt.normalize.strangeUnusual,
-                opt.normalize.painted
+                normalizePainted
             );
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 
