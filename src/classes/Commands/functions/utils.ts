@@ -175,7 +175,6 @@ export function getItemFromParams(
 ): Item | null {
     const item = SKU.fromString('');
 
-    delete item.paint;
     delete item.craftnumber;
 
     let foundSomething = false;
@@ -263,7 +262,7 @@ export function getItemFromParams(
         if (quality === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find a quality in the schema with the name "${params.quality as number}".`
+                `❌ Could not find a quality in the schema with the name "${params.quality as string}".`
             );
             return null;
         }
@@ -277,6 +276,18 @@ export function getItemFromParams(
             return null;
         }
         item.craftable = params.craftable;
+    }
+
+    if (params.paint !== undefined) {
+        const paint = bot.schema.getPaintDecimalByName(params.paint as string);
+        if (paint === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find a paint in the schema with the name "${params.paint as string}".`
+            );
+            return null;
+        }
+        item.paint = paint;
     }
 
     if (params.australium !== undefined) {

@@ -235,7 +235,9 @@ declare module 'tf2-schema-2' {
 
             getUnusualEffects(): Effect[];
 
-            getPaintByDecimal(decimal: number): string | null;
+            getPaintNameByDecimal(decimal: number): string | null;
+
+            getPaintDecimalByName(name: string): number | null;
 
             getPaints(): Paints;
 
