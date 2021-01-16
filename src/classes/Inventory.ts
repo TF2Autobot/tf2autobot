@@ -181,7 +181,7 @@ export default class Inventory {
         return amount;
     }
 
-    getAmountOfGenerics(sku: string, tradableOnly?: boolean, paintable?: number[]): number {
+    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
@@ -197,17 +197,6 @@ export default class Inventory {
                     .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
             );
         } else {
-            if (sku) {
-                const defindex = sku.split(';')[0];
-                if (!/;p[0-9]*/.test(sku) && paintable.includes(+defindex)) {
-                    return Object.values(this.schema.getPaints())
-                        .map(pSku => {
-                            s.paint = +pSku.replace('p', '');
-                            return this.getAmount(SKU.fromObject(s), tradableOnly);
-                        })
-                        .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
-                }
-            }
             return this.getAmount(sku, tradableOnly);
         }
     }
@@ -318,9 +307,8 @@ export function getSkuAmountCanTrade(
     bot: Bot,
     buying = true
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
-    const paintableItems = bot.schema.getPaintableItemDefindexes();
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false, paintableItems);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true, paintableItems);
+    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false);
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
     const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,

@@ -393,8 +393,6 @@ function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePaint
     }
 
     const descriptions = item.descriptions;
-
-    const paints = schema.getPaints();
     let foundPaint = false;
 
     for (let i = 0; i < descriptions.length; i++) {
@@ -402,7 +400,7 @@ function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePaint
             foundPaint = true;
 
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-            return +paints[name].replace('p', '');
+            return +schema.getPaints()[name].replace('p', '');
         }
     }
 

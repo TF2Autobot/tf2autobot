@@ -179,15 +179,13 @@ export default class Listings {
 
         const item = SKU.fromString(sku);
 
-        const paintableItems = this.bot.schema.getPaintableItemDefindexes();
-        const match =
-            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, paintableItems);
+        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = item.paintkit !== null;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics, paintableItems);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics, paintableItems);
+        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
+        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
 
         const inventory = this.bot.inventoryManager.getInventory;
 
@@ -236,8 +234,7 @@ export default class Listings {
             }
         });
 
-        const matchNew =
-            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, paintableItems);
+        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);
