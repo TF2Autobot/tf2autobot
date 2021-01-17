@@ -117,6 +117,17 @@ export default function updateListings(
         } else if (
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
+            (opt.normalize.painted === false
+                ? !highValue.theirItems.some(
+                      str =>
+                          str.includes(name) &&
+                          str.includes('🎨 Painted') &&
+                          !str.includes('🎰 Parts') &&
+                          !str.includes('🔥 Killstreaker') &&
+                          !str.includes('✨ Sheen') &&
+                          !str.includes('🎃 Spells')
+                  )
+                : true) &&
             isNotPureOrWeapons &&
             opt.highValue.enableHold
         ) {
