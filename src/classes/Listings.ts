@@ -616,7 +616,7 @@ export default class Listings {
                         }
                     }
 
-                    if (hv.p !== undefined && optD.showPainted) {
+                    if (hv.p !== undefined && optD.showPainted && !opt.normalize.painted) {
                         for (const pSku in hv.p) {
                             if (!Object.prototype.hasOwnProperty.call(hv.p, pSku)) {
                                 continue;
