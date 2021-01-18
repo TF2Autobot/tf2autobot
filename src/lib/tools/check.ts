@@ -196,14 +196,14 @@ export function getHighValueItems(
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
                             toJoin.push(
-                                `${getAttachmentName(attachment, pSKU, paints, parts)} ${
-                                    attachment === 'p' && !normalizePaint ? `(${pSKU})` : ''
+                                `${getAttachmentName(attachment, pSKU, paints, parts)}${
+                                    attachment === 'p' && !normalizePaint ? ` (${pSKU})` : ''
                                 } 🌟`
                             );
                         } else {
                             toJoin.push(
-                                `${getAttachmentName(attachment, pSKU, paints, parts)} ${
-                                    attachment === 'p' && !normalizePaint ? `(${pSKU})` : ''
+                                `${getAttachmentName(attachment, pSKU, paints, parts)}${
+                                    attachment === 'p' && !normalizePaint ? ` (${pSKU})` : ''
                                 }`
                             );
                         }
