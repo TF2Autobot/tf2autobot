@@ -275,7 +275,8 @@ export default class Trades {
 
         if (actionFunc === undefined) return Promise.resolve();
 
-        return void actionFunc()
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
             })
