@@ -167,13 +167,11 @@ export function getHighValueItems(
     } = {};
 
     for (const sku in items) {
-        if (!Object.prototype.hasOwnProperty.call(items, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(items, sku)) continue;
 
         let toString = '';
-        // const attributes = items[sku];
 
+        const normalizePaint = bot.options.normalize.painted;
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
@@ -197,9 +195,17 @@ export function getHighValueItems(
                         if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) continue;
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
-                            toJoin.push(getAttachmentName(attachment, pSKU, paints, parts) + ' (🌟)');
+                            toJoin.push(
+                                `${getAttachmentName(attachment, pSKU, paints, parts)} ${
+                                    attachment === 'p' && !normalizePaint ? `(${pSKU})` : ''
+                                } 🌟`
+                            );
                         } else {
-                            toJoin.push(getAttachmentName(attachment, pSKU, paints, parts));
+                            toJoin.push(
+                                `${getAttachmentName(attachment, pSKU, paints, parts)} ${
+                                    attachment === 'p' && !normalizePaint ? `(${pSKU})` : ''
+                                }`
+                            );
                         }
                     }
 
