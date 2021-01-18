@@ -1,13 +1,9 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
-
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
-
 import { Webhook } from './interfaces';
-
 import log from '../logger';
 import * as t from '../tools/export';
-
 import Bot from '../../classes/Bot';
 
 export default async function sendTradeSummary(
@@ -174,15 +170,12 @@ export default async function sendTradeSummary(
                     value: newSentences.replace(/@/g, '')
                 });
 
-                if (i === separate.length - 1 || j > 4) {
-                    acceptedTradeSummary.embeds[0].fields.push(statusElement);
-                }
+                if (i === separate.length - 1 || j > 4) acceptedTradeSummary.embeds[0].fields.push(statusElement);
 
                 newSentences = '';
                 j++;
-            } else {
-                newSentences += sentence;
-            }
+                //
+            } else newSentences += sentence;
         });
     }
 
@@ -190,17 +183,15 @@ export default async function sendTradeSummary(
 
     url.forEach((link, i) => {
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
-            .then(() => {
-                log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`);
-            })
-            .catch(err => {
+            .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`))
+            .catch(err =>
                 log.debug(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? ` (${i + 1})` : ''
                     }: `,
                     err
-                );
-            });
+                )
+            );
     });
 }
 

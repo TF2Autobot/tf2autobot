@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import Bot from './Bot';
-
 import log from '../lib/logger';
 import { craftAll } from '../lib/data';
 
@@ -127,9 +126,7 @@ export default class TF2GC {
         log.debug('Ensuring TF2 GC connection...');
 
         void this.connectToGC().asCallback(err => {
-            if (err) {
-                return this.finishedProcessingJob(err);
-            }
+            if (err) return this.finishedProcessingJob(err);
 
             let func;
 
@@ -145,33 +142,24 @@ export default class TF2GC {
                 func = this.handleSortJob.bind(this, job);
             }
 
-            if (func) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                func();
-            } else {
-                this.finishedProcessingJob(new Error('Unknown job type'));
-            }
+            if (func) func();
+            else this.finishedProcessingJob(new Error('Unknown job type'));
         });
     }
 
     private handleCraftJob(job: Job): void {
-        if (!this.canProcessJob(job)) {
-            return this.finishedProcessingJob(new Error("Can't process job"));
-        }
+        if (!this.canProcessJob(job)) return this.finishedProcessingJob(new Error("Can't process job"));
 
         const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(String(job.defindex) + ';6', true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, job.type === 'smelt' ? 1 : 3);
-
         log.debug('Sending craft request');
-
         this.bot.tf2.craft(ids);
 
         const gainDefindex = job.defindex + (job.type === 'smelt' ? -1 : 1);
         const gainSKU = String(gainDefindex) + ';6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
@@ -190,22 +178,18 @@ export default class TF2GC {
     }
 
     private handleCraftJobWeapon(job: Job): void {
-        if (!this.canProcessJobWeapon(job)) {
+        if (!this.canProcessJobWeapon(job))
             return this.finishedProcessingJob(new Error("Can't process weapon crafting job"));
-        }
 
         const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(job.sku, true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, 2);
-
         log.debug('Sending weapon craft request');
-
         this.bot.tf2.craft(ids);
 
         const gainSKU = '5000;6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
@@ -228,22 +212,16 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process class weapon crafting job"));
         }
 
-        const assetids1 = this.bot.inventoryManager.getInventory
-            .findBySKU(job.skus[0], true)
-            .filter(assetid => !this.bot.trades.isInTrade(assetid));
-        const assetids2 = this.bot.inventoryManager.getInventory
-            .findBySKU(job.skus[1], true)
-            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const inventory = this.bot.inventoryManager.getInventory;
+        const assetids1 = inventory.findBySKU(job.skus[0], true).filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const assetids2 = inventory.findBySKU(job.skus[1], true).filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const id1 = assetids1[0];
         const id2 = assetids2[0];
-
         log.debug('Sending weapon craft request');
-
         this.bot.tf2.craft([id1, id2]);
 
         const gainSKU = '5000;6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
@@ -265,11 +243,8 @@ export default class TF2GC {
     private handleUseOrDeleteJob(job: Job): void {
         log.debug('Sending ' + job.type + ' request');
 
-        if (job.type === 'use') {
-            this.bot.tf2.useItem(job.assetid);
-        } else if (job.type === 'delete') {
-            this.bot.tf2.deleteItem(job.assetid);
-        }
+        if (job.type === 'use') this.bot.tf2.useItem(job.assetid);
+        else if (job.type === 'delete') this.bot.tf2.deleteItem(job.assetid);
 
         this.listenForEvent(
             'itemRemoved',
@@ -292,8 +267,7 @@ export default class TF2GC {
         log.debug('Sending sort request');
 
         this.bot.tf2.sortBackpack(job.sortType);
-
-        let timeout;
+        let timeout: NodeJS.Timeout;
 
         const cancel = this.listenForEvent(
             'itemChanged',

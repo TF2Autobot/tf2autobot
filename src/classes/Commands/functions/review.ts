@@ -5,58 +5,37 @@ import Currencies from 'tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-
 import { generateLinks } from '../../../lib/tools/export';
 
 // Manual review commands
 
 export function tradesCommand(steamID: SteamID, bot: Bot): void {
     // Go through polldata and find active offers
-
     const pollData = bot.manager.pollData;
-
     const offers: UnknownDictionaryKnownValues[] = [];
 
     for (const id in pollData.received) {
-        if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
-            continue;
-        }
-
-        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState['Active']) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) continue;
+        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState['Active']) continue;
 
         const data = pollData?.offerData[id] || null;
-
-        if (data === null) {
-            continue;
-        } else if (data?.action?.action !== 'skip') {
-            continue;
-        }
+        if (data === null) continue;
+        else if (data?.action?.action !== 'skip') continue;
 
         offers.push({ id: id, data: data });
     }
 
-    if (offers.length === 0) {
-        bot.sendMessage(steamID, '❌ There are no active offers pending review.');
-        return;
-    }
+    if (offers.length === 0) return bot.sendMessage(steamID, '❌ There are no active offers pending review.');
 
     offers.sort((a, b) => a.id - b.id);
 
-    const reply = generateTradesReply(offers);
-
-    bot.sendMessage(steamID, reply);
+    bot.sendMessage(steamID, generateTradesReply(offers));
 }
 
 function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
-    offers.sort((a, b) => a.id - b.id);
-
     let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
-
     for (let i = 0; i < offers.length; i++) {
         reply +=
             `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner} (reason: ${(offers[i]
@@ -69,35 +48,20 @@ function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
 
 export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void {
     const offerId = CommandParser.removeCommand(message).trim();
-
-    if (offerId === '') {
-        bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!trade 3957959294"');
-        return;
-    }
+    if (offerId === '') return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!trade 3957959294"');
 
     const state = bot.manager.pollData.received[offerId];
-
-    if (state === undefined) {
-        bot.sendMessage(steamID, 'Offer does not exist. ❌');
-        return;
-    }
+    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
 
     if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
-        bot.sendMessage(steamID, 'Offer is not active. ❌');
-        return;
+        return bot.sendMessage(steamID, 'Offer is not active. ❌');
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-
-    if (offerData?.action?.action !== 'skip') {
-        bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
-        return;
-    }
+    if (offerData?.action?.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
 
     // Log offer details
-
-    // TODO: Create static class for trade offer related functions?
 
     let reply =
         `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
@@ -105,27 +69,19 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
 
     const keyPrice = bot.pricelist.getKeyPrice;
     const value = offerData.value;
-
     const items = offerData.dict || { our: null, their: null };
-
     const summarizeItems = (dict: OurTheirItemsDict, schema: SchemaManager.Schema) => {
-        if (dict === null) {
-            return 'unknown items';
-        }
+        if (dict === null) return 'unknown items';
 
         const summary: string[] = [];
 
         for (const sku in dict) {
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-                continue;
-            }
+            if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
             summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? `x${dict[sku]}` : '')); // dict[sku] = amount
         }
 
-        if (summary.length === 0) {
-            return 'nothing';
-        }
+        if (summary.length === 0) return 'nothing';
 
         return summary.join(', ');
     };
@@ -166,31 +122,20 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
     const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
-        return;
+        return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
     }
 
     const offerId = offerIdRegex[0];
-
     const state = bot.manager.pollData.received[offerId];
-
-    if (state === undefined) {
-        bot.sendMessage(steamID, 'Offer does not exist. ❌');
-        return;
-    }
+    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
 
     if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
-        bot.sendMessage(steamID, 'Offer is not active. ❌');
-        return;
+        return bot.sendMessage(steamID, 'Offer is not active. ❌');
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-
-    if (offerData?.action.action !== 'skip') {
-        bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
-        return;
-    }
+    if (offerData?.action.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
 
     try {
         const offer = await bot.trades.getOffer(offerId);
@@ -209,13 +154,13 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
             if (isManyItems) {
                 bot.sendMessage(
                     offer.partner,
-                    'My owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                    '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                         ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                 );
             } else {
                 bot.sendMessage(
                     offer.partner,
-                    'My owner has manually accepted your offer. The trade should be finalized shortly.' +
+                    '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
                         ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
                 );
             }
@@ -227,18 +172,16 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
                 );
             }
         } catch (err) {
-            bot.sendMessage(
+            return bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
+                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${JSON.stringify(err)}`
             );
-            return;
         }
     } catch (err) {
-        bot.sendMessage(
+        return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${(err as Error).message}`
+            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${JSON.stringify(err)}`
         );
-        return;
     }
 }
 
@@ -247,31 +190,20 @@ export async function declinetradeCommand(steamID: SteamID, message: string, bot
     const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
-        return;
+        return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
     }
 
     const offerId = offerIdRegex[0];
-
     const state = bot.manager.pollData.received[offerId];
-
-    if (state === undefined) {
-        bot.sendMessage(steamID, 'Offer does not exist. ❌');
-        return;
-    }
+    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
 
     if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
-        bot.sendMessage(steamID, 'Offer is not active. ❌');
-        return;
+        return bot.sendMessage(steamID, 'Offer is not active. ❌');
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-
-    if (offerData?.action.action !== 'skip') {
-        bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
-        return;
-    }
+    if (offerData?.action.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
 
     try {
         const offer = await bot.trades.getOffer(offerId);
@@ -290,17 +222,15 @@ export async function declinetradeCommand(steamID: SteamID, message: string, bot
                 );
             }
         } catch (err) {
-            bot.sendMessage(
+            return bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${JSON.stringify(err)}`
             );
-            return;
         }
     } catch (err) {
-        bot.sendMessage(
+        return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${(err as Error).message}`
+            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${JSON.stringify(err)}`
         );
-        return;
     }
 }

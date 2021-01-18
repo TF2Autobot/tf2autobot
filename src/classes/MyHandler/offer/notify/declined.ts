@@ -1,6 +1,5 @@
 import { Action, TradeOffer } from 'steam-tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
-
 import Bot from '../../../Bot';
 
 export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {

@@ -1,21 +1,20 @@
 import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-
+import { Webhook } from './interfaces';
 import Bot from '../../classes/Bot';
 import log from '../logger';
 
-import { Webhook } from './interfaces';
-
 export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {
     return new Promise(resolve => {
+        const defaultImage =
+            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
         if (offer.state === TradeOfferManager.ETradeOfferState['Active']) {
             offer.getUserDetails((err, me, them) => {
                 if (err) {
                     log.debug('Error retrieving partner Avatar and Name: ', err);
                     resolve({
                         personaName: 'unknown',
-                        avatarFull:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg' //default "?" image
+                        avatarFull: defaultImage
                     });
                 } else {
                     log.debug('partner Avatar and Name retrieved. Applying...');
@@ -31,8 +30,7 @@ export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ person
                     log.debug('Error retrieving partner Avatar and Name: ', err);
                     resolve({
                         personaName: 'unknown',
-                        avatarFull:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg' //default "?" image
+                        avatarFull: defaultImage
                     });
                 } else {
                     log.debug('partner Avatar and Name retrieved. Applying...');
@@ -56,11 +54,8 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
 
         request.onreadystatechange = (): void => {
             if (request.readyState === 4) {
-                if (request.status === 204) {
-                    resolve();
-                } else {
-                    reject(request.responseText);
-                }
+                if (request.status === 204) resolve();
+                else reject(request.responseText);
             }
         };
 

@@ -1,6 +1,5 @@
 import dotProp from 'dot-prop';
 import { UnknownDictionaryKnownValues } from '../types/common';
-
 import { parseJSON } from '../lib/helpers';
 
 export default class CommandParser {
@@ -24,12 +23,9 @@ export default class CommandParser {
         );
 
         const parsed: UnknownDictionaryKnownValues = {};
-
         if (params !== null) {
             for (const key in params) {
-                if (!Object.prototype.hasOwnProperty.call(params, key)) {
-                    continue;
-                }
+                if (!Object.prototype.hasOwnProperty.call(params, key)) continue;
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 let value = params[key];

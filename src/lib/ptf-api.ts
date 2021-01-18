@@ -14,7 +14,7 @@ export interface GetSchemaResponse extends PricesResponse {
 }
 
 export interface GetOverviewResponse extends PricesResponse {
-    items: Array<ItemOverview>;
+    items: ItemOverview[];
 }
 
 export interface ItemOverview {
@@ -24,7 +24,7 @@ export interface ItemOverview {
 
 export interface GetPricelistResponse extends PricesResponse {
     currency?: any;
-    items?: Array<Item>;
+    items?: Item[];
 }
 
 export interface Item {
@@ -70,7 +70,7 @@ export interface GetItemHistoryResponse extends PricesResponse {
     name: string;
     source: string;
     currency: any;
-    history: Array<History>;
+    history: History[];
 }
 
 export interface History {
@@ -82,7 +82,7 @@ export interface History {
 export interface GetItemSalesResponse extends PricesResponse {
     sku: string;
     name: string;
-    sales: Array<Sale>;
+    sales: Sale[];
 }
 
 export interface Sale {
@@ -140,17 +140,14 @@ export function apiRequest<I, R extends PricesResponse>(httpMethod: string, path
         timeout: 30000
     };
 
-    if (process.env.PRICESTF_API_KEY) {
-        options.headers.Authorization = `Token ${process.env.PRICESTF_API_TOKEN}`;
-    }
+    if (process.env.PRICESTF_API_KEY) options.headers.Authorization = `Token ${process.env.PRICESTF_API_TOKEN}`;
 
     options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
 
     return new Promise((resolve, reject) => {
         void request(options, (err, response: ResponseAsJSON, body: R) => {
-            if (err) {
-                reject(err);
-            }
+            if (err) reject(err);
+
             resolve(body);
         });
     });

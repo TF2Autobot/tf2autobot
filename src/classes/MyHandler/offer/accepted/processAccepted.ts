@@ -8,11 +8,8 @@ import {
     Understocked
 } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-
 import { itemList } from '../../utils/export-utils';
-
 import Bot from '../../../Bot';
-
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
@@ -46,16 +43,11 @@ export default function processAccepted(
         // doing this because if an offer is being made by bot (from command), then this is undefined
         if (offerReceived.reason === 'VALID_WITH_OVERPAY' || offerReceived.reason === 'MANUAL') {
             // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
-            if (offerReceived.meta) {
-                // doing this because if an offer needs a manual review because of the failed for checking
-                // for banned and escrow, then this is undefined.
-                if (offerReceived.meta.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
-                    // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
+            if (offerReceived.meta?.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+                // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                    const invalid = offerReceived.meta.reasons.filter(
-                        el => el.reason === '🟨_INVALID_ITEMS'
-                    ) as InvalidItems[];
-                    invalid.forEach(el => {
+                (offerReceived.meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as InvalidItems[]).forEach(
+                    el => {
                         accepted.invalidItems.push(
                             `${
                                 isWebhookEnabled
@@ -63,60 +55,56 @@ export default function processAccepted(
                                     : bot.schema.getName(SKU.fromString(el.sku), false)
                             } - ${el.price}`
                         );
-                    });
-                }
-                if (offerReceived.meta.uniqueReasons.includes('🟧_DISABLED_ITEMS')) {
-                    // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
+                    }
+                );
+            }
+            if (offerReceived.meta?.uniqueReasons.includes('🟧_DISABLED_ITEMS')) {
+                // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
 
-                    const disabled = offerReceived.meta.reasons.filter(
-                        el => el.reason === '🟧_DISABLED_ITEMS'
-                    ) as DisabledItems[];
-                    disabled.forEach(el => {
+                (offerReceived.meta.reasons.filter(el => el.reason === '🟧_DISABLED_ITEMS') as DisabledItems[]).forEach(
+                    el => {
                         accepted.disabledItems.push(
                             isWebhookEnabled
                                 ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                 : bot.schema.getName(SKU.fromString(el.sku), false)
                         );
-                    });
-                }
-                if (offerReceived.meta.uniqueReasons.includes('🟦_OVERSTOCKED')) {
-                    // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
+                    }
+                );
+            }
+            if (offerReceived.meta?.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+                // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
-                    const overstocked = offerReceived.meta.reasons.filter(el =>
-                        el.reason.includes('🟦_OVERSTOCKED')
-                    ) as Overstocked[];
+                (offerReceived.meta.reasons.filter(el =>
+                    el.reason.includes('🟦_OVERSTOCKED')
+                ) as Overstocked[]).forEach(el => {
+                    accepted.overstocked.push(
+                        `${
+                            isWebhookEnabled
+                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                        } (amount can buy was ${el.amountCanTrade})`
+                    );
+                });
+            }
 
-                    overstocked.forEach(el => {
-                        accepted.overstocked.push(
-                            `${
-                                isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
-                            } (amount can buy was ${el.amountCanTrade})`
-                        );
-                    });
-                }
+            if (offerReceived.meta?.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+                // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
-                if (offerReceived.meta.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
-                    // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
-
-                    const understocked = offerReceived.meta.reasons.filter(el =>
-                        el.reason.includes('🟩_UNDERSTOCKED')
-                    ) as Understocked[];
-                    understocked.forEach(el => {
-                        accepted.understocked.push(
-                            `${
-                                isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
-                            } (amount can sell was ${el.amountCanTrade})`
-                        );
-                    });
-                }
+                (offerReceived.meta.reasons.filter(el =>
+                    el.reason.includes('🟩_UNDERSTOCKED')
+                ) as Understocked[]).forEach(el => {
+                    accepted.understocked.push(
+                        `${
+                            isWebhookEnabled
+                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                        } (amount can sell was ${el.amountCanTrade})`
+                    );
+                });
             }
         }
 
-        if (offerReceived.meta && offerReceived.meta.highValue && offerReceived.meta.highValue['has'] === undefined) {
+        if (offerReceived?.meta?.highValue && offerReceived.meta.highValue['has'] === undefined) {
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                 const itemsName = t.check.getHighValueItems(
@@ -127,9 +115,8 @@ export default function processAccepted(
                 );
 
                 for (const name in itemsName) {
-                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
-                        continue;
-                    }
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                     theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
@@ -137,9 +124,7 @@ export default function processAccepted(
                 if (offerReceived.meta.highValue.isMention.their) {
                     Object.keys(offerReceived.meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
-                    if (!bot.isAdmin(offer.partner)) {
-                        accepted.isMention = true;
-                    }
+                    if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
                 }
             }
 
@@ -153,16 +138,13 @@ export default function processAccepted(
                 );
 
                 for (const name in itemsName) {
-                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
-                        continue;
-                    }
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
                 if (offerReceived.meta.highValue.isMention.our) {
-                    if (!bot.isAdmin(offer.partner)) {
-                        accepted.isMention = true;
-                    }
+                    if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
                 }
             }
         }
@@ -178,9 +160,8 @@ export default function processAccepted(
             );
 
             for (const name in itemsName) {
-                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
-                    continue;
-                }
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
@@ -188,9 +169,7 @@ export default function processAccepted(
             if (offerSent.isMention.their) {
                 Object.keys(offerSent.items.their).forEach(sku => isDisableSKU.push(sku));
 
-                if (!bot.isAdmin(offer.partner)) {
-                    accepted.isMention = true;
-                }
+                if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
             }
         }
 
@@ -203,16 +182,13 @@ export default function processAccepted(
             );
 
             for (const name in itemsName) {
-                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
-                    continue;
-                }
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 
             if (offerSent.isMention.our) {
-                if (!bot.isAdmin(offer.partner)) {
-                    accepted.isMention = true;
-                }
+                if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
             }
         }
     }
@@ -220,10 +196,8 @@ export default function processAccepted(
     const offerData = bot.manager.pollData.offerData;
     const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
 
-    const itemsSKU = itemList(offer);
-
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, autokeys, accepted, itemsSKU, bot, processTime, isTradingKeys, isOfferSent);
+        void sendTradeSummary(offer, autokeys, accepted, itemList(offer), bot, processTime, isTradingKeys, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {

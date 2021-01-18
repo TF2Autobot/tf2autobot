@@ -13,17 +13,11 @@ export function readFile(p: string, json: boolean): Promise<any> {
         }
 
         fs.readFile(p, { encoding: 'utf8' }, (err, data) => {
-            if (err) {
-                return reject(err);
-            }
+            if (err) return reject(err);
 
-            if (json !== true) {
-                return resolve(data);
-            }
+            if (json !== true) return resolve(data);
 
-            if (data.length === 0) {
-                return resolve(null);
-            }
+            if (data.length === 0) return resolve(null);
 
             let parsed;
             try {
@@ -42,21 +36,15 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
     return new Promise((resolve, reject) => {
         let write;
 
-        if (json === true) {
-            write = JSON.stringify(data);
-        } else {
-            write = data;
-        }
+        if (json === true) write = JSON.stringify(data);
+        else write = data;
 
         const dir = path.dirname(p);
 
-        if (fs.existsSync(dir)) {
-            writeFile();
-        } else {
+        if (fs.existsSync(dir)) writeFile();
+        else {
             fs.mkdir(dir, { recursive: true }, err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 writeFile();
             });
@@ -67,9 +55,7 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
             fs.writeFile(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve(null);
             });
@@ -87,9 +73,7 @@ export function deleteFile(p: string): Promise<void> {
         filesBeingSaved++;
         fs.unlink(p, err => {
             filesBeingSaved--;
-            if (err) {
-                return reject(err);
-            }
+            if (err) return reject(err);
 
             return resolve();
         });

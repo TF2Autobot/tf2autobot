@@ -1,13 +1,10 @@
 import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
-
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
-import { stats, profit, timeNow } from '../../lib/tools/export';
 import log from '../logger';
-
+import { stats, profit, timeNow } from '../../lib/tools/export';
 import Bot from '../../classes/Bot';
 
 export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): void {

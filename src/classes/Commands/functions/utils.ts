@@ -2,15 +2,13 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
+import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { Item } from '../../../types/TeamFortress2';
-import levenshtein from 'js-levenshtein';
-
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
-
-import { fixItem } from '../../../lib/items';
 import { genericNameAndMatch } from '../../Inventory';
+import { fixItem } from '../../../lib/items';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -18,10 +16,8 @@ export function getItemAndAmount(
     bot: Bot,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
 ): { match: Entry; amount: number } | null {
-    message = removeLinkProtocol(message);
-    let name = message;
+    let name = removeLinkProtocol(message);
     let amount = 1;
-
     if (/^[-]?\d+$/.test(name.split(' ')[0])) {
         // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
         amount = parseInt(name.split(' ')[0]);
@@ -57,7 +53,6 @@ export function getItemAndAmount(
     }
 
     let match = bot.pricelist.searchByName(name, true);
-
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -148,9 +143,7 @@ export function getItemAndAmount(
         }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
-        if (match.length > 20) {
-            match = match.splice(0, 20);
-        }
+        if (match.length > 20) match = match.splice(0, 20);
 
         let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(',\n')}`;
         if (matchCount > match.length) {
@@ -174,11 +167,9 @@ export function getItemFromParams(
     bot: Bot
 ): Item | null {
     const item = SKU.fromString('');
-
     delete item.craftnumber;
 
     let foundSomething = false;
-
     if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
@@ -186,9 +177,7 @@ export function getItemFromParams(
         const match: SchemaManager.SchemaItem[] = [];
 
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
-            }
+            if (bot.schema.raw.schema.items[i].item_name === params.name) match.push(bot.schema.raw.schema.items[i]);
         }
 
         if (match.length === 0) {
@@ -199,7 +188,6 @@ export function getItemFromParams(
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
-
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
@@ -219,9 +207,7 @@ export function getItemFromParams(
     }
 
     for (const key in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, key)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(params, key)) continue;
 
         if (item[key] !== undefined) {
             foundSomething = true;
@@ -241,7 +227,6 @@ export function getItemFromParams(
 
     if (params.defindex !== undefined) {
         const schemaItem = bot.schema.getItemByDefindex(params.defindex as number);
-
         if (schemaItem === null) {
             bot.sendMessage(
                 steamID,
@@ -251,10 +236,7 @@ export function getItemFromParams(
         }
 
         item.defindex = schemaItem.defindex;
-
-        if (item.quality === 0) {
-            item.quality = schemaItem.item_quality;
-        }
+        if (item.quality === 0) item.quality = schemaItem.item_quality;
     }
 
     if (params.quality !== undefined) {
@@ -266,7 +248,6 @@ export function getItemFromParams(
             );
             return null;
         }
-
         item.quality = quality;
     }
 
@@ -318,13 +299,11 @@ export function getItemFromParams(
             bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
             return null;
         }
-
         item.paintkit = paintkit;
     }
 
     if (params.effect !== undefined) {
         const effect = bot.schema.getEffectIdByName(params.effect as string);
-
         if (effect === null) {
             bot.sendMessage(
                 steamID,
@@ -332,15 +311,12 @@ export function getItemFromParams(
             );
             return null;
         }
-
         item.effect = effect;
     }
 
     if (typeof params.output === 'number') {
         // User gave defindex
-
         const schemaItem = bot.schema.getItemByDefindex(params.output);
-
         if (schemaItem === null) {
             bot.sendMessage(
                 steamID,
@@ -348,19 +324,13 @@ export function getItemFromParams(
             );
             return null;
         }
-
-        if (item.outputQuality === null) {
-            item.quality = schemaItem.item_quality;
-        }
+        if (item.outputQuality === null) item.quality = schemaItem.item_quality;
+        //
     } else if (item.output !== null) {
         // Look for all items that have the same name
-
         const match: SchemaManager.SchemaItem[] = [];
-
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
-            }
+            if (bot.schema.raw.schema.items[i].item_name === params.name) match.push(bot.schema.raw.schema.items[i]);
         }
 
         if (match.length === 0) {
@@ -371,7 +341,6 @@ export function getItemFromParams(
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
-
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
@@ -387,15 +356,11 @@ export function getItemFromParams(
         }
 
         item.output = match[0].defindex;
-
-        if (item.outputQuality === null) {
-            item.quality = match[0].item_quality;
-        }
+        if (item.outputQuality === null) item.quality = match[0].item_quality;
     }
 
     if (params.outputQuality !== undefined) {
         const quality = bot.schema.getQualityIdByName(params.outputQuality as string);
-
         if (quality === null) {
             bot.sendMessage(
                 steamID,
@@ -403,22 +368,15 @@ export function getItemFromParams(
             );
             return null;
         }
-
         item.outputQuality = quality;
     }
 
     for (const key in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, key)) {
-            continue;
-        }
-
-        if (item[key] !== undefined) {
-            delete params[key];
-        }
+        if (!Object.prototype.hasOwnProperty.call(params, key)) continue;
+        if (item[key] !== undefined) delete params[key];
     }
 
     delete params.name;
-
     return fixItem(item, bot.schema);
 }
 

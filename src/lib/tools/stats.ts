@@ -44,9 +44,7 @@ export default function stats(bot: Bot): Stats {
 
     const offerData = bot.manager.pollData.offerData;
     for (const offerID in offerData) {
-        if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(offerData, offerID)) continue;
 
         if (offerData[offerID].handledByUs === true && offerData[offerID].action !== undefined) {
             // action not undefined means offer received

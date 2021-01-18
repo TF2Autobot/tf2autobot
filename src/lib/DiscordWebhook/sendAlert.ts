@@ -1,10 +1,8 @@
-import { timeNow } from '../tools/time';
-import { Webhook } from './interfaces';
-
-import Bot from '../../classes/Bot';
 import { sendWebhook } from './utils';
-
+import { Webhook } from './interfaces';
 import log from '../logger';
+import { timeNow } from '../tools/time';
+import Bot from '../../classes/Bot';
 
 export default function sendAlert(
     type: string,
@@ -78,10 +76,6 @@ export default function sendAlert(
     };
 
     sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
-        .then(() => {
-            log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err);
-        });
+        .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
+        .catch(err => log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
 }

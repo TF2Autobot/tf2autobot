@@ -1,13 +1,10 @@
 import Currencies from 'tf2-currencies';
-
 import { genUserPure, genScrapAdjustment } from './userSettings';
 import { createToBank, createToBuy, createToSell, updateToBank, updateToBuy, updateToSell } from './export';
-
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
-
-import { currPure } from '../../lib/tools/pure';
 import log from '../../lib/logger';
+import { currPure } from '../../lib/tools/pure';
 import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
 export default class Autokeys {
@@ -76,9 +73,7 @@ export default class Autokeys {
 
     check(): void {
         log.debug(`checking autokeys (Enabled: ${String(this.isEnabled)})`);
-        if (this.isEnabled === false) {
-            return;
-        }
+        if (this.isEnabled === false) return;
 
         const userPure = this.userPure;
 
@@ -101,7 +96,6 @@ export default class Autokeys {
         const keyEntry = this.bot.pricelist.getPrice('5021;6', false);
 
         const currKeyPrice = this.bot.pricelist.getKeyPrices;
-
         if (currKeyPrice !== this.OldKeyPrices && this.isEnableScrapAdjustment) {
             // When scrap adjustment activated, if key rate changes, then it will force update key prices after a trade.
             this.status = {
@@ -232,11 +226,9 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBuy;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) {
-                setMaxKeys += 1;
-            } else if (setMinKeys > setMaxKeys) {
-                setMaxKeys = setMinKeys + 1;
-            }
+            if (setMinKeys === setMaxKeys) setMaxKeys += 1;
+            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 1;
+
             //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
             // If buying (while banking) - we need to set min = currKeys and max = currKeys + CanBankMax
@@ -246,11 +238,9 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) {
-                setMaxKeys += 1;
-            } else if (setMinKeys > setMaxKeys) {
-                setMaxKeys = setMinKeys + 2;
-            }
+            if (setMinKeys === setMaxKeys) setMaxKeys += 1;
+            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 2;
+
             //
         } else if (isSellingKeys) {
             // If selling - we need to set min = currKeys - CanSell and max = currKeys
@@ -260,11 +250,9 @@ export default class Autokeys {
             const max = currKeys;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) {
-                setMinKeys -= 1;
-            } else if (setMinKeys > setMaxKeys) {
-                setMaxKeys = setMinKeys + 1;
-            }
+            if (setMinKeys === setMaxKeys) setMinKeys -= 1;
+            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 1;
+
             //
         } else if (isBankingKeys && isEnableKeyBanking) {
             // If banking - we need to set min = currKeys - CanBankMin and max = currKeys + CanBankMax
@@ -274,14 +262,10 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) {
-                setMinKeys -= 1;
-            } else if (setMaxKeys - setMinKeys === 1) {
-                // When banking, the bot should be able to both buy and sell keys.
-                setMaxKeys += 1;
-            } else if (setMinKeys > setMaxKeys) {
-                setMaxKeys = setMinKeys + 2;
-            }
+            if (setMinKeys === setMaxKeys) setMinKeys -= 1;
+            else if (setMaxKeys - setMinKeys === 1) setMaxKeys += 1;
+            // When banking, the bot should be able to both buy and sell keys.
+            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 2;
         }
 
         const isAlreadyRunningAutokeys = this.isActive;
@@ -429,9 +413,7 @@ export default class Autokeys {
                 if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                     if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                         sendAlert('lowPure', this.bot, msg);
-                    } else {
-                        this.bot.messageAdmins(msg, []);
-                    }
+                    } else this.bot.messageAdmins(msg, []);
                 }
             }
         } else if (!isAlreadyRunningAutokeys) {
@@ -529,9 +511,7 @@ export default class Autokeys {
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
+                        } else this.bot.messageAdmins(msg, []);
                     }
                 }
             } else {
@@ -650,9 +630,7 @@ export default class Autokeys {
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
+                        } else this.bot.messageAdmins(msg, []);
                     }
                 }
             }
@@ -707,11 +685,9 @@ export default class Autokeys {
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => {
-                log.debug('✅ Automatically disabled Autokeys.');
-            })
-            .catch((err: Error) => {
-                log.warn(`❌ Failed to disable Autokeys: ${err.message}`);
+            .then(() => log.debug('✅ Automatically disabled Autokeys.'))
+            .catch(err => {
+                log.warn(`❌ Failed to disable Autokeys: ${JSON.stringify(err)}`);
                 this.isActive = true;
             });
     }

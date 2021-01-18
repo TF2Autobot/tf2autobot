@@ -3,12 +3,9 @@
 
 import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager from 'tf2-schema-2';
-
 import SKU from 'tf2-sku-2';
 import url from 'url';
-
 // import log from '../../../lib/logger';
-
 import { fixItem } from '../../items';
 import { crates } from '../../data';
 
@@ -22,9 +19,7 @@ export = function (
 ): string {
     const self = this as EconItem;
 
-    if (self.appid != 440) {
-        return 'unknown';
-    }
+    if (self.appid != 440) return 'unknown';
 
     let item = Object.assign(
         {
@@ -44,18 +39,12 @@ export = function (
         getOutput(self, schema)
     );
 
-    if (item.target === null) {
-        item.target = getTarget(self, schema);
-    }
+    if (item.target === null) item.target = getTarget(self, schema);
 
     // Add missing properties, except if crates
-    if (!isCrate) {
-        item = fixItem(SKU.fromString(SKU.fromObject(item)), schema);
-    }
+    if (!isCrate) item = fixItem(SKU.fromString(SKU.fromObject(item)), schema);
 
-    if (item === null) {
-        throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
-    }
+    if (item === null) throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
 
     // log.debug(SKU.fromObject(item).toString());
 
@@ -67,15 +56,10 @@ export = function (
  * @param item -Item object
  */
 function getDefindex(item: EconItem): number | null {
-    if (item.app_data !== undefined) {
-        return parseInt(item.app_data.def_index, 10);
-    }
+    if (item.app_data !== undefined) return parseInt(item.app_data.def_index, 10);
 
     const link = item.getAction('Item Wiki Page...');
-
-    if (link !== null) {
-        return parseInt(url.parse(link, true).query.id.toString(), 10);
-    }
+    if (link !== null) return parseInt(url.parse(link, true).query.id.toString(), 10);
 
     // Last option is to get the name of the item and try and get the defindex that way
 
@@ -87,14 +71,10 @@ function getDefindex(item: EconItem): number | null {
  * @param item - Item object
  */
 function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (item.app_data !== undefined) {
-        return parseInt(item.app_data.quality, 10);
-    }
+    if (item.app_data !== undefined) return parseInt(item.app_data.quality, 10);
 
     const quality = item.getTag('Quality');
-    if (quality !== null) {
-        return schema.getQualityIdByName(quality);
-    }
+    if (quality !== null) return schema.getQualityIdByName(quality);
 
     return null;
 }
@@ -124,9 +104,7 @@ function getKillstreak(item: EconItem): number {
  * @param item - Item object
  */
 function isAustralium(item: EconItem): boolean {
-    if (item.getTag('Quality') !== 'Strange') {
-        return false;
-    }
+    if (item.getTag('Quality') !== 'Strange') return false;
 
     return item.market_hash_name.includes('Australium ');
 }
@@ -146,19 +124,14 @@ function isFestive(item: EconItem, normalizeFestivizedItems: boolean): boolean {
  * @param item - Item object
  */
 function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (!Array.isArray(item.descriptions)) {
-        return null;
-    }
+    if (!Array.isArray(item.descriptions)) return null;
 
     if (item.descriptions.some(description => description.value === 'Case Global Unusual Effect(s)')) {
         return null;
     }
 
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
-
-    if (effects.length !== 1) {
-        return null;
-    }
+    if (effects.length !== 1) return null;
 
     return schema.getEffectIdByName(effects[0].value.substring(18));
 }
@@ -180,9 +153,7 @@ function getWear(item: EconItem): number | null {
  * @param item - Item object
  */
 function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (getWear(item) === null) {
-        return null;
-    }
+    if (getWear(item) === null) return null;
 
     let hasCaseCollection = false;
     let skin: string | null = null;
@@ -199,20 +170,13 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
         }
     }
 
-    if (skin === null) {
-        return null;
-    }
+    if (skin === null) return null;
 
-    if (skin.includes('Mk.I')) {
-        return schema.getSkinIdByName(skin);
-    }
+    if (skin.includes('Mk.I')) return schema.getSkinIdByName(skin);
 
     const schemaItem = schema.getItemByDefindex(getDefindex(item));
-
     // Remove weapon from skin name
-    if (schemaItem !== null) {
-        skin = skin.replace(schemaItem.item_type_name, '').trim();
-    }
+    if (schemaItem !== null) skin = skin.replace(schemaItem.item_type_name, '').trim();
 
     return schema.getSkinIdByName(skin);
 }
@@ -233,9 +197,8 @@ function getElevatedQuality(item: EconItem, normalizeStrangeUnusual: boolean): n
             isNotNormalized)
     ) {
         return 11;
-    } else {
-        return null;
-    }
+        //
+    } else return null;
 }
 
 function getOutput(
@@ -269,7 +232,6 @@ function getOutput(
     let outputDefindex: number | null = null;
 
     const killstreak = getKillstreak(item);
-
     if (killstreak !== 0) {
         // Killstreak Kit Fabricator
 
@@ -308,9 +270,7 @@ function getOutput(
 function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null {
     const defindex = getDefindex(item);
 
-    if (defindex === null) {
-        throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
-    }
+    if (defindex === null) throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
 
     if (item.market_hash_name.includes('Strangifier')) {
         // Strangifiers
@@ -325,9 +285,7 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         // Get schema item using market_hash_name
         const schemaItem = schema.getItemByItemName(item.market_hash_name.replace('Strangifier', '').trim());
 
-        if (schemaItem !== null) {
-            return schemaItem.defindex;
-        }
+        if (schemaItem !== null) return schemaItem.defindex;
 
         throw new Error('Could not find target for item "' + item.market_hash_name + '"');
     }
@@ -388,9 +346,7 @@ function getCrateSeries(item: EconItem): number | null {
 }
 
 function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePainted: boolean): number | null {
-    if (normalizePainted) {
-        return null;
-    }
+    if (normalizePainted) return null;
 
     const descriptions = item.descriptions;
     let foundPaint = false;
@@ -404,7 +360,5 @@ function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePaint
         }
     }
 
-    if (!foundPaint) {
-        return null;
-    }
+    if (!foundPaint) return null;
 }

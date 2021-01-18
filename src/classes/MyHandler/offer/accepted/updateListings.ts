@@ -1,13 +1,11 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
-
-import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
 import { craftAll, uncraftAll } from '../../../../lib/data';
+import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 
 export default function updateListings(
     offer: TradeOffer,
@@ -23,9 +21,7 @@ export default function updateListings(
         : [];
 
     for (const sku in diff) {
-        if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(diff, sku)) continue;
 
         // Update listings
         bot.listings.checkBySKU(sku);
@@ -83,12 +79,8 @@ export default function updateListings(
 
             bot.pricelist
                 .addPrice(entry, true)
-                .then(() => {
-                    log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                })
-                .catch((err: Error) => {
-                    log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${err.message}`);
-                });
+                .then(() => log.debug(`✅ Automatically added ${name} (${sku}) to sell.`))
+                .catch(err => log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${JSON.stringify(err)}`));
         } else if (
             inPrice === null &&
             isNotPureOrWeapons &&
@@ -102,17 +94,13 @@ export default function updateListings(
                 'I have received a high-valued items which is not in my pricelist.' + '\n\nItem information:\n\n- ';
 
             for (let i = 0; i < highValue.theirItems.length; i++) {
-                if (highValue.theirItems[i].includes(name)) {
-                    msg += highValue.theirItems[i];
-                }
+                if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
             }
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                     sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
-                } else {
-                    bot.messageAdmins(msg, []);
-                }
+                } else bot.messageAdmins(msg, []);
             }
         } else if (
             inPrice !== null &&
@@ -178,21 +166,17 @@ export default function updateListings(
                         '\n\nItem information:\n\n- ';
 
                     for (let i = 0; i < highValue.theirItems.length; i++) {
-                        if (highValue.theirItems[i].includes(name)) {
-                            msg += highValue.theirItems[i];
-                        }
+                        if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
                     }
 
                     if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                        } else bot.messageAdmins(msg, []);
                     }
                 })
-                .catch((err: Error) => {
-                    log.warn(`❌ Failed to disable high value ${sku}: ${err.message}`);
+                .catch(err => {
+                    log.warn(`❌ Failed to disable high value ${sku}: ${JSON.stringify(err)}`);
                 });
         } else if (
             opt.autoRemoveIntentSell.enable &&
@@ -205,12 +189,8 @@ export default function updateListings(
             // then remove the item entry from pricelist.
             bot.pricelist
                 .removePrice(sku, true)
-                .then(() => {
-                    log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
-                })
-                .catch((err: Error) => {
-                    log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${err.message}`);
-                });
+                .then(() => log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`))
+                .catch(err => log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${JSON.stringify(err)}`));
         }
     }
 }

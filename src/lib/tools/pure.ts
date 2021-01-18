@@ -30,9 +30,8 @@ export function stock(bot: Bot): string[] {
         }
     ];
     for (let i = 0; i < pureCombine.length; i++) {
-        if (i < 1 && totalKeys < 1) {
-            continue;
-        }
+        if (i < 1 && totalKeys < 1) continue;
+
         pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
     }
 

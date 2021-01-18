@@ -1,25 +1,19 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../../../Bot';
-
 import { Meta, DisabledItems } from 'steam-tradeoffer-manager';
+import Bot from '../../../../Bot';
 
 export default function disabledItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-    const wrong = meta.reasons;
     const disabledForTheir: string[] = []; // Display for trade partner
     const disabledForOur: string[] = []; // Display for owner
 
-    const disabled = wrong.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[];
+    (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
+        if (opt.enable && opt.url !== '') disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
+        // show both item name and prices.tf price
+        else disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
+        // show both item name and prices.tf price
 
-    disabled.forEach(el => {
-        if (opt.enable && opt.url !== '') {
-            // show both item name and prices.tf price
-            disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
-        } else {
-            // show both item name and prices.tf price
-            disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
-        }
         // only show to trade partner the item name
         disabledForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
     });

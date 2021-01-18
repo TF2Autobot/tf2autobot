@@ -1,17 +1,14 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../../../Bot';
-
 import { Meta, DupeCheckFailed } from 'steam-tradeoffer-manager';
+import Bot from '../../../../Bot';
 
 export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-    const wrong = meta.reasons;
     const dupedFailedItemsNameOur: string[] = [];
     const dupedFailedItemsNameTheir: string[] = [];
-    const dupedFailed = wrong.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED')) as DupeCheckFailed[];
 
-    dupedFailed.forEach(el => {
+    (meta.reasons.filter(el => el.reason.includes('🟪_DUPE_CHECK_FAILED')) as DupeCheckFailed[]).forEach(el => {
         if (el.withError === false) {
             // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
 

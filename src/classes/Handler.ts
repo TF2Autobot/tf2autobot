@@ -2,7 +2,6 @@
 
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from 'steam-tradeoffer-manager';
-
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
 

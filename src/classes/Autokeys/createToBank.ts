@@ -1,6 +1,5 @@
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
-
 import log from '../../lib/logger';
 
 export default function createToBank(minKeys: number, maxKeys: number, bot: Bot): void {
@@ -34,10 +33,8 @@ export default function createToBank(minKeys: number, maxKeys: number, bot: Bot)
 
     bot.pricelist
         .addPrice(entry, true, PricelistChangedSource.Autokeys)
-        .then(() => {
-            log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`);
-        })
-        .catch((err: Error) => {
-            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${err.message}`);
-        });
+        .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
+        .catch(err =>
+            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${JSON.stringify(err)}`)
+        );
 }

@@ -43,7 +43,6 @@ type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'revie
 
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku-2';
-
 import { replace } from '../tools/export';
 
 export default function summarize(
@@ -129,16 +128,12 @@ export default function summarize(
 }
 
 function summarizeWithoutLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: Bot): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
+    if (dict === null) return 'unknown items';
 
     const summary: string[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
@@ -148,24 +143,18 @@ function summarizeWithoutLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: B
         summary.push(name + (amount > 1 ? ` x${amount}` : ''));
     }
 
-    if (summary.length === 0) {
-        return 'nothing';
-    }
+    if (summary.length === 0) return 'nothing';
 
     return summary.join(', ');
 }
 
 function summarizeWithLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: Bot): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
+    if (dict === null) return 'unknown items';
 
     const summary: string[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
@@ -175,31 +164,23 @@ function summarizeWithLinkWithoutStockChanges(dict: OurTheirItemsDict, bot: Bot)
         summary.push('[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : ''));
     }
 
-    if (summary.length === 0) {
-        return 'nothing';
-    }
+    if (summary.length === 0) return 'nothing';
 
     let left = 0;
 
-    if (summary.length > 15) {
-        left = summary.length - 15;
-        summary.splice(15);
-    }
+    if (summary.length > 15) left = summary.length - 15;
+    summary.splice(15);
 
     return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
 }
 
 function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, which: string, type: string): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
+    if (dict === null) return 'unknown items';
 
     const summary: string[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
@@ -210,11 +191,8 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
         const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
-        if (type === 'summary-accepted') {
-            oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
-        } else {
-            oldStock = currentStock;
-        }
+        if (type === 'summary-accepted') oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
+        else oldStock = currentStock;
 
         summary.push(
             `${name}${amount > 1 ? ` x${amount}` : ''}${
@@ -227,24 +205,18 @@ function summarizeWithoutLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot,
         );
     }
 
-    if (summary.length === 0) {
-        return 'nothing';
-    }
+    if (summary.length === 0) return 'nothing';
 
     return summary.join(', ');
 }
 
 function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, which: string, type: string): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
+    if (dict === null) return 'unknown items';
 
     const summary: string[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
@@ -255,11 +227,8 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
         const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
         const maxStock = bot.pricelist.getPrice(sku, false);
 
-        if (type === 'summary-accepted') {
-            oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
-        } else {
-            oldStock = currentStock;
-        }
+        if (type === 'summary-accepted') oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
+        else oldStock = currentStock;
 
         summary.push(
             `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
@@ -268,9 +237,7 @@ function summarizeWithLinkWithStockChanges(dict: OurTheirItemsDict, bot: Bot, wh
         );
     }
 
-    if (summary.length === 0) {
-        return 'nothing';
-    }
+    if (summary.length === 0) return 'nothing';
 
     let left = 0;
 

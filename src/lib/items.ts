@@ -10,10 +10,7 @@ import isObject from 'isobject';
 
 export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     const schemaItem = schema.getItemByDefindex(item.defindex);
-
-    if (schemaItem === null) {
-        return item;
-    }
+    if (schemaItem === null) return item;
 
     if (schemaItem.name.includes(schemaItem.item_class.toUpperCase())) {
         for (let i = 0; i < schema.raw.schema.items.length; i++) {
@@ -26,14 +23,10 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         }
     }
 
-    if (schemaItem.item_name === 'Mann Co. Supply Crate Key') {
-        item.defindex = 5021;
-    } else if (schemaItem.item_name === 'Lugermorph') {
-        item.defindex = 160;
-    }
+    if (schemaItem.item_name === 'Mann Co. Supply Crate Key') item.defindex = 5021;
+    else if (schemaItem.item_name === 'Lugermorph') item.defindex = 160;
 
     const isPromo = isPromoItem(schemaItem);
-
     if (isPromo && item.quality != 1) {
         for (let i = 0; i < schema.raw.schema.items.length; i++) {
             if (
@@ -98,9 +91,7 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     if (item.effect !== null) {
-        if (item.quality === 11) {
-            item.quality2 = 11;
-        }
+        if (item.quality === 11) item.quality2 = 11;
 
         item.quality = 5;
     } else if (item.paintkit !== null) {

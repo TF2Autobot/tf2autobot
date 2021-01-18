@@ -36,37 +36,28 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
         for (let i = 0; i < trades.length; i++) {
             // const trade = trades[i];
-            if (!(trades[i].handledByUs && trades[i].isAccepted)) {
-                continue; // trade was not accepted, go to next trade
-            }
+            if (!(trades[i].handledByUs && trades[i].isAccepted)) continue; // trade was not accepted, go to next trade
 
             let isGift = false;
 
-            if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) {
-                continue; // trade has no items involved (not possible, but who knows)
-            }
+            if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) continue; // trade has no items involved (not possible, but who knows)
+
             if (typeof Object.keys(trades[i].dict.our).length === 'undefined') {
                 isGift = true; // no items on our side, so it is probably gift
             } else if (Object.keys(trades[i].dict.our).length > 0) {
                 // trade is not a gift
-                if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
-                    continue; // trade is missing value object
-                }
-                if (!(Object.keys(trades[i].prices).length > 0)) {
-                    continue; // have no prices, broken data, skip
-                }
+                if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) continue; // trade is missing value object
+
+                if (!(Object.keys(trades[i].prices).length > 0)) continue; // have no prices, broken data, skip
             } else {
                 isGift = true; // no items on our side, so it is probably gift
             }
 
-            if (typeof trades[i].value === 'undefined') {
-                trades[i].value = {};
-            }
+            if (typeof trades[i].value === 'undefined') trades[i].value = {};
 
             if (typeof trades[i].value.rate === 'undefined') {
-                if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
-                    trades[i].value = {}; // in case it was gift
-                }
+                if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) trades[i].value = {}; // in case it was gift
+
                 trades[i].value.rate = keyPrice.metal; // set key value to current value if it is not defined
             }
 
@@ -91,9 +82,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                     ) {
                         // if it is not currency
                         if (isGift) {
-                            if (!Object.prototype.hasOwnProperty.call(trades[i], 'prices')) {
-                                trades[i].prices = {};
-                            }
+                            if (!Object.prototype.hasOwnProperty.call(trades[i], 'prices')) trades[i].prices = {};
+
                             trades[i].prices[sku] = {
                                 // set price to 0 because it's a gift
                                 buy: new Currencies({

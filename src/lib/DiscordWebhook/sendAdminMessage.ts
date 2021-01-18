@@ -1,8 +1,6 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
 import log from '../logger';
-
 import Bot from '../../classes/Bot';
 
 export default function sendAdminMessage(

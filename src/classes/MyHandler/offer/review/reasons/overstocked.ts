@@ -1,19 +1,14 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../../../Bot';
-
 import { Meta, Overstocked } from 'steam-tradeoffer-manager';
+import Bot from '../../../../Bot';
 
 export default function overstocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-
-    const wrong = meta.reasons;
     const overstockedForTheir: string[] = [];
     const overstockedForOur: string[] = [];
 
-    const overstock = wrong.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[];
-
-    overstock.forEach(el => {
+    (meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             overstockedForOur.push(
                 `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only buy ${el.amountCanTrade})`

@@ -31,18 +31,14 @@ winston.addColors(colors);
 
 const levelFilter = (level: string): FormatWrap => {
     return winston.format(info => {
-        if (info.level !== level) {
-            return false;
-        }
+        if (info.level !== level) return false;
 
         return info;
     });
 };
 
 const privateFilter = winston.format(info => {
-    if (info.private === true) {
-        return false;
-    }
+    if (info.private === true) return false;
 
     return info;
 });
@@ -69,11 +65,8 @@ const consoleFormat = winston.format.combine(
         const splat = info[(Symbol.for('splat') as unknown) as string];
 
         if (splat) {
-            if (splat.length === 1) {
-                msg += ` ${JSON.stringify(splat[0])}`;
-            } else if (splat.length > 1) {
-                msg += ` ${JSON.stringify(info[(Symbol.for('splat') as unknown) as string])}`;
-            }
+            if (splat.length === 1) msg += ` ${JSON.stringify(splat[0])}`;
+            else if (splat.length > 1) msg += ` ${JSON.stringify(info[(Symbol.for('splat') as unknown) as string])}`;
         }
 
         return msg;
@@ -121,11 +114,8 @@ export function init(paths: Paths, options: Options): void {
 
         delete transport.type;
 
-        if (type === 'File' || type === 'DailyRotateFile') {
-            transport['format'] = fileFormat;
-        } else if (type === 'Console') {
-            transport['format'] = consoleFormat;
-        }
+        if (type === 'File' || type === 'DailyRotateFile') transport['format'] = fileFormat;
+        else if (type === 'Console') transport['format'] = consoleFormat;
 
         const filter = transport.filter;
 
