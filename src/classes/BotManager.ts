@@ -1,9 +1,7 @@
 import async from 'async';
 import SchemaManager from 'tf2-schema-2';
 import pm2 from 'pm2';
-
 import Bot from './Bot';
-
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
@@ -63,9 +61,7 @@ export default class BotManager {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     callback(null, this.schema);
                 })
-                .catch(err => {
-                    callback(err);
-                });
+                .catch(err => callback(err));
         };
     }
 
@@ -116,24 +112,16 @@ export default class BotManager {
                     }
                 ],
                 (item, callback) => {
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        this.stop(null, false, false);
-                        return;
-                    }
+                    if (this.isStopping) return this.stop(null, false, false);
+                    // Shutdown is requested, stop the bot
 
                     item(callback);
                 },
                 err => {
-                    if (err) {
-                        return reject(err);
-                    }
+                    if (err) return reject(err);
 
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        this.stop(null, false, false);
-                        return;
-                    }
+                    if (this.isStopping) return this.stop(null, false, false);
+                    // Shutdown is requested, stop the bot
 
                     return resolve();
                 }
@@ -147,24 +135,16 @@ export default class BotManager {
         this.stopRequested = true;
         this.stopRequestCount++;
 
-        if (this.stopRequestCount >= 10) {
-            rudely = true;
-        }
+        if (this.stopRequestCount >= 10) rudely = true;
 
         if (rudely) {
             log.warn('Forcefully exiting');
-            this.exit(err);
-            return;
+            return this.exit(err);
         }
 
-        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) {
-            return;
-        }
+        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) return;
 
-        if (this.stopping) {
-            // We are already shutting down
-            return;
-        }
+        if (this.stopping) return; // We are already shutting down
 
         this.stopping = true;
 
@@ -174,8 +154,7 @@ export default class BotManager {
 
         if (this.bot === null) {
             log.debug('Bot instance was not yet created');
-            this.exit(err);
-            return;
+            return this.exit(err);
         }
 
         this.bot.handler.onShutdown().finally(() => {
@@ -194,9 +173,7 @@ export default class BotManager {
             log.warn('Stop has been requested, stopping...');
 
             pm2.stop(process.env.pm_id, err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve();
             });
@@ -205,18 +182,14 @@ export default class BotManager {
 
     restartProcess(): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if (process.env.pm_id === undefined) {
-                return resolve(false);
-            }
+            if (process.env.pm_id === undefined) return resolve(false);
 
             // TODO: Make restart function take arguments, for example, an option to update the environment variables
 
             log.warn('Restart has been initialized, restarting...');
 
             pm2.restart(process.env.pm_id, err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve(true);
             });
@@ -246,9 +219,7 @@ export default class BotManager {
     }
 
     private exit(err: Error | null): void {
-        if (this.exiting) {
-            return;
-        }
+        if (this.exiting) return;
 
         this.exiting = true;
 
@@ -277,9 +248,7 @@ export default class BotManager {
     connectToPM2(): Promise<void> {
         return new Promise((resolve, reject) => {
             pm2.connect(err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve();
             });
@@ -289,9 +258,7 @@ export default class BotManager {
     initializeSchema(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.schemaManager.init(err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve();
             });

@@ -1,5 +1,4 @@
 import Currencies from 'tf2-currencies';
-
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
 import log from '../lib/logger';
@@ -10,9 +9,8 @@ export default class InventoryManager {
     private readonly pricelist: Pricelist;
 
     constructor(pricelist: Pricelist, inventory?: Inventory) {
-        if (inventory !== null) {
-            this.inventory = inventory;
-        }
+        if (inventory !== null) this.inventory = inventory;
+
         this.pricelist = pricelist;
     }
 
@@ -29,11 +27,9 @@ export default class InventoryManager {
     // }
 
     amountCanTrade(sku: string, buying: boolean, generics = false, showLog = false): number {
-        if (this.inventory === undefined) {
-            throw new Error('Inventory has not been set yet');
-        }
-        let genericCheck = generics;
+        if (this.inventory === undefined) throw new Error('Inventory has not been set yet');
 
+        let genericCheck = generics;
         // if we looking at amount we can trade and the sku is a generic unusual, always set generic to true
         const isGenericSku = /^[0-9]*;5$/.test(sku);
         if (isGenericSku) genericCheck = true;
@@ -103,9 +99,7 @@ export default class InventoryManager {
         }
 
         let canTrade = match[buying ? 'max' : 'min'] - amount;
-        if (!buying) {
-            canTrade *= -1;
-        }
+        if (!buying) canTrade *= -1;
 
         if (canTrade > 0) {
             // We can buy / sell the item
@@ -142,9 +136,7 @@ export default class InventoryManager {
 
     amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory): number {
         const keyPrice = this.pricelist.getKeyPrice;
-
         const value = price.toValue(keyPrice.metal);
-
         const buyerCurrencies = inventory.getCurrencies;
 
         let totalValue =
@@ -152,10 +144,7 @@ export default class InventoryManager {
             buyerCurrencies['5001;6'].length * 3 +
             buyerCurrencies['5000;6'].length;
 
-        if (useKeys) {
-            totalValue += buyerCurrencies['5021;6'].length * keyPrice.toValue();
-        }
-
+        if (useKeys) totalValue += buyerCurrencies['5021;6'].length * keyPrice.toValue();
         return Math.floor(totalValue / value);
     }
 }

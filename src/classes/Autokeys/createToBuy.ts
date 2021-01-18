@@ -1,10 +1,7 @@
 import Currencies from 'tf2-currencies';
-
 import { genScrapAdjustment } from './userSettings';
-
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
-
 import log from '../../lib/logger';
 
 export default function createToBuy(minKeys: number, maxKeys: number, bot: Bot): void {
@@ -50,10 +47,8 @@ export default function createToBuy(minKeys: number, maxKeys: number, bot: Bot):
 
     bot.pricelist
         .addPrice(entry, true, PricelistChangedSource.Autokeys)
-        .then(() => {
-            log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`);
-        })
-        .catch((err: Error) => {
-            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${err.message}`);
-        });
+        .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`))
+        .catch(err =>
+            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${JSON.stringify(err)}`)
+        );
 }

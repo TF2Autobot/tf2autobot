@@ -1,9 +1,8 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
-import { pure, summarizeToChat, listItems, replace } from '../tools/export';
 import log from '../logger';
+import { pure, summarizeToChat, listItems, replace } from '../tools/export';
 
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
@@ -27,6 +26,7 @@ export default function sendOfferReview(
             !(
                 reasons.includes('🟩_UNDERSTOCKED') ||
                 reasons.includes('🟨_INVALID_ITEMS') ||
+                reasons.includes('🟧_DISABLED_ITEMS') ||
                 reasons.includes('🟦_OVERSTOCKED') ||
                 reasons.includes('🟫_DUPED_ITEMS') ||
                 reasons.includes('🟪_DUPE_CHECK_FAILED')
@@ -40,6 +40,7 @@ export default function sendOfferReview(
 
     const itemsName = {
         invalid: items.invalid.map(name => replace.itemName(name)),
+        disabled: items.disabled.map(name => replace.itemName(name)),
         overstock: items.overstock.map(name => replace.itemName(name)),
         understock: items.understock.map(name => replace.itemName(name)),
         duped: items.duped.map(name => replace.itemName(name)),
@@ -148,30 +149,24 @@ export default function sendOfferReview(
                         value: newSentences.replace(/@/g, '')
                     });
 
-                    if (i === separate.length - 1 || j > 4) {
-                        webhookReview.embeds[0].fields.push(statusElement);
-                    }
+                    if (i === separate.length - 1 || j > 4) webhookReview.embeds[0].fields.push(statusElement);
 
                     newSentences = '';
                     j++;
-                } else {
-                    newSentences += sentence;
-                }
+                    //
+                } else newSentences += sentence;
             });
         }
 
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
-            .then(() => {
-                log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`);
-            })
-            .catch(err => {
-                log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
-            });
+            .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
+            .catch(err => log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err));
     });
 }
 
 interface Review {
     invalid: string[];
+    disabled: string[];
     overstock: string[];
     understock: string[];
     duped: string[];

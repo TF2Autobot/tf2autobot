@@ -1,17 +1,14 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
+import { Meta, DupedItems } from 'steam-tradeoffer-manager';
 import Bot from '../../../../Bot';
-import { DupedItems, Meta } from 'steam-tradeoffer-manager';
 
 export default function duped(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-
-    const wrong = meta.reasons;
     const dupedItemsNameOur: string[] = [];
     const dupedItemsNameTheir: string[] = [];
-    const duped = wrong.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[];
 
-    duped.forEach(el => {
+    (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
             dupedItemsNameOur.push(

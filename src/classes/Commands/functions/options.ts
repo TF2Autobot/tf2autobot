@@ -1,13 +1,11 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
-
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
-
-import { deepMerge } from '../../../lib/tools/deep-merge';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
+import { deepMerge } from '../../../lib/tools/deep-merge';
 
 export function optionsCommand(steamID: SteamID, bot: Bot): void {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
@@ -16,9 +14,12 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
 
     const commands = liveOptions.commands;
     const detailsExtra = liveOptions.detailsExtra;
-
     delete liveOptions.commands;
     delete liveOptions.detailsExtra;
+
+    const promiseDelay = (ms: number) => {
+        return new Promise(resolve => setTimeout(() => resolve(), ms));
+    };
 
     bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
     void promiseDelay(1000);
@@ -27,13 +28,8 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
 }
 
-function promiseDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(() => resolve(), ms));
-}
-
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
-
     const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
 
     const optionsPath = getOptionsPath(opt.steamAccountName);
@@ -100,15 +96,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
             if (typeof knownParams.statistics === 'object') {
                 if (knownParams.statistics.sendStats !== undefined) {
-                    if (knownParams.statistics.sendStats.enable === true) {
-                        bot.handler.sendStats();
-                    } else {
-                        bot.handler.disableSendStats();
-                    }
+                    if (knownParams.statistics.sendStats.enable === true) bot.handler.sendStats();
+                    else bot.handler.disableSendStats();
 
-                    if (knownParams.statistics.sendStats.time !== undefined) {
-                        bot.handler.sendStats();
-                    }
+                    if (knownParams.statistics.sendStats.time !== undefined) bot.handler.sendStats();
                 }
             }
 
@@ -122,9 +113,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
-            if (knownParams.normalize === 'object') {
-                void bot.inventoryManager.getInventory.fetch();
-            }
+            if (knownParams.normalize === 'object') void bot.inventoryManager.getInventory.fetch();
 
             if (knownParams.autokeys !== undefined) {
                 bot.handler.autokeys.check();

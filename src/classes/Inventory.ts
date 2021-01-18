@@ -6,10 +6,8 @@ import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-ma
 import SchemaManager, { Effect } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
-
 import Bot from './Bot';
 import log from '../lib/logger';
-
 import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
 import { check } from '../lib/tools/export';
 
@@ -34,19 +32,15 @@ export default class Inventory {
 
     get getTotalItems(): number {
         let items = 0;
-        const amountTradable = this.tradable;
-        for (const sku in amountTradable) {
-            if (!Object.prototype.hasOwnProperty.call(amountTradable, sku)) {
-                continue;
-            }
-            items += amountTradable[sku].length;
+        for (const sku in this.tradable) {
+            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) continue;
+
+            items += this.tradable[sku].length;
         }
-        const amountNonTradable = this.nonTradable;
-        for (const sku in amountNonTradable) {
-            if (!Object.prototype.hasOwnProperty.call(amountNonTradable, sku)) {
-                continue;
-            }
-            items += amountNonTradable[sku].length;
+        for (const sku in this.nonTradable) {
+            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) continue;
+
+            items += this.nonTradable[sku].length;
         }
         return items;
     }
@@ -78,10 +72,7 @@ export default class Inventory {
         isNormalizePainted: boolean
     ): Inventory {
         const inventory = new Inventory(steamID, manager, schema, options, isNormalizePainted);
-
-        // Funny how typescript allows calling a private function from a static function
         inventory.setItems = items;
-
         return inventory;
     }
 
@@ -98,18 +89,14 @@ export default class Inventory {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
 
         const items = this.tradable;
-
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
                 const assetids = items[sku].map(item => item.id);
-
                 const index = assetids.indexOf(assetid);
 
                 if (index !== -1) {
                     assetids.splice(index, 1);
-                    if (assetids.length === 0) {
-                        delete items[sku];
-                    }
+                    if (assetids.length === 0) delete items[sku];
                     break;
                 }
             }
@@ -119,12 +106,9 @@ export default class Inventory {
     fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 this.setItems = items;
-
                 resolve();
             });
         });
@@ -148,25 +132,17 @@ export default class Inventory {
 
     findByAssetid(assetid: string): string | null {
         for (const sku in this.tradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) {
-                continue;
-            }
+            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) continue;
 
-            if (!this.tradable[sku].find(item => item.id.includes(assetid))) {
-                continue;
-            }
+            if (!this.tradable[sku].find(item => item.id.includes(assetid))) continue;
 
             return sku;
         }
 
         for (const sku in this.nonTradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) {
-                continue;
-            }
+            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) continue;
 
-            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) {
-                continue;
-            }
+            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) continue;
 
             return sku;
         }
@@ -295,14 +271,10 @@ export default class Inventory {
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 
             let isDuel5xUses: boolean | null = null;
-            if (sku === '241;6') {
-                isDuel5xUses = check.is5xUses(items[i]);
-            }
+            if (sku === '241;6') isDuel5xUses = check.is5xUses(items[i]);
 
             let isNoiseMaker25xUses: boolean | null = null;
-            if (Object.keys(noiseMakers).includes(sku)) {
-                isNoiseMaker25xUses = check.is25xUses(items[i]);
-            }
+            if (Object.keys(noiseMakers).includes(sku)) isNoiseMaker25xUses = check.is25xUses(items[i]);
 
             if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });

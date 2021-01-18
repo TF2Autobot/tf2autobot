@@ -1,8 +1,6 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
 import log from '../logger';
-
 import Bot from '../../classes/Bot';
 
 export default function sendPartnerMessage(
@@ -38,12 +36,10 @@ export default function sendPartnerMessage(
     };
 
     sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message')
-        .then(() => {
-            log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err);
-        });
+        .then(() => log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`))
+        .catch(err =>
+            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err)
+        );
 }
 
 interface Links {

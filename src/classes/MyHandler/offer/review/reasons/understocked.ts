@@ -1,18 +1,14 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../../../Bot';
-
 import { Meta, Understocked } from 'steam-tradeoffer-manager';
+import Bot from '../../../../Bot';
 
 export default function understocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-    const wrong = meta.reasons;
     const understockedForTheir: string[] = [];
     const understockedForOur: string[] = [];
 
-    const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[];
-
-    understocked.forEach(el => {
+    (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             understockedForOur.push(
                 `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade})`

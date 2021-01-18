@@ -1,12 +1,9 @@
 import SteamID from 'steamid';
-
-import Bot from '../Bot';
+import * as inspect from 'util';
 import Cart from './Cart';
-
+import Bot from '../Bot';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-
-import * as inspect from 'util';
 
 export default class CartQueue {
     private readonly bot: Bot;
@@ -64,8 +61,7 @@ export default class CartQueue {
                         .restartProcess()
                         .then(restarting => {
                             if (!restarting) {
-                                sendAlert('failedPM2', this.bot);
-                                return;
+                                return sendAlert('failedPM2', this.bot);
                             }
                             this.bot.sendMessage(steamID, 'Sorry! Something went wrong. I am restarting myself...');
                         })
@@ -79,11 +75,10 @@ export default class CartQueue {
                         .restartProcess()
                         .then(restarting => {
                             if (!restarting) {
-                                this.bot.messageAdmins(
+                                return this.bot.messageAdmins(
                                     '❌ Automatic restart on queue problem failed because are not running the bot with PM2!',
                                     []
                                 );
-                                return;
                             }
                             this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                         })
@@ -109,7 +104,6 @@ export default class CartQueue {
         }
 
         this.carts.splice(position, 1);
-
         log.debug('Removed cart from the queue');
 
         return true;
@@ -122,10 +116,7 @@ export default class CartQueue {
 
     getCart(steamID: SteamID | string): Cart | null {
         const index = this.getPosition(steamID);
-
-        if (index === -1) {
-            return null;
-        }
+        if (index === -1) return null;
 
         return this.carts[index];
     }

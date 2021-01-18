@@ -1,5 +1,4 @@
 import Bot from '../../Bot';
-
 import { craftWeapons } from '../../../lib/data';
 
 export default function craftClassWeapons(bot: Bot): Promise<void> {

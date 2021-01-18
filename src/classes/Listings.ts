@@ -4,15 +4,12 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
-
 import Bot from './Bot';
 import { Entry } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
-
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
 
@@ -54,10 +51,7 @@ export default class Listings {
     }
 
     setupAutorelist(): void {
-        if (!this.isAutoRelistEnabled || !this.isCreateListing) {
-            // Autobump is not enabled
-            return;
-        }
+        if (!this.isAutoRelistEnabled || !this.isCreateListing) return; // Autobump is not enabled
 
         // Autobump is enabled, add heartbeat listener
 
@@ -74,14 +68,10 @@ export default class Listings {
     }
 
     private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || !this.isCreateListing) {
-            return;
-        }
+        if (this.autoRelistEnabled || !this.isCreateListing) return;
 
         log.debug('Enabled autorelist');
-
         this.autoRelistEnabled = true;
-
         clearTimeout(this.autoRelistTimeout);
 
         const doneWait = (): void => {
@@ -141,7 +131,6 @@ export default class Listings {
     private set disableAutoRelist(setValue: boolean) {
         clearTimeout(this.autoRelistTimeout);
         this.autoRelistEnabled = setValue;
-
         log.debug('Disabled autorelist');
     }
 
@@ -160,33 +149,24 @@ export default class Listings {
                 json: true
             };
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             void request(options, (err, reponse, body) => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
-                const thisBody = body as BPTFGetUserInfo;
-                return resolve(thisBody.users[steamID64]);
+                return resolve((body as BPTFGetUserInfo).users[steamID64]);
             });
         });
     }
 
     checkBySKU(sku: string, data?: Entry | null, generics = false): void {
-        if (!this.isCreateListing) {
-            return;
-        }
-
-        const item = SKU.fromString(sku);
+        if (!this.isCreateListing) return;
 
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, false);
 
-        let hasBuyListing = item.paintkit !== null;
+        let hasBuyListing = SKU.fromString(sku).paintkit !== null;
         let hasSellListing = false;
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
-
         const inventory = this.bot.inventoryManager.getInventory;
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
@@ -196,11 +176,8 @@ export default class Listings {
                 return;
             }
 
-            if (listing.intent === 0) {
-                hasBuyListing = true;
-            } else if (listing.intent === 1) {
-                hasSellListing = true;
-            }
+            if (listing.intent === 0) hasBuyListing = true;
+            else if (listing.intent === 1) hasSellListing = true;
 
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
                 // We are not trading the item, remove the listing
@@ -285,17 +262,13 @@ export default class Listings {
                     resolve();
                 });
 
-                if (next === false) {
-                    return;
-                }
+                if (next === false) return;
 
                 this.checkingAllListings = true;
-
                 const inventory = this.bot.inventoryManager.getInventory;
-
-                const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
-                    return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
-                });
+                const pricelist = this.bot.pricelist.getPrices.sort(
+                    (a, b) => inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length
+                );
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
@@ -307,10 +280,7 @@ export default class Listings {
                 });
             };
 
-            if (!this.removingAllListings) {
-                doneRemovingAll();
-                return;
-            }
+            if (!this.removingAllListings) return doneRemovingAll();
 
             callbackQueue.add('removeAllListings', () => {
                 doneRemovingAll();
@@ -318,7 +288,7 @@ export default class Listings {
         });
     }
 
-    private recursiveCheckPricelist(pricelist: Entry[]): Promise<void> {
+    recursiveCheckPricelist(pricelist: Entry[], withDelay = false): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
@@ -328,82 +298,19 @@ export default class Listings {
                     return resolve();
                 }
 
-                setImmediate(() => {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
-
-                    index++;
-
-                    iteration();
-                });
-            };
-
-            iteration();
-        });
-    }
-
-    checkAllWithDelay(): Promise<void> {
-        return new Promise(resolve => {
-            if (!this.isCreateListing) {
-                return resolve();
-            }
-
-            log.debug('Checking all');
-
-            const doneRemovingAll = (): void => {
-                const next = callbackQueue.add('checkAllListings', () => {
-                    resolve();
-                });
-
-                if (next === false) {
-                    return;
+                if (withDelay) {
+                    setTimeout(() => {
+                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                        index++;
+                        iteration();
+                    }, 200);
+                } else {
+                    setImmediate(() => {
+                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                        index++;
+                        iteration();
+                    });
                 }
-
-                this.checkingAllListings = true;
-
-                const inventory = this.bot.inventoryManager.getInventory;
-
-                const pricelist = this.bot.pricelist.getPrices.sort((a, b) => {
-                    return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
-                });
-
-                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-
-                void this.recursiveCheckPricelistWithDelay(pricelist).asCallback(() => {
-                    log.debug('Done checking all');
-                    // Done checking all listings
-                    this.checkingAllListings = false;
-                    next();
-                });
-            };
-
-            if (!this.removingAllListings) {
-                doneRemovingAll();
-                return;
-            }
-
-            callbackQueue.add('removeAllListings', () => {
-                doneRemovingAll();
-            });
-        });
-    }
-
-    recursiveCheckPricelistWithDelay(pricelist: Entry[]): Promise<void> {
-        return new Promise(resolve => {
-            let index = 0;
-
-            const iteration = (): void => {
-                if (pricelist.length <= index || this.cancelCheckingListings) {
-                    this.cancelCheckingListings = false;
-                    return resolve();
-                }
-
-                setTimeout(() => {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
-
-                    index++;
-
-                    iteration();
-                }, 200);
             };
 
             iteration();
@@ -412,25 +319,18 @@ export default class Listings {
 
     removeAll(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.checkingAllListings) {
-                this.cancelCheckingListings = true;
-            }
+            if (this.checkingAllListings) this.cancelCheckingListings = true;
 
             log.debug('Removing all listings');
 
             // Ensures that we don't to remove listings multiple times
             const next = callbackQueue.add('removeAllListings', err => {
-                if (err) {
-                    return reject(err);
-                }
+                if (err) return reject(err);
 
                 return resolve(null);
             });
 
-            if (next === false) {
-                // Function was already called
-                return;
-            }
+            if (next === false) return; // Function was already called
 
             void this.removeAllListings().asCallback(next);
         });
@@ -461,9 +361,7 @@ export default class Listings {
 
                 // Remove listings
                 this.bot.listingManager._processActions(err => {
-                    if (err) {
-                        return reject(err);
-                    }
+                    if (err) return reject(err);
 
                     // The request might fail, if it does we will try again
                     return resolve(this.removeAllListings());
@@ -478,12 +376,6 @@ export default class Listings {
         });
     }
 
-    redoListingsWithDelay(): Promise<void> {
-        return this.removeAll().then(() => {
-            return this.checkAllWithDelay();
-        });
-    }
-
     waitForListings(): Promise<void> {
         return new Promise((resolve, reject) => {
             let checks = 0;
@@ -493,11 +385,8 @@ export default class Listings {
                 log.debug('Checking listings...');
 
                 const prevCount = this.bot.listingManager.listings.length;
-
                 this.bot.listingManager.getListings(err => {
-                    if (err) {
-                        return reject(err);
-                    }
+                    if (err) return reject(err);
 
                     if (this.bot.listingManager.listings.length !== prevCount) {
                         log.debug(
@@ -529,32 +418,32 @@ export default class Listings {
         let highValueString = '';
 
         if (intent === 1) {
-            const highValue = {
-                spells: '',
-                parts: '',
-                killstreaker: '',
-                sheen: '',
-                painted: ''
-            };
-
-            let hasSpells = false;
-            let hasStrangeParts = false;
-            let hasKillstreaker = false;
-            let hasSheen = false;
-            let hasPaint = false;
-
-            const spellNames: string[] = [];
-            const partsNames: string[] = [];
-            const killstreakerName: string[] = [];
-            const sheenName: string[] = [];
-            const paintName: string[] = [];
-
-            const optD = this.bot.options.details.highValue;
-            const optR = this.bot.options.detailsExtra;
-
             // if item undefined, then skip because it will make your bot crashed.
             if (item) {
                 const hv = item.hv;
+
+                const highValue = {
+                    spells: '',
+                    parts: '',
+                    killstreaker: '',
+                    sheen: '',
+                    painted: ''
+                };
+
+                let hasSpells = false;
+                let hasStrangeParts = false;
+                let hasKillstreaker = false;
+                let hasSheen = false;
+                let hasPaint = false;
+
+                const spellNames: string[] = [];
+                const partsNames: string[] = [];
+                const killstreakerName: string[] = [];
+                const sheenName: string[] = [];
+                const paintName: string[] = [];
+
+                const optD = this.bot.options.details.highValue;
+                const optR = this.bot.options.detailsExtra;
 
                 const getKeyByValue = (object: { [key: string]: any }, value: any) => {
                     return Object.keys(object).find(key => object[key] === value);
@@ -653,15 +542,14 @@ export default class Listings {
         const optDs = this.bot.options.details.uses;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
+            const inventory = this.bot.inventoryManager.getInventory;
             return details
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getInventory.getAmount(entry.sku, true).toString())
+                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
-
-        const inventory = this.bot.inventoryManager;
 
         if (entry.note && entry.note.buy && intent === 0) {
             // If note.buy value is defined and not null and intent is buying, then use whatever in the

@@ -1,6 +1,5 @@
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
-
 import Cart from './Cart';
 import log from '../../lib/logger';
 
@@ -11,9 +10,7 @@ export default class DonateCart extends Cart {
 
     constructOffer(): Promise<string> {
         return new Promise((resolve, reject) => {
-            if (this.isEmpty) {
-                return reject('cart is empty');
-            }
+            if (this.isEmpty) return reject('cart is empty');
 
             const offer = this.bot.manager.createOffer(
                 'https://steamcommunity.com/tradeoffer/new/?partner=432099474&token=Cc9yZSv0' // Backpack.tf donation bot
@@ -25,9 +22,7 @@ export default class DonateCart extends Cart {
             const ourInventory = this.bot.inventoryManager.getInventory;
 
             for (const sku in this.our) {
-                if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                    continue;
-                }
+                if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
 
                 let amount = this.getOurCount(sku);
                 const ourAssetids = ourInventory.findBySKU(sku, true);
@@ -69,10 +64,7 @@ export default class DonateCart extends Cart {
                     if (isAdded) {
                         // The item was added to the offer
                         missing--;
-                        if (missing === 0) {
-                            // We added all the items
-                            break;
-                        }
+                        if (missing === 0) break; // We added all the items
                     }
                 }
 

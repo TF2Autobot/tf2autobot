@@ -1,25 +1,20 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../../../Bot';
-
 import { Meta, InvalidItems } from 'steam-tradeoffer-manager';
+import Bot from '../../../../Bot';
 
 export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
-    const wrong = meta.reasons;
     const invalidForTheir: string[] = []; // Display for trade partner
     const invalidForOur: string[] = []; // Display for owner
 
-    const invalid = wrong.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[];
-
-    invalid.forEach(el => {
+    (meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             // show both item name and prices.tf price
             invalidForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_ - ${el.price}`);
-        } else {
-            // show both item name and prices.tf price
-            invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
-        }
+        } else invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
+        // show both item name and prices.tf price
+
         // only show to trade partner the item name
         invalidForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
     });

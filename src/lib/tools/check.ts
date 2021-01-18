@@ -8,11 +8,7 @@ import Options from '../../classes/Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export function getAssetidsWithFullUses(items: DictItem[]): string[] {
-    return items
-        .filter(item => {
-            return item.isFullUses === true;
-        })
-        .map(item => item.id);
+    return items.filter(item => item.isFullUses === true).map(item => item.id);
 }
 
 export function is5xUses(item: EconItem): boolean {
@@ -150,25 +146,11 @@ export function highValue(
     }
 
     if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
-        if (hasSpells) {
-            attributes.s = s;
-        }
-
-        if (hasStrangeParts) {
-            attributes.sp = sp;
-        }
-
-        if (hasKillstreaker) {
-            attributes.ke = ke;
-        }
-
-        if (hasSheen) {
-            attributes.ks = ks;
-        }
-
-        if (hasPaint) {
-            attributes.p = p;
-        }
+        if (hasSpells) attributes.s = s;
+        if (hasStrangeParts) attributes.sp = sp;
+        if (hasKillstreaker) attributes.ke = ke;
+        if (hasSheen) attributes.ks = ks;
+        if (hasPaint) attributes.p = p;
     }
 
     return attributes;
@@ -212,9 +194,7 @@ export function getHighValueItems(
                     else if (attachment === 'p') toString += '\n🎨 Painted: ';
 
                     for (const pSKU in items[sku][attachment]) {
-                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) {
-                            continue;
-                        }
+                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) continue;
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
                             toJoin.push(getAttachmentName(attachment, pSKU, paints, parts) + ' (🌟)');

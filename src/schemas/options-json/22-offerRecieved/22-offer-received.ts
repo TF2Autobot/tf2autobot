@@ -10,6 +10,9 @@ export const offerReceivedSchema: jsonschema.Schema = {
         invalidItems: {
             $ref: 'invalid-items-or'
         },
+        disabledItems: {
+            $ref: 'overstocked-understocked-or'
+        },
         overstocked: {
             $ref: 'overstocked-understocked-or'
         },

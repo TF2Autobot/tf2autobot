@@ -1,6 +1,5 @@
 import { Action, TradeOffer } from 'steam-tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
-
 import Bot from '../../../Bot';
 
 export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
@@ -140,6 +139,18 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
             ? custom
             : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ' +
               "you've sent a trade with an invalid items (not exist in my pricelist).";
+        //
+    } else if (
+        offerReason.reason === 'ONLY_DISABLED_ITEMS' ||
+        (offerReason.reason === '🟧_DISABLED_ITEMS' && manualReviewDisabled)
+    ) {
+        //
+        const custom = opt.offerReceived.disabledItems.autoDecline.declineReply;
+        reasonForInvalidValue = value.diff < 0;
+        reply = custom
+            ? custom
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ' +
+              "the item(s) you're trying to take/give is currently disabled";
         //
     } else if (
         offerReason.reason === 'ONLY_OVERSTOCKED' ||

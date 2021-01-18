@@ -1,26 +1,20 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-
 import Bot from '../../Bot';
-
 import { craftAll, uncraftAll } from '../../../lib/data';
 import { pure, timeNow, uptime } from '../../../lib/tools/export';
 
 export function timeCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.time;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const custom = opt.customReply.reply;
-
     const timeWithEmojis = timeNow(bot);
     bot.sendMessage(
         steamID,
@@ -37,35 +31,29 @@ export function timeCommand(steamID: SteamID, bot: Bot): void {
 
 export function uptimeCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.uptime;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const botUptime = uptime();
     const custom = opt.customReply.reply;
-
     bot.sendMessage(steamID, custom ? custom.replace(/%uptime%/g, botUptime) : botUptime);
 }
 
 export function pureCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.pure;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const pureStock = pure.stock(bot);
     const custom = opt.customReply.reply;
-
     bot.sendMessage(
         steamID,
         custom
@@ -76,21 +64,17 @@ export function pureCommand(steamID: SteamID, bot: Bot): void {
 
 export function rateCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.rate;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const key = bot.pricelist.getKeyPrices;
     const keyRate = key.sell.toString();
-    const keyRateSource = key.src;
-
     const custom = opt.customReply.reply;
-    const source = keyRateSource === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf';
+    const source = key.src === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf';
 
     bot.sendMessage(
         steamID,
@@ -112,28 +96,21 @@ export function rateCommand(steamID: SteamID, bot: Bot): void {
 
 export function stockCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.stock;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const inventory = bot.inventoryManager.getInventory;
     const dict = inventory.getItems;
-
     const items: { amount: number; name: string }[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
-        if (['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
-            continue;
-        }
+        if (['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) continue;
 
         items.push({
             name: bot.schema.getName(SKU.fromString(sku), false),
@@ -189,7 +166,6 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
     }
 
     const custom = opt.customReply.reply;
-
     let reply = custom
         ? custom.replace(/%stocklist%/g, stock.join(', \n'))
         : `/pre 📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
@@ -203,52 +179,14 @@ export function stockCommand(steamID: SteamID, bot: Bot): void {
 
 export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.craftweapon;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
-    const craftWeapons = (bot: Bot) => {
-        const items: { amount: number; name: string }[] = [];
-
-        craftAll.forEach(sku => {
-            const amount = bot.inventoryManager.getInventory.getAmount(sku);
-            if (amount > 0) {
-                items.push({
-                    name: bot.schema.getName(SKU.fromString(sku), false),
-                    amount: amount
-                });
-            }
-        });
-
-        items.sort((a, b) => {
-            if (a.amount === b.amount) {
-                if (a.name < b.name) {
-                    return -1;
-                } else if (a.name > b.name) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-            return b.amount - a.amount;
-        });
-
-        const craftWeaponsStock: string[] = [];
-
-        if (items.length > 0) {
-            for (let i = 0; i < items.length; i++) {
-                craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-            }
-        }
-        return craftWeaponsStock;
-    };
-
-    const craftWeaponStock = craftWeapons(bot);
+    const craftWeaponStock = getWeaponsStock(bot, craftAll);
 
     let reply: string;
     if (craftWeaponStock.length > 0) {
@@ -266,55 +204,16 @@ export function craftweaponCommand(steamID: SteamID, bot: Bot): void {
 
 export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.uncraftweapon;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
-    const uncraftWeapons = (bot: Bot) => {
-        const items: { amount: number; name: string }[] = [];
-
-        uncraftAll.forEach(sku => {
-            const amount = bot.inventoryManager.getInventory.getAmount(sku);
-            if (amount > 0) {
-                items.push({
-                    name: bot.schema.getName(SKU.fromString(sku), false),
-                    amount: amount
-                });
-            }
-        });
-
-        items.sort((a, b) => {
-            if (a.amount === b.amount) {
-                if (a.name < b.name) {
-                    return -1;
-                } else if (a.name > b.name) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-            return b.amount - a.amount;
-        });
-
-        const uncraftWeaponsStock: string[] = [];
-
-        if (items.length > 0) {
-            for (let i = 0; i < items.length; i++) {
-                uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-            }
-        }
-        return uncraftWeaponsStock;
-    };
-
-    const uncraftWeaponStock = uncraftWeapons(bot);
+    const uncraftWeaponStock = getWeaponsStock(bot, uncraftAll);
 
     let reply: string;
-
     if (uncraftWeaponStock.length > 0) {
         const custom = opt.customReply.have;
         reply = custom
@@ -328,23 +227,56 @@ export function uncraftweaponCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, reply);
 }
 
+function getWeaponsStock(bot: Bot, type: string[]) {
+    const items: { amount: number; name: string }[] = [];
+
+    type.forEach(sku => {
+        const amount = bot.inventoryManager.getInventory.getAmount(sku);
+        if (amount > 0) {
+            items.push({
+                name: bot.schema.getName(SKU.fromString(sku), false),
+                amount: amount
+            });
+        }
+    });
+
+    items.sort((a, b) => {
+        if (a.amount === b.amount) {
+            if (a.name < b.name) {
+                return -1;
+            } else if (a.name > b.name) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        return b.amount - a.amount;
+    });
+
+    const stock: string[] = [];
+
+    if (items.length > 0) {
+        for (let i = 0; i < items.length; i++) {
+            stock.push(`${items[i].name}: ${items[i].amount}`);
+        }
+    }
+    return stock;
+}
+
 export function ownerCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.owner;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
     const firstAdmin = bot.getAdmins[0];
-
-    const custom = opt.customReply.reply;
     const steamURL = `https://steamcommunity.com/profiles/${firstAdmin.toString()}`;
     const bptfURL = `https://backpack.tf/profiles/${firstAdmin.toString()}`;
 
+    const custom = opt.customReply.reply;
     bot.sendMessage(
         steamID,
         custom
@@ -358,30 +290,24 @@ export function ownerCommand(steamID: SteamID, bot: Bot): void {
 
 export function discordCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.discord;
-
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
             const custom = opt.customReply.disabled;
-            bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            return;
+            return bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
         }
     }
 
-    let reply: string;
-
-    const custom = opt.customReply.reply;
     const inviteURL = opt.inviteURL;
-
+    const custom = opt.customReply.reply;
+    let reply: string;
     if (custom) {
         reply =
             'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\n\n' + custom.replace(/%discordurl%/g, inviteURL);
     } else {
         if (inviteURL) {
             reply = `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`;
-        } else {
-            reply = 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
-        }
+            //
+        } else reply = 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
     }
-
     bot.sendMessage(steamID, reply);
 }

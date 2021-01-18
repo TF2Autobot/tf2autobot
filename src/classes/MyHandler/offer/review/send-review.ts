@@ -1,24 +1,19 @@
 import { TradeOffer, Meta } from 'steam-tradeoffer-manager';
-
-import Bot from '../../../Bot';
-
 import processReview from './process-review';
-
+import Bot from '../../../Bot';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
-
     const time = t.timeNow(bot);
-
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
-
     const content = processReview(offer, meta, bot, isTradingKeys);
 
     const hasCustomNote = !(
         opt.manualReview.invalidItems.note !== '' ||
+        opt.manualReview.disabledItems.note !== '' ||
         opt.manualReview.overstocked.note !== '' ||
         opt.manualReview.understocked.note !== '' ||
         opt.manualReview.duped.note !== '' ||
@@ -26,7 +21,6 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     );
 
     const reasons = meta.uniqueReasons;
-
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
     // Notify partner and admin that the offer is waiting for manual review
@@ -81,7 +75,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     }
 
     const highValueItems: string[] = [];
-    if (meta && meta.highValue && meta.highValue.items) {
+    if (meta?.highValue?.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
             const itemsName = t.check.getHighValueItems(
                 meta.highValue.items.their,
@@ -91,9 +85,8 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
             );
 
             for (const name in itemsName) {
-                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
-                    continue;
-                }
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+
                 highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
         }
@@ -101,6 +94,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
     const items = {
         invalid: content.itemNames.invalidItems,
+        disabled: content.itemNames.disabledItems,
         overstock: content.itemNames.overstocked,
         understock: content.itemNames.understocked,
         duped: content.itemNames.duped,
@@ -110,11 +104,11 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
     if (isWebhookEnabled) {
         sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
+        //
     } else {
         const currentItems = bot.inventoryManager.getInventory.getTotalItems;
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
-
         const list = t.listItems(offer, bot, items, true);
 
         bot.messageAdmins(
