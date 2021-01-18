@@ -27,6 +27,7 @@ export default function sendOfferReview(
             !(
                 reasons.includes('🟩_UNDERSTOCKED') ||
                 reasons.includes('🟨_INVALID_ITEMS') ||
+                reasons.includes('🟧_DISABLED_ITEMS') ||
                 reasons.includes('🟦_OVERSTOCKED') ||
                 reasons.includes('🟫_DUPED_ITEMS') ||
                 reasons.includes('🟪_DUPE_CHECK_FAILED')
@@ -40,6 +41,7 @@ export default function sendOfferReview(
 
     const itemsName = {
         invalid: items.invalid.map(name => replace.itemName(name)),
+        disabled: items.disabled.map(name => replace.itemName(name)),
         overstock: items.overstock.map(name => replace.itemName(name)),
         understock: items.understock.map(name => replace.itemName(name)),
         duped: items.duped.map(name => replace.itemName(name)),
@@ -172,6 +174,7 @@ export default function sendOfferReview(
 
 interface Review {
     invalid: string[];
+    disabled: string[];
     overstock: string[];
     understock: string[];
     duped: string[];

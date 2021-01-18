@@ -25,6 +25,7 @@ export default async function sendTradeSummary(
 
     const itemsName = {
         invalid: accepted.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
+        disabled: accepted.disabledItems.map(name => t.replace.itemName(name)), // 🟧_DISABLED_ITEMS
         overstock: accepted.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
         understock: accepted.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
         duped: [],
@@ -205,6 +206,7 @@ export default async function sendTradeSummary(
 
 interface Accepted {
     invalidItems: string[];
+    disabledItems: string[];
     overstocked: string[];
     understocked: string[];
     highValue: string[];

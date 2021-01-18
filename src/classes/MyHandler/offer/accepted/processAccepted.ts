@@ -1,4 +1,12 @@
-import { Action, HighValueOutput, InvalidItems, Overstocked, TradeOffer, Understocked } from 'steam-tradeoffer-manager';
+import {
+    Action,
+    DisabledItems,
+    HighValueOutput,
+    InvalidItems,
+    Overstocked,
+    TradeOffer,
+    Understocked
+} from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 
 import { itemList } from '../../utils/export-utils';
@@ -22,6 +30,7 @@ export default function processAccepted(
 
     const accepted: Accepted = {
         invalidItems: [],
+        disabledItems: [],
         overstocked: [],
         understocked: [],
         highValue: [],
@@ -53,6 +62,20 @@ export default function processAccepted(
                                     ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                     : bot.schema.getName(SKU.fromString(el.sku), false)
                             } - ${el.price}`
+                        );
+                    });
+                }
+                if (offerReceived.meta.uniqueReasons.includes('🟧_DISABLED_ITEMS')) {
+                    // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
+
+                    const disabled = offerReceived.meta.reasons.filter(
+                        el => el.reason === '🟧_DISABLED_ITEMS'
+                    ) as DisabledItems[];
+                    disabled.forEach(el => {
+                        accepted.disabledItems.push(
+                            isWebhookEnabled
+                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schema.getName(SKU.fromString(el.sku), false)
                         );
                     });
                 }
@@ -205,6 +228,7 @@ export default function processAccepted(
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
             invalid: accepted.invalidItems, // 🟨_INVALID_ITEMS
+            disabled: accepted.disabledItems, // 🟧_DISABLED_ITEMS
             overstock: accepted.overstocked, // 🟦_OVERSTOCKED
             understock: accepted.understocked, // 🟩_UNDERSTOCKED
             duped: [],
@@ -254,6 +278,7 @@ interface Autokeys {
 
 interface Accepted {
     invalidItems: string[];
+    disabledItems: string[];
     overstocked: string[];
     understocked: string[];
     highValue: string[];

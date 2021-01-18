@@ -19,6 +19,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
     const hasCustomNote = !(
         opt.manualReview.invalidItems.note !== '' ||
+        opt.manualReview.disabledItems.note !== '' ||
         opt.manualReview.overstocked.note !== '' ||
         opt.manualReview.understocked.note !== '' ||
         opt.manualReview.duped.note !== '' ||
@@ -101,6 +102,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
     const items = {
         invalid: content.itemNames.invalidItems,
+        disabled: content.itemNames.disabledItems,
         overstock: content.itemNames.overstocked,
         understock: content.itemNames.understocked,
         duped: content.itemNames.duped,

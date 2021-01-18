@@ -142,6 +142,18 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
               "you've sent a trade with an invalid items (not exist in my pricelist).";
         //
     } else if (
+        offerReason.reason === 'ONLY_DISABLED_ITEMS' ||
+        (offerReason.reason === '🟧_DISABLED_ITEMS' && manualReviewDisabled)
+    ) {
+        //
+        const custom = opt.offerReceived.disabledItems.autoDecline.declineReply;
+        reasonForInvalidValue = value.diff < 0;
+        reply = custom
+            ? custom
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ' +
+              "the item(s) you're trying to take/give is currently disabled";
+        //
+    } else if (
         offerReason.reason === 'ONLY_OVERSTOCKED' ||
         (offerReason.reason === '🟦_OVERSTOCKED' && manualReviewDisabled)
     ) {

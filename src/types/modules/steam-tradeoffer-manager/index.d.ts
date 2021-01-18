@@ -170,6 +170,11 @@ declare module 'steam-tradeoffer-manager' {
             amountCanTrade: number;
         }
 
+        export interface DisabledItems {
+            reason: '🟧_DISABLED_ITEMS';
+            sku: string;
+        }
+
         export interface InvalidItems {
             reason: '🟨_INVALID_ITEMS';
             sku: string;
@@ -211,6 +216,7 @@ declare module 'steam-tradeoffer-manager' {
         export type WrongAboutOffer =
             | Overstocked
             | Understocked
+            | DisabledItems
             | InvalidItems
             | InvalidValue
             | DupeCheckFailed

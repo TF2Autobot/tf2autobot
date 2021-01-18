@@ -25,6 +25,9 @@ export const manualReviewSchema: jsonschema.Schema = {
         invalidItems: {
             $ref: 'only-note'
         },
+        disabledItems: {
+            $ref: 'only-note'
+        },
         overstocked: {
             $ref: 'only-note'
         },

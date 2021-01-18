@@ -15,6 +15,7 @@ export default function processReview(
     notes: string[];
     itemNames: {
         invalidItems: string[];
+        disabledItems: string[];
         overstocked: string[];
         understocked: string[];
         duped: string[];
@@ -32,12 +33,14 @@ export default function processReview(
 
     const names: {
         invalidItems: string[];
+        disabledItems: string[];
         overstocked: string[];
         understocked: string[];
         duped: string[];
         dupedFailed: string[];
     } = {
         invalidItems: [],
+        disabledItems: [],
         overstocked: [],
         understocked: [],
         duped: [],
@@ -49,6 +52,13 @@ export default function processReview(
 
         reviewReasons.push(invalid.note);
         names.invalidItems = invalid.name;
+    }
+
+    if (reasons.includes('🟧_DISABLED_ITEMS')) {
+        const disabled = re.disabledItems(meta, bot);
+
+        reviewReasons.push(disabled.note);
+        names.disabledItems = disabled.name;
     }
 
     if (reasons.includes('🟦_OVERSTOCKED')) {
@@ -92,6 +102,7 @@ export default function processReview(
         notes: reviewReasons,
         itemNames: {
             invalidItems: names.invalidItems,
+            disabledItems: names.disabledItems,
             overstocked: names.overstocked,
             understocked: names.understocked,
             duped: names.duped,

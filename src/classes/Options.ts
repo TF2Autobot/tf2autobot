@@ -517,6 +517,28 @@ export const DEFAULTS = {
                 declineReply: ''
             }
         },
+        // 🟧_DISABLED_ITEMS (ONLY_DISABLED_ITEMS)
+        disabledItems: {
+            // 22.3
+            /**
+             * If set to false, your bot will not accept trades with 🟧_DISABLED_ITEMS where the value of their side is greater than or equal
+             * to the value of your bot's side.
+             */
+            autoAcceptOverpay: false,
+            autoDecline: {
+                // 22.s
+                /**
+                 * Set this to false if you do not want your bot to automatically decline trades with 🟧_DISABLED_ITEMS as the ONLY manual review
+                 * reason.
+                 */
+                enable: false,
+                /**
+                 * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
+                 *  the item(s) you're trying to take/give is currently disabled." followed by `[You're missing: ${value}]` (if applicable).
+                 */
+                declineReply: ''
+            }
+        },
         // 🟦_OVERSTOCKED (ONLY_OVERSTOCKED)
         overstocked: {
             // 22.3
@@ -643,6 +665,16 @@ export const DEFAULTS = {
             // 23.2
             /**
              * Default: "%itemsName% %isOrAre% not in my pricelist."
+             *
+             * Parameter: join(', ') of `${name}` array
+             */
+            note: ''
+        },
+        // 🟧_DISABLED_ITEMS
+        disabledItems: {
+            // 23.2
+            /**
+             * Default: "%itemsName% %isOrAre% currently disabled."
              *
              * Parameter: join(', ') of `${name}` array
              */
@@ -1878,6 +1910,7 @@ export interface Metals extends OnlyEnable {
 export interface OfferReceived {
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
+    disabledItems?: AutoAcceptOverpayAndAutoDecline;
     overstocked?: AutoAcceptOverpayAndAutoDecline;
     understocked?: AutoAcceptOverpayAndAutoDecline;
     duped?: Duped;
@@ -1927,6 +1960,7 @@ export interface ManualReview extends OnlyEnable {
     showItemPrices?: boolean;
     invalidValue?: OnlyNote;
     invalidItems?: OnlyNote;
+    disabledItems?: OnlyNote;
     overstocked?: OnlyNote;
     understocked?: OnlyNote;
     duped?: OnlyNote;

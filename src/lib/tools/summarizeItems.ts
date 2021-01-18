@@ -9,6 +9,7 @@ export default function listItems(
     bot: Bot,
     items: {
         invalid: string[];
+        disabled: string[];
         overstock: string[];
         understock: string[];
         duped: string[];
@@ -18,7 +19,6 @@ export default function listItems(
     isSteamChat: boolean
 ): string {
     const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
-
     let list = itemsPrices;
 
     list +=
@@ -29,15 +29,27 @@ export default function listItems(
                   : '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- '))
             : '';
     list +=
-        items.overstock.length > 0
+        items.disabled.length > 0
             ? (itemsPrices.length > 0 || items.invalid.length > 0 ? '\n\n' : '') +
+              (isSteamChat
+                  ? '🟧_DISABLED_ITEMS:\n- ' + items.disabled.join(',\n- ')
+                  : '🟧`_DISABLED_ITEMS:`\n- ' + items.disabled.join(',@\n- '))
+            : '';
+    list +=
+        items.overstock.length > 0
+            ? (itemsPrices.length > 0 || items.invalid.length > 0 || items.disabled.length > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
                   : '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',@\n- '))
             : '';
     list +=
         items.understock.length > 0
-            ? (itemsPrices.length > 0 || items.invalid.length > 0 || items.overstock.length > 0 ? '\n\n' : '') +
+            ? (itemsPrices.length > 0 ||
+              items.invalid.length > 0 ||
+              items.disabled.length > 0 ||
+              items.overstock.length > 0
+                  ? '\n\n'
+                  : '') +
               (isSteamChat
                   ? '🟩_UNDERSTOCKED:\n- ' + items.understock.join(',\n- ')
                   : '🟩`_UNDERSTOCKED:`\n- ' + items.understock.join(',@\n- '))
@@ -46,6 +58,7 @@ export default function listItems(
         items.duped.length > 0
             ? (itemsPrices.length > 0 ||
               items.invalid.length > 0 ||
+              items.disabled.length > 0 ||
               items.overstock.length > 0 ||
               items.understock.length > 0
                   ? '\n\n'
@@ -58,6 +71,7 @@ export default function listItems(
         items.dupedFailed.length > 0
             ? (itemsPrices.length > 0 ||
               items.invalid.length > 0 ||
+              items.disabled.length > 0 ||
               items.overstock.length > 0 ||
               items.understock.length > 0 ||
               items.duped.length > 0
@@ -71,6 +85,7 @@ export default function listItems(
         items.highValue.length > 0
             ? (itemsPrices.length > 0 ||
               items.invalid.length > 0 ||
+              items.disabled.length > 0 ||
               items.overstock.length > 0 ||
               items.understock.length > 0 ||
               items.duped.length > 0 ||

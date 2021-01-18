@@ -1,0 +1,39 @@
+import SKU from 'tf2-sku-2';
+import pluralize from 'pluralize';
+import Bot from '../../../../Bot';
+
+import { Meta, DisabledItems } from 'steam-tradeoffer-manager';
+
+export default function disabledItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
+    const opt = bot.options.discordWebhook.offerReview;
+    const wrong = meta.reasons;
+    const disabledForTheir: string[] = []; // Display for trade partner
+    const disabledForOur: string[] = []; // Display for owner
+
+    const disabled = wrong.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[];
+
+    disabled.forEach(el => {
+        if (opt.enable && opt.url !== '') {
+            // show both item name and prices.tf price
+            disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
+        } else {
+            // show both item name and prices.tf price
+            disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
+        }
+        // only show to trade partner the item name
+        disabledForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
+    });
+
+    return {
+        note: bot.options.manualReview.disabledItems.note
+            ? `🟧_DISABLED_ITEMS - ${bot.options.manualReview.disabledItems.note}`
+                  .replace(/%itemsName%/g, disabledForTheir.join(', '))
+                  .replace(/%isOrAre%/g, pluralize('is', disabledForTheir.length))
+            : `🟧_DISABLED_ITEMS - ${disabledForTheir.join(', ')} ${pluralize(
+                  'is',
+                  disabledForTheir.length
+              )} currently disabled.`,
+        // Default note: %itemsName% %isOrAre% currently disabled.
+        name: disabledForOur
+    };
+}

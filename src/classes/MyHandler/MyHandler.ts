@@ -914,27 +914,35 @@ export default class MyHandler extends Handler {
                         ); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
-                            // User is offering too many
-                            hasOverstock = true;
+                            if (match.enabled) {
+                                // User is offering too many
+                                hasOverstock = true;
 
-                            wrongAboutOffer.push({
-                                reason: '🟦_OVERSTOCKED',
-                                sku: sku,
-                                buying: isBuying,
-                                diff: diff,
-                                amountCanTrade: amountCanTrade
-                            });
+                                wrongAboutOffer.push({
+                                    reason: '🟦_OVERSTOCKED',
+                                    sku: sku,
+                                    buying: isBuying,
+                                    diff: diff,
+                                    amountCanTrade: amountCanTrade
+                                });
 
-                            log.debug('OVERSTOCKED', {
-                                offer: offer,
-                                sku: sku,
-                                which: which,
-                                diff: diff,
-                                amountCanTrade: amountCanTrade,
-                                notIncludeCraftweapons: notIncludeCraftweapons
-                            });
+                                log.debug('OVERSTOCKED', {
+                                    offer: offer,
+                                    sku: sku,
+                                    which: which,
+                                    diff: diff,
+                                    amountCanTrade: amountCanTrade,
+                                    notIncludeCraftweapons: notIncludeCraftweapons
+                                });
 
-                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                            } else {
+                                // Item was disabled
+                                wrongAboutOffer.push({
+                                    reason: '🟧_DISABLED_ITEMS',
+                                    sku: sku
+                                });
+                            }
                         }
 
                         if (
@@ -1387,17 +1395,18 @@ export default class MyHandler extends Handler {
 
             const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
             const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const isDisabledItem = uniqueReasons.includes('🟧_DISABLED_ITEMS');
             const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
             const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
             const canAcceptInvalidItemsOverpay = opt.offerReceived.invalidItems.autoAcceptOverpay;
+            const canAcceptDisabledItemsOverpay = opt.offerReceived.disabledItems.autoAcceptOverpay;
             const canAcceptOverstockedOverpay = opt.offerReceived.overstocked.autoAcceptOverpay;
             const canAcceptUnderstockedOverpay = opt.offerReceived.understocked.autoAcceptOverpay;
 
             // accepting 🟨_INVALID_ITEMS overpay
-
             const isAcceptInvalidItems =
                 isInvalidItem &&
                 canAcceptInvalidItemsOverpay &&
@@ -1405,37 +1414,58 @@ export default class MyHandler extends Handler {
                 (exchange.our.value < exchange.their.value ||
                     (exchange.our.value === exchange.their.value && hasNoPrice)) &&
                 (isOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
+                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
+
+            // accepting 🟧_DISABLED_ITEMS overpay
+            const isAcceptDisabledItems =
+                isDisabledItem &&
+                canAcceptDisabledItemsOverpay &&
+                exchange.our.value < exchange.their.value &&
+                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
                 (isUnderstocked ? canAcceptUnderstockedOverpay : true);
 
             // accepting 🟦_OVERSTOCKED overpay
-
             const isAcceptOverstocked =
                 isOverstocked &&
                 canAcceptOverstockedOverpay &&
                 exchange.our.value < exchange.their.value &&
                 (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
-                (isUnderstocked ? canAcceptUnderstockedOverpay : true);
+                (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
+                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
             // accepting 🟩_UNDERSTOCKED overpay
-
             const isAcceptUnderstocked =
                 isUnderstocked &&
                 canAcceptUnderstockedOverpay &&
                 exchange.our.value < exchange.their.value &&
                 (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
-                (isOverstocked ? canAcceptOverstockedOverpay : true);
+                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
             if (
-                (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked) &&
+                (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
                 !(isInvalidValue || isDupedItem || isDupedCheckFailed)
             ) {
-                // if the offer is Invalid_items/over/understocked and accepting overpay enabled, but the offer is not
+                // if the offer is Invalid_items/disabled_items/over/understocked and accepting overpay enabled, but the offer is not
                 // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
                 // accept the trade.
                 offer.log(
                     'trade',
-                    `contains INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED, but offer value is greater or equal, accepting. Summary:\n${JSON.stringify(
+                    `contains ${
+                        (isAcceptInvalidItems ? 'INVALID_ITEMS' : '') +
+                        (isAcceptOverstocked ? `${isAcceptInvalidItems ? '/' : ''}OVERSTOCKED` : '') +
+                        (isAcceptUnderstocked
+                            ? `${isAcceptInvalidItems || isAcceptOverstocked ? '/' : ''}UNDERSTOCKED`
+                            : '') +
+                        (isAcceptDisabledItems
+                            ? `${
+                                  isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked ? '/' : ''
+                              }DISABLED_ITEMS`
+                            : '')
+                    }, but offer value is greater or equal, accepting. Summary:\n${JSON.stringify(
                         summarize(offer, this.bot, 'summary-accepting', false),
                         null,
                         4
@@ -1481,7 +1511,14 @@ export default class MyHandler extends Handler {
             } else if (
                 opt.offerReceived.invalidValue.autoDecline.enable &&
                 isInvalidValue &&
-                !(isUnderstocked || isInvalidItem || isOverstocked || isDupedItem || isDupedCheckFailed) &&
+                !(
+                    isUnderstocked ||
+                    isInvalidItem ||
+                    isDisabledItem ||
+                    isOverstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed
+                ) &&
                 this.hasInvalidValueException === false
             ) {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
@@ -1489,21 +1526,42 @@ export default class MyHandler extends Handler {
             } else if (
                 opt.offerReceived.invalidItems.autoDecline.enable &&
                 isInvalidItem &&
-                !(isUnderstocked || isInvalidValue || isOverstocked || isDupedItem || isDupedCheckFailed)
+                !(
+                    isDisabledItem ||
+                    isUnderstocked ||
+                    isInvalidValue ||
+                    isOverstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed
+                )
             ) {
                 // If only INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_ITEMS' };
             } else if (
+                opt.offerReceived.disabledItems.autoDecline.enable &&
+                isDisabledItem &&
+                !(
+                    isInvalidItem ||
+                    isUnderstocked ||
+                    isInvalidValue ||
+                    isOverstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed
+                )
+            ) {
+                // If only DISABLED_ITEMS and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
+                return { action: 'decline', reason: 'ONLY_DISABLED_ITEMS' };
+            } else if (
                 opt.offerReceived.overstocked.autoDecline.enable &&
                 isOverstocked &&
-                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+                !(isInvalidItem || isDisabledItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (
                 opt.offerReceived.understocked.autoDecline.enable &&
                 isUnderstocked &&
-                !(isInvalidItem || isDupedItem || isDupedCheckFailed)
+                !(isInvalidItem || isDisabledItem || isDupedItem || isDupedCheckFailed)
             ) {
                 // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
