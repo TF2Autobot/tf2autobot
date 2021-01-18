@@ -53,11 +53,20 @@ export default class Inventory {
 
     private options: Options;
 
-    constructor(steamID: SteamID | string, manager: TradeOfferManager, schema: SchemaManager.Schema, options: Options) {
+    private isNormalizePainted: boolean;
+
+    constructor(
+        steamID: SteamID | string,
+        manager: TradeOfferManager,
+        schema: SchemaManager.Schema,
+        options: Options,
+        isNormalizePainted: boolean
+    ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
         this.options = options;
+        this.isNormalizePainted = isNormalizePainted;
     }
 
     static fromItems(
@@ -65,9 +74,10 @@ export default class Inventory {
         items: EconItem[],
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
-        options: Options
+        options: Options,
+        isNormalizePainted: boolean
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options);
+        const inventory = new Inventory(steamID, manager, schema, options, isNormalizePainted);
 
         // Funny how typescript allows calling a private function from a static function
         inventory.setItems = items;
@@ -125,12 +135,14 @@ export default class Inventory {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
-            this.options
+            this.options,
+            this.isNormalizePainted
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
-            this.options
+            this.options,
+            false
         );
     }
 
@@ -167,9 +179,9 @@ export default class Inventory {
 
         if (tradableOnly) {
             // Copies the array
+            // return tradable.map(item => (item ? item.id : undefined)).slice(0);
             const mapTradable = tradable.map(item => (item ? item.id : undefined));
             const sliceTradable = mapTradable.slice(0);
-            // const toReturn = tradable.map(item => (item ? item.id : undefined)).slice(0);
             if (showLog) {
                 log.debug('src/Inventory: findBySKU(...) - tradableOnly', {
                     mapTradable: mapTradable,
@@ -181,14 +193,12 @@ export default class Inventory {
         }
 
         const nonTradable = this.nonTradable[sku] || [];
-
+        // return nonTradable
+        //     .map(item => (item ? item.id : undefined))
+        //     .concat(tradable.map(item => (item ? item.id : undefined)));
         const mapUntradable = nonTradable.map(item => (item ? item.id : undefined));
         const mapTradable = tradable.map(item => (item ? item.id : undefined));
         const concatBoth = mapUntradable.concat(mapTradable);
-
-        // const toReturn = nonTradable
-        //     .map(item => (item ? item.id : undefined))
-        //     .concat(tradable.map(item => (item ? item.id : undefined)));
 
         if (showLog) {
             log.debug('src/Inventory: findBySKU(...) - withNonTradable', {
@@ -202,11 +212,11 @@ export default class Inventory {
     }
 
     getAmount(sku: string, tradableOnly?: boolean, showLog?: boolean): number {
+        // return this.findBySKU(sku, tradableOnly).length;
         const amount = this.findBySKU(sku, tradableOnly, showLog).length;
         if (showLog) {
             log.debug('src/Inventory: getAmount', amount);
         }
-
         return amount;
     }
 
@@ -215,6 +225,16 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
+            // return (
+            //     this.schema
+            //         .getUnusualEffects()
+            //         .map(e => {
+            //             s.effect = e.id;
+            //             return this.getAmount(SKU.fromObject(s), tradableOnly);
+            //         })
+            //         // add up total found; total is undefined to being with
+            //         .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            // );
             const getUnusual = this.schema.getUnusualEffects();
             const mapUnusual = getUnusual.map(e => {
                 s.effect = e.id;
@@ -223,15 +243,6 @@ export default class Inventory {
             const reduceUnusual = mapUnusual.reduce((total, currentTotal) =>
                 total ? total + currentTotal : currentTotal
             );
-            // const toReturn = getFromSchema
-            //     .getUnusualEffects(this.schema)
-            //     .map(e => {
-            //         s.effect = e.id;
-            //         return this.getAmount(SKU.fromObject(s), tradableOnly);
-            //     })
-            //     // add up total found; total is undefined to being with
-            //     .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
-
             log.debug('src/Inventory: getAmountOfGenerics(...) - Quality === 5', {
                 getUnusual: getUnusual,
                 mapUnusual: mapUnusual,
@@ -239,6 +250,7 @@ export default class Inventory {
             });
             return reduceUnusual;
         } else {
+            // return this.getAmount(sku, tradableOnly);
             const callGetAmount = this.getAmount(sku, tradableOnly, true);
             log.debug('src/Inventory: getAmountOfGenerics(...) - Quality !== 5', callGetAmount);
             return callGetAmount;
@@ -259,17 +271,27 @@ export default class Inventory {
                     : []
             )
             .forEach(sku => {
-                toObject[sku] = this.findBySKU(sku, true, false);
+                toObject[sku] = this.findBySKU(sku, true);
             });
 
         return toObject;
     }
 
-    private static createDictionary(items: EconItem[], schema: SchemaManager.Schema, opt: Options): Dict {
+    private static createDictionary(
+        items: EconItem[],
+        schema: SchemaManager.Schema,
+        opt: Options,
+        normalizePainted: boolean
+    ): Dict {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
-            const sku = items[i].getSKU(schema, opt.normalize.festivized, opt.normalize.strangeUnusual);
+            const sku = items[i].getSKU(
+                schema,
+                opt.normalize.festivized,
+                opt.normalize.strangeUnusual,
+                normalizePainted
+            );
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 
             let isDuel5xUses: boolean | null = null;

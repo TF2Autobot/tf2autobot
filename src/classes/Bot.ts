@@ -435,7 +435,8 @@ export default class Bot {
                                 this.client.steamID,
                                 this.manager,
                                 this.schema,
-                                this.options
+                                this.options,
+                                this.options.normalize.painted
                             );
                             this.inventoryManager.setInventory = inventory;
 

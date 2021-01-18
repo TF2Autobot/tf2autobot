@@ -9,6 +9,9 @@ export const normalizeSchema: jsonschema.Schema = {
         },
         strangeUnusual: {
             type: 'boolean'
+        },
+        painted: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

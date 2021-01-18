@@ -10,14 +10,15 @@ import url from 'url';
 // import log from '../../../lib/logger';
 
 import { fixItem } from '../../items';
-import { crates } from '../../data'; // paintedData
+import { crates } from '../../data';
 
 let isCrate = false;
 
 export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
-    normalizeStrangeUnusual: boolean
+    normalizeStrangeUnusual: boolean,
+    normalizePainted: boolean
 ): string {
     const self = this as EconItem;
 
@@ -37,8 +38,8 @@ export = function (
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeUnusual),
-            crateseries: getCrateSeries(self)
-            // paint: getPainted(self)
+            crateseries: getCrateSeries(self),
+            paint: getPainted(self, schema, normalizePainted)
         },
         getOutput(self, schema)
     );
@@ -386,21 +387,24 @@ function getCrateSeries(item: EconItem): number | null {
     }
 }
 
-// function getPainted(item: EconItem): number | null {
-//     const descriptions = item.descriptions;
+function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePainted: boolean): number | null {
+    if (normalizePainted) {
+        return null;
+    }
 
-//     let foundPaint = false;
+    const descriptions = item.descriptions;
+    let foundPaint = false;
 
-//     for (let i = 0; i < descriptions.length; i++) {
-//         if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
-//             foundPaint = true;
+    for (let i = 0; i < descriptions.length; i++) {
+        if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
+            foundPaint = true;
 
-//             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-//             return +(paintedData[name] as string).replace('p', '');
-//         }
-//     }
+            const name = descriptions[i].value.replace('Paint Color: ', '').trim();
+            return +schema.getPaints()[name].replace('p', '');
+        }
+    }
 
-//     if (!foundPaint) {
-//         return null;
-//     }
-// }
+    if (!foundPaint) {
+        return null;
+    }
+}

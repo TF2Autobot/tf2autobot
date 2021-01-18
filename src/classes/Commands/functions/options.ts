@@ -122,6 +122,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
+            if (knownParams.normalize === 'object') {
+                void bot.inventoryManager.getInventory.fetch();
+            }
+
             if (knownParams.autokeys !== undefined) {
                 bot.handler.autokeys.check();
                 if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {

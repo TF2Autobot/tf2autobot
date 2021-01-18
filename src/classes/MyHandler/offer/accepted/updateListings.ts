@@ -117,6 +117,17 @@ export default function updateListings(
         } else if (
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
+            (opt.normalize.painted === false
+                ? !highValue.theirItems.some(
+                      str =>
+                          str.includes(name) &&
+                          str.includes('🎨 Painted') &&
+                          !str.includes('🎰 Parts') &&
+                          !str.includes('🔥 Killstreaker') &&
+                          !str.includes('✨ Sheen') &&
+                          !str.includes('🎃 Spells')
+                  )
+                : true) &&
             isNotPureOrWeapons &&
             opt.highValue.enableHold
         ) {
@@ -187,7 +198,7 @@ export default function updateListings(
             opt.autoRemoveIntentSell.enable &&
             inPrice !== null &&
             inPrice.intent === 1 &&
-            bot.inventoryManager.getInventory.getAmount(sku, true, false) < 1 && // current stock
+            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons
         ) {
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,

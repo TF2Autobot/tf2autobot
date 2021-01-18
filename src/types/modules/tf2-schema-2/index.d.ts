@@ -166,6 +166,7 @@ declare module 'tf2-schema-2' {
             crateseries?: number;
             output?: number;
             outputQuality?: number;
+            paint?: number;
         }
 
         export interface Effect {
@@ -234,11 +235,15 @@ declare module 'tf2-schema-2' {
 
             getUnusualEffects(): Effect[];
 
-            getPaintByDecimal(decimal: number): string | null;
+            getPaintNameByDecimal(decimal: number): string | null;
+
+            getPaintDecimalByName(name: string): number | null;
 
             getPaints(): Paints;
 
             getStrangeParts(): StrangeParts;
+
+            getPaintableItemDefindexes(): number[];
 
             toJSON(): { version: string; time: number; raw: Record<string, any> };
         }

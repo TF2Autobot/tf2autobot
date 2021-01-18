@@ -219,7 +219,6 @@ export default class Pricelist extends EventEmitter {
                     gindex: gindex
                 });
             }
-
             return null;
         }
 
@@ -241,7 +240,6 @@ export default class Pricelist extends EventEmitter {
                     match: match
                 });
             }
-
             // change any other options if needed here (possible spot for config)
         }
 
@@ -255,7 +253,6 @@ export default class Pricelist extends EventEmitter {
                     match: match
                 });
             }
-
             return null;
         }
 
@@ -523,14 +520,12 @@ export default class Pricelist extends EventEmitter {
         // Get name of item
         const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
         const findIndex = this.prices.findIndex(entry => entry.name === name);
-
         if (showLog) {
             log.debug('src/Pricelist: getIndex(...)', {
                 name: name,
                 findIndex: findIndex
             });
         }
-
         return findIndex;
     }
 
@@ -558,10 +553,10 @@ export default class Pricelist extends EventEmitter {
                         findIndex: findIndex
                     });
                 }
-
                 return findIndex;
             } else {
                 // this means the sku given was already generic so we just return the index of the generic
+                // return this.getIndex(null, pSku);
                 const callGetIndex = this.getIndex(null, pSku, showLog);
                 if (showLog) {
                     log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality === 5, already generic', {
@@ -573,18 +568,16 @@ export default class Pricelist extends EventEmitter {
                         callGetIndex: callGetIndex
                     });
                 }
-
                 return callGetIndex;
             }
         } else {
             if (showLog) {
-                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5, return -1', {
+                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5 && !Painted, return -1', {
                     sku: sku,
                     parsedSku: parsedSku,
                     pSku: pSku
                 });
             }
-
             return -1;
         }
     }

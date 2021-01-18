@@ -275,7 +275,7 @@ export default class Commands {
         }
 
         if (isSelling && match.min !== 0) {
-            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false, false, true)}`;
+            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false)}`;
         }
 
         reply += '. ';
@@ -380,7 +380,7 @@ export default class Commands {
 
         const cartAmount = cart.getOurCount(match.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, false, false, true) - cartAmount;
+        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, false) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
 

@@ -515,7 +515,8 @@ export default class MyHandler extends Handler {
             offer.itemsToGive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            opt,
+            opt.normalize.painted
         );
 
         const theirItems = Inventory.fromItems(
@@ -523,7 +524,8 @@ export default class MyHandler extends Handler {
             offer.itemsToReceive,
             this.bot.manager,
             this.bot.schema,
-            opt
+            opt,
+            true
         );
 
         const items = {
@@ -734,7 +736,7 @@ export default class MyHandler extends Handler {
         const checkExist = this.bot.pricelist;
 
         const offerSKUs = offer.itemsToReceive.map(item =>
-            item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual)
+            item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual, opt.normalize.painted)
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
@@ -877,7 +879,7 @@ export default class MyHandler extends Handler {
                     const match =
                         which === 'our'
                             ? this.bot.pricelist.getPrice(sku)
-                            : this.bot.pricelist.getPrice(sku, false, true, true);
+                            : this.bot.pricelist.getPrice(sku, false, true);
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !(
                               craftAll.includes(sku) ||
@@ -1091,7 +1093,7 @@ export default class MyHandler extends Handler {
                 this.isTradingKeys = true;
 
                 const isBuying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying, false, true);
+                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many

@@ -28,20 +28,20 @@ export default class InventoryManager {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }
 
-    amountCanTrade(sku: string, buying: boolean, generics = false, showLog: boolean): number {
+    amountCanTrade(sku: string, buying: boolean, generics = false, showLog = false): number {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
         let genericCheck = generics;
 
-        // if we looking at amount we can trade and the sku is a generic unusual always set generic to true
+        // if we looking at amount we can trade and the sku is a generic unusual, always set generic to true
         const isGenericSku = /^[0-9]*;5$/.test(sku);
         if (isGenericSku) genericCheck = true;
 
         // Amount in inventory
         const amount = genericCheck
             ? this.inventory.getAmountOfGenerics(sku, true)
-            : this.inventory.getAmount(sku, true, false);
+            : this.inventory.getAmount(sku, true);
 
         // Pricelist entry
         const match = genericCheck
@@ -61,7 +61,6 @@ export default class InventoryManager {
                     match: match
                 });
             }
-
             return 0;
         }
 
@@ -81,7 +80,6 @@ export default class InventoryManager {
                     }
                 );
             }
-
             return Infinity;
         }
 
@@ -101,7 +99,6 @@ export default class InventoryManager {
                     }
                 );
             }
-
             return 0;
         }
 
@@ -124,7 +121,6 @@ export default class InventoryManager {
                     canTrade: canTrade
                 });
             }
-
             return canTrade;
         }
 
