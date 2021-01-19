@@ -548,9 +548,7 @@ export default class Commands {
                     if (err) {
                         this.bot.sendMessage(
                             steamID,
-                            `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${JSON.stringify(
-                                err
-                            )}`
+                            `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
                         );
                     }
                 });

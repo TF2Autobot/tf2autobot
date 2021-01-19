@@ -96,7 +96,9 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     bot.pricelist
         .addPrice(params as EntryData, true, PricelistChangedSource.Command)
         .then(entry => bot.sendMessage(steamID, `✅ Added "${entry.name}"` + generateAddedReply(bot, isPremium, entry)))
-        .catch(err => bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${JSON.stringify(err)}`));
+        .catch(err =>
+            bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`)
+        );
 }
 
 let stopAutoAdd = false;
@@ -269,7 +271,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
                 failed++;
                 bot.sendMessage(
                     steamID,
-                    `----------\n❌ Failed to add the item to the pricelist: ${JSON.stringify(err)}` +
+                    `----------\n❌ Failed to add the item to the pricelist: ${(err as Error).message}` +
                         `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                             total - added - skipped - failed
                         } remaining`
@@ -521,7 +523,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             })
             .catch(err => {
                 log.warn('Failed to update prices: ', err);
-                return bot.sendMessage(steamID, `❌ Failed to update prices: ${JSON.stringify(err)}`);
+                return bot.sendMessage(steamID, `❌ Failed to update prices: ${(err as Error).message}`);
             });
     }
 
@@ -864,14 +866,14 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
                 bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
                 return await bot.listings.redoListings();
             } catch (err) {
-                return bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${JSON.stringify(err)}`);
+                return bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
             }
         } else {
             try {
                 await bot.pricelist.removeAll();
                 return bot.sendMessage(steamID, '✅ Cleared pricelist!');
             } catch (err) {
-                return bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${JSON.stringify(err)}`);
+                return bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
             }
         }
     }
@@ -915,7 +917,7 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
     bot.pricelist
         .removePrice(params.sku as string, true)
         .then(entry => bot.sendMessage(steamID, `✅ Removed "${entry.name}".`))
-        .catch(err => bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${JSON.stringify(err)}`));
+        .catch(err => bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`));
 }
 
 export function getCommand(steamID: SteamID, message: string, bot: Bot): void {

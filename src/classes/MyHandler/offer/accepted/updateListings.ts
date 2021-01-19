@@ -80,7 +80,9 @@ export default function updateListings(
             bot.pricelist
                 .addPrice(entry, true)
                 .then(() => log.debug(`✅ Automatically added ${name} (${sku}) to sell.`))
-                .catch(err => log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${JSON.stringify(err)}`));
+                .catch(err =>
+                    log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`)
+                );
         } else if (
             inPrice === null &&
             isNotPureOrWeapons &&
@@ -176,7 +178,7 @@ export default function updateListings(
                     }
                 })
                 .catch(err => {
-                    log.warn(`❌ Failed to disable high value ${sku}: ${JSON.stringify(err)}`);
+                    log.warn(`❌ Failed to disable high value ${sku}: ${(err as Error).message}`);
                 });
         } else if (
             opt.autoRemoveIntentSell.enable &&
@@ -190,7 +192,9 @@ export default function updateListings(
             bot.pricelist
                 .removePrice(sku, true)
                 .then(() => log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`))
-                .catch(err => log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${JSON.stringify(err)}`));
+                .catch(err =>
+                    log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${(err as Error).message}`)
+                );
         }
     }
 }

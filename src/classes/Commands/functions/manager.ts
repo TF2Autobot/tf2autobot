@@ -35,7 +35,7 @@ export function expandCommand(steamID: SteamID, message: string, bot: Bot): void
     bot.tf2gc.useItem(assetids[0], err => {
         if (err) {
             log.warn('Error trying to expand inventory: ', err);
-            return bot.sendMessage(steamID, `❌ Failed to expand inventory: ${JSON.stringify(err)}`);
+            return bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
         }
 
         bot.sendMessage(steamID, `✅ Used ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`);
@@ -65,7 +65,7 @@ export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
             return bot.tf2gc.useItem(targetedAssetId, err => {
                 if (err) {
                     log.warn(`Error trying to use ${targetedAssetId}: `, err);
-                    return bot.sendMessage(steamID, `❌ Failed to use ${targetedAssetId}: ${JSON.stringify(err)}`);
+                    return bot.sendMessage(steamID, `❌ Failed to use ${targetedAssetId}: ${err.message}`);
                 }
                 bot.sendMessage(steamID, `✅ Used ${targetedAssetId}!`);
             });
@@ -84,10 +84,9 @@ export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
                     log.warn(`Error trying to use ${bot.schema.getName(SKU.fromString(sku), false)}: `, err);
                     return bot.sendMessage(
                         steamID,
-                        `❌ Failed to use ${bot.schema.getName(
-                            SKU.fromString(sku),
-                            false
-                        )}(${targetedAssetId}): ${JSON.stringify(err)}`
+                        `❌ Failed to use ${bot.schema.getName(SKU.fromString(sku), false)}(${targetedAssetId}): ${
+                            err.message
+                        }`
                     );
                 }
                 bot.sendMessage(
@@ -157,7 +156,7 @@ export function useCommand(steamID: SteamID, message: string, bot: Bot): void {
     bot.tf2gc.useItem(assetid, err => {
         if (err) {
             log.warn(`Error trying to use ${name}: `, err);
-            return bot.sendMessage(steamID, `❌ Failed to use ${name}(${assetid}): ${JSON.stringify(err)}`);
+            return bot.sendMessage(steamID, `❌ Failed to use ${name}(${assetid}): ${err.message}`);
         }
 
         bot.sendMessage(steamID, `✅ Used ${name}(${assetid})!`);
@@ -188,7 +187,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
             return bot.tf2gc.deleteItem(targetedAssetId, err => {
                 if (err) {
                     log.warn(`Error trying to delete ${targetedAssetId}: `, err);
-                    return bot.sendMessage(steamID, `❌ Failed to delete ${targetedAssetId}: ${JSON.stringify(err)}`);
+                    return bot.sendMessage(steamID, `❌ Failed to delete ${targetedAssetId}: ${err.message}`);
                 }
                 bot.sendMessage(steamID, `✅ Deleted ${targetedAssetId}!`);
             });
@@ -207,10 +206,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
             return bot.tf2gc.deleteItem(targetedAssetId, err => {
                 if (err) {
                     log.warn(`Error trying to delete ${name}: `, err);
-                    return bot.sendMessage(
-                        steamID,
-                        `❌ Failed to delete ${name}(${targetedAssetId}): ${JSON.stringify(err)}`
-                    );
+                    return bot.sendMessage(steamID, `❌ Failed to delete ${name}(${targetedAssetId}): ${err.message}`);
                 }
                 bot.sendMessage(steamID, `✅ Deleted ${name}(${targetedAssetId})!`);
             });
@@ -302,7 +298,7 @@ export function deleteCommand(steamID: SteamID, message: string, bot: Bot): void
     bot.tf2gc.deleteItem(assetid, err => {
         if (err) {
             log.warn(`Error trying to delete ${name}: `, err);
-            return bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${JSON.stringify(err)}`);
+            return bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
         }
 
         bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
@@ -322,7 +318,7 @@ export function nameCommand(steamID: SteamID, message: string, bot: Bot): void {
         err => {
             if (err) {
                 log.warn('Error while changing name: ', err);
-                return bot.sendMessage(steamID, `❌ Error while changing name: ${JSON.stringify(err)}`);
+                return bot.sendMessage(steamID, `❌ Error while changing name: ${err.message}`);
             }
 
             bot.sendMessage(steamID, '✅ Successfully changed name.');
@@ -345,7 +341,7 @@ export function avatarCommand(steamID: SteamID, message: string, bot: Bot): void
     bot.community.uploadAvatar(imageUrl, err => {
         if (err) {
             log.warn('Error while uploading new avatar: ', err);
-            return bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${JSON.stringify(err)}`);
+            return bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${err.message}`);
         }
 
         bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
@@ -368,7 +364,7 @@ export function blockCommand(steamID: SteamID, message: string, bot: Bot): void 
             log.warn(`Failed to block user ${targetSteamID64.getSteamID64()}: `, err);
             return bot.sendMessage(
                 steamID,
-                `❌ Failed to block user ${targetSteamID64.getSteamID64()}: ${JSON.stringify(err)}`
+                `❌ Failed to block user ${targetSteamID64.getSteamID64()}: ${err.message}`
             );
         }
         bot.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64.getSteamID64()}`);
@@ -391,7 +387,7 @@ export function unblockCommand(steamID: SteamID, message: string, bot: Bot): voi
             log.warn(`Failed to unblock user ${targetSteamID64.getSteamID64()}: `, err);
             return bot.sendMessage(
                 steamID,
-                `❌ Failed to unblock user ${targetSteamID64.getSteamID64()}: ${JSON.stringify(err)}`
+                `❌ Failed to unblock user ${targetSteamID64.getSteamID64()}: ${err.message}`
             );
         }
         bot.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64.getSteamID64()}`);
@@ -616,7 +612,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         if (err) {
             return bot.sendMessage(
                 steamID,
-                '❌ Unable to refresh listings, please try again later: ' + (err as string)
+                '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
             );
         }
         bot.listingManager.listings.forEach(listing => listingsSKUs.push(listing.getSKU()));

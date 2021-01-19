@@ -687,7 +687,7 @@ export default class Autokeys {
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug('✅ Automatically disabled Autokeys.'))
             .catch(err => {
-                log.warn(`❌ Failed to disable Autokeys: ${JSON.stringify(err)}`);
+                log.warn(`❌ Failed to disable Autokeys: ${(err as Error).message}`);
                 this.isActive = true;
             });
     }

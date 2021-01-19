@@ -49,6 +49,6 @@ export default function updateToBuy(minKeys: number, maxKeys: number, bot: Bot):
         .updatePrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`))
         .catch(err =>
-            log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${JSON.stringify(err)}`)
+            log.warn(`❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${(err as Error).message}`)
         );
 }

@@ -35,6 +35,6 @@ export default function updateToBank(minKeys: number, maxKeys: number, bot: Bot)
         .updatePrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`))
         .catch(err =>
-            log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${JSON.stringify(err)}`)
+            log.warn(`❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`)
         );
 }

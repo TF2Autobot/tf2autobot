@@ -35,6 +35,6 @@ export default function createToBank(minKeys: number, maxKeys: number, bot: Bot)
         .addPrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
         .catch(err =>
-            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${JSON.stringify(err)}`)
+            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`)
         );
 }
