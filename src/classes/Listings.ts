@@ -525,61 +525,34 @@ export default class Listings {
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
 
-        if (entry.note && entry.note.buy && intent === 0) {
-            // If note.buy value is defined and not null and intent is buying, then use whatever in the
-            // note.buy for buy order listing note.
-            details = replaceDetails(entry.note.buy, entry, key);
+        const isCustomBuyNote = entry.note?.buy && intent === 0;
+        const isCustomSellNote = entry.note?.sell && intent === 1;
+        const isDueling = entry.sku === '241;6' && opt.checkUses.duel;
+        const isNoiseMaker = Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker;
 
-            // if %keyPrice% is defined in note.buy value and the item price involved keys,
-            // then replace it with current key rate.
-            // else just empty string.
-            details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
-                : details.replace(/%keyPrice%/g, '');
-
-            // if %uses% is defined in note.buy value and the item is Dueling Mini-Game and only accept
-            // 5x uses, then replace %uses% with (𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)
-            // else just empty string.
-            details =
-                entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
-                    : details.replace(/%uses%/g, '');
-            //
-        } else if (entry.note && entry.note.sell && intent === 1) {
-            // else if note.sell value is defined and not null and intent is selling, then use whatever in the
-            // note.sell for sell order listing note.
-            details = replaceDetails(entry.note.sell, entry, key);
+        if (isCustomBuyNote || isCustomSellNote) {
+            details = replaceDetails(intent === 0 ? entry.note.buy : entry.note.sell, entry, key);
 
             details = entry[key].toString().includes('key')
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
 
-            details =
-                entry.sku === '241;6' && opt.checkUses.duel
-                    ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
-                    : Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker
-                    ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
-                    : details.replace(/%uses%/g, '');
+            details = isDueling
+                ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
+                : isNoiseMaker
+                ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                : details.replace(/%uses%/g, '');
             //
-        } else if (entry.sku === '241;6' && opt.checkUses.duel) {
-            // else if note.buy or note.sell are both null, use template/in config file.
-            // this part checks if the item is Dueling Mini-Game.
+        } else if (isDueling || isNoiseMaker) {
             details = replaceDetails(this.templates[key], entry, key).replace(
                 /%uses%/g,
-                optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)'
-            );
-
-            details = entry[key].toString().includes('key')
-                ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
-                : details.replace(/%keyPrice%/g, '');
-            //
-        } else if (Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker) {
-            // this part checks if the item is Noise Maker.
-            details = replaceDetails(this.templates[key], entry, key).replace(
-                /%uses%/g,
-                optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
+                isDueling
+                    ? optDs.duel
+                        ? optDs.duel
+                        : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)'
+                    : optDs.noiseMaker
+                    ? optDs.noiseMaker
+                    : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
             );
 
             details = entry[key].toString().includes('key')
