@@ -23,8 +23,9 @@ v.addSchema(op.sa.sendAlertSchema);
 v.addSchema(op.sa.autokeysSaSchema);
 v.addSchema(op.sa.highValueSaSchema);
 
-v.addSchema(op.bypassSchema);
+v.addSchema(op.pricelistSchema);
 v.addSchema(op.priceAgeSchema);
+v.addSchema(op.bypassSchema);
 v.addSchema(op.weaponsAsCurrencySchema);
 v.addSchema(op.tradeSummarySchema);
 v.addSchema(op.highValueSchema);

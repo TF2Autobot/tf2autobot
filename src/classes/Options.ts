@@ -109,13 +109,32 @@ export const DEFAULTS = {
         enable: true
     },
 
-    autoRemoveIntentSell: {
+    pricelist: {
         // 7
-        /**
-         * If set to true, any item with intent sell in the pricelist will be automatically removed
-         * when the bot no longer have that item.
-         */
-        enable: false
+        autoRemoveIntentSell: {
+            // 7.1
+            /**
+             * If set to true, any item with intent sell in the pricelist will be automatically removed
+             * when the bot no longer have that item.
+             */
+            enable: false
+        },
+        autoAddInvalidItems: {
+            // 7.2
+            /**
+             * If set to false, any accepted INVALID_ITEMS will not be automatically added to the pricelist
+             */
+            enable: true
+        },
+        priceAge: {
+            // 7.3
+            /**
+             * (8 hrs) If an item in the pricelist's last price update exceeds this value,
+             * the bot will automatically request a price check for the item from prices.tf
+             * (only apply on boot).
+             */
+            maxInSeconds: 28800
+        }
     },
 
     bypass: {
@@ -153,18 +172,8 @@ export const DEFAULTS = {
         }
     },
 
-    priceAge: {
-        // 9
-        /**
-         * (8 hrs) If an item in the pricelist's last price update exceeds this value,
-         * the bot will automatically request a price check for the item from prices.tf
-         * (only apply on boot).
-         */
-        maxInSeconds: 28800
-    },
-
     autobump: {
-        // 10
+        // 9
         /**
          * If set to true, your bot will re-list all listings every 30 minutes.
          * NOTE: DEPRECATED - Please consider donating to Backpack.tf or purchase Backpack.tf Premium
@@ -174,7 +183,7 @@ export const DEFAULTS = {
     },
 
     skipItemsInTrade: {
-        // 11
+        // 10
         /**
          * By default, when your bot is constructing an offer (trade partner buy/sell through command),
          * your bot will skip any items that are currently in another active trades.
@@ -184,7 +193,7 @@ export const DEFAULTS = {
     },
 
     weaponsAsCurrency: {
-        // 12
+        // 11
         /**
          * If set to false, your bot will not value craft/uncraft weapons as currency (0.05 refined).
          */
@@ -196,7 +205,7 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
-        // 13
+        // 12
         /**
          * By default is false, set to true if you want to show stock changes, example: B.M.O.C (0 → 1/1).
          */
@@ -212,7 +221,7 @@ export const DEFAULTS = {
     },
 
     highValue: {
-        // 14
+        // 13
         /**
          * By default, whenever your bot accepts items with high valued attachments, it will temporarily be disabled
          * so you can decide whether to manually price it. Set this to false if you want to disable this feature.
@@ -241,7 +250,7 @@ export const DEFAULTS = {
     },
 
     checkUses: {
-        // 15
+        // 14
         /**
          * If set to false, your bot will buy Dueling Mini-Games regardless of how many uses are left. Otherwise,
          * it will only accept full Dueling Mini-Games (5 uses left).
@@ -255,7 +264,7 @@ export const DEFAULTS = {
     },
 
     game: {
-        // 16
+        // 15
         /**
          * Set to true if you want your bot to only play Team Fortress 2. Setting this to true will ignore the below Option.
          */
@@ -267,7 +276,7 @@ export const DEFAULTS = {
     },
 
     normalize: {
-        // 17
+        // 16
         /**
          * If set to true, your bot will recognize Festivized items as their Non-Festivized variant. For example, if your bot
          * is selling a Strange Australium Black Box and someone sends an offer to your bot containing a Festivized Strange Australium Black Box,
@@ -288,7 +297,7 @@ export const DEFAULTS = {
     },
 
     details: {
-        // 18
+        // 17
         /**
          * This is the note that will be included with each buy order placed on backpack.tf.
          */
@@ -338,7 +347,7 @@ export const DEFAULTS = {
     },
 
     statistics: {
-        // 19
+        // 18
         /**
          * The starting value for the number of successful trades your bot has made. Used in Discord webhooks for
          * statistical or show off purposes.
@@ -383,7 +392,7 @@ export const DEFAULTS = {
     },
 
     autokeys: {
-        // 20
+        // 19
         /**
          * If set to true, your bot will automatically buy/sell keys based on the availability of the refined metals and keys in
          * your bot inventory. This is done in an effort to ensure that your bot has enough pure metal to perform trades.
@@ -408,7 +417,7 @@ export const DEFAULTS = {
          */
         maxRefined: 150,
         banking: {
-            // 20.1
+            // 19.1
             /**
              * If set to true, your bot will bank (buy and sell) keys. If your bot's current refined supply is between min and max and keys \> min,
              * it will bank keys. autokeys.enable must be set to true to enable this option.
@@ -416,7 +425,7 @@ export const DEFAULTS = {
             enable: false
         },
         scrapAdjustment: {
-            // 20.2
+            // 19.2
             /**
              * If set to true, the bot will make adjustments to the price of keys when selling or buying. For example, if the current key price is
              * "10 refined", the bot will take "10 refined" and add .value when buying, and subtract .value when selling. This is done in an effort
@@ -431,7 +440,7 @@ export const DEFAULTS = {
             value: 1
         },
         accept: {
-            // 20.3
+            // 19.3
             /**
              * If set to true, your bot will accept trades that will lead to keys become under-stocked.
              */
@@ -440,9 +449,9 @@ export const DEFAULTS = {
     },
 
     crafting: {
-        // 21
+        // 20
         weapons: {
-            // 21.1
+            // 20.1
             /**
              * Setting this to false will disable metal crafting entirely. This may cause your bot and the trade partner to not be able to trade because
              * of missing scrap/reclaimed. SETTING THIS TO FALSE IS NOT RECOMMENDED!
@@ -450,7 +459,7 @@ export const DEFAULTS = {
             enable: true
         },
         metals: {
-            // 21.2
+            // 20.2
             /**
              * Setting this to false will disable metal crafting entirely. This may cause your bot and the trade partner to not be able to trade because
              * of missing scrap/reclaimed. SETTING THIS TO FALSE IS NOT RECOMMENDED!
@@ -473,12 +482,12 @@ export const DEFAULTS = {
     },
 
     offerReceived: {
-        // 22
+        // 21
         // 🟥_INVALID_VALUE (ONLY_INVALID_VALUE)
         invalidValue: {
-            // 22.1
+            // 21.1
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * Set this to false if you do not want your bot to automatically decline trades with 🟥_INVALID_VALUE as the ONLY manual review
                  * reason where items do not match exceptionValue.skus and exceptionValue.valueInRef
@@ -492,7 +501,7 @@ export const DEFAULTS = {
                 declineReply: ''
             },
             exceptionValue: {
-                // 22.1.2
+                // 21.1.2
                 /**
                  * An array of SKUs that will bypass the INVALID_VALUE manual review reason if the difference between the bot's value and
                  * their value is not more than .valueInRef. Let's say your bot is selling an Unusual and someone sent an offer with 0.11 ref
@@ -508,7 +517,7 @@ export const DEFAULTS = {
         },
         // 🟨_INVALID_ITEMS (ONLY_INVALID_ITEMS)
         invalidItems: {
-            // 22.2
+            // 21.2
             /**
              * If set to false, your bot will not price INVALID_ITEMS (items that are not in your price list) using prices from prices.tf.
              */
@@ -519,7 +528,7 @@ export const DEFAULTS = {
              */
             autoAcceptOverpay: true,
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * Set this to false if you do not want your bot to automatically decline trades with 🟨_INVALID_ITEMS as the ONLY manual review
                  * reason.
@@ -535,14 +544,14 @@ export const DEFAULTS = {
         },
         // 🟧_DISABLED_ITEMS (ONLY_DISABLED_ITEMS)
         disabledItems: {
-            // 22.3
+            // 21.3
             /**
              * If set to false, your bot will not accept trades with 🟧_DISABLED_ITEMS where the value of their side is greater than or equal
              * to the value of your bot's side.
              */
             autoAcceptOverpay: false,
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * Set this to false if you do not want your bot to automatically decline trades with 🟧_DISABLED_ITEMS as the ONLY manual review
                  * reason.
@@ -557,14 +566,14 @@ export const DEFAULTS = {
         },
         // 🟦_OVERSTOCKED (ONLY_OVERSTOCKED)
         overstocked: {
-            // 22.3
+            // 21.3
             /**
              * If set to false, your bot will not accept trades with 🟦_OVERSTOCKED where the value of their side is greater than or equal
              * to the value of your bot's side.
              */
             autoAcceptOverpay: false,
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * Set this to false if you do not want your bot to automatically decline trades with 🟦_OVERSTOCKED as the ONLY manual review
                  * reason.
@@ -579,14 +588,14 @@ export const DEFAULTS = {
         },
         // 🟩_UNDERSTOCKED (ONLY_UNDERSTOCKED)
         understocked: {
-            // 22.4 = 22.3
+            // 21.4 = 21.3
             /**
              * If set to false, your bot will not accept trades with 🟩_UNDERSTOCKED where the value of their side is greater than or equal
              * to the value of your bot's side.
              */
             autoAcceptOverpay: false,
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * Set this to false if you do not want your bot to automatically decline trades with 🟩_UNDERSTOCKED as the ONLY manual review
                  * reason.
@@ -601,7 +610,7 @@ export const DEFAULTS = {
         },
         // 🟫_DUPED_ITEMS
         duped: {
-            // 22.5
+            // 21.5
             /**
              * If set to true, the bot will perform checks on items to determine whether or not they are duplicated.
              */
@@ -611,7 +620,7 @@ export const DEFAULTS = {
              */
             minKeys: 10,
             autoDecline: {
-                // 22.s
+                // 21.s
                 /**
                  * If set to true, the bot will decline any unusual items that it determines as having been duplicated.
                  */
@@ -625,7 +634,7 @@ export const DEFAULTS = {
         },
         // ⬜_ESCROW_CHECK_FAILED
         escrowCheckFailed: {
-            // 22.t
+            // 21.t
             /**
              * By default, your bot will skip the trade and put to review if escrow check failed.
              * Set this to false if you want your bot to ignore trade with failed escrow check.
@@ -634,7 +643,7 @@ export const DEFAULTS = {
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
-            // 22.t
+            // 21.t
             /**
              * By default, your bot will skip the trade and put to review if banned check failed.
              * Set this to false if you want your bot to ignore trade with failed banned check.
@@ -644,7 +653,7 @@ export const DEFAULTS = {
     },
 
     manualReview: {
-        // 23
+        // 22
         /**
          * By default, offers with INVALID_VALUE/ INVALID_ITEMS/ OVERSTOCKED/ UNDERSTOCKED/ DUPED_ITEMS/ DUPE_CHECK_FAILED will
          * require manual review by you.
@@ -670,7 +679,7 @@ export const DEFAULTS = {
         // All these custom note only apply to trade partner's side
         // 🟥_INVALID_VALUE
         invalidValue: {
-            // 23.1
+            // 22.1
             /**
              * Default: "You're taking too much in value." followed by `[You're missing: ${value}]` (unchangeable)
              */
@@ -678,7 +687,7 @@ export const DEFAULTS = {
         },
         // 🟨_INVALID_ITEMS
         invalidItems: {
-            // 23.2
+            // 22.2
             /**
              * Default: "%itemsName% %isOrAre% not in my pricelist."
              *
@@ -688,7 +697,7 @@ export const DEFAULTS = {
         },
         // 🟧_DISABLED_ITEMS
         disabledItems: {
-            // 23.2
+            // 22.2
             /**
              * Default: "%itemsName% %isOrAre% currently disabled."
              *
@@ -698,7 +707,7 @@ export const DEFAULTS = {
         },
         // 🟦_OVERSTOCKED
         overstocked: {
-            // 23.3
+            // 22.3
             /**
              * Default: "I can only buy %itemsName% right now."
              *
@@ -708,7 +717,7 @@ export const DEFAULTS = {
         },
         // 🟩_UNDERSTOCKED
         understocked: {
-            // 23.4
+            // 22.4
             /**
              * Default: "I can only sell %itemsName% right now."
              *
@@ -718,7 +727,7 @@ export const DEFAULTS = {
         },
         // 🟫_DUPED_ITEMS
         duped: {
-            // 23.5
+            // 22.5
             /**
              * Default: "%itemsName% %isOrAre% appeared to be duped."
              *
@@ -728,7 +737,7 @@ export const DEFAULTS = {
         },
         // 🟪_DUPE_CHECK_FAILED
         dupedCheckFailed: {
-            // 23.6
+            // 22.6
             /**
              * Default: "I failed to check for duped on %itemsName%."
              *
@@ -738,7 +747,7 @@ export const DEFAULTS = {
         },
         // ⬜_ESCROW_CHECK_FAILED
         escrowCheckFailed: {
-            // 23.7
+            // 22.7
             /**
              * Default: "Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep
              * status, please wait for my owner to manually accept/decline your offer."
@@ -747,7 +756,7 @@ export const DEFAULTS = {
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
-            // 23.8
+            // 22.8
             /**
              * Default: "Steam is down and I failed to check your Escrow (Trade holds)
              * status, please wait for my owner to manually accept/decline your offer."
@@ -763,7 +772,7 @@ export const DEFAULTS = {
     },
 
     discordWebhook: {
-        // 24
+        // 23
         /**
          * Your Discord ID. To obtain this, right-click on yourself on Discord and click Copy ID. Be sure to
          * enable Developer Mode on Discord by navigating to Settings \> Appearance \> Advanced. It must be
@@ -786,7 +795,7 @@ export const DEFAULTS = {
          */
         embedColor: '9171753',
         tradeSummary: {
-            // 24.1
+            // 23.1
             /**
              * Display each successful trade summary on your trade summary/live-trades channel via Discord Webhook. If set to
              * false, it will send to your Steam Chat.
@@ -799,7 +808,7 @@ export const DEFAULTS = {
              */
             url: [],
             misc: {
-                // 24.1.1
+                // 23.1.1
                 /**
                  * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
                  */
@@ -822,7 +831,7 @@ export const DEFAULTS = {
                 note: ''
             },
             mentionOwner: {
-                // 24.1.2
+                // 23.1.2
                 /**
                  * If set to false, your bot will never mention you on each successful trade (except for accepted 🟨_INVALID_ITEMS or
                  * 🔶_HIGH_VALUE_ITEMS)
@@ -838,7 +847,7 @@ export const DEFAULTS = {
             }
         },
         offerReview: {
-            // 24.2
+            // 23.2
             /**
              * If set to false, your bot will never mention you on each successful trade (except for accepted 🟨_INVALID_ITEMS or
              * 🔶_HIGH_VALUE_ITEMS)
@@ -853,7 +862,7 @@ export const DEFAULTS = {
              */
             mentionInvalidValue: true,
             misc: {
-                // 24.2.1
+                // 23.2.1
                 /**
                  * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
                  */
@@ -873,7 +882,7 @@ export const DEFAULTS = {
             }
         },
         messages: {
-            // 24.3
+            // 23.3
             /**
              * Used to alert you on any messages sent from the trade partner via Discord Webhook (mentioned). If set to false,
              * it will send to your Steam Chat.
@@ -889,7 +898,7 @@ export const DEFAULTS = {
             showQuickLinks: true
         },
         priceUpdate: {
-            // 24.4
+            // 23.4
             /**
              * Set to false to disable this feature.
              */
@@ -904,7 +913,7 @@ export const DEFAULTS = {
             note: ''
         },
         sendAlert: {
-            // 24.5
+            // 23.5
             /**
              * If set to false, the bot will notify you through Steam chat if there is something wrong. Otherwise, the bot will
              * notify you through Discord (sendAlert.enable must be true).
@@ -916,6 +925,7 @@ export const DEFAULTS = {
             url: ''
         },
         sendStats: {
+            // 23.6 = 23.5
             /**
              * If set to false, the bot will send stats through Steam chat. Otherwise, the bot will
              * send stats you through Discord (statistics.autoSendStats.enable must be true and
@@ -930,7 +940,7 @@ export const DEFAULTS = {
     },
 
     customMessage: {
-        // 25
+        // 24
         /**
          * Default: "Powered by TF2Autobot" (not removed)
          */
@@ -957,7 +967,7 @@ export const DEFAULTS = {
          */
         successEscrow: '',
         decline: {
-            // 25.1
+            // 24.1
             /**
              * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined"
              */
@@ -1052,7 +1062,7 @@ export const DEFAULTS = {
     },
 
     commands: {
-        // 26
+        // 25
         /**
          * if false, only admin can use commands.
          */
@@ -1062,9 +1072,9 @@ export const DEFAULTS = {
          */
         customDisableReply: '',
         how2trade: {
-            // 26.a
+            // 25.a
             customReply: {
-                // 26.cr.a
+                // 25.cr.a
                 /**
                  * Default: \`/quote You can either send me an offer yourself, or use one of my commands to request a trade.
                  *  Say you want to buy a Team Captain, just type "!buy Team Captain", if want to buy more,
@@ -1076,13 +1086,13 @@ export const DEFAULTS = {
             }
         },
         price: {
-            // 26.c
+            // 25.c
             /**
              * Set to false if want to disable !price command.
              */
             enable: true,
             customReply: {
-                // 26.cr.b
+                // 25.cr.b
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1090,7 +1100,7 @@ export const DEFAULTS = {
             }
         },
         buy: {
-            // 26.2
+            // 25.2
             /**
              * Set to false if want to disable !buy command.
              */
@@ -1100,7 +1110,7 @@ export const DEFAULTS = {
              */
             disableForSKU: [],
             customReply: {
-                // 26.cr.e
+                // 25.cr.e
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1114,7 +1124,7 @@ export const DEFAULTS = {
             }
         },
         sell: {
-            // 26.2
+            // 25.2
             /**
              * Set to false if want to disable !sell command.
              */
@@ -1124,7 +1134,7 @@ export const DEFAULTS = {
              */
             disableForSKU: [],
             customReply: {
-                // 26.cr.e
+                // 25.cr.e
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1138,7 +1148,7 @@ export const DEFAULTS = {
             }
         },
         buycart: {
-            // 26.2
+            // 25.2
             /**
              * Set to false if want to disable !buycart command.
              */
@@ -1148,7 +1158,7 @@ export const DEFAULTS = {
              */
             disableForSKU: [],
             customReply: {
-                // 26.cr.e
+                // 25.cr.e
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1162,7 +1172,7 @@ export const DEFAULTS = {
             }
         },
         sellcart: {
-            // 26.2
+            // 25.2
             /**
              * Set to false if want to disable !sellcart command.
              */
@@ -1172,7 +1182,7 @@ export const DEFAULTS = {
              */
             disableForSKU: [],
             customReply: {
-                // 26.cr.e
+                // 25.cr.e
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1186,13 +1196,13 @@ export const DEFAULTS = {
             }
         },
         cart: {
-            // 26.3
+            // 25.3
             /**
              * Set to false if want to disable !cart command.
              */
             enable: true,
             customReply: {
-                // 26.3.1
+                // 25.3.1
                 /**
                  * Default: "🛒== YOUR CART ==🛒"
                  */
@@ -1204,10 +1214,10 @@ export const DEFAULTS = {
             }
         },
         clearcart: {
-            // 26.a
+            // 25.a
             // always enable
             customReply: {
-                // 26.cr.a
+                // 25.cr.a
                 /**
                  * Default: "🛒 Your cart has been cleared."
                  */
@@ -1215,10 +1225,10 @@ export const DEFAULTS = {
             }
         },
         checkout: {
-            // 26.4
+            // 25.4
             // always enable
             customReply: {
-                // 26.4.1
+                // 25.4.1
                 /**
                  * Default: "🛒 Your cart is empty."
                  */
@@ -1226,7 +1236,7 @@ export const DEFAULTS = {
             }
         },
         addToQueue: {
-            // 26.5
+            // 25.5
             /**
              * Default: "❌ You already have an active offer! Please finish it before requesting a new one: %tradeurl%"
              *
@@ -1256,7 +1266,7 @@ export const DEFAULTS = {
              */
             alteredOffer: '',
             processingOffer: {
-                // 26.e
+                // 25.e
                 /**
                  * Default: "⌛ Please wait while I process your donation! %summarize%"
                  *
@@ -1277,7 +1287,7 @@ export const DEFAULTS = {
                 offer: ''
             },
             hasBeenMadeAcceptingMobileConfirmation: {
-                // 26.e
+                // 25.e
                 /**
                  * Default: "⌛ Please wait while I process your donation! %summarize%"
                  *
@@ -1299,10 +1309,10 @@ export const DEFAULTS = {
             }
         },
         cancel: {
-            // 26.6
+            // 25.6
             // always enable
             customReply: {
-                // 26.6.1
+                // 25.6.1
                 /**
                  * Default: "⚠️ Your offer is already being sent! Please try again when the offer is active."
                  */
@@ -1326,10 +1336,10 @@ export const DEFAULTS = {
             }
         },
         queue: {
-            // 26.7
+            // 25.7
             // always enable
             customReply: {
-                // 26.7.1
+                // 25.7.1
                 /**
                  * Default: "❌ You are not in the queue."
                  */
@@ -1347,13 +1357,13 @@ export const DEFAULTS = {
             }
         },
         owner: {
-            // 26.d
+            // 25.d
             /**
              * Set to false if want to disable !owner command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1370,7 +1380,7 @@ export const DEFAULTS = {
             }
         },
         discord: {
-            // 26.8
+            // 25.8
             /**
              * Set to false if want to disable !discord command.
              */
@@ -1380,7 +1390,7 @@ export const DEFAULTS = {
              */
             inviteURL: '',
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner. (except admins)"
                  */
@@ -1396,13 +1406,13 @@ export const DEFAULTS = {
             }
         },
         more: {
-            // 26.c
+            // 25.c
             /**
              * Set to false if want to disable !more command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.b
+                // 25.cr.b
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1410,13 +1420,13 @@ export const DEFAULTS = {
             }
         },
         autokeys: {
-            // 26.c
+            // 25.c
             /**
              * Set to false if want to disable !autokeys command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.b
+                // 25.cr.b
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1424,13 +1434,13 @@ export const DEFAULTS = {
             }
         },
         message: {
-            // 26.9
+            // 25.9
             /**
              * Set to false if want to disable !message command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.9.1
+                // 25.9.1
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1454,13 +1464,13 @@ export const DEFAULTS = {
             }
         },
         time: {
-            // 26.d
+            // 25.d
             /**
              * Set to false if want to disable !time command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1474,13 +1484,13 @@ export const DEFAULTS = {
             }
         },
         uptime: {
-            // 26.d
+            // 25.d
             /**
              * Set to false if want to disable !uptime command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1492,13 +1502,13 @@ export const DEFAULTS = {
             }
         },
         pure: {
-            // 26.d
+            // 25.d
             /**
              * Set to false if want to disable !pure command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1512,13 +1522,13 @@ export const DEFAULTS = {
             }
         },
         rate: {
-            // 26.d
+            // 25.d
             /**
              * Set to false if want to disable !rate command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1537,7 +1547,7 @@ export const DEFAULTS = {
             }
         },
         stock: {
-            // 26.10
+            // 25.10
             /**
              * Set to false if want to disable !stock command (except admins).
              */
@@ -1547,7 +1557,7 @@ export const DEFAULTS = {
              */
             maximumItems: 20,
             customReply: {
-                // 26.cr.c
+                // 25.cr.c
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1561,13 +1571,13 @@ export const DEFAULTS = {
             }
         },
         craftweapon: {
-            // 26.11
+            // 25.11
             /**
              * Set to false if want to disable !craftweapon command (except admins).
              */
             enable: true,
             customReply: {
-                // 26.cr.d
+                // 25.cr.d
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1585,13 +1595,13 @@ export const DEFAULTS = {
             }
         },
         uncraftweapon: {
-            // 26.11
+            // 25.11
             /**
              * Set to false if want to disable !uncraftweapon command (except admins).
              */
             enable: true, //
             customReply: {
-                // 26.cr.d
+                // 25.cr.d
                 /**
                  * Default: "❌ This command is disabled by the owner."
                  */
@@ -1610,12 +1620,12 @@ export const DEFAULTS = {
         }
     },
     detailsExtra: {
-        // 27
+        // 26
         /**
          * Custom string to be shown in listing note if details.highValue.showSpells set to true
          */
         spells: {
-            // 27.1
+            // 26.1
             'Putrescent Pigmentation': 'PP 🍃',
             'Die Job': 'DJ 🍐',
             'Chromatic Corruption': 'CC 🪀',
@@ -1637,7 +1647,7 @@ export const DEFAULTS = {
          * Custom string to be shown in listing note if details.highValue.showSheen set to true
          */
         sheens: {
-            // 27.2
+            // 26.2
             'Team Shine': '🔵🔴',
             'Hot Rod': '🎗️',
             Manndarin: '🟠',
@@ -1650,7 +1660,7 @@ export const DEFAULTS = {
          * Custom string to be shown in listing note if details.highValue.showKillstreaker set to true
          */
         killstreakers: {
-            // 27.3
+            // 26.3
             'Cerebral Discharge': '⚡',
             'Fire Horns': '🔥🐮',
             Flames: '🔥',
@@ -1663,7 +1673,7 @@ export const DEFAULTS = {
          * Custom string to be shown in listing note if details.highValue.showPainted set to true
          */
         painted: {
-            // 27.4
+            // 26.4
             'A Color Similar to Slate': '🧪',
             'A Deep Commitment to Purple': '🪀',
             'A Distinctive Lack of Hue': '🎩',
@@ -1698,7 +1708,7 @@ export const DEFAULTS = {
          * Custom string to be shown in listing note if details.highValue.showStrangeParts set to true
          */
         strangeParts: {
-            // 27.5
+            // 26.5
             'Robots Destroyed': '',
             Kills: '',
             'Airborne Enemy Kills': '',
@@ -1787,6 +1797,18 @@ export interface HighValueAlert {
     tryingToTake?: boolean;
 }
 
+// ------------ Pricelist ------------
+
+export interface Pricelist {
+    autoRemoveIntentSell?: OnlyEnable;
+    autoAddInvalidItems?: OnlyEnable;
+    priceAge?: PriceAge;
+}
+
+export interface PriceAge {
+    maxInSeconds?: number;
+}
+
 // ------------ Bypass ------------
 
 export interface Bypass {
@@ -1798,12 +1820,6 @@ export interface Bypass {
 
 export interface OnlyAllow {
     allow?: boolean;
-}
-
-// ------------ PriceAge ------------
-
-export interface PriceAge {
-    maxInSeconds?: number;
 }
 
 // ------------ WeaponsAsCurrency ------------
@@ -2402,9 +2418,8 @@ export interface JsonOptions {
     sendAlert?: SendAlert;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
-    autoRemoveIntentSell?: OnlyEnable;
+    pricelist?: Pricelist;
     bypass?: Bypass;
-    priceAge?: PriceAge;
     autobump?: OnlyEnable;
     skipItemsInTrade?: OnlyEnable;
     weaponsAsCurrency?: WeaponsAsCurrency;

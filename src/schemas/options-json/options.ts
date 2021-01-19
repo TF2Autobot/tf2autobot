@@ -22,14 +22,11 @@ export const optionsSchema: jsonschema.Schema = {
         sendGroupInvite: {
             $ref: 'only-enable'
         },
-        autoRemoveIntentSell: {
-            $ref: 'only-enable'
+        pricelist: {
+            $ref: 'pricelist'
         },
         bypass: {
             $ref: 'bypass'
-        },
-        priceAge: {
-            $ref: 'price-age'
         },
         autobump: {
             $ref: 'only-enable'

@@ -10,27 +10,27 @@ import * as sa from './4-sendAlert/export';
 // addFriends - onlyEnable
 // addFriends - onlyEnable
 // sendGroupInvite - onlyEnable
-// autoRemoveIntentSell - onlyEnable
+import { pricelistSchema } from './7-pricelist/7-pricelist';
+import { priceAgeSchema } from './7-pricelist/7.3-price-age';
 import { bypassSchema } from './8-bypass/8-bypass';
-import { priceAgeSchema } from './9-priceAge/9-price-age';
 // autobump - onlyEnable
 // skipItemsInTrade - onlyEnable
-import { weaponsAsCurrencySchema } from './12-weaponsAsCurrency/12-weapons-as-currency';
-import { tradeSummarySchema } from './13-tradeSummary/13-trade-summary';
-import { highValueSchema } from './14-highValue/14-high-value';
-import { checkUsesSchema } from './15-checkUses/15-check-uses';
-import { gameSchema } from './16-game/16-game';
-import { normalizeSchema } from './17-normalize/17-normalize';
-import * as dl from './18-details/export';
-import * as st from './19-statistics/export';
-import * as ak from './20-autokeys/export';
-import * as cf from './21-crafting/export';
-import * as or from './22-offerRecieved/export';
-import { manualReviewSchema } from './23-manualReview/23-manual-review';
-import * as dw from './24-discordWebhook/export';
-import * as cm from './25-custom-message/export';
-import * as cmd from './26-commads/export';
-import * as dx from './27-detailsExtra/export';
+import { weaponsAsCurrencySchema } from './11-weaponsAsCurrency/11-weapons-as-currency';
+import { tradeSummarySchema } from './12-tradeSummary/12-trade-summary';
+import { highValueSchema } from './13-highValue/13-high-value';
+import { checkUsesSchema } from './14-checkUses/14-check-uses';
+import { gameSchema } from './15-game/15-game';
+import { normalizeSchema } from './16-normalize/16-normalize';
+import * as dl from './17-details/export';
+import * as st from './18-statistics/export';
+import * as ak from './19-autokeys/export';
+import * as cf from './20-crafting/export';
+import * as or from './21-offerRecieved/export';
+import { manualReviewSchema } from './22-manualReview/22-manual-review';
+import * as dw from './23-discordWebhook/export';
+import * as cm from './24-custom-message/export';
+import * as cmd from './25-commads/export';
+import * as dx from './26-detailsExtra/export';
 
 export {
     optionsSchema,
@@ -40,8 +40,9 @@ export {
     stringArraySchema,
     sortInventorySchema,
     sa,
-    bypassSchema,
+    pricelistSchema,
     priceAgeSchema,
+    bypassSchema,
     weaponsAsCurrencySchema,
     tradeSummarySchema,
     highValueSchema,

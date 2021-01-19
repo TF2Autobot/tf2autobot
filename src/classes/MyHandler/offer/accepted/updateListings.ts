@@ -63,7 +63,8 @@ export default function updateListings(
             isNotPureOrWeapons &&
             SKU.fromString(sku).wear === null &&
             !highValue.isDisableSKU.includes(sku) &&
-            !bot.isAdmin(offer.partner)
+            !bot.isAdmin(offer.partner) &&
+            opt.pricelist.autoAddInvalidItems.enable
         ) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
             // from ADMINS, then add INVALID_ITEMS to the pricelist.
@@ -183,7 +184,7 @@ export default function updateListings(
                     log.warn(`❌ Failed to disable high value ${sku}: ${(err as Error).message}`);
                 });
         } else if (
-            opt.autoRemoveIntentSell.enable &&
+            opt.pricelist.autoRemoveIntentSell.enable &&
             inPrice !== null &&
             inPrice.intent === 1 &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
