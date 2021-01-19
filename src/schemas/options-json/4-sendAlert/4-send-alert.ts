@@ -15,6 +15,9 @@ export const sendAlertSchema: jsonschema.Schema = {
         },
         highValue: {
             $ref: 'high-value-sa'
+        },
+        autoRemoveIntentSellFailed: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

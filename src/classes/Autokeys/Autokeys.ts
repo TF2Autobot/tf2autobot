@@ -687,8 +687,17 @@ export default class Autokeys {
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug('✅ Automatically disabled Autokeys.'))
             .catch(err => {
-                log.warn(`❌ Failed to disable Autokeys: ${(err as Error).message}`);
+                const opt2 = this.bot.options;
+                const msg = `❌ Failed to disable Autokeys: ${(err as Error).message}`;
+
+                log.warn(msg);
                 this.isActive = true;
+
+                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable) {
+                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
+                        sendAlert('autokeys-failedToDisable', this.bot, msg);
+                    } else this.bot.messageAdmins(msg, []);
+                }
             });
     }
 

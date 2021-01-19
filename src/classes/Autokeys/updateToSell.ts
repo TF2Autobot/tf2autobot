@@ -3,6 +3,7 @@ import { genScrapAdjustment } from './userSettings';
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
+import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
 export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot): void {
     const optSA = bot.options.autokeys.scrapAdjustment;
@@ -48,7 +49,17 @@ export default function updateToSell(minKeys: number, maxKeys: number, bot: Bot)
     bot.pricelist
         .updatePrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`))
-        .catch(err =>
-            log.warn(`❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${(err as Error).message}`)
-        );
+        .catch(err => {
+            const opt2 = bot.options;
+            const msg = `❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${
+                (err as Error).message
+            }`;
+            log.warn(msg);
+
+            if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate) {
+                if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
+                    sendAlert('autokeys-failedToUpdate-sell', bot, msg);
+                } else bot.messageAdmins(msg, []);
+            }
+        });
 }

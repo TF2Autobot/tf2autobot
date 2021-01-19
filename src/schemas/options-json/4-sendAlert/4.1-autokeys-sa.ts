@@ -6,6 +6,15 @@ export const autokeysSaSchema: jsonschema.Schema = {
     properties: {
         lowPure: {
             type: 'boolean'
+        },
+        failedToAdd: {
+            type: 'boolean'
+        },
+        failedToUpdate: {
+            type: 'boolean'
+        },
+        failedToDisable: {
+            type: 'boolean'
         }
     },
     additionalProperties: false,

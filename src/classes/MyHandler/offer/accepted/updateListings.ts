@@ -194,9 +194,16 @@ export default function updateListings(
             bot.pricelist
                 .removePrice(sku, true)
                 .then(() => log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`))
-                .catch(err =>
-                    log.warn(`❌ Failed to remove ${name} (${sku}) from pricelist: ${(err as Error).message}`)
-                );
+                .catch(err => {
+                    const msg = `❌ Failed to remove ${name} (${sku}) from pricelist: ${(err as Error).message}`;
+                    log.warn(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoRemoveIntentSellFailed', bot, msg);
+                        } else bot.messageAdmins(msg, []);
+                    }
+                });
         }
     }
 }

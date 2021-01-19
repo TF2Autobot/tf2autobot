@@ -44,6 +44,19 @@ export default function sendAlert(
         title = 'Received High-value invalid item(s)';
         description = msg;
         color = '8323327'; // purple
+    } else if (type === 'autoRemoveIntentSellFailed') {
+        title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '8323327'; // red
+    } else if (type.includes('autokeys-')) {
+        title =
+            type === 'autokeys-failedToDisable'
+                ? 'Failed to disable Autokeys'
+                : `Failed to ${type.includes('-failedToAdd') ? 'create' : 'update'} auto ${
+                      type.includes('-bank') ? 'banking' : type.includes('-buy') ? 'buying' : 'selling'
+                  } for keys - Autokeys`;
+        description = msg;
+        color = '8323327'; // red
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
@@ -56,13 +69,22 @@ export default function sendAlert(
     const sendAlertWebhook: Webhook = {
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
-        content:
-            type === 'highValue' ||
-            type === 'highValuedDisabled' ||
-            type === 'highValuedInvalidItems' ||
-            type === 'failedRestartError'
-                ? `<@!${optDW.ownerID}>`
-                : '',
+        content: [
+            'highValue',
+            'highValuedDisabled',
+            'highValuedInvalidItems',
+            'failedRestartError',
+            'autoRemoveIntentSellFailed',
+            'autokeys-failedToDisable',
+            'autokeys-failedToAdd-bank',
+            'autokeys-failedToAdd-sell',
+            'autokeys-failedToAdd-buy',
+            'autokeys-failedToUpdate-bank',
+            'autokeys-failedToUpdate-sell',
+            'autokeys-failedToUpdate-buy'
+        ].includes(type)
+            ? `<@!${optDW.ownerID}>`
+            : '',
         embeds: [
             {
                 title: title,

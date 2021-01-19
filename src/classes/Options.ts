@@ -48,7 +48,19 @@ export const DEFAULTS = {
             /**
              * (Discord Webhook not mentioned) Send an alert when the bot is low in keys and ref (less than minimum for both).
              */
-            lowPure: true
+            lowPure: true,
+            /**
+             * (Discord Webhook mentioned) Send an alert when the bot failed to add key (when Autokeys is enabled).
+             */
+            failedToAdd: true,
+            /**
+             * (Discord Webhook mentioned) Send an alert when the bot failed to update key (when Autokeys is enabled).
+             */
+            failedToUpdate: true,
+            /**
+             * (Discord Webhook mentioned) Send an alert when the bot failed to disable key (when Autokeys is enabled).
+             */
+            failedToDisable: true
         },
         /**
          * (Discord Webhook not mentioned) Send an alert when the bot failed to send an offer due to
@@ -72,7 +84,12 @@ export const DEFAULTS = {
              * that is still not in the bot pricelist.
              */
             tryingToTake: true
-        }
+        },
+        /**
+         * (Discord Webhook mentioned) Send an alert when an item is sold with intent sell, and autoRemoveIntentSell.enable
+         * is true but the bot failed to remove it.
+         */
+        autoRemoveIntentSellFailed: true
     },
 
     addFriends: {
@@ -1754,10 +1771,14 @@ export interface SendAlert extends OnlyEnable {
     autokeys?: AutokeysAlert;
     backpackFull?: boolean;
     highValue?: HighValueAlert;
+    autoRemoveIntentSellFailed?: boolean;
 }
 
 export interface AutokeysAlert {
     lowPure?: boolean;
+    failedToAdd?: boolean;
+    failedToUpdate?: boolean;
+    failedToDisable?: boolean;
 }
 
 export interface HighValueAlert {

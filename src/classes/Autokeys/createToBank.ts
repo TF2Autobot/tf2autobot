@@ -1,6 +1,7 @@
 import Bot from '../Bot';
 import { EntryData, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
+import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
 export default function createToBank(minKeys: number, maxKeys: number, bot: Bot): void {
     const opt = bot.options.details;
@@ -34,7 +35,15 @@ export default function createToBank(minKeys: number, maxKeys: number, bot: Bot)
     bot.pricelist
         .addPrice(entry, true, PricelistChangedSource.Autokeys)
         .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
-        .catch(err =>
-            log.warn(`❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`)
-        );
+        .catch(err => {
+            const opt2 = bot.options;
+            const msg = `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`;
+            log.warn(msg);
+
+            if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd) {
+                if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
+                    sendAlert('autokeys-failedToAdd-bank', bot, msg);
+                } else bot.messageAdmins(msg, []);
+            }
+        });
 }
