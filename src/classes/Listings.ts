@@ -12,6 +12,7 @@ import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
+import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
     private readonly bot: Bot;
@@ -413,133 +414,93 @@ export default class Listings {
         const key = buying ? 'buy' : 'sell';
         const keyPrice = this.bot.pricelist.getKeyPrice;
 
-        let details: string;
-
         let highValueString = '';
 
         if (intent === 1) {
             // if item undefined, then skip because it will make your bot crashed.
             if (item) {
-                const hv = item.hv;
-
-                const highValue = {
-                    spells: '',
-                    parts: '',
-                    killstreaker: '',
-                    sheen: '',
-                    painted: ''
-                };
-
-                let hasSpells = false;
-                let hasStrangeParts = false;
-                let hasKillstreaker = false;
-                let hasSheen = false;
-                let hasPaint = false;
-
-                const spellNames: string[] = [];
-                const partsNames: string[] = [];
-                const killstreakerName: string[] = [];
-                const sheenName: string[] = [];
-                const paintName: string[] = [];
+                const toJoin: string[] = [];
 
                 const optD = this.bot.options.details.highValue;
                 const optR = this.bot.options.detailsExtra;
+                const getPaints = this.bot.schema.getPaints();
+                const getStrangeParts = this.bot.schema.getStrangeParts();
 
                 const getKeyByValue = (object: { [key: string]: any }, value: any) => {
                     return Object.keys(object).find(key => object[key] === value);
                 };
 
+                const getAttachmentName = (attachment: string, pSKU: string, paints: Paints, parts: StrangeParts) => {
+                    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
+                    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
+                    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
+                    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+                };
+
+                const hv = item.hv;
                 if (hv) {
-                    if (hv.s !== undefined && optD.showSpells) {
-                        // Show all
-                        hasSpells = true;
-                        hv.s.forEach(spell => {
-                            const name = getKeyByValue(spellsData, spell);
-                            spellNames.push(name.replace(name, optR.spells[name]));
-                        });
-                    }
+                    Object.keys(hv).forEach(attachment => {
+                        if (attachment === 's' && optD.showSpells) {
+                            highValueString += '| 🎃 Spells: ';
 
-                    if (hv.sp !== undefined && optD.showStrangeParts) {
-                        for (const pSku in hv.sp) {
-                            if (!Object.prototype.hasOwnProperty.call(hv.sp, pSku)) {
-                                continue;
-                            }
+                            hv.s.forEach(pSKU => {
+                                const name = getKeyByValue(spellsData, pSKU);
+                                toJoin.push(name.replace(name, optR.spells[name]));
+                            });
 
-                            if (hv.sp[pSku] === true) {
-                                hasStrangeParts = true;
-                                const name = getKeyByValue(this.bot.schema.getStrangeParts(), pSku);
-                                partsNames.push(
-                                    name.replace(name, optR.strangeParts[name] ? optR.strangeParts[name] : name)
-                                );
-                            }
-                        }
-                    }
+                            highValueString += toJoin.join(' + ');
+                            toJoin.length = 0;
+                        } else {
+                            if (
+                                hv[attachment] &&
+                                (attachment === 'sp'
+                                    ? optD.showStrangeParts
+                                    : attachment === 'ke'
+                                    ? optD.showKillstreaker
+                                    : attachment === 'ks'
+                                    ? optD.showSheen
+                                    : optD.showPainted && opt.normalize.painted)
+                            ) {
+                                if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
+                                else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';
+                                else if (attachment === 'ks') highValueString += '| ✨ Sheen: ';
+                                else if (attachment === 'p') highValueString += '| 🎨 Painted: ';
 
-                    if (hv.ke !== undefined && optD.showKillstreaker) {
-                        for (const pSku in hv.ke) {
-                            if (!Object.prototype.hasOwnProperty.call(hv.ke, pSku)) {
-                                continue;
-                            }
+                                for (const pSKU in hv[attachment]) {
+                                    if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) continue;
 
-                            if (hv.ke[pSku] === true) {
-                                hasKillstreaker = true;
-                                const name = getKeyByValue(killstreakersData, pSku);
-                                killstreakerName.push(
-                                    name.replace(getKeyByValue(killstreakersData, pSku), optR.killstreakers[name])
-                                );
-                            }
-                        }
-                    }
+                                    if (hv[attachment as Attachment][pSKU] === true) {
+                                        const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
+                                        toJoin.push(
+                                            `${name.replace(
+                                                name,
+                                                attachment === 'sp'
+                                                    ? optR.strangeParts[name]
+                                                        ? optR.strangeParts[name]
+                                                        : name
+                                                    : attachment === 'ke'
+                                                    ? optR.killstreakers[name]
+                                                    : attachment === 'ks'
+                                                    ? optR.sheens[name]
+                                                    : optR.painted[name]
+                                            )}`
+                                        );
+                                    }
+                                }
 
-                    if (hv.ks !== undefined && optD.showSheen) {
-                        for (const pSku in hv.ks) {
-                            if (!Object.prototype.hasOwnProperty.call(hv.ks, pSku)) {
-                                continue;
-                            }
-
-                            if (hv.ks[pSku] === true) {
-                                hasSheen = true;
-                                const name = getKeyByValue(sheensData, pSku);
-                                sheenName.push(name.replace(name, optR.sheens[name]));
-                            }
-                        }
-                    }
-
-                    if (hv.p !== undefined && optD.showPainted && opt.normalize.painted) {
-                        for (const pSku in hv.p) {
-                            if (!Object.prototype.hasOwnProperty.call(hv.p, pSku)) {
-                                continue;
-                            }
-
-                            if (hv.p[pSku] === true) {
-                                hasPaint = true;
-                                const name = getKeyByValue(this.bot.schema.getPaints(), pSku);
-                                paintName.push(name.replace(name, optR.painted[name]));
+                                highValueString += toJoin.join(' + ');
+                                toJoin.length = 0;
                             }
                         }
-                    }
 
-                    if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
-                        highValueString = ' | ';
-
-                        if (hasSpells) highValue.spells = `🎃 Spelled: ${spellNames.join(' + ')}`;
-                        if (hasStrangeParts) highValue.parts = `🎰 Parts: ${partsNames.join(' + ')}`;
-                        if (hasKillstreaker)
-                            highValue.killstreaker = `🤩 Killstreaker: ${killstreakerName.join(' + ')}`;
-                        if (hasSheen) highValue.sheen = `✨ Sheen: ${sheenName.join(' + ')}`;
-                        if (hasPaint) highValue.painted = `🎨 Painted: ${paintName.join(' + ')}`;
-
-                        for (let i = 0; i < Object.keys(highValue).length; i++) {
-                            if (Object.values(highValue)[i] !== '') {
-                                highValueString += Object.values(highValue)[i] + ' | ';
-                            }
-                        }
-                    }
+                        highValueString += ' |';
+                    });
                 }
             }
         }
 
         const optDs = this.bot.options.details.uses;
+        let details: string;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const inventory = this.bot.inventoryManager.getInventory;
@@ -626,6 +587,8 @@ export default class Listings {
             //
         }
 
-        return details + highValueString;
+        return details + (highValueString.length > 0 ? ' ' + highValueString : '');
     }
 }
+
+type Attachment = 'sp' | 'ke' | 'ks' | 'p';
