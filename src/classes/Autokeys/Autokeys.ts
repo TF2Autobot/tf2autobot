@@ -1,7 +1,7 @@
 import Currencies from 'tf2-currencies';
 import { genUserPure, genScrapAdjustment } from './userSettings';
 import Bot from '../Bot';
-import { EntryData, PricelistChangedSource } from '../Pricelist';
+import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
 import { currPure } from '../../lib/tools/pure';
 import sendAlert from '../../lib/DiscordWebhook/sendAlert';
@@ -524,392 +524,221 @@ export default class Autokeys {
         this.bot.listings.checkBySKU('5021;6');
     }
 
-    private createToBank(minKeys: number, maxKeys: number): void {
-        const opt = this.bot.options.details;
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
-        const entry: EntryData = {
+    private generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {
+        const details = this.bot.options.details;
+        return {
             sku: '5021;6',
-            enabled: true,
+            enabled: enabled,
             autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2,
+            min: min,
+            max: max,
+            intent: intent,
             note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.sell
+                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details.buy,
+                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details.sell
             }
         };
+    }
 
-        if (keyPrices.src === 'manual') {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
+    private setManual(entry: EntryData): EntryData {
+        const keyPrices = this.bot.pricelist.getKeyPrices;
+        entry.autoprice = false;
+        entry.buy = {
+            keys: 0,
+            metal: keyPrices.buy.metal
+        };
+        entry.sell = {
+            keys: 0,
+            metal: keyPrices.sell.metal
+        };
+        return entry;
+    }
+
+    private setWithScrapAdjustment(entry: EntryData, keyPrices: KeyPrices, type: 'buy' | 'sell'): EntryData {
+        const optSA = this.bot.options.autokeys.scrapAdjustment;
+        const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
+
+        entry.autoprice = false;
+        entry.buy = {
+            keys: 0,
+            metal: Currencies.toRefined(
+                keyPrices.buy.toValue() + (type === 'buy' ? scrapAdjustment.value : -scrapAdjustment.value)
+            )
+        };
+        entry.sell = {
+            keys: 0,
+            metal: Currencies.toRefined(
+                keyPrices.sell.toValue() + (type === 'buy' ? scrapAdjustment.value : -scrapAdjustment.value)
+            )
+        };
+        return entry;
+    }
+
+    private onError(
+        setActive: boolean,
+        msg: string,
+        isEnableSend: boolean,
+        sendToDiscord: boolean,
+        type: string
+    ): void {
+        this.setActiveStatus = setActive;
+        log.warn(msg);
+
+        if (isEnableSend) {
+            if (sendToDiscord) {
+                sendAlert(type, this.bot, msg);
+            } else this.bot.messageAdmins(msg, []);
         }
+    }
+
+    private createToBank(minKeys: number, maxKeys: number): void {
+        const keyPrices = this.bot.pricelist.getKeyPrices;
+
+        let entry = this.generateEntry(true, minKeys, maxKeys, 2);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry);
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToAdd-bank', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToAdd-bank'
+                );
             });
     }
 
     private createToBuy(minKeys: number, maxKeys: number): void {
-        const optSA = this.bot.options.autokeys.scrapAdjustment;
-        const optD = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
-        const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 0,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        } else if (scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.buy.toValue() + scrapAdjustment.value)
-            };
-            entry.sell = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.sell.toValue() + scrapAdjustment.value)
-            };
-        }
+        let entry = this.generateEntry(true, minKeys, maxKeys, 0);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToAdd-buy', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToAdd-buy'
+                );
             });
     }
 
     createToSell(minKeys: number, maxKeys: number): void {
-        const optSA = this.bot.options.autokeys.scrapAdjustment;
-        const optD = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
-        const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 1,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        } else if (scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.buy.toValue() - scrapAdjustment.value)
-            };
-            entry.sell = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.sell.toValue() - scrapAdjustment.value)
-            };
-        }
+        let entry = this.generateEntry(true, minKeys, maxKeys, 1);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToAdd-sell', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToAdd-sell'
+                );
             });
     }
 
     private updateToBank(minKeys: number, maxKeys: number): void {
-        const opt = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 2,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual') {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        }
+        let entry = this.generateEntry(true, minKeys, maxKeys, 2);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry);
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToUpdate-bank', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToUpdate-bank'
+                );
             });
     }
 
     updateToBuy(minKeys: number, maxKeys: number): void {
-        const optSA = this.bot.options.autokeys.scrapAdjustment;
-        const optD = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
-        const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 0,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        } else if (scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.buy.toValue() + scrapAdjustment.value)
-            };
-            entry.sell = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.sell.toValue() + scrapAdjustment.value)
-            };
-        }
+        let entry = this.generateEntry(true, minKeys, maxKeys, 0);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToUpdate-buy', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToUpdate-buy'
+                );
             });
     }
 
     private updateToSell(minKeys: number, maxKeys: number): void {
-        const optSA = this.bot.options.autokeys.scrapAdjustment;
-        const optD = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
-        const scrapAdjustment = genScrapAdjustment(optSA.value, optSA.enable);
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: true,
-            autoprice: true,
-            min: minKeys,
-            max: maxKeys,
-            intent: 1,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + optD.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual' && !scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        } else if (scrapAdjustment.enabled) {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.sell.toValue() - scrapAdjustment.value)
-            };
-            entry.sell = {
-                keys: 0,
-                metal: Currencies.toRefined(keyPrices.buy.toValue() - scrapAdjustment.value)
-            };
-        }
+        let entry = this.generateEntry(true, minKeys, maxKeys, 1);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`))
             .catch(err => {
-                this.setActiveStatus = false;
-
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${
-                    (err as Error).message
-                }`;
-                log.warn(msg);
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToUpdate-sell', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    false,
+                    `❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToUpdate-sell'
+                );
             });
     }
 
     disable(): void {
-        const opt = this.bot.options.details;
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
-        const entry: EntryData = {
-            sku: '5021;6',
-            enabled: false,
-            autoprice: true,
-            min: 0,
-            max: 1,
-            intent: 2,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + opt.sell
-            }
-        };
-
-        if (keyPrices.src === 'manual') {
-            entry.autoprice = false;
-            entry.buy = {
-                keys: 0,
-                metal: keyPrices.buy.metal
-            };
-            entry.sell = {
-                keys: 0,
-                metal: keyPrices.sell.metal
-            };
-        }
+        let entry = this.generateEntry(false, 0, 1, 2);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry);
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug('✅ Automatically disabled Autokeys.'))
             .catch(err => {
                 const opt2 = this.bot.options;
-                const msg = `❌ Failed to disable Autokeys: ${(err as Error).message}`;
-
-                log.warn(msg);
-                this.setActiveStatus = true;
-
-                if (opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable) {
-                    if (opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('autokeys-failedToDisable', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
-                }
+                this.onError(
+                    true,
+                    `❌ Failed to disable Autokeys: ${(err as Error).message}`,
+                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    'autokeys-failedToDisable'
+                );
             });
     }
 
