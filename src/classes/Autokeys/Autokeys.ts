@@ -331,7 +331,7 @@ export default class Autokeys {
                 this.setOverallStatus = [false, true, false, true, false, false];
                 this.setOldAmount = [0, 0, rKeysCanBankMin, rKeysCanBankMax, currKeys];
                 this.setActiveStatus = true;
-                this.updateToBank(setMinKeys, setMaxKeys);
+                this.updateToBank(setMinKeys, setMaxKeys, currKeyPrice);
                 //
             } else if (
                 isBankingBuyKeysWithEnoughRefs &&
@@ -344,7 +344,7 @@ export default class Autokeys {
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToBuy(setMinKeys, setMaxKeys);
+                this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                 //
             } else if (
                 isBuyingKeys &&
@@ -356,7 +356,7 @@ export default class Autokeys {
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToBuy(setMinKeys, setMaxKeys);
+                this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                 //
             } else if (
                 isSellingKeys &&
@@ -368,19 +368,19 @@ export default class Autokeys {
                 this.setOverallStatus = [false, false, false, false, false, true];
                 this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToSell(setMinKeys, setMaxKeys);
+                this.updateToSell(setMinKeys, setMaxKeys, currKeyPrice);
                 //
             } else if (isRemoveBankingKeys && isEnableKeyBanking) {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
                 this.setOverallStatus = [false, false, false, false, false, false];
                 this.setActiveStatus = false;
-                this.disable();
+                this.disable(currKeyPrice);
                 //
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
                 this.setOverallStatus = [false, false, false, false, false, false];
                 this.setActiveStatus = false;
-                this.disable();
+                this.disable(currKeyPrice);
                 //
             } else if (isAlertAdmins && !isAlreadyAlert) {
                 // alert admins when low pure
@@ -403,28 +403,28 @@ export default class Autokeys {
                     this.setOverallStatus = [false, true, false, true, false, false];
                     this.setOldAmount = [0, 0, rKeysCanBankMin, rKeysCanBankMax, currKeys];
                     this.setActiveStatus = true;
-                    this.createToBank(setMinKeys, setMaxKeys);
+                    this.createToBank(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToBuy(setMinKeys, setMaxKeys);
+                    this.createToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToBuy(setMinKeys, setMaxKeys);
+                    this.createToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (isSellingKeys) {
                     // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
                     this.setOverallStatus = [false, false, false, false, false, true];
                     this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToSell(setMinKeys, setMaxKeys);
+                    this.createToSell(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
@@ -452,7 +452,7 @@ export default class Autokeys {
                     this.setOverallStatus = [false, true, false, true, false, false];
                     this.setOldAmount = [0, 0, rKeysCanBankMin, rKeysCanBankMax, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToBank(setMinKeys, setMaxKeys);
+                    this.updateToBank(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (
                     isBankingBuyKeysWithEnoughRefs &&
@@ -465,7 +465,7 @@ export default class Autokeys {
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToBuy(setMinKeys, setMaxKeys);
+                    this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (
                     isBuyingKeys &&
@@ -477,7 +477,7 @@ export default class Autokeys {
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToBuy(setMinKeys, setMaxKeys);
+                    this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (
                     isSellingKeys &&
@@ -489,7 +489,7 @@ export default class Autokeys {
                     this.setOverallStatus = [false, false, false, false, false, true];
                     this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToSell(setMinKeys, setMaxKeys);
+                    this.updateToSell(setMinKeys, setMaxKeys, currKeyPrice);
                     //
                 } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
@@ -540,8 +540,7 @@ export default class Autokeys {
         };
     }
 
-    private setManual(entry: EntryData): EntryData {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
+    private setManual(entry: EntryData, keyPrices: KeyPrices): EntryData {
         entry.autoprice = false;
         entry.buy = {
             keys: 0,
@@ -591,11 +590,9 @@ export default class Autokeys {
         }
     }
 
-    private createToBank(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    private createToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
@@ -612,11 +609,9 @@ export default class Autokeys {
             });
     }
 
-    private createToBuy(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    private createToBuy(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 0);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
         else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
 
         this.bot.pricelist
@@ -634,11 +629,9 @@ export default class Autokeys {
             });
     }
 
-    createToSell(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    createToSell(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
         else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
 
         this.bot.pricelist
@@ -656,11 +649,9 @@ export default class Autokeys {
             });
     }
 
-    private updateToBank(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    private updateToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
@@ -677,11 +668,9 @@ export default class Autokeys {
             });
     }
 
-    updateToBuy(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    updateToBuy(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 0);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
         else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
 
         this.bot.pricelist
@@ -699,11 +688,9 @@ export default class Autokeys {
             });
     }
 
-    private updateToSell(minKeys: number, maxKeys: number): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    private updateToSell(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry);
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
         else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
 
         this.bot.pricelist
@@ -721,11 +708,9 @@ export default class Autokeys {
             });
     }
 
-    disable(): void {
-        const keyPrices = this.bot.pricelist.getKeyPrices;
-
+    disable(keyPrices: KeyPrices): void {
         let entry = this.generateEntry(false, 0, 1, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry);
+        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)

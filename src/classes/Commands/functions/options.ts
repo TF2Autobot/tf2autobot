@@ -118,7 +118,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             if (knownParams.autokeys !== undefined) {
                 bot.handler.autokeys.check();
                 if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
-                    bot.handler.autokeys.disable();
+                    bot.handler.autokeys.disable(bot.pricelist.getKeyPrices);
                 }
                 bot.handler.autokeys.check();
             }
