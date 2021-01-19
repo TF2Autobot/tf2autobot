@@ -488,12 +488,24 @@ export default class Listings {
                                     }
                                 }
 
-                                highValueString += toJoin.join(' + ');
+                                highValueString +=
+                                    toJoin.length > 0
+                                        ? toJoin.join(' + ')
+                                        : highValueString.replace(
+                                              attachment === 'sp'
+                                                  ? '| 🎰 Parts: '
+                                                  : attachment === 'ke'
+                                                  ? '| 🤩 Killstreaker: '
+                                                  : attachment === 'ks'
+                                                  ? '| ✨ Sheen: '
+                                                  : '| 🎨 Painted: ',
+                                              ''
+                                          );
                                 toJoin.length = 0;
                             }
                         }
 
-                        highValueString += ' |';
+                        highValueString += highValueString.length > 0 ? ' |' : '';
                     });
                 }
             }
