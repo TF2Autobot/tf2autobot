@@ -1,10 +1,11 @@
 import jsonschema from 'jsonschema';
 
-export const stringArraySchema: jsonschema.Schema = {
-    id: 'array-string',
+export const stringArrayURLSchema: jsonschema.Schema = {
+    id: 'array-string-url',
     type: 'array',
     items: {
-        type: 'string'
+        type: 'string',
+        pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
     },
     required: false
 };

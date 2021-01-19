@@ -20,7 +20,19 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 type: {
-                    type: 'integer'
+                    anyOf: [
+                        {
+                            // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+                            minimum: 1,
+                            maximum: 5
+                        },
+                        {
+                            const: 101 // by class
+                        },
+                        {
+                            const: 102 // by slot
+                        }
+                    ]
                 }
             },
             required: ['enable', 'type']
@@ -125,7 +137,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         maxInSeconds: {
-                            type: 'integer'
+                            type: 'integer',
+                            minimum: 3600
                         }
                     },
                     required: ['maxInSeconds']
@@ -227,10 +240,12 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 sheens: {
-                    $schema: '#/definitions/stringArray'
+                    $schema: '#/definitions/stringArray',
+                    maxItems: 7
                 },
                 killstreakers: {
-                    $schema: '#/definitions/stringArray'
+                    $schema: '#/definitions/stringArray',
+                    maxItems: 7
                 },
                 strangeParts: {
                     $schema: '#/definitions/stringArray'
@@ -260,7 +275,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 customName: {
-                    type: 'string'
+                    type: 'string',
+                    maxLength: 60
                 }
             },
             required: ['playOnlyTF2', 'customName']
@@ -284,10 +300,12 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 buy: {
-                    type: 'string'
+                    type: 'string',
+                    maxLength: 200
                 },
                 sell: {
-                    type: 'string'
+                    type: 'string',
+                    maxLength: 200
                 },
                 highValue: {
                     type: 'object',
@@ -329,13 +347,13 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 starter: {
-                    type: 'integer'
+                    $schema: '#/definitions/nonNegativeIntegerDefault0'
                 },
                 lastTotalTrades: {
-                    type: 'integer'
+                    $schema: '#/definitions/nonNegativeIntegerDefault0'
                 },
                 startingTimeInUnix: {
-                    type: 'integer'
+                    $schema: '#/definitions/nonNegativeIntegerDefault0'
                 },
                 lastTotalProfitMadeInRef: {
                     type: 'number'
@@ -344,7 +362,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'number'
                 },
                 profitDataSinceInUnix: {
-                    type: 'integer'
+                    $schema: '#/definitions/nonNegativeIntegerDefault0'
                 },
                 sendStats: {
                     type: 'object',
@@ -379,7 +397,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'integer'
                 },
                 maxKeys: {
-                    type: 'integer'
+                    $schema: '#/definitions/nonNegativeInteger'
                 },
                 minRefined: {
                     type: 'number'
@@ -403,7 +421,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         value: {
-                            type: 'integer'
+                            $schema: '#/definitions/nonNegativeIntegerDefault0'
                         }
                     },
                     required: ['enable', 'value']
@@ -448,13 +466,13 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         minScrap: {
-                            type: 'integer'
+                            $schema: '#/definitions/nonNegativeInteger'
                         },
                         minRec: {
-                            type: 'integer'
+                            $schema: '#/definitions/nonNegativeInteger'
                         },
                         threshold: {
-                            type: 'integer'
+                            $schema: '#/definitions/nonNegativeInteger'
                         }
                     },
                     required: ['enable', 'minScrap', 'minRec', 'threshold']
@@ -487,7 +505,7 @@ export const optionsSchema: jsonschema.Schema = {
                                     $schema: '#/definitions/stringArray'
                                 },
                                 valueInRef: {
-                                    type: 'number'
+                                    $schema: '#/definitions/nonNegativeInteger'
                                 }
                             },
                             required: ['skus', 'valueInRef']
@@ -761,16 +779,19 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 ownerID: {
-                    type: 'string'
+                    type: 'string',
+                    pattern: '^$|^[0-9]+$'
                 },
                 displayName: {
                     type: 'string'
                 },
                 avatarURL: {
-                    type: 'string'
+                    type: 'string',
+                    pattern: '^$|(https?:|^)//'
                 },
                 embedColor: {
-                    type: 'string'
+                    type: 'string',
+                    pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
                     type: 'object',
@@ -779,7 +800,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            $schema: '#/definitions/stringArray'
+                            $ref: 'array-string-url'
                         },
                         misc: {
                             type: 'object',
@@ -824,7 +845,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string'
+                            type: 'string',
+                            pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         mentionInvalidValue: {
                             type: 'boolean'
@@ -857,7 +879,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string'
+                            type: 'string',
+                            pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         showQuickLinks: {
                             type: 'boolean'
@@ -872,7 +895,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string'
+                            type: 'string',
+                            pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         note: {
                             type: 'string'
@@ -887,7 +911,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string'
+                            type: 'string',
+                            pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         }
                     },
                     required: ['enable', 'url']
@@ -899,7 +924,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string'
+                            type: 'string',
+                            pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         }
                     },
                     required: ['enable', 'url']
