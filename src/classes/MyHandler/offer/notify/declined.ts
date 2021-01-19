@@ -15,7 +15,10 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     let reasonForInvalidValue = false;
     let reply: string;
     if (!offerReason) {
-        reply = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined.';
+        const custom = opt.customMessage.decline.general;
+        reply = custom
+            ? custom
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined.';
     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
         //
         const custom = opt.customMessage.decline.giftNoNote;
@@ -186,7 +189,10 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
     } else {
         //
-        reply = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';
+        const custom = opt.customMessage.decline.general;
+        reply = custom
+            ? custom
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined.';
         //
     }
 

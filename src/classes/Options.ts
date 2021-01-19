@@ -942,6 +942,10 @@ export const DEFAULTS = {
         decline: {
             // 25.1
             /**
+             * Default: "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined"
+             */
+            general: '',
+            /**
              * Default:
              * "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because
              *   the offer you've sent is an empty offer on my side without any offer message. If you wish to give
@@ -2047,6 +2051,7 @@ export interface CustomMessage {
 }
 
 export interface DeclineNote {
+    general?: string;
     giftNoNote?: string;
     crimeAttempt?: string;
     onlyMetal?: string;

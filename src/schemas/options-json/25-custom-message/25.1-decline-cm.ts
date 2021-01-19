@@ -4,6 +4,9 @@ export const declineCMSchema: jsonschema.Schema = {
     id: 'decline-cm',
     type: 'object',
     properties: {
+        general: {
+            type: 'string'
+        },
         giftNoNote: {
             type: 'string'
         },
