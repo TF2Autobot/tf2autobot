@@ -5,7 +5,7 @@ export const stringArrayURLSchema: jsonschema.Schema = {
     type: 'array',
     items: {
         type: 'string',
-        pattern: '^$|https://discord.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
+        pattern: '^$|https://discord.com/api/webhooks/'
     },
     required: false
 };
