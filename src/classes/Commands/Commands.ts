@@ -19,6 +19,13 @@ import CartQueue from '../Carts/CartQueue';
 import { fixItem } from '../../lib/items';
 import { ignoreWords } from '../../lib/data';
 
+type Instant = 'buy' | 'b' | 'sell' | 's';
+type CraftUncraft = 'craftweapon' | 'uncraftweapon';
+type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
+type BlockUnblock = 'block' | 'unblock';
+type NameAvatar = 'name' | 'avatar';
+type TF2GC = 'expand' | 'use' | 'delete';
+
 export default class Commands {
     private readonly bot: Bot;
 
@@ -42,10 +49,8 @@ export default class Commands {
             c.help.howToTradeCommand(steamID, this.bot);
         } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
-        } else if (['buy', 'b'].includes(command)) {
-            this.buyCommand(steamID, message);
-        } else if (['sell', 's'].includes(command)) {
-            this.sellCommand(steamID, message);
+        } else if (['buy', 'b', 'sell', 's'].includes(command)) {
+            this.buyOrSellCommand(steamID, message, command as Instant);
         } else if (command === 'buycart') {
             this.buyCartCommand(steamID, message);
         } else if (command === 'sellcart') {
@@ -60,30 +65,16 @@ export default class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
-        } else if (command === 'owner') {
-            c.misc.ownerCommand(steamID, this.bot);
-        } else if (command === 'discord') {
-            c.misc.discordCommand(steamID, this.bot);
+        } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
+            c.misc.miscCommand(steamID, this.bot, command as Misc);
         } else if (command === 'more') {
             c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
             c.manager.autoKeysCommand(steamID, this.bot);
         } else if (command === 'message') {
             c.messageCommand(steamID, message, this.bot);
-        } else if (command === 'time') {
-            c.misc.timeCommand(steamID, this.bot);
-        } else if (command === 'uptime') {
-            c.misc.uptimeCommand(steamID, this.bot);
-        } else if (command === 'pure') {
-            c.misc.pureCommand(steamID, this.bot);
-        } else if (command === 'rate') {
-            c.misc.rateCommand(steamID, this.bot);
-        } else if (command === 'stock') {
-            c.misc.stockCommand(steamID, this.bot);
-        } else if (command === 'craftweapon') {
-            c.misc.craftweaponCommand(steamID, this.bot);
-        } else if (command === 'uncraftweapon') {
-            c.misc.uncraftweaponCommand(steamID, this.bot);
+        } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
+            c.misc.weaponCommand(steamID, this.bot, command as CraftUncraft);
         } else if (command === 'sales' && isAdmin) {
             void c.request.getSalesCommand(steamID, message, this.bot);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
@@ -104,20 +95,12 @@ export default class Commands {
             c.pricelist.stopAutoAddCommand();
         } else if (command === 'shuffle' && isAdmin) {
             void c.pricelist.shuffleCommand(steamID, this.bot);
-        } else if (command === 'expand' && isAdmin) {
-            c.manager.expandCommand(steamID, message, this.bot);
-        } else if (command === 'delete' && isAdmin) {
-            c.manager.deleteCommand(steamID, message, this.bot);
-        } else if (command === 'use' && isAdmin) {
-            c.manager.useCommand(steamID, message, this.bot);
-        } else if (command === 'name' && isAdmin) {
-            c.manager.nameCommand(steamID, message, this.bot);
-        } else if (command === 'avatar' && isAdmin) {
-            c.manager.avatarCommand(steamID, message, this.bot);
-        } else if (command === 'unblock' && isAdmin) {
-            c.manager.unblockCommand(steamID, message, this.bot);
-        } else if (command === 'block' && isAdmin) {
-            c.manager.blockCommand(steamID, message, this.bot);
+        } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
+            c.manager.TF2GCCommand(steamID, message, this.bot, command as TF2GC);
+        } else if (['name', 'avatar'].includes(command) && isAdmin) {
+            c.manager.nameAvatarCommand(steamID, message, this.bot, command as NameAvatar);
+        } else if (['block', 'unblock'].includes(command) && isAdmin) {
+            c.manager.blockUnblockCommand(steamID, message, this.bot, command as BlockUnblock);
         } else if (command === 'clearfriends' && isAdmin) {
             c.manager.clearFriendsCommand(steamID, this.bot);
         } else if (command === 'stop' && isAdmin) {
@@ -261,8 +244,8 @@ export default class Commands {
 
     // Instant item trade
 
-    private buyCommand(steamID: SteamID, message: string): void {
-        const opt = this.bot.options.commands.buy;
+    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant): void {
+        const opt = this.bot.options.commands[command === 'b' ? 'buy' : command === 's' ? 'sell' : command];
 
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -271,31 +254,17 @@ export default class Commands {
             }
         }
 
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buy');
+        const info = c.utils.getItemAndAmount(
+            steamID,
+            CommandParser.removeCommand(message),
+            this.bot,
+            command === 'b' ? 'buy' : command === 's' ? 'sell' : command
+        );
         if (info === null) return;
 
         const cart = new UserCart(steamID, this.bot);
         cart.setNotify = true;
-        cart.addOurItem(info.match.sku, info.amount);
-        this.addCartToQueue(cart, false, false);
-    }
-
-    private sellCommand(steamID: SteamID, message: string): void {
-        const opt = this.bot.options.commands.sell;
-
-        if (!opt.enable) {
-            if (!this.bot.isAdmin(steamID)) {
-                const custom = opt.customReply.disabled;
-                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
-            }
-        }
-
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sell');
-        if (info === null) return;
-
-        const cart = new UserCart(steamID, this.bot);
-        cart.setNotify = true;
-        cart.addTheirItem(info.match.sku, info.amount);
+        cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
         this.addCartToQueue(cart, false, false);
     }
 
