@@ -846,7 +846,7 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         url: {
                             type: 'string',
-                            pattern: '^$|https://discord.com/api/webhooks/'
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         mentionInvalidValue: {
                             type: 'boolean'
@@ -880,7 +880,7 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         url: {
                             type: 'string',
-                            pattern: '^$|https://discord.com/api/webhooks/'
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         showQuickLinks: {
                             type: 'boolean'
@@ -896,7 +896,7 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         url: {
                             type: 'string',
-                            pattern: '^$|https://discord.com/api/webhooks/'
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         },
                         note: {
                             type: 'string'
@@ -912,7 +912,7 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         url: {
                             type: 'string',
-                            pattern: '^$|https://discord.com/api/webhooks/'
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         }
                     },
                     required: ['enable', 'url']
@@ -925,7 +925,7 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         url: {
                             type: 'string',
-                            pattern: '^$|https://discord.com/api/webhooks/'
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                         }
                     },
                     required: ['enable', 'url']
