@@ -112,10 +112,12 @@ export default function updateListings(
                       str =>
                           str.includes(name) &&
                           str.includes('🎨 Painted') &&
-                          !str.includes('🎰 Parts') &&
-                          !str.includes('🔥 Killstreaker') &&
-                          !str.includes('✨ Sheen') &&
-                          !str.includes('🎃 Spells')
+                          !(
+                              str.includes('🎰 Parts') ||
+                              str.includes('🔥 Killstreaker') ||
+                              str.includes('✨ Sheen') ||
+                              str.includes('🎃 Spells')
+                          )
                   )
                 : true) &&
             isNotPureOrWeapons &&
