@@ -227,20 +227,16 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 sheens: {
-                    type: 'array',
-                    items: {}
+                    $ref: 'array-string'
                 },
                 killstreakers: {
-                    type: 'array',
-                    items: {}
+                    $ref: 'array-string'
                 },
                 strangeParts: {
-                    type: 'array',
-                    items: {}
+                    $ref: 'array-string'
                 },
                 painted: {
-                    type: 'array',
-                    items: {}
+                    $ref: 'array-string'
                 }
             },
             required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted']
@@ -342,10 +338,10 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'integer'
                 },
                 lastTotalProfitMadeInRef: {
-                    type: 'integer'
+                    type: 'number'
                 },
                 lastTotalProfitOverpayInRef: {
-                    type: 'integer'
+                    type: 'number'
                 },
                 profitDataSinceInUnix: {
                     type: 'integer'
@@ -357,8 +353,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         time: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         }
                     },
                     required: ['enable', 'time']
@@ -387,10 +382,10 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'integer'
                 },
                 minRefined: {
-                    type: 'integer'
+                    type: 'number'
                 },
                 maxRefined: {
-                    type: 'integer'
+                    type: 'number'
                 },
                 banking: {
                     type: 'object',
@@ -489,11 +484,10 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'object',
                             properties: {
                                 skus: {
-                                    type: 'array',
-                                    items: {}
+                                    $ref: 'array-string'
                                 },
                                 valueInRef: {
-                                    type: 'integer'
+                                    type: 'number'
                                 }
                             },
                             required: ['skus', 'valueInRef']
@@ -595,7 +589,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         minKeys: {
-                            type: 'integer'
+                            type: 'number'
                         },
                         autoDecline: {
                             type: 'object',
@@ -785,8 +779,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         },
                         misc: {
                             type: 'object',
@@ -816,8 +809,7 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'boolean'
                                 },
                                 itemSkus: {
-                                    type: 'array',
-                                    items: {}
+                                    $ref: 'array-string'
                                 }
                             },
                             required: ['enable', 'itemSkus']
@@ -1078,8 +1070,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         },
                         customReply: {
                             type: 'object',
@@ -1103,8 +1094,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         },
                         customReply: {
                             type: 'object',
@@ -1128,8 +1118,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         },
                         customReply: {
                             type: 'object',
@@ -1153,8 +1142,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            type: 'array',
-                            items: {}
+                            $ref: 'array-string'
                         },
                         customReply: {
                             type: 'object',
