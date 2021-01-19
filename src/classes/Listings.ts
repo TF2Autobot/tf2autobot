@@ -111,6 +111,10 @@ export default class Listings {
         void this.getAccountInfo.asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
+                // temporarilyy disable autoRelist, so on the next check, when backpack.tf
+                // back alive, might trigger to call this.enableAutoRelist()
+                clearTimeout(this.autoRelistTimeout);
+                this.autoRelistEnabled = false;
                 return;
             }
 
