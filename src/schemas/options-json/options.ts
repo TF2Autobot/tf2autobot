@@ -1,7 +1,7 @@
 import jsonschema from 'jsonschema';
 
 export const optionsSchema: jsonschema.Schema = {
-    $schema: 'http://json-schema.org/draft-04/schema#',
+    $schema: 'http://json-schema.org/draft-07/schema#',
     type: 'object',
     properties: {
         showOnlyMetal: {
@@ -227,16 +227,16 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 sheens: {
-                    $ref: 'array-string'
+                    $schema: '#/definitions/stringArray'
                 },
                 killstreakers: {
-                    $ref: 'array-string'
+                    $schema: '#/definitions/stringArray'
                 },
                 strangeParts: {
-                    $ref: 'array-string'
+                    $schema: '#/definitions/stringArray'
                 },
                 painted: {
-                    $ref: 'array-string'
+                    $schema: '#/definitions/stringArray'
                 }
             },
             required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted']
@@ -353,7 +353,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         time: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         }
                     },
                     required: ['enable', 'time']
@@ -484,7 +484,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'object',
                             properties: {
                                 skus: {
-                                    $ref: 'array-string'
+                                    $schema: '#/definitions/stringArray'
                                 },
                                 valueInRef: {
                                     type: 'number'
@@ -779,7 +779,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         },
                         misc: {
                             type: 'object',
@@ -809,7 +809,7 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'boolean'
                                 },
                                 itemSkus: {
-                                    $ref: 'array-string'
+                                    $schema: '#/definitions/stringArray'
                                 }
                             },
                             required: ['enable', 'itemSkus']
@@ -1070,7 +1070,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         },
                         customReply: {
                             type: 'object',
@@ -1094,7 +1094,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         },
                         customReply: {
                             type: 'object',
@@ -1118,7 +1118,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         },
                         customReply: {
                             type: 'object',
@@ -1142,7 +1142,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         disableForSKU: {
-                            $ref: 'array-string'
+                            $schema: '#/definitions/stringArray'
                         },
                         customReply: {
                             type: 'object',
