@@ -78,7 +78,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         for (const sku in dict) {
             if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
 
-            summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? `x${dict[sku]}` : '')); // dict[sku] = amount
+            summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
         }
 
         if (summary.length === 0) return 'nothing';
