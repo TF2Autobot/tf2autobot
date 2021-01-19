@@ -165,16 +165,6 @@ export default class MyHandler extends Handler {
         return { name: this.botName, avatarURL: this.botAvatarURL, steamID: this.botSteamID, premium: this.isPremium };
     }
 
-    private autokeysStatus: {
-        isActive: boolean;
-        isBuying: boolean;
-        isBanking: boolean;
-    };
-
-    get getAutokeysStatus(): GetAutokeysStatus {
-        return this.autokeysStatus;
-    }
-
     private classWeaponsTimeout: NodeJS.Timeout;
 
     private autoRefreshListingsTimeout: NodeJS.Timeout;
@@ -203,14 +193,6 @@ export default class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.bot.options.steamAccountName);
-    }
-
-    updateAutokeysStatus(): void {
-        this.autokeysStatus = {
-            isActive: this.autokeys.isActive,
-            isBuying: this.autokeys.status.isBuyingKeys,
-            isBanking: this.autokeys.status.isBankingKeys
-        };
     }
 
     onRun(): Promise<OnRun> {
@@ -261,12 +243,6 @@ export default class MyHandler extends Handler {
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
 
-        this.autokeysStatus = {
-            isActive: this.autokeys.isActive,
-            isBuying: this.autokeys.status.isBuyingKeys,
-            isBanking: this.autokeys.status.isBankingKeys
-        };
-
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
 
@@ -292,7 +268,7 @@ export default class MyHandler extends Handler {
         if (this.poller) clearInterval(this.poller);
         if (this.refreshInterval) clearTimeout(this.refreshInterval);
         return new Promise(resolve => {
-            if (this.bot.options.autokeys.enable && this.autokeys.isActive) {
+            if (this.bot.options.autokeys.enable && this.autokeys.getActiveStatus) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
                 this.autokeys.disable();
             }
@@ -1577,19 +1553,8 @@ export default class MyHandler extends Handler {
                 // Auto sell and buy keys if ref < minimum
 
                 this.autokeys.check();
-                const autokeys = {
-                    isEnabled: this.autokeys.isEnabled,
-                    isActive: this.autokeys.isActive,
-                    isBuying: this.autokeys.status.isBuyingKeys,
-                    isBanking: this.autokeys.status.isBankingKeys
-                };
-                this.autokeysStatus = {
-                    isActive: autokeys.isActive,
-                    isBuying: autokeys.isBuying,
-                    isBanking: autokeys.isBanking
-                };
 
-                const result = processAccepted(offer, autokeys, this.bot, this.isTradingKeys, processTime);
+                const result = processAccepted(offer, this.bot, this.isTradingKeys, processTime);
                 this.isTradingKeys = false; // reset
 
                 highValue.isDisableSKU = result.isDisableSKU;
@@ -1901,12 +1866,6 @@ interface BotInfo {
     avatarURL: string;
     steamID: SteamID;
     premium: boolean;
-}
-
-interface GetAutokeysStatus {
-    isActive: boolean;
-    isBuying: boolean;
-    isBanking: boolean;
 }
 
 interface GetHighValue {

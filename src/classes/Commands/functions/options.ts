@@ -121,7 +121,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                     bot.handler.autokeys.disable();
                 }
                 bot.handler.autokeys.check();
-                bot.handler.updateAutokeysStatus();
             }
 
             if (steamID) return bot.sendMessage(steamID, msg);

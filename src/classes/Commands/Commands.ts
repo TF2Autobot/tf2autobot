@@ -15,7 +15,6 @@ import UserCart from '../Carts/UserCart';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
-import Autokeys from '../Autokeys/Autokeys';
 
 import { fixItem } from '../../lib/items';
 import { ignoreWords } from '../../lib/data';
@@ -23,13 +22,10 @@ import { ignoreWords } from '../../lib/data';
 export default class Commands {
     private readonly bot: Bot;
 
-    readonly autokeys: Autokeys;
-
     private isDonating = false;
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.autokeys = new Autokeys(bot);
     }
 
     get cartQueue(): CartQueue {
@@ -71,7 +67,7 @@ export default class Commands {
         } else if (command === 'more') {
             c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
-            c.manager.autoKeysCommand(steamID, this.bot, this.autokeys);
+            c.manager.autoKeysCommand(steamID, this.bot);
         } else if (command === 'message') {
             c.messageCommand(steamID, message, this.bot);
         } else if (command === 'time') {
@@ -131,7 +127,7 @@ export default class Commands {
         } else if (command === 'updaterepo' && isAdmin) {
             c.manager.updaterepoCommand(steamID, this.bot, message);
         } else if (command === 'refreshautokeys' && isAdmin) {
-            c.manager.refreshAutokeysCommand(steamID, this.bot, this.autokeys);
+            c.manager.refreshAutokeysCommand(steamID, this.bot);
         } else if (command === 'refreshlist' && isAdmin) {
             c.manager.refreshListingsCommand(steamID, this.bot);
         } else if (command === 'stats' && isAdmin) {

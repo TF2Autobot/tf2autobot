@@ -10,7 +10,6 @@ import { EPersonaState } from 'steam-user';
 import { utils } from './export';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import Autokeys from '../../Autokeys/Autokeys';
 import log from '../../../lib/logger';
 import { pure } from '../../../lib/tools/export';
 
@@ -494,7 +493,7 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
     }
 }
 
-export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): void {
+export function autoKeysCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.commands.autokeys;
     if (!opt.enable) {
         if (!bot.isAdmin(steamID)) {
@@ -503,18 +502,19 @@ export function autoKeysCommand(steamID: SteamID, bot: Bot, auto: Autokeys): voi
         }
     }
 
-    bot.sendMessage(steamID, '/pre ' + generateAutokeysReply(steamID, bot, auto));
+    bot.sendMessage(steamID, '/pre ' + generateAutokeysReply(steamID, bot));
 }
 
-function generateAutokeysReply(steamID: SteamID, bot: Bot, autokeys: Autokeys): string {
+function generateAutokeysReply(steamID: SteamID, bot: Bot): string {
     const pureNow = pure.currPure(bot);
     const currKey = pureNow.key;
     const currRef = pureNow.refTotalInScrap;
 
     const keyPrices = bot.pricelist.getKeyPrices;
 
+    const autokeys = bot.handler.autokeys;
     const userPure = autokeys.userPure;
-    const status = bot.handler.getAutokeysStatus;
+    const status = autokeys.getOverallStatus;
 
     const keyBlMin = `       X`;
     const keyAbMax = `                     X`;
@@ -566,25 +566,30 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot, autokeys: Autokeys): 
     reply += `\n      Key prices: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()} (${
         keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
     })`;
-    reply += `\nScrap Adjustment: ${autokeys.isEnableScrapAdjustment ? 'Enabled ✅' : 'Disabled ❌'}`;
-    reply += `\n    Auto-banking: ${autokeys.isKeyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+
+    const scrapAdjustmentEnabled = autokeys.isEnableScrapAdjustment;
+    const scrapAdjustmentValue = autokeys.scrapAdjustmentValue;
+    const keyBankingEnabled = autokeys.isKeyBankingEnabled;
+
+    reply += `\nScrap Adjustment: ${scrapAdjustmentEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
+    reply += `\n    Auto-banking: ${keyBankingEnabled ? 'Enabled ✅' : 'Disabled ❌'}`;
     reply += `\n Autokeys status: ${
-        status.isActive
-            ? status.isBanking
-                ? 'Banking' + (autokeys.isEnableScrapAdjustment ? ' (default price)' : '')
-                : status.isBuying
+        autokeys.getActiveStatus
+            ? status.isBankingKeys
+                ? 'Banking' + (scrapAdjustmentEnabled ? ' (default price)' : '')
+                : status.isBuyingKeys
                 ? 'Buying for ' +
                   Currencies.toRefined(
-                      keyPrices.buy.toValue() + (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
+                      keyPrices.buy.toValue() + (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
                   ).toString() +
                   ' ref' +
-                  (autokeys.isEnableScrapAdjustment ? ` (+${autokeys.scrapAdjustmentValue} scrap)` : '')
+                  (scrapAdjustmentEnabled ? ` (+${scrapAdjustmentValue} scrap)` : '')
                 : 'Selling for ' +
                   Currencies.toRefined(
-                      keyPrices.sell.toValue() - (autokeys.isEnableScrapAdjustment ? autokeys.scrapAdjustmentValue : 0)
+                      keyPrices.sell.toValue() - (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
                   ).toString() +
                   ' ref' +
-                  (autokeys.isEnableScrapAdjustment ? ` (-${autokeys.scrapAdjustmentValue} scrap)` : '')
+                  (scrapAdjustmentEnabled ? ` (-${scrapAdjustmentValue} scrap)` : '')
             : 'Not active'
     }`;
     /*
@@ -598,11 +603,12 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot, autokeys: Autokeys): 
     return reply;
 }
 
-export function refreshAutokeysCommand(steamID: SteamID, bot: Bot, autokeys: Autokeys): void {
-    if (autokeys.isEnabled === false) {
+export function refreshAutokeysCommand(steamID: SteamID, bot: Bot): void {
+    if (bot.handler.autokeys.isEnabled === false) {
         return bot.sendMessage(steamID, `This feature is disabled.`);
     }
-    autokeys.refresh();
+
+    bot.handler.autokeys.refresh();
     bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
 }
 

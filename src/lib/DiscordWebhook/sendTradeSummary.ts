@@ -8,7 +8,6 @@ import Bot from '../../classes/Bot';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
-    autokeys: Autokeys,
     accepted: Accepted,
     items: ItemSKUList,
     bot: Bot,
@@ -88,6 +87,8 @@ export default async function sendTradeSummary(
 
     const itemList = t.listItems(offer, bot, itemsName, false);
     const slots = bot.tf2.backpackSlots;
+    const autokeys = bot.handler.autokeys;
+    const status = autokeys.getOverallStatus;
 
     const acceptedTradeSummary: Webhook = {
         username: optDW.displayName ? optDW.displayName : botInfo.name,
@@ -119,11 +120,11 @@ export default async function sendTradeSummary(
                                   `${
                                       autokeys.isEnabled
                                           ? ' | Autokeys: ' +
-                                            (autokeys.isActive
+                                            (autokeys.getActiveStatus
                                                 ? '✅' +
-                                                  (autokeys.isBanking
+                                                  (status.isBankingKeys
                                                       ? ' (banking)'
-                                                      : autokeys.isBuying
+                                                      : status.isBuyingKeys
                                                       ? ' (buying)'
                                                       : ' (selling)')
                                                 : '🛑')
@@ -202,13 +203,6 @@ interface Accepted {
     understocked: string[];
     highValue: string[];
     isMention: boolean;
-}
-
-interface Autokeys {
-    isEnabled: boolean;
-    isActive: boolean;
-    isBuying: boolean;
-    isBanking: boolean;
 }
 
 export interface ItemSKUList {

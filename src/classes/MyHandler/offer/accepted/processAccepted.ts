@@ -15,7 +15,6 @@ import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
 export default function processAccepted(
     offer: TradeOffer,
-    autokeys: Autokeys,
     bot: Bot,
     isTradingKeys: boolean,
     processTime: number
@@ -197,7 +196,7 @@ export default function processAccepted(
     const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
 
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, autokeys, accepted, itemList(offer), bot, processTime, isTradingKeys, isOfferSent);
+        void sendTradeSummary(offer, accepted, itemList(offer), bot, processTime, isTradingKeys, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
@@ -214,6 +213,8 @@ export default function processAccepted(
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
+        const autokeys = bot.handler.autokeys;
+        const status = autokeys.getOverallStatus;
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
@@ -224,9 +225,9 @@ export default function processAccepted(
                 `${
                     autokeys.isEnabled
                         ? ' | Autokeys: ' +
-                          (autokeys.isActive
+                          (autokeys.getActiveStatus
                               ? '✅' +
-                                (autokeys.isBanking ? ' (banking)' : autokeys.isBuying ? ' (buying)' : ' (selling)')
+                                (status.isBankingKeys ? ' (banking)' : status.isBuyingKeys ? ' (buying)' : ' (selling)')
                               : '🛑')
                         : ''
                 }` +
@@ -241,13 +242,6 @@ export default function processAccepted(
     }
 
     return { theirHighValuedItems, isDisableSKU };
-}
-
-interface Autokeys {
-    isEnabled: boolean;
-    isActive: boolean;
-    isBuying: boolean;
-    isBanking: boolean;
 }
 
 interface Accepted {
