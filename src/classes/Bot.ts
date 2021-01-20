@@ -77,15 +77,15 @@ export default class Bot {
     public uncraftWeapons: string[];
 
     public craftWeaponsByClass: {
-        scout: Array<string>;
-        soldier: Array<string>;
-        pyro: Array<string>;
-        demoman: Array<string>;
-        heavy: Array<string>;
-        engineer: Array<string>;
-        medic: Array<string>;
-        sniper: Array<string>;
-        spy: Array<string>;
+        scout: string[];
+        soldier: string[];
+        pyro: string[];
+        demoman: string[];
+        heavy: string[];
+        engineer: string[];
+        medic: string[];
+        sniper: string[];
+        spy: string[];
     };
 
     public updateSchemaPropertiesInterval: NodeJS.Timeout;
@@ -233,7 +233,7 @@ export default class Bot {
         return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
     }
 
-    get alertTypes(): Array<string> {
+    get alertTypes(): string[] {
         return this.options.alerts;
     }
 

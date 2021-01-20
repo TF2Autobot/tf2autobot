@@ -2463,10 +2463,10 @@ export default interface Options extends JsonOptions {
     bptfAccessToken?: string;
     bptfAPIKey?: string;
 
-    admins?: Array<string>;
-    keep?: Array<string>;
-    groups?: Array<string>;
-    alerts?: Array<string>;
+    admins?: string[];
+    keep?: string[];
+    groups?: string[];
+    alerts?: string[];
 
     pricestfAPIToken?: string;
 

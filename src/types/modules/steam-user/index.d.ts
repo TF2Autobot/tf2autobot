@@ -28,7 +28,7 @@ declare module 'steam-user' {
     type GameInfo = string;
     type GamePlayed = GameId | GameInfo | GameIdAndExtra;
 
-    type GamesPlayed = Array<GamePlayed>;
+    type GamesPlayed = GamePlayed[];
 
     type Apps = GamePlayed | GamesPlayed;
 
