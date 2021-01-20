@@ -362,12 +362,6 @@ function highValue(
             ? Object.keys(paints).map(paint => paint.toLowerCase())
             : opt.highValue.painted.map(paint => paint.toLowerCase());
 
-    let hasSpells = false;
-    let hasStrangeParts = false;
-    let hasKillstreaker = false;
-    let hasSheen = false;
-    let hasPaint = false;
-
     const s: string[] = [];
     const sp: PartialSKUWithMention = {};
     const ke: PartialSKUWithMention = {};
@@ -393,7 +387,6 @@ function highValue(
             // where "Voices From Below" is the spell name.
             // Color of this description must be rgb(126, 169, 209) or 7ea9d1
             // https://www.spycolor.com/7ea9d1#
-            hasSpells = true;
             // Get the spell name
             // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
             // from "(spell only active during event)", and trim any whitespaces.
@@ -411,7 +404,6 @@ function highValue(
             // Else, will scan through Strange Parts Object keys in this.strangeParts()
             // Color of this description must be rgb(117, 107, 94) or 756b5e
             // https://www.spycolor.com/756b5e#
-            hasStrangeParts = true;
 
             if (strangeParts.includes(partsString.toLowerCase())) {
                 // if the particular strange part is one of the parts that the user wants,
@@ -423,7 +415,6 @@ function highValue(
             }
         } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Killstreaker: ', '').trim();
-            hasKillstreaker = true;
 
             if (killstreakers.includes(extractedName.toLowerCase())) {
                 ke[`${killstreakersData[extractedName]}`] = true;
@@ -432,7 +423,6 @@ function highValue(
             }
         } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Sheen: ', '').trim();
-            hasSheen = true;
 
             if (sheens.includes(extractedName.toLowerCase())) {
                 ks[`${sheensData[extractedName]}`] = true;
@@ -441,7 +431,6 @@ function highValue(
             }
         } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
             const extractedName = content.value.replace('Paint Color: ', '').trim();
-            hasPaint = true;
 
             if (painted.includes(extractedName.toLowerCase())) {
                 p[`${paints[extractedName]}`] = true;
@@ -451,13 +440,13 @@ function highValue(
         }
     }
 
-    if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
-        if (hasSpells) attributes.s = s;
-        if (hasStrangeParts) attributes.sp = sp;
-        if (hasKillstreaker) attributes.ke = ke;
-        if (hasSheen) attributes.ks = ks;
-        if (hasPaint) attributes.p = p;
-    }
+    if (s.length > 0) attributes.s = s;
+
+    [sp, ke, ks, p].forEach((attachment, i) => {
+        if (Object.keys(attachment).length > 0) {
+            attributes[['sp', 'ke', 'ks', 'p'][i]] = attachment;
+        }
+    });
 
     return attributes;
 }
