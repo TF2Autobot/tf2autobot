@@ -344,7 +344,7 @@ export default class Autokeys {
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                 //
             } else if (
                 isBuyingKeys &&
@@ -356,7 +356,7 @@ export default class Autokeys {
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                 //
             } else if (
                 isSellingKeys &&
@@ -368,7 +368,7 @@ export default class Autokeys {
                 this.setOverallStatus = [false, false, false, false, false, true];
                 this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                 this.setActiveStatus = true;
-                this.updateToSell(setMinKeys, setMaxKeys, currKeyPrice);
+                this.update(setMinKeys, setMaxKeys, currKeyPrice, 'sell');
                 //
             } else if (isRemoveBankingKeys && isEnableKeyBanking) {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
@@ -410,21 +410,21 @@ export default class Autokeys {
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.create(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
                 } else if (isBuyingKeys) {
                     // create new Key entry and enable Autokeys - Buying - if buying keys conditions matched
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.create(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
                 } else if (isSellingKeys) {
                     // create new Key entry and enable Autokeys - Selling - if selling keys conditions matched
                     this.setOverallStatus = [false, false, false, false, false, true];
                     this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.createToSell(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.create(setMinKeys, setMaxKeys, currKeyPrice, 'sell');
                     //
                 } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
@@ -465,7 +465,7 @@ export default class Autokeys {
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
                 } else if (
                     isBuyingKeys &&
@@ -477,7 +477,7 @@ export default class Autokeys {
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToBuy(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
                 } else if (
                     isSellingKeys &&
@@ -489,7 +489,7 @@ export default class Autokeys {
                     this.setOverallStatus = [false, false, false, false, false, true];
                     this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
                     this.setActiveStatus = true;
-                    this.updateToSell(setMinKeys, setMaxKeys, currKeyPrice);
+                    this.update(setMinKeys, setMaxKeys, currKeyPrice, 'sell');
                     //
                 } else if (isAlertAdmins && !isAlreadyAlert) {
                     // alert admins when low pure
@@ -609,42 +609,22 @@ export default class Autokeys {
             });
     }
 
-    private createToBuy(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 0);
+    private create(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
+        let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
         if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to buy.`))
+            .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
                 this.onError(
                     false,
-                    `❌ Failed to add Mann Co. Supply Crate Key to buy automatically: ${(err as Error).message}`,
+                    `❌ Failed to add Mann Co. Supply Crate Key to ${intent} automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
                     opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
-                    'autokeys-failedToAdd-buy'
-                );
-            });
-    }
-
-    createToSell(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
-
-        this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to sell.`))
-            .catch(err => {
-                const opt2 = this.bot.options;
-                this.onError(
-                    false,
-                    `❌ Failed to add Mann Co. Supply Crate Key to sell automatically: ${(err as Error).message}`,
-                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
-                    'autokeys-failedToAdd-sell'
+                    `autokeys-failedToAdd-${intent}`
                 );
             });
     }
@@ -668,42 +648,24 @@ export default class Autokeys {
             });
     }
 
-    updateToBuy(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 0);
+    private update(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
+        let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
         if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'buy');
+        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to buy.`))
+            .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
                 this.onError(
                     false,
-                    `❌ Failed to update Mann Co. Supply Crate Key to buy automatically: ${(err as Error).message}`,
+                    `❌ Failed to update Mann Co. Supply Crate Key to ${intent} automatically: ${
+                        (err as Error).message
+                    }`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
                     opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
-                    'autokeys-failedToUpdate-buy'
-                );
-            });
-    }
-
-    private updateToSell(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, 'sell');
-
-        this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to sell.`))
-            .catch(err => {
-                const opt2 = this.bot.options;
-                this.onError(
-                    false,
-                    `❌ Failed to update Mann Co. Supply Crate Key to sell automatically: ${(err as Error).message}`,
-                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
-                    'autokeys-failedToUpdate-sell'
+                    `autokeys-failedToUpdate-${intent}`
                 );
             });
     }
