@@ -190,7 +190,8 @@ function getElevatedQuality(item: EconItem, normalizeStrangeUnusual: boolean): n
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (item.getTag('Type') === 'Cosmetic' && effects.length === 1 && isNotNormalized)
+        (((item.getTag('Type') === 'Cosmetic' && effects.length === 1) || item.type.startsWith('Strange')) &&
+            isNotNormalized)
     ) {
         return 11;
         //
