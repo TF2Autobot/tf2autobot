@@ -12,6 +12,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { pure } from '../../../lib/tools/export';
+import sysInfo from 'systeminformation';
 
 // Bot manager commands
 
@@ -322,7 +323,7 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
         });
 }
 
-export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): void {
+export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): Promise<void> {
     if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
         return bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
     }
@@ -363,17 +364,32 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        child.exec('npm run update', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, err => {
-            if (err) {
-                return bot.sendMessage(steamID, `❌ Failed to update bot repository: ${JSON.stringify(err)}`);
-            }
-            bot.sendMessage(steamID, '⌛ Restarting...');
+        try {
+            const systemInformation = await sysInfo.osInfo();
+            const osUsed = systemInformation.platform;
 
-            bot.botManager.restartProcess().catch(err => {
-                log.warn('Error occurred while trying to restart: ', err);
-                bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
-            });
-        });
+            child.exec(
+                osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
+                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                err => {
+                    if (err) {
+                        return bot.sendMessage(steamID, `❌ Failed to update bot repository: ${JSON.stringify(err)}`);
+                    }
+                    bot.sendMessage(steamID, '⌛ Restarting...');
+
+                    bot.botManager.restartProcess().catch(err => {
+                        log.warn('Error occurred while trying to restart: ', err);
+                        bot.sendMessage(
+                            steamID,
+                            `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`
+                        );
+                    });
+                }
+            );
+        } catch (err) {
+            log.warn('Error occurred while trying to restart: ', err);
+            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
+        }
     }
 }
 
