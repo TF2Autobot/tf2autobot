@@ -31,7 +31,7 @@ export = function (
             effect: getEffect(self, schema),
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
+            quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
             paint: getPainted(self, schema, normalizePainted)
         },
@@ -45,7 +45,10 @@ export = function (
 
     if (item === null) throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
 
-    // log.debug(SKU.fromObject(item).toString());
+    // log.debug(`${SKU.fromObject(item).toString()}: `, {
+    //     econItem: self,
+    //     item: item
+    // });
 
     return SKU.fromObject(item);
 };
@@ -185,12 +188,17 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
  * @param item - Item object
  * @param normalizeStrangeAsSecondQuality - toggle strange unusual normalization
  */
-function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boolean): number | null {
+function getElevatedQuality(
+    item: EconItem,
+    schema: SchemaManager.Schema,
+    normalizeStrangeAsSecondQuality: boolean
+): number | null {
     const isNotNormalized = !normalizeStrangeAsSecondQuality;
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (((item.getTag('Type') === 'Cosmetic' && effects.length === 1) || item.type.startsWith('Strange')) &&
+        (((item.getTag('Type') === 'Cosmetic' && effects.length === 1) ||
+            (item.type.startsWith('Strange') && getQuality(item, schema) !== 11)) &&
             isNotNormalized)
     ) {
         return 11;
