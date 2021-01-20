@@ -43,7 +43,7 @@ import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
-import { craftAll, uncraftAll, giftWords, noiseMakers } from '../../lib/data';
+import { craftAll, uncraftAll, noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, check, uptime } from '../../lib/tools/export';
 
@@ -605,7 +605,30 @@ export default class MyHandler extends Handler {
         }
 
         const offerMessage = offer.message.toLowerCase();
-        const isGift = giftWords.some(word => offerMessage.includes(word));
+        const isGift = [
+            'gift',
+            'donat', // So that 'donate' or 'donation' will also be accepted
+            'tip', // All others are synonyms
+            'tribute',
+            'souvenir',
+            'favor',
+            'giveaway',
+            'bonus',
+            'grant',
+            'bounty',
+            'present',
+            'contribution',
+            'award',
+            'nice', // Up until here actually
+            'happy', // All below people might also use
+            'thank',
+            'goo', // For 'good', 'goodie' or anything else
+            'awesome',
+            'rep',
+            'joy',
+            'cute' // right?
+        ].some(word => offerMessage.includes(word));
+
         if (offer.itemsToGive.length === 0 && isGift) {
             offer.log(
                 'trade',

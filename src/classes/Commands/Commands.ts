@@ -17,7 +17,6 @@ import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
 
 import { fixItem } from '../../lib/items';
-import { ignoreWords } from '../../lib/data';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -43,6 +42,61 @@ export default class Commands {
     processMessage(steamID: SteamID, message: string): void {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
+
+        const ignoreWords: { [type: string]: string[] } = {
+            startsWith: [
+                'I',
+                '❌',
+                'Hi',
+                '🙋🏻‍♀️Hi',
+                '⚠',
+                '⚠️',
+                '✅',
+                '⌛',
+                '💲',
+                '📜',
+                '🛒',
+                '💰',
+                'Here',
+                'The',
+                'Please',
+                'You',
+                '/quote',
+                '/pre',
+                '/me',
+                '/code',
+                'Oh',
+                'Success!',
+                'Hey',
+                'Unfortunately',
+                '==',
+                '💬',
+                '⇌',
+                'Command',
+                'Hello',
+                '✋ Hold on',
+                'Hold on',
+                'Sending',
+                '👋 Welcome',
+                'Welcome',
+                'To',
+                '🔰',
+                'My',
+                'Owner',
+                'Bot',
+                'Those',
+                '👨🏼‍💻',
+                '🔶',
+                'Buying',
+                '🔷',
+                'Selling',
+                '📥',
+                'Stock',
+                'Thank',
+                'Unknown'
+            ],
+            endsWith: ['cart.', 'checkout.', '✅']
+        };
 
         if (command === 'help') {
             c.help.helpCommand(steamID, this.bot);
