@@ -4,11 +4,11 @@ import Currencies from 'tf2-currencies';
 import async from 'async';
 import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from 'steam-tradeoffer-manager';
 import Cart from './Cart';
-import Inventory, { getSkuAmountCanTrade } from '../Inventory';
+import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import log from '../../lib/logger';
 import { noiseMakers } from '../../lib/data';
-import { check, pure } from '../../lib/tools/export';
+import { pure } from '../../lib/tools/export';
 
 export default class UserCart extends Cart {
     /**
@@ -629,6 +629,10 @@ export default class UserCart extends Cart {
 
         let theirItemsCount = 0;
 
+        const getAssetidsWithFullUses = (items: DictItem[]) => {
+            return items.filter(item => item.isFullUses === true).map(item => item.id);
+        };
+
         // Add their items
         for (const sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
@@ -649,10 +653,10 @@ export default class UserCart extends Cart {
 
             if (opt.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
-                assetids = check.getAssetidsWithFullUses(inventoryDict.their[sku]);
+                assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
             } else if (opt.checkUses.noiseMaker && Object.keys(noiseMakers).includes(sku)) {
                 checkNoiseMaker = true;
-                assetids = check.getAssetidsWithFullUses(inventoryDict.their[sku]);
+                assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
             }
 
             for (let i = 0; i < assetids.length; i++) {

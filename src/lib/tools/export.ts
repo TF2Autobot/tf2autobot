@@ -1,4 +1,4 @@
-import * as check from './check';
+import getHighValueItems from './getHighValue';
 import generateLinks from './links';
 import * as pure from './pure';
 import * as replace from './replace';
@@ -10,7 +10,7 @@ import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
 
 export {
-    check,
+    getHighValueItems,
     generateLinks,
     pure,
     replace,

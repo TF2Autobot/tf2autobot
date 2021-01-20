@@ -2,14 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import SteamID from 'steamid';
-import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
-import { noiseMakers } from '../lib/data';
-import { check } from '../lib/tools/export';
+import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -282,13 +281,14 @@ export default class Inventory {
                 opt.normalize.painted[which],
                 paints
             );
-            const attributes = check.highValue(items[i], opt, paints, strangeParts);
+
+            const attributes = highValue(items[i], opt, paints, strangeParts);
 
             let isDuel5xUses: boolean | null = null;
-            if (sku === '241;6') isDuel5xUses = check.is5xUses(items[i]);
+            if (sku === '241;6') isDuel5xUses = isFull(items[i], 'duel');
 
             let isNoiseMaker25xUses: boolean | null = null;
-            if (Object.keys(noiseMakers).includes(sku)) isNoiseMaker25xUses = check.is25xUses(items[i]);
+            if (Object.keys(noiseMakers).includes(sku)) isNoiseMaker25xUses = isFull(items[i], 'noise');
 
             if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });
@@ -321,6 +321,145 @@ export interface DictItem {
     id: string;
     hv?: ItemAttributes;
     isFullUses?: boolean;
+}
+
+function isFull(item: EconItem, type: 'duel' | 'noise'): boolean {
+    for (const content of item.descriptions) {
+        if (
+            content.value.includes(`This is a limited use item. Uses: ${type === 'noise' ? '25' : '5'}`) &&
+            content.color === '00a000'
+        ) {
+            return true;
+        }
+    }
+}
+
+function highValue(
+    econ: EconItem,
+    opt: Options,
+    paints: Paints,
+    parts: StrangeParts
+): ItemAttributes | Record<string, never> {
+    const attributes: ItemAttributes = {};
+
+    const strangeParts =
+        opt.highValue.strangeParts === [] || opt.highValue.strangeParts === ['']
+            ? Object.keys(parts).map(part => part.toLowerCase())
+            : opt.highValue.strangeParts.map(part => part.toLowerCase());
+
+    const killstreakers =
+        opt.highValue.killstreakers === [] || opt.highValue.killstreakers === ['']
+            ? Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase())
+            : opt.highValue.killstreakers.map(killstreaker => killstreaker.toLowerCase());
+
+    const sheens =
+        opt.highValue.sheens === [] || opt.highValue.sheens === ['']
+            ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
+            : opt.highValue.sheens.map(sheen => sheen.toLowerCase());
+
+    const painted =
+        opt.highValue.painted === [] || opt.highValue.painted === ['']
+            ? Object.keys(paints).map(paint => paint.toLowerCase())
+            : opt.highValue.painted.map(paint => paint.toLowerCase());
+
+    let hasSpells = false;
+    let hasStrangeParts = false;
+    let hasKillstreaker = false;
+    let hasSheen = false;
+    let hasPaint = false;
+
+    const s: string[] = [];
+    const sp: PartialSKUWithMention = {};
+    const ke: PartialSKUWithMention = {};
+    const ks: PartialSKUWithMention = {};
+    const p: PartialSKUWithMention = {};
+
+    for (const content of econ.descriptions) {
+        /**
+         * For Strange Parts, example: "(Kills During Halloween: 0)"
+         * remove "(" and ": <numbers>)" to get only the part name.
+         */
+        const partsString = content.value
+            .replace('(', '')
+            .replace(/: \d+\)/g, '')
+            .trim();
+
+        if (
+            content.value.startsWith('Halloween:') &&
+            content.value.endsWith('(spell only active during event)') &&
+            content.color === '7ea9d1'
+        ) {
+            // Example: "Halloween: Voices From Below (spell only active during event)"
+            // where "Voices From Below" is the spell name.
+            // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+            // https://www.spycolor.com/7ea9d1#
+            hasSpells = true;
+            // Get the spell name
+            // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+            // from "(spell only active during event)", and trim any whitespaces.
+            const spellName = content.value.substring(10, content.value.length - 32).trim();
+
+            // push for storage, example: s-1000
+            s.push(spellsData[spellName]);
+        } else if (
+            (partsString === 'Kills' || partsString === 'Assists'
+                ? econ.getTag('Type') === 'Cosmetic'
+                : Object.keys(parts).includes(partsString)) &&
+            content.color === '756b5e'
+        ) {
+            // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
+            // Else, will scan through Strange Parts Object keys in this.strangeParts()
+            // Color of this description must be rgb(117, 107, 94) or 756b5e
+            // https://www.spycolor.com/756b5e#
+            hasStrangeParts = true;
+
+            if (strangeParts.includes(partsString.toLowerCase())) {
+                // if the particular strange part is one of the parts that the user wants,
+                // then mention and put "(🌟)"
+                sp[`${parts[partsString]}`] = true;
+            } else {
+                // else no mention and just the name.
+                sp[`${parts[partsString]}`] = false;
+            }
+        } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Killstreaker: ', '').trim();
+            hasKillstreaker = true;
+
+            if (killstreakers.includes(extractedName.toLowerCase())) {
+                ke[`${killstreakersData[extractedName]}`] = true;
+            } else {
+                ke[`${killstreakersData[extractedName]}`] = false;
+            }
+        } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
+            const extractedName = content.value.replace('Sheen: ', '').trim();
+            hasSheen = true;
+
+            if (sheens.includes(extractedName.toLowerCase())) {
+                ks[`${sheensData[extractedName]}`] = true;
+            } else {
+                ks[`${sheensData[extractedName]}`] = false;
+            }
+        } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
+            const extractedName = content.value.replace('Paint Color: ', '').trim();
+            hasPaint = true;
+
+            if (painted.includes(extractedName.toLowerCase())) {
+                p[`${paints[extractedName]}`] = true;
+            } else {
+                p[`${paints[extractedName]}`] = false;
+            }
+        }
+    }
+
+    if (hasSpells || hasKillstreaker || hasSheen || hasStrangeParts || hasPaint) {
+        if (hasSpells) attributes.s = s;
+        if (hasStrangeParts) attributes.sp = sp;
+        if (hasKillstreaker) attributes.ke = ke;
+        if (hasSheen) attributes.ks = ks;
+        if (hasPaint) attributes.p = p;
+    }
+
+    return attributes;
 }
 
 /**

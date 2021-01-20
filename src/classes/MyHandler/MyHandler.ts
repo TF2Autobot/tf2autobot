@@ -45,7 +45,7 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, check, uptime } from '../../lib/tools/export';
+import { summarize, uptime, getHighValueItems } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 
@@ -747,7 +747,7 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = check.getHighValueItems(
+            const itemsName = getHighValueItems(
                 getHighValue.our.items,
                 this.bot,
                 this.bot.paints,

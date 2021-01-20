@@ -106,7 +106,7 @@ export default function processAccepted(
         if (offerReceived?.meta?.highValue && offerReceived.meta.highValue['has'] === undefined) {
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.check.getHighValueItems(
+                const itemsName = t.getHighValueItems(
                     offerReceived.meta.highValue.items.their,
                     bot,
                     bot.paints,
@@ -129,7 +129,7 @@ export default function processAccepted(
 
             if (Object.keys(offerReceived.meta.highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.check.getHighValueItems(
+                const itemsName = t.getHighValueItems(
                     offerReceived.meta.highValue.items.our,
                     bot,
                     bot.paints,
@@ -151,7 +151,7 @@ export default function processAccepted(
         // This is for offer that bot created from commands
 
         if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
-            const itemsName = t.check.getHighValueItems(offerSent.items.their, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(offerSent.items.their, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
@@ -168,7 +168,7 @@ export default function processAccepted(
         }
 
         if (offerSent.items && Object.keys(offerSent.items.our).length > 0) {
-            const itemsName = t.check.getHighValueItems(offerSent.items.our, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(offerSent.items.our, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
