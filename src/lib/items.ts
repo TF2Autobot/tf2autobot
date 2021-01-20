@@ -91,9 +91,14 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     if (item.effect !== null) {
-        if (item.quality === 11) item.quality2 = 11;
-
-        item.quality = 5;
+        if (item.quality === 11) {
+            item.quality2 = 11;
+            item.quality = 5;
+        } else if (item.paintkit !== null) {
+            item.quality = 15;
+        } else {
+            item.quality = 5;
+        }
     } else if (item.paintkit !== null) {
         if (item.quality2 === 11) {
             item.quality = 11;
@@ -126,6 +131,8 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     //         }
     //     }
     // }
+
+    // log.debug('item:', item);
 
     return item;
 }
