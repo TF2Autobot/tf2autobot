@@ -47,20 +47,20 @@ export default class Inventory {
 
     private options: Options;
 
-    private isNormalizePainted: boolean;
+    private which: 'our' | 'their';
 
     constructor(
         steamID: SteamID | string,
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
-        isNormalizePainted: boolean
+        which: 'our' | 'their'
     ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
         this.options = options;
-        this.isNormalizePainted = isNormalizePainted;
+        this.which = which;
     }
 
     static fromItems(
@@ -69,9 +69,9 @@ export default class Inventory {
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
-        isNormalizePainted: boolean
+        which: 'our' | 'their'
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, isNormalizePainted);
+        const inventory = new Inventory(steamID, manager, schema, options, which);
         inventory.setItems = items;
         return inventory;
     }
@@ -120,13 +120,13 @@ export default class Inventory {
             items.filter(item => item.tradable),
             this.schema,
             this.options,
-            this.isNormalizePainted
+            this.which
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
             this.options,
-            false
+            this.which
         );
     }
 
@@ -257,16 +257,16 @@ export default class Inventory {
         items: EconItem[],
         schema: SchemaManager.Schema,
         opt: Options,
-        normalizePainted: boolean
+        which: 'our' | 'their'
     ): Dict {
         const dict: Dict = {};
 
         for (let i = 0; i < items.length; i++) {
             const sku = items[i].getSKU(
                 schema,
-                opt.normalize.festivized,
-                opt.normalize.strangeAsSecondQuality,
-                normalizePainted
+                opt.normalize.festivized[which],
+                opt.normalize.strangeAsSecondQuality[which],
+                opt.normalize.painted[which]
             );
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
 

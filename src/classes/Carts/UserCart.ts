@@ -411,7 +411,7 @@ export default class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt, true);
+        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt, 'their');
 
         try {
             await theirInventory.fetch();

@@ -104,7 +104,7 @@ export default class AdminCart extends Cart {
                 this.bot.manager,
                 this.bot.schema,
                 this.bot.options,
-                this.bot.options.normalize.painted
+                'their'
             );
 
             void theirInventory.fetch().asCallback(err => {

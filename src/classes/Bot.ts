@@ -417,7 +417,7 @@ export default class Bot {
                                 this.manager,
                                 this.schema,
                                 this.options,
-                                this.options.normalize.painted
+                                'our'
                             );
 
                             return callback(null);

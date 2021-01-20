@@ -13,6 +13,17 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['enable']
         },
+        'normalize-which': {
+            type: 'object',
+            properties: {
+                our: {
+                    type: 'boolean'
+                },
+                their: {
+                    type: 'boolean'
+                }
+            }
+        },
         'only-allow': {
             type: 'object',
             properties: {
@@ -463,13 +474,13 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 festivized: {
-                    type: 'boolean'
+                    $ref: '#/definitions/normalize-which'
                 },
                 strangeAsSecondQuality: {
-                    type: 'boolean'
+                    $ref: '#/definitions/normalize-which'
                 },
                 painted: {
-                    type: 'boolean'
+                    $ref: '#/definitions/normalize-which'
                 }
             },
             required: ['festivized', 'strangeAsSecondQuality', 'painted']

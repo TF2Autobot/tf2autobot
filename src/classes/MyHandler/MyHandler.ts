@@ -463,7 +463,7 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                opt.normalize.painted
+                'our'
             ).getItems,
             their: Inventory.fromItems(
                 offer.partner,
@@ -471,7 +471,7 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                true
+                'their'
             ).getItems
         };
 
@@ -685,9 +685,9 @@ export default class MyHandler extends Handler {
         const offerSKUs = offer.itemsToReceive.map(item =>
             item.getSKU(
                 this.bot.schema,
-                opt.normalize.festivized,
-                opt.normalize.strangeAsSecondQuality,
-                opt.normalize.painted
+                opt.normalize.festivized.their,
+                opt.normalize.strangeAsSecondQuality.their,
+                opt.normalize.painted.their
             )
         );
 

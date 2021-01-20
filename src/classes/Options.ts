@@ -283,17 +283,26 @@ export const DEFAULTS = {
          * the bot will recognize the Festivized Strange Australium Black Box as Strange Australium Black Box.
          * Otherwise, the bot will determine each item's price by its specific name, quality, and unique identifiers.
          */
-        festivized: false,
+        festivized: {
+            our: false,
+            their: true
+        },
         /**
          * If set to true, Strange Unusuals (items whose SKU ends with ;strange) will be recognized as the normal variant of said Unusuals
          * (items whose SKU doesn't end with ;strange). Otherwise, the bot will determine each item's price by its specific name, quality,
          * and unique identifiers.
          */
-        strangeAsSecondQuality: false,
+        strangeAsSecondQuality: {
+            our: false,
+            their: true
+        },
         /**
          * If set to false, all painted items must be individually and manually priced by your own
          */
-        painted: true
+        painted: {
+            our: true,
+            their: true
+        }
     },
 
     details: {
@@ -1863,9 +1872,14 @@ export interface Game {
 // ------------ Normalize ------------
 
 export interface Normalize {
-    festivized?: boolean;
-    strangeAsSecondQuality?: boolean;
-    painted?: boolean;
+    festivized?: NormalizeOurOrTheir;
+    strangeAsSecondQuality?: NormalizeOurOrTheir;
+    painted?: NormalizeOurOrTheir;
+}
+
+export interface NormalizeOurOrTheir {
+    our?: boolean;
+    their?: boolean;
 }
 
 // ------------ Details ------------
