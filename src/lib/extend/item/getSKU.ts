@@ -290,7 +290,37 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         throw new Error('Could not find target for item "' + item.market_hash_name + '"');
     }
 
-    if (defindex === 6527) {
+    if (
+        [
+            6527, // general
+            5726, // Rocket Launcher
+            5727, // Scattergun
+            5728, // Sniper Rifle
+            5729, // Shotgun
+            5730, // Ubersaw
+            5731, // GRU
+            5732, // Spy-cicle
+            5733, // Axtinguisher
+            5743, // Sticky Launcher
+            5744, // Minigun
+            5745, // Direct Hit
+            5746, // Huntsman
+            5747, // Backburner
+            5748, // Backscatter
+            5749, // Kritzkrieg
+            5750, // Ambassador
+            5751, // Frontier Justice
+            5793, // Flaregun
+            5794, // Wrench
+            5795, // Revolver
+            5796, // Machina
+            5797, // Baby Face Blaster
+            5798, // Huo Long Heatmaker
+            5799, // Loose Cannon
+            5800, // Vaccinator
+            5801 // Air Strike
+        ].includes(defindex)
+    ) {
         // Killstreak Kit
         return schema.getItemByItemName(
             item.market_hash_name
