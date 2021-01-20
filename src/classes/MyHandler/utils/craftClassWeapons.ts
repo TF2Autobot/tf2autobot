@@ -4,18 +4,18 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
         return;
     }
-    const currencies = bot.inventoryManager.getInventory.getCurrencies;
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
 
     void Promise.all([
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Scout') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Soldier') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Pyro') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Demoman') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Heavy') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Engineer') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Medic') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Sniper') as string[], currencies),
-        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Spy') as string[], currencies)
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.scout, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.soldier, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.pyro, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.demoman, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.heavy, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.engineer, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.medic, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.sniper, currencies),
+        craftEachClassWeapons(bot, bot.craftWeaponsByClass.spy, currencies)
     ]);
 }
 

@@ -463,6 +463,9 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
                 'our'
             ).getItems,
             their: Inventory.fromItems(
@@ -471,6 +474,9 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
                 'their'
             ).getItems
         };
@@ -687,7 +693,8 @@ export default class MyHandler extends Handler {
                 this.bot.schema,
                 opt.normalize.festivized.their,
                 opt.normalize.strangeAsSecondQuality.their,
-                opt.normalize.painted.their
+                opt.normalize.painted.their,
+                this.bot.paints
             )
         );
 
@@ -743,8 +750,8 @@ export default class MyHandler extends Handler {
             const itemsName = check.getHighValueItems(
                 getHighValue.our.items,
                 this.bot,
-                this.bot.schema.getPaints(),
-                this.bot.schema.getStrangeParts()
+                this.bot.paints,
+                this.bot.strangeParts
             );
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
@@ -792,8 +799,8 @@ export default class MyHandler extends Handler {
         let hasNoPrice = false;
         let hasInvalidItemsOur = false;
 
-        const craftAll = this.bot.schema.getCraftableWeaponsForTrading();
-        const uncraftAll = this.bot.schema.getUncraftableWeaponsForTrading();
+        const craftAll = this.bot.craftWeapons;
+        const uncraftAll = this.bot.uncraftWeapons;
 
         const itemsDiff = offer.getDiff();
         for (let i = 0; i < states.length; i++) {

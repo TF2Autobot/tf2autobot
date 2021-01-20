@@ -15,8 +15,8 @@ export default function updateListings(
     const diff = offer.getDiff() || {};
     const weapons = bot.handler.isWeaponsAsCurrency.enable
         ? bot.handler.isWeaponsAsCurrency.withUncraft
-            ? bot.schema.getCraftableWeaponsForTrading().concat(bot.schema.getUncraftableWeaponsForTrading())
-            : bot.schema.getCraftableWeaponsForTrading()
+            ? bot.craftWeapons.concat(bot.uncraftWeapons)
+            : bot.craftWeapons
         : [];
 
     for (const sku in diff) {

@@ -212,7 +212,7 @@ export default class Pricelist extends EventEmitter {
             // otherwise we would mutate the existing generic entry
             match = match.clone();
 
-            const effectMatch = this.bot.schema.getUnusualEffects().find(e => pSku.effect === e.id);
+            const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
             match.name = match.name.replace('Unusual', effectMatch.name);
             match.sku = sku;
 
@@ -481,7 +481,7 @@ export default class Pricelist extends EventEmitter {
             // try to find a generic price
             const name = this.schema.getName(pSku, false);
 
-            const effectMatch = this.bot.schema.getUnusualEffects().find(e => pSku.effect === e.id);
+            const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
             if (effectMatch) {
                 // this means the sku given had a matching effect so we are going from a specific to generic
                 const findIndex = this.prices.findIndex(

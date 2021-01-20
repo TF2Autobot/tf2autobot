@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { EconItem } from 'steam-tradeoffer-manager';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
 // import log from '../../../lib/logger';
@@ -14,7 +14,8 @@ export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
     normalizeStrangeAsSecondQuality: boolean,
-    normalizePainted: boolean
+    normalizePainted: boolean,
+    paints: Paints
 ): string {
     const self = this as EconItem;
 
@@ -33,7 +34,7 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, schema, normalizePainted)
+            paint: getPainted(self, normalizePainted, paints)
         },
         getOutput(self, schema)
     );
@@ -445,7 +446,7 @@ function getCrateSeries(item: EconItem): number | null {
     }
 }
 
-function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePainted: boolean): number | null {
+function getPainted(item: EconItem, normalizePainted: boolean, paints: Paints): number | null {
     if (normalizePainted) return null;
 
     const descriptions = item.descriptions;
@@ -456,7 +457,7 @@ function getPainted(item: EconItem, schema: SchemaManager.Schema, normalizePaint
             foundPaint = true;
 
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-            return +schema.getPaints()[name].replace('p', '');
+            return +paints[name].replace('p', '');
         }
     }
 

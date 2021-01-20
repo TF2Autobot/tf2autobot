@@ -177,12 +177,7 @@ export function weaponCommand(steamID: SteamID, bot: Bot, type: CraftUncraft): v
         }
     }
 
-    const weaponStock = getWeaponsStock(
-        bot,
-        type === 'craftweapon'
-            ? bot.schema.getCraftableWeaponsForTrading()
-            : bot.schema.getUncraftableWeaponsForTrading()
-    );
+    const weaponStock = getWeaponsStock(bot, type === 'craftweapon' ? bot.craftWeapons : bot.uncraftWeapons);
 
     let reply: string;
     if (weaponStock.length > 0) {

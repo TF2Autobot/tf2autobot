@@ -258,7 +258,7 @@ declare module 'tf2-schema-2' {
 
             getCraftableWeaponsSchema(): SchemaItem[];
 
-            getWeaponsForCraftingByClass(charClass: CharacterClasses): string[] | Error;
+            getWeaponsForCraftingByClass(charClass: CharacterClasses): string[];
 
             getCraftableWeaponsForTrading(): string[];
 

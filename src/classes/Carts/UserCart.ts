@@ -417,7 +417,16 @@ export default class UserCart extends Cart {
 
         // Load their inventory
 
-        const theirInventory = new Inventory(this.partner, this.bot.manager, this.bot.schema, opt, 'their');
+        const theirInventory = new Inventory(
+            this.partner,
+            this.bot.manager,
+            this.bot.schema,
+            opt,
+            this.bot.effects,
+            this.bot.paints,
+            this.bot.strangeParts,
+            'their'
+        );
 
         try {
             await theirInventory.fetch();
@@ -496,10 +505,16 @@ export default class UserCart extends Cart {
         // Figure out who the buyer is and what they are offering
         const { isBuyer, currencies } = this.getCurrencies;
 
+        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
+            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.craftAll.concat(this.uncraftAll)
+                : this.craftAll
+            : [];
+
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory) < 1) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, weapons) < 1) {
             // Buyer can't afford the items
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
@@ -523,7 +538,7 @@ export default class UserCart extends Cart {
 
         // Figure out what pure to pick from the buyer, and if change is needed
 
-        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies;
+        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(weapons);
 
         const buyerCurrenciesCount = {
             '5021;6': buyerCurrenciesWithAssetids['5021;6'].length,
@@ -531,12 +546,6 @@ export default class UserCart extends Cart {
             '5001;6': buyerCurrenciesWithAssetids['5001;6'].length,
             '5000;6': buyerCurrenciesWithAssetids['5000;6'].length
         };
-
-        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
-            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll
-            : [];
 
         if (opt.weaponsAsCurrency.enable) {
             weapons.forEach(sku => {
@@ -767,7 +776,7 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies; // sellerInventory
+            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(weapons); // sellerInventory
             // We won't use keys when giving change
             delete currencies['5021;6'];
 

@@ -2,7 +2,7 @@
 declare module 'steam-tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager from 'tf2-schema-2';
+    import SchemaManager, { Paints } from 'tf2-schema-2';
     import Currencies from 'tf2-currencies';
 
     interface UnknownKeys<T> {
@@ -373,7 +373,8 @@ declare module 'steam-tradeoffer-manager' {
                 schema: SchemaManager.Schema,
                 normalizeFestivizedItems: boolean,
                 normalizeStrangeAsSecondQuality: boolean,
-                normalizePainted: boolean
+                normalizePainted: boolean,
+                paints: Paints
             ): string | null;
         }
 

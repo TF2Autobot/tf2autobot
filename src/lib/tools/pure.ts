@@ -39,7 +39,7 @@ export function stock(bot: Bot): string[] {
 }
 
 export function currPure(bot: Bot): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
-    const currencies = bot.inventoryManager.getInventory.getCurrencies;
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
 
     const currKeys = currencies['5021;6'].length;
     const currScrap = currencies['5000;6'].length;

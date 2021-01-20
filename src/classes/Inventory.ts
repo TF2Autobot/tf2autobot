@@ -3,7 +3,7 @@
 
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes } from 'steam-tradeoffer-manager';
-import SchemaManager, { Effect } from 'tf2-schema-2';
+import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 import Bot from './Bot';
@@ -49,17 +49,29 @@ export default class Inventory {
 
     private which: 'our' | 'their';
 
+    private effects: Effect[];
+
+    private paints: Paints;
+
+    private strangeParts: StrangeParts;
+
     constructor(
         steamID: SteamID | string,
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
+        effects: Effect[],
+        paints: Paints,
+        strangeParts: StrangeParts,
         which: 'our' | 'their'
     ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
         this.schema = schema;
         this.options = options;
+        this.effects = effects;
+        this.paints = paints;
+        this.strangeParts = strangeParts;
         this.which = which;
     }
 
@@ -69,9 +81,12 @@ export default class Inventory {
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
+        effects: Effect[],
+        paints: Paints,
+        strangeParts: StrangeParts,
         which: 'our' | 'their'
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, which);
+        const inventory = new Inventory(steamID, manager, schema, options, effects, paints, strangeParts, which);
         inventory.setItems = items;
         return inventory;
     }
@@ -120,12 +135,16 @@ export default class Inventory {
             items.filter(item => item.tradable),
             this.schema,
             this.options,
+            this.paints,
+            this.strangeParts,
             this.which
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
             this.schema,
             this.options,
+            this.paints,
+            this.strangeParts,
             this.which
         );
     }
@@ -211,7 +230,7 @@ export default class Inventory {
             //         // add up total found; total is undefined to being with
             //         .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
             // );
-            const getUnusual = this.schema.getUnusualEffects();
+            const getUnusual = this.effects;
             const mapUnusual = getUnusual.map(e => {
                 s.effect = e.id;
                 return this.getAmount(SKU.fromObject(s), tradableOnly, true);
@@ -233,24 +252,14 @@ export default class Inventory {
         }
     }
 
-    get getCurrencies(): { [sku: string]: string[] } {
+    getCurrencies(weapons: string[]): { [sku: string]: string[] } {
         const toObject: {
             [sku: string]: string[];
         } = {};
 
-        ['5021;6', '5002;6', '5001;6', '5000;6']
-            .concat(
-                this.options.weaponsAsCurrency.enable
-                    ? this.options.weaponsAsCurrency.withUncraft
-                        ? this.schema
-                              .getCraftableWeaponsForTrading()
-                              .concat(this.schema.getUncraftableWeaponsForTrading())
-                        : this.schema.getCraftableWeaponsForTrading()
-                    : []
-            )
-            .forEach(sku => {
-                toObject[sku] = this.findBySKU(sku, true);
-            });
+        ['5021;6', '5002;6', '5001;6', '5000;6'].concat(weapons).forEach(sku => {
+            toObject[sku] = this.findBySKU(sku, true);
+        });
 
         return toObject;
     }
@@ -259,6 +268,8 @@ export default class Inventory {
         items: EconItem[],
         schema: SchemaManager.Schema,
         opt: Options,
+        paints: Paints,
+        strangeParts: StrangeParts,
         which: 'our' | 'their'
     ): Dict {
         const dict: Dict = {};
@@ -268,9 +279,10 @@ export default class Inventory {
                 schema,
                 opt.normalize.festivized[which],
                 opt.normalize.strangeAsSecondQuality[which],
-                opt.normalize.painted[which]
+                opt.normalize.painted[which],
+                paints
             );
-            const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
+            const attributes = check.highValue(items[i], opt, paints, strangeParts);
 
             let isDuel5xUses: boolean | null = null;
             if (sku === '241;6') isDuel5xUses = check.is5xUses(items[i]);
@@ -352,7 +364,6 @@ export function getSkuAmountCanTrade(
         name:
             amountCanTrade > amountCanTradeGeneric
                 ? bot.schema.getName(SKU.fromString(sku))
-                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.schema.getUnusualEffects())
-                      .name
+                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.effects).name
     };
 }

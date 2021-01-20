@@ -141,8 +141,7 @@ export default abstract class Cart {
         if (pSku.quality === 5) {
             // try to count all unusual types
             return (
-                this.bot.schema
-                    .getUnusualEffects()
+                this.bot.effects
                     .map(e => {
                         pSku.effect = e.id;
                         const s = SKU.fromObject(pSku);

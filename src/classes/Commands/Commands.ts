@@ -325,10 +325,8 @@ export default class Commands {
         const cart = new UserCart(
             steamID,
             this.bot,
-            this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                ? this.bot.schema.getUncraftableWeaponsForTrading()
-                : []
+            this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
         );
         cart.setNotify = true;
         cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
@@ -364,10 +362,8 @@ export default class Commands {
             new UserCart(
                 steamID,
                 this.bot,
-                this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                    ? this.bot.schema.getUncraftableWeaponsForTrading()
-                    : []
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
         const cartAmount = cart.getOurCount(info.match.sku);
@@ -440,10 +436,8 @@ export default class Commands {
             new UserCart(
                 steamID,
                 this.bot,
-                this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                    ? this.bot.schema.getUncraftableWeaponsForTrading()
-                    : []
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const skuCount = getSkuAmountCanTrade(info.match.sku, this.bot);
 
@@ -714,10 +708,8 @@ export default class Commands {
             new AdminCart(
                 steamID,
                 this.bot,
-                this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                    ? this.bot.schema.getUncraftableWeaponsForTrading()
-                    : []
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         cart.addTheirItem(params.sku, amount);
         Cart.addCart(cart);
@@ -761,10 +753,8 @@ export default class Commands {
             new AdminCart(
                 steamID,
                 this.bot,
-                this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                    ? this.bot.schema.getUncraftableWeaponsForTrading()
-                    : []
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(params.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
@@ -849,10 +839,8 @@ export default class Commands {
             new DonateCart(
                 steamID,
                 this.bot,
-                this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                    ? this.bot.schema.getUncraftableWeaponsForTrading()
-                    : []
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(params.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
@@ -983,10 +971,8 @@ export default class Commands {
         const cart = new PremiumCart(
             steamID,
             this.bot,
-            this.weaponsAsCurrency.enable ? this.bot.schema.getCraftableWeaponsForTrading() : [],
-            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft
-                ? this.bot.schema.getUncraftableWeaponsForTrading()
-                : []
+            this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
         );
         cart.addOurItem('5021;6', amountKeys);
         Cart.addCart(cart);

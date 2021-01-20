@@ -427,8 +427,8 @@ export default class Listings {
 
                 const optD = this.bot.options.details.highValue;
                 const optR = this.bot.options.detailsExtra;
-                const getPaints = this.bot.schema.getPaints();
-                const getStrangeParts = this.bot.schema.getStrangeParts();
+                const getPaints = this.bot.paints;
+                const getStrangeParts = this.bot.strangeParts;
 
                 const getKeyByValue = (object: { [key: string]: any }, value: any) => {
                     return Object.keys(object).find(key => object[key] === value);

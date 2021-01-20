@@ -109,8 +109,8 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.their,
                     bot,
-                    bot.schema.getPaints(),
-                    bot.schema.getStrangeParts()
+                    bot.paints,
+                    bot.strangeParts
                 );
 
                 for (const name in itemsName) {
@@ -132,8 +132,8 @@ export default function processAccepted(
                 const itemsName = t.check.getHighValueItems(
                     offerReceived.meta.highValue.items.our,
                     bot,
-                    bot.schema.getPaints(),
-                    bot.schema.getStrangeParts()
+                    bot.paints,
+                    bot.strangeParts
                 );
 
                 for (const name in itemsName) {
@@ -151,12 +151,7 @@ export default function processAccepted(
         // This is for offer that bot created from commands
 
         if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
-            const itemsName = t.check.getHighValueItems(
-                offerSent.items.their,
-                bot,
-                bot.schema.getPaints(),
-                bot.schema.getStrangeParts()
-            );
+            const itemsName = t.check.getHighValueItems(offerSent.items.their, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
@@ -173,12 +168,7 @@ export default function processAccepted(
         }
 
         if (offerSent.items && Object.keys(offerSent.items.our).length > 0) {
-            const itemsName = t.check.getHighValueItems(
-                offerSent.items.our,
-                bot,
-                bot.schema.getPaints(),
-                bot.schema.getStrangeParts()
-            );
+            const itemsName = t.check.getHighValueItems(offerSent.items.our, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;

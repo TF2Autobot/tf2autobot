@@ -191,8 +191,8 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     const weapons = bot.handler.isWeaponsAsCurrency.enable
         ? bot.handler.isWeaponsAsCurrency.withUncraft
-            ? bot.schema.getCraftableWeaponsForTrading().concat(bot.schema.getUncraftableWeaponsForTrading())
-            : bot.schema.getCraftableWeaponsForTrading()
+            ? bot.craftWeapons.concat(bot.uncraftWeapons)
+            : bot.craftWeapons
         : [];
     const combine = ['5021;6', '5000;6', '5001;6', '5002;6'].concat(weapons);
 

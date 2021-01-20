@@ -23,8 +23,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         const keyPrice = bot.pricelist.getKeyPrice;
         const weapons = bot.handler.isWeaponsAsCurrency.enable
             ? bot.handler.isWeaponsAsCurrency.withUncraft
-                ? bot.schema.getCraftableWeaponsForTrading().concat(bot.schema.getUncraftableWeaponsForTrading())
-                : bot.schema.getCraftableWeaponsForTrading()
+                ? bot.craftWeapons.concat(bot.uncraftWeapons)
+                : bot.craftWeapons
             : [];
 
         let overpriceProfit = 0;

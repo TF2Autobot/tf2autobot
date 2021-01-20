@@ -9,7 +9,7 @@ import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import BptfLogin from 'bptf-login-2';
 import TF2 from 'tf2';
 import dayjs, { Dayjs } from 'dayjs';
@@ -65,6 +65,28 @@ export default class Bot {
     readonly inventoryManager: InventoryManager;
 
     readonly pricelist: Pricelist;
+
+    public effects: Effect[];
+
+    public paints: Paints;
+
+    public strangeParts: StrangeParts;
+
+    public craftWeapons: string[];
+
+    public uncraftWeapons: string[];
+
+    public craftWeaponsByClass: {
+        scout: Array<string>;
+        soldier: Array<string>;
+        pyro: Array<string>;
+        demoman: Array<string>;
+        heavy: Array<string>;
+        engineer: Array<string>;
+        medic: Array<string>;
+        sniper: Array<string>;
+        spy: Array<string>;
+    };
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -411,12 +433,32 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
+                            this.effects = this.schema.getUnusualEffects();
+                            this.paints = this.schema.getPaints();
+                            this.strangeParts = this.schema.getStrangeParts();
+                            this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
+                            this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
+                            this.craftWeaponsByClass = {
+                                scout: this.schema.getWeaponsForCraftingByClass('Scout'),
+                                soldier: this.schema.getWeaponsForCraftingByClass('Soldier'),
+                                pyro: this.schema.getWeaponsForCraftingByClass('Pyro'),
+                                demoman: this.schema.getWeaponsForCraftingByClass('Demoman'),
+                                heavy: this.schema.getWeaponsForCraftingByClass('Heavy'),
+                                engineer: this.schema.getWeaponsForCraftingByClass('Engineer'),
+                                medic: this.schema.getWeaponsForCraftingByClass('Medic'),
+                                sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
+                                spy: this.schema.getWeaponsForCraftingByClass('Spy')
+                            };
+
                             // We now know our SteamID, but we still don't have our Steam API key
                             this.inventoryManager.setInventory = new Inventory(
                                 this.client.steamID,
                                 this.manager,
                                 this.schema,
                                 this.options,
+                                this.effects,
+                                this.paints,
+                                this.strangeParts,
                                 'our'
                             );
 
