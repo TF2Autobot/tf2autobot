@@ -95,7 +95,7 @@ export default class Inventory {
                 const index = assetids.indexOf(assetid);
 
                 if (index !== -1) {
-                    assetids.splice(index, 1);
+                    items[sku].splice(index, 1);
                     if (assetids.length === 0) delete items[sku];
                     break;
                 }
