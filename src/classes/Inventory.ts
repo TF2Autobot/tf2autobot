@@ -8,7 +8,7 @@ import SKU from 'tf2-sku-2';
 import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
-import { noiseMakers, craftAll, uncraftAll } from '../lib/data';
+import { noiseMakers } from '../lib/data';
 import { check } from '../lib/tools/export';
 
 export default class Inventory {
@@ -242,8 +242,10 @@ export default class Inventory {
             .concat(
                 this.options.weaponsAsCurrency.enable
                     ? this.options.weaponsAsCurrency.withUncraft
-                        ? craftAll.concat(uncraftAll)
-                        : craftAll
+                        ? this.schema
+                              .getCraftableWeaponsForTrading()
+                              .concat(this.schema.getUncraftableWeaponsForTrading())
+                        : this.schema.getCraftableWeaponsForTrading()
                     : []
             )
             .forEach(sku => {

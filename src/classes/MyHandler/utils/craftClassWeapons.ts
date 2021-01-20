@@ -1,5 +1,4 @@
 import Bot from '../../Bot';
-import { craftWeapons } from '../../../lib/data';
 
 export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
@@ -8,15 +7,15 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     const currencies = bot.inventoryManager.getInventory.getCurrencies;
 
     void Promise.all([
-        craftEachClassWeapons(bot, craftWeapons.scout, currencies),
-        craftEachClassWeapons(bot, craftWeapons.soldier, currencies),
-        craftEachClassWeapons(bot, craftWeapons.pyro, currencies),
-        craftEachClassWeapons(bot, craftWeapons.demoman, currencies),
-        craftEachClassWeapons(bot, craftWeapons.heavy, currencies),
-        craftEachClassWeapons(bot, craftWeapons.engineer, currencies),
-        craftEachClassWeapons(bot, craftWeapons.medic, currencies),
-        craftEachClassWeapons(bot, craftWeapons.sniper, currencies),
-        craftEachClassWeapons(bot, craftWeapons.spy, currencies)
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Scout') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Soldier') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Pyro') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Demoman') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Heavy') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Engineer') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Medic') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Sniper') as string[], currencies),
+        craftEachClassWeapons(bot, bot.schema.getWeaponsForCraftingByClass('Spy') as string[], currencies)
     ]);
 }
 

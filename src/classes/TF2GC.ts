@@ -4,7 +4,6 @@
 
 import Bot from './Bot';
 import log from '../lib/logger';
-import { craftAll } from '../lib/data';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
@@ -50,9 +49,9 @@ export default class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!craftAll.includes(sku)) {
-            return;
-        }
+        const craftAll = this.bot.schema.getCraftableWeaponsForTrading();
+
+        if (!craftAll.includes(sku)) return;
 
         log.debug('Enqueueing combine weapon job for ' + sku);
 
@@ -60,10 +59,10 @@ export default class TF2GC {
     }
 
     combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
+        const craftAll = this.bot.schema.getCraftableWeaponsForTrading();
+
         skus.forEach(sku => {
-            if (!craftAll.includes(sku)) {
-                return;
-            }
+            if (!craftAll.includes(sku)) return;
         });
 
         log.debug('Enqueueing combine class weapon job for ' + skus.join(', '));

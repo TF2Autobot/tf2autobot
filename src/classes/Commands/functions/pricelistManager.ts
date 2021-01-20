@@ -13,7 +13,6 @@ import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
-import { craftAll, uncraftAll } from '../../../lib/data';
 
 // Pricelist manager
 
@@ -192,8 +191,8 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
 
     const weapons = bot.handler.isWeaponsAsCurrency.enable
         ? bot.handler.isWeaponsAsCurrency.withUncraft
-            ? craftAll.concat(uncraftAll)
-            : craftAll
+            ? bot.schema.getCraftableWeaponsForTrading().concat(bot.schema.getUncraftableWeaponsForTrading())
+            : bot.schema.getCraftableWeaponsForTrading()
         : [];
     const combine = ['5021;6', '5000;6', '5001;6', '5002;6'].concat(weapons);
 

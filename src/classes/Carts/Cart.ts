@@ -52,19 +52,28 @@ export default abstract class Cart {
 
     protected cancelReason: string | undefined;
 
-    constructor(partner: SteamID, bot: Bot);
+    protected craftAll: string[] = [];
 
-    constructor(partner: SteamID, token: string, bot: Bot);
+    protected uncraftAll: string[] = [];
+
+    constructor(partner: SteamID, bot: Bot, craftAll: string[], uncraftAll: string[]);
+
+    constructor(partner: SteamID, token: string, bot: Bot, craftAll: string[], uncraftAll: string[]);
 
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     constructor(...args) {
         this.partner = args[0];
 
-        if (args.length === 2) this.bot = args[1];
-        else {
+        if (args.length === 4) {
+            this.bot = args[1];
+            this.craftAll = args[2];
+            this.uncraftAll = args[3];
+        } else {
             this.bot = args[2];
 
             this.setToken = args[1];
+            this.craftAll = args[3];
+            this.uncraftAll = args[4];
         }
     }
 

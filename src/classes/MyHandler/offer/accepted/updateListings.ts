@@ -4,7 +4,6 @@ import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
-import { craftAll, uncraftAll } from '../../../../lib/data';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 
 export default function updateListings(
@@ -16,8 +15,8 @@ export default function updateListings(
     const diff = offer.getDiff() || {};
     const weapons = bot.handler.isWeaponsAsCurrency.enable
         ? bot.handler.isWeaponsAsCurrency.withUncraft
-            ? craftAll.concat(uncraftAll)
-            : craftAll
+            ? bot.schema.getCraftableWeaponsForTrading().concat(bot.schema.getUncraftableWeaponsForTrading())
+            : bot.schema.getCraftableWeaponsForTrading()
         : [];
 
     for (const sku in diff) {

@@ -7,7 +7,7 @@ import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import log from '../../lib/logger';
-import { noiseMakers, craftAll, uncraftAll } from '../../lib/data';
+import { noiseMakers } from '../../lib/data';
 import { check, pure } from '../../lib/tools/export';
 
 export default class UserCart extends Cart {
@@ -149,7 +149,9 @@ export default class UserCart extends Cart {
         };
 
         if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.craftAll.concat(this.uncraftAll)
+                : this.craftAll;
 
             weapons.forEach(sku => {
                 currencyValues[sku] = 0.5;
@@ -281,7 +283,9 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
         if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.craftAll.concat(this.uncraftAll)
+                : this.craftAll;
 
             weapons.forEach(sku => {
                 addWeapons += ourDict[sku] !== undefined ? ourDict[sku] : 0;
@@ -317,7 +321,9 @@ export default class UserCart extends Cart {
 
         let addWeapons = 0;
         if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft ? craftAll.concat(uncraftAll) : craftAll;
+            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.craftAll.concat(this.uncraftAll)
+                : this.craftAll;
 
             weapons.forEach(sku => {
                 addWeapons += theirDict[sku] !== undefined ? theirDict[sku] : 0;
@@ -528,8 +534,8 @@ export default class UserCart extends Cart {
 
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? craftAll.concat(uncraftAll)
-                : craftAll
+                ? this.craftAll.concat(this.uncraftAll)
+                : this.craftAll
             : [];
 
         if (opt.weaponsAsCurrency.enable) {

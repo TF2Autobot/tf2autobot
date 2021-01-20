@@ -43,7 +43,7 @@ import log from '../../lib/logger';
 import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
-import { craftAll, uncraftAll, noiseMakers } from '../../lib/data';
+import { noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, check, uptime } from '../../lib/tools/export';
 
@@ -791,6 +791,9 @@ export default class MyHandler extends Handler {
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
         let hasInvalidItemsOur = false;
+
+        const craftAll = this.bot.schema.getCraftableWeaponsForTrading();
+        const uncraftAll = this.bot.schema.getUncraftableWeaponsForTrading();
 
         const itemsDiff = offer.getDiff();
         for (let i = 0; i < states.length; i++) {

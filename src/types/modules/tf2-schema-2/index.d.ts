@@ -182,6 +182,17 @@ declare module 'tf2-schema-2' {
             [name: string]: string;
         }
 
+        export type CharacterClasses =
+            | 'Scout'
+            | 'Soldier'
+            | 'Pyro'
+            | 'Demoman'
+            | 'Heavy'
+            | 'Engineer'
+            | 'Medic'
+            | 'Sniper'
+            | 'Spy';
+
         export class Schema {
             static getOverview(apiKey: string, callback: (err: any, result?: Record<string, unknown>) => void): void;
 
@@ -244,6 +255,14 @@ declare module 'tf2-schema-2' {
             getStrangeParts(): StrangeParts;
 
             getPaintableItemDefindexes(): number[];
+
+            getCraftableWeaponsSchema(): SchemaItem[];
+
+            getWeaponsForCraftingByClass(charClass: CharacterClasses): string[] | Error;
+
+            getCraftableWeaponsForTrading(): string[];
+
+            getUncraftableWeaponsForTrading(): string[];
 
             toJSON(): { version: string; time: number; raw: Record<string, any> };
         }

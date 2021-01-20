@@ -3,7 +3,6 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
-import { craftAll, uncraftAll } from '../../../lib/data';
 import { pure, timeNow, uptime } from '../../../lib/tools/export';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
@@ -178,7 +177,12 @@ export function weaponCommand(steamID: SteamID, bot: Bot, type: CraftUncraft): v
         }
     }
 
-    const weaponStock = getWeaponsStock(bot, type === 'craftweapon' ? craftAll : uncraftAll);
+    const weaponStock = getWeaponsStock(
+        bot,
+        type === 'craftweapon'
+            ? bot.schema.getCraftableWeaponsForTrading()
+            : bot.schema.getUncraftableWeaponsForTrading()
+    );
 
     let reply: string;
     if (weaponStock.length > 0) {

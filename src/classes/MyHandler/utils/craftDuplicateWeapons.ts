@@ -1,5 +1,4 @@
 import Bot from '../../Bot';
-import { craftAll } from '../../../lib/data';
 
 export default function craftDuplicateWeapons(bot: Bot): Promise<void> {
     return new Promise(resolve => {
@@ -7,6 +6,7 @@ export default function craftDuplicateWeapons(bot: Bot): Promise<void> {
             return resolve();
         }
         const currencies = bot.inventoryManager.getInventory.getCurrencies;
+        const craftAll = bot.schema.getCraftableWeaponsForTrading();
 
         for (const sku of craftAll) {
             const weapon = currencies[sku].length;
