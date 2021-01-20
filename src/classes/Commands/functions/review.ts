@@ -117,12 +117,24 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     bot.sendMessage(steamID, reply);
 }
 
-export async function accepttradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
+
+export async function actionOnTradeCommand(
+    steamID: SteamID,
+    message: string,
+    bot: Bot,
+    command: ActionOnTrade
+): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
     const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
+    const isAccepting = ['accept', 'accepttrade'].includes(command);
+
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!accept 3957959294"');
+        return bot.sendMessage(
+            steamID,
+            `⚠️ Missing offer id. Example: "!${isAccepting ? 'accept' : 'decline'} 3957959294"`
+        );
     }
 
     const offerId = offerIdRegex[0];
@@ -135,35 +147,42 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-    if (offerData?.action.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
+    if (offerData?.action?.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
 
     try {
         const offer = await bot.trades.getOffer(offerId);
-        bot.sendMessage(steamID, 'Accepting offer...');
+        bot.sendMessage(steamID, `${isAccepting ? 'Accepting' : 'Declining'} offer...`);
 
         const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
         const reply = offerIdAndMessage.substr(offerId.length);
         const adminDetails = bot.friends.getFriend(steamID);
 
-        const reviewMeta = (offer.data('action') as Action).meta;
-
         try {
-            await bot.trades.applyActionToOffer('accept', 'MANUAL', reviewMeta, offer);
-            const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+            await bot.trades.applyActionToOffer(
+                isAccepting ? 'accept' : 'decline',
+                'MANUAL',
+                isAccepting ? (offer.data('action') as Action).meta : {},
+                offer
+            );
 
-            if (isManyItems) {
-                bot.sendMessage(
-                    offer.partner,
-                    '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                        ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                );
-            } else {
-                bot.sendMessage(
-                    offer.partner,
-                    '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
-                        ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                );
+            if (isAccepting) {
+                const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
+
+                if (isManyItems) {
+                    bot.sendMessage(
+                        offer.partner,
+                        '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                    );
+                } else {
+                    bot.sendMessage(
+                        offer.partner,
+                        '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
+                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                    );
+                }
             }
+
             // Send message to recipient if includes some messages
             if (reply) {
                 bot.sendMessage(
@@ -174,63 +193,17 @@ export async function accepttradeCommand(steamID: SteamID, message: string, bot:
         } catch (err) {
             return bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${JSON.stringify(err)}`
+                `❌ Ohh nooooes! Something went wrong while trying to ${
+                    isAccepting ? 'accept' : 'decline'
+                } the offer: ${JSON.stringify(err)}`
             );
         }
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to accept the offer: ${JSON.stringify(err)}`
-        );
-    }
-}
-
-export async function declinetradeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
-    const offerIdAndMessage = CommandParser.removeCommand(message);
-    const offerIdRegex = /\d+/.exec(offerIdAndMessage);
-
-    if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!decline 3957959294"');
-    }
-
-    const offerId = offerIdRegex[0];
-    const state = bot.manager.pollData.received[offerId];
-    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
-
-    if (state !== TradeOfferManager.ETradeOfferState['Active']) {
-        // TODO: Add what the offer is now, accepted / declined and why
-        return bot.sendMessage(steamID, 'Offer is not active. ❌');
-    }
-
-    const offerData = bot.manager.pollData.offerData[offerId];
-    if (offerData?.action.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
-
-    try {
-        const offer = await bot.trades.getOffer(offerId);
-        bot.sendMessage(steamID, 'Declining offer...');
-
-        const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
-        const reply = offerIdAndMessage.substr(offerId.length);
-        const adminDetails = bot.friends.getFriend(steamID);
-
-        try {
-            await bot.trades.applyActionToOffer('decline', 'MANUAL', {}, offer);
-            if (reply) {
-                bot.sendMessage(
-                    partnerId,
-                    `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
-                );
-            }
-        } catch (err) {
-            return bot.sendMessage(
-                steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${JSON.stringify(err)}`
-            );
-        }
-    } catch (err) {
-        return bot.sendMessage(
-            steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to decline the offer: ${JSON.stringify(err)}`
+            `❌ Ohh nooooes! Something went wrong while trying to ${
+                isAccepting ? 'accept' : 'decline'
+            } the offer: ${JSON.stringify(err)}`
         );
     }
 }

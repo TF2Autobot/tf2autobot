@@ -25,6 +25,7 @@ type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type BlockUnblock = 'block' | 'unblock';
 type NameAvatar = 'name' | 'avatar';
 type TF2GC = 'expand' | 'use' | 'delete';
+type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
 
 export default class Commands {
     private readonly bot: Bot;
@@ -125,10 +126,8 @@ export default class Commands {
             c.review.tradesCommand(steamID, this.bot);
         } else if (command === 'trade' && isAdmin) {
             c.review.tradeCommand(steamID, message, this.bot);
-        } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
-            void c.review.accepttradeCommand(steamID, message, this.bot);
-        } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
-            void c.review.declinetradeCommand(steamID, message, this.bot);
+        } else if (['accepttrade', 'accept', 'declinetrade', 'decline'].includes(command) && isAdmin) {
+            void c.review.actionOnTradeCommand(steamID, message, this.bot, command as ActionOnTrade);
         } else if (command === 'pricecheck' && isAdmin) {
             c.request.pricecheckCommand(steamID, message, this.bot);
         } else if (command === 'pricecheckall' && isAdmin) {
