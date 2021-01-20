@@ -107,7 +107,7 @@ export default function updateListings(
         } else if (
             inPrice !== null &&
             highValue.isDisableSKU.includes(sku) &&
-            (opt.normalize.painted === false
+            (opt.normalize.painted.our === false
                 ? !highValue.theirItems.some(
                       str =>
                           str.includes(name) &&

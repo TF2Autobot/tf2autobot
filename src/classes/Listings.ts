@@ -463,7 +463,7 @@ export default class Listings {
                                     ? optD.showKillstreaker
                                     : attachment === 'ks'
                                     ? optD.showSheen
-                                    : optD.showPainted && opt.normalize.painted)
+                                    : optD.showPainted && opt.normalize.painted.our)
                             ) {
                                 if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
                                 else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';

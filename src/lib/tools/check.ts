@@ -171,7 +171,7 @@ export function getHighValueItems(
 
         let toString = '';
 
-        const normalizePaint = bot.options.normalize.painted;
+        const normalizePaint = bot.options.normalize.painted.our || bot.options.normalize.painted.their;
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
