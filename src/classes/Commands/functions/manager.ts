@@ -64,23 +64,13 @@ export function TF2GCCommand(steamID: SteamID, message: string, bot: Bot, comman
                     );
                 }
 
-                if (command === 'use') {
-                    return bot.tf2gc.useItem(targetedAssetId, err => {
-                        if (err) {
-                            log.warn(`Error trying to use ${targetedAssetId}: `, err);
-                            return bot.sendMessage(steamID, `❌ Failed to use ${targetedAssetId}: ${err.message}`);
-                        }
-                        bot.sendMessage(steamID, `✅ Used ${targetedAssetId}!`);
-                    });
-                } else {
-                    return bot.tf2gc.deleteItem(targetedAssetId, err => {
-                        if (err) {
-                            log.warn(`Error trying to delete ${targetedAssetId}: `, err);
-                            return bot.sendMessage(steamID, `❌ Failed to delete ${targetedAssetId}: ${err.message}`);
-                        }
-                        bot.sendMessage(steamID, `✅ Deleted ${targetedAssetId}!`);
-                    });
-                }
+                return bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
+                    if (err) {
+                        log.warn(`Error trying to ${command} ${targetedAssetId}: `, err);
+                        return bot.sendMessage(steamID, `❌ Failed to ${command} ${targetedAssetId}: ${err.message}`);
+                    }
+                    bot.sendMessage(steamID, `✅ Used ${targetedAssetId}!`);
+                });
             } else {
                 const name = bot.schema.getName(SKU.fromString(sku), false);
 
@@ -93,29 +83,20 @@ export function TF2GCCommand(steamID: SteamID, message: string, bot: Bot, comman
                     );
                 }
 
-                if (command === 'use') {
-                    return bot.tf2gc.useItem(targetedAssetId, err => {
-                        if (err) {
-                            log.warn(`Error trying to use ${name}: `, err);
-                            return bot.sendMessage(
-                                steamID,
-                                `❌ Failed to use ${name} (${targetedAssetId}): ${err.message}`
-                            );
-                        }
-                        bot.sendMessage(steamID, `✅ Used ${name} (${targetedAssetId})!`);
-                    });
-                } else {
-                    return bot.tf2gc.deleteItem(targetedAssetId, err => {
-                        if (err) {
-                            log.warn(`Error trying to delete ${name}: `, err);
-                            return bot.sendMessage(
-                                steamID,
-                                `❌ Failed to delete ${name} (${targetedAssetId}): ${err.message}`
-                            );
-                        }
-                        bot.sendMessage(steamID, `✅ Deleted ${name} (${targetedAssetId})!`);
-                    });
-                }
+                bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
+                    if (err) {
+                        log.warn(`Error trying to ${command} ${name}: `, err);
+                        return bot.sendMessage(
+                            steamID,
+                            `❌ Failed to ${command} ${name} (${targetedAssetId}): ${err.message}`
+                        );
+                    }
+
+                    bot.sendMessage(
+                        steamID,
+                        `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${name} (${targetedAssetId})!`
+                    );
+                });
             }
         }
 
@@ -209,25 +190,14 @@ export function TF2GCCommand(steamID: SteamID, message: string, bot: Bot, comman
             );
         }
 
-        if (command === 'use') {
-            bot.tf2gc.useItem(assetid, err => {
-                if (err) {
-                    log.warn(`Error trying to use ${name}: `, err);
-                    return bot.sendMessage(steamID, `❌ Failed to use ${name}(${assetid}): ${err.message}`);
-                }
+        bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](assetid, err => {
+            if (err) {
+                log.warn(`Error trying to ${command} ${name}: `, err);
+                return bot.sendMessage(steamID, `❌ Failed to ${command} ${name} (${assetid}): ${err.message}`);
+            }
 
-                bot.sendMessage(steamID, `✅ Used ${name}(${assetid})!`);
-            });
-        } else {
-            bot.tf2gc.deleteItem(assetid, err => {
-                if (err) {
-                    log.warn(`Error trying to delete ${name}: `, err);
-                    return bot.sendMessage(steamID, `❌ Failed to delete ${name}(${assetid}): ${err.message}`);
-                }
-
-                bot.sendMessage(steamID, `✅ Deleted ${name}(${assetid})!`);
-            });
-        }
+            bot.sendMessage(steamID, `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${name} (${assetid})!`);
+        });
     }
 }
 
@@ -292,29 +262,19 @@ export function blockUnblockCommand(steamID: SteamID, message: string, bot: Bot,
         return bot.sendMessage(steamID, `❌ SteamID is not valid. Example: "!${command} 76561198798404909"`);
     }
 
-    if (command === 'block') {
-        bot.client.blockUser(targetSteamID64, err => {
-            if (err) {
-                log.warn(`Failed to block user ${targetSteamID64.getSteamID64()}: `, err);
-                return bot.sendMessage(
-                    steamID,
-                    `❌ Failed to block user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
-            }
-            bot.sendMessage(steamID, `✅ Successfully blocked user ${targetSteamID64.getSteamID64()}`);
-        });
-    } else {
-        bot.client.unblockUser(targetSteamID64, err => {
-            if (err) {
-                log.warn(`Failed to unblock user ${targetSteamID64.getSteamID64()}: `, err);
-                return bot.sendMessage(
-                    steamID,
-                    `❌ Failed to unblock user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
-            }
-            bot.sendMessage(steamID, `✅ Successfully unblocked user ${targetSteamID64.getSteamID64()}`);
-        });
-    }
+    bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID64, err => {
+        if (err) {
+            log.warn(`Failed to ${command} user ${targetSteamID64.getSteamID64()}: `, err);
+            return bot.sendMessage(
+                steamID,
+                `❌ Failed to ${command} user ${targetSteamID64.getSteamID64()}: ${err.message}`
+            );
+        }
+        bot.sendMessage(
+            steamID,
+            `✅ Successfully ${command === 'block' ? 'blocked' : 'unblocked'} user ${targetSteamID64.getSteamID64()}`
+        );
+    });
 }
 
 export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {

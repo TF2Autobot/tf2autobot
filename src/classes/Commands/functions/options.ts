@@ -127,8 +127,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             else return log.info(msg);
         })
         .catch(err => {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            const msg = `❌ Error saving options file to disk: ${err}`;
+            const msg = `❌ Error saving options file to disk: ${JSON.stringify(err)}`;
             if (steamID) bot.sendMessage(steamID, msg);
             else log.error(msg);
             return;
