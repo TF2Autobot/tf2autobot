@@ -208,6 +208,7 @@ export default class BotManager {
             // Stop updating schema
             clearTimeout(this.schemaManager._updateTimeout);
             clearInterval(this.schemaManager._updateInterval);
+            clearInterval(this.bot.updateSchemaPropertiesInterval);
 
             // Stop heartbeat and inventory timers
             clearInterval(this.bot.listingManager._heartbeatInterval);

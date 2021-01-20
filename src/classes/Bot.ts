@@ -88,6 +88,8 @@ export default class Bot {
         spy: Array<string>;
     };
 
+    public updateSchemaPropertiesInterval: NodeJS.Timeout;
+
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
 
@@ -433,22 +435,8 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
-                            this.effects = this.schema.getUnusualEffects();
-                            this.paints = this.schema.getPaints();
-                            this.strangeParts = this.schema.getStrangeParts();
-                            this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
-                            this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
-                            this.craftWeaponsByClass = {
-                                scout: this.schema.getWeaponsForCraftingByClass('Scout'),
-                                soldier: this.schema.getWeaponsForCraftingByClass('Soldier'),
-                                pyro: this.schema.getWeaponsForCraftingByClass('Pyro'),
-                                demoman: this.schema.getWeaponsForCraftingByClass('Demoman'),
-                                heavy: this.schema.getWeaponsForCraftingByClass('Heavy'),
-                                engineer: this.schema.getWeaponsForCraftingByClass('Engineer'),
-                                medic: this.schema.getWeaponsForCraftingByClass('Medic'),
-                                sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
-                                spy: this.schema.getWeaponsForCraftingByClass('Spy')
-                            };
+                            this.setProperties();
+                            this.startHourlyUpdateProperties();
 
                             // We now know our SteamID, but we still don't have our Steam API key
                             this.inventoryManager.setInventory = new Inventory(
@@ -562,6 +550,32 @@ export default class Bot {
                 }
             );
         });
+    }
+
+    private setProperties(): void {
+        this.effects = this.schema.getUnusualEffects();
+        this.paints = this.schema.getPaints();
+        this.strangeParts = this.schema.getStrangeParts();
+        this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
+        this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
+        this.craftWeaponsByClass = {
+            scout: this.schema.getWeaponsForCraftingByClass('Scout'),
+            soldier: this.schema.getWeaponsForCraftingByClass('Soldier'),
+            pyro: this.schema.getWeaponsForCraftingByClass('Pyro'),
+            demoman: this.schema.getWeaponsForCraftingByClass('Demoman'),
+            heavy: this.schema.getWeaponsForCraftingByClass('Heavy'),
+            engineer: this.schema.getWeaponsForCraftingByClass('Engineer'),
+            medic: this.schema.getWeaponsForCraftingByClass('Medic'),
+            sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
+            spy: this.schema.getWeaponsForCraftingByClass('Spy')
+        };
+    }
+
+    private startHourlyUpdateProperties(): void {
+        clearInterval(this.updateSchemaPropertiesInterval);
+        this.updateSchemaPropertiesInterval = setInterval(() => {
+            this.setProperties();
+        }, 1 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {
