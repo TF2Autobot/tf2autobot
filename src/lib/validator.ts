@@ -10,7 +10,7 @@ v.addSchema(pl.pricelistSchema);
 v.addSchema(pl.addSchema);
 v.addSchema(pl.listingSchema);
 
-import { stringArrayURLSchema } from '../schemas/options-json/array-string';
+import { stringArrayURLSchema } from '../schemas/options-json/array-string-url';
 v.addSchema(stringArrayURLSchema);
 
 import { optionsSchema } from '../schemas/options-json/options';

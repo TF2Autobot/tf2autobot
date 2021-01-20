@@ -3,8 +3,8 @@ import jsonschema from 'jsonschema';
 export const optionsSchema: jsonschema.Schema = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     type: 'object',
-    properties: {
-        showOnlyMetal: {
+    definitions: {
+        'only-enable': {
             type: 'object',
             properties: {
                 enable: {
@@ -13,125 +13,337 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['enable']
         },
-        sortInventory: {
+        'only-allow': {
+            type: 'object',
+            properties: {
+                allow: {
+                    type: 'boolean'
+                }
+            },
+            required: ['allow']
+        },
+        'only-enable-declineReply': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    properties: {
+                        declineReply: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['declineReply']
+                }
+            ]
+        },
+        'only-autoAcceptOverpay-autoDecline': {
+            type: 'object',
+            properties: {
+                autoAcceptOverpay: {
+                    type: 'boolean'
+                },
+                autoDecline: {
+                    $ref: '#/definitions/only-enable-declineReply'
+                }
+            }
+        },
+        'only-ignore-failed': {
+            type: 'object',
+            properties: {
+                ignoreFailed: {
+                    type: 'boolean'
+                }
+            }
+        },
+        'only-note': {
+            type: 'object',
+            properties: {
+                note: {
+                    type: 'string'
+                }
+            },
+            required: ['note']
+        },
+        'discord-webhook-misc': {
+            type: 'object',
+            properties: {
+                showQuickLinks: {
+                    type: 'boolean'
+                },
+                showKeyRate: {
+                    type: 'boolean'
+                },
+                showPureStock: {
+                    type: 'boolean'
+                },
+                showInventory: {
+                    type: 'boolean'
+                }
+            },
+            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory']
+        },
+        'discord-webhook-enable-url': {
             type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
                 },
-                type: {
-                    anyOf: [
-                        {
-                            // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
-                            minimum: 1,
-                            maximum: 5
-                        },
-                        {
-                            const: 101 // by class
-                        },
-                        {
-                            const: 102 // by slot
-                        }
-                    ]
+                url: {
+                    type: 'string',
+                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
                 }
             },
+            required: ['enable', 'url']
+        },
+        'only-reply': {
+            type: 'object',
+            properties: {
+                reply: {
+                    type: 'string'
+                }
+            },
+            required: ['reply']
+        },
+        'only-customReply-reply': {
+            type: 'object',
+            properties: {
+                customReply: {
+                    $ref: '#/definitions/only-reply'
+                }
+            },
+            required: ['customReply']
+        },
+        'only-disabled': {
+            type: 'object',
+            properties: {
+                disabled: {
+                    type: 'string'
+                }
+            },
+            required: ['disabled']
+        },
+        'only-customReply-disabled': {
+            type: 'object',
+            properties: {
+                customReply: {
+                    $ref: '#/definitions/only-disabled'
+                }
+            },
+            required: ['customReply']
+        },
+        'only-enable-customReply-disabled': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    $ref: '#/definitions/only-customReply-disabled'
+                }
+            ]
+        },
+        'only-disabled-disabledForSKU': {
+            type: 'object',
+            properties: {
+                disabled: {
+                    type: 'string'
+                },
+                disabledForSKU: {
+                    type: 'string'
+                }
+            },
+            required: ['disabled', 'disabledForSKU']
+        },
+        'only-customReply-disabled-disabledForSKU': {
+            type: 'object',
+            properties: {
+                customReply: {
+                    $ref: '#/definitions/only-disabled-disabledForSKU'
+                }
+            },
+            required: ['customReply']
+        },
+        'cmd-buy-sell': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    $ref: '#/definitions/only-customReply-disabled-disabledForSKU'
+                }
+            ]
+        },
+        'disabled-reply': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-reply'
+                },
+                {
+                    $ref: '#/definitions/only-disabled'
+                }
+            ]
+        },
+        'customReply-disabled-reply': {
+            type: 'object',
+            properties: {
+                customReply: {
+                    $ref: '#/definitions/disabled-reply'
+                }
+            }
+        },
+        'only-enabled-disabled-reply': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    $ref: '#/definitions/customReply-disabled-reply'
+                }
+            ]
+        },
+        'cmd-weapons': {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    type: 'object',
+                    properties: {
+                        customReply: {
+                            type: 'object',
+                            properties: {
+                                disabled: {
+                                    type: 'string'
+                                },
+                                dontHave: {
+                                    type: 'string'
+                                },
+                                have: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['disabled', 'dontHave', 'have']
+                        }
+                    }
+                }
+            ]
+        },
+        'processing-accepting': {
+            type: 'object',
+            properties: {
+                donation: {
+                    type: 'string'
+                },
+                isBuyingPremium: {
+                    type: 'string'
+                },
+                offer: {
+                    type: 'string'
+                }
+            },
+            required: ['donation', 'isBuyingPremium', 'offer']
+        }
+    },
+    properties: {
+        showOnlyMetal: {
+            $ref: '#/definitions/only-enable'
+        },
+        sortInventory: {
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
+                },
+                {
+                    properties: {
+                        type: {
+                            anyOf: [
+                                {
+                                    // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+                                    minimum: 1,
+                                    maximum: 5
+                                },
+                                {
+                                    const: 101 // by class
+                                },
+                                {
+                                    const: 102 // by slot
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
             required: ['enable', 'type']
         },
         createListings: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                }
-            },
+            $ref: '#/definitions/only-enable',
             required: ['enable']
         },
         sendAlert: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
                 },
-                autokeys: {
-                    type: 'object',
+                {
                     properties: {
-                        lowPure: {
+                        autokeys: {
+                            type: 'object',
+                            properties: {
+                                lowPure: {
+                                    type: 'boolean'
+                                },
+                                failedToAdd: {
+                                    type: 'boolean'
+                                },
+                                failedToUpdate: {
+                                    type: 'boolean'
+                                },
+                                failedToDisable: {
+                                    type: 'boolean'
+                                }
+                            },
+                            required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable']
+                        },
+                        backpackFull: {
                             type: 'boolean'
                         },
-                        failedToAdd: {
-                            type: 'boolean'
+                        highValue: {
+                            type: 'object',
+                            properties: {
+                                gotDisabled: {
+                                    type: 'boolean'
+                                },
+                                receivedNotInPricelist: {
+                                    type: 'boolean'
+                                },
+                                tryingToTake: {
+                                    type: 'boolean'
+                                }
+                            },
+                            required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake']
                         },
-                        failedToUpdate: {
-                            type: 'boolean'
-                        },
-                        failedToDisable: {
+                        autoRemoveIntentSellFailed: {
                             type: 'boolean'
                         }
                     },
-                    required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable']
-                },
-                backpackFull: {
-                    type: 'boolean'
-                },
-                highValue: {
-                    type: 'object',
-                    properties: {
-                        gotDisabled: {
-                            type: 'boolean'
-                        },
-                        receivedNotInPricelist: {
-                            type: 'boolean'
-                        },
-                        tryingToTake: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake']
-                },
-                autoRemoveIntentSellFailed: {
-                    type: 'boolean'
+                    required: ['autokeys', 'backpackFull', 'highValue', 'autoRemoveIntentSellFailed']
                 }
-            },
-            required: ['enable', 'autokeys', 'backpackFull', 'highValue', 'autoRemoveIntentSellFailed']
+            ]
         },
         addFriends: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                }
-            },
-            required: ['enable']
+            $ref: '#/definitions/only-enable'
         },
         sendGroupInvite: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                }
-            },
-            required: ['enable']
+            $ref: '#/definitions/only-enable'
         },
         pricelist: {
             type: 'object',
             properties: {
                 autoRemoveIntentSell: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['enable']
+                    $ref: '#/definitions/only-enable'
                 },
                 autoAddInvalidItems: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['enable']
+                    $ref: '#/definitions/only-enable'
                 },
                 priceAge: {
                     type: 'object',
@@ -150,73 +362,40 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 escrow: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow']
+                    $ref: '#/definitions/only-allow'
                 },
                 overpay: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow']
+                    $ref: '#/definitions/only-allow'
                 },
                 giftWithoutMessage: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow']
+                    $ref: '#/definitions/only-allow'
                 },
                 bannedPeople: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow']
+                    $ref: '#/definitions/only-allow'
                 }
             },
             required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople']
         },
         autobump: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                }
-            },
-            required: ['enable']
+            $ref: '#/definitions/only-enable'
         },
         skipItemsInTrade: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                }
-            },
-            required: ['enable']
+            $ref: '#/definitions/only-enable'
         },
         weaponsAsCurrency: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
                 },
-                withUncraft: {
-                    type: 'boolean'
+                {
+                    properties: {
+                        withUncraft: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['withUncraft']
                 }
-            },
-            required: ['enable', 'withUncraft']
+            ]
         },
         tradeSummary: {
             type: 'object',
@@ -388,94 +567,82 @@ export const optionsSchema: jsonschema.Schema = {
             ]
         },
         autokeys: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
+            allOf: [
+                {
+                    $ref: '#/definitions/only-enable'
                 },
-                minKeys: {
-                    type: 'integer'
-                },
-                maxKeys: {
-                    $schema: '#/definitions/nonNegativeInteger'
-                },
-                minRefined: {
-                    type: 'number'
-                },
-                maxRefined: {
-                    type: 'number'
-                },
-                banking: {
-                    type: 'object',
+                {
                     properties: {
-                        enable: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['enable']
-                },
-                scrapAdjustment: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                        minKeys: {
+                            type: 'integer'
                         },
-                        value: {
-                            $schema: '#/definitions/nonNegativeIntegerDefault0'
+                        maxKeys: {
+                            $schema: '#/definitions/nonNegativeInteger'
+                        },
+                        minRefined: {
+                            type: 'number'
+                        },
+                        maxRefined: {
+                            type: 'number'
+                        },
+                        banking: {
+                            $ref: '#/definitions/only-enable'
+                        },
+                        scrapAdjustment: {
+                            allOf: [
+                                {
+                                    $ref: '#/definitions/only-enable'
+                                },
+                                {
+                                    properties: {
+                                        value: {
+                                            $schema: '#/definitions/nonNegativeIntegerDefault0'
+                                        }
+                                    },
+                                    required: ['value']
+                                }
+                            ]
+                        },
+                        accept: {
+                            type: 'object',
+                            properties: {
+                                understock: {
+                                    type: 'boolean'
+                                }
+                            },
+                            required: ['understock']
                         }
                     },
-                    required: ['enable', 'value']
-                },
-                accept: {
-                    type: 'object',
-                    properties: {
-                        understock: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['understock']
+                    required: ['minKeys', 'maxKeys', 'minRefined', 'maxRefined', 'banking', 'scrapAdjustment', 'accept']
                 }
-            },
-            required: [
-                'enable',
-                'minKeys',
-                'maxKeys',
-                'minRefined',
-                'maxRefined',
-                'banking',
-                'scrapAdjustment',
-                'accept'
             ]
         },
         crafting: {
             type: 'object',
             properties: {
                 weapons: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['enable']
+                    $ref: '#/definitions/only-enable'
                 },
                 metals: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/only-enable'
                         },
-                        minScrap: {
-                            $schema: '#/definitions/nonNegativeInteger'
-                        },
-                        minRec: {
-                            $schema: '#/definitions/nonNegativeInteger'
-                        },
-                        threshold: {
-                            $schema: '#/definitions/nonNegativeInteger'
+                        {
+                            properties: {
+                                minScrap: {
+                                    $schema: '#/definitions/nonNegativeInteger'
+                                },
+                                minRec: {
+                                    $schema: '#/definitions/nonNegativeInteger'
+                                },
+                                threshold: {
+                                    $schema: '#/definitions/nonNegativeInteger'
+                                }
+                            },
+                            required: ['minScrap', 'minRec', 'threshold']
                         }
-                    },
-                    required: ['enable', 'minScrap', 'minRec', 'threshold']
+                    ]
                 }
             },
             required: ['weapons', 'metals']
@@ -487,16 +654,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         autoDecline: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['enable', 'declineReply']
+                            $ref: '#/definitions/only-enable-declineReply'
                         },
                         exceptionValue: {
                             type: 'object',
@@ -514,91 +672,28 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['autoDecline', 'exceptionValue']
                 },
                 invalidItems: {
-                    type: 'object',
-                    properties: {
-                        givePrice: {
-                            type: 'boolean'
-                        },
-                        autoAcceptOverpay: {
-                            type: 'boolean'
-                        },
-                        autoDecline: {
-                            type: 'object',
+                    allOf: [
+                        {
                             properties: {
-                                enable: {
+                                givePrice: {
                                     type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
                                 }
                             },
-                            required: ['enable', 'declineReply']
+                            required: ['givePrice']
+                        },
+                        {
+                            $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
                         }
-                    },
-                    required: ['givePrice', 'autoAcceptOverpay', 'autoDecline']
+                    ]
                 },
                 disabledItems: {
-                    type: 'object',
-                    properties: {
-                        autoAcceptOverpay: {
-                            type: 'boolean'
-                        },
-                        autoDecline: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['enable', 'declineReply']
-                        }
-                    },
-                    required: ['autoAcceptOverpay', 'autoDecline']
+                    $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
                 },
                 overstocked: {
-                    type: 'object',
-                    properties: {
-                        autoAcceptOverpay: {
-                            type: 'boolean'
-                        },
-                        autoDecline: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['enable', 'declineReply']
-                        }
-                    },
-                    required: ['autoAcceptOverpay', 'autoDecline']
+                    $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
                 },
                 understocked: {
-                    type: 'object',
-                    properties: {
-                        autoAcceptOverpay: {
-                            type: 'boolean'
-                        },
-                        autoDecline: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['enable', 'declineReply']
-                        }
-                    },
-                    required: ['autoAcceptOverpay', 'autoDecline']
+                    $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
                 },
                 duped: {
                     type: 'object',
@@ -610,37 +705,16 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'number'
                         },
                         autoDecline: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                declineReply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['enable', 'declineReply']
+                            $ref: '#/definitions/only-enable-declineReply'
                         }
                     },
                     required: ['enableCheck', 'minKeys', 'autoDecline']
                 },
                 escrowCheckFailed: {
-                    type: 'object',
-                    properties: {
-                        ignoreFailed: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['ignoreFailed']
+                    $ref: '#/definitions/only-ignore-failed'
                 },
                 bannedCheckFailed: {
-                    type: 'object',
-                    properties: {
-                        ignoreFailed: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['ignoreFailed']
+                    $ref: '#/definitions/only-ignore-failed'
                 }
             },
             required: [
@@ -673,85 +747,31 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 invalidValue: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 invalidItems: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 disabledItems: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 overstocked: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 understocked: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 duped: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 dupedCheckFailed: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 escrowCheckFailed: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 bannedCheckFailed: {
-                    type: 'object',
-                    properties: {
-                        note: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['note']
+                    $ref: '#/definitions/only-note'
                 },
                 additionalNotes: {
                     type: 'string'
@@ -794,141 +814,100 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/only-enable'
                         },
-                        url: {
-                            $ref: 'array-string-url'
+                        {
+                            properties: {
+                                url: {
+                                    $ref: 'array-string-url'
+                                },
+                                misc: {
+                                    allOf: [
+                                        {
+                                            $ref: '#/definitions/discord-webhook-misc'
+                                        },
+                                        {
+                                            $ref: '#/definitions/only-note'
+                                        }
+                                    ]
+                                }
+                            }
                         },
-                        misc: {
+                        {
                             type: 'object',
                             properties: {
-                                showQuickLinks: {
-                                    type: 'boolean'
-                                },
-                                showKeyRate: {
-                                    type: 'boolean'
-                                },
-                                showPureStock: {
-                                    type: 'boolean'
-                                },
-                                showInventory: {
-                                    type: 'boolean'
-                                },
-                                note: {
-                                    type: 'string'
+                                mentionOwner: {
+                                    allOf: [
+                                        {
+                                            $ref: '#/definitions/only-enable'
+                                        },
+                                        {
+                                            properties: {
+                                                itemSkus: {
+                                                    $schema: '#/definitions/stringArray'
+                                                }
+                                            },
+                                            required: ['itemSkus']
+                                        }
+                                    ]
                                 }
                             },
-                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory', 'note']
-                        },
-                        mentionOwner: {
-                            type: 'object',
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                itemSkus: {
-                                    $schema: '#/definitions/stringArray'
-                                }
-                            },
-                            required: ['enable', 'itemSkus']
+                            required: ['mentionOwner']
                         }
-                    },
-                    required: ['enable', 'url', 'misc', 'mentionOwner']
+                    ]
                 },
                 offerReview: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/discord-webhook-enable-url'
                         },
-                        url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
+                        {
+                            type: 'object',
+                            properties: {
+                                mentionInvalidValue: {
+                                    type: 'boolean'
+                                },
+                                misc: {
+                                    $ref: '#/definitions/discord-webhook-misc'
+                                }
+                            },
+                            required: ['mentionInvalidValue', 'misc']
+                        }
+                    ]
+                },
+                messages: {
+                    allOf: [
+                        {
+                            $ref: '#/definitions/discord-webhook-enable-url'
                         },
-                        mentionInvalidValue: {
-                            type: 'boolean'
-                        },
-                        misc: {
+                        {
                             type: 'object',
                             properties: {
                                 showQuickLinks: {
                                     type: 'boolean'
-                                },
-                                showKeyRate: {
-                                    type: 'boolean'
-                                },
-                                showPureStock: {
-                                    type: 'boolean'
-                                },
-                                showInventory: {
-                                    type: 'boolean'
                                 }
                             },
-                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory']
+                            required: ['showQuickLinks']
                         }
-                    },
-                    required: ['enable', 'url', 'mentionInvalidValue', 'misc']
-                },
-                messages: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
-                        },
-                        showQuickLinks: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['enable', 'url', 'showQuickLinks']
+                    ]
                 },
                 priceUpdate: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/discord-webhook-enable-url'
                         },
-                        url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
-                        },
-                        note: {
-                            type: 'string'
+                        {
+                            $ref: '#/definitions/only-note'
                         }
-                    },
-                    required: ['enable', 'url', 'note']
+                    ]
                 },
                 sendAlert: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
-                        }
-                    },
-                    required: ['enable', 'url']
+                    $ref: '#/definitions/discord-webhook-enable-url'
                 },
                 sendStats: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/[a-zA-Z0-9]+'
-                        }
-                    },
-                    required: ['enable', 'url']
+                    $ref: '#/definitions/discord-webhook-enable-url'
                 }
             },
             required: [
@@ -1057,133 +1036,22 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string'
                 },
                 how2trade: {
-                    type: 'object',
-                    properties: {
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['reply']
-                        }
-                    },
-                    required: ['customReply']
+                    $ref: '#/definitions/only-customReply-reply'
                 },
                 price: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enable-customReply-disabled'
                 },
                 buy: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        disableForSKU: {
-                            $schema: '#/definitions/stringArray'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                disabledForSKU: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'disabledForSKU']
-                        }
-                    },
-                    required: ['enable', 'disableForSKU', 'customReply']
+                    $ref: '#/definitions/cmd-buy-sell'
                 },
                 sell: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        disableForSKU: {
-                            $schema: '#/definitions/stringArray'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                disabledForSKU: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'disabledForSKU']
-                        }
-                    },
-                    required: ['enable', 'disableForSKU', 'customReply']
+                    $ref: '#/definitions/cmd-buy-sell'
                 },
                 buycart: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        disableForSKU: {
-                            $schema: '#/definitions/stringArray'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                disabledForSKU: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'disabledForSKU']
-                        }
-                    },
-                    required: ['enable', 'disableForSKU', 'customReply']
+                    $ref: '#/definitions/cmd-buy-sell'
                 },
                 sellcart: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        disableForSKU: {
-                            $schema: '#/definitions/stringArray'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                disabledForSKU: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'disabledForSKU']
-                        }
-                    },
-                    required: ['enable', 'disableForSKU', 'customReply']
+                    $ref: '#/definitions/cmd-buy-sell'
                 },
                 cart: {
                     type: 'object',
@@ -1207,19 +1075,7 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enable', 'customReply']
                 },
                 clearcart: {
-                    type: 'object',
-                    properties: {
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['reply']
-                        }
-                    },
-                    required: ['customReply']
+                    $ref: '#/definitions/only-customReply-reply'
                 },
                 checkout: {
                     type: 'object',
@@ -1255,34 +1111,10 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         },
                         processingOffer: {
-                            type: 'object',
-                            properties: {
-                                donation: {
-                                    type: 'string'
-                                },
-                                isBuyingPremium: {
-                                    type: 'string'
-                                },
-                                offer: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['donation', 'isBuyingPremium', 'offer']
+                            $ref: '#/definitions/processing-accepting'
                         },
                         hasBeenMadeAcceptingMobileConfirmation: {
-                            type: 'object',
-                            properties: {
-                                donation: {
-                                    type: 'string'
-                                },
-                                isBuyingPremium: {
-                                    type: 'string'
-                                },
-                                offer: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['donation', 'isBuyingPremium', 'offer']
+                            $ref: '#/definitions/processing-accepting'
                         }
                     },
                     required: [
@@ -1350,85 +1182,29 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['customReply']
                 },
                 owner: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'reply']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enable-customReply-disabled'
                 },
                 discord: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/only-enable-customReply-disabled'
                         },
-                        inviteURL: {
-                            type: 'string'
-                        },
-                        customReply: {
+                        {
                             type: 'object',
                             properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
+                                inviteURL: {
                                     type: 'string'
                                 }
                             },
-                            required: ['disabled', 'reply']
+                            required: ['inviteURL']
                         }
-                    },
-                    required: ['enable', 'inviteURL', 'customReply']
+                    ]
                 },
                 more: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enable-customReply-disabled'
                 },
                 autokeys: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enable-customReply-disabled'
                 },
                 message: {
                     type: 'object',
@@ -1458,160 +1234,38 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enable', 'customReply']
                 },
                 time: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'reply']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 uptime: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'reply']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 pure: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'reply']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 rate: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'reply']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 stock: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/only-enabled-disabled-reply'
                         },
-                        maximumItems: {
-                            type: 'integer'
-                        },
-                        customReply: {
+                        {
                             type: 'object',
                             properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                reply: {
-                                    type: 'string'
+                                maximumItems: {
+                                    type: 'integer'
                                 }
                             },
-                            required: ['disabled', 'reply']
+                            required: ['maximumItems']
                         }
-                    },
-                    required: ['enable', 'maximumItems', 'customReply']
+                    ]
                 },
                 craftweapon: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                dontHave: {
-                                    type: 'string'
-                                },
-                                have: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'dontHave', 'have']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/cmd-weapons'
                 },
                 uncraftweapon: {
-                    type: 'object',
-                    properties: {
-                        enable: {
-                            type: 'boolean'
-                        },
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                dontHave: {
-                                    type: 'string'
-                                },
-                                have: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'dontHave', 'have']
-                        }
-                    },
-                    required: ['enable', 'customReply']
+                    $ref: '#/definitions/cmd-weapons'
                 }
             },
             required: [
