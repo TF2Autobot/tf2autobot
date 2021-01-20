@@ -194,11 +194,11 @@ function getElevatedQuality(
     normalizeStrangeAsSecondQuality: boolean
 ): number | null {
     const isNotNormalized = !normalizeStrangeAsSecondQuality;
-    const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
+    const quality = getQuality(item, schema);
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (((item.getTag('Type') === 'Cosmetic' && effects.length === 1) ||
-            (item.type.startsWith('Strange') && getQuality(item, schema) !== 11)) &&
+        (((item.getTag('Type') === 'Cosmetic' && quality === 5) ||
+            (item.type.startsWith('Strange') && quality !== 11)) &&
             isNotNormalized)
     ) {
         return 11;
