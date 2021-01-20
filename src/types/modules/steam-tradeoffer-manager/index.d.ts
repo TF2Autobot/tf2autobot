@@ -372,7 +372,7 @@ declare module 'steam-tradeoffer-manager' {
             getSKU(
                 schema: SchemaManager.Schema,
                 normalizeFestivizedItems: boolean,
-                normalizeStrangeUnusual: boolean,
+                normalizeStrangeAsSecondQuality: boolean,
                 normalizePainted: boolean
             ): string | null;
         }

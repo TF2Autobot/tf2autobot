@@ -683,7 +683,12 @@ export default class MyHandler extends Handler {
 
         const checkExist = this.bot.pricelist;
         const offerSKUs = offer.itemsToReceive.map(item =>
-            item.getSKU(this.bot.schema, opt.normalize.festivized, opt.normalize.strangeUnusual, opt.normalize.painted)
+            item.getSKU(
+                this.bot.schema,
+                opt.normalize.festivized,
+                opt.normalize.strangeAsSecondQuality,
+                opt.normalize.painted
+            )
         );
 
         if (opt.checkUses.duel && offerSKUs.includes('241;6')) {

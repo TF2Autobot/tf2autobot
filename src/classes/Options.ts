@@ -289,7 +289,7 @@ export const DEFAULTS = {
          * (items whose SKU doesn't end with ;strange). Otherwise, the bot will determine each item's price by its specific name, quality,
          * and unique identifiers.
          */
-        strangeUnusual: false,
+        strangeAsSecondQuality: false,
         /**
          * If set to false, all painted items must be individually and manually priced by your own
          */
@@ -1864,7 +1864,7 @@ export interface Game {
 
 export interface Normalize {
     festivized?: boolean;
-    strangeUnusual?: boolean;
+    strangeAsSecondQuality?: boolean;
     painted?: boolean;
 }
 

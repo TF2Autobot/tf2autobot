@@ -270,14 +270,13 @@ export const optionsSchema: jsonschema.Schema = {
                                 }
                             ]
                         }
-                    }
+                    },
+                    required: ['type']
                 }
-            ],
-            required: ['enable', 'type']
+            ]
         },
         createListings: {
-            $ref: '#/definitions/only-enable',
-            required: ['enable']
+            $ref: '#/definitions/only-enable'
         },
         sendAlert: {
             allOf: [
@@ -466,14 +465,14 @@ export const optionsSchema: jsonschema.Schema = {
                 festivized: {
                     type: 'boolean'
                 },
-                strangeUnusual: {
+                strangeAsSecondQuality: {
                     type: 'boolean'
                 },
                 painted: {
                     type: 'boolean'
                 }
             },
-            required: ['festivized', 'strangeUnusual', 'painted']
+            required: ['festivized', 'strangeAsSecondQuality', 'painted']
         },
         details: {
             type: 'object',

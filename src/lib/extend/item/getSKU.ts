@@ -13,7 +13,7 @@ let isCrate = false;
 export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
-    normalizeStrangeUnusual: boolean,
+    normalizeStrangeAsSecondQuality: boolean,
     normalizePainted: boolean
 ): string {
     const self = this as EconItem;
@@ -31,7 +31,7 @@ export = function (
             effect: getEffect(self, schema),
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self, normalizeStrangeUnusual),
+            quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
             paint: getPainted(self, schema, normalizePainted)
         },
@@ -183,10 +183,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
 /**
  * Gets the elevated quality of an item
  * @param item - Item object
- * @param normalizeStrangeUnusual - toggle strange unusual normalization
+ * @param normalizeStrangeAsSecondQuality - toggle strange unusual normalization
  */
-function getElevatedQuality(item: EconItem, normalizeStrangeUnusual: boolean): number | null {
-    const isNotNormalized = !normalizeStrangeUnusual;
+function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boolean): number | null {
+    const isNotNormalized = !normalizeStrangeAsSecondQuality;
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
     if (
         item.hasDescription('Strange Stat Clock Attached') ||

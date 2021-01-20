@@ -265,7 +265,7 @@ export default class Inventory {
             const sku = items[i].getSKU(
                 schema,
                 opt.normalize.festivized,
-                opt.normalize.strangeUnusual,
+                opt.normalize.strangeAsSecondQuality,
                 normalizePainted
             );
             const attributes = check.highValue(items[i], opt, schema.getPaints(), schema.getStrangeParts());
