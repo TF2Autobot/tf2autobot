@@ -46,7 +46,6 @@ export = function (
     }
 
     log.debug(`Before fix - ${SKU.fromObject(item).toString()}: `, {
-        econItem: self,
         item: item
     });
 
@@ -60,7 +59,6 @@ export = function (
     }
 
     log.debug(`After fix - ${SKU.fromObject(item).toString()}: `, {
-        econItem: self,
         item: item
     });
 
