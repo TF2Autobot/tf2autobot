@@ -64,7 +64,7 @@ test('Parsing Options', () => {
     // test loading booleans
     result = Options.loadOptions({
         steamAccountName: 'abc123',
-        normalize: { festivized: { our: true, their: false } }
+        normalize: { festivized: { our: false, their: false } }
     });
     expect(result.normalize.festivized.our).toBeFalsy();
     expect(result.normalize.festivized.their).toBeFalsy();
