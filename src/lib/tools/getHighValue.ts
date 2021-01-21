@@ -19,7 +19,8 @@ export default function getHighValueItems(
 
         let toString = '';
 
-        const normalizePaint = bot.options.normalize.painted.our || bot.options.normalize.painted.their;
+        const normalizePaint =
+            bot.options.normalize.painted.our === false && bot.options.normalize.painted.their === true;
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
