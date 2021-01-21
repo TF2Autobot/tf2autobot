@@ -51,13 +51,13 @@ export default function getHighValueItems(
                         if (items[sku][attachment as Attachment][pSKU] === true) {
                             toJoin.push(
                                 `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && normalizePaint ? ` (${sku};${pSKU})` : ''
+                                    attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                                 } 🌟`
                             );
                         } else {
                             toJoin.push(
                                 `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && normalizePaint ? ` (${sku};${pSKU})` : ''
+                                    attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                                 }`
                             );
                         }
