@@ -1824,5 +1824,6 @@ export const optionsSchema: jsonschema.Schema = {
         'customMessage',
         'commands',
         'detailsExtra'
-    ]
+    ],
+    additionalProperties: false
 };
