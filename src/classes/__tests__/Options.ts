@@ -30,7 +30,7 @@ test('Parsing Options', () => {
     expect(result.steamAccountName).toBe('abc123');
     expect(result.autokeys.minKeys).toBe(3);
     expect(result.normalize.festivized.our).toBeFalsy();
-    expect(result.normalize.festivized.their).toBeTruthy();
+    expect(result.normalize.festivized.their).toBeFalsy();
 
     // test loading a string variable
     process.env.STEAM_ACCOUNT_NAME = 'test123';
@@ -66,7 +66,7 @@ test('Parsing Options', () => {
         steamAccountName: 'abc123',
         normalize: { festivized: { our: true, their: false } }
     });
-    expect(result.normalize.festivized.our).toBeTruthy();
+    expect(result.normalize.festivized.our).toBeFalsy();
     expect(result.normalize.festivized.their).toBeFalsy();
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
 
