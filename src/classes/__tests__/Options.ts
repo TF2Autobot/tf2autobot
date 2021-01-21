@@ -141,3 +141,9 @@ test('malformed json in the files dir should crash', () => {
         )
     );
 });
+
+test('removes cli options', () => {
+    const testOptions = { steamAccountName: 'abc123' };
+    Options.removeCliOptions(testOptions);
+    expect(testOptions).toEqual({});
+});

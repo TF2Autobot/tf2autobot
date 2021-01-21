@@ -22,7 +22,8 @@ export const optionsSchema: jsonschema.Schema = {
                 their: {
                     type: 'boolean'
                 }
-            }
+            },
+            required: ['our', 'their']
         },
         'only-allow': {
             type: 'object',
@@ -57,7 +58,8 @@ export const optionsSchema: jsonschema.Schema = {
                 autoDecline: {
                     $ref: '#/definitions/only-enable-declineReply'
                 }
-            }
+            },
+            required: ['autoAcceptOverpay', 'autoDecline']
         },
         'only-ignore-failed': {
             type: 'object',
@@ -65,7 +67,8 @@ export const optionsSchema: jsonschema.Schema = {
                 ignoreFailed: {
                     type: 'boolean'
                 }
-            }
+            },
+            required: ['ignoreFailed']
         },
         'only-note': {
             type: 'object',
@@ -200,7 +203,8 @@ export const optionsSchema: jsonschema.Schema = {
                 customReply: {
                     $ref: '#/definitions/disabled-reply'
                 }
-            }
+            },
+            required: ['customReply']
         },
         'only-enabled-disabled-reply': {
             allOf: [
@@ -235,7 +239,8 @@ export const optionsSchema: jsonschema.Schema = {
                             },
                             required: ['disabled', 'dontHave', 'have']
                         }
-                    }
+                    },
+                    required: ['customReply']
                 }
             ]
         },
@@ -363,7 +368,8 @@ export const optionsSchema: jsonschema.Schema = {
                             minimum: 3600
                         }
                     },
-                    required: ['maxInSeconds']
+                    required: ['maxInSeconds'],
+                    additionalProperties: false
                 }
             },
             required: ['autoRemoveIntentSell', 'autoAddInvalidItems', 'priceAge']
@@ -384,7 +390,8 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-allow'
                 }
             },
-            required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople']
+            required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
+            additionalProperties: false
         },
         autobump: {
             $ref: '#/definitions/only-enable'
@@ -420,7 +427,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices']
+            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices'],
+            additionalProperties: false
         },
         highValue: {
             type: 'object',
@@ -443,7 +451,8 @@ export const optionsSchema: jsonschema.Schema = {
                     $schema: '#/definitions/stringArray'
                 }
             },
-            required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted']
+            required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            additionalProperties: false
         },
         checkUses: {
             type: 'object',
@@ -455,7 +464,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['duel', 'noiseMaker']
+            required: ['duel', 'noiseMaker'],
+            additionalProperties: false
         },
         game: {
             type: 'object',
@@ -468,7 +478,8 @@ export const optionsSchema: jsonschema.Schema = {
                     maxLength: 60
                 }
             },
-            required: ['playOnlyTF2', 'customName']
+            required: ['playOnlyTF2', 'customName'],
+            additionalProperties: false
         },
         normalize: {
             type: 'object',
@@ -483,7 +494,8 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/normalize-which'
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted']
+            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            additionalProperties: false
         },
         details: {
             type: 'object',
@@ -515,7 +527,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         }
                     },
-                    required: ['showSpells', 'showStrangeParts', 'showKillstreaker', 'showSheen', 'showPainted']
+                    required: ['showSpells', 'showStrangeParts', 'showKillstreaker', 'showSheen', 'showPainted'],
+                    additionalProperties: false
                 },
                 uses: {
                     type: 'object',
@@ -527,10 +540,12 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['duel', 'noiseMaker']
+                    required: ['duel', 'noiseMaker'],
+                    additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'highValue', 'uses']
+            required: ['buy', 'sell', 'highValue', 'uses'],
+            additionalProperties: false
         },
         statistics: {
             type: 'object',
@@ -563,7 +578,8 @@ export const optionsSchema: jsonschema.Schema = {
                             $schema: '#/definitions/stringArray'
                         }
                     },
-                    required: ['enable', 'time']
+                    required: ['enable', 'time'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -574,7 +590,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'lastTotalProfitOverpayInRef',
                 'profitDataSinceInUnix',
                 'sendStats'
-            ]
+            ],
+            additionalProperties: false
         },
         autokeys: {
             allOf: [
@@ -655,7 +672,8 @@ export const optionsSchema: jsonschema.Schema = {
                     ]
                 }
             },
-            required: ['weapons', 'metals']
+            required: ['weapons', 'metals'],
+            additionalProperties: false
         },
         offerReceived: {
             type: 'object',
@@ -676,10 +694,12 @@ export const optionsSchema: jsonschema.Schema = {
                                     $schema: '#/definitions/nonNegativeInteger'
                                 }
                             },
-                            required: ['skus', 'valueInRef']
+                            required: ['skus', 'valueInRef'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['autoDecline', 'exceptionValue']
+                    required: ['autoDecline', 'exceptionValue'],
+                    additionalProperties: false
                 },
                 invalidItems: {
                     allOf: [
@@ -718,7 +738,8 @@ export const optionsSchema: jsonschema.Schema = {
                             $ref: '#/definitions/only-enable-declineReply'
                         }
                     },
-                    required: ['enableCheck', 'minKeys', 'autoDecline']
+                    required: ['enableCheck', 'minKeys', 'autoDecline'],
+                    additionalProperties: false
                 },
                 escrowCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
@@ -736,7 +757,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'duped',
                 'escrowCheckFailed',
                 'bannedCheckFailed'
-            ]
+            ],
+            additionalProperties: false
         },
         manualReview: {
             type: 'object',
@@ -803,7 +825,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'escrowCheckFailed',
                 'bannedCheckFailed',
                 'additionalNotes'
-            ]
+            ],
+            additionalProperties: false
         },
         discordWebhook: {
             type: 'object',
@@ -935,7 +958,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'priceUpdate',
                 'sendAlert',
                 'sendStats'
-            ]
+            ],
+            additionalProperties: false
         },
         customMessage: {
             type: 'object',
@@ -1012,7 +1036,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'banned',
                         'escrow',
                         'manual'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 tradedAway: {
                     type: 'string'
@@ -1038,7 +1063,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'failedMobileConfirmation',
                 'cancelledActiveForAwhile',
                 'clearFriends'
-            ]
+            ],
+            additionalProperties: false
         },
         commands: {
             type: 'object',
@@ -1083,10 +1109,12 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'string'
                                 }
                             },
-                            required: ['title', 'disabled']
+                            required: ['title', 'disabled'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['enable', 'customReply']
+                    required: ['enable', 'customReply'],
+                    additionalProperties: false
                 },
                 clearcart: {
                     $ref: '#/definitions/only-customReply-reply'
@@ -1101,10 +1129,12 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'string'
                                 }
                             },
-                            required: ['empty']
+                            required: ['empty'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['customReply']
+                    required: ['customReply'],
+                    additionalProperties: false
                 },
                 addToQueue: {
                     type: 'object',
@@ -1139,7 +1169,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'alteredOffer',
                         'processingOffer',
                         'hasBeenMadeAcceptingMobileConfirmation'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 cancel: {
                     type: 'object',
@@ -1169,10 +1200,12 @@ export const optionsSchema: jsonschema.Schema = {
                                 'isRemovedFromQueue',
                                 'noActiveOffer',
                                 'successCancel'
-                            ]
+                            ],
+                            additionalProperties: false
                         }
                     },
-                    required: ['customReply']
+                    required: ['customReply'],
+                    additionalProperties: false
                 },
                 queue: {
                     type: 'object',
@@ -1190,10 +1223,12 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'string'
                                 }
                             },
-                            required: ['notInQueue', 'offerBeingMade', 'hasPosition']
+                            required: ['notInQueue', 'offerBeingMade', 'hasPosition'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['customReply']
+                    required: ['customReply'],
+                    additionalProperties: false
                 },
                 owner: {
                     $ref: '#/definitions/only-enable-customReply-disabled'
@@ -1242,10 +1277,12 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'string'
                                 }
                             },
-                            required: ['disabled', 'wrongSyntax', 'fromOwner', 'success']
+                            required: ['disabled', 'wrongSyntax', 'fromOwner', 'success'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['enable', 'customReply']
+                    required: ['enable', 'customReply'],
+                    additionalProperties: false
                 },
                 time: {
                     $ref: '#/definitions/only-enabled-disabled-reply'
@@ -1309,7 +1346,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'stock',
                 'craftweapon',
                 'uncraftweapon'
-            ]
+            ],
+            additionalProperties: false
         },
         detailsExtra: {
             type: 'object',
@@ -1383,7 +1421,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Exorcism',
                         'Pumpkin Bomb',
                         'Halloween Fire'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 sheens: {
                     type: 'object',
@@ -1418,7 +1457,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Mean Green',
                         'Agonizing Emerald',
                         'Villainous Violet'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 killstreakers: {
                     type: 'object',
@@ -1453,7 +1493,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Incinerator',
                         'Singularity',
                         'Tornado'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 painted: {
                     type: 'object',
@@ -1576,7 +1617,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Team Spirit',
                         'The Value of Teamwork',
                         'Waterlogged Lab Coat'
-                    ]
+                    ],
+                    additionalProperties: false
                 },
                 strangeParts: {
                     type: 'object',
@@ -1791,10 +1833,12 @@ export const optionsSchema: jsonschema.Schema = {
                         'Robot Spies Destroyed',
                         'Kills Under A Full Moon',
                         'Robots Killed During Halloween'
-                    ]
+                    ],
+                    additionalProperties: false
                 }
             },
-            required: ['spells', 'sheens', 'killstreakers', 'painted', 'strangeParts']
+            required: ['spells', 'sheens', 'killstreakers', 'painted', 'strangeParts'],
+            additionalProperties: false
         }
     },
     required: [
@@ -1824,5 +1868,6 @@ export const optionsSchema: jsonschema.Schema = {
         'customMessage',
         'commands',
         'detailsExtra'
-    ]
+    ],
+    additionalProperties: false
 };
