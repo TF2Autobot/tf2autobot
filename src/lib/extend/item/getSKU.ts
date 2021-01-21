@@ -5,7 +5,7 @@ import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
-// import log from '../../../lib/logger';
+import log from '../../../lib/logger';
 import { fixItem } from '../../items';
 
 let isCrate = false;
@@ -45,6 +45,11 @@ export = function (
         item.target = getTarget(self, schema);
     }
 
+    log.debug(`Before fix - ${SKU.fromObject(item).toString()}: `, {
+        econItem: self,
+        item: item
+    });
+
     // Add missing properties, except if crates
     if (!isCrate) {
         item = fixItem(SKU.fromString(SKU.fromObject(item)), schema);
@@ -54,10 +59,10 @@ export = function (
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
 
-    // log.debug(`${SKU.fromObject(item).toString()}: `, {
-    //     econItem: self,
-    //     item: item
-    // });
+    log.debug(`After fix - ${SKU.fromObject(item).toString()}: `, {
+        econItem: self,
+        item: item
+    });
 
     return SKU.fromObject(item);
 };
