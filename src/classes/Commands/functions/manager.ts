@@ -365,6 +365,17 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
         bot.manager.pollInterval = -1;
 
         // TODO: change back to master (in package.json) once ready to release
+
+        const onFailed = (err: any) => {
+            log.warn('Error occurred while trying to restart: ', err);
+            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
+
+            bot.client.setPersona(EPersonaState.Online);
+            bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
+            bot.manager.pollInterval = 1000;
+            bot.handler.isUpdatingStatus = false;
+        };
+
         try {
             const systemInformation = await sysInfo.osInfo();
             const osUsed = systemInformation.platform;
@@ -379,27 +390,12 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                     bot.sendMessage(steamID, '⌛ Restarting...');
 
                     bot.botManager.restartProcess().catch(err => {
-                        log.warn('Error occurred while trying to restart: ', err);
-                        bot.sendMessage(
-                            steamID,
-                            `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`
-                        );
-
-                        bot.client.setPersona(EPersonaState.Online);
-                        bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
-                        bot.manager.pollInterval = 1000;
-                        bot.handler.isUpdatingStatus = false;
+                        onFailed(err);
                     });
                 }
             );
         } catch (err) {
-            log.warn('Error occurred while trying to restart: ', err);
-            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
-
-            bot.client.setPersona(EPersonaState.Online);
-            bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
-            bot.manager.pollInterval = 1000;
-            bot.handler.isUpdatingStatus = false;
+            onFailed(err);
         }
     }
 }
