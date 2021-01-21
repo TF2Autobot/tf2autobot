@@ -152,7 +152,16 @@ declare module 'steam-user' {
         InsufficientFunds = 107,
         TooManyPending = 108,
         NoSiteLicensesFound = 109,
-        WGNetworkSendExceeded = 110
+        WGNetworkSendExceeded = 110,
+        AccountNotFriends = 111,
+        LimitedUserAccount = 112,
+        CantRemoveItem = 113,
+        AccountHasBeenDeleted = 114,
+        AccountHasAnExistingUserCancelledLicense = 115,
+        DeniedDueToCommunityCooldown = 116,
+        NoLauncherSpecified = 117,
+        MustAgreeToSSA = 118,
+        ClientNoLongerSupported = 119
     }
 
     export enum EPersonaState {
