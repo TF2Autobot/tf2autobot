@@ -12,8 +12,8 @@
         "lint": "eslint .",
         "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "npx eslint-config-prettier src/app.ts",
-        "update-linux": "git reset HEAD --hard && git checkout master && git pull && rm -rf node_modules && npm install && rm -rf dist && npm run build",
-        "update-windows": "git reset HEAD --hard && git checkout master && git pull && rmdir /s /q node_modules && npm install && rmdir /s /q dist && npm run build"
+        "update-linux": "git reset HEAD --hard && git checkout development && git pull && rm -rf node_modules && npm install && rm -rf dist && npm run build",
+        "update-windows": "git reset HEAD --hard && git checkout development && git pull && rmdir /s /q node_modules && npm install && rmdir /s /q dist && npm run build"
     },
     "repository": {
         "type": "git",
