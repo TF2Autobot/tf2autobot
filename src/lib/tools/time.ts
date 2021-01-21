@@ -47,6 +47,10 @@ dayjs.updateLocale('en', {
     }
 });
 
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+
+dayjs.extend(advancedFormat);
+
 import Bot from '../../classes/Bot';
 
 export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: string; note: string } {
@@ -87,7 +91,7 @@ export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: stri
         timeUnix: dayjs().unix(),
         time: dayjs()
             .tz(opt.timezone ? opt.timezone : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM DD YYYY, HH:mm:ss ZZ'), // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
+            .format(opt.customTimeFormat ? opt.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'), // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
         emoji: emoji,
         note: opt.timeAdditionalNotes ? opt.timeAdditionalNotes : ''
     };
