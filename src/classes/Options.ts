@@ -1410,6 +1410,8 @@ export const DEFAULTS = {
                  *       - `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`
                  *   - If empty:
                  *       - "TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8"
+                 *
+                 * Parameter: %discordurl% (your commands.discord.inviteURL value)
                  */
                 reply: ''
             }
