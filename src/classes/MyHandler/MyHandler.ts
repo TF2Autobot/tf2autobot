@@ -1629,7 +1629,7 @@ export default class MyHandler extends Handler {
     }
 
     onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
-        if (!offer.data('notify') !== true) return;
+        if (offer.data('notify') !== true) return;
 
         if (action === 'skip') return sendReview(offer, this.bot, meta, this.isTradingKeys);
     }
