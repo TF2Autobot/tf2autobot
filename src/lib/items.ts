@@ -101,8 +101,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
             item.quality = 5;
         } else if (item.paintkit !== null) {
             item.quality = 15;
-        } else {
-            item.quality = 5;
         }
     } else if (item.paintkit !== null) {
         if (item.quality2 === 11) {
