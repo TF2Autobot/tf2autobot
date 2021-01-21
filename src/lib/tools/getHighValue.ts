@@ -22,7 +22,8 @@ export default function getHighValueItems(
         let toString = '';
 
         const normalizePaint =
-            bot.options.normalize.painted.our === false && bot.options.normalize.painted.their === true;
+            bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
+
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
@@ -50,13 +51,13 @@ export default function getHighValueItems(
                         if (items[sku][attachment as Attachment][pSKU] === true) {
                             toJoin.push(
                                 `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && !normalizePaint ? ` (${sku};${pSKU})` : ''
+                                    attachment === 'p' && normalizePaint ? ` (${sku};${pSKU})` : ''
                                 } 🌟`
                             );
                         } else {
                             toJoin.push(
                                 `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && !normalizePaint ? ` (${sku};${pSKU})` : ''
+                                    attachment === 'p' && normalizePaint ? ` (${sku};${pSKU})` : ''
                                 }`
                             );
                         }
