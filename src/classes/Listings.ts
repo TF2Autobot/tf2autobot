@@ -65,7 +65,7 @@ export default class Listings {
 
     disableAutorelistOption(): void {
         this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.disableAutoRelist = true;
+        this.disableAutoRelist(true, 'permanent');
     }
 
     private enableAutoRelist(): void {
@@ -120,7 +120,7 @@ export default class Listings {
 
             if (this.autoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
-                this.disableAutoRelist = true;
+                this.disableAutoRelist(true, 'temporary');
             } else if (!this.autoRelistEnabled && info.premium !== 1) {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
@@ -133,10 +133,10 @@ export default class Listings {
         });
     }
 
-    private set disableAutoRelist(setValue: boolean) {
+    private disableAutoRelist(setValue: boolean, type: 'temporary' | 'permanent') {
         clearTimeout(this.autoRelistTimeout);
         this.autoRelistEnabled = setValue;
-        log.debug('Disabled autorelist');
+        log.debug(type === 'temporary' ? 'Temporarily disabled autorelist' : 'Disabled autorelist');
     }
 
     private get getAccountInfo(): Promise<UserSteamID> {
