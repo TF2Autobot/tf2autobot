@@ -857,6 +857,9 @@ export const optionsSchema: jsonschema.Schema = {
                                             properties: {
                                                 itemSkus: {
                                                     $schema: '#/definitions/stringArray'
+                                                },
+                                                tradeValueInRef: {
+                                                    $schema: '#/definitions/nonNegativeIntegerDefault0'
                                                 }
                                             },
                                             required: ['itemSkus']

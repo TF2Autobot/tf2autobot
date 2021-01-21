@@ -1,5 +1,6 @@
 import { TradeOffer } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
+import Currencies from 'tf2-currencies';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
@@ -28,6 +29,10 @@ export default async function sendTradeSummary(
         highValue: accepted.highValue.map(name => t.replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
     };
 
+    const keyPrices = bot.pricelist.getKeyPrices;
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.showOnlyMetal.enable);
+    const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
+
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;
     const skuToMention = optDW.tradeSummary.mentionOwner.itemSkus;
@@ -48,6 +53,9 @@ export default async function sendTradeSummary(
           })
         : false;
 
+    const valueToMention = optDW.tradeSummary.mentionOwner.tradeValueInRef;
+    const isMentionOnGreaterValue = valueToMention > 0 ? value.ourValue >= Currencies.toScrap(valueToMention) : false;
+
     const IVAmount = itemsName.invalid.length;
     const HVAmount = itemsName.highValue.length;
     const isMentionHV = accepted.isMention;
@@ -63,7 +71,8 @@ export default async function sendTradeSummary(
                       ? `High Value ${pluralize('item', HVAmount)}`
                       : ''
               } trade here!`
-            : optDW.tradeSummary.mentionOwner.enable && (isMentionOurItems || isMentionTheirItems)
+            : optDW.tradeSummary.mentionOwner.enable &&
+              (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
             ? `<@!${optDW.ownerID}>`
             : '';
 
@@ -79,9 +88,6 @@ export default async function sendTradeSummary(
     const details = await getPartnerDetails(offer, bot);
 
     const botInfo = bot.handler.getBotInfo;
-    const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
     const links = t.generateLinks(offer.partner.toString());
     const misc = optDW.tradeSummary.misc;
 

@@ -852,7 +852,12 @@ export const DEFAULTS = {
                  * If you want to be mentioned on specific items, just fill in the full item SKU, like so: ["725;6;uncraftable"]. To add more,
                  * just separate new items with a comma between each SKU string.
                  */
-                itemSkus: []
+                itemSkus: [],
+                /**
+                 * Zero means disable. If this is set to other than 0, then any trade that's
+                 * greater or equal to set value will be mentioned.
+                 */
+                tradeValueInRef: 0
             }
         },
         offerReview: {
@@ -2060,6 +2065,7 @@ export interface MiscTradeSummary extends OnlyNote {
 
 export interface MentionOwner extends OnlyEnable {
     itemSkus?: string[];
+    tradeValueInRef?: number;
 }
 
 export interface OfferReviewDW extends OnlyEnable {
