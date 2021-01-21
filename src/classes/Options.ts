@@ -285,7 +285,7 @@ export const DEFAULTS = {
          */
         festivized: {
             our: false,
-            their: true
+            their: false
         },
         /**
          * If set to true, Strange Unusuals (items whose SKU ends with ;strange) will be recognized as the normal variant of said Unusuals
@@ -294,7 +294,7 @@ export const DEFAULTS = {
          */
         strangeAsSecondQuality: {
             our: false,
-            their: true
+            their: false
         },
         /**
          * If set to false, all painted items must be individually and manually priced by your own
