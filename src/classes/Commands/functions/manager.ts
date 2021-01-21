@@ -384,12 +384,22 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                             steamID,
                             `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`
                         );
+
+                        bot.client.setPersona(EPersonaState.Online);
+                        bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
+                        bot.manager.pollInterval = 1000;
+                        bot.handler.isUpdatingStatus = false;
                     });
                 }
             );
         } catch (err) {
             log.warn('Error occurred while trying to restart: ', err);
             bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
+
+            bot.client.setPersona(EPersonaState.Online);
+            bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
+            bot.manager.pollInterval = 1000;
+            bot.handler.isUpdatingStatus = false;
         }
     }
 }

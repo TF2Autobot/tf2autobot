@@ -143,7 +143,7 @@ export default class MyHandler extends Handler {
 
     private isTradingKeys = false;
 
-    private get customGameName(): string {
+    get customGameName(): string {
         // check if game.customName is more than 60 characters.
         const customGameName = this.bot.options.game.customName;
 
