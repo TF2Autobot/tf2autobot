@@ -15,7 +15,9 @@ export default function getHighValueItems(
     } = {};
 
     for (const sku in items) {
-        if (!Object.prototype.hasOwnProperty.call(items, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(items, sku)) {
+            continue;
+        }
 
         let toString = '';
 
@@ -41,7 +43,9 @@ export default function getHighValueItems(
                     else if (attachment === 'p') toString += '\n🎨 Painted: ';
 
                     for (const pSKU in items[sku][attachment]) {
-                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) continue;
+                        if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) {
+                            continue;
+                        }
 
                         if (items[sku][attachment as Attachment][pSKU] === true) {
                             toJoin.push(

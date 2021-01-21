@@ -114,7 +114,9 @@ export default function processAccepted(
                 );
 
                 for (const name in itemsName) {
-                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
 
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                     theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
@@ -123,7 +125,9 @@ export default function processAccepted(
                 if (offerReceived.meta.highValue.isMention.their) {
                     Object.keys(offerReceived.meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
-                    if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
+                    if (!bot.isAdmin(offer.partner)) {
+                        accepted.isMention = true;
+                    }
                 }
             }
 
@@ -137,13 +141,17 @@ export default function processAccepted(
                 );
 
                 for (const name in itemsName) {
-                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
 
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
                 if (offerReceived.meta.highValue.isMention.our) {
-                    if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
+                    if (!bot.isAdmin(offer.partner)) {
+                        accepted.isMention = true;
+                    }
                 }
             }
         }
@@ -154,7 +162,9 @@ export default function processAccepted(
             const itemsName = t.getHighValueItems(offerSent.items.their, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
-                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
 
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
@@ -163,7 +173,9 @@ export default function processAccepted(
             if (offerSent.isMention.their) {
                 Object.keys(offerSent.items.their).forEach(sku => isDisableSKU.push(sku));
 
-                if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
+                if (!bot.isAdmin(offer.partner)) {
+                    accepted.isMention = true;
+                }
             }
         }
 
@@ -171,13 +183,17 @@ export default function processAccepted(
             const itemsName = t.getHighValueItems(offerSent.items.our, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
-                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) continue;
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
 
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 
             if (offerSent.isMention.our) {
-                if (!bot.isAdmin(offer.partner)) accepted.isMention = true;
+                if (!bot.isAdmin(offer.partner)) {
+                    accepted.isMention = true;
+                }
             }
         }
     }

@@ -32,12 +32,16 @@ export default class Inventory {
     get getTotalItems(): number {
         let items = 0;
         for (const sku in this.tradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) {
+                continue;
+            }
 
             items += this.tradable[sku].length;
         }
         for (const sku in this.nonTradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) {
+                continue;
+            }
 
             items += this.nonTradable[sku].length;
         }
@@ -110,7 +114,9 @@ export default class Inventory {
 
                 if (index !== -1) {
                     items[sku].splice(index, 1);
-                    if (assetids.length === 0) delete items[sku];
+                    if (assetids.length === 0) {
+                        delete items[sku];
+                    }
                     break;
                 }
             }
@@ -120,7 +126,9 @@ export default class Inventory {
     fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 this.setItems = items;
                 resolve();
@@ -150,17 +158,25 @@ export default class Inventory {
 
     findByAssetid(assetid: string): string | null {
         for (const sku in this.tradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) {
+                continue;
+            }
 
-            if (!this.tradable[sku].find(item => item.id.includes(assetid))) continue;
+            if (!this.tradable[sku].find(item => item.id.includes(assetid))) {
+                continue;
+            }
 
             return sku;
         }
 
         for (const sku in this.nonTradable) {
-            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.nonTradable, sku)) {
+                continue;
+            }
 
-            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) continue;
+            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) {
+                continue;
+            }
 
             return sku;
         }
@@ -285,10 +301,14 @@ export default class Inventory {
             const attributes = highValue(items[i], opt, paints, strangeParts);
 
             let isDuel5xUses: boolean | null = null;
-            if (sku === '241;6') isDuel5xUses = isFull(items[i], 'duel');
+            if (sku === '241;6') {
+                isDuel5xUses = isFull(items[i], 'duel');
+            }
 
             let isNoiseMaker25xUses: boolean | null = null;
-            if (Object.keys(noiseMakers).includes(sku)) isNoiseMaker25xUses = isFull(items[i], 'noise');
+            if (Object.keys(noiseMakers).includes(sku)) {
+                isNoiseMaker25xUses = isFull(items[i], 'noise');
+            }
 
             if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });
@@ -440,7 +460,9 @@ function highValue(
         }
     }
 
-    if (s.length > 0) attributes.s = s;
+    if (s.length > 0) {
+        attributes.s = s;
+    }
 
     [sp, ke, ks, p].forEach((attachment, i) => {
         if (Object.keys(attachment).length > 0) {

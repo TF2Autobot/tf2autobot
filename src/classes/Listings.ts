@@ -52,7 +52,10 @@ export default class Listings {
     }
 
     setupAutorelist(): void {
-        if (!this.isAutoRelistEnabled || !this.isCreateListing) return; // Autobump is not enabled
+        if (!this.isAutoRelistEnabled || !this.isCreateListing) {
+            // Autobump is not enabled
+            return;
+        }
 
         // Autobump is enabled, add heartbeat listener
 
@@ -69,7 +72,9 @@ export default class Listings {
     }
 
     private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || !this.isCreateListing) return;
+        if (this.autoRelistEnabled || !this.isCreateListing) {
+            return;
+        }
 
         log.debug('Enabled autorelist');
         this.autoRelistEnabled = true;
@@ -155,7 +160,9 @@ export default class Listings {
             };
 
             void request(options, (err, reponse, body) => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve((body as BPTFGetUserInfo).users[steamID64]);
             });
@@ -163,7 +170,9 @@ export default class Listings {
     }
 
     checkBySKU(sku: string, data?: Entry | null, generics = false): void {
-        if (!this.isCreateListing) return;
+        if (!this.isCreateListing) {
+            return;
+        }
 
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, false);
 
@@ -181,8 +190,11 @@ export default class Listings {
                 return;
             }
 
-            if (listing.intent === 0) hasBuyListing = true;
-            else if (listing.intent === 1) hasSellListing = true;
+            if (listing.intent === 0) {
+                hasBuyListing = true;
+            } else if (listing.intent === 1) {
+                hasSellListing = true;
+            }
 
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
                 // We are not trading the item, remove the listing
@@ -267,7 +279,9 @@ export default class Listings {
                     resolve();
                 });
 
-                if (next === false) return;
+                if (next === false) {
+                    return;
+                }
 
                 this.checkingAllListings = true;
                 const inventory = this.bot.inventoryManager.getInventory;
@@ -285,7 +299,9 @@ export default class Listings {
                 });
             };
 
-            if (!this.removingAllListings) return doneRemovingAll();
+            if (!this.removingAllListings) {
+                return doneRemovingAll();
+            }
 
             callbackQueue.add('removeAllListings', () => {
                 doneRemovingAll();
@@ -324,18 +340,25 @@ export default class Listings {
 
     removeAll(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.checkingAllListings) this.cancelCheckingListings = true;
+            if (this.checkingAllListings) {
+                this.cancelCheckingListings = true;
+            }
 
             log.debug('Removing all listings');
 
             // Ensures that we don't to remove listings multiple times
             const next = callbackQueue.add('removeAllListings', err => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve(null);
             });
 
-            if (next === false) return; // Function was already called
+            if (next === false) {
+                // Function was already called
+                return;
+            }
 
             void this.removeAllListings().asCallback(next);
         });
@@ -366,7 +389,9 @@ export default class Listings {
 
                 // Remove listings
                 this.bot.listingManager._processActions(err => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
                     // The request might fail, if it does we will try again
                     return resolve(this.removeAllListings());
@@ -391,7 +416,9 @@ export default class Listings {
 
                 const prevCount = this.bot.listingManager.listings.length;
                 this.bot.listingManager.getListings(err => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
                     if (this.bot.listingManager.listings.length !== prevCount) {
                         log.debug(
@@ -435,10 +462,15 @@ export default class Listings {
                 };
 
                 const getAttachmentName = (attachment: string, pSKU: string, paints: Paints, parts: StrangeParts) => {
-                    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
-                    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
-                    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-                    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+                    if (attachment === 'sp') {
+                        return getKeyByValue(parts, pSKU);
+                    } else if (attachment === 'ke') {
+                        return getKeyByValue(killstreakersData, pSKU);
+                    } else if (attachment === 'ks') {
+                        return getKeyByValue(sheensData, pSKU);
+                    } else if (attachment === 'p') {
+                        return getKeyByValue(paints, pSKU);
+                    }
                 };
 
                 const hv = item.hv;
@@ -465,13 +497,20 @@ export default class Listings {
                                     ? optD.showSheen
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
-                                if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
-                                else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';
-                                else if (attachment === 'ks') highValueString += '| ✨ Sheen: ';
-                                else if (attachment === 'p') highValueString += '| 🎨 Painted: ';
+                                if (attachment === 'sp') {
+                                    highValueString += '| 🎰 Parts: ';
+                                } else if (attachment === 'ke') {
+                                    highValueString += '| 🤩 Killstreaker: ';
+                                } else if (attachment === 'ks') {
+                                    highValueString += '| ✨ Sheen: ';
+                                } else if (attachment === 'p') {
+                                    highValueString += '| 🎨 Painted: ';
+                                }
 
                                 for (const pSKU in hv[attachment]) {
-                                    if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) continue;
+                                    if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
+                                        continue;
+                                    }
 
                                     if (hv[attachment as Attachment][pSKU] === true) {
                                         const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);

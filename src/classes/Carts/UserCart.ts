@@ -22,9 +22,13 @@ export default class UserCart extends Cart {
             this.bot.checkEscrow(this.offer)
         ]);
 
-        if (banned) return Promise.reject('you are banned in one or more trading communities');
+        if (banned) {
+            return Promise.reject('you are banned in one or more trading communities');
+        }
 
-        if (escrow) return Promise.reject('trade would be held');
+        if (escrow) {
+            return Promise.reject('trade would be held');
+        }
 
         const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
         const keyPrice = this.bot.pricelist.getKeyPrice;
@@ -110,10 +114,15 @@ export default class UserCart extends Cart {
 
         // Go through [which] items
         for (const sku in this[which]) {
-            if (!Object.prototype.hasOwnProperty.call(this[which], sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this[which], sku)) {
+                continue;
+            }
 
             const match = this.bot.pricelist.getPrice(sku, true);
-            if (match === null) continue; // Ignore items that are no longer in the pricelist
+            if (match === null) {
+                // Ignore items that are no longer in the pricelist
+                continue;
+            }
 
             value += match[which === 'our' ? 'sell' : 'buy'].toValue(keyPrice.metal) * this[which][sku];
         }
@@ -188,7 +197,10 @@ export default class UserCart extends Cart {
                 // If we are at the end of the list and have a postive remaining amount,
                 // then we need to loop the other way and pick the value that will make the remaining 0 or negative
 
-                if (hasReversed) break; // We hit the end the second time, break out of the loop
+                if (hasReversed) {
+                    // We hit the end the second time, break out of the loop
+                    break;
+                }
 
                 reverse = true;
             }
@@ -224,9 +236,15 @@ export default class UserCart extends Cart {
                 });
             }
 
-            if (remaining === 0) break; // Picked the exact amount, stop
+            if (remaining === 0) {
+                // Picked the exact amount, stop
+                break;
+            }
 
-            if (remaining < 0) break; // We owe them money, break out of the loop
+            if (remaining < 0) {
+                // We owe them money, break out of the loop
+                break;
+            }
 
             if (index === 0 && reverse) {
                 // We were reversing and then reached start of the list, say that we have reversed and go back the other way
@@ -244,10 +262,14 @@ export default class UserCart extends Cart {
 
             // Removes unnecessary items
             for (let i = 0; i < skus.length; i++) {
-                if (pickedCurrencies[skus[i]] === undefined) continue;
+                if (pickedCurrencies[skus[i]] === undefined) {
+                    continue;
+                }
 
                 let amount = Math.floor(Math.abs(remaining) / currencyValues[skus[i]]);
-                if (pickedCurrencies[skus[i]] < amount) amount = pickedCurrencies[skus[i]];
+                if (pickedCurrencies[skus[i]] < amount) {
+                    amount = pickedCurrencies[skus[i]];
+                }
 
                 if (amount >= 1) {
                     remaining += amount * currencyValues[skus[i]];
@@ -350,7 +372,9 @@ export default class UserCart extends Cart {
     }
 
     async constructOffer(): Promise<string> {
-        if (this.isEmpty) return Promise.reject('cart is empty');
+        if (this.isEmpty) {
+            return Promise.reject('cart is empty');
+        }
 
         const offer = this.bot.manager.createOffer(this.partner);
 
@@ -366,7 +390,9 @@ export default class UserCart extends Cart {
         this.ourInventoryCount = ourInventory.getTotalItems;
 
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             let alteredMessage: string;
 
@@ -410,7 +436,9 @@ export default class UserCart extends Cart {
                 }
             }
 
-            if (alteredMessage) alteredMessages.push(alteredMessage);
+            if (alteredMessage) {
+                alteredMessages.push(alteredMessage);
+            }
         }
 
         const opt = this.bot.options;
@@ -443,7 +471,9 @@ export default class UserCart extends Cart {
 
         // Add their items
         for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                continue;
+            }
 
             let alteredMessage: string;
 
@@ -485,10 +515,14 @@ export default class UserCart extends Cart {
                 }
             }
 
-            if (alteredMessage) alteredMessages.push(alteredMessage);
+            if (alteredMessage) {
+                alteredMessages.push(alteredMessage);
+            }
         }
 
-        if (this.isEmpty) return Promise.reject(alteredMessages.join(', '));
+        if (this.isEmpty) {
+            return Promise.reject(alteredMessages.join(', '));
+        }
 
         const itemsDict: {
             our: OurTheirItemsDict;
@@ -577,7 +611,9 @@ export default class UserCart extends Cart {
 
         // Add our items
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             const amount = this.our[sku];
             const assetids = ourInventory.findBySKU(sku, true);
@@ -601,7 +637,10 @@ export default class UserCart extends Cart {
                     // The item was added to the offer
                     whichAssetIds.our.push(assetids[i]);
                     missing--;
-                    if (missing === 0) break; // We added all the items
+                    if (missing === 0) {
+                        // We added all the items
+                        break;
+                    }
                 }
             }
 
@@ -635,7 +674,9 @@ export default class UserCart extends Cart {
 
         // Add their items
         for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                continue;
+            }
 
             const amount = this.their[sku];
             let assetids = theirInventory.findBySKU(sku, true);
@@ -675,7 +716,9 @@ export default class UserCart extends Cart {
                         assetidsToCheck.push(assetids[i]);
                     }
 
-                    if (missing === 0) break;
+                    if (missing === 0) {
+                        break;
+                    }
                 }
             }
 
@@ -721,7 +764,9 @@ export default class UserCart extends Cart {
         // Get High-value items
         ['our', 'their'].forEach(which => {
             for (const sku in inventoryDict[which]) {
-                if (!Object.prototype.hasOwnProperty.call(inventoryDict[which], sku)) continue;
+                if (!Object.prototype.hasOwnProperty.call(inventoryDict[which], sku)) {
+                    continue;
+                }
 
                 inventoryDict[which as 'our' | 'their'][sku]
                     .filter(item => whichAssetIds[which as 'our' | 'their'].includes(item.id))
@@ -787,14 +832,19 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (const sku in currencies) {
-                if (!Object.prototype.hasOwnProperty.call(currencies, sku)) continue;
+                if (!Object.prototype.hasOwnProperty.call(currencies, sku)) {
+                    continue;
+                }
 
                 let value = 0;
 
-                if (sku === '5002;6') value = 9;
-                else if (sku === '5001;6') value = 3;
-                else if (sku === '5000;6') value = 1;
-                else if (
+                if (sku === '5002;6') {
+                    value = 9;
+                } else if (sku === '5001;6') {
+                    value = 3;
+                } else if (sku === '5000;6') {
+                    value = 1;
+                } else if (
                     this.bot.handler.isWeaponsAsCurrency.enable &&
                     weapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
@@ -821,12 +871,17 @@ export default class UserCart extends Cart {
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 
-                            if (whose === 'our') itemsDict.our[sku] = amount;
-                            else itemsDict.their[sku] = amount;
+                            if (whose === 'our') {
+                                itemsDict.our[sku] = amount;
+                            } else {
+                                itemsDict.their[sku] = amount;
+                            }
 
                             change -= value;
 
-                            if (change < value) break;
+                            if (change < value) {
+                                break;
+                            }
                         }
                     }
                 }
@@ -842,15 +897,22 @@ export default class UserCart extends Cart {
         }
 
         for (const sku in required.currencies) {
-            if (!Object.prototype.hasOwnProperty.call(required.currencies, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(required.currencies, sku)) {
+                continue;
+            }
 
-            if (required.currencies[sku] === 0) continue;
+            if (required.currencies[sku] === 0) {
+                continue;
+            }
 
             const amount = required.currencies[sku];
             itemsDict[isBuyer ? 'our' : 'their'][sku] = amount;
 
-            if (isBuyer) ourItemsCount += amount;
-            else theirItemsCount += amount;
+            if (isBuyer) {
+                ourItemsCount += amount;
+            } else {
+                theirItemsCount += amount;
+            }
 
             let isSkipped = false;
 
@@ -872,7 +934,9 @@ export default class UserCart extends Cart {
 
                 if (isAdded) {
                     required.currencies[sku]--;
-                    if (required.currencies[sku] === 0) break;
+                    if (required.currencies[sku] === 0) {
+                        break;
+                    }
                 }
             }
 
@@ -896,7 +960,9 @@ export default class UserCart extends Cart {
         const itemPrices: Prices = {};
 
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             itemPrices[sku] = {
                 buy: this.bot.pricelist.getPrice(sku, true).buy,
@@ -905,7 +971,9 @@ export default class UserCart extends Cart {
         }
 
         for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                continue;
+            }
 
             if (itemPrices[sku] !== undefined) {
                 continue;
@@ -953,7 +1021,9 @@ export default class UserCart extends Cart {
 
     // We Override the toString function so that the currencies are added
     toString(): string {
-        if (this.isEmpty) return 'Your cart is empty.';
+        if (this.isEmpty) {
+            return 'Your cart is empty.';
+        }
 
         const { isBuyer, currencies } = this.getCurrencies;
 
@@ -961,7 +1031,9 @@ export default class UserCart extends Cart {
 
         str += '\n\nMy side (items you will receive):';
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
@@ -973,7 +1045,9 @@ export default class UserCart extends Cart {
 
         str += '\n\nYour side (items you will lose):';
         for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                continue;
+            }
 
             str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }

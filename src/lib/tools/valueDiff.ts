@@ -11,8 +11,9 @@ export default function valueDiff(
 ): ValueDiff {
     const value = offer.data('value') as ItemsValue;
 
-    if (!value) return { ourValue: 0, theirValue: 0, diff: 0, diffRef: 0, diffKey: '' };
-    else {
+    if (!value) {
+        return { ourValue: 0, theirValue: 0, diff: 0, diffRef: 0, diffKey: '' };
+    } else {
         const newValue: { our: Currency; their: Currency } = {
             our: {
                 keys: value.our.keys,

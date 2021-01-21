@@ -38,8 +38,12 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     if (Object.keys(params).length === 0) {
         const msg = '⚠️ Missing properties to update.';
-        if (steamID) bot.sendMessage(steamID, msg);
-        else log.warn(msg);
+        if (steamID) {
+            bot.sendMessage(steamID, msg);
+        } else {
+            log.warn(msg);
+        }
+
         return;
     }
 
@@ -64,8 +68,12 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
     const errors = validator(result, 'options');
     if (errors !== null) {
         const msg = '❌ Error updating options: ' + errors.join(', ');
-        if (steamID) bot.sendMessage(steamID, msg);
-        else log.error(msg);
+        if (steamID) {
+            bot.sendMessage(steamID, msg);
+        } else {
+            log.error(msg);
+        }
+
         return;
     }
 
@@ -96,10 +104,15 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
             if (typeof knownParams.statistics === 'object') {
                 if (knownParams.statistics.sendStats !== undefined) {
-                    if (knownParams.statistics.sendStats.enable === true) bot.handler.sendStats();
-                    else bot.handler.disableSendStats();
+                    if (knownParams.statistics.sendStats.enable === true) {
+                        bot.handler.sendStats();
+                    } else {
+                        bot.handler.disableSendStats();
+                    }
 
-                    if (knownParams.statistics.sendStats.time !== undefined) bot.handler.sendStats();
+                    if (knownParams.statistics.sendStats.time !== undefined) {
+                        bot.handler.sendStats();
+                    }
                 }
             }
 
@@ -113,7 +126,9 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 }
             }
 
-            if (knownParams.normalize === 'object') void bot.inventoryManager.getInventory.fetch();
+            if (knownParams.normalize === 'object') {
+                void bot.inventoryManager.getInventory.fetch();
+            }
 
             if (knownParams.autokeys !== undefined) {
                 bot.handler.autokeys.check();
@@ -123,13 +138,20 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 bot.handler.autokeys.check();
             }
 
-            if (steamID) return bot.sendMessage(steamID, msg);
-            else return log.info(msg);
+            if (steamID) {
+                return bot.sendMessage(steamID, msg);
+            } else {
+                return log.info(msg);
+            }
         })
         .catch(err => {
             const msg = `❌ Error saving options file to disk: ${JSON.stringify(err)}`;
-            if (steamID) bot.sendMessage(steamID, msg);
-            else log.error(msg);
+            if (steamID) {
+                bot.sendMessage(steamID, msg);
+            } else {
+                log.error(msg);
+            }
+
             return;
         });
 }

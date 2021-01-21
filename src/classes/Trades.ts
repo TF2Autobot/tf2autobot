@@ -34,7 +34,9 @@ export default class Trades {
         const activeOrCreatedNeedsConfirmation: string[] = [];
 
         for (const id in pollData.sent) {
-            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) continue;
+            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) {
+                continue;
+            }
 
             const state = pollData.sent[id];
             if (
@@ -46,7 +48,9 @@ export default class Trades {
         }
 
         for (const id in pollData.received) {
-            if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) continue;
+            if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
+                continue;
+            }
 
             const state = pollData.received[id];
             if (state === TradeOfferManager.ETradeOfferState['Active']) {
@@ -62,7 +66,9 @@ export default class Trades {
                 pollData.offerData === undefined ? {} : pollData.offerData[id] || {};
 
             const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
-            for (let i = 0; i < items.length; i++) this.setItemInTrade = items[i].assetid;
+            for (let i = 0; i < items.length; i++) {
+                this.setItemInTrade = items[i].assetid;
+            }
         }
 
         this.bot.manager.pollData = pollData;
@@ -128,18 +134,28 @@ export default class Trades {
 
     getActiveOffer(steamID: SteamID): string | null {
         const pollData = this.bot.manager.pollData;
-        if (!pollData.offerData) return null;
+        if (!pollData.offerData) {
+            return null;
+        }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
         for (const id in pollData.sent) {
-            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) continue;
+            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) {
+                continue;
+            }
 
-            if (pollData.sent[id] !== TradeOfferManager.ETradeOfferState['Active']) continue;
+            if (pollData.sent[id] !== TradeOfferManager.ETradeOfferState['Active']) {
+                continue;
+            }
 
             const data = pollData.offerData[id] || null;
-            if (data === null) continue;
+            if (data === null) {
+                continue;
+            }
 
-            if (data.partner === steamID64) return id;
+            if (data.partner === steamID64) {
+                return id;
+            }
         }
 
         return null;
@@ -158,7 +174,9 @@ export default class Trades {
             }
 
             const offerData = this.bot.manager.pollData.offerData[offerID];
-            if (!offerData.partner || tradesBySteamID[offerData.partner] === undefined) continue;
+            if (!offerData.partner || tradesBySteamID[offerData.partner] === undefined) {
+                continue;
+            }
 
             tradesBySteamID[offerData.partner]++;
         }
@@ -176,7 +194,9 @@ export default class Trades {
             this.bot.manager.getOffers(
                 includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
                 (err, sent, received) => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
                     return resolve({ sent, received });
                 }
@@ -197,7 +217,9 @@ export default class Trades {
 
     private enqueueOffer(offer: TradeOffer): void {
         if (!this.receivedOffers.includes(offer.id)) {
-            offer.itemsToGive.forEach(item => (this.setItemInTrade = item.assetid));
+            offer.itemsToGive.forEach(item => {
+                this.setItemInTrade = item.assetid;
+            });
 
             offer.data('partner', offer.partner.getSteamID64());
 
@@ -221,7 +243,9 @@ export default class Trades {
     private dequeueOffer(offerId: string): void {
         const index = this.receivedOffers.indexOf(offerId);
 
-        if (index !== -1) this.receivedOffers.splice(index, 1);
+        if (index !== -1) {
+            this.receivedOffers.splice(index, 1);
+        }
     }
 
     private handlerProcessOffer(offer: TradeOffer): void {
@@ -237,7 +261,9 @@ export default class Trades {
                 throw err;
             }
 
-            if (offer.data('dict') === undefined) throw new Error('dict not saved on offer');
+            if (offer.data('dict') === undefined) {
+                throw new Error('dict not saved on offer');
+            }
 
             offer.data('handledByUs', true);
             offer.data('handleTime', dayjs().valueOf() - start);
@@ -246,7 +272,9 @@ export default class Trades {
                 response: response
             });
 
-            if (!response) return this.finishProcessingOffer(offer.id);
+            if (!response) {
+                return this.finishProcessingOffer(offer.id);
+            }
 
             this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
                 this.finishProcessingOffer(offer.id);
@@ -264,8 +292,11 @@ export default class Trades {
 
         let actionFunc: () => Promise<any>;
 
-        if (action === 'accept') actionFunc = this.acceptOffer.bind(this, offer);
-        else if (action === 'decline') actionFunc = this.declineOffer.bind(this, offer);
+        if (action === 'accept') {
+            actionFunc = this.acceptOffer.bind(this, offer);
+        } else if (action === 'decline') {
+            actionFunc = this.declineOffer.bind(this, offer);
+        }
 
         offer.data('action', {
             action: action,
@@ -273,7 +304,9 @@ export default class Trades {
             meta: meta
         } as Action);
 
-        if (actionFunc === undefined) return Promise.resolve();
+        if (actionFunc === undefined) {
+            return Promise.resolve();
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
@@ -339,7 +372,10 @@ export default class Trades {
                         return resolve(null);
                     }
 
-                    if (attempts > 5) return reject(err); // Too many retries
+                    if (attempts > 5) {
+                        // Too many retries
+                        return reject(err);
+                    }
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
@@ -356,7 +392,10 @@ export default class Trades {
                     });
                 }
 
-                if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) return resolve(null); // Offer is not active
+                if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
+                    // Offer is not active
+                    return resolve(null);
+                }
 
                 // Got offer
                 return resolve(offer);
@@ -373,7 +412,9 @@ export default class Trades {
                 const actionTime = dayjs().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
 
@@ -404,7 +445,9 @@ export default class Trades {
                 const confirmationTime = dayjs().valueOf() - start;
                 offer.data('confirmationTime', confirmationTime);
 
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve();
             });
@@ -417,7 +460,9 @@ export default class Trades {
                 attempts++;
 
                 if (err) {
-                    if (attempts > 5 || err.eresult !== undefined || err.cause !== undefined) return reject(err);
+                    if (attempts > 5 || err.eresult !== undefined || err.cause !== undefined) {
+                        return reject(err);
+                    }
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
@@ -448,7 +493,9 @@ export default class Trades {
                 const actionTime = dayjs().valueOf() - start;
                 offer.data('actionTime', actionTime);
 
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve();
             });
@@ -508,7 +555,9 @@ export default class Trades {
                         return reject(err);
                     }
 
-                    if (err.cause !== undefined) return reject(err);
+                    if (err.cause !== undefined) {
+                        return reject(err);
+                    }
 
                     if (err.eresult === TradeOfferManager.EResult['Revoked']) {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
@@ -520,7 +569,10 @@ export default class Trades {
                         return void Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
                             // Done waiting, try and find matching offer
                             void this.findMatchingOffer(offer, true).asCallback((err, match) => {
-                                if (err) return reject(err); // Failed to get offers, return error
+                                if (err) {
+                                    // Failed to get offers, return error
+                                    return reject(err);
+                                }
 
                                 if (match === null) {
                                     // Did not find a matching offer, retry sending the offer
@@ -597,9 +649,13 @@ export default class Trades {
                     log.debug('Escrow callback');
                     if (!err || err.message !== 'Not Logged In') {
                         // No error / not because session expired
-                        if (operation.retry(err)) return;
+                        if (operation.retry(err)) {
+                            return;
+                        }
 
-                        if (err) return reject(operation.mainError());
+                        if (err) {
+                            return reject(operation.mainError());
+                        }
 
                         log.debug('Done checking escrow');
 
@@ -694,11 +750,15 @@ export default class Trades {
     private set setItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
-        if (index === -1) this.itemsInTrade.push(assetid);
+        if (index === -1) {
+            this.itemsInTrade.push(assetid);
+        }
 
         const fixDuplicate: string[] = [];
         this.itemsInTrade.forEach(assetID => {
-            if (!fixDuplicate.includes(assetID)) fixDuplicate.push(assetID);
+            if (!fixDuplicate.includes(assetID)) {
+                fixDuplicate.push(assetID);
+            }
         });
 
         this.itemsInTrade = fixDuplicate;
@@ -707,7 +767,9 @@ export default class Trades {
     private set unsetItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
-        if (index !== -1) this.itemsInTrade.splice(index, 1);
+        if (index !== -1) {
+            this.itemsInTrade.splice(index, 1);
+        }
     }
 
     static offerEquals(a: TradeOffer, b: TradeOffer): boolean {
@@ -720,13 +782,18 @@ export default class Trades {
     }
 
     static itemsEquals(a: TradeOfferManager.EconItem[], b: TradeOfferManager.EconItem[]): boolean {
-        if (a.length !== b.length) return false;
+        if (a.length !== b.length) {
+            return false;
+        }
 
         const copy = b.slice(0);
         for (let i = 0; i < a.length; i++) {
             // Find index of matching item
             const index = copy.findIndex(item => Trades.itemEquals(item, a[i]));
-            if (index === -1) return false; // Item was not found, offers don't match
+            if (index === -1) {
+                // Item was not found, offers don't match
+                return false;
+            }
 
             // Remove match from list
             copy.splice(index, 1);

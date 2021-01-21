@@ -49,7 +49,9 @@ export default class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!this.bot.craftWeapons.includes(sku)) return;
+        if (!this.bot.craftWeapons.includes(sku)) {
+            return;
+        }
 
         log.debug('Enqueueing combine weapon job for ' + sku);
 
@@ -58,7 +60,9 @@ export default class TF2GC {
 
     combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
         skus.forEach(sku => {
-            if (!this.bot.craftWeapons.includes(sku)) return;
+            if (!this.bot.craftWeapons.includes(sku)) {
+                return;
+            }
         });
 
         log.debug('Enqueueing combine class weapon job for ' + skus.join(', '));
@@ -121,7 +125,9 @@ export default class TF2GC {
         log.debug('Ensuring TF2 GC connection...');
 
         void this.connectToGC().asCallback(err => {
-            if (err) return this.finishedProcessingJob(err);
+            if (err) {
+                return this.finishedProcessingJob(err);
+            }
 
             let func;
 
@@ -137,13 +143,18 @@ export default class TF2GC {
                 func = this.handleSortJob.bind(this, job);
             }
 
-            if (func) func();
-            else this.finishedProcessingJob(new Error('Unknown job type'));
+            if (func) {
+                func();
+            } else {
+                this.finishedProcessingJob(new Error('Unknown job type'));
+            }
         });
     }
 
     private handleCraftJob(job: Job): void {
-        if (!this.canProcessJob(job)) return this.finishedProcessingJob(new Error("Can't process job"));
+        if (!this.canProcessJob(job)) {
+            return this.finishedProcessingJob(new Error("Can't process job"));
+        }
 
         const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(String(job.defindex) + ';6', true)
@@ -173,8 +184,9 @@ export default class TF2GC {
     }
 
     private handleCraftJobWeapon(job: Job): void {
-        if (!this.canProcessJobWeapon(job))
+        if (!this.canProcessJobWeapon(job)) {
             return this.finishedProcessingJob(new Error("Can't process weapon crafting job"));
+        }
 
         const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(job.sku, true)
@@ -238,8 +250,11 @@ export default class TF2GC {
     private handleUseOrDeleteJob(job: Job): void {
         log.debug('Sending ' + job.type + ' request');
 
-        if (job.type === 'use') this.bot.tf2.useItem(job.assetid);
-        else if (job.type === 'delete') this.bot.tf2.deleteItem(job.assetid);
+        if (job.type === 'use') {
+            this.bot.tf2.useItem(job.assetid);
+        } else if (job.type === 'delete') {
+            this.bot.tf2.deleteItem(job.assetid);
+        }
 
         this.listenForEvent(
             'itemRemoved',

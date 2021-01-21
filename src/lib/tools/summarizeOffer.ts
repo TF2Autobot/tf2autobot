@@ -82,12 +82,16 @@ function getSummary(
     withLink: boolean,
     showStockChanges: boolean
 ): string {
-    if (dict === null) return 'unknown items';
+    if (dict === null) {
+        return 'unknown items';
+    }
 
     const summary: string[] = [];
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            continue;
+        }
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
@@ -99,8 +103,11 @@ function getSummary(
             const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
-            if (type === 'summary-accepted') oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
-            else oldStock = currentStock;
+            if (type === 'summary-accepted') {
+                oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
+            } else {
+                oldStock = currentStock;
+            }
 
             if (withLink) {
                 summary.push(
@@ -130,7 +137,9 @@ function getSummary(
         }
     }
 
-    if (summary.length === 0) return 'nothing';
+    if (summary.length === 0) {
+        return 'nothing';
+    }
 
     if (withLink) {
         let left = 0;
@@ -140,6 +149,7 @@ function getSummary(
         }
 
         return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
-        //
-    } else return summary.join(', ');
+    } else {
+        return summary.join(', ');
+    }
 }

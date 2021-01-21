@@ -270,8 +270,11 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBuy;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) setMaxKeys += 1;
-            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 1;
+            if (setMinKeys === setMaxKeys) {
+                setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 1;
+            }
 
             //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
@@ -282,8 +285,11 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) setMaxKeys += 1;
-            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 2;
+            if (setMinKeys === setMaxKeys) {
+                setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 2;
+            }
 
             //
         } else if (isSellingKeys) {
@@ -294,8 +300,11 @@ export default class Autokeys {
             const max = currKeys;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) setMinKeys -= 1;
-            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 1;
+            if (setMinKeys === setMaxKeys) {
+                setMinKeys -= 1;
+            } else if (setMinKeys > setMaxKeys) {
+                setMaxKeys = setMinKeys + 1;
+            }
 
             //
         } else if (isBankingKeys && isEnableKeyBanking) {
@@ -306,12 +315,19 @@ export default class Autokeys {
             const max = currKeys + rKeysCanBankMax;
             setMaxKeys = max >= userMaxKeys ? userMaxKeys : max < 1 ? 1 : max;
 
-            if (setMinKeys === setMaxKeys) setMinKeys -= 1;
-            else if (setMaxKeys - setMinKeys === 1) setMaxKeys += 1;
-            // When banking, the bot should be able to both buy and sell keys.
-            else if (setMinKeys > setMaxKeys) setMaxKeys = setMinKeys + 2;
+            if (setMinKeys === setMaxKeys) {
+                setMinKeys -= 1;
+            } else if (setMaxKeys - setMinKeys === 1) {
+                setMaxKeys += 1;
+            } else if (setMinKeys > setMaxKeys) {
+                // When banking, the bot should be able to both buy and sell keys.
+                setMaxKeys = setMinKeys + 2;
+            }
 
-            if (setMaxKeys === currKeys) setMaxKeys += 1;
+            if (setMaxKeys === currKeys) {
+                // When banking, the bot should be able to both buy and sell keys.
+                setMaxKeys += 1;
+            }
         }
 
         const isAlreadyRunningAutokeys = this.isActive;
@@ -393,7 +409,9 @@ export default class Autokeys {
                 if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                     if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                         sendAlert('lowPure', this.bot, msg);
-                    } else this.bot.messageAdmins(msg, []);
+                    } else {
+                        this.bot.messageAdmins(msg, []);
+                    }
                 }
             }
         } else {
@@ -437,7 +455,9 @@ export default class Autokeys {
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
-                        } else this.bot.messageAdmins(msg, []);
+                        } else {
+                            this.bot.messageAdmins(msg, []);
+                        }
                     }
                 }
             } else {
@@ -502,7 +522,9 @@ export default class Autokeys {
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('lowPure', this.bot, msg);
-                        } else this.bot.messageAdmins(msg, []);
+                        } else {
+                            this.bot.messageAdmins(msg, []);
+                        }
                     }
                 }
             }
@@ -588,13 +610,18 @@ export default class Autokeys {
         if (isEnableSend) {
             if (sendToDiscord) {
                 sendAlert(type, this.bot, msg);
-            } else this.bot.messageAdmins(msg, []);
+            } else {
+                this.bot.messageAdmins(msg, []);
+            }
         }
     }
 
     private createToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
+
+        if (keyPrices.src === 'manual') {
+            entry = this.setManual(entry, keyPrices);
+        }
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
@@ -613,8 +640,12 @@ export default class Autokeys {
 
     private create(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
+
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = this.setManual(entry, keyPrices);
+        } else if (this.isEnableScrapAdjustment) {
+            entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
+        }
 
         this.bot.pricelist
             .addPrice(entry, true, PricelistChangedSource.Autokeys)
@@ -633,7 +664,10 @@ export default class Autokeys {
 
     private updateToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
+
+        if (keyPrices.src === 'manual') {
+            entry = this.setManual(entry, keyPrices);
+        }
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
@@ -652,8 +686,12 @@ export default class Autokeys {
 
     private update(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
         let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
-        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) entry = this.setManual(entry, keyPrices);
-        else if (this.isEnableScrapAdjustment) entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
+
+        if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
+            entry = this.setManual(entry, keyPrices);
+        } else if (this.isEnableScrapAdjustment) {
+            entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
+        }
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)
@@ -674,7 +712,10 @@ export default class Autokeys {
 
     disable(keyPrices: KeyPrices): void {
         let entry = this.generateEntry(false, 0, 1, 2);
-        if (keyPrices.src === 'manual') entry = this.setManual(entry, keyPrices);
+
+        if (keyPrices.src === 'manual') {
+            entry = this.setManual(entry, keyPrices);
+        }
 
         this.bot.pricelist
             .updatePrice(entry, true, PricelistChangedSource.Autokeys)

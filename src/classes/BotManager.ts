@@ -112,15 +112,21 @@ export default class BotManager {
                     }
                 ],
                 (item, callback) => {
-                    if (this.isStopping) return this.stop(null, false, false);
+                    if (this.isStopping) {
+                        return this.stop(null, false, false);
+                    }
                     // Shutdown is requested, stop the bot
 
                     item(callback);
                 },
                 err => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
-                    if (this.isStopping) return this.stop(null, false, false);
+                    if (this.isStopping) {
+                        return this.stop(null, false, false);
+                    }
                     // Shutdown is requested, stop the bot
 
                     return resolve();
@@ -135,16 +141,23 @@ export default class BotManager {
         this.stopRequested = true;
         this.stopRequestCount++;
 
-        if (this.stopRequestCount >= 10) rudely = true;
+        if (this.stopRequestCount >= 10) {
+            rudely = true;
+        }
 
         if (rudely) {
             log.warn('Forcefully exiting');
             return this.exit(err);
         }
 
-        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) return;
+        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) {
+            return;
+        }
 
-        if (this.stopping) return; // We are already shutting down
+        if (this.stopping) {
+            // We are already shutting down
+            return;
+        }
 
         this.stopping = true;
 
@@ -173,7 +186,9 @@ export default class BotManager {
             log.warn('Stop has been requested, stopping...');
 
             pm2.stop(process.env.pm_id, err => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve();
             });
@@ -189,7 +204,9 @@ export default class BotManager {
             log.warn('Restart has been initialized, restarting...');
 
             pm2.restart(process.env.pm_id, err => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve(true);
             });
@@ -220,7 +237,9 @@ export default class BotManager {
     }
 
     private exit(err: Error | null): void {
-        if (this.exiting) return;
+        if (this.exiting) {
+            return;
+        }
 
         this.exiting = true;
 
@@ -249,7 +268,9 @@ export default class BotManager {
     connectToPM2(): Promise<void> {
         return new Promise((resolve, reject) => {
             pm2.connect(err => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve();
             });
@@ -259,7 +280,9 @@ export default class BotManager {
     initializeSchema(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.schemaManager.init(err => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 return resolve();
             });

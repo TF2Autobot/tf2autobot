@@ -67,12 +67,15 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
 
 export function statsDWCommand(steamID: SteamID, bot: Bot): void {
     const opt = bot.options.discordWebhook.sendStats;
+
     if (!opt.enable) {
         return bot.sendMessage(steamID, '❌ Sending stats to Discord Webhook is disabled.');
     }
+
     if (opt.url === '') {
         return bot.sendMessage(steamID, '❌ Your discordWebhook.sendStats.url is empty.');
     }
+
     sendStats(bot, true, steamID);
 }
 

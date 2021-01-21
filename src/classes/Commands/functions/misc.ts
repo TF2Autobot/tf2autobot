@@ -96,9 +96,13 @@ export function miscCommand(steamID: SteamID, bot: Bot, command: Misc): void {
         const items: { amount: number; name: string }[] = [];
 
         for (const sku in dict) {
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+                continue;
+            }
 
-            if (['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) continue;
+            if (['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
+                continue;
+            }
 
             items.push({
                 name: bot.schema.getName(SKU.fromString(sku), false),

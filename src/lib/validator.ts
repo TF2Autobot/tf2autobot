@@ -30,7 +30,9 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
             : {};
 
     const validated = v.validate(data, putSchema);
-    if (validated.valid === true) return null;
+    if (validated.valid === true) {
+        return null;
+    }
 
     return errorParser(validated);
 };
@@ -40,16 +42,24 @@ function errorParser(validated: jsonschema.ValidatorResult): string[] {
     for (let i = 0; i < validated.errors.length; i++) {
         const error = validated.errors[i];
         let property = error.property;
-        if (property.startsWith('instance.')) property = property.replace('instance.', '');
-        else if (property === 'instance') property = '';
+        if (property.startsWith('instance.')) {
+            property = property.replace('instance.', '');
+        } else if (property === 'instance') {
+            property = '';
+        }
 
         let message = error.stack;
-        if (error.name === 'additionalProperties') message = `unknown property "${error.argument as string}"`;
-        else if (property) {
-            if (error.name === 'anyOf') message = `"${property}" does not have a valid value`;
-            else message = message.replace(error.property, `"${property}"`).trim();
-            //
-        } else message = message.replace(error.property, property).trim();
+        if (error.name === 'additionalProperties') {
+            message = `unknown property "${error.argument as string}"`;
+        } else if (property) {
+            if (error.name === 'anyOf') {
+                message = `"${property}" does not have a valid value`;
+            } else {
+                message = message.replace(error.property, `"${property}"`).trim();
+            }
+        } else {
+            message = message.replace(error.property, property).trim();
+        }
 
         errors.push(message);
     }

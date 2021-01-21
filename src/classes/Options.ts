@@ -2495,7 +2495,9 @@ export default interface Options extends JsonOptions {
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
     try {
-        if (options && options[option]) return options[option] as T;
+        if (options && options[option]) {
+            return options[option] as T;
+        }
         const envVar = snakeCase(option).toUpperCase();
         return process.env[envVar] ? parseFn(process.env[envVar]) : def;
     } catch {
@@ -2504,7 +2506,9 @@ function getOption<T>(option: string, def: T, parseFn: (target: string) => T, op
 }
 
 function throwLintError(filepath: string, e: Error): void {
-    if (e instanceof Error && 'message' in e) throw new Error(`${filepath}\n${e.message}`);
+    if (e instanceof Error && 'message' in e) {
+        throw new Error(`${filepath}\n${e.message}`);
+    }
 
     throw e;
 }
@@ -2611,13 +2615,17 @@ export function loadOptions(options?: Options): Options {
         debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions)
     };
 
-    if (!envOptions.steamAccountName) throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
+    if (!envOptions.steamAccountName) {
+        throw new Error('STEAM_ACCOUNT_NAME must be set in the environment');
+    }
 
     removeCliOptions(incomingOptions);
     const jsonOptions = loadJsonOptions(getOptionsPath(envOptions.steamAccountName), incomingOptions);
 
     const errors = validator(jsonOptions, 'options');
-    if (errors !== null) throw new Error(errors.join(', '));
+    if (errors !== null) {
+        throw new Error(errors.join(', '));
+    }
 
     return deepMerge(jsonOptions, envOptions, incomingOptions);
 }

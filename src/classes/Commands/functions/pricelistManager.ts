@@ -18,28 +18,44 @@ import log from '../../../lib/logger';
 
 export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-    if (params.enabled === undefined) params.enabled = true;
-    if (params.max === undefined) params.max = 1;
-    if (params.min === undefined) params.min = 0;
+
+    if (params.enabled === undefined) {
+        params.enabled = true;
+    }
+
+    if (params.max === undefined) {
+        params.max = 1;
+    }
+
+    if (params.min === undefined) {
+        params.min = 0;
+    }
 
     if (params.intent === undefined) {
         params.intent = 2;
     } else if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-        if (intent !== -1) params.intent = intent;
+
+        if (intent !== -1) {
+            params.intent = intent;
+        }
     }
 
     if (typeof params.buy === 'object') {
         params.buy.keys = params.buy.keys || 0;
         params.buy.metal = params.buy.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
     if (typeof params.sell === 'object') {
         params.sell.keys = params.sell.keys || 0;
         params.sell.metal = params.sell.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
 
     const isPremium = bot.handler.getBotInfo.premium;
@@ -52,9 +68,11 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
         }
 
         if (typeof params.promoted === 'boolean') {
-            if (params.promoted === true) params.promoted = 1;
-            else params.promoted = 0;
-            //
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
         } else {
             if (typeof params.promoted !== 'number') {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
@@ -63,31 +81,44 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
         }
-        //
-    } else params['promoted'] = 0;
+    } else {
+        params['promoted'] = 0;
+    }
 
     if (typeof params.note === 'object') {
         params.note.buy = params.note.buy || null;
         params.note.sell = params.note.sell || null;
     }
 
-    // If note parameter is not defined, set both note.buy and note.sell to null.
-    if (params.note === undefined) params['note'] = { buy: null, sell: null };
+    if (params.note === undefined) {
+        // If note parameter is not defined, set both note.buy and note.sell to null.
+        params['note'] = { buy: null, sell: null };
+    }
 
-    // if group parameter is defined, convert anything to string
-    if (params.group && typeof params.group !== 'string') params.group = (params.group as string).toString();
+    if (params.group && typeof params.group !== 'string') {
+        // if group parameter is defined, convert anything to string
+        params.group = (params.group as string).toString();
+    }
 
-    // If group parameter is not defined, set it to null.
-    if (params.group === undefined) params['group'] = 'all';
+    if (params.group === undefined) {
+        // If group parameter is not defined, set it to null.
+        params['group'] = 'all';
+    }
 
-    if (params.autoprice === undefined) params.autoprice = true;
+    if (params.autoprice === undefined) {
+        params.autoprice = true;
+    }
+
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         return bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
     }
 
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
-        if (item === null) return;
+
+        if (item === null) {
+            return;
+        }
 
         params.sku = SKU.fromObject(item);
     }
@@ -108,6 +139,7 @@ export function stopAutoAddCommand(): void {
 
 export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
     if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
         return bot.sendMessage(
             steamID,
@@ -116,29 +148,47 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         );
     }
 
-    if (!params) bot.sendMessage(steamID, `⏳ Adding all items with default settings...`);
-    if (params.enabled === undefined) params.enabled = true;
-    if (params.max === undefined) params.max = 1;
-    if (params.min === undefined) params.min = 0;
+    if (!params) {
+        bot.sendMessage(steamID, `⏳ Adding all items with default settings...`);
+    }
+
+    if (params.enabled === undefined) {
+        params.enabled = true;
+    }
+
+    if (params.max === undefined) {
+        params.max = 1;
+    }
+
+    if (params.min === undefined) {
+        params.min = 0;
+    }
 
     if (params.intent === undefined) {
         params.intent = 2;
     } else if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-        if (intent !== -1) params.intent = intent;
+
+        if (intent !== -1) {
+            params.intent = intent;
+        }
     }
 
     if (typeof params.buy === 'object') {
         params.buy.keys = params.buy.keys || 0;
         params.buy.metal = params.buy.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
     if (typeof params.sell === 'object') {
         params.sell.keys = params.sell.keys || 0;
         params.sell.metal = params.sell.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
 
     if (
@@ -149,6 +199,7 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     }
 
     const isPremium = bot.handler.getBotInfo.premium;
+
     if (params.promoted !== undefined) {
         if (!isPremium) {
             return bot.sendMessage(
@@ -158,33 +209,47 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         }
 
         if (typeof params.promoted === 'boolean') {
-            if (params.promoted === true) params.promoted = 1;
-            else params.promoted = 0;
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
         } else {
             if (typeof params.promoted !== 'number') {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
+
             if (params.promoted < 0 || params.promoted > 1) {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
         }
-        //
-    } else params['promoted'] = 0;
+    } else {
+        params['promoted'] = 0;
+    }
 
     if (typeof params.note === 'object') {
         params.note.buy = params.note.buy || null;
         params.note.sell = params.note.sell || null;
     }
 
-    // If note parameter is not defined, set both note.buy and note.sell to null.
-    if (params.note === undefined) params['note'] = { buy: null, sell: null };
+    if (params.note === undefined) {
+        // If note parameter is not defined, set both note.buy and note.sell to null.
+        params['note'] = { buy: null, sell: null };
+    }
 
-    // if group parameter is defined, convert anything to string
-    if (params.group && typeof params.group !== 'string') params.group = (params.group as string).toString();
+    if (params.group && typeof params.group !== 'string') {
+        // If group parameter is defined, convert anything to string
+        params.group = (params.group as string).toString();
+    }
 
-    // If group parameter is not defined, set it to null.
-    if (params.group === undefined) params['group'] = 'all';
-    if (params.autoprice === undefined) params.autoprice = true;
+    if (params.group === undefined) {
+        // If group parameter is not defined, set it to null.
+        params['group'] = 'all';
+    }
+
+    if (params.autoprice === undefined) {
+        params.autoprice = true;
+    }
 
     const pricelist = bot.pricelist.getPrices;
     const dict = bot.inventoryManager.getInventory.getItems;
@@ -197,9 +262,13 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
     const combine = ['5021;6', '5000;6', '5001;6', '5002;6'].concat(weapons);
 
     for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            continue;
+        }
 
-        if (combine.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) delete dict[sku];
+        if (combine.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
+            delete dict[sku];
+        }
     }
 
     const total = Object.keys(dict).length;
@@ -232,7 +301,9 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
             break;
         }
 
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            continue;
+        }
 
         if (pricelist.some(entry => entry.sku === sku)) {
             skipped++;
@@ -248,8 +319,11 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
             continue;
         }
 
-        if (params.autoprice === true) await sleepasync().Promise.sleep(2 * 1000);
-        else await sleepasync().Promise.sleep(1 * 1000);
+        if (params.autoprice === true) {
+            await sleepasync().Promise.sleep(2 * 1000);
+        } else {
+            await sleepasync().Promise.sleep(1 * 1000);
+        }
 
         params.sku = sku;
 
@@ -303,9 +377,13 @@ function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string 
 
 export async function updateCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
     if (typeof params.intent === 'string') {
         const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-        if (intent !== -1) params.intent = intent;
+
+        if (intent !== -1) {
+            params.intent = intent;
+        }
     }
 
     if (params.all === true) {
@@ -423,11 +501,25 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         }
 
         newPricelist.forEach((entry, i) => {
-            if (params.intent || params.intent === 0) entry.intent = params.intent as 0 | 1 | 2;
-            if (params.min === 0 || typeof params.min === 'number') entry.min = params.min as number;
-            if (params.max === 0 || typeof params.max === 'number') entry.max = params.max as number;
-            if (typeof params.enabled === 'boolean') entry.enabled = params.enabled;
-            if (params.group) entry.group = (params.withgroup as string).toString();
+            if (params.intent || params.intent === 0) {
+                entry.intent = params.intent as 0 | 1 | 2;
+            }
+
+            if (params.min === 0 || typeof params.min === 'number') {
+                entry.min = params.min as number;
+            }
+
+            if (params.max === 0 || typeof params.max === 'number') {
+                entry.max = params.max as number;
+            }
+
+            if (typeof params.enabled === 'boolean') {
+                entry.enabled = params.enabled;
+            }
+
+            if (params.group) {
+                entry.group = (params.withgroup as string).toString();
+            }
 
             if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
                 // Sending "!update all=true&removenote=true" will set both
@@ -457,14 +549,18 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                     entry.buy.keys = params.buy.keys || 0;
                     entry.buy.metal = params.buy.metal || 0;
 
-                    if (params.autoprice === undefined) entry.autoprice = false;
+                    if (params.autoprice === undefined) {
+                        entry.autoprice = false;
+                    }
                 }
 
                 if (typeof params.sell === 'object' && params.sell !== null) {
                     entry.sell.keys = params.sell.keys || 0;
                     entry.sell.metal = params.sell.metal || 0;
 
-                    if (params.autoprice === undefined) entry.autoprice = false;
+                    if (params.autoprice === undefined) {
+                        entry.autoprice = false;
+                    }
                 }
             }
 
@@ -487,11 +583,15 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                     'pricelist'
                 );
 
-                if (errors !== null) throw new Error(errors.join(', '));
+                if (errors !== null) {
+                    throw new Error(errors.join(', '));
+                }
             }
         });
 
-        if (params.removenote) delete params.removenote;
+        if (params.removenote) {
+            delete params.removenote;
+        }
 
         if (params.withgroup) {
             newPricelist = unTargetedPricelist.concat(newPricelist);
@@ -534,13 +634,18 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         params.buy.keys = params.buy.keys || 0;
         params.buy.metal = params.buy.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
+
     if (typeof params.sell === 'object' && params.sell !== null) {
         params.sell.keys = params.sell.keys || 0;
         params.sell.metal = params.sell.metal || 0;
 
-        if (params.autoprice === undefined) params.autoprice = false;
+        if (params.autoprice === undefined) {
+            params.autoprice = false;
+        }
     }
 
     if (params.resetgroup) {
@@ -551,13 +656,11 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             if (params.resetgroup === true) {
                 // if it's true, then set group key to null.
                 params.group = 'all';
-            } // else if false, just ignore it.
+            }
         } else {
             // else if it's not a boolean type, then send message.
-
             return bot.sendMessage(steamID, '❌ "resetgroup" must be either "true" or "false".');
         }
-
         // delete resetgroup key from params so it will not trying to be added into pricelist (validator error)
         delete params.resetgroup;
     }
@@ -572,12 +675,16 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         }
 
         if (typeof params.promoted === 'boolean') {
-            if (params.promoted === true) params.promoted = 1;
-            else params.promoted = 0;
+            if (params.promoted === true) {
+                params.promoted = 1;
+            } else {
+                params.promoted = 0;
+            }
         } else {
             if (typeof params.promoted !== 'number') {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
+
             if (params.promoted < 0 || params.promoted > 1) {
                 return bot.sendMessage(steamID, '❌ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
@@ -594,11 +701,14 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             );
         } else if (Array.isArray(match)) {
             const matchCount = match.length;
-            if (match.length > 20) match = match.splice(0, 20);
+            if (match.length > 20) {
+                match = match.splice(0, 20);
+            }
 
             let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
                 ',\n'
             )}`;
+
             if (matchCount > match.length) {
                 const other = matchCount - match.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -611,7 +721,10 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         params.sku = match.sku;
     } else if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
-        if (item === null) return;
+
+        if (item === null) {
+            return;
+        }
 
         params.sku = SKU.fromObject(item);
     }
@@ -621,6 +734,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     }
 
     const itemEntry = bot.pricelist.getPrice(params.sku as string, false);
+
     if (typeof params.note === 'object') {
         params.note.buy = (params.note.buy === '' ? null : params.note.buy) || itemEntry.note.buy;
         params.note.sell = (params.note.sell === '' ? null : params.note.sell) || itemEntry.note.sell;
@@ -635,6 +749,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         } else {
             return bot.sendMessage(steamID, '❌ "removenote" must be either "true" or "false".');
         }
+
         delete params.removenote;
     }
 
@@ -653,6 +768,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         } else {
             return bot.sendMessage(steamID, '❌ "removebuynote" must be either "true" or "false".');
         }
+
         delete params.removebuynote;
     }
 
@@ -664,6 +780,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         } else {
             return bot.sendMessage(steamID, '❌ "removesellnote" must be either "true" or "false".');
         }
+
         delete params.removesellnote;
     }
 
@@ -671,11 +788,15 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     delete entryData.time;
     delete params.sku;
 
-    if (Object.keys(params).length === 0) return bot.sendMessage(steamID, '⚠️ Missing properties to update.');
+    if (Object.keys(params).length === 0) {
+        return bot.sendMessage(steamID, '⚠️ Missing properties to update.');
+    }
 
     // Update entry
     for (const property in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, property)) continue;
+        if (!Object.prototype.hasOwnProperty.call(params, property)) {
+            continue;
+        }
 
         entryData[property] = params[property];
     }
@@ -759,6 +880,7 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
     const timeDiff = newExecutedTime - lastExecutedTime;
 
     const pricelist = bot.pricelist.getPrices;
+
     if (pricelist.length === 0) {
         return bot.sendMessage(steamID, '❌ Pricelist is empty!');
     }
@@ -793,10 +915,13 @@ export async function shuffleCommand(steamID: SteamID, bot: Bot): Promise<void> 
 
 export async function removeCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
     if (params.all === true) {
         // Remove entire pricelist
         const pricelistLength = bot.pricelist.getLength;
-        if (pricelistLength === 0) return bot.sendMessage(steamID, '❌ Your pricelist is already empty!');
+        if (pricelistLength === 0) {
+            return bot.sendMessage(steamID, '❌ Your pricelist is already empty!');
+        }
 
         const pricelist = bot.pricelist.getPrices;
         let newPricelist: Entry[] = [];
@@ -896,6 +1021,7 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
             let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
                 ',\n'
             )}`;
+
             if (matchCount > match.length) {
                 const other = matchCount - match.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -908,7 +1034,10 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
         params.sku = match.sku;
     } else if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
-        if (item === null) return;
+
+        if (item === null) {
+            return;
+        }
 
         params.sku = SKU.fromObject(item);
     }
@@ -936,11 +1065,14 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
             );
         } else if (Array.isArray(match)) {
             const matchCount = match.length;
-            if (match.length > 20) match = match.splice(0, 20);
+            if (match.length > 20) {
+                match = match.splice(0, 20);
+            }
 
             let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
                 ',\n'
             )}`;
+
             if (matchCount > match.length) {
                 const other = matchCount - match.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -953,16 +1085,24 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
         params.sku = match.sku;
     } else if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
-        if (item === null) return;
+
+        if (item === null) {
+            return;
+        }
 
         params.sku = SKU.fromObject(item);
     }
 
-    if (params.sku === undefined) return bot.sendMessage(steamID, '❌ Missing item');
+    if (params.sku === undefined) {
+        return bot.sendMessage(steamID, '❌ Missing item');
+    }
 
     const match = bot.pricelist.getPrice(params.sku as string);
-    if (match === null) bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
-    else bot.sendMessage(steamID, `/code ${generateOutput(match)}`);
+    if (match === null) {
+        bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
+    } else {
+        bot.sendMessage(steamID, `/code ${generateOutput(match)}`);
+    }
 }
 
 export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
@@ -1008,12 +1148,16 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
 
     if (params.promoted !== undefined) {
         if (typeof params.promoted === 'boolean') {
-            if (params.promoted === true) filter = filter.filter(entry => entry.promoted === 1);
-            else filter = filter.filter(entry => entry.promoted === 0);
+            if (params.promoted === true) {
+                filter = filter.filter(entry => entry.promoted === 1);
+            } else {
+                filter = filter.filter(entry => entry.promoted === 0);
+            }
         } else {
             if (typeof params.promoted !== 'number') {
                 return bot.sendMessage(steamID, '⚠️ promoted parameter must be either 0 (false) or 1 (true)');
             }
+
             if (params.promoted < 0 || params.promoted > 1) {
                 return bot.sendMessage(steamID, '⚠️ "promoted" parameter must be either 0 (false) or 1 (true)');
             }
@@ -1024,7 +1168,9 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
     if (params.intent !== undefined) {
         if (typeof params.intent === 'string') {
             const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-            if (intent !== -1) params.intent = intent;
+            if (intent !== -1) {
+                params.intent = intent;
+            }
         }
 
         if (typeof params.intent !== 'number' || params.intent < 0) {

@@ -9,10 +9,13 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
     const disabledForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
-        if (opt.enable && opt.url !== '') disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
-        // show both item name and prices.tf price
-        else disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
-        // show both item name and prices.tf price
+        if (opt.enable && opt.url !== '') {
+            // show both item name and prices.tf price
+            disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
+        } else {
+            // show both item name and prices.tf price
+            disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
+        }
 
         // only show to trade partner the item name
         disabledForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));

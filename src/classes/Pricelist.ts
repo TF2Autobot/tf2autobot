@@ -84,14 +84,23 @@ export class Entry {
             this.time = null;
         }
 
-        if (entry.promoted) this.promoted = entry.promoted;
-        else this.promoted = 0;
+        if (entry.promoted) {
+            this.promoted = entry.promoted;
+        } else {
+            this.promoted = 0;
+        }
 
-        if (entry.group) this.group = entry.group;
-        else this.group = 'all';
+        if (entry.group) {
+            this.group = entry.group;
+        } else {
+            this.group = 'all';
+        }
 
-        if (entry.note) this.note = entry.note;
-        else this.note = { buy: null, sell: null };
+        if (entry.note) {
+            this.note = entry.note;
+        } else {
+            this.note = { buy: null, sell: null };
+        }
     }
 
     clone(): Entry {
@@ -182,7 +191,9 @@ export default class Pricelist extends EventEmitter {
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
         const index = this.getIndex(sku);
-        if (index === -1) return false;
+        if (index === -1) {
+            return false;
+        }
 
         const match = this.prices[index];
         return !onlyEnabled || match.enabled;
@@ -260,7 +271,9 @@ export default class Pricelist extends EventEmitter {
         for (let i = 0; i < this.prices.length; i++) {
             const entry = this.prices[i];
 
-            if (enabledOnly && entry.enabled === false) continue;
+            if (enabledOnly && entry.enabled === false) {
+                continue;
+            }
 
             if (entry.name === null) {
                 // Check if entry.name is null, if true, get the name
@@ -268,28 +281,40 @@ export default class Pricelist extends EventEmitter {
                     // Check if entry.sku not null, if yes, then get name from it
                     entry.name = this.schema.getName(SKU.fromString(entry.sku), false);
 
-                    if (entry.name === null) continue;
-                    // If entry.name still null after getting its name, then skip current iteration
-                    //
-                } else continue; // Else if entry.sku is null, then skip current iteration
+                    if (entry.name === null) {
+                        // If entry.name still null after getting its name, then skip current iteration
+                        continue;
+                    }
+                } else {
+                    // Else if entry.sku is null, then skip current iteration
+                    continue;
+                }
             }
 
             // Bot can crash here if entry.name is null
             const name = entry.name.toLowerCase();
 
-            if (search.includes('uncraftable')) search = search.replace('uncraftable', 'non-craftable');
+            if (search.includes('uncraftable')) {
+                search = search.replace('uncraftable', 'non-craftable');
+            }
 
             if (search === name || search.replace(/the /g, '').trim() === name.replace(/the /g, '').trim()) {
                 // Found direct match
                 return entry;
             }
 
-            if (name.includes(search)) match.push(entry);
+            if (name.includes(search)) {
+                match.push(entry);
+            }
         }
 
-        if (match.length === 0) return null;
-        // No match
-        else if (match.length === 1) return match[0]; // Found one that matched the search
+        if (match.length === 0) {
+            // No match
+            return null;
+        } else if (match.length === 1) {
+            // Found one that matched the search
+            return match[0];
+        }
 
         // Found many that matched, return list of the names
         return match.map(entry => entry.name);
@@ -325,7 +350,9 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        if (!entry.hasPrice()) throw new Error('Pricelist entry does not have a price');
+        if (!entry.hasPrice()) {
+            throw new Error('Pricelist entry does not have a price');
+        }
 
         if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
             throw new Error('Sell must be higher than buy');
@@ -358,13 +385,18 @@ export default class Pricelist extends EventEmitter {
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
-        if (errors !== null) return Promise.reject(new Error(errors.join(', ')));
-
-        if (this.hasPrice(entryData.sku, false)) throw new Error('Item is already priced');
+        if (errors !== null) {
+            return Promise.reject(new Error(errors.join(', ')));
+        }
+        if (this.hasPrice(entryData.sku, false)) {
+            throw new Error('Item is already priced');
+        }
 
         if (entryData.sku === '5021;6') {
             if (entryData.buy !== undefined) {
-                if (entryData.buy.keys > 0) throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                if (entryData.buy.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
             }
 
             if (entryData.sell !== undefined) {
@@ -380,7 +412,9 @@ export default class Pricelist extends EventEmitter {
         // Add new price
         this.prices.push(entry);
 
-        if (emitChange) this.priceChanged(entry.sku, entry);
+        if (emitChange) {
+            this.priceChanged(entry.sku, entry);
+        }
         return entry;
     }
 
@@ -391,11 +425,15 @@ export default class Pricelist extends EventEmitter {
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
-        if (errors !== null) return Promise.reject(new Error(errors.join(', ')));
+        if (errors !== null) {
+            return Promise.reject(new Error(errors.join(', ')));
+        }
 
         if (entryData.sku === '5021;6') {
             if (entryData.buy !== undefined) {
-                if (entryData.buy.keys > 0) throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                if (entryData.buy.keys > 0) {
+                    throw new Error("Don't price Mann Co. Supply Crate Key with keys property");
+                }
             }
 
             if (entryData.sell !== undefined) {
@@ -414,7 +452,9 @@ export default class Pricelist extends EventEmitter {
         // Add new price
         this.prices.push(entry);
 
-        if (emitChange) this.priceChanged(entry.sku, entry);
+        if (emitChange) {
+            this.priceChanged(entry.sku, entry);
+        }
         return entry;
     }
 
@@ -450,11 +490,15 @@ export default class Pricelist extends EventEmitter {
     removePrice(sku: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
             const index = this.getIndex(sku);
-            if (index === -1) return reject(new Error('Item is not priced'));
+            if (index === -1) {
+                return reject(new Error('Item is not priced'));
+            }
 
             // Found match, remove it
             const entry = this.prices.splice(index, 1)[0];
-            if (emitChange) this.priceChanged(sku, entry);
+            if (emitChange) {
+                this.priceChanged(sku, entry);
+            }
 
             return resolve(entry);
         });
@@ -546,7 +590,9 @@ export default class Pricelist extends EventEmitter {
                 'pricelist'
             );
 
-            if (errors !== null) throw new Error(errors.join(', '));
+            if (errors !== null) {
+                throw new Error(errors.join(', '));
+            }
         }
 
         this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
@@ -594,7 +640,9 @@ export default class Pricelist extends EventEmitter {
                 }
 
                 const old = this.getOld;
-                if (old.length === 0) return;
+                if (old.length === 0) {
+                    return;
+                }
 
                 return this.updateOldPrices(old);
             })
@@ -691,7 +739,9 @@ export default class Pricelist extends EventEmitter {
             // Go through our pricelist
             for (let i = 0; i < old.length; i++) {
                 // const currPrice = old[i];
-                if (old[i].autoprice !== true) continue;
+                if (old[i].autoprice !== true) {
+                    continue;
+                }
 
                 const item = SKU.fromString(old[i].sku);
                 // PricesTF includes "The" in the name, we need to use proper name
@@ -719,12 +769,16 @@ export default class Pricelist extends EventEmitter {
                 }
             }
 
-            if (pricesChanged) this.emit('pricelist', this.prices);
+            if (pricesChanged) {
+                this.emit('pricelist', this.prices);
+            }
         });
     }
 
     private handlePriceChange(data: GetItemPriceResponse): void {
-        if (data.source !== 'bptf') return;
+        if (data.source !== 'bptf') {
+            return;
+        }
 
         const match = this.getPrice(data.sku);
         if (data.sku === '5021;6') {
@@ -802,7 +856,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     private get getOld(): Entry[] {
-        if (this.maxAge <= 0) return this.prices;
+        if (this.maxAge <= 0) {
+            return this.prices;
+        }
         const now = dayjs().unix();
 
         return this.prices.filter(entry => entry.time + this.maxAge <= now);
@@ -812,15 +868,21 @@ export default class Pricelist extends EventEmitter {
         const sorted: Group = {};
 
         for (let i = 0; i < prices.length; i++) {
-            if (prices[i].buy === null) continue;
+            if (prices[i].buy === null) {
+                continue;
+            }
 
             const item = SKU.fromString(prices[i].sku);
-            if (!sorted[item.quality]) sorted[item.quality] = {}; // Group is not defined yet
+            if (!sorted[item.quality]) {
+                // Group is not defined yet
+                sorted[item.quality] = {};
+            }
 
             if (sorted[item.quality][item.killstreak] !== undefined) {
                 sorted[item.quality][item.killstreak].push(prices[i]);
-                //
-            } else sorted[item.quality][item.killstreak] = [prices[i]];
+            } else {
+                sorted[item.quality][item.killstreak] = [prices[i]];
+            }
         }
 
         return sorted;

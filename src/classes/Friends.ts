@@ -17,7 +17,9 @@ export default class Friends {
     getFriend(steamID: SteamID | string): Friend | null {
         const steamID64 = steamID.toString();
         const friend = this.bot.client.users[steamID64] as Friend;
-        if (friend === undefined) return null;
+        if (friend === undefined) {
+            return null;
+        }
 
         return friend;
     }
@@ -31,9 +33,13 @@ export default class Friends {
     get getFriends(): string[] {
         const friends: string[] = [];
         for (const steamID64 in this.bot.client.myFriends) {
-            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myFriends, steamID64)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myFriends, steamID64)) {
+                continue;
+            }
 
-            if (this.isFriend(steamID64)) friends.push(steamID64);
+            if (this.isFriend(steamID64)) {
+                friends.push(steamID64);
+            }
         }
         return friends;
     }
@@ -55,7 +61,9 @@ export default class Friends {
 
         return new Promise((resolve, reject) => {
             void request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const result = body.response;

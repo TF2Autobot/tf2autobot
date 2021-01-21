@@ -10,7 +10,9 @@ export default class SocketManager {
         return (reason: string) => {
             log.debug('Disconnected from socket server', { reason: reason });
 
-            if (reason === 'io server disconnect') this.socket.connect();
+            if (reason === 'io server disconnect') {
+                this.socket.connect();
+            }
         };
     }
 

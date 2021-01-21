@@ -116,7 +116,9 @@ export default class CartQueue {
 
     getCart(steamID: SteamID | string): Cart | null {
         const index = this.getPosition(steamID);
-        if (index === -1) return null;
+        if (index === -1) {
+            return null;
+        }
 
         return this.carts[index];
     }

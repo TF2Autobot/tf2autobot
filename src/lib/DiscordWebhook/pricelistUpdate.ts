@@ -209,11 +209,14 @@ export default function sendWebHookPriceUpdateV1(
     }
 
     let effectsId: string;
-    if (parts[2]) effectsId = parts[2].replace('u', '');
+    if (parts[2]) {
+        effectsId = parts[2].replace('u', '');
+    }
 
     let effectURL: string;
-    if (!effectsId) effectURL = '';
-    else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+    if (!effectsId) {
+        effectURL = '';
+    } else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
 
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor[qualityItem];

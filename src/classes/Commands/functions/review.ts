@@ -17,17 +17,28 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
     const offers: UnknownDictionaryKnownValues[] = [];
 
     for (const id in pollData.received) {
-        if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) continue;
-        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState['Active']) continue;
+        if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
+            continue;
+        }
+
+        if (pollData.received[id] !== TradeOfferManager.ETradeOfferState['Active']) {
+            continue;
+        }
 
         const data = pollData?.offerData[id] || null;
-        if (data === null) continue;
-        else if (data?.action?.action !== 'skip') continue;
+
+        if (data === null) {
+            continue;
+        } else if (data?.action?.action !== 'skip') {
+            continue;
+        }
 
         offers.push({ id: id, data: data });
     }
 
-    if (offers.length === 0) return bot.sendMessage(steamID, '❌ There are no active offers pending review.');
+    if (offers.length === 0) {
+        return bot.sendMessage(steamID, '❌ There are no active offers pending review.');
+    }
 
     offers.sort((a, b) => a.id - b.id);
 
@@ -48,10 +59,16 @@ function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
 
 export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void {
     const offerId = CommandParser.removeCommand(message).trim();
-    if (offerId === '') return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!trade 3957959294"');
+
+    if (offerId === '') {
+        return bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!trade 3957959294"');
+    }
 
     const state = bot.manager.pollData.received[offerId];
-    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
+
+    if (state === undefined) {
+        return bot.sendMessage(steamID, 'Offer does not exist. ❌');
+    }
 
     if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
@@ -59,7 +76,10 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-    if (offerData?.action?.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
+
+    if (offerData?.action?.action !== 'skip') {
+        return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
+    }
 
     // Log offer details
 
@@ -71,17 +91,23 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     const value = offerData.value;
     const items = offerData.dict || { our: null, their: null };
     const summarizeItems = (dict: OurTheirItemsDict, schema: SchemaManager.Schema) => {
-        if (dict === null) return 'unknown items';
+        if (dict === null) {
+            return 'unknown items';
+        }
 
         const summary: string[] = [];
 
         for (const sku in dict) {
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+                continue;
+            }
 
             summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
         }
 
-        if (summary.length === 0) return 'nothing';
+        if (summary.length === 0) {
+            return 'nothing';
+        }
 
         return summary.join(', ');
     };
@@ -139,7 +165,9 @@ export async function actionOnTradeCommand(
 
     const offerId = offerIdRegex[0];
     const state = bot.manager.pollData.received[offerId];
-    if (state === undefined) return bot.sendMessage(steamID, 'Offer does not exist. ❌');
+    if (state === undefined) {
+        return bot.sendMessage(steamID, 'Offer does not exist. ❌');
+    }
 
     if (state !== TradeOfferManager.ETradeOfferState['Active']) {
         // TODO: Add what the offer is now, accepted / declined and why
@@ -147,7 +175,9 @@ export async function actionOnTradeCommand(
     }
 
     const offerData = bot.manager.pollData.offerData[offerId];
-    if (offerData?.action?.action !== 'skip') return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
+    if (offerData?.action?.action !== 'skip') {
+        return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
+    }
 
     try {
         const offer = await bot.trades.getOffer(offerId);

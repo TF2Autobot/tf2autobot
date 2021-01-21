@@ -23,10 +23,14 @@ export function TF2GCCommand(steamID: SteamID, message: string, bot: Bot, comman
 
     if (command === 'expand') {
         // Expand command
-        if (typeof params.craftable !== 'boolean') return bot.sendMessage(steamID, '⚠️ Missing `craftable=true|false`');
+        if (typeof params.craftable !== 'boolean') {
+            return bot.sendMessage(steamID, '⚠️ Missing `craftable=true|false`');
+        }
 
         const item = SKU.fromString('5050;6');
-        if (params.craftable === false) item.craftable = false;
+        if (params.craftable === false) {
+            item.craftable = false;
+        }
 
         const assetids = bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
         if (assetids.length === 0) {
@@ -156,8 +160,13 @@ export function TF2GCCommand(steamID: SteamID, message: string, bot: Bot, comman
         const [uncraft, untrade] = [targetedSKU.includes(';uncraftable'), targetedSKU.includes(';untradable')];
 
         const item = SKU.fromString(targetedSKU.replace(';uncraftable', '').replace(';untradable', ''));
-        if (uncraft) item.craftable = !uncraft;
-        if (untrade) item.tradable = !untrade;
+
+        if (uncraft) {
+            item.craftable = !uncraft;
+        }
+        if (untrade) {
+            item.tradable = !untrade;
+        }
 
         const assetids = bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
         const name = bot.schema.getName(item, false);
@@ -543,7 +552,9 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         // Remove duplicate elements
         const newlistingsSKUs: string[] = [];
         listingsSKUs.forEach(sku => {
-            if (!newlistingsSKUs.includes(sku)) newlistingsSKUs.push(sku);
+            if (!newlistingsSKUs.includes(sku)) {
+                newlistingsSKUs.push(sku);
+            }
         });
 
         const pricelist = bot.pricelist.getPrices.filter(

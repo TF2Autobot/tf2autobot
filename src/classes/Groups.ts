@@ -10,7 +10,9 @@ export default class Groups {
     }
 
     inviteToGroups(steamID: SteamID | string, groups: string[]): void {
-        if (!this.bot.friends.isFriend(steamID)) return;
+        if (!this.bot.friends.isFriend(steamID)) {
+            return;
+        }
 
         log.debug('Inviting user to groups...');
 

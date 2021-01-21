@@ -70,23 +70,31 @@ export default class TF2Inventory {
         // Check if the item exists on backpack.tf and if it is duped
         const history = await TF2Inventory.getItemHistory(assetid);
 
-        if (history.recorded === true) return history.isDuped;
+        if (history.recorded === true) {
+            return history.isDuped;
+        }
 
         // Inventory is not updated on bptf, get the original id
 
         // Fetch inventory using TF2 GetPlayerItems API if we haven't already
-        if (this.getItems.length === 0) await this.fetch();
+        if (this.getItems.length === 0) {
+            await this.fetch();
+        }
 
         // Find item in the inventory
         const item = this.getItems.find(item => item.id.toString() == assetid);
 
-        if (item === undefined) throw new Error('Could not find item in inventory');
+        if (item === undefined) {
+            throw new Error('Could not find item in inventory');
+        }
         // Could not find the item in the inventory, failed to check if the item is duped
 
         // Get history using original id
         const historyFromOriginal = await TF2Inventory.getItemHistory(item.original_id.toString());
 
-        if (historyFromOriginal.recorded === true) return historyFromOriginal.isDuped;
+        if (historyFromOriginal.recorded === true) {
+            return historyFromOriginal.isDuped;
+        }
 
         // Item has never been seen on backpack.tf before
         // throw new Error('No history for given item');
@@ -108,7 +116,9 @@ export default class TF2Inventory {
                     gzip: true
                 },
                 (err, response, body) => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
@@ -142,7 +152,9 @@ export default class TF2Inventory {
                     }
                 },
                 (err, response, body) => {
-                    if (err) return reject(err);
+                    if (err) {
+                        return reject(err);
+                    }
 
                     const $ = cheerio.load(body);
 

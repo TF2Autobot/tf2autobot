@@ -143,7 +143,10 @@ export function getItemAndAmount(
         }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
-        if (match.length > 20) match = match.splice(0, 20);
+
+        if (match.length > 20) {
+            match = match.splice(0, 20);
+        }
 
         let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(',\n')}`;
         if (matchCount > match.length) {
@@ -193,6 +196,7 @@ export function getItemFromParams(
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
                 ',\n'
             )}`;
+
             if (matchCount > parsed.length) {
                 const other = matchCount - parsed.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -207,7 +211,9 @@ export function getItemFromParams(
     }
 
     for (const key in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, key)) continue;
+        if (!Object.prototype.hasOwnProperty.call(params, key)) {
+            continue;
+        }
 
         if (item[key] !== undefined) {
             foundSomething = true;
@@ -236,7 +242,10 @@ export function getItemFromParams(
         }
 
         item.defindex = schemaItem.defindex;
-        if (item.quality === 0) item.quality = schemaItem.item_quality;
+
+        if (item.quality === 0) {
+            item.quality = schemaItem.item_quality;
+        }
     }
 
     if (params.quality !== undefined) {
@@ -324,13 +333,18 @@ export function getItemFromParams(
             );
             return null;
         }
-        if (item.outputQuality === null) item.quality = schemaItem.item_quality;
-        //
+
+        if (item.outputQuality === null) {
+            item.quality = schemaItem.item_quality;
+        }
     } else if (item.output !== null) {
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
+
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) match.push(bot.schema.raw.schema.items[i]);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
+            }
         }
 
         if (match.length === 0) {
@@ -346,6 +360,7 @@ export function getItemFromParams(
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
                 ',\n'
             )}`;
+
             if (matchCount > parsed.length) {
                 const other = matchCount - parsed.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -356,7 +371,9 @@ export function getItemFromParams(
         }
 
         item.output = match[0].defindex;
-        if (item.outputQuality === null) item.quality = match[0].item_quality;
+        if (item.outputQuality === null) {
+            item.quality = match[0].item_quality;
+        }
     }
 
     if (params.outputQuality !== undefined) {
@@ -372,8 +389,13 @@ export function getItemFromParams(
     }
 
     for (const key in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, key)) continue;
-        if (item[key] !== undefined) delete params[key];
+        if (!Object.prototype.hasOwnProperty.call(params, key)) {
+            continue;
+        }
+
+        if (item[key] !== undefined) {
+            delete params[key];
+        }
     }
 
     delete params.name;

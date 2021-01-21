@@ -238,7 +238,9 @@ export default class Commands {
         }
 
         const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
-        if (info === null) return;
+        if (info === null) {
+            return;
+        }
 
         const match = info.match;
         const amount = info.amount;
@@ -279,8 +281,11 @@ export default class Commands {
             if (reply === '') {
                 reply = '💲 I am selling ';
 
-                if (amount !== 1) reply += `${amount} `;
-                else reply += 'a ';
+                if (amount !== 1) {
+                    reply += `${amount} `;
+                } else {
+                    reply += 'a ';
+                }
 
                 reply += `${pluralize(match.name, amount)} for ${currencies.toString()}`;
                 //
@@ -289,16 +294,20 @@ export default class Commands {
 
         reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, true)}`;
 
-        if (match.max !== -1 && isBuying) reply += ` / ${match.max}`;
+        if (match.max !== -1 && isBuying) {
+            reply += ` / ${match.max}`;
+        }
 
         if (isSelling && match.min !== 0) {
             reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false)}`;
         }
+
         reply += '. ';
 
         if (match.autoprice && this.bot.isAdmin(steamID)) {
             reply += ` (price last updated ${dayjs.unix(match.time).fromNow()})`;
         }
+
         this.bot.sendMessage(steamID, reply);
     }
 
@@ -320,7 +329,10 @@ export default class Commands {
             this.bot,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command
         );
-        if (info === null) return;
+
+        if (info === null) {
+            return;
+        }
 
         const cart = new UserCart(
             steamID,
@@ -328,8 +340,10 @@ export default class Commands {
             this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
             this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
         );
+
         cart.setNotify = true;
         cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
+
         this.addCartToQueue(cart, false, false);
     }
 
@@ -337,6 +351,7 @@ export default class Commands {
 
     private buyCartCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
+
         if (currentCart !== null && !(currentCart instanceof UserCart)) {
             return this.bot.sendMessage(
                 steamID,
@@ -354,7 +369,10 @@ export default class Commands {
         }
 
         const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buycart');
-        if (info === null) return;
+
+        if (info === null) {
+            return;
+        }
 
         let amount = info.amount;
         const cart =
@@ -427,7 +445,9 @@ export default class Commands {
         }
 
         const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sellcart');
-        if (info === null) return;
+        if (info === null) {
+            return;
+        }
 
         let amount = info.amount;
 
@@ -442,8 +462,11 @@ export default class Commands {
         const skuCount = getSkuAmountCanTrade(info.match.sku, this.bot);
 
         let cartAmount: number;
-        if (skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric) cartAmount = cart.getTheirCount(info.match.sku);
-        else cartAmount = cart.getTheirGenericCount(info.match.sku);
+        if (skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric) {
+            cartAmount = cart.getTheirCount(info.match.sku);
+        } else {
+            cartAmount = cart.getTheirGenericCount(info.match.sku);
+        }
 
         const amountCanTrade = skuCount.mostCanTrade - cartAmount;
 
@@ -701,7 +724,9 @@ export default class Commands {
         }
 
         const amount = typeof params.amount === 'number' ? params.amount : 1;
-        if (!Number.isInteger(amount)) return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        if (!Number.isInteger(amount)) {
+            return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        }
 
         const cart =
             AdminCart.getCart(steamID) ||
@@ -738,7 +763,9 @@ export default class Commands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-            if (item === null) return;
+            if (item === null) {
+                return;
+            }
 
             params.sku = SKU.fromObject(item);
         } else {
@@ -746,7 +773,9 @@ export default class Commands {
         }
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
-        if (!Number.isInteger(amount)) return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        if (!Number.isInteger(amount)) {
+            return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        }
 
         const cart =
             AdminCart.getCart(steamID) ||
@@ -799,6 +828,7 @@ export default class Commands {
 
     private donateBPTFCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
+
         if (currentCart !== null && !(currentCart instanceof DonateCart)) {
             return this.bot.sendMessage(
                 steamID,
@@ -809,7 +839,9 @@ export default class Commands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-            if (item === null) return;
+            if (item === null) {
+                return;
+            }
 
             params.sku = SKU.fromObject(item);
         } else {
@@ -842,11 +874,13 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
+
         const cartAmount = cart.getOurCount(params.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
         const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+
         // Correct trade if needed
         if (amountCanTrade <= 0) {
             this.bot.sendMessage(
@@ -880,6 +914,7 @@ export default class Commands {
         }
 
         this.isDonating = true;
+
         cart.addOurItem(params.sku, amount);
         Cart.addCart(cart);
     }
@@ -898,8 +933,10 @@ export default class Commands {
         }
 
         this.isDonating = false;
+
         cart.setNotify = true;
         cart.isDonating = true;
+
         this.addCartToQueue(cart, true, false);
     }
 
@@ -974,10 +1011,13 @@ export default class Commands {
             this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
             this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
         );
+
         cart.addOurItem('5021;6', amountKeys);
         Cart.addCart(cart);
+
         cart.setNotify = true;
         cart.isBuyingPremium = true;
+
         this.addCartToQueue(cart, false, true);
     }
 }

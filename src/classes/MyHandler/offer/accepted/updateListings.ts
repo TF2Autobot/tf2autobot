@@ -20,7 +20,9 @@ export default function updateListings(
         : [];
 
     for (const sku in diff) {
-        if (!Object.prototype.hasOwnProperty.call(diff, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
+            continue;
+        }
 
         // Update listings
         bot.listings.checkBySKU(sku);
@@ -102,7 +104,9 @@ export default function updateListings(
             if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                     sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
-                } else bot.messageAdmins(msg, []);
+                } else {
+                    bot.messageAdmins(msg, []);
+                }
             }
         } else if (
             inPrice !== null &&
@@ -176,7 +180,9 @@ export default function updateListings(
                     if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
-                        } else bot.messageAdmins(msg, []);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
                     }
                 })
                 .catch(err => {
@@ -201,7 +207,9 @@ export default function updateListings(
                     if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('autoRemoveIntentSellFailed', bot, msg);
-                        } else bot.messageAdmins(msg, []);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
                     }
                 });
         }

@@ -5,12 +5,16 @@ export = function (): UnknownDictionary<number> | null {
     const self = this as TradeOffer;
     const dict = self.data('dict') as ItemsDict;
 
-    if (dict === undefined) return null;
+    if (dict === undefined) {
+        return null;
+    }
 
     const diff: UnknownDictionary<number> = {};
 
     for (const sku in dict.our) {
-        if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
+            continue;
+        }
 
         diff[sku] =
             (diff[sku] || 0) -
@@ -19,7 +23,9 @@ export = function (): UnknownDictionary<number> | null {
     }
 
     for (const sku in dict.their) {
-        if (!Object.prototype.hasOwnProperty.call(dict.their, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(dict.their, sku)) {
+            continue;
+        }
 
         diff[sku] =
             (diff[sku] || 0) +

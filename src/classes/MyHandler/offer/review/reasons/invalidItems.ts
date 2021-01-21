@@ -12,8 +12,10 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
         if (opt.enable && opt.url !== '') {
             // show both item name and prices.tf price
             invalidForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_ - ${el.price}`);
-        } else invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
-        // show both item name and prices.tf price
+        } else {
+            // show both item name and prices.tf price
+            invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
+        }
 
         // only show to trade partner the item name
         invalidForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));

@@ -114,7 +114,9 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
     let autoprice = 'unknown';
 
     for (const sku in prices) {
-        if (!Object.prototype.hasOwnProperty.call(prices, sku)) continue;
+        if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+            continue;
+        }
 
         const pricelist = bot.pricelist.getPrice(sku, false);
         if (pricelist !== null) {

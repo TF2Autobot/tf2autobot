@@ -7,7 +7,9 @@ import { EconItem } from 'steam-tradeoffer-manager';
 export = function (description: string): boolean {
     const self = this as EconItem;
 
-    if (!Array.isArray(self.descriptions)) return false;
+    if (!Array.isArray(self.descriptions)) {
+        return false;
+    }
 
     return self.descriptions.some(d => d.value === description);
 };

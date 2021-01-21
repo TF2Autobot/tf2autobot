@@ -149,7 +149,9 @@ export default function sendOfferReview(
                         value: newSentences.replace(/@/g, '')
                     });
 
-                    if (i === separate.length - 1 || j > 4) webhookReview.embeds[0].fields.push(statusElement);
+                    if (i === separate.length - 1 || j > 4) {
+                        webhookReview.embeds[0].fields.push(statusElement);
+                    }
 
                     newSentences = '';
                     j++;

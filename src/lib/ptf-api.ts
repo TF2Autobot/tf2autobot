@@ -140,13 +140,17 @@ export function apiRequest<I, R extends PricesResponse>(httpMethod: string, path
         timeout: 30000
     };
 
-    if (process.env.PRICESTF_API_KEY) options.headers.Authorization = `Token ${process.env.PRICESTF_API_TOKEN}`;
+    if (process.env.PRICESTF_API_KEY) {
+        options.headers.Authorization = `Token ${process.env.PRICESTF_API_TOKEN}`;
+    }
 
     options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
 
     return new Promise((resolve, reject) => {
         void request(options, (err, response: ResponseAsJSON, body: R) => {
-            if (err) reject(err);
+            if (err) {
+                reject(err);
+            }
 
             resolve(body);
         });

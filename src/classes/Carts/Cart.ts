@@ -166,23 +166,33 @@ export default abstract class Cart {
     addOurItem(sku: string, amount = 1): void {
         this.our[sku] = this.getOurCount(sku) + amount;
 
-        if (this.our[sku] < 1) delete this.our[sku];
+        if (this.our[sku] < 1) {
+            delete this.our[sku];
+        }
     }
 
     addTheirItem(sku: string, amount = 1): void {
         this.their[sku] = this.getTheirCount(sku) + amount;
 
-        if (this.their[sku] < 1) delete this.their[sku];
+        if (this.their[sku] < 1) {
+            delete this.their[sku];
+        }
     }
 
     removeOurItem(sku: string, amount: number | undefined = 1): void {
-        if (amount === undefined) delete this.our[sku];
-        else this.addOurItem(sku, -amount);
+        if (amount === undefined) {
+            delete this.our[sku];
+        } else {
+            this.addOurItem(sku, -amount);
+        }
     }
 
     removeTheirItem(sku: string, amount: number | undefined = 1): void {
-        if (amount === undefined) delete this.their[sku];
-        else this.addTheirItem(sku, -amount);
+        if (amount === undefined) {
+            delete this.their[sku];
+        } else {
+            this.addTheirItem(sku, -amount);
+        }
     }
 
     get isEmpty(): boolean {
@@ -197,8 +207,11 @@ export default abstract class Cart {
         if (ourSummary.length > 1) {
             ourSummaryString =
                 ourSummary.slice(0, ourSummary.length - 1).join(', ') + ' and ' + ourSummary[ourSummary.length - 1];
-        } else if (ourSummary.length === 0) ourSummaryString = 'nothing';
-        else ourSummaryString = ourSummary.join(', ');
+        } else if (ourSummary.length === 0) {
+            ourSummaryString = 'nothing';
+        } else {
+            ourSummaryString = ourSummary.join(', ');
+        }
 
         const theirSummary = this.summarizeTheir();
 
@@ -209,8 +222,11 @@ export default abstract class Cart {
                 theirSummary.slice(0, theirSummary.length - 1).join(', ') +
                 ' and ' +
                 theirSummary[theirSummary.length - 1];
-        } else if (theirSummary.length === 0) theirSummaryString = 'nothing';
-        else theirSummaryString = theirSummary.join(', ');
+        } else if (theirSummary.length === 0) {
+            theirSummaryString = 'nothing';
+        } else {
+            theirSummaryString = theirSummary.join(', ');
+        }
 
         return `You${isDonating || isBuyingPremium ? `'re` : ' will'} ${
             isDonating ? 'donating' : isBuyingPremium ? 'purchasing premium with' : 'be offered'
@@ -223,7 +239,9 @@ export default abstract class Cart {
         const items: { name: string; amount: number }[] = [];
 
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
         }
@@ -232,11 +250,15 @@ export default abstract class Cart {
 
         if (items.length <= 1) {
             summary = items.map(v => {
-                if (v.amount === 1) return 'a ' + v.name;
-                else return pluralize(v.name, v.amount, true);
+                if (v.amount === 1) {
+                    return 'a ' + v.name;
+                } else {
+                    return pluralize(v.name, v.amount, true);
+                }
             });
-            //
-        } else summary = items.map(v => pluralize(v.name, v.amount, true));
+        } else {
+            summary = items.map(v => pluralize(v.name, v.amount, true));
+        }
 
         return summary;
     }
@@ -245,7 +267,9 @@ export default abstract class Cart {
         const items: { name: string; amount: number }[] = [];
 
         for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                continue;
+            }
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
@@ -257,11 +281,16 @@ export default abstract class Cart {
 
         if (items.length <= 1) {
             summary = items.map(v => {
-                if (v.amount === 1) return 'a ' + v.name;
-                else return pluralize(v.name, v.amount, true);
+                if (v.amount === 1) {
+                    return 'a ' + v.name;
+                } else {
+                    return pluralize(v.name, v.amount, true);
+                }
             });
             //
-        } else summary = items.map(v => pluralize(v.name, v.amount, true));
+        } else {
+            summary = items.map(v => pluralize(v.name, v.amount, true));
+        }
 
         return summary;
     }
@@ -273,9 +302,13 @@ export default abstract class Cart {
     sendOffer(): Promise<string | void> {
         const opt = this.bot.options;
 
-        if (this.isEmpty) return Promise.reject("❌ I don't or you don't have enough items for this trade");
+        if (this.isEmpty) {
+            return Promise.reject("❌ I don't or you don't have enough items for this trade");
+        }
 
-        if (this.offer === null) return Promise.reject(new Error('❌ Offer has not yet been constructed'));
+        if (this.offer === null) {
+            return Promise.reject(new Error('❌ Offer has not yet been constructed'));
+        }
 
         const pass = this.donation || this.buyPremium ? false : !this.bot.isAdmin(this.offer.partner);
 
@@ -283,7 +316,9 @@ export default abstract class Cart {
             return Promise.reject('Offer was mistakenly created to give free items to trade partner');
         }
 
-        if (this.offer.data('dict') === undefined) throw new Error('dict not saved on offer');
+        if (this.offer.data('dict') === undefined) {
+            throw new Error('dict not saved on offer');
+        }
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
@@ -291,15 +326,23 @@ export default abstract class Cart {
             'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
         );
 
-        if (this.notify === true) this.offer.data('notify', true);
+        if (this.notify === true) {
+            this.offer.data('notify', true);
+        }
 
-        if (this.isCanceled) return Promise.reject('Offer was canceled');
+        if (this.isCanceled) {
+            return Promise.reject('Offer was canceled');
+        }
 
-        if (this.token !== null) this.offer.setToken(this.token);
+        if (this.token !== null) {
+            this.offer.setToken(this.token);
+        }
 
         return this.preSendOffer()
             .then(() => {
-                if (this.isCanceled) return Promise.reject('Offer was canceled');
+                if (this.isCanceled) {
+                    return Promise.reject('Offer was canceled');
+                }
 
                 if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
                     return Promise.reject('Offer was mistakenly created to give free items to trade partner');
@@ -318,7 +361,9 @@ export default abstract class Cart {
                 return status;
             })
             .catch(async err => {
-                if (!(err instanceof Error)) return Promise.reject(err);
+                if (!(err instanceof Error)) {
+                    return Promise.reject(err);
+                }
 
                 this.donation = false;
 
@@ -326,8 +371,9 @@ export default abstract class Cart {
 
                 const error = err as TradeOfferManager.CustomError;
 
-                if (error.cause === 'TradeBan') return Promise.reject('You are trade banned');
-                else if (error.cause === 'ItemServerUnavailable') {
+                if (error.cause === 'TradeBan') {
+                    return Promise.reject('You are trade banned');
+                } else if (error.cause === 'ItemServerUnavailable') {
                     return Promise.reject(
                         "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
                     );
@@ -405,7 +451,9 @@ export default abstract class Cart {
     }
 
     toString(isDonating: boolean): string {
-        if (this.isEmpty) return '❌ Your cart is empty.';
+        if (this.isEmpty) {
+            return '❌ Your cart is empty.';
+        }
 
         const customTitle = this.bot.options.commands.cart.customReply.title;
 
@@ -413,7 +461,9 @@ export default abstract class Cart {
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+                continue;
+            }
 
             str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
@@ -421,7 +471,9 @@ export default abstract class Cart {
         if (!isDonating) {
             str += '\n\nYour side (items you will lose):';
             for (const sku in this.their) {
-                if (!Object.prototype.hasOwnProperty.call(this.their, sku)) continue;
+                if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                    continue;
+                }
 
                 str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
             }
@@ -439,7 +491,9 @@ export default abstract class Cart {
     }
 
     static getCart(steamID: SteamID): Cart | null {
-        if (!this.hasCart(steamID)) return null;
+        if (!this.hasCart(steamID)) {
+            return null;
+        }
 
         return this.carts[steamID.getSteamID64()];
     }
@@ -455,7 +509,9 @@ export default abstract class Cart {
     static stringify(steamID: SteamID, isDonating: boolean): string {
         const cart = this.getCart(steamID);
 
-        if (cart === null) return '❌ Your cart is empty.';
+        if (cart === null) {
+            return '❌ Your cart is empty.';
+        }
 
         return cart.toString(isDonating);
     }
