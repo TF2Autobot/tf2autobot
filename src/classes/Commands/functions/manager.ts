@@ -366,9 +366,19 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
 
         // TODO: change back to master (in package.json) once ready to release
 
-        const onFailed = (err: any) => {
-            log.warn('Error occurred while trying to restart: ', err);
-            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
+        const onFailed = (err: any, type: 'command' | 'restarting' | 'any') => {
+            log.warn(
+                type === 'restarting'
+                    ? 'Error occurred while trying to restart: '
+                    : '❌ Failed to update bot repository:',
+                err
+            );
+            bot.sendMessage(
+                steamID,
+                (type === 'restarting'
+                    ? '❌ An error occurred while trying to restart: '
+                    : '❌ Failed to update bot repository: ') + JSON.stringify(err)
+            );
 
             bot.client.setPersona(EPersonaState.Online);
             bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
@@ -385,17 +395,17 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                 err => {
                     if (err) {
-                        return bot.sendMessage(steamID, `❌ Failed to update bot repository: ${JSON.stringify(err)}`);
+                        onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
 
                     bot.botManager.restartProcess().catch(err => {
-                        onFailed(err);
+                        onFailed(err, 'restarting');
                     });
                 }
             );
         } catch (err) {
-            onFailed(err);
+            onFailed(err, 'any');
         }
     }
 }
