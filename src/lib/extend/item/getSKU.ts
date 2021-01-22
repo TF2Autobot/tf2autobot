@@ -227,13 +227,19 @@ function getElevatedQuality(
     schema: SchemaManager.Schema,
     normalizeStrangeAsSecondQuality: boolean
 ): number | null {
-    const isNotNormalized = normalizeStrangeAsSecondQuality;
+    const isNotNormalized = !normalizeStrangeAsSecondQuality;
     const quality = getQuality(item, schema);
+
+    const isUnusualHat =
+        item.getTag('Type') === 'Cosmetic' &&
+        quality === 5 &&
+        item.type.includes('Strange') &&
+        item.type.includes('Points Scored');
+    const isOtherItemsNotStrangeQuality = item.type.startsWith('Strange') && quality !== 11;
+
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (((item.getTag('Type') === 'Cosmetic' && quality === 5) ||
-            (item.type.startsWith('Strange') && quality !== 11)) &&
-            isNotNormalized)
+        ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
     ) {
         return 11;
     } else {
