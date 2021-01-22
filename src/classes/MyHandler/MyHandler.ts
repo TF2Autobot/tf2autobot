@@ -1260,76 +1260,6 @@ export default class MyHandler extends Handler {
             return { action: 'decline', reason: 'OVERPAY' };
         }
 
-        offer.log('info', 'checking escrow...');
-
-        try {
-            const hasEscrow = await this.bot.checkEscrow(offer);
-
-            if (hasEscrow) {
-                offer.log('info', 'would be held if accepted, declining...');
-                return { action: 'decline', reason: 'ESCROW' };
-            }
-        } catch (err) {
-            log.warn('Failed to check escrow: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_ESCROW_CHECK_FAILED'
-            });
-
-            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-            if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_ESCROW_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
-                //
-            } else {
-                // Do nothing. bad.
-                return;
-            }
-        }
-
-        offer.log('info', 'checking bans...');
-
-        try {
-            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
-
-            if (isBanned) {
-                offer.log('info', 'partner is banned in one or more communities, declining...');
-                return { action: 'decline', reason: 'BANNED' };
-            }
-        } catch (err) {
-            log.warn('Failed to check banned: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_BANNED_CHECK_FAILED'
-            });
-
-            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-            if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_BANNED_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
-                //
-            } else {
-                // Do nothing. bad.
-                return;
-            }
-        }
-
         if (this.dupeCheckEnabled && assetidsToCheck.length > 0) {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheck.length, true) + ' for dupes...');
             const inventory = new TF2Inventory(offer.partner, this.bot.manager);
@@ -1388,6 +1318,74 @@ export default class MyHandler extends Handler {
                     sku: skuToCheck,
                     error: JSON.stringify(err)
                 });
+            }
+        }
+
+        offer.log('info', 'checking escrow...');
+
+        try {
+            const hasEscrow = await this.bot.checkEscrow(offer);
+
+            if (hasEscrow) {
+                offer.log('info', 'would be held if accepted, declining...');
+                return { action: 'decline', reason: 'ESCROW' };
+            }
+        } catch (err) {
+            log.warn('Failed to check escrow: ', err);
+
+            wrongAboutOffer.push({
+                reason: '⬜_ESCROW_CHECK_FAILED'
+            });
+
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_ESCROW_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
+            }
+        }
+
+        offer.log('info', 'checking bans...');
+
+        try {
+            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
+
+            if (isBanned) {
+                offer.log('info', 'partner is banned in one or more communities, declining...');
+                return { action: 'decline', reason: 'BANNED' };
+            }
+        } catch (err) {
+            log.warn('Failed to check banned: ', err);
+
+            wrongAboutOffer.push({
+                reason: '⬜_BANNED_CHECK_FAILED'
+            });
+
+            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
+            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
+
+            if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
+                return {
+                    action: 'skip',
+                    reason: '⬜_BANNED_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer
+                    }
+                };
+            } else {
+                // Do nothing. bad.
+                return;
             }
         }
 
