@@ -203,7 +203,7 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else {
-                if (listing.intent === 0 && /;p[0-9]*/.test(sku)) {
+                if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
                     // do nothing
                 } else {
                     const newDetails = this.getDetails(
@@ -236,7 +236,7 @@ export default class Listings {
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
-            if (!hasBuyListing && amountCanBuy > 0 && !/;p[0-9]*/.test(sku)) {
+            if (!hasBuyListing && amountCanBuy > 0 && !/;[p][0-9]+/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
