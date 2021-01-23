@@ -608,7 +608,7 @@ export default class Listings {
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
             if (entry.name === 'Mann Co. Supply Crate Key' && this.bot.handler.autokeys.isEnabled) {
-                details += '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details;
+                details = '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details;
             }
             //
         } else {
