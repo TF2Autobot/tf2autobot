@@ -15,6 +15,7 @@ export default function sendAlert(
     let title: string;
     let description: string;
     let color: string;
+    let footer: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
@@ -34,8 +35,9 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
-        description = msg;
+        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
         color = '16711680'; // red
+        footer = `${items[1] ? `#${items[1]} • ` : ''}${items[0]} • `; // 0 - steamID, 1 - trade offer id
     } else if (type === 'highValuedDisabled') {
         title = 'Temporarily disabled items with High value attachments';
         description = msg;
@@ -91,7 +93,7 @@ export default function sendAlert(
                 description: description,
                 color: color,
                 footer: {
-                    text: timeNow(bot).time
+                    text: (footer ? footer : '') + timeNow(bot).time
                 }
             }
         ]

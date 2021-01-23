@@ -387,7 +387,10 @@ export default abstract class Cart {
 
                     if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('full-backpack', this.bot, msg);
+                            sendAlert('full-backpack', this.bot, msg, null, err, [
+                                this.offer.partner.getSteamID64(),
+                                this.offer.id
+                            ]);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -407,17 +410,28 @@ export default abstract class Cart {
                     const ourNumItems = this.ourItemsCount;
                     const theirNumItems = this.theirItemsCount;
 
+                    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+
                     const msg =
-                        `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
-                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                        `Either I, or the trade partner${
+                            !dwEnabled ? `(${this.offer.partner.getSteamID64()})` : ''
+                        }, ` +
+                        `did not have enough backpack space (or near full) to complete a trade${
+                            !dwEnabled ? (this.offer.id ? `(${this.offer.id})` : '') : ''
+                        }. ` +
+                        `A summary of our backpacks can be seen below.` +
+                        `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
                             ourUsedSlots + theirNumItems
                         } / ${ourTotalSlots} slots used` +
-                        `\n➡️ They would have received ${ourNumItems} item(s) → ${
+                        `\n➡️ They would have received ${pluralize('item', ourNumItems, true)} → ${
                             theirUsedSlots + ourNumItems
                         } / ${theirTotalSlots} slots used`;
                     if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('full-backpack', this.bot, msg);
+                        if (dwEnabled) {
+                            sendAlert('full-backpack', this.bot, msg, null, err, [
+                                this.offer.partner.getSteamID64(),
+                                this.offer.id
+                            ]);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -425,14 +439,15 @@ export default abstract class Cart {
                     return Promise.reject(
                         `It appears as if ${
                             ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
-                        } backpack is full!` +
-                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                        } backpack is full/almost full!` +
+                            `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
                                 ourUsedSlots + theirNumItems
                             } / ${ourTotalSlots} slots used` +
-                            `\n➡️ You would have received ${ourNumItems} item(s) → ${
+                            `\n➡️ You would have received ${pluralize('item', ourNumItems, true)} → ${
                                 theirUsedSlots + ourNumItems
                             } / ${theirTotalSlots} slots used` +
-                            `\nIf this is in error, please give Steam time to refresh our backpacks`
+                            `\nIf this is in error, please give Steam time to refresh our backpacks.` +
+                            '\nMore info about this error: https://steamerrors.com/15'
                     );
                 } else if (error.eresult == 20) {
                     return Promise.reject(
