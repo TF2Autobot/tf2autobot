@@ -52,6 +52,9 @@ export default function stats(bot: Bot): Stats {
             // action not undefined means offer received
 
             if (offerData[offerID].isAccepted === true && offerData[offerID].action.action === 'accept') {
+                // Successful trades handled by the bot
+                acceptedTradesTotal++;
+
                 if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
                     // Within the last 24 hours
                     acceptedOfferTrades24Hours++;
@@ -86,7 +89,9 @@ export default function stats(bot: Bot): Stats {
                     skippedToday++;
                 }
             }
-        } else if (offerData[offerID].handledByUs === true && offerData[offerID].action === undefined) {
+        }
+
+        if (offerData[offerID].handledByUs === true && offerData[offerID].action === undefined) {
             // action undefined means offer sent
             if (offerData[offerID].isAccepted === true) {
                 // Successful trades handled by the bot
