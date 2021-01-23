@@ -604,7 +604,7 @@ export default class Autokeys {
 
         if (isEnableSend) {
             if (sendToDiscord) {
-                sendAlert(type, this.bot, msg);
+                sendAlert(type as AlertType, this.bot, msg);
             } else {
                 this.bot.messageAdmins(msg, []);
             }
@@ -733,3 +733,12 @@ export default class Autokeys {
         this.check();
     }
 }
+
+type AlertType =
+    | 'autokeys-failedToDisable'
+    | 'autokeys-failedToAdd-bank'
+    | 'autokeys-failedToAdd-sell'
+    | 'autokeys-failedToAdd-buy'
+    | 'autokeys-failedToUpdate-bank'
+    | 'autokeys-failedToUpdate-sell'
+    | 'autokeys-failedToUpdate-buy';

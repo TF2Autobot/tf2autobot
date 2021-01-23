@@ -24,7 +24,8 @@ type AlertType =
     | 'autokeys-failedToUpdate-buy'
     | 'escrow-check-failed-perform-restart'
     | 'escrow-check-failed-not-restart-bptf-down'
-    | 'escrow-check-failed-not-restart-steam-maintenance';
+    | 'escrow-check-failed-not-restart-steam-maintenance'
+    | 'tryingToTake';
 
 export default function sendAlert(
     type: AlertType,
