@@ -4,11 +4,31 @@ import log from '../logger';
 import { timeNow } from '../tools/time';
 import Bot from '../../classes/Bot';
 
+type AlertType =
+    | 'lowPure'
+    | 'queue'
+    | 'failedPM2'
+    | 'failedRestartError'
+    | 'full-backpack'
+    | 'highValuedDisabled'
+    | 'highValuedInvalidItems'
+    | 'autoRemoveIntentSellFailed'
+    | 'autokeys-failedToDisable'
+    | 'autokeys-failedToAdd-bank'
+    | 'autokeys-failedToAdd-sell'
+    | 'autokeys-failedToAdd-buy'
+    | 'autokeys-failedToUpdate-bank'
+    | 'autokeys-failedToUpdate-sell'
+    | 'autokeys-failedToUpdate-buy'
+    | 'escrow-check-failed-perform-restart'
+    | 'escrow-check-failed-not-restart-bptf-down'
+    | 'escrow-check-failed-not-restart-steam-maintenance';
+
 export default function sendAlert(
-    type: string,
+    type: AlertType,
     bot: Bot,
     msg: string | null = null,
-    position: number | null = null,
+    positionOrCount: number | null = null,
     err: any | null = null,
     items: string[] | null = null
 ): void {
@@ -23,11 +43,28 @@ export default function sendAlert(
         color = '16776960'; // yellow
     } else if (type === 'queue') {
         title = 'Queue Alert';
-        description = `[Queue alert] Current position: ${position}, automatic restart initialized...`;
+        description = `Current position: ${positionOrCount}, automatic restart initialized...`;
+        color = '16711680'; // red
+    } else if (type === 'escrow-check-failed-perform-restart') {
+        title = 'Escrow check failed alert';
+        description = `Current failed count: ${positionOrCount}, automatic restart initialized...`;
+        color = '16711680'; // red
+    } else if (
+        type === 'escrow-check-failed-not-restart-bptf-down' ||
+        type === 'escrow-check-failed-not-restart-steam-maintenance'
+    ) {
+        const isSteamDown = type === 'escrow-check-failed-not-restart-steam-maintenance';
+
+        title = 'Escrow check failed, unable to restart';
+        description = `Current failed count: ${positionOrCount}, unable to perform automatic restart because ${
+            isSteamDown ? 'Steam' : 'backpack.tf'
+        } is currently down.`;
         color = '16711680'; // red
     } else if (type === 'failedPM2') {
         title = 'Automatic restart failed - no PM2';
-        description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
+        description =
+            `❌ Automatic restart failed because you're not running the bot with PM2! ` +
+            `Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
@@ -83,7 +120,8 @@ export default function sendAlert(
             'autokeys-failedToAdd-buy',
             'autokeys-failedToUpdate-bank',
             'autokeys-failedToUpdate-sell',
-            'autokeys-failedToUpdate-buy'
+            'autokeys-failedToUpdate-buy',
+            'escrow-check-failed-not-restart-bptf-down'
         ].includes(type)
             ? `<@!${optDW.ownerID}>`
             : '',

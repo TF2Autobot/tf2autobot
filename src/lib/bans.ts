@@ -15,7 +15,7 @@ export async function isBanned(steamID: SteamID | string, bptfApiKey: string): P
     return bptf || steamrep;
 }
 
-function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
+export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {

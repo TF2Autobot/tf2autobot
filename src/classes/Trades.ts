@@ -10,6 +10,8 @@ import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common
 import Bot from './Bot';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
+import { sendAlert } from '../lib/DiscordWebhook/export';
+import { isBptfBanned } from '../lib/bans';
 
 export default class Trades {
     private readonly bot: Bot;
@@ -21,6 +23,10 @@ export default class Trades {
     private processingOffer = false;
 
     private pollCount = 0;
+
+    private escrowCheckFailedCount = 0;
+
+    private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -634,6 +640,7 @@ export default class Trades {
 
     checkEscrow(offer: TradeOffer): Promise<boolean> {
         log.debug('Checking escrow');
+        clearTimeout(this.restartOnEscrowCheckFailed);
 
         return new Promise((resolve, reject) => {
             const operation = retry.operation({
@@ -654,11 +661,19 @@ export default class Trades {
                         }
 
                         if (err) {
+                            this.escrowCheckFailedCount++;
+
+                            this.restartOnEscrowCheckFailed = setTimeout(() => {
+                                // call function to automatically restart the bot after 2 seconds
+                                void this.triggerRestartBot(offer.partner);
+                            }, 2 * 1000);
+
                             return reject(operation.mainError());
                         }
 
                         log.debug('Done checking escrow');
 
+                        this.escrowCheckFailedCount = 0;
                         return resolve(them.escrowDays !== 0);
                     }
 
@@ -673,6 +688,113 @@ export default class Trades {
                 });
             });
         });
+    }
+
+    private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
+        log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
+
+        if (this.escrowCheckFailedCount >= 2) {
+            // if escrow check failed more than or equal to 2 times, then perform automatic restart (PM2 only)
+
+            const dwEnabled =
+                this.bot.options.discordWebhook.sendAlert.enable &&
+                this.bot.options.discordWebhook.sendAlert.url !== '';
+
+            // determine whether it's good time to restart or not
+            try {
+                // test if backpack.tf is alive by performing bptf banned check request
+                await isBptfBanned(steamID, this.bot.options.bptfAPIKey);
+            } catch (err) {
+                // do not restart
+                if (dwEnabled) {
+                    return sendAlert(
+                        'escrow-check-failed-not-restart-bptf-down',
+                        this.bot,
+                        null,
+                        this.escrowCheckFailedCount
+                    );
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            this.escrowCheckFailedCount,
+                            true
+                        )} because backpack.tf is currently down.`,
+                        []
+                    );
+                }
+            }
+
+            const now = dayjs().tz('UTC').format('dddd THH:mm');
+            const array30Minutes = [];
+            array30Minutes.length = 30;
+
+            const isSteamNotGoodNow =
+                now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
+
+            if (isSteamNotGoodNow) {
+                // do not restart during Steam weekly maintenance
+                if (dwEnabled) {
+                    return sendAlert(
+                        'escrow-check-failed-not-restart-steam-maintenance',
+                        this.bot,
+                        null,
+                        this.escrowCheckFailedCount
+                    );
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            this.escrowCheckFailedCount,
+                            true
+                        )} because Steam is currently down.`,
+                        []
+                    );
+                }
+            } else {
+                // Good to perform automatic restart
+                if (dwEnabled) {
+                    sendAlert('escrow-check-failed-perform-restart', this.bot, null, this.escrowCheckFailedCount);
+                    void this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                return sendAlert('failedPM2', this.bot);
+                            }
+                            this.bot.messageAdmins(`🔄 Restarting...`, []);
+                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            sendAlert('failedRestartError', this.bot, null, null, err);
+                        });
+                } else {
+                    this.bot.messageAdmins(
+                        `⚠️ [Escrow check failed alert] Current failed count: ${this.escrowCheckFailedCount}`,
+                        []
+                    );
+                    void this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                return this.bot.messageAdmins(
+                                    `❌ Automatic restart on Escrow check problem failed because you're not running the bot with PM2!`,
+                                    []
+                                );
+                            }
+                            this.bot.messageAdmins(`🔄 Restarting...`, []);
+                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.bot.messageAdmins(
+                                `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`,
+                                []
+                            );
+                        });
+                }
+            }
+        }
     }
 
     onOfferChanged(offer: TradeOffer, oldState: number): void {
