@@ -324,9 +324,13 @@ export default class Autokeys {
                 setMaxKeys = setMinKeys + 2;
             }
 
+            // When banking, the bot should be able to both buy and sell keys.
             if (setMaxKeys === currKeys) {
-                // When banking, the bot should be able to both buy and sell keys.
                 setMaxKeys += 1;
+            }
+
+            if (currKeys >= setMaxKeys) {
+                setMaxKeys = currKeys + 1;
             }
         }
 
