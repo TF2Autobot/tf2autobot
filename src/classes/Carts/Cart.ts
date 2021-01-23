@@ -414,10 +414,10 @@ export default abstract class Cart {
 
                     const msg =
                         `Either I, or the trade partner${
-                            !dwEnabled ? `(${this.offer.partner.getSteamID64()})` : ''
+                            !dwEnabled ? ` (${this.offer.partner.getSteamID64()})` : ''
                         }, ` +
                         `did not have enough backpack space (or near full) to complete a trade${
-                            !dwEnabled ? (this.offer.id ? `(${this.offer.id})` : '') : ''
+                            !dwEnabled ? (this.offer.id ? ` (${this.offer.id})` : '') : ''
                         }. ` +
                         `A summary of our backpacks can be seen below.` +
                         `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
