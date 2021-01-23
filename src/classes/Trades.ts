@@ -663,6 +663,7 @@ export default class Trades {
                         if (err) {
                             this.escrowCheckFailedCount++;
 
+                            clearTimeout(this.restartOnEscrowCheckFailed);
                             this.restartOnEscrowCheckFailed = setTimeout(() => {
                                 // call function to automatically restart the bot after 2 seconds
                                 void this.triggerRestartBot(offer.partner);
@@ -690,6 +691,12 @@ export default class Trades {
         });
     }
 
+    private retryToRestart(steamID: SteamID | string): void {
+        this.restartOnEscrowCheckFailed = setTimeout(() => {
+            void this.triggerRestartBot(steamID);
+        }, 3 * 60 * 1000);
+    }
+
     private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
@@ -705,7 +712,10 @@ export default class Trades {
                 // test if backpack.tf is alive by performing bptf banned check request
                 await isBptfBanned(steamID, this.bot.options.bptfAPIKey);
             } catch (err) {
-                // do not restart
+                // do not restart, try again after 3 minutes
+                clearTimeout(this.restartOnEscrowCheckFailed);
+                this.retryToRestart(steamID);
+
                 if (dwEnabled) {
                     return sendAlert(
                         'escrow-check-failed-not-restart-bptf-down',
@@ -733,7 +743,10 @@ export default class Trades {
                 now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
 
             if (isSteamNotGoodNow) {
-                // do not restart during Steam weekly maintenance
+                // do not restart during Steam weekly maintenance, try again after 3 minutes
+                clearTimeout(this.restartOnEscrowCheckFailed);
+                this.retryToRestart(steamID);
+
                 if (dwEnabled) {
                     return sendAlert(
                         'escrow-check-failed-not-restart-steam-maintenance',

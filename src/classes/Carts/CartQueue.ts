@@ -127,6 +127,9 @@ export default class CartQueue {
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
                             sendAlert('failedRestartError', this.bot, null, null, err);
+                            // try again after 3 minutes
+                            clearTimeout(this.queuePositionCheck);
+                            this.queueCheck(steamID);
                         });
                 } else {
                     this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
@@ -148,6 +151,9 @@ export default class CartQueue {
                                 `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`,
                                 []
                             );
+                            // try again after 3 minutes
+                            clearTimeout(this.queuePositionCheck);
+                            this.queueCheck(steamID);
                         });
                 }
             }
