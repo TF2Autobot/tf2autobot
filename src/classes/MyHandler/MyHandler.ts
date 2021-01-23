@@ -924,7 +924,7 @@ export default class MyHandler extends Handler {
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
                             sku,
                             isBuying,
-                            which === 'their',
+                            match === null ? which === 'their' : false,
                             which === 'their'
                         ); // return a number
 
