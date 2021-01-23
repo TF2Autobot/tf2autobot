@@ -549,18 +549,13 @@ export default class Autokeys {
     }
 
     private generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {
-        const details = this.bot.options.details;
         return {
             sku: '5021;6',
             enabled: enabled,
             autoprice: true,
             min: min,
             max: max,
-            intent: intent,
-            note: {
-                buy: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details.buy,
-                sell: '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details.sell
-            }
+            intent: intent
         };
     }
 
