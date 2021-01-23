@@ -6,7 +6,9 @@ import Bot from '../../classes/Bot';
 
 type AlertType =
     | 'lowPure'
-    | 'queue'
+    | 'queue-problem-perform-restart'
+    | 'queue-problem-not-restart-bptf-down'
+    | 'queue-problem-not-restart-steam-maintenance'
     | 'failedPM2'
     | 'failedRestartError'
     | 'full-backpack'
@@ -41,9 +43,20 @@ export default function sendAlert(
         title = 'Low Pure Alert';
         description = msg;
         color = '16776960'; // yellow
-    } else if (type === 'queue') {
-        title = 'Queue Alert';
+    } else if (type === 'queue-problem-perform-restart') {
+        title = 'Queue Problem Alert';
         description = `Current position: ${positionOrCount}, automatic restart initialized...`;
+        color = '16711680'; // red
+    } else if (
+        type === 'queue-problem-not-restart-bptf-down' ||
+        type === 'queue-problem-not-restart-steam-maintenance'
+    ) {
+        const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
+
+        title = 'Queue problem, unable to restart';
+        description = `Current position: ${positionOrCount}, unable to perform automatic restart because ${
+            isSteamDown ? 'Steam' : 'backpack.tf'
+        } is currently down.`;
         color = '16711680'; // red
     } else if (type === 'escrow-check-failed-perform-restart') {
         title = 'Escrow check failed alert';
@@ -121,7 +134,8 @@ export default function sendAlert(
             'autokeys-failedToUpdate-bank',
             'autokeys-failedToUpdate-sell',
             'autokeys-failedToUpdate-buy',
-            'escrow-check-failed-not-restart-bptf-down'
+            'escrow-check-failed-not-restart-bptf-down',
+            'queue-problem-not-restart-bptf-down'
         ].includes(type)
             ? `<@!${optDW.ownerID}>`
             : '',

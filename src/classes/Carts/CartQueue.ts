@@ -1,9 +1,12 @@
 import SteamID from 'steamid';
 import * as inspect from 'util';
+import dayjs from 'dayjs';
+import pluralize from 'pluralize';
 import Cart from './Cart';
 import Bot from '../Bot';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { isBptfBanned } from '../../lib/bans';
 
 export default class CartQueue {
     private readonly bot: Bot;
@@ -49,14 +52,70 @@ export default class CartQueue {
     private queueCheck(steamID: SteamID | string): void {
         log.debug(`Checking queue position in 3 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
-            const position = this.carts.length;
-            log.debug(`Current queue position: ${position}`);
-            if (position >= 2) {
-                if (
-                    this.bot.options.discordWebhook.sendAlert.enable &&
-                    this.bot.options.discordWebhook.sendAlert.url !== ''
-                ) {
-                    sendAlert('queue', this.bot, null, position);
+            void this.queueCheckRestartBot(steamID);
+        }, 3 * 60 * 1000);
+    }
+
+    private async queueCheckRestartBot(steamID: SteamID | string): Promise<void> {
+        const position = this.carts.length;
+        log.debug(`Current queue position: ${position}`);
+
+        if (position >= 2) {
+            const dwEnabled =
+                this.bot.options.discordWebhook.sendAlert.enable &&
+                this.bot.options.discordWebhook.sendAlert.url !== '';
+
+            // determine whether it's good time to restart or not
+            try {
+                // test if backpack.tf is alive by performing bptf banned check request
+                await isBptfBanned(steamID, this.bot.options.bptfAPIKey);
+            } catch (err) {
+                // do not restart, try again after 3 minutes
+                clearTimeout(this.queuePositionCheck);
+                this.queueCheck(steamID);
+
+                if (dwEnabled) {
+                    return sendAlert('queue-problem-not-restart-bptf-down', this.bot, null, position);
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            position,
+                            true
+                        )} because backpack.tf is currently down.`,
+                        []
+                    );
+                }
+            }
+
+            const now = dayjs().tz('UTC').format('dddd THH:mm');
+            const array30Minutes = [];
+            array30Minutes.length = 30;
+
+            const isSteamNotGoodNow =
+                now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
+
+            if (isSteamNotGoodNow) {
+                // do not restart during Steam weekly maintenance, try again after 3 minutes
+                clearTimeout(this.queuePositionCheck);
+                this.queueCheck(steamID);
+
+                if (dwEnabled) {
+                    return sendAlert('queue-problem-not-restart-steam-maintenance', this.bot, null, position);
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            position,
+                            true
+                        )} because Steam is currently down.`,
+                        []
+                    );
+                }
+            } else {
+                // Good to perform automatic restart
+                if (dwEnabled) {
+                    sendAlert('queue-problem-perform-restart', this.bot, null, position);
                     void this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
@@ -91,7 +150,7 @@ export default class CartQueue {
                         });
                 }
             }
-        }, 3 * 60 * 1000);
+        }
     }
 
     dequeue(steamID: SteamID | string): boolean {
