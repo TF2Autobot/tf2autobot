@@ -139,6 +139,7 @@ export default class CartQueue {
                                     []
                                 );
                             }
+                            this.bot.messageAdmins(`🔄 Restarting...`, []);
                             this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                         })
                         .catch(err => {
