@@ -363,22 +363,22 @@ function highValue(
     const attributes: ItemAttributes = {};
 
     const strangeParts =
-        opt.highValue.strangeParts === [] || opt.highValue.strangeParts === ['']
+        opt.highValue.strangeParts.length < 1 || opt.highValue.strangeParts[0] === ''
             ? Object.keys(parts).map(part => part.toLowerCase())
             : opt.highValue.strangeParts.map(part => part.toLowerCase());
 
     const killstreakers =
-        opt.highValue.killstreakers === [] || opt.highValue.killstreakers === ['']
+        opt.highValue.killstreakers.length < 1 || opt.highValue.killstreakers[0] === ''
             ? Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase())
             : opt.highValue.killstreakers.map(killstreaker => killstreaker.toLowerCase());
 
     const sheens =
-        opt.highValue.sheens === [] || opt.highValue.sheens === ['']
+        opt.highValue.sheens.length < 1 || opt.highValue.sheens[0] === ''
             ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
             : opt.highValue.sheens.map(sheen => sheen.toLowerCase());
 
     const painted =
-        opt.highValue.painted === [] || opt.highValue.painted === ['']
+        opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
             ? Object.keys(paints).map(paint => paint.toLowerCase())
             : opt.highValue.painted.map(paint => paint.toLowerCase());
 
