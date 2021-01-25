@@ -27,6 +27,12 @@ A clear and concise description of what you want to happen.
 A clear and concise description of any alternative solutions or features you've considered.
 -->
 
+**Got any bounty as a reward for anyone fulfills your request?**
+<!--
+Bounty: (could be anything. You'll need to send this item to me once someone solves your request.)
+Discord Name: (Example - IdiNium#8965, and make sure you're TF2Autobot Discord server member: https://discord.gg/D2GNnp7tv8)
+-->
+
 **Additional context**
 <!--
 Add any other context or screenshots about the feature request here.
