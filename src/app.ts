@@ -47,6 +47,7 @@ import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { uptime } from './lib/tools/time';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
@@ -63,7 +64,8 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 process.arch
             }}`,
             'Stack trace:',
-            inspect.inspect(origin)
+            inspect.inspect(origin),
+            `${uptime()}`
         ].join('\r\n');
 
         log.error(errorMessage);
