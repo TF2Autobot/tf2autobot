@@ -456,7 +456,6 @@ export default class Bot {
                             log.info('Signed in to Steam!');
 
                             this.setProperties();
-                            this.startHourlyUpdateProperties();
 
                             // We now know our SteamID, but we still don't have our Steam API key
                             this.inventoryManager.setInventory = new Inventory(
@@ -599,13 +598,6 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
-    }
-
-    private startHourlyUpdateProperties(): void {
-        clearInterval(this.updateSchemaPropertiesInterval);
-        this.updateSchemaPropertiesInterval = setInterval(() => {
-            this.setProperties();
-        }, 1 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {
