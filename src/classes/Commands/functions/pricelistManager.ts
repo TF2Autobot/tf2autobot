@@ -518,7 +518,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             }
 
             if (params.group) {
-                entry.group = (params.withgroup as string).toString();
+                entry.group = (params.group as string).toString();
             }
 
             if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
