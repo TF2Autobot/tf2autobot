@@ -76,14 +76,6 @@ export default async function sendTradeSummary(
             ? `<@!${optDW.ownerID}>`
             : '';
 
-    const trades = t.stats(bot);
-    const tradeNumberToShowStarter = bot.options.statistics.starter;
-
-    const tradesMade =
-        tradeNumberToShowStarter !== 0 && !isNaN(tradeNumberToShowStarter)
-            ? tradeNumberToShowStarter + trades.totalAcceptedTrades
-            : trades.totalAcceptedTrades;
-
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
 
@@ -104,7 +96,7 @@ export default async function sendTradeSummary(
             {
                 color: optDW.embedColor,
                 author: {
-                    name: `Trade from: ${details.personaName} #${tradesMade.toString()}`,
+                    name: `${details.personaName}`,
                     url: links.steam,
                     icon_url: details.avatarFull as string
                 },

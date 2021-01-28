@@ -358,13 +358,8 @@ export const DEFAULTS = {
     statistics: {
         // 18
         /**
-         * The starting value for the number of successful trades your bot has made. Used in Discord webhooks for
-         * statistical or show off purposes.
-         */
-        starter: 0,
-        /**
-         * An offset value for your bot's .starter. If you clear out your polldata.json file, it will reset your total trades
-         * count back to zero. This Option can be used as an offset to ensure you never lose track of how many trades your bot
+         * If you clear out your polldata.json file, it will reset your total trades count back to zero.
+         * This Option can be used as an offset to ensure you never lose track of how many trades your bot
          * has completed in total. An example would be if you bot has completed 1000 trades and you want to clear out your
          * polldata.json file. If you set .lastTotalTrades to 1000, your bot will remember that it has completed 1000 trades in the past.
          */
@@ -1914,7 +1909,6 @@ export interface UsesDetails {
 // ------------ Statistics ------------
 
 export interface Statistics {
-    starter?: number;
     lastTotalTrades?: number;
     startingTimeInUnix?: number;
     lastTotalProfitMadeInRef?: number;

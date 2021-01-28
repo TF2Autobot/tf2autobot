@@ -550,9 +550,6 @@ export const optionsSchema: jsonschema.Schema = {
         statistics: {
             type: 'object',
             properties: {
-                starter: {
-                    $schema: '#/definitions/nonNegativeIntegerDefault0'
-                },
                 lastTotalTrades: {
                     $schema: '#/definitions/nonNegativeIntegerDefault0'
                 },
@@ -583,7 +580,6 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
-                'starter',
                 'lastTotalTrades',
                 'startingTimeInUnix',
                 'lastTotalProfitMadeInRef',
