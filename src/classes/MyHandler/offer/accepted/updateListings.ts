@@ -116,7 +116,8 @@ export default function updateListings(
                     const msg =
                         `✅ Automatically added ${name} (${paintedSKU}) to sell.` +
                         `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
-                        `\nWith paint: ${data.sell.toString()}`;
+                        `\nWith paint: ${data.sell.toString()}` +
+                        `\nhttps://www.prices.tf/items/${sku}`;
 
                     log.debug(msg);
 
