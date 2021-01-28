@@ -198,8 +198,7 @@ export default function processAccepted(
         }
     }
 
-    const offerData = bot.manager.pollData.offerData;
-    const isOfferSent = offerData ? offerData[offer.id].action === undefined : undefined;
+    const isOfferSent = offer?.data('action') === undefined;
 
     if (isWebhookEnabled) {
         void sendTradeSummary(offer, accepted, itemList(offer), bot, processTime, isTradingKeys, isOfferSent);
