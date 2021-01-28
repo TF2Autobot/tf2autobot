@@ -547,7 +547,21 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
             );
         }
-        bot.listingManager.listings.forEach(listing => listingsSKUs.push(listing.getSKU()));
+        bot.listingManager.listings.forEach(listing => {
+            let listingSKU = listing.getSKU();
+            if (bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+            }
+
+            if (bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                listingSKU = listingSKU.replace(';festive', '');
+            }
+
+            if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                listingSKU = listingSKU.replace(';strange', '');
+            }
+            listingsSKUs.push(listingSKU);
+        });
 
         // Remove duplicate elements
         const newlistingsSKUs: string[] = [];
