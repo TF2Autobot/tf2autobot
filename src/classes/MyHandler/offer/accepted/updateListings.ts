@@ -1,6 +1,7 @@
 import { Items, TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
+import pluralize from 'pluralize';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
@@ -114,9 +115,13 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(data => {
                     const msg =
-                        `✅ Automatically added ${name} (${paintedSKU}) to sell.` +
+                        `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                        ` (${paintedSKU}) to sell.` +
                         `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
-                        `\nWith paint: ${data.sell.toString()}` +
+                        `\nSelling for: ${data.sell.toString()} ` +
+                        `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
+                            priceFromOptions.metal
+                        } ref)` +
                         `\nhttps://www.prices.tf/items/${sku}`;
 
                     log.debug(msg);
@@ -130,9 +135,9 @@ export default function updateListings(
                     }
                 })
                 .catch(err => {
-                    const msg = `❌ Failed to add ${name} (${paintedSKU}) sell automatically: ${
-                        (err as Error).message
-                    }`;
+                    const msg =
+                        `❌ Failed to add ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                        ` (${paintedSKU}) sell automatically: ${(err as Error).message}`;
 
                     log.debug(msg);
 
