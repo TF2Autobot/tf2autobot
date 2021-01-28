@@ -25,7 +25,9 @@ type AlertType =
     | 'escrow-check-failed-perform-restart'
     | 'escrow-check-failed-not-restart-bptf-down'
     | 'escrow-check-failed-not-restart-steam-maintenance'
-    | 'tryingToTake';
+    | 'tryingToTake'
+    | 'autoAddPaintedItems'
+    | 'autoAddPaintedItemsFailed';
 
 export default function sendAlert(
     type: AlertType,
@@ -101,6 +103,14 @@ export default function sendAlert(
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
         color = '8323327'; // red
+    } else if (type === 'autoAddPaintedItems') {
+        title = 'Added painted items to sell';
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoAddPaintedItemsFailed') {
+        title = 'Failed to add painted items to sell';
+        description = msg;
+        color = '8323327'; // green
     } else if (type.includes('autokeys-')) {
         title =
             type === 'autokeys-failedToDisable'
@@ -136,7 +146,8 @@ export default function sendAlert(
             'autokeys-failedToUpdate-sell',
             'autokeys-failedToUpdate-buy',
             'escrow-check-failed-not-restart-bptf-down',
-            'queue-problem-not-restart-bptf-down'
+            'queue-problem-not-restart-bptf-down',
+            'autoAddPaintedItemsFailed'
         ].includes(type)
             ? `<@!${optDW.ownerID}>`
             : '',

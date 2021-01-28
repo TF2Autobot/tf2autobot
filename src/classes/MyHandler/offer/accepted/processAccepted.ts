@@ -3,6 +3,7 @@ import {
     DisabledItems,
     HighValueOutput,
     InvalidItems,
+    Items,
     Overstocked,
     TradeOffer,
     Understocked
@@ -18,7 +19,7 @@ export default function processAccepted(
     bot: Bot,
     isTradingKeys: boolean,
     processTime: number
-): { theirHighValuedItems: string[]; isDisableSKU: string[] } {
+): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: Items | undefined } {
     const opt = bot.options;
 
     const isDisableSKU: string[] = [];
@@ -246,7 +247,11 @@ export default function processAccepted(
         );
     }
 
-    return { theirHighValuedItems, isDisableSKU };
+    return {
+        theirHighValuedItems,
+        isDisableSKU,
+        items: offerReceived?.meta?.highValue?.items?.their || offerSent?.items?.their
+    };
 }
 
 interface Accepted {

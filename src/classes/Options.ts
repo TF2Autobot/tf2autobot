@@ -4,6 +4,7 @@ import jsonlint from 'jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
+import { Currency } from '../types/TeamFortress2';
 
 export const DEFAULTS = {
     showOnlyMetal: {
@@ -89,7 +90,11 @@ export const DEFAULTS = {
          * (Discord Webhook mentioned) Send an alert when an item is sold with intent sell, and autoRemoveIntentSell.enable
          * is true but the bot failed to remove it.
          */
-        autoRemoveIntentSellFailed: true
+        autoRemoveIntentSellFailed: true,
+        /**
+         * (Discord Webhook mentioned if failed) Send an alert when painted items has been successfully added to sell
+         */
+        autoAddPaintedItems: true
     },
 
     addFriends: {
@@ -126,8 +131,16 @@ export const DEFAULTS = {
              */
             enable: true
         },
-        priceAge: {
+        autoAddPaintedItems: {
             // 7.3
+            /**
+             * If set to false, any accepted items with painted will not be automatically added to the pricelist (to sell only).
+             * You should also set your preferred price for each paint in detailExtra.painted[paintName].price
+             */
+            enable: true
+        },
+        priceAge: {
+            // 7.4
             /**
              * (8 hrs) If an item in the pricelist's last price update exceeds this value,
              * the bot will automatically request a price check for the item from prices.tf
@@ -1681,39 +1694,214 @@ export const DEFAULTS = {
             Tornado: '🌪️'
         },
         /**
-         * Custom string to be shown in listing note if details.highValue.showPainted set to true
+         * painted.stringNote: Custom string to be shown in listing note if details.highValue.showPainted set to true
+         * painted.price: Paint price to be added with the item base price to automatically create sell order for painted items.
          */
         painted: {
             // 26.4
-            'A Color Similar to Slate': '🧪',
-            'A Deep Commitment to Purple': '🪀',
-            'A Distinctive Lack of Hue': '🎩',
-            "A Mann's Mint": '👽',
-            'After Eight': '🏴',
-            'Aged Moustache Grey': '👤',
-            'An Extraordinary Abundance of Tinge': '🏐',
-            'Australium Gold': '🏆',
-            'Color No. 216-190-216': '🧠',
-            'Dark Salmon Injustice': '🐚',
-            'Drably Olive': '🥝',
-            'Indubitably Green': '🥦',
-            'Mann Co. Orange': '🏀',
-            Muskelmannbraun: '👜',
-            "Noble Hatter's Violet": '🍇',
-            'Peculiarly Drab Tincture': '🪑',
-            'Pink as Hell': '🎀',
-            'Radigan Conagher Brown': '🚪',
-            'The Bitter Taste of Defeat and Lime': '💚',
-            "The Color of a Gentlemann's Business Pants": '🧽',
-            'Ye Olde Rustic Colour': '🥔',
-            "Zepheniah's Greed": '🌳',
-            'An Air of Debonair': '👜🔷',
-            'Balaclavas Are Forever': '👜🔷',
-            "Operator's Overalls": '👜🔷',
-            'Cream Spirit': '🍘🥮',
-            'Team Spirit': '🔵🔴',
-            'The Value of Teamwork': '👨🏽‍🤝‍👨🏻',
-            'Waterlogged Lab Coat': '👨🏽‍🤝‍👨🏽'
+            'A Color Similar to Slate': {
+                stringNote: '🧪',
+                price: {
+                    keys: 0,
+                    metal: 11
+                }
+            },
+            'A Deep Commitment to Purple': {
+                stringNote: '🪀',
+                price: {
+                    keys: 0,
+                    metal: 15
+                }
+            },
+            'A Distinctive Lack of Hue': {
+                stringNote: '🎩',
+                price: {
+                    keys: 1,
+                    metal: 5
+                }
+            },
+            "A Mann's Mint": {
+                stringNote: '👽',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'After Eight': {
+                stringNote: '🏴',
+                price: {
+                    keys: 1,
+                    metal: 5
+                }
+            },
+            'Aged Moustache Grey': {
+                stringNote: '👤',
+                price: {
+                    keys: 0,
+                    metal: 5
+                }
+            },
+            'An Extraordinary Abundance of Tinge': {
+                stringNote: '🏐',
+                price: {
+                    keys: 1,
+                    metal: 5
+                }
+            },
+            'Australium Gold': {
+                stringNote: '🏆',
+                price: {
+                    keys: 0,
+                    metal: 15
+                }
+            },
+            'Color No. 216-190-216': {
+                stringNote: '🧠',
+                price: {
+                    keys: 0,
+                    metal: 7
+                }
+            },
+            'Dark Salmon Injustice': {
+                stringNote: '🐚',
+                price: {
+                    keys: 0,
+                    metal: 15
+                }
+            },
+            'Drably Olive': {
+                stringNote: '🥝',
+                price: {
+                    keys: 0,
+                    metal: 5
+                }
+            },
+            'Indubitably Green': {
+                stringNote: '🥦',
+                price: {
+                    keys: 0,
+                    metal: 5
+                }
+            },
+            'Mann Co. Orange': {
+                stringNote: '🏀',
+                price: {
+                    keys: 0,
+                    metal: 6
+                }
+            },
+            Muskelmannbraun: {
+                stringNote: '👜',
+                price: {
+                    keys: 0,
+                    metal: 2
+                }
+            },
+            "Noble Hatter's Violet": {
+                stringNote: '🍇',
+                price: {
+                    keys: 0,
+                    metal: 7
+                }
+            },
+            'Peculiarly Drab Tincture': {
+                stringNote: '🪑',
+                price: {
+                    keys: 0,
+                    metal: 3
+                }
+            },
+            'Pink as Hell': {
+                stringNote: '🎀',
+                price: {
+                    keys: 1,
+                    metal: 10
+                }
+            },
+            'Radigan Conagher Brown': {
+                stringNote: '🚪',
+                price: {
+                    keys: 0,
+                    metal: 2
+                }
+            },
+            'The Bitter Taste of Defeat and Lime': {
+                stringNote: '💚',
+                price: {
+                    keys: 1,
+                    metal: 10
+                }
+            },
+            "The Color of a Gentlemann's Business Pants": {
+                stringNote: '🧽',
+                price: {
+                    keys: 0,
+                    metal: 5
+                }
+            },
+            'Ye Olde Rustic Colour': {
+                stringNote: '🥔',
+                price: {
+                    keys: 0,
+                    metal: 2
+                }
+            },
+            "Zepheniah's Greed": {
+                stringNote: '🌳',
+                price: {
+                    keys: 0,
+                    metal: 4
+                }
+            },
+            'An Air of Debonair': {
+                stringNote: '👜🔷',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'Balaclavas Are Forever': {
+                stringNote: '👜🔷',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            "Operator's Overalls": {
+                stringNote: '👜🔷',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'Cream Spirit': {
+                stringNote: '🍘🥮',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'Team Spirit': {
+                stringNote: '🔵🔴',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'The Value of Teamwork': {
+                stringNote: '👨🏽‍🤝‍👨🏻',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            },
+            'Waterlogged Lab Coat': {
+                stringNote: '👨🏽‍🤝‍👨🏽',
+                price: {
+                    keys: 0,
+                    metal: 30
+                }
+            }
         },
         /**
          * Custom string to be shown in listing note if details.highValue.showStrangeParts set to true
@@ -1793,6 +1981,7 @@ export interface SendAlert extends OnlyEnable {
     backpackFull?: boolean;
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
+    autoAddPaintedItems?: boolean;
 }
 
 export interface AutokeysAlert {
@@ -1813,6 +2002,7 @@ export interface HighValueAlert {
 export interface Pricelist {
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
+    autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
 }
 
@@ -2338,37 +2528,73 @@ export interface Killstreakers {
     Tornado?: string;
 }
 
-export interface Painted {
-    'A Color Similar to Slate'?: string;
-    'A Deep Commitment to Purple'?: string;
-    'A Distinctive Lack of Hue'?: string;
-    "A Mann's Mint"?: string;
-    'After Eight'?: string;
-    'Aged Moustache Grey'?: string;
-    'An Extraordinary Abundance of Tinge'?: string;
-    'Australium Gold'?: string;
-    'Color No. 216-190-216'?: string;
-    'Dark Salmon Injustice'?: string;
-    'Drably Olive'?: string;
-    'Indubitably Green'?: string;
-    'Mann Co. Orange'?: string;
-    Muskelmannbraun?: string;
-    "Noble Hatter's Violet"?: string;
-    'Peculiarly Drab Tincture'?: string;
-    'Pink as Hell'?: string;
-    'Radigan Conagher Brown'?: string;
-    'The Bitter Taste of Defeat and Lime'?: string;
-    "The Color of a Gentlemann's Business Pants"?: string;
-    'Ye Olde Rustic Colour'?: string;
-    "Zepheniah's Greed"?: string;
-    'An Air of Debonair'?: string;
-    'Balaclavas Are Forever'?: string;
-    "Operator's Overalls"?: string;
-    'Cream Spirit'?: string;
-    'Team Spirit'?: string;
-    'The Value of Teamwork'?: string;
-    'Waterlogged Lab Coat'?: string;
+export interface PaintedProperties {
+    stringNote?: string;
+    price?: Currency;
 }
+
+export interface Painted {
+    'A Color Similar to Slate'?: PaintedProperties;
+    'A Deep Commitment to Purple'?: PaintedProperties;
+    'A Distinctive Lack of Hue'?: PaintedProperties;
+    "A Mann's Mint"?: PaintedProperties;
+    'After Eight'?: PaintedProperties;
+    'Aged Moustache Grey'?: PaintedProperties;
+    'An Extraordinary Abundance of Tinge'?: PaintedProperties;
+    'Australium Gold'?: PaintedProperties;
+    'Color No. 216-190-216'?: PaintedProperties;
+    'Dark Salmon Injustice'?: PaintedProperties;
+    'Drably Olive'?: PaintedProperties;
+    'Indubitably Green'?: PaintedProperties;
+    'Mann Co. Orange'?: PaintedProperties;
+    Muskelmannbraun?: PaintedProperties;
+    "Noble Hatter's Violet"?: PaintedProperties;
+    'Peculiarly Drab Tincture'?: PaintedProperties;
+    'Pink as Hell'?: PaintedProperties;
+    'Radigan Conagher Brown'?: PaintedProperties;
+    'The Bitter Taste of Defeat and Lime'?: PaintedProperties;
+    "The Color of a Gentlemann's Business Pants"?: PaintedProperties;
+    'Ye Olde Rustic Colour'?: PaintedProperties;
+    "Zepheniah's Greed"?: PaintedProperties;
+    'An Air of Debonair'?: PaintedProperties;
+    'Balaclavas Are Forever'?: PaintedProperties;
+    "Operator's Overalls"?: PaintedProperties;
+    'Cream Spirit'?: PaintedProperties;
+    'Team Spirit'?: PaintedProperties;
+    'The Value of Teamwork'?: PaintedProperties;
+    'Waterlogged Lab Coat'?: PaintedProperties;
+}
+
+export type PaintedNames =
+    | 'A Color Similar to Slate'
+    | 'A Deep Commitment to Purple'
+    | 'A Distinctive Lack of Hue'
+    | "A Mann's Mint"
+    | 'After Eight'
+    | 'Aged Moustache Grey'
+    | 'An Extraordinary Abundance of Tinge'
+    | 'Australium Gold'
+    | 'Color No. 216-190-216'
+    | 'Dark Salmon Injustice'
+    | 'Drably Olive'
+    | 'Indubitably Green'
+    | 'Mann Co. Orange'
+    | 'Muskelmannbraun'
+    | "Noble Hatter's Violet"
+    | 'Peculiarly Drab Tincture'
+    | 'Pink as Hell'
+    | 'Radigan Conagher Brown'
+    | 'The Bitter Taste of Defeat and Lime'
+    | "The Color of a Gentlemann's Business Pants"
+    | 'Ye Olde Rustic Colour'
+    | "Zepheniah's Greed"
+    | 'An Air of Debonair'
+    | 'Balaclavas Are Forever'
+    | "Operator's Overalls"
+    | 'Cream Spirit'
+    | 'Team Spirit'
+    | 'The Value of Teamwork'
+    | 'Waterlogged Lab Coat';
 
 export interface StrangeParts {
     'Robots Destroyed'?: string;

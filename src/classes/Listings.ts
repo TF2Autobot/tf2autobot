@@ -12,6 +12,7 @@ import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
+import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
@@ -525,7 +526,7 @@ export default class Listings {
                                                     ? optR.killstreakers[name]
                                                     : attachment === 'ks'
                                                     ? optR.sheens[name]
-                                                    : optR.painted[name]
+                                                    : optR.painted[name as PaintedNames].stringNote
                                             )}`
                                         );
                                     }

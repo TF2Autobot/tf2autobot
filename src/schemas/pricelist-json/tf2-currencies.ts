@@ -5,7 +5,7 @@ export const currenciesSchema: jsonschema.Schema = {
     type: 'object',
     properties: {
         keys: {
-            type: 'number',
+            type: 'integer',
             minimum: 0
         },
         metal: {

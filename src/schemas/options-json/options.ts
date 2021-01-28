@@ -258,6 +258,18 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: ['donation', 'isBuyingPremium', 'offer']
+        },
+        'painted-properties': {
+            type: 'object',
+            properties: {
+                stringNote: {
+                    type: 'string'
+                },
+                price: {
+                    $ref: 'tf2-currencies'
+                }
+            },
+            required: ['stringNote', 'price']
         }
     },
     properties: {
@@ -339,9 +351,18 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         autoRemoveIntentSellFailed: {
                             type: 'boolean'
+                        },
+                        autoAddPaintedItems: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['autokeys', 'backpackFull', 'highValue', 'autoRemoveIntentSellFailed']
+                    required: [
+                        'autokeys',
+                        'backpackFull',
+                        'highValue',
+                        'autoRemoveIntentSellFailed',
+                        'autoAddPaintedItems'
+                    ]
                 }
             ]
         },
@@ -360,6 +381,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autoAddInvalidItems: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoAddPaintedItems: {
+                    $ref: '#/definitions/only-enable'
+                },
                 priceAge: {
                     type: 'object',
                     properties: {
@@ -372,7 +396,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['autoRemoveIntentSell', 'autoAddInvalidItems', 'priceAge']
+            required: ['autoRemoveIntentSell', 'autoAddInvalidItems', 'autoAddPaintedItems', 'priceAge']
         },
         bypass: {
             type: 'object',
@@ -1496,91 +1520,91 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         'A Color Similar to Slate': {
-                            type: 'string'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'A Deep Commitment to Purple': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'A Distinctive Lack of Hue': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         "A Mann's Mint": {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'After Eight': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Aged Moustache Grey': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'An Extraordinary Abundance of Tinge': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Australium Gold': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Color No. 216-190-216': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Dark Salmon Injustice': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Drably Olive': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Indubitably Green': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Mann Co. Orange': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         Muskelmannbraun: {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         "Noble Hatter's Violet": {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Peculiarly Drab Tincture': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Pink as Hell': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Radigan Conagher Brown': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'The Bitter Taste of Defeat and Lime': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         "The Color of a Gentlemann's Business Pants": {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Ye Olde Rustic Colour': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         "Zepheniah's Greed": {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'An Air of Debonair': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Balaclavas Are Forever': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         "Operator's Overalls": {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Cream Spirit': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Team Spirit': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'The Value of Teamwork': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         },
                         'Waterlogged Lab Coat': {
-                            type: 'string'
+                            type: '#/definitions/painted-properties'
                         }
                     },
                     required: [

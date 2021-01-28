@@ -1,15 +1,17 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { Items, TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
+import Currencies from 'tf2-currencies';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
+import { PaintedNames } from '../../../Options';
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
-    highValue: { isDisableSKU: string[]; theirItems: string[] }
+    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
@@ -54,15 +56,97 @@ export default function updateListings(
             });
         }
 
-        // Automatically add any INVALID_ITEMS to sell, excluding any item name
-        // that have War Paint (could be skins)
-
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         if (
+            opt.normalize.painted.our === false && // must meet this setting
+            opt.normalize.painted.their === true && // must meet this setting
+            !/;[p][0-9]+/.test(sku) && // sku must NOT include any painted partial sku
+            highValue.items && // this must be defined
+            highValue.items[sku]?.p && // painted must be defined
+            inPrice !== null && // base items must already in pricelist
+            bot.pricelist.getPrice(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, false) === null && // painted items must not in pricelist
+            bot.inventoryManager.getInventory.getAmount(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, true) > 0 &&
+            opt.pricelist.autoAddPaintedItems.enable // autoAddPaintedItems must enabled
+        ) {
+            const pSKU = Object.keys(highValue.items[sku].p)[0];
+            const paintedSKU = `${sku};${pSKU}`;
+
+            const priceFromOptions =
+                opt.detailsExtra.painted[
+                    bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
+                ].price;
+
+            const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
+            const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);
+
+            let sellingKeyPrice = inPrice.sell.keys + priceFromOptions.keys;
+
+            let sellingMetalPriceInRef = inPrice.sell.metal + priceFromOptions.metal;
+            const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
+
+            if (sellingMetalPriceInScrap >= keyPriceInScrap) {
+                sellingKeyPrice = Math.trunc(sellingMetalPriceInRef / keyPriceInRef);
+                sellingMetalPriceInRef = Currencies.toRefined(
+                    sellingMetalPriceInScrap - sellingKeyPrice * keyPriceInScrap
+                );
+            }
+
+            const entry = {
+                sku: paintedSKU,
+                enabled: true,
+                autoprice: false,
+                buy: {
+                    keys: 0,
+                    metal: 1 // always set like this for buying price
+                },
+                sell: {
+                    keys: sellingKeyPrice,
+                    metal: sellingMetalPriceInRef
+                },
+                min: 0,
+                max: 1,
+                intent: 1,
+                group: 'painted'
+            } as EntryData;
+
+            bot.pricelist
+                .addPrice(entry, true)
+                .then(data => {
+                    const msg =
+                        `✅ Automatically added ${name} (${paintedSKU}) to sell.` +
+                        `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
+                        `\nWith paint: ${data.sell.toString()}`;
+
+                    log.debug(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
+                })
+                .catch(err => {
+                    const msg = `❌ Failed to add ${name} (${paintedSKU}) sell automatically: ${
+                        (err as Error).message
+                    }`;
+
+                    log.debug(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
+                });
+        } else if (
             inPrice === null &&
             isNotPureOrWeapons &&
-            SKU.fromString(sku).wear === null &&
+            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
             !highValue.isDisableSKU.includes(sku) &&
             !bot.isAdmin(offer.partner) &&
             opt.pricelist.autoAddInvalidItems.enable

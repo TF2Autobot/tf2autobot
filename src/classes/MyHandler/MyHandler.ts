@@ -10,7 +10,8 @@ import TradeOfferManager, {
     HighValueOutput,
     Meta,
     WrongAboutOffer,
-    Prices
+    Prices,
+    Items
 } from 'steam-tradeoffer-manager';
 
 import pluralize from 'pluralize';
@@ -1637,9 +1638,11 @@ export default class MyHandler extends Handler {
         const highValue: {
             isDisableSKU: string[];
             theirItems: string[];
+            items: Items;
         } = {
             isDisableSKU: [],
-            theirItems: []
+            theirItems: [],
+            items: {}
         };
 
         if (offer.data('handledByUs') === true && offer.data('switchedState') !== offer.state) {
@@ -1679,6 +1682,7 @@ export default class MyHandler extends Handler {
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
+                highValue.items = result.items;
             }
         }
 
