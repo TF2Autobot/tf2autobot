@@ -416,17 +416,20 @@ export default class MyHandler extends Handler {
 
                 this.bot.listingManager.listings.forEach(listing => {
                     let listingSKU = listing.getSKU();
-                    if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                        listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                    if (listing.intent === 1) {
+                        if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                            listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                        }
+
+                        if (this.bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                            listingSKU = listingSKU.replace(';festive', '');
+                        }
+
+                        if (this.bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                            listingSKU = listingSKU.replace(';strange', '');
+                        }
                     }
 
-                    if (this.bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                        listingSKU = listingSKU.replace(';festive', '');
-                    }
-
-                    if (this.bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                        listingSKU = listingSKU.replace(';strange', '');
-                    }
                     listingsSKUs.push(listingSKU);
                 });
 

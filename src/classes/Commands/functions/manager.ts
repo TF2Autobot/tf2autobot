@@ -549,17 +549,20 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         }
         bot.listingManager.listings.forEach(listing => {
             let listingSKU = listing.getSKU();
-            if (bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+            if (listing.intent === 1) {
+                if (bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                    listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                }
+
+                if (bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                    listingSKU = listingSKU.replace(';festive', '');
+                }
+
+                if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                    listingSKU = listingSKU.replace(';strange', '');
+                }
             }
 
-            if (bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                listingSKU = listingSKU.replace(';festive', '');
-            }
-
-            if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                listingSKU = listingSKU.replace(';strange', '');
-            }
             listingsSKUs.push(listingSKU);
         });
 
