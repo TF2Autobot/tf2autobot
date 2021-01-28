@@ -26,7 +26,7 @@ export default function sendPartnerMessage(
                     icon_url: their.avatar_url_full
                 },
                 footer: {
-                    text: `Partner SteamID: ${steamID} • ${time}`
+                    text: `Partner SteamID: ${steamID} • ${time} • v${process.env.BOT_VERSION}`
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,

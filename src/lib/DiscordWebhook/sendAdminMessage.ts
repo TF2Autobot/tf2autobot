@@ -26,7 +26,7 @@ export default function sendAdminMessage(
                     icon_url: their.avatar_url_full
                 },
                 footer: {
-                    text: `v${process.env.BOT_VERSION} • ${steamID} • ${time}`
+                    text: `${steamID} • ${time} • v${process.env.BOT_VERSION}`
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,

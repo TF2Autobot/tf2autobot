@@ -82,7 +82,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                         description: errorMessage,
                         color: '16711680',
                         footer: {
-                            text: String(new Date(Date.now()))
+                            text: `${String(new Date(Date.now()))} • v${process.env.BOT_VERSION}`
                         }
                     }
                 ]
