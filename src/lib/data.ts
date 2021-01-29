@@ -151,7 +151,7 @@ export const spellsData: { [name: string]: string } = {
     'Sinister Staining': 's-2004',
     'Voices From Below': 's-3000',
     Exorcism: 's-4000',
-    'Pumpkin Bomb': 's-5000',
+    'Pumpkin Bombs': 's-5000',
     'Halloween Fire': 's-6000'
 };
 
