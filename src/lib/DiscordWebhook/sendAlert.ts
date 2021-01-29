@@ -132,25 +132,26 @@ export default function sendAlert(
     const sendAlertWebhook: Webhook = {
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
-        content: [
-            'highValue',
-            'highValuedDisabled',
-            'highValuedInvalidItems',
-            'failedRestartError',
-            'autoRemoveIntentSellFailed',
-            'autokeys-failedToDisable',
-            'autokeys-failedToAdd-bank',
-            'autokeys-failedToAdd-sell',
-            'autokeys-failedToAdd-buy',
-            'autokeys-failedToUpdate-bank',
-            'autokeys-failedToUpdate-sell',
-            'autokeys-failedToUpdate-buy',
-            'escrow-check-failed-not-restart-bptf-down',
-            'queue-problem-not-restart-bptf-down',
-            'autoAddPaintedItemsFailed'
-        ].includes(type)
-            ? `<@!${optDW.ownerID}>`
-            : '',
+        content:
+            [
+                'highValue',
+                'highValuedDisabled',
+                'highValuedInvalidItems',
+                'failedRestartError',
+                'autoRemoveIntentSellFailed',
+                'autokeys-failedToDisable',
+                'autokeys-failedToAdd-bank',
+                'autokeys-failedToAdd-sell',
+                'autokeys-failedToAdd-buy',
+                'autokeys-failedToUpdate-bank',
+                'autokeys-failedToUpdate-sell',
+                'autokeys-failedToUpdate-buy',
+                'escrow-check-failed-not-restart-bptf-down',
+                'queue-problem-not-restart-bptf-down',
+                'autoAddPaintedItemsFailed'
+            ].includes(type) && optDW.sendAlert.isMention
+                ? `<@!${optDW.ownerID}>`
+                : '',
         embeds: [
             {
                 title: title,

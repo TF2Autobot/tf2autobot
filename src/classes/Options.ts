@@ -816,9 +816,13 @@ export const DEFAULTS = {
              */
             url: '',
             /**
-             * If set to true, your bot only mention you for 🟥_INVALID_VALUE offers.
+             * If set to false, your bot NOT mention you for ONLY 🟥_INVALID_VALUE offers.
              */
             mentionInvalidValue: true,
+            /**
+             * If set to false, you will never be mentioned on any offer to be reviewed.
+             */
+            isMention: true,
             misc: {
                 /**
                  * Show the trade partner's quick links to their Steam profile, backpack.tf, and SteamREP pages.
@@ -844,6 +848,10 @@ export const DEFAULTS = {
              * it will send to your Steam Chat.
              */
             enable: true,
+            /**
+             * If set to false, you will never be mentioned.
+             */
+            isMention: true,
             /**
              * Discord Webhook URL.
              */
@@ -873,6 +881,10 @@ export const DEFAULTS = {
              * notify you through Discord (sendAlert.enable must be true).
              */
             enable: true,
+            /**
+             * If set to false, you will never be mentioned on any important alerts.
+             */
+            isMention: true,
             /**
              * The Discord Webhook URL you'd for the alert to be sent to.
              */
@@ -2115,7 +2127,7 @@ export interface DiscordWebhook {
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
     sendAlert?: SendAlertStatsDW;
-    sendStats?: SendAlertStatsDW;
+    sendStats?: SendStatsDW;
 }
 
 export interface TradeSummaryDW extends OnlyEnable {
@@ -2143,6 +2155,7 @@ export interface MentionOwner extends OnlyEnable {
 export interface OfferReviewDW extends OnlyEnable {
     url?: string;
     mentionInvalidValue?: boolean;
+    isMention?: boolean;
     misc?: MiscOfferReview;
 }
 
@@ -2155,6 +2168,7 @@ export interface MiscOfferReview {
 
 export interface MessagesDW extends OnlyEnable {
     url?: string;
+    isMention?: boolean;
     showQuickLinks?: boolean;
 }
 
@@ -2163,6 +2177,11 @@ export interface PriceUpdateDW extends OnlyEnable, OnlyNote {
 }
 
 export interface SendAlertStatsDW extends OnlyEnable {
+    isMention?: boolean;
+    url?: string;
+}
+
+export interface SendStatsDW extends OnlyEnable {
     url?: string;
 }
 

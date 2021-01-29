@@ -905,11 +905,14 @@ export const optionsSchema: jsonschema.Schema = {
                                 mentionInvalidValue: {
                                     type: 'boolean'
                                 },
+                                isMention: {
+                                    type: 'boolean'
+                                },
                                 misc: {
                                     $ref: '#/definitions/discord-webhook-misc'
                                 }
                             },
-                            required: ['mentionInvalidValue', 'misc']
+                            required: ['mentionInvalidValue', 'isMention', 'misc']
                         }
                     ]
                 },
@@ -921,11 +924,14 @@ export const optionsSchema: jsonschema.Schema = {
                         {
                             type: 'object',
                             properties: {
+                                isMention: {
+                                    type: 'boolean'
+                                },
                                 showQuickLinks: {
                                     type: 'boolean'
                                 }
                             },
-                            required: ['showQuickLinks']
+                            required: ['isMention', 'showQuickLinks']
                         }
                     ]
                 },
@@ -940,7 +946,20 @@ export const optionsSchema: jsonschema.Schema = {
                     ]
                 },
                 sendAlert: {
-                    $ref: '#/definitions/discord-webhook-enable-url'
+                    allOf: [
+                        {
+                            $ref: '#/definitions/discord-webhook-enable-url'
+                        },
+                        {
+                            type: 'object',
+                            properties: {
+                                isMention: {
+                                    type: 'boolean'
+                                }
+                            },
+                            required: ['isMention']
+                        }
+                    ]
                 },
                 sendStats: {
                     $ref: '#/definitions/discord-webhook-enable-url'
