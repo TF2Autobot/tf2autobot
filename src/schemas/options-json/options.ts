@@ -23,7 +23,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['our', 'their']
+            required: ['our', 'their'],
+            additionalProperties: false
         },
         'only-allow': {
             type: 'object',
@@ -32,22 +33,20 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['allow']
+            required: ['allow'],
+            additionalProperties: false
         },
         'only-enable-declineReply': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
+            properties: {
+                enable: {
+                    type: 'boolean'
                 },
-                {
-                    properties: {
-                        declineReply: {
-                            type: 'string'
-                        }
-                    },
-                    required: ['declineReply']
+                declineReply: {
+                    type: 'string'
                 }
-            ]
+            },
+            required: ['enable', 'declineReply'],
+            additionalProperties: false
         },
         'only-autoAcceptOverpay-autoDecline': {
             type: 'object',
@@ -68,7 +67,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['ignoreFailed']
+            required: ['ignoreFailed'],
+            additionalProperties: false
         },
         'only-note': {
             type: 'object',
@@ -110,23 +110,22 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['enable', 'url']
         },
-        'only-reply': {
-            type: 'object',
-            properties: {
-                reply: {
-                    type: 'string'
-                }
-            },
-            required: ['reply']
-        },
         'only-customReply-reply': {
             type: 'object',
             properties: {
                 customReply: {
-                    $ref: '#/definitions/only-reply'
+                    type: 'object',
+                    properties: {
+                        reply: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['reply'],
+                    additionalProperties: false
                 }
             },
-            required: ['customReply']
+            required: ['customReply'],
+            additionalProperties: false
         },
         'only-disabled': {
             type: 'object',
@@ -137,112 +136,91 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['disabled']
         },
-        'only-customReply-disabled': {
+        'only-enable-customReply-disabled': {
             type: 'object',
             properties: {
+                enable: {
+                    type: 'boolean'
+                },
                 customReply: {
                     $ref: '#/definitions/only-disabled'
                 }
             },
-            required: ['customReply']
-        },
-        'only-enable-customReply-disabled': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
-                },
-                {
-                    $ref: '#/definitions/only-customReply-disabled'
-                }
-            ]
-        },
-        'only-disabled-disabledForSKU': {
-            type: 'object',
-            properties: {
-                disabled: {
-                    type: 'string'
-                },
-                disabledForSKU: {
-                    type: 'string'
-                }
-            },
-            required: ['disabled', 'disabledForSKU']
-        },
-        'only-customReply-disabled-disabledForSKU': {
-            type: 'object',
-            properties: {
-                customReply: {
-                    $ref: '#/definitions/only-disabled-disabledForSKU'
-                }
-            },
-            required: ['customReply']
+            required: ['enable', 'customReply'],
+            additionalProperties: false
         },
         'cmd-buy-sell': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
-                },
-                {
-                    $ref: '#/definitions/only-customReply-disabled-disabledForSKU'
-                }
-            ]
-        },
-        'disabled-reply': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-reply'
-                },
-                {
-                    $ref: '#/definitions/only-disabled'
-                }
-            ]
-        },
-        'customReply-disabled-reply': {
             type: 'object',
             properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                disableForSKU: {
+                    $schema: '#/definitions/stringArray'
+                },
                 customReply: {
-                    $ref: '#/definitions/disabled-reply'
-                }
-            },
-            required: ['customReply']
-        },
-        'only-enabled-disabled-reply': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
-                },
-                {
-                    $ref: '#/definitions/customReply-disabled-reply'
-                }
-            ]
-        },
-        'cmd-weapons': {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
-                },
-                {
                     type: 'object',
                     properties: {
-                        customReply: {
-                            type: 'object',
-                            properties: {
-                                disabled: {
-                                    type: 'string'
-                                },
-                                dontHave: {
-                                    type: 'string'
-                                },
-                                have: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['disabled', 'dontHave', 'have']
+                        disabled: {
+                            type: 'string'
+                        },
+                        disabledForSKU: {
+                            type: 'string'
                         }
                     },
-                    required: ['customReply']
+                    required: ['disabled', 'disabledForSKU'],
+                    additionalProperties: false
                 }
-            ]
+            },
+            required: ['enable', 'disableForSKU', 'customReply'],
+            additionalProperties: false
+        },
+        'only-enabled-disabled-reply': {
+            type: 'object',
+            properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                customReply: {
+                    properties: {
+                        reply: {
+                            type: 'string'
+                        },
+                        disabled: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['reply', 'disabled'],
+                    additionalProperties: false
+                }
+            },
+            required: ['enable', 'customReply'],
+            additionalProperties: false
+        },
+        'cmd-weapons': {
+            type: 'object',
+            properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                customReply: {
+                    type: 'object',
+                    properties: {
+                        disabled: {
+                            type: 'string'
+                        },
+                        dontHave: {
+                            type: 'string'
+                        },
+                        have: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['disabled', 'dontHave', 'have']
+                }
+            },
+            required: ['enable', 'customReply'],
+            additionalProperties: false
         },
         'processing-accepting': {
             type: 'object',
@@ -257,7 +235,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string'
                 }
             },
-            required: ['donation', 'isBuyingPremium', 'offer']
+            required: ['donation', 'isBuyingPremium', 'offer'],
+            additionalProperties: false
         },
         'painted-properties': {
             type: 'object',
@@ -269,7 +248,8 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: 'tf2-currencies'
                 }
             },
-            required: ['stringNote', 'price']
+            required: ['stringNote', 'price'],
+            additionalProperties: false
         }
     },
     properties: {
@@ -277,94 +257,89 @@ export const optionsSchema: jsonschema.Schema = {
             $ref: '#/definitions/only-enable'
         },
         sortInventory: {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
+            properties: {
+                enable: {
+                    type: 'boolean'
                 },
-                {
-                    properties: {
-                        type: {
-                            anyOf: [
-                                {
-                                    // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
-                                    minimum: 1,
-                                    maximum: 5
-                                },
-                                {
-                                    const: 101 // by class
-                                },
-                                {
-                                    const: 102 // by slot
-                                }
-                            ]
+                type: {
+                    anyOf: [
+                        {
+                            // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+                            minimum: 1,
+                            maximum: 5
+                        },
+                        {
+                            const: 101 // by class
+                        },
+                        {
+                            const: 102 // by slot
                         }
-                    },
-                    required: ['type']
+                    ]
                 }
-            ]
+            },
+            required: ['enable', 'type'],
+            additionalProperties: false
         },
         createListings: {
             $ref: '#/definitions/only-enable'
         },
         sendAlert: {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
+            properties: {
+                enable: {
+                    type: 'boolean'
                 },
-                {
+                autokeys: {
+                    type: 'object',
                     properties: {
-                        autokeys: {
-                            type: 'object',
-                            properties: {
-                                lowPure: {
-                                    type: 'boolean'
-                                },
-                                failedToAdd: {
-                                    type: 'boolean'
-                                },
-                                failedToUpdate: {
-                                    type: 'boolean'
-                                },
-                                failedToDisable: {
-                                    type: 'boolean'
-                                }
-                            },
-                            required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable']
-                        },
-                        backpackFull: {
+                        lowPure: {
                             type: 'boolean'
                         },
-                        highValue: {
-                            type: 'object',
-                            properties: {
-                                gotDisabled: {
-                                    type: 'boolean'
-                                },
-                                receivedNotInPricelist: {
-                                    type: 'boolean'
-                                },
-                                tryingToTake: {
-                                    type: 'boolean'
-                                }
-                            },
-                            required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake']
-                        },
-                        autoRemoveIntentSellFailed: {
+                        failedToAdd: {
                             type: 'boolean'
                         },
-                        autoAddPaintedItems: {
+                        failedToUpdate: {
+                            type: 'boolean'
+                        },
+                        failedToDisable: {
                             type: 'boolean'
                         }
                     },
-                    required: [
-                        'autokeys',
-                        'backpackFull',
-                        'highValue',
-                        'autoRemoveIntentSellFailed',
-                        'autoAddPaintedItems'
-                    ]
+                    required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable']
+                },
+                backpackFull: {
+                    type: 'boolean'
+                },
+                highValue: {
+                    type: 'object',
+                    properties: {
+                        gotDisabled: {
+                            type: 'boolean'
+                        },
+                        receivedNotInPricelist: {
+                            type: 'boolean'
+                        },
+                        tryingToTake: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake']
+                },
+                autoRemoveIntentSellFailed: {
+                    type: 'boolean'
+                },
+                autoAddPaintedItems: {
+                    type: 'boolean'
                 }
-            ]
+            },
+            required: [
+                'enable',
+                'autokeys',
+                'backpackFull',
+                'highValue',
+                'autoRemoveIntentSellFailed',
+                'autoAddPaintedItems'
+            ],
+            additionalProperties: false
         },
         addFriends: {
             $ref: '#/definitions/only-enable'
@@ -424,19 +399,16 @@ export const optionsSchema: jsonschema.Schema = {
             $ref: '#/definitions/only-enable'
         },
         weaponsAsCurrency: {
-            allOf: [
-                {
-                    $ref: '#/definitions/only-enable'
+            properties: {
+                enable: {
+                    type: 'boolean'
                 },
-                {
-                    properties: {
-                        withUncraft: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['withUncraft']
+                withUncraft: {
+                    type: 'boolean'
                 }
-            ]
+            },
+            required: ['enable', 'withUncraft'],
+            additionalProperties: false
         },
         tradeSummary: {
             type: 'object',
@@ -614,55 +586,59 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         autokeys: {
-            allOf: [
-                {
+            properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                minKeys: {
+                    type: 'integer'
+                },
+                maxKeys: {
+                    $schema: '#/definitions/nonNegativeInteger'
+                },
+                minRefined: {
+                    type: 'number'
+                },
+                maxRefined: {
+                    type: 'number'
+                },
+                banking: {
                     $ref: '#/definitions/only-enable'
                 },
-                {
+                scrapAdjustment: {
                     properties: {
-                        minKeys: {
-                            type: 'integer'
+                        enable: {
+                            type: 'boolean'
                         },
-                        maxKeys: {
-                            $schema: '#/definitions/nonNegativeInteger'
-                        },
-                        minRefined: {
-                            type: 'number'
-                        },
-                        maxRefined: {
-                            type: 'number'
-                        },
-                        banking: {
-                            $ref: '#/definitions/only-enable'
-                        },
-                        scrapAdjustment: {
-                            allOf: [
-                                {
-                                    $ref: '#/definitions/only-enable'
-                                },
-                                {
-                                    properties: {
-                                        value: {
-                                            $schema: '#/definitions/nonNegativeIntegerDefault0'
-                                        }
-                                    },
-                                    required: ['value']
-                                }
-                            ]
-                        },
-                        accept: {
-                            type: 'object',
-                            properties: {
-                                understock: {
-                                    type: 'boolean'
-                                }
-                            },
-                            required: ['understock']
+                        value: {
+                            $schema: '#/definitions/nonNegativeIntegerDefault0'
                         }
                     },
-                    required: ['minKeys', 'maxKeys', 'minRefined', 'maxRefined', 'banking', 'scrapAdjustment', 'accept']
+                    required: ['enable', 'value'],
+                    additionalProperties: false
+                },
+                accept: {
+                    type: 'object',
+                    properties: {
+                        understock: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['understock'],
+                    additionalProperties: false
                 }
-            ]
+            },
+            required: [
+                'enable',
+                'minKeys',
+                'maxKeys',
+                'minRefined',
+                'maxRefined',
+                'banking',
+                'scrapAdjustment',
+                'accept'
+            ],
+            additionalProperties: false
         },
         crafting: {
             type: 'object',
@@ -671,25 +647,22 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 metals: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/only-enable'
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
-                            properties: {
-                                minScrap: {
-                                    $schema: '#/definitions/nonNegativeInteger'
-                                },
-                                minRec: {
-                                    $schema: '#/definitions/nonNegativeInteger'
-                                },
-                                threshold: {
-                                    $schema: '#/definitions/nonNegativeInteger'
-                                }
-                            },
-                            required: ['minScrap', 'minRec', 'threshold']
+                        minScrap: {
+                            $schema: '#/definitions/nonNegativeInteger'
+                        },
+                        minRec: {
+                            $schema: '#/definitions/nonNegativeInteger'
+                        },
+                        threshold: {
+                            $schema: '#/definitions/nonNegativeInteger'
                         }
-                    ]
+                    },
+                    required: ['enable', 'minScrap', 'minRec', 'threshold'],
+                    additionalProperties: false
                 }
             },
             required: ['weapons', 'metals'],
@@ -867,53 +840,42 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/only-enable'
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
-                            properties: {
-                                url: {
-                                    $ref: 'array-string-url'
+                        url: {
+                            $ref: 'array-string-url'
+                        },
+                        misc: {
+                            allOf: [
+                                {
+                                    $ref: '#/definitions/discord-webhook-misc'
                                 },
-                                misc: {
-                                    allOf: [
-                                        {
-                                            $ref: '#/definitions/discord-webhook-misc'
-                                        },
-                                        {
-                                            $ref: '#/definitions/only-note'
-                                        }
-                                    ]
+                                {
+                                    $ref: '#/definitions/only-note'
                                 }
-                            }
+                            ]
                         },
-                        {
-                            type: 'object',
+                        mentionOwner: {
                             properties: {
-                                mentionOwner: {
-                                    allOf: [
-                                        {
-                                            $ref: '#/definitions/only-enable'
-                                        },
-                                        {
-                                            properties: {
-                                                itemSkus: {
-                                                    $schema: '#/definitions/stringArray'
-                                                },
-                                                tradeValueInRef: {
-                                                    type: 'number',
-                                                    minimum: 0
-                                                }
-                                            },
-                                            required: ['itemSkus']
-                                        }
-                                    ]
+                                enable: {
+                                    type: 'boolean'
+                                },
+                                itemSkus: {
+                                    $schema: '#/definitions/stringArray'
+                                },
+                                tradeValueInRef: {
+                                    type: 'number',
+                                    minimum: 0
                                 }
                             },
-                            required: ['mentionOwner']
+                            required: ['enable', 'itemSkus', 'tradeValueInRef'],
+                            additionalProperties: false
                         }
-                    ]
+                    },
+                    required: ['enable', 'url', 'misc', 'mentionOwner'],
+                    additionalProperties: false
                 },
                 offerReview: {
                     allOf: [
@@ -1254,20 +1216,20 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable-customReply-disabled'
                 },
                 discord: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/only-enable-customReply-disabled'
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
-                            type: 'object',
-                            properties: {
-                                inviteURL: {
-                                    type: 'string'
-                                }
-                            },
-                            required: ['inviteURL']
+                        customReply: {
+                            $ref: '#/definitions/only-disabled'
+                        },
+                        inviteURL: {
+                            type: 'string'
                         }
-                    ]
+                    },
+                    required: ['enable', 'customReply', 'inviteURL'],
+                    additionalProperties: false
                 },
                 more: {
                     $ref: '#/definitions/only-enable-customReply-disabled'
@@ -1317,20 +1279,30 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 stock: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/only-enabled-disabled-reply'
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
+                        maximumItems: {
+                            type: 'integer'
+                        },
+                        customReply: {
                             type: 'object',
                             properties: {
-                                maximumItems: {
-                                    type: 'integer'
+                                disabled: {
+                                    type: 'string'
+                                },
+                                reply: {
+                                    type: 'string'
                                 }
                             },
-                            required: ['maximumItems']
+                            required: ['disabled', 'reply'],
+                            additionalProperties: false
                         }
-                    ]
+                    },
+                    required: ['enable', 'maximumItems', 'customReply'],
+                    additionalProperties: false
                 },
                 craftweapon: {
                     $ref: '#/definitions/cmd-weapons'
