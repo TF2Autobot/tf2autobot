@@ -50,6 +50,12 @@ export default class Commands {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
 
+        const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
+
+        if (checkMessage > 1) {
+            return this.bot.sendMessage(steamID, "⛔ Don't spam");
+        }
+
         const ignoreWords: { [type: string]: string[] } = {
             startsWith: [
                 'I',
