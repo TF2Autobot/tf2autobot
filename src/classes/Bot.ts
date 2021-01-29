@@ -409,32 +409,6 @@ export default class Bot {
                             .asCallback(callback);
                     },
                     (callback): void => {
-                        if (this.options.skipAccountLimitations) {
-                            return callback(null);
-                        }
-
-                        log.warn(
-                            'Checking account limitations - Please disable this in the config by setting `SKIP_ACCOUNT_LIMITATIONS` to true'
-                        );
-
-                        void this.getAccountLimitations.asCallback((err, limitations) => {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            if (limitations.limited) {
-                                throw new Error('The account is limited');
-                            } else if (limitations.communityBanned) {
-                                throw new Error('The account is community banned');
-                            } else if (limitations.locked) {
-                                throw new Error('The account is locked');
-                            }
-
-                            log.verbose('Account limitations check completed!');
-                            return callback(null);
-                        });
-                    },
-                    (callback): void => {
                         log.info('Signing in to Steam...');
 
                         let lastLoginFailed = false;
@@ -637,36 +611,6 @@ export default class Bot {
                 clearTimeout(timeout);
 
                 resolve(cookies);
-            }
-        });
-    }
-
-    private get getAccountLimitations(): Promise<{
-        limited: boolean;
-        communityBanned: boolean;
-        locked: boolean;
-        canInviteFriends: boolean;
-    }> {
-        return new Promise((resolve, reject) => {
-            if (this.client.limitations !== null) {
-                return resolve(this.client.limitations);
-            }
-
-            this.client.once('accountLimitations', accountLimitationsEvent);
-
-            const timeout = setTimeout(() => {
-                this.client.removeListener('accountLimitations', accountLimitationsEvent);
-                return reject(new Error('Could not get account limitations'));
-            }, 10000);
-
-            function accountLimitationsEvent(
-                limited: boolean,
-                communityBanned: boolean,
-                locked: boolean,
-                canInviteFriends: boolean
-            ): void {
-                clearTimeout(timeout);
-                resolve({ limited, communityBanned, locked, canInviteFriends });
             }
         });
     }
