@@ -1553,7 +1553,7 @@ export const DEFAULTS = {
             'Bruised Purple Footprints': 'BP-FP 🍷',
             'Headless Horseshoes': 'HH 🍇',
             Exorcism: '👻',
-            'Pumpkin Bomb': '🎃💣',
+            'Pumpkin Bombs': '🎃💣',
             'Halloween Fire': '🔥🟢'
         },
         /**
@@ -2411,7 +2411,7 @@ export interface Spells {
     'Bruised Purple Footprints'?: string;
     'Headless Horseshoes'?: string;
     Exorcism?: string;
-    'Pumpkin Bomb'?: string;
+    'Pumpkin Bombs'?: string;
     'Halloween Fire'?: string;
 }
 

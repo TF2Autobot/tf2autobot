@@ -1425,7 +1425,7 @@ export const optionsSchema: jsonschema.Schema = {
                         Exorcism: {
                             type: 'string'
                         },
-                        'Pumpkin Bomb': {
+                        'Pumpkin Bombs': {
                             type: 'string'
                         },
                         'Halloween Fire': {
@@ -1447,7 +1447,7 @@ export const optionsSchema: jsonschema.Schema = {
                         'Bruised Purple Footprints',
                         'Headless Horseshoes',
                         'Exorcism',
-                        'Pumpkin Bomb',
+                        'Pumpkin Bombs',
                         'Halloween Fire'
                     ],
                     additionalProperties: false
