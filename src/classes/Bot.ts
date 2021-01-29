@@ -457,7 +457,6 @@ export default class Bot {
 
                             this.setProperties();
 
-                            // We now know our SteamID, but we still don't have our Steam API key
                             this.inventoryManager.setInventory = new Inventory(
                                 this.client.steamID,
                                 this.manager,
@@ -568,6 +567,9 @@ export default class Bot {
                         // Shutdown is requested, break out of the startup process
                         return resolve();
                     }
+
+                    log.debug('Setting Steam API Key to schema');
+                    this.botManager.setAPIKeyForSchema = this.manager.apiKey;
 
                     this.manager.pollInterval = 1000;
                     this.setReady = true;

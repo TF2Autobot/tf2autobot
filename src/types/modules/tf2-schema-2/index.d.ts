@@ -23,6 +23,8 @@ declare module 'tf2-schema-2' {
 
         init(callback: (err: any) => void): void;
 
+        setAPIKey(apiKey: string): void;
+
         setSchema(data: GetSchemaResponse, fromUpdate?: boolean): void;
 
         getSchema(callback: (err: any, schema?: any) => void): void;
