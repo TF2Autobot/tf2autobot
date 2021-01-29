@@ -33,7 +33,7 @@ export default function updateListings(
         const name = bot.schema.getName(SKU.fromString(sku), false);
 
         const isNotPureOrWeapons = !(
-            (opt.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+            (opt.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 

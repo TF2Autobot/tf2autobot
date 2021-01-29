@@ -390,7 +390,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
             );
 
             bot.client.setPersona(EPersonaState.Online);
-            bot.client.gamesPlayed(bot.options.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
+            bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
             bot.manager.pollInterval = 1000;
             bot.handler.isUpdatingStatus = false;
         };

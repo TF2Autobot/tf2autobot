@@ -581,7 +581,7 @@ export default class UserCart extends Cart {
             '5000;6': buyerCurrenciesWithAssetids['5000;6'].length
         };
 
-        if (opt.weaponsAsCurrency.enable) {
+        if (opt.miscSettings.weaponsAsCurrency.enable) {
             weapons.forEach(sku => {
                 buyerCurrenciesCount[sku] = buyerCurrenciesWithAssetids[sku].length;
             });
@@ -590,7 +590,7 @@ export default class UserCart extends Cart {
         const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys);
 
         let addWeapons = 0;
-        if (opt.weaponsAsCurrency.enable) {
+        if (opt.miscSettings.weaponsAsCurrency.enable) {
             weapons.forEach(sku => {
                 addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
             });
@@ -623,7 +623,7 @@ export default class UserCart extends Cart {
             let isSkipped = false;
 
             for (let i = 0; i < assetids.length; i++) {
-                if (opt.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
+                if (opt.miscSettings.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
                     isSkipped = true;
                     continue;
                 }
@@ -692,10 +692,10 @@ export default class UserCart extends Cart {
             let checkedDuel = false;
             let checkNoiseMaker = false;
 
-            if (opt.checkUses.duel && sku === '241;6') {
+            if (opt.miscSettings.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
                 assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
-            } else if (opt.checkUses.noiseMaker && Object.keys(noiseMakers).includes(sku)) {
+            } else if (opt.miscSettings.checkUses.noiseMaker && Object.keys(noiseMakers).includes(sku)) {
                 checkNoiseMaker = true;
                 assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
             }
@@ -856,7 +856,11 @@ export default class UserCart extends Cart {
                     const whose = isBuyer ? 'their' : 'our';
 
                     for (let i = 0; i < currencies[sku].length; i++) {
-                        if (!isBuyer && opt.skipItemsInTrade.enable && this.bot.trades.isInTrade(currencies[sku][i])) {
+                        if (
+                            !isBuyer &&
+                            opt.miscSettings.skipItemsInTrade.enable &&
+                            this.bot.trades.isInTrade(currencies[sku][i])
+                        ) {
                             isSkipped = true;
                             continue;
                         }
@@ -919,7 +923,7 @@ export default class UserCart extends Cart {
             for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
                 if (
                     isBuyer &&
-                    opt.skipItemsInTrade.enable &&
+                    opt.miscSettings.skipItemsInTrade.enable &&
                     this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
                 ) {
                     isSkipped = true;
@@ -986,7 +990,7 @@ export default class UserCart extends Cart {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (opt.showOnlyMetal.enable) {
+        if (opt.miscSettings.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();

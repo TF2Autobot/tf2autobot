@@ -253,35 +253,103 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     properties: {
-        showOnlyMetal: {
-            $ref: '#/definitions/only-enable'
-        },
-        sortInventory: {
+        miscSettings: {
+            type: 'object',
             properties: {
-                enable: {
-                    type: 'boolean'
+                showOnlyMetal: {
+                    $ref: '#/definitions/only-enable'
                 },
-                type: {
-                    anyOf: [
-                        {
-                            // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
-                            minimum: 1,
-                            maximum: 5
+                sortInventory: {
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
-                            const: 101 // by class
-                        },
-                        {
-                            const: 102 // by slot
+                        type: {
+                            anyOf: [
+                                {
+                                    // 1 - by name, 2 - by defindex, 3 - by rarity, 4 - by type, 5 - by date
+                                    minimum: 1,
+                                    maximum: 5
+                                },
+                                {
+                                    const: 101 // by class
+                                },
+                                {
+                                    const: 102 // by slot
+                                }
+                            ]
                         }
-                    ]
+                    },
+                    required: ['enable', 'type'],
+                    additionalProperties: false
+                },
+                createListings: {
+                    $ref: '#/definitions/only-enable'
+                },
+                addFriends: {
+                    $ref: '#/definitions/only-enable'
+                },
+                sendGroupInvite: {
+                    $ref: '#/definitions/only-enable'
+                },
+                autobump: {
+                    $ref: '#/definitions/only-enable'
+                },
+                skipItemsInTrade: {
+                    $ref: '#/definitions/only-enable'
+                },
+                weaponsAsCurrency: {
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        withUncraft: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable', 'withUncraft'],
+                    additionalProperties: false
+                },
+                checkUses: {
+                    type: 'object',
+                    properties: {
+                        duel: {
+                            type: 'boolean'
+                        },
+                        noiseMaker: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['duel', 'noiseMaker'],
+                    additionalProperties: false
+                },
+                game: {
+                    type: 'object',
+                    properties: {
+                        playOnlyTF2: {
+                            type: 'boolean'
+                        },
+                        customName: {
+                            type: 'string',
+                            maxLength: 60
+                        }
+                    },
+                    required: ['playOnlyTF2', 'customName'],
+                    additionalProperties: false
                 }
             },
-            required: ['enable', 'type'],
-            additionalProperties: false
-        },
-        createListings: {
-            $ref: '#/definitions/only-enable'
+            required: [
+                'showOnlyMetal',
+                'sortInventory',
+                'createListings',
+                'addFriends',
+                'sendGroupInvite',
+                'autobump',
+                'skipItemsInTrade',
+                'weaponsAsCurrency',
+                'checkUses',
+                'game'
+            ]
         },
         sendAlert: {
             properties: {
@@ -341,12 +409,6 @@ export const optionsSchema: jsonschema.Schema = {
             ],
             additionalProperties: false
         },
-        addFriends: {
-            $ref: '#/definitions/only-enable'
-        },
-        sendGroupInvite: {
-            $ref: '#/definitions/only-enable'
-        },
         pricelist: {
             type: 'object',
             properties: {
@@ -392,24 +454,6 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
             additionalProperties: false
         },
-        autobump: {
-            $ref: '#/definitions/only-enable'
-        },
-        skipItemsInTrade: {
-            $ref: '#/definitions/only-enable'
-        },
-        weaponsAsCurrency: {
-            properties: {
-                enable: {
-                    type: 'boolean'
-                },
-                withUncraft: {
-                    type: 'boolean'
-                }
-            },
-            required: ['enable', 'withUncraft'],
-            additionalProperties: false
-        },
         tradeSummary: {
             type: 'object',
             properties: {
@@ -448,33 +492,6 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
-            additionalProperties: false
-        },
-        checkUses: {
-            type: 'object',
-            properties: {
-                duel: {
-                    type: 'boolean'
-                },
-                noiseMaker: {
-                    type: 'boolean'
-                }
-            },
-            required: ['duel', 'noiseMaker'],
-            additionalProperties: false
-        },
-        game: {
-            type: 'object',
-            properties: {
-                playOnlyTF2: {
-                    type: 'boolean'
-                },
-                customName: {
-                    type: 'string',
-                    maxLength: 60
-                }
-            },
-            required: ['playOnlyTF2', 'customName'],
             additionalProperties: false
         },
         normalize: {
@@ -1834,21 +1851,11 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     required: [
-        'showOnlyMetal',
-        'sortInventory',
-        'createListings',
         'sendAlert',
-        'addFriends',
-        'sendGroupInvite',
         'pricelist',
         'bypass',
-        'autobump',
-        'skipItemsInTrade',
-        'weaponsAsCurrency',
         'tradeSummary',
         'highValue',
-        'checkUses',
-        'game',
         'normalize',
         'details',
         'statistics',

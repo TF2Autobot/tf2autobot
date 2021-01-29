@@ -41,8 +41,8 @@ export default class Commands {
 
     get weaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
-            enable: this.bot.options.weaponsAsCurrency.enable,
-            withUncraft: this.bot.options.weaponsAsCurrency.withUncraft
+            enable: this.bot.options.miscSettings.weaponsAsCurrency.enable,
+            withUncraft: this.bot.options.miscSettings.weaponsAsCurrency.withUncraft
         };
     }
 

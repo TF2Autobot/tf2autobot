@@ -22,7 +22,7 @@ export default function processReview(
     value: { diff: number; diffRef: number; diffKey: string };
 } {
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.miscSettings.showOnlyMetal.enable);
     const reasons = meta.uniqueReasons;
     const reviewReasons: string[] = [];
 

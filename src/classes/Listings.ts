@@ -29,11 +29,11 @@ export default class Listings {
     private autoRelistTimeout;
 
     private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump.enable;
+        return this.bot.options.miscSettings.autobump.enable;
     }
 
     private get isCreateListing(): boolean {
-        return this.bot.options.createListings.enable;
+        return this.bot.options.miscSettings.createListings.enable;
     }
 
     private templates: { buy: string; sell: string };
@@ -571,8 +571,8 @@ export default class Listings {
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
         const isCustomSellNote = entry.note?.sell && intent === 1;
-        const isDueling = entry.sku === '241;6' && opt.checkUses.duel;
-        const isNoiseMaker = Object.keys(noiseMakers).includes(entry.sku) && opt.checkUses.noiseMaker;
+        const isDueling = entry.sku === '241;6' && opt.miscSettings.checkUses.duel;
+        const isNoiseMaker = Object.keys(noiseMakers).includes(entry.sku) && opt.miscSettings.checkUses.noiseMaker;
 
         if (isCustomBuyNote || isCustomSellNote) {
             details = replaceDetails(intent === 0 ? entry.note.buy : entry.note.sell, entry, key);

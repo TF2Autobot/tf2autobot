@@ -129,13 +129,13 @@ export default class MyHandler extends Handler {
 
     get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
-            enable: this.bot.options.weaponsAsCurrency.enable,
-            withUncraft: this.bot.options.weaponsAsCurrency.withUncraft
+            enable: this.bot.options.miscSettings.weaponsAsCurrency.enable,
+            withUncraft: this.bot.options.miscSettings.weaponsAsCurrency.withUncraft
         };
     }
 
     private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.autobump.enable;
+        return this.bot.options.miscSettings.autobump.enable;
     }
 
     private get invalidValueException(): number {
@@ -152,7 +152,7 @@ export default class MyHandler extends Handler {
 
     get customGameName(): string {
         // check if game.customName is more than 60 characters.
-        const customGameName = this.bot.options.game.customName;
+        const customGameName = this.bot.options.miscSettings.game.customName;
 
         if (!customGameName || customGameName === 'TF2Autobot') {
             return `TF2Autobot v${process.env.BOT_VERSION}`;
@@ -231,7 +231,7 @@ export default class MyHandler extends Handler {
             )} | Startup time: ${process.uptime().toFixed(0)} s`
         );
 
-        this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         this.bot.client.setPersona(EPersonaState.Online);
 
         this.botSteamID = this.bot.client.steamID;
@@ -308,7 +308,9 @@ export default class MyHandler extends Handler {
     onLoggedOn(): void {
         if (this.bot.isReady) {
             this.bot.client.setPersona(EPersonaState.Online);
-            this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
+            this.bot.client.gamesPlayed(
+                this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]
+            );
         }
     }
 
@@ -764,7 +766,7 @@ export default class MyHandler extends Handler {
             )
         );
 
-        if (opt.checkUses.duel && offerSKUs.includes('241;6')) {
+        if (opt.miscSettings.checkUses.duel && offerSKUs.includes('241;6')) {
             const isNot5Uses = items.their['241;6'].some(item => item.isFullUses === false);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
@@ -774,7 +776,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (opt.checkUses.noiseMaker && offerSKUs.some(sku => Object.keys(noiseMakers).includes(sku))) {
+        if (opt.miscSettings.checkUses.noiseMaker && offerSKUs.some(sku => Object.keys(noiseMakers).includes(sku))) {
             const noiseMaker = (noiseMakerSKUs: string[], items: Dict) => {
                 let isNot25Uses = false;
                 const skus: string[] = [];
@@ -1077,7 +1079,7 @@ export default class MyHandler extends Handler {
         }
 
         // Doing this so that the prices will always be displayed as only metal
-        if (opt.showOnlyMetal.enable) {
+        if (opt.miscSettings.showOnlyMetal.enable) {
             exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
             exchange.our.keys = 0;
             exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
@@ -1721,14 +1723,14 @@ export default class MyHandler extends Handler {
     }
 
     private sortInventory(): void {
-        if (this.bot.options.sortInventory.enable) {
-            const type = this.bot.options.sortInventory.type;
+        if (this.bot.options.miscSettings.sortInventory.enable) {
+            const type = this.bot.options.miscSettings.sortInventory.type;
             this.bot.tf2gc.sortInventory([1, 2, 3, 4, 5, 101, 102].includes(type) ? type : 3);
         }
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
-        if (!this.bot.options.sendGroupInvite.enable) return; // You still need to include the group ID in your env.
+        if (!this.bot.options.miscSettings.sendGroupInvite.enable) return; // You still need to include the group ID in your env.
 
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
@@ -1757,7 +1759,7 @@ export default class MyHandler extends Handler {
     }
 
     private respondToFriendRequest(steamID: SteamID | string): void {
-        if (!this.bot.options.addFriends.enable) {
+        if (!this.bot.options.miscSettings.addFriends.enable) {
             if (!this.bot.isAdmin(steamID)) return this.bot.client.removeFriend(steamID);
         }
 
@@ -1968,7 +1970,7 @@ export default class MyHandler extends Handler {
 
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
-        this.bot.client.gamesPlayed(this.bot.options.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
+        this.bot.client.gamesPlayed(this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 }
 

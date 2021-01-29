@@ -82,23 +82,41 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             deepMerge(opt, saveOptions);
             const msg = '✅ Updated options!';
 
-            if (typeof knownParams.game === 'object') {
-                if (knownParams.game.playOnlyTF2 !== undefined && knownParams.game.playOnlyTF2 === true) {
-                    bot.client.gamesPlayed([]);
-                    bot.client.gamesPlayed(440);
+            if (typeof knownParams.miscSettings === 'object') {
+                if (typeof knownParams.miscSettings.game === 'object') {
+                    if (
+                        knownParams.miscSettings.game.playOnlyTF2 !== undefined &&
+                        knownParams.miscSettings.game.playOnlyTF2 === true
+                    ) {
+                        bot.client.gamesPlayed([]);
+                        bot.client.gamesPlayed(440);
+                    }
+
+                    if (
+                        knownParams.miscSettings.game.customName !== undefined &&
+                        typeof knownParams.miscSettings.game.customName === 'string'
+                    ) {
+                        bot.client.gamesPlayed([]);
+                        bot.client.gamesPlayed(
+                            (
+                                knownParams.miscSettings.game.playOnlyTF2 !== undefined
+                                    ? knownParams.miscSettings.game.playOnlyTF2
+                                    : opt.miscSettings.game.playOnlyTF2
+                            )
+                                ? 440
+                                : [knownParams.miscSettings.game.customName, 440]
+                        );
+                    }
                 }
 
-                if (knownParams.game.customName !== undefined && typeof knownParams.game.customName === 'string') {
-                    bot.client.gamesPlayed([]);
-                    bot.client.gamesPlayed(
-                        (
-                            knownParams.game.playOnlyTF2 !== undefined
-                                ? knownParams.game.playOnlyTF2
-                                : opt.game.playOnlyTF2
-                        )
-                            ? 440
-                            : [knownParams.game.customName, 440]
-                    );
+                if (knownParams.miscSettings.autobump !== undefined) {
+                    if (knownParams.miscSettings.autobump === true) {
+                        bot.listings.setupAutorelist();
+                        bot.handler.disableAutoRefreshListings();
+                    } else {
+                        bot.listings.disableAutorelistOption();
+                        bot.handler.enableAutoRefreshListings();
+                    }
                 }
             }
 
@@ -113,16 +131,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                     if (knownParams.statistics.sendStats.time !== undefined) {
                         bot.handler.sendStats();
                     }
-                }
-            }
-
-            if (knownParams.autobump !== undefined) {
-                if (knownParams.autobump === true) {
-                    bot.listings.setupAutorelist();
-                    bot.handler.disableAutoRefreshListings();
-                } else {
-                    bot.listings.disableAutorelistOption();
-                    bot.handler.enableAutoRefreshListings();
                 }
             }
 

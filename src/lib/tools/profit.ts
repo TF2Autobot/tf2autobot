@@ -91,7 +91,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
                     if (
                         !(
-                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
                             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                         )
                     ) {
@@ -138,7 +138,7 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
                     if (
                         !(
-                            (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
                             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
                         )
                     ) {

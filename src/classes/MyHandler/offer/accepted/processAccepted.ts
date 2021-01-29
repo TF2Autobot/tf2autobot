@@ -216,7 +216,7 @@ export default function processAccepted(
         };
 
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         const autokeys = bot.handler.autokeys;
