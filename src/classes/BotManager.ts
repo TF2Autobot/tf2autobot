@@ -31,7 +31,7 @@ export default class BotManager {
     private exiting = false;
 
     constructor(pricestfApiToken?: string) {
-        this.schemaManager = new SchemaManager({});
+        this.schemaManager = new SchemaManager({ apiKey: process.env.STEAM_API_KEY });
         this.patchSchemaManager();
         this.extendTradeOfferApis();
         this.socketManager = new SocketManager('https://api.prices.tf', pricestfApiToken);

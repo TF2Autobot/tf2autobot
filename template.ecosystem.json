@@ -17,6 +17,7 @@
                 "STEAM_PASSWORD": "",
                 "STEAM_SHARED_SECRET": "",
                 "STEAM_IDENTITY_SECRET": "",
+                "STEAM_API_KEY": "",
 
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
