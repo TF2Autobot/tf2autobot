@@ -788,7 +788,7 @@ export default class Commands {
             );
         const cartAmount = cart.getOurCount(params.sku);
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
-        const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
+        const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
         // Correct trade if needed
