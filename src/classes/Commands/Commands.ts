@@ -135,7 +135,7 @@ export default class Commands {
             this.queueCommand(steamID);
         } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
             c.misc.miscCommand(steamID, this.bot, command as Misc);
-        } else if (command === 'paints') {
+        } else if (command === 'paints' && isAdmin) {
             c.misc.paintsCommand(steamID, this.bot);
         } else if (command === 'more') {
             c.help.moreCommand(steamID, this.bot);
