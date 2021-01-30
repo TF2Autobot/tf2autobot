@@ -236,3 +236,7 @@ function getWeaponsStock(bot: Bot, type: string[]) {
     }
     return stock;
 }
+
+export function paintsCommand(steamID: SteamID, bot: Bot): void {
+    bot.sendMessage(steamID, '/code ' + JSON.stringify(bot.paints, null, 4));
+}
