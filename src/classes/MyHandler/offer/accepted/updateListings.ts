@@ -188,7 +188,9 @@ export default function updateListings(
                 'I have received a high-valued items which is not in my pricelist.' + '\n\nItem information:\n\n- ';
 
             for (let i = 0; i < highValue.theirItems.length; i++) {
-                if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
+                if (highValue.theirItems[i].includes(name)) {
+                    msg += `${highValue.isDisableSKU[i]}: ` + highValue.theirItems[i];
+                }
             }
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
