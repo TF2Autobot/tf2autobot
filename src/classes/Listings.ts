@@ -175,7 +175,7 @@ export default class Listings {
             return;
         }
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, false);
+        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = SKU.fromString(sku).paintkit !== null;
         let hasSellListing = false;
@@ -229,8 +229,7 @@ export default class Listings {
             }
         });
 
-        const matchNew =
-            data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics, false);
+        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);

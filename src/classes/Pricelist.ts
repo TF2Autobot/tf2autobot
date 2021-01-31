@@ -199,21 +199,14 @@ export default class Pricelist extends EventEmitter {
         return !onlyEnabled || match.enabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false, generics = false, showLog = false): Entry | null {
+    getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
         const pSku = SKU.fromString(sku);
         // Index of of item in pricelist
-        const index = this.getIndex(null, pSku, showLog);
-        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku, showLog) : -1;
+        const index = this.getIndex(null, pSku);
+        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku) : -1;
 
         if (index === -1 && (!generics || (generics && gindex === -1))) {
             // Did not find a match
-            if (showLog) {
-                log.debug('src/Pricelist: getPrice(...) - Did not find a match', {
-                    index: index,
-                    generics: generics,
-                    gindex: gindex
-                });
-            }
             return null;
         }
 
@@ -227,37 +220,12 @@ export default class Pricelist extends EventEmitter {
             match.name = match.name.replace('Unusual', effectMatch.name);
             match.sku = sku;
 
-            if (showLog) {
-                log.debug('src/Pricelist: getPrice(...) - we found a generic match for a specific sku', {
-                    index: index,
-                    generics: generics,
-                    gindex: gindex,
-                    match: match
-                });
-            }
             // change any other options if needed here (possible spot for config)
         }
 
         if (onlyEnabled && !match.enabled) {
             // Item is not enabled
-            if (showLog) {
-                log.debug('src/Pricelist: getPrice(...) - Item is not enabled', {
-                    index: index,
-                    generics: generics,
-                    gindex: gindex,
-                    match: match
-                });
-            }
             return null;
-        }
-
-        if (showLog) {
-            log.debug('src/Pricelist: getPrice(...) - Item found', {
-                index: index,
-                generics: generics,
-                gindex: gindex,
-                match: match
-            });
         }
 
         return match;
@@ -504,21 +472,15 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    getIndex(sku: string, parsedSku?: SchemaManager.Item, showLog?: boolean): number {
+    getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
         const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
         const findIndex = this.prices.findIndex(entry => entry.name === name);
-        if (showLog) {
-            log.debug('src/Pricelist: getIndex(...)', {
-                name: name,
-                findIndex: findIndex
-            });
-        }
         return findIndex;
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
-    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item, showLog?: boolean): number {
+    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
         const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
         if (pSku.quality === 5) {
@@ -528,44 +490,12 @@ export default class Pricelist extends EventEmitter {
             const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
             if (effectMatch) {
                 // this means the sku given had a matching effect so we are going from a specific to generic
-                const findIndex = this.prices.findIndex(
-                    entry => entry.name === name.replace(effectMatch.name, 'Unusual')
-                );
-                if (showLog) {
-                    log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality === 5, match', {
-                        sku: sku,
-                        parsedSku: parsedSku,
-                        pSku: pSku,
-                        name: name,
-                        effectMatch: effectMatch,
-                        findIndex: findIndex
-                    });
-                }
-                return findIndex;
+                return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
             } else {
                 // this means the sku given was already generic so we just return the index of the generic
-                // return this.getIndex(null, pSku);
-                const callGetIndex = this.getIndex(null, pSku, showLog);
-                if (showLog) {
-                    log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality === 5, already generic', {
-                        sku: sku,
-                        parsedSku: parsedSku,
-                        pSku: pSku,
-                        name: name,
-                        effectMatch: effectMatch,
-                        callGetIndex: callGetIndex
-                    });
-                }
-                return callGetIndex;
+                return this.getIndex(null, pSku);
             }
         } else {
-            if (showLog) {
-                log.debug('src/Pricelist: getIndexWithGenerics(...) - Quality !== 5 && !Painted, return -1', {
-                    sku: sku,
-                    parsedSku: parsedSku,
-                    pSku: pSku
-                });
-            }
             return -1;
         }
     }
