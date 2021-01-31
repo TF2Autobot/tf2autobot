@@ -114,6 +114,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 bot.handler.sendStats();
             }
 
+            if (typeof knownParams.highValue !== undefined) {
+                void bot.inventoryManager.getInventory.fetch();
+            }
+
             if (typeof knownParams.normalize === 'object') {
                 void bot.inventoryManager.getInventory.fetch();
             }
