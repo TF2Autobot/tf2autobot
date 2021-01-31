@@ -513,16 +513,20 @@ export default class Listings {
                                         continue;
                                     }
 
-                                    if (hv[attachment as Attachment][pSKU] === true) {
+                                    if (attachment === 'sp' && hv[attachment as Attachment][pSKU] === true) {
                                         const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
                                         toJoin.push(
                                             `${name.replace(
                                                 name,
-                                                attachment === 'sp'
-                                                    ? optR.strangeParts[name]
-                                                        ? optR.strangeParts[name]
-                                                        : name
-                                                    : attachment === 'ke'
+                                                optR.strangeParts[name] ? optR.strangeParts[name] : name
+                                            )}`
+                                        );
+                                    } else {
+                                        const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
+                                        toJoin.push(
+                                            `${name.replace(
+                                                name,
+                                                attachment === 'ke'
                                                     ? optR.killstreakers[name]
                                                     : attachment === 'ks'
                                                     ? optR.sheens[name]
@@ -549,9 +553,9 @@ export default class Listings {
                                 toJoin.length = 0;
                             }
                         }
-
-                        highValueString += highValueString.length > 0 ? ' |' : '';
                     });
+
+                    highValueString += highValueString.length > 0 ? ' |' : '';
                 }
             }
         }
