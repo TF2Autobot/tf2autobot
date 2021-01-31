@@ -6,17 +6,11 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     }
     const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
 
-    void Promise.all([
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.scout, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.soldier, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.pyro, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.demoman, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.heavy, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.engineer, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.medic, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.sniper, currencies),
-        craftEachClassWeapons(bot, bot.craftWeaponsByClass.spy, currencies)
-    ]);
+    void Promise.all(
+        ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy'].map(classChar =>
+            craftEachClassWeapons(bot, bot.craftWeaponsByClass[classChar], currencies)
+        )
+    );
 }
 
 function craftEachClassWeapons(bot: Bot, weapons: string[], currencies: { [sku: string]: string[] }): Promise<void> {
