@@ -23,6 +23,16 @@ export default class InventoryManager {
         return this.inventory;
     }
 
+    get getPureValue(): { keys: number; metal: number } {
+        const keyPrice = this.pricelist.getKeyPrice;
+        const currencies = this.inventory.getCurrencies([]);
+
+        return {
+            keys: currencies['5021;6'].length * keyPrice.toValue(),
+            metal: currencies['5002;6'].length * 9 + currencies['5001;6'].length * 3 + currencies['5000;6'].length
+        };
+    }
+
     // isOverstocked(sku: string, buying: boolean, diff: number): boolean {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }

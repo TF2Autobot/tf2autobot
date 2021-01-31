@@ -4,6 +4,7 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
+import Currencies from 'tf2-currencies';
 import Bot from './Bot';
 import { Entry } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
@@ -283,10 +284,24 @@ export default class Listings {
                 }
 
                 this.checkingAllListings = true;
-                const inventory = this.bot.inventoryManager.getInventory;
-                const pricelist = this.bot.pricelist.getPrices.sort(
-                    (a, b) => inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length
-                );
+
+                const inventoryManager = this.bot.inventoryManager;
+                const inventory = inventoryManager.getInventory;
+                const currentPure = inventoryManager.getPureValue;
+
+                const keyPrice = this.bot.pricelist.getKeyPrice;
+
+                const pricelist = this.bot.pricelist.getPrices
+                    .sort((a, b) => {
+                        return (
+                            currentPure.keys -
+                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                            (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
+                        );
+                    })
+                    .sort((a, b) => {
+                        return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
+                    });
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
