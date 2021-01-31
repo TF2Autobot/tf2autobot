@@ -431,6 +431,10 @@ export default class MyHandler extends Handler {
                         if (this.bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                             listingSKU = listingSKU.replace(';strange', '');
                         }
+                    } else {
+                        if (/;[p][0-9]+/.test(listingSKU)) {
+                            listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                        }
                     }
 
                     listingsSKUs.push(listingSKU);

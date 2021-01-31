@@ -561,6 +561,10 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                     listingSKU = listingSKU.replace(';strange', '');
                 }
+            } else {
+                if (/;[p][0-9]+/.test(listingSKU)) {
+                    listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                }
             }
 
             listingsSKUs.push(listingSKU);
