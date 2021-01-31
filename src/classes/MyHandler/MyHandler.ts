@@ -464,10 +464,22 @@ export default class MyHandler extends Handler {
                     }
                 });
 
-                const pricelist = this.bot.pricelist.getPrices.filter(
-                    entry => entry.enabled && !newlistingsSKUs.includes(entry.sku)
+                const inventory = this.bot.inventoryManager;
+                const pricelist = this.bot.pricelist.getPrices.filter(entry => {
                     // Filter our pricelist to only the items that are missing.
-                );
+                    const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
+                    const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+
+                    if (
+                        ([0, 2].includes(entry.intent) && amountCanBuy <= 0) ||
+                        ([0, 1].includes(entry.intent) && amountCanSell <= 0)
+                    ) {
+                        // Ignore items we can't buy or sell
+                        return false;
+                    }
+
+                    return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+                });
 
                 if (pricelist.length > 0) {
                     log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
