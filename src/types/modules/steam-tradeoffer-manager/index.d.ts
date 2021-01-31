@@ -374,7 +374,8 @@ declare module 'steam-tradeoffer-manager' {
                 normalizeFestivizedItems: boolean,
                 normalizeStrangeAsSecondQuality: boolean,
                 normalizePainted: boolean,
-                paints: Paints
+                paints: Paints,
+                paintsInOptions: string[]
             ): string | null;
         }
 

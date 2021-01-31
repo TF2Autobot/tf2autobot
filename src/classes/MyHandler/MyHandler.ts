@@ -787,6 +787,11 @@ export default class MyHandler extends Handler {
         // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
         // and decline if not 5x/25x and exist in pricelist
 
+        const paintedOptions =
+            opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
+                ? Object.keys(this.bot.paints).map(paint => paint.toLowerCase())
+                : opt.highValue.painted.map(paint => paint.toLowerCase());
+
         const checkExist = this.bot.pricelist;
         const offerSKUs = offer.itemsToReceive.map(item =>
             item.getSKU(
@@ -794,7 +799,8 @@ export default class MyHandler extends Handler {
                 opt.normalize.festivized.their,
                 opt.normalize.strangeAsSecondQuality.their,
                 opt.normalize.painted.their,
-                this.bot.paints
+                this.bot.paints,
+                paintedOptions
             )
         );
 

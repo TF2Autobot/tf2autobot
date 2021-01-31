@@ -13,7 +13,8 @@ export = function (
     normalizeFestivizedItems: boolean,
     normalizeStrangeAsSecondQuality: boolean,
     normalizePainted: boolean,
-    paints: Paints
+    paints: Paints,
+    paintsInOptions: string[]
 ): string {
     const self = this as EconItem;
 
@@ -34,7 +35,7 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, normalizePainted, paints)
+            paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
         getOutput(self, schema)
     );
@@ -485,24 +486,27 @@ function getCrateSeries(item: EconItem): number | null {
     }
 }
 
-function getPainted(item: EconItem, normalizePainted: boolean, paints: Paints): number | null {
+function getPainted(
+    item: EconItem,
+    normalizePainted: boolean,
+    paints: Paints,
+    paintsInOptions: string[]
+): number | null {
     if (normalizePainted) {
         return null;
     }
 
     const descriptions = item.descriptions;
-    let foundPaint = false;
 
     for (let i = 0; i < descriptions.length; i++) {
         if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
-            foundPaint = true;
-
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-            return +paints[name].replace('p', '');
+
+            if (paintsInOptions.includes(name.toLowerCase())) {
+                return +paints[name].replace('p', '');
+            }
         }
     }
 
-    if (!foundPaint) {
-        return null;
-    }
+    return null;
 }

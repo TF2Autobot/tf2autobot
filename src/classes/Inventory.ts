@@ -236,13 +236,19 @@ export default class Inventory {
     ): Dict {
         const dict: Dict = {};
 
+        const paintedOptions =
+            opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
+                ? Object.keys(paints).map(paint => paint.toLowerCase())
+                : opt.highValue.painted.map(paint => paint.toLowerCase());
+
         for (let i = 0; i < items.length; i++) {
             const sku = items[i].getSKU(
                 schema,
                 opt.normalize.festivized[which],
                 opt.normalize.strangeAsSecondQuality[which],
                 opt.normalize.painted[which],
-                paints
+                paints,
+                paintedOptions
             );
 
             const attributes = highValue(items[i], opt, paints, strangeParts);
