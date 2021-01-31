@@ -27,9 +27,6 @@ export default function updateListings(
             continue;
         }
 
-        // Update listings
-        bot.listings.checkBySKU(sku);
-
         const name = bot.schema.getName(SKU.fromString(sku), false);
 
         const isNotPureOrWeapons = !(
@@ -306,5 +303,8 @@ export default function updateListings(
                     }
                 });
         }
+
+        // Update listings
+        bot.listings.checkBySKU(sku);
     }
 }
