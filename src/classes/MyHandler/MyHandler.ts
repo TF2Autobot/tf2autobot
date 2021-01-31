@@ -996,18 +996,26 @@ export default class MyHandler extends Handler {
                             amountCanTrade < Math.abs(diff) &&
                             notIncludeCraftweapons
                         ) {
-                            // User is taking too many
-                            hasUnderstock = true;
+                            if (match.enabled) {
+                                // User is taking too many
+                                hasUnderstock = true;
 
-                            wrongAboutOffer.push({
-                                reason: '🟩_UNDERSTOCKED',
-                                sku: sku,
-                                selling: !isBuying,
-                                diff: diff,
-                                amountCanTrade: amountCanTrade
-                            });
+                                wrongAboutOffer.push({
+                                    reason: '🟩_UNDERSTOCKED',
+                                    sku: sku,
+                                    selling: !isBuying,
+                                    diff: diff,
+                                    amountCanTrade: amountCanTrade
+                                });
 
-                            this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                            } else {
+                                // Item was disabled
+                                wrongAboutOffer.push({
+                                    reason: '🟧_DISABLED_ITEMS',
+                                    sku: sku
+                                });
+                            }
                         }
 
                         const buyPrice = match.buy.toValue(keyPrice.metal);
