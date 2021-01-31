@@ -158,7 +158,7 @@ export default function sendAlert(
                 description: description,
                 color: color,
                 footer: {
-                    text: `${footer ? `${footer} • ` : ''}${timeNow(bot).time} • v${process.env.BOT_VERSION}`
+                    text: `${footer ? `${footer} • ` : ''}${timeNow(bot.options).time} • v${process.env.BOT_VERSION}`
                 }
             }
         ]

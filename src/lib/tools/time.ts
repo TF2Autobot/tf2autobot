@@ -51,11 +51,9 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 
 dayjs.extend(advancedFormat);
 
-import Bot from '../../classes/Bot';
+import Options from '../../classes/Options';
 
-export function timeNow(bot: Bot): { timeUnix: number; time: string; emoji: string; note: string } {
-    const opt = bot.options;
-
+export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: string; note: string } {
     const timeEmoji = dayjs()
         .tz(opt.timezone ? opt.timezone : 'UTC')
         .format();

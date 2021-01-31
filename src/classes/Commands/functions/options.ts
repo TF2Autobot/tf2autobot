@@ -49,18 +49,14 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
     const knownParams = params as JsonOptions;
 
-    if (typeof knownParams.discordWebhook === 'object') {
-        if (knownParams.discordWebhook.ownerID !== undefined) {
-            // THIS IS WHAT IS NEEDED ACTUALLY
-            knownParams.discordWebhook.ownerID = String(knownParams.discordWebhook.ownerID);
-        }
-        if (knownParams.discordWebhook.displayName !== undefined) {
-            knownParams.discordWebhook.displayName = String(knownParams.discordWebhook.displayName);
-        }
-        if (knownParams.discordWebhook.embedColor !== undefined) {
-            // AND ALSO THIS
-            knownParams.discordWebhook.embedColor = String(knownParams.discordWebhook.embedColor);
-        }
+    if (knownParams.discordWebhook?.ownerID !== undefined) {
+        // Stringify numbers
+        knownParams.discordWebhook.ownerID = String(knownParams.discordWebhook.ownerID);
+    }
+
+    if (knownParams.discordWebhook?.embedColor !== undefined) {
+        // Stringify numbers
+        knownParams.discordWebhook.embedColor = String(knownParams.discordWebhook.embedColor);
     }
 
     const result: JsonOptions = deepMerge(saveOptions, knownParams);
@@ -82,63 +78,47 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             deepMerge(opt, saveOptions);
             const msg = '✅ Updated options!';
 
-            if (typeof knownParams.miscSettings === 'object') {
-                if (typeof knownParams.miscSettings.game === 'object') {
-                    if (
-                        knownParams.miscSettings.game.playOnlyTF2 !== undefined &&
-                        knownParams.miscSettings.game.playOnlyTF2 === true
-                    ) {
-                        bot.client.gamesPlayed([]);
-                        bot.client.gamesPlayed(440);
-                    }
-
-                    if (
-                        knownParams.miscSettings.game.customName !== undefined &&
-                        typeof knownParams.miscSettings.game.customName === 'string'
-                    ) {
-                        bot.client.gamesPlayed([]);
-                        bot.client.gamesPlayed(
-                            (
-                                knownParams.miscSettings.game.playOnlyTF2 !== undefined
-                                    ? knownParams.miscSettings.game.playOnlyTF2
-                                    : opt.miscSettings.game.playOnlyTF2
-                            )
-                                ? 440
-                                : [knownParams.miscSettings.game.customName, 440]
-                        );
-                    }
-                }
-
-                if (knownParams.miscSettings.autobump !== undefined) {
-                    if (knownParams.miscSettings.autobump === true) {
-                        bot.listings.setupAutorelist();
-                        bot.handler.disableAutoRefreshListings();
-                    } else {
-                        bot.listings.disableAutorelistOption();
-                        bot.handler.enableAutoRefreshListings();
-                    }
-                }
+            if (knownParams.miscSettings?.game?.playOnlyTF2 === true) {
+                bot.client.gamesPlayed([]);
+                bot.client.gamesPlayed(440);
             }
 
-            if (typeof knownParams.statistics === 'object') {
-                if (knownParams.statistics.sendStats !== undefined) {
-                    if (knownParams.statistics.sendStats.enable === true) {
-                        bot.handler.sendStats();
-                    } else {
-                        bot.handler.disableSendStats();
-                    }
-
-                    if (knownParams.statistics.sendStats.time !== undefined) {
-                        bot.handler.sendStats();
-                    }
-                }
+            if (typeof knownParams.miscSettings?.game?.customName === 'string') {
+                bot.client.gamesPlayed([]);
+                bot.client.gamesPlayed(
+                    (
+                        knownParams.miscSettings?.game?.playOnlyTF2 !== undefined
+                            ? knownParams.miscSettings.game.playOnlyTF2
+                            : opt.miscSettings.game.playOnlyTF2
+                    )
+                        ? 440
+                        : [knownParams.miscSettings.game.customName, 440]
+                );
             }
 
-            if (knownParams.normalize === 'object') {
+            if (knownParams.miscSettings?.autobump === true) {
+                bot.listings.setupAutorelist();
+                bot.handler.disableAutoRefreshListings();
+            } else {
+                bot.listings.disableAutorelistOption();
+                bot.handler.enableAutoRefreshListings();
+            }
+
+            if (knownParams.statistics?.sendStats?.enable === true) {
+                bot.handler.sendStats();
+            } else {
+                bot.handler.disableSendStats();
+            }
+
+            if (knownParams.statistics?.sendStats?.time !== undefined) {
+                bot.handler.sendStats();
+            }
+
+            if (typeof knownParams.normalize === 'object') {
                 void bot.inventoryManager.getInventory.fetch();
             }
 
-            if (knownParams.autokeys !== undefined) {
+            if (typeof knownParams.autokeys === 'object') {
                 bot.handler.autokeys.check();
                 if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
                     bot.handler.autokeys.disable(bot.pricelist.getKeyPrices);

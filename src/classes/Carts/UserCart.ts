@@ -10,6 +10,10 @@ import log from '../../lib/logger';
 import { noiseMakers } from '../../lib/data';
 import { pure } from '../../lib/tools/export';
 
+type WhichHighValue = 'our' | 'their';
+
+type HighValueAttachments = 'sp' | 'ks' | 'ke' | 'p';
+
 export default class UserCart extends Cart {
     /**
      * If we should give keys and metal or only metal (should be able to change this on checkout)
@@ -30,12 +34,13 @@ export default class UserCart extends Cart {
             return Promise.reject('trade would be held');
         }
 
-        const isDupedCheckEnabled = this.bot.handler.dupeCheckEnabled;
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        const theirItemsValue = this.getWhichCurrencies('their').toValue(keyPrice.metal);
-        const minimumKeysDupeCheck = this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
-        if (isDupedCheckEnabled && theirItemsValue > minimumKeysDupeCheck) {
+        if (
+            this.bot.handler.dupeCheckEnabled &&
+            this.getWhichCurrencies('their').toValue(keyPrice.metal) > // theirItemsValue > minimumKeysDupeCheck
+                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue()
+        ) {
             const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
 
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
@@ -58,9 +63,10 @@ export default class UserCart extends Cart {
                 log.debug(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
                 for (let i = 0; i < result.length; i++) {
-                    if (result[i] === true) return Promise.reject('offer contains duped items');
-                    // Found duped item
-                    else if (result[i] === null) {
+                    if (result[i] === true) {
+                        // Found duped item
+                        return Promise.reject('offer contains duped items');
+                    } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
                         return Promise.reject('failed to check for duped items, try sending an offer instead');
                     }
@@ -171,8 +177,6 @@ export default class UserCart extends Cart {
             });
         }
 
-        // log.debug('Currency values', currencyValues);
-
         const skus = Object.keys(currencyValues);
 
         let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
@@ -255,8 +259,6 @@ export default class UserCart extends Cart {
             index += reverse ? -1 : 1;
         }
 
-        // log.debug('Done picking currencies', { remaining: remaining, picked: pickedCurrencies });
-
         if (remaining < 0) {
             log.debug('Picked too much value, removing...');
 
@@ -310,7 +312,7 @@ export default class UserCart extends Cart {
                 : this.craftAll;
 
             weapons.forEach(sku => {
-                addWeapons += ourDict[sku] !== undefined ? ourDict[sku] : 0;
+                addWeapons += ourDict[sku] || 0;
             });
         }
 
@@ -348,7 +350,7 @@ export default class UserCart extends Cart {
                 : this.craftAll;
 
             weapons.forEach(sku => {
-                addWeapons += theirDict[sku] !== undefined ? theirDict[sku] : 0;
+                addWeapons += theirDict[sku] || 0;
             });
         }
 
@@ -521,6 +523,7 @@ export default class UserCart extends Cart {
         }
 
         if (this.isEmpty) {
+            theirInventory.clearFetch();
             return Promise.reject(alteredMessages.join(', '));
         }
 
@@ -550,6 +553,8 @@ export default class UserCart extends Cart {
 
         if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, weapons) < 1) {
             // Buyer can't afford the items
+            theirInventory.clearFetch();
+
             return Promise.reject(
                 (isBuyer ? 'I' : 'You') +
                     " don't have enough pure for this trade." +
@@ -607,8 +612,6 @@ export default class UserCart extends Cart {
 
         // Add items to offer
 
-        let ourItemsCount = 0;
-
         // Add our items
         for (const sku in this.our) {
             if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
@@ -618,7 +621,7 @@ export default class UserCart extends Cart {
             const amount = this.our[sku];
             const assetids = ourInventory.findBySKU(sku, true);
 
-            ourItemsCount += amount;
+            this.ourItemsCount += amount;
             let missing = amount;
             let isSkipped = false;
 
@@ -656,6 +659,8 @@ export default class UserCart extends Cart {
                     }
                 );
 
+                theirInventory.clearFetch();
+
                 return Promise.reject(
                     `Something went wrong while constructing the offer${
                         isSkipped ? '. Reason: Item(s) are currently being used in another active trade.' : ''
@@ -665,8 +670,6 @@ export default class UserCart extends Cart {
         }
 
         const assetidsToCheck: string[] = [];
-
-        let theirItemsCount = 0;
 
         const getAssetidsWithFullUses = (items: DictItem[]) => {
             return items.filter(item => item.isFullUses === true).map(item => item.id);
@@ -686,7 +689,7 @@ export default class UserCart extends Cart {
                 this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
                     this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
-            theirItemsCount += amount;
+            this.theirItemsCount += amount;
             let missing = amount;
 
             let checkedDuel = false;
@@ -738,6 +741,8 @@ export default class UserCart extends Cart {
                     }
                 );
 
+                theirInventory.clearFetch();
+
                 return Promise.reject(
                     `Something went wrong while constructing the offer${
                         checkedDuel
@@ -768,17 +773,19 @@ export default class UserCart extends Cart {
                     continue;
                 }
 
-                inventoryDict[which as 'our' | 'their'][sku]
-                    .filter(item => whichAssetIds[which as 'our' | 'their'].includes(item.id))
+                const whichIs = which as WhichHighValue;
+
+                inventoryDict[whichIs][sku]
+                    .filter(item => whichAssetIds[whichIs].includes(item.id))
                     .forEach(item => {
                         if (item.hv !== undefined) {
                             // If hv exist, get the high value and assign into items
-                            getHighValue[which as 'our' | 'their'].items[sku] = item.hv;
+                            getHighValue[whichIs].items[sku] = item.hv;
 
                             Object.keys(item.hv).forEach(attachment => {
                                 if (attachment === 's') {
                                     // If spells exist, always mention
-                                    getHighValue[which as 'our' | 'their'].isMention = true;
+                                    getHighValue[whichIs].isMention = true;
                                 }
 
                                 if (item.hv[attachment] !== undefined) {
@@ -786,8 +793,8 @@ export default class UserCart extends Cart {
                                         if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;
                                         }
-                                        if (item.hv[attachment as 'sp' | 'ks' | 'ke' | 'p'][pSku] === true) {
-                                            getHighValue[which as 'our' | 'their'].isMention = true;
+                                        if (item.hv[attachment as HighValueAttachments][pSku] === true) {
+                                            getHighValue[whichIs].isMention = true;
                                         }
                                     }
                                 }
@@ -876,9 +883,9 @@ export default class UserCart extends Cart {
                             itemsDict[whose][sku] = amount;
 
                             if (whose === 'our') {
-                                itemsDict.our[sku] = amount;
+                                this.ourItemsCount += amount;
                             } else {
-                                itemsDict.their[sku] = amount;
+                                this.theirItemsCount += amount;
                             }
 
                             change -= value;
@@ -892,6 +899,8 @@ export default class UserCart extends Cart {
             }
 
             if (change !== 0) {
+                theirInventory.clearFetch();
+
                 return Promise.reject(
                     `I am missing ${Currencies.toRefined(change)} ref as change${
                         isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
@@ -913,9 +922,9 @@ export default class UserCart extends Cart {
             itemsDict[isBuyer ? 'our' : 'their'][sku] = amount;
 
             if (isBuyer) {
-                ourItemsCount += amount;
+                this.ourItemsCount += amount;
             } else {
-                theirItemsCount += amount;
+                this.theirItemsCount += amount;
             }
 
             let isSkipped = false;
@@ -950,6 +959,8 @@ export default class UserCart extends Cart {
                     sku: sku
                 });
 
+                theirInventory.clearFetch();
+
                 return Promise.reject(
                     `Something went wrong while constructing the offer${
                         isSkipped ? ' (probably because some of the pure are in another active trade)' : ''
@@ -957,9 +968,6 @@ export default class UserCart extends Cart {
                 );
             }
         }
-
-        this.ourItemsCount = ourItemsCount;
-        this.theirItemsCount = theirItemsCount;
 
         const itemPrices: Prices = {};
 

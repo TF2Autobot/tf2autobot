@@ -1,25 +1,15 @@
-import {
-    Action,
-    DisabledItems,
-    HighValueOutput,
-    InvalidItems,
-    Items,
-    Overstocked,
-    TradeOffer,
-    Understocked
-} from 'steam-tradeoffer-manager';
+import * as i from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import { itemList } from '../../utils/export-utils';
 import Bot from '../../../Bot';
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
 export default function processAccepted(
-    offer: TradeOffer,
+    offer: i.TradeOffer,
     bot: Bot,
     isTradingKeys: boolean,
     processTime: number
-): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: Items | undefined } {
+): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined } {
     const opt = bot.options;
 
     const isDisableSKU: string[] = [];
@@ -34,8 +24,8 @@ export default function processAccepted(
         isMention: false
     };
 
-    const offerReceived = offer.data('action') as Action;
-    const offerSent = offer.data('highValue') as HighValueOutput;
+    const offerReceived = offer.data('action') as i.Action;
+    const offerSent = offer.data('highValue') as i.HighValueOutput;
 
     const isWebhookEnabled = opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0;
 
@@ -46,7 +36,7 @@ export default function processAccepted(
             if (offerReceived.meta?.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                (offerReceived.meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as InvalidItems[]).forEach(
+                (offerReceived.meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(
                     el => {
                         accepted.invalidItems.push(
                             `${
@@ -61,22 +51,22 @@ export default function processAccepted(
             if (offerReceived.meta?.uniqueReasons.includes('🟧_DISABLED_ITEMS')) {
                 // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
 
-                (offerReceived.meta.reasons.filter(el => el.reason === '🟧_DISABLED_ITEMS') as DisabledItems[]).forEach(
-                    el => {
-                        accepted.disabledItems.push(
-                            isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
-                        );
-                    }
-                );
+                (offerReceived.meta.reasons.filter(
+                    el => el.reason === '🟧_DISABLED_ITEMS'
+                ) as i.DisabledItems[]).forEach(el => {
+                    accepted.disabledItems.push(
+                        isWebhookEnabled
+                            ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                            : bot.schema.getName(SKU.fromString(el.sku), false)
+                    );
+                });
             }
             if (offerReceived.meta?.uniqueReasons.includes('🟦_OVERSTOCKED')) {
                 // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
                 (offerReceived.meta.reasons.filter(el =>
                     el.reason.includes('🟦_OVERSTOCKED')
-                ) as Overstocked[]).forEach(el => {
+                ) as i.Overstocked[]).forEach(el => {
                     accepted.overstocked.push(
                         `${
                             isWebhookEnabled
@@ -92,7 +82,7 @@ export default function processAccepted(
 
                 (offerReceived.meta.reasons.filter(el =>
                     el.reason.includes('🟩_UNDERSTOCKED')
-                ) as Understocked[]).forEach(el => {
+                ) as i.Understocked[]).forEach(el => {
                     accepted.understocked.push(
                         `${
                             isWebhookEnabled
@@ -202,7 +192,7 @@ export default function processAccepted(
     const isOfferSent = offer?.data('action') === undefined;
 
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, accepted, itemList(offer), bot, processTime, isTradingKeys, isOfferSent);
+        void sendTradeSummary(offer, accepted, bot, processTime, isTradingKeys, isOfferSent);
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {

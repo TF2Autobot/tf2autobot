@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
+import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 
 export async function isBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();
@@ -29,14 +26,14 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Pro
                 gzip: true,
                 json: true
             },
-            (err, response, body) => {
+            (err, response, body: BPTFGetUserInfo) => {
                 if (err) {
                     return reject(err);
                 }
 
                 const user = body.users[steamID64];
 
-                return resolve(user.bans && user.bans.all);
+                return resolve(user.bans && user.bans.all !== undefined);
             }
         );
     });
@@ -56,7 +53,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Pr
                 gzip: true,
                 json: true
             },
-            (err, response, body) => {
+            (err, response, body: BPTFGetUserInfo) => {
                 if (err) {
                     return reject(err);
                 }
@@ -83,7 +80,7 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promis
                 gzip: true,
                 json: true
             },
-            (err, response, body) => {
+            (err, response, body: SteamRep) => {
                 if (err) {
                     resolve(isBptfSteamRepBanned(steamID64, bptfApiKey));
                 }
@@ -92,4 +89,20 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promis
             }
         );
     });
+}
+
+interface SteamRep {
+    steamrep: Details;
+}
+
+interface Details {
+    steamID32?: string;
+    steamID64?: string;
+    steamrepurl?: string;
+    reputation?: Reputation;
+}
+
+interface Reputation {
+    full?: string;
+    summary?: string;
 }

@@ -290,7 +290,12 @@ export function blockUnblockCommand(steamID: SteamID, message: string, bot: Bot,
 export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
     const friendsToRemove = bot.friends.getFriends.filter(steamid => !bot.handler.friendsToKeep.includes(steamid));
 
+    const promiseDelay = (ms: number) => {
+        return new Promise(resolve => setTimeout(() => resolve(), ms));
+    };
+
     friendsToRemove.forEach(steamid => {
+        void promiseDelay(1000);
         bot.sendMessage(
             steamid,
             `/quote Hey ${
@@ -519,12 +524,12 @@ function generateAutokeysReply(steamID: SteamID, bot: Bot): string {
             : 'Not active'
     }`;
     /*
-    //        X
-    // Keys ————|—————————|————▶
-    //                       X
-    // Refs ————|—————————|————▶
-    //         min       max
-    */
+     *        X
+     * Keys ————|—————————|————▶
+     *                       X
+     * Refs ————|—————————|————▶
+     *         min       max
+     */
 
     return reply;
 }

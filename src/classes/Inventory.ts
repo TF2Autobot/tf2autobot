@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
 import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
@@ -12,7 +9,7 @@ import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/d
 export default class Inventory {
     private readonly steamID: SteamID;
 
-    get getSteamID(): SteamID {
+    private get getSteamID(): SteamID {
         return this.steamID;
     }
 
@@ -102,7 +99,7 @@ export default class Inventory {
 
     removeItem(item: EconItem): void;
 
-    removeItem(...args: any[]): void {
+    removeItem(...args: [string] | [EconItem]): void {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
 
         const items = this.tradable;
@@ -136,7 +133,6 @@ export default class Inventory {
     }
 
     private set setItems(items: EconItem[]) {
-        // log.debug('parts: ', parts);
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.schema,
@@ -191,7 +187,8 @@ export default class Inventory {
 
         return (this.nonTradable[sku] || [])
             .map(item => (item ? item.id : undefined))
-            .concat((this.tradable[sku] || []).map(item => (item ? item.id : undefined)));
+            .concat((this.tradable[sku] || []).map(item => (item ? item.id : undefined)))
+            .slice(0);
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
@@ -204,8 +201,7 @@ export default class Inventory {
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
             return (
-                this.schema
-                    .getUnusualEffects()
+                this.effects
                     .map(e => {
                         s.effect = e.id;
                         return this.getAmount(SKU.fromObject(s), tradableOnly);
@@ -274,7 +270,6 @@ export default class Inventory {
             }
         }
 
-        // log.debug('dict: ', dict);
         return dict;
     }
 

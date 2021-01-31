@@ -24,7 +24,7 @@ import { UnknownDictionary } from '../../types/common';
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
 import { processAccepted, updateListings } from './offer/accepted/exportAccepted';
 import { sendReview } from './offer/review/export-review';
-import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons, itemList } from './utils/export-utils';
+import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
 import { BPTFGetUserInfo } from './interfaces';
 
@@ -53,7 +53,7 @@ import genPaths from '../../resources/paths';
 export default class MyHandler extends Handler {
     private readonly commands: Commands;
 
-    public readonly autokeys: Autokeys;
+    readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
 
@@ -151,10 +151,9 @@ export default class MyHandler extends Handler {
     private isTradingKeys = false;
 
     get customGameName(): string {
-        // check if game.customName is more than 60 characters.
         const customGameName = this.bot.options.miscSettings.game.customName;
 
-        if (!customGameName || customGameName === 'TF2Autobot') {
+        if (customGameName === '' || customGameName === 'TF2Autobot') {
             return `TF2Autobot v${process.env.BOT_VERSION}`;
         } else {
             return customGameName;
@@ -167,17 +166,11 @@ export default class MyHandler extends Handler {
 
     private botAvatarURL = '';
 
-    private retryRequest: NodeJS.Timeout;
-
     private botSteamID: SteamID;
 
     get getBotInfo(): BotInfo {
         return { name: this.botName, avatarURL: this.botAvatarURL, steamID: this.botSteamID, premium: this.isPremium };
     }
-
-    private classWeaponsTimeout: NodeJS.Timeout;
-
-    private autoRefreshListingsTimeout: NodeJS.Timeout;
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
@@ -189,11 +182,17 @@ export default class MyHandler extends Handler {
         this.isUpdating = setStatus;
     }
 
+    private retryRequest: NodeJS.Timeout;
+
     private poller: NodeJS.Timeout;
 
     private refreshInterval: NodeJS.Timeout;
 
-    private sendStatsTimeout: NodeJS.Timeout;
+    private sendStatsInterval: NodeJS.Timeout;
+
+    private classWeaponsTimeout: NodeJS.Timeout;
+
+    private autoRefreshListingsInterval: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         super(bot);
@@ -281,8 +280,26 @@ export default class MyHandler extends Handler {
         }
 
         if (this.refreshInterval) {
-            clearTimeout(this.refreshInterval);
+            clearInterval(this.refreshInterval);
         }
+
+        if (this.sendStatsInterval) {
+            clearInterval(this.sendStatsInterval);
+        }
+
+        if (this.autoRefreshListingsInterval) {
+            clearInterval(this.autoRefreshListingsInterval);
+        }
+
+        if (this.classWeaponsTimeout) {
+            clearTimeout(this.classWeaponsTimeout);
+        }
+
+        if (this.retryRequest) {
+            clearTimeout(this.retryRequest);
+        }
+
+        this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
             if (this.bot.options.autokeys.enable && this.autokeys.getActiveStatus) {
@@ -375,7 +392,6 @@ export default class MyHandler extends Handler {
         if (relationship === EFriendRelationship.Friend) {
             this.onNewFriend(steamID);
             this.checkFriendsCount(steamID);
-            //
         } else if (relationship === EFriendRelationship.RequestRecipient) {
             this.respondToFriendRequest(steamID);
         }
@@ -387,7 +403,7 @@ export default class MyHandler extends Handler {
             const join = this.groups.includes(groupID.getSteamID64());
 
             log.info(`Got invited to group ${groupID.getSteamID64()}, ${join ? 'accepting...' : 'declining...'}`);
-            this.bot.client.respondToGroupInvite(groupID, this.groups.includes(groupID.getSteamID64()));
+            this.bot.client.respondToGroupInvite(groupID, join);
         } else if (relationship === EClanRelationship.Member) {
             log.info(`Joined group ${groupID.getSteamID64()}`);
         }
@@ -404,7 +420,7 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        this.autoRefreshListingsTimeout = setInterval(() => {
+        this.autoRefreshListingsInterval = setInterval(() => {
             log.debug('Running automatic check for missing listings...');
 
             const listingsSKUs: string[] = [];
@@ -413,7 +429,7 @@ export default class MyHandler extends Handler {
                     setTimeout(() => {
                         this.enableAutoRefreshListings();
                     }, 30 * 60 * 1000);
-                    clearTimeout(this.autoRefreshListingsTimeout);
+                    clearInterval(this.autoRefreshListingsInterval);
                     return;
                 }
 
@@ -470,14 +486,14 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        clearTimeout(this.autoRefreshListingsTimeout);
+        clearInterval(this.autoRefreshListingsInterval);
     }
 
     sendStats(): void {
-        clearTimeout(this.sendStatsTimeout);
+        clearInterval(this.sendStatsInterval);
 
         if (this.sendStatsEnabled) {
-            this.sendStatsTimeout = setInterval(() => {
+            this.sendStatsInterval = setInterval(() => {
                 const opt = this.bot.options;
                 let times: string[];
 
@@ -505,7 +521,7 @@ export default class MyHandler extends Handler {
     }
 
     disableSendStats(): void {
-        clearTimeout(this.sendStatsTimeout);
+        clearInterval(this.sendStatsInterval);
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -1028,7 +1044,9 @@ export default class MyHandler extends Handler {
                         hasInvalidItems = true;
 
                         // If that particular item is on our side, then put to review
-                        if (which === 'our') hasInvalidItemsOur = true;
+                        if (which === 'our') {
+                            hasInvalidItemsOur = true;
+                        }
 
                         // await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getPricesTF(sku);
@@ -1176,16 +1194,15 @@ export default class MyHandler extends Handler {
         }
 
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
-        const itemsList = itemList(offer);
 
         const isOurItems = exceptionSKU.some(fromEnv => {
-            return itemsList.our.some(ourItemSKU => {
+            return Object.keys(itemsDict.our).some(ourItemSKU => {
                 return ourItemSKU.includes(fromEnv);
             });
         });
 
         const isTheirItems = exceptionSKU.some(fromEnv => {
-            return itemsList.their.some(theirItemSKU => {
+            return Object.keys(itemsDict.their).some(theirItemSKU => {
                 return theirItemSKU.includes(fromEnv);
             });
         });
@@ -1222,7 +1239,9 @@ export default class MyHandler extends Handler {
 
             // Filter out duplicate reasons
             reasons.forEach(reason => {
-                if (!filtered.includes(reason)) filtered.push(reason);
+                if (!filtered.includes(reason)) {
+                    filtered.push(reason);
+                }
             });
 
             return filtered;
@@ -1721,9 +1740,13 @@ export default class MyHandler extends Handler {
     }
 
     onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
-        if (offer.data('notify') !== true) return;
+        if (offer.data('notify') !== true) {
+            return;
+        }
 
-        if (action === 'skip') return sendReview(offer, this.bot, meta, this.isTradingKeys);
+        if (action === 'skip') {
+            return sendReview(offer, this.bot, meta, this.isTradingKeys);
+        }
     }
 
     private sortInventory(): void {
@@ -1734,17 +1757,23 @@ export default class MyHandler extends Handler {
     }
 
     private inviteToGroups(steamID: SteamID | string): void {
-        if (!this.bot.options.miscSettings.sendGroupInvite.enable) return; // You still need to include the group ID in your env.
+        if (!this.bot.options.miscSettings.sendGroupInvite.enable) {
+            return;
+        }
 
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
 
     private checkFriendRequests(): void {
-        if (!this.bot.client.myFriends) return;
+        if (!this.bot.client.myFriends) {
+            return;
+        }
 
         this.checkFriendsCount();
         for (const steamID64 in this.bot.client.myFriends) {
-            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myFriends, steamID64)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myFriends, steamID64)) {
+                continue;
+            }
 
             if ((this.bot.client.myFriends[steamID64] as number) === EFriendRelationship.RequestRecipient) {
                 // relation
@@ -1756,7 +1785,9 @@ export default class MyHandler extends Handler {
             if (!this.bot.friends.isFriend(steamID)) {
                 log.info(`Not friends with admin ${steamID.toString()}, sending friend request...`);
                 this.bot.client.addFriend(steamID, err => {
-                    if (err) log.warn('Failed to send friend request: ', err);
+                    if (err) {
+                        log.warn('Failed to send friend request: ', err);
+                    }
                 });
             }
         });
@@ -1764,7 +1795,9 @@ export default class MyHandler extends Handler {
 
     private respondToFriendRequest(steamID: SteamID | string): void {
         if (!this.bot.options.miscSettings.addFriends.enable) {
-            if (!this.bot.isAdmin(steamID)) return this.bot.client.removeFriend(steamID);
+            if (!this.bot.isAdmin(steamID)) {
+                return this.bot.client.removeFriend(steamID);
+            }
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
@@ -1779,11 +1812,15 @@ export default class MyHandler extends Handler {
     }
 
     private onNewFriend(steamID: SteamID, tries = 0): void {
-        if (tries === 0) log.debug(`Now friends with ${steamID.getSteamID64()}`);
+        if (tries === 0) {
+            log.debug(`Now friends with ${steamID.getSteamID64()}`);
+        }
 
         const isAdmin = this.bot.isAdmin(steamID);
         setImmediate(() => {
-            if (!this.bot.friends.isFriend(steamID)) return;
+            if (!this.bot.friends.isFriend(steamID)) {
+                return;
+            }
 
             const friend = this.bot.friends.getFriend(steamID);
             if (friend === null || friend.player_name === undefined) {
@@ -1843,12 +1880,16 @@ export default class MyHandler extends Handler {
             // Ignore friends to keep
             this.friendsToKeep.forEach(steamID => delete friendsWithTrades[steamID]);
 
-            if (steamIDToIgnore) delete friendsWithTrades[steamIDToIgnore.toString()];
+            if (steamIDToIgnore) {
+                delete friendsWithTrades[steamIDToIgnore.toString()];
+            }
 
             // Convert object into an array so it can be sorted
             const tradesWithPeople: { steamID: string; trades: number }[] = [];
             for (const steamID in friendsWithTrades) {
-                if (!Object.prototype.hasOwnProperty.call(friendsWithTrades, steamID)) continue;
+                if (!Object.prototype.hasOwnProperty.call(friendsWithTrades, steamID)) {
+                    continue;
+                }
                 tradesWithPeople.push({ steamID: steamID, trades: friendsWithTrades[steamID] });
             }
 
@@ -1915,7 +1956,9 @@ export default class MyHandler extends Handler {
         log.debug('Checking group invites');
 
         for (const groupID64 in this.bot.client.myGroups) {
-            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) continue;
+            if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) {
+                continue;
+            }
 
             if ((this.bot.client.myGroups[groupID64] as number) === EClanRelationship.Invited) {
                 // relation
@@ -1936,7 +1979,9 @@ export default class MyHandler extends Handler {
 
                     log.info(`Not member of group ${group.name} ("${steamID}"), joining...`);
                     group.join(err => {
-                        if (err) log.warn('Failed to join group: ', err);
+                        if (err) {
+                            log.warn('Failed to join group: ', err);
+                        }
                     });
                 });
             }
@@ -1950,8 +1995,10 @@ export default class MyHandler extends Handler {
     }
 
     async onPricelist(pricelist: Entry[]): Promise<void> {
-        if (!this.isPriceUpdateWebhook) log.debug('Pricelist changed');
-        if (pricelist.length === 0) await this.bot.listings.removeAll(); // Ignore errors
+        if (pricelist.length === 0) {
+            // Ignore errors
+            await this.bot.listings.removeAll();
+        }
 
         files
             .writeFile(
@@ -1965,6 +2012,9 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(sku: string, entry: Entry): void {
+        if (!this.isPriceUpdateWebhook) {
+            log.debug(`${sku} updated`);
+        }
         this.bot.listings.checkBySKU(sku, entry);
     }
 

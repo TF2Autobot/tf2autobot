@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SteamID from 'steamid';
 import dayjs from 'dayjs';
 import SKU from 'tf2-sku-2';
@@ -20,13 +18,13 @@ import { sendAlert } from '../../lib/DiscordWebhook/export';
 export default abstract class Cart {
     private static carts: UnknownDictionary<Cart> = {};
 
-    ourInventoryCount = 0;
+    protected ourInventoryCount = 0;
 
-    theirInventoryCount = 0;
+    protected theirInventoryCount = 0;
 
-    ourItemsCount = 0;
+    protected ourItemsCount = 0;
 
-    theirItemsCount = 0;
+    protected theirItemsCount = 0;
 
     readonly partner: SteamID;
 
@@ -60,8 +58,7 @@ export default abstract class Cart {
 
     constructor(partner: SteamID, token: string, bot: Bot, craftAll: string[], uncraftAll: string[]);
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    constructor(...args) {
+    constructor(...args: [SteamID, Bot, string[], string[]] | [SteamID, string, Bot, string[], string[]]) {
         this.partner = args[0];
 
         if (args.length === 4) {

@@ -26,7 +26,7 @@ export default class Listings {
 
     private autoRelistEnabled = false;
 
-    private autoRelistTimeout;
+    private autoRelistTimeout: NodeJS.Timeout;
 
     private get isAutoRelistEnabled(): boolean {
         return this.bot.options.miscSettings.autobump.enable;
@@ -69,7 +69,7 @@ export default class Listings {
 
     disableAutorelistOption(): void {
         this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.disableAutoRelist(true, 'permanent');
+        this.disableAutoRelist(false, 'permanent');
     }
 
     private enableAutoRelist(): void {
@@ -120,13 +120,12 @@ export default class Listings {
                 // temporarilyy disable autoRelist, so on the next check, when backpack.tf
                 // back alive, might trigger to call this.enableAutoRelist()
                 clearTimeout(this.autoRelistTimeout);
-                this.autoRelistEnabled = false;
+                this.disableAutoRelist(false, 'temporary');
                 return;
             }
 
             if (this.autoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
-                this.disableAutoRelist(true, 'temporary');
             } else if (!this.autoRelistEnabled && info.premium !== 1) {
                 log.warn(
                     'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
@@ -457,22 +456,6 @@ export default class Listings {
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
-                const getKeyByValue = (object: { [key: string]: any }, value: any) => {
-                    return Object.keys(object).find(key => object[key] === value);
-                };
-
-                const getAttachmentName = (attachment: string, pSKU: string, paints: Paints, parts: StrangeParts) => {
-                    if (attachment === 'sp') {
-                        return getKeyByValue(parts, pSKU);
-                    } else if (attachment === 'ke') {
-                        return getKeyByValue(killstreakersData, pSKU);
-                    } else if (attachment === 'ks') {
-                        return getKeyByValue(sheensData, pSKU);
-                    } else if (attachment === 'p') {
-                        return getKeyByValue(paints, pSKU);
-                    }
-                };
-
                 const hv = item.hv;
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
@@ -497,15 +480,10 @@ export default class Listings {
                                     ? optD.showSheen
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
-                                if (attachment === 'sp') {
-                                    highValueString += '| 🎰 Parts: ';
-                                } else if (attachment === 'ke') {
-                                    highValueString += '| 🤩 Killstreaker: ';
-                                } else if (attachment === 'ks') {
-                                    highValueString += '| ✨ Sheen: ';
-                                } else if (attachment === 'p') {
-                                    highValueString += '| 🎨 Painted: ';
-                                }
+                                if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
+                                else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';
+                                else if (attachment === 'ks') highValueString += '| ✨ Sheen: ';
+                                else if (attachment === 'p') highValueString += '| 🎨 Painted: ';
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
@@ -628,3 +606,14 @@ export default class Listings {
 }
 
 type Attachment = 'sp' | 'ke' | 'ks' | 'p';
+
+function getKeyByValue(object: { [key: string]: any }, value: any): string {
+    return Object.keys(object).find(key => object[key] === value);
+}
+
+function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
+    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
+    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
+    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+}

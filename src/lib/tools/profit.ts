@@ -84,11 +84,6 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                             ? (trades[i].dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                             : trades[i].dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
-                    // const isNotPureOrWeapons = !(
-                    //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                    //     ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    // );
-
                     if (
                         !(
                             (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
@@ -130,11 +125,6 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                         typeof trades[i].dict.our[sku] === 'object'
                             ? (trades[i].dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                             : trades[i].dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
-
-                    // const isNotPureOrWeapons = !(
-                    //     (bot.options.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                    //     ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-                    // );
 
                     if (
                         !(

@@ -18,7 +18,7 @@ export function miscCommand(steamID: SteamID, bot: Bot, command: Misc): void {
 
     const custom = opt.customReply.reply;
     if (command === 'time') {
-        const timeWithEmojis = timeNow(bot);
+        const timeWithEmojis = timeNow(bot.options);
         bot.sendMessage(
             steamID,
             custom

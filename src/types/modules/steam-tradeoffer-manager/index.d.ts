@@ -355,7 +355,7 @@ declare module 'steam-tradeoffer-manager' {
                 }
             ];
 
-            app_data: any;
+            app_data?: { def_index: string; quality?: string; quantity?: string; limited?: number };
 
             // Custom function added to prototype
             hasDescription(description: string): boolean;

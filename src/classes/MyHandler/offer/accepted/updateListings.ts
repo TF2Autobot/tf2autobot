@@ -37,8 +37,9 @@ export default function updateListings(
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 
-        // Request priceheck on each sku involved in the trade, except craft weapons,
-        // and pure.
+        /**
+         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
+         */
         if (isNotPureOrWeapons) {
             void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
                 if (err) {

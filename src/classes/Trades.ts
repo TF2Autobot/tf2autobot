@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -598,6 +595,7 @@ export default class Trades {
                                         offer.manager.pollData.offerData = offer.manager.pollData.offerData || {};
                                         offer.manager.pollData.offerData[offer.id] =
                                             offer.manager.pollData.offerData[offer.id] || {};
+                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                         offer.manager.pollData.offerData[offer.id][property] =
                                             offer._tempData[property];
                                     }
@@ -810,6 +808,7 @@ export default class Trades {
     }
 
     onOfferChanged(offer: TradeOffer, oldState: number): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
         offer.log(
@@ -949,7 +948,3 @@ export default class Trades {
         };
     }
 }
-
-// function promiseDelay(ms: number): Promise<void> {
-//     return new Promise(resolve => setTimeout(() => resolve(), ms));
-// }

@@ -15,8 +15,8 @@ export default class PremiumCart extends Cart {
             }
 
             const offer = this.bot.manager.createOffer(
-                'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi' // Backpack.tf premium purchase bot
-                // https://steamcommunity.com/id/backpacktf001
+                'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi'
+                // Backpack.tf premium purchase bot - https://steamcommunity.com/id/backpacktf001
             );
 
             const alteredMessages: string[] = [];

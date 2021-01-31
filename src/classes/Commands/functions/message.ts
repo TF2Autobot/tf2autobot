@@ -22,13 +22,13 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
     const optDW = bot.options.discordWebhook.messages;
 
     if (isAdmin) {
-        const parts = message.split(' ');
         const steamIdAndMessage = CommandParser.removeCommand(message);
-        // Use regex
-        const steamIDReg = /^(\d+)|(STEAM_([0-5]):([0-1]):([0-9]+))|(\[([a-zA-Z]):([0-5]):([0-9]+)(:[0-9]+)?])$/;
+        const parts = steamIdAndMessage.split(' ');
+        let recipientSteamID: SteamID;
 
-        let steamIDString: string;
-        if (!steamIDReg.test(steamIdAndMessage) || !steamIDReg || parts.length < 3) {
+        try {
+            recipientSteamID = new SteamID(parts[0]);
+        } catch (err) {
             return bot.sendMessage(
                 steamID,
                 '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
@@ -37,10 +37,10 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                     '\n2. Go to https://steamrep.com/' +
                     '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
             );
-            //
-        } else steamIDString = steamIDReg.exec(steamIdAndMessage)[0];
+        }
 
-        const recipientSteamID = new SteamID(steamIDString);
+        const steamIDString = recipientSteamID.getSteamID64();
+
         if (!recipientSteamID.isValid()) {
             return bot.sendMessage(
                 steamID,
@@ -73,7 +73,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                 reply,
                 recipientDetails,
                 generateLinks(steamID.toString()),
-                timeNow(bot).time,
+                timeNow(bot.options).time,
                 bot
             );
         } else {
@@ -117,7 +117,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
 
         const links = generateLinks(steamID.toString());
         if (optDW.enable && optDW.url !== '') {
-            sendPartnerMessage(steamID.toString(), msg, senderDetails, links, timeNow(bot).time, bot);
+            sendPartnerMessage(steamID.toString(), msg, senderDetails, links, timeNow(bot.options).time, bot);
         } else {
             bot.messageAdmins(
                 `/quote 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +

@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SteamID from 'steamid';
 import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
@@ -253,8 +248,7 @@ export default class Bot {
 
     messageAdmins(type: string, message: string, exclude: string[] | SteamID[]): void;
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    messageAdmins(...args): void {
+    messageAdmins(...args: [string, string[] | SteamID[]] | [string, string, string[] | SteamID[]]): void {
         const type: string | null = args.length === 2 ? null : args[0];
 
         if (type !== null && !this.alertTypes.includes(type)) {
@@ -262,7 +256,9 @@ export default class Bot {
         }
 
         const message: string = args.length === 2 ? args[0] : args[1];
-        const exclude: string[] = (args.length === 2 ? args[1] : args[2]).map(steamid => steamid.toString());
+        const exclude: string[] = (args.length === 2 ? (args[1] as SteamID[]) : (args[2] as SteamID[])).map(steamid =>
+            steamid.toString()
+        );
 
         this.admins
             .filter(steamID => !exclude.includes(steamID.toString()))
@@ -278,6 +274,7 @@ export default class Bot {
     }
 
     private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
@@ -336,6 +333,7 @@ export default class Bot {
                         return reject(err);
                     }
 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     return resolve(body.version);
                 }
             );
@@ -383,6 +381,7 @@ export default class Bot {
                         log.debug('Calling onRun');
                         void this.handler.onRun().asCallback((err, v) => {
                             if (err) {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
                             }
 
@@ -398,6 +397,7 @@ export default class Bot {
                                 this.setLoginAttempts = data.loginAttempts;
                             }
 
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
                     },
@@ -423,6 +423,7 @@ export default class Bot {
                                     return;
                                 } else {
                                     log.warn('Failed to sign in to Steam: ', err);
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                     return callback(err);
                                 }
                             }
@@ -442,6 +443,7 @@ export default class Bot {
                                 'our'
                             );
 
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         };
 
@@ -451,17 +453,20 @@ export default class Bot {
                         log.debug('Waiting for web session');
                         void this.getWebSession().asCallback((err, v) => {
                             if (err) {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
                             }
 
                             cookies = v;
                             this.bptf.setCookies(cookies);
 
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
                     },
                     (callback): void => {
                         if (this.options.bptfAPIKey && this.options.bptfAccessToken) {
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         }
 
@@ -470,9 +475,11 @@ export default class Bot {
                         );
                         void this.getBptfAPICredentials.asCallback(err => {
                             if (err) {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
                             }
 
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
                     },

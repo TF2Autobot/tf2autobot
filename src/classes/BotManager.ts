@@ -117,9 +117,9 @@ export default class BotManager {
                 ],
                 (item, callback) => {
                     if (this.isStopping) {
+                        // Shutdown is requested, stop the bot
                         return this.stop(null, false, false);
                     }
-                    // Shutdown is requested, stop the bot
 
                     item(callback);
                 },
@@ -129,9 +129,9 @@ export default class BotManager {
                     }
 
                     if (this.isStopping) {
+                        // Shutdown is requested, stop the bot
                         return this.stop(null, false, false);
                     }
-                    // Shutdown is requested, stop the bot
 
                     return resolve();
                 }
@@ -201,9 +201,9 @@ export default class BotManager {
 
     restartProcess(): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if (process.env.pm_id === undefined) return resolve(false);
-
-            // TODO: Make restart function take arguments, for example, an option to update the environment variables
+            if (process.env.pm_id === undefined) {
+                return resolve(false);
+            }
 
             log.warn('Restart has been initialized, restarting...');
 

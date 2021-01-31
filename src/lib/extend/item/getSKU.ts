@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import { EconItem } from 'steam-tradeoffer-manager';
 import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';

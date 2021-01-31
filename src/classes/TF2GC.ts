@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import Bot from './Bot';
 import log from '../lib/logger';
 
@@ -14,6 +10,15 @@ type Job = {
     sortType?: number;
     callback?: (err?: Error) => void;
 };
+
+type ListenForEvent =
+    | [string, (...args: any[]) => void, (err: Error) => void]
+    | [
+          string,
+          (...args: any[]) => { success: boolean; clearTimeout?: boolean },
+          (...args: any[]) => void,
+          (err: Error) => void
+      ];
 
 export default class TF2GC {
     private readonly bot: Bot;
@@ -144,6 +149,7 @@ export default class TF2GC {
             }
 
             if (func) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 func();
             } else {
                 this.finishedProcessingJob(new Error('Unknown job type'));
@@ -344,7 +350,7 @@ export default class TF2GC {
         onFail: (err: Error) => void
     ): () => void;
 
-    private listenForEvent(...args: any[]): () => void {
+    private listenForEvent(...args: ListenForEvent): () => void {
         const event = args[0];
         const iterator =
             args.length === 4

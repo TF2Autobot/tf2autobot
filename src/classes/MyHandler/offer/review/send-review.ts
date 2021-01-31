@@ -6,7 +6,7 @@ import * as t from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
-    const time = t.timeNow(bot);
+    const time = t.timeNow(bot.options);
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
     const content = processReview(offer, meta, bot, isTradingKeys);

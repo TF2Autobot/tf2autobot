@@ -46,7 +46,7 @@ export class Entry {
 
     min: number;
 
-    intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
+    intent: 0 | 1 | 2;
 
     buy: Currencies | null;
 
@@ -97,7 +97,12 @@ export class Entry {
         }
 
         if (entry.note) {
-            this.note = entry.note;
+            if (entry.note.buy?.includes('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]') || entry.note.sell?.includes('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]')) {
+                // temporary upgrade v2 -> v3
+                this.note = { buy: null, sell: null };
+            } else {
+                this.note = entry.note;
+            }
         } else {
             this.note = { buy: null, sell: null };
         }
@@ -765,17 +770,6 @@ export default class Pricelist extends EventEmitter {
                     );
 
                 sendWebHookPriceUpdateV1(data.sku, match, time, this.schema, this.options);
-                // this.priceChanges.push({
-                //     sku: data.sku,
-                //     name: this.schema.getName(SKU.fromString(match.sku), false),
-                //     newPrice: match,
-                //     time: time
-                // });
-
-                // if (this.priceChanges.length > 4) {
-                //     this.sendWebHookPriceUpdate(this.priceChanges);
-                //     this.priceChanges.length = 0;
-                // }
             }
         }
     }

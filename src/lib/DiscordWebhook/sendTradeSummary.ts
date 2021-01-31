@@ -1,4 +1,4 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict } from 'steam-tradeoffer-manager';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
@@ -10,7 +10,6 @@ import Bot from '../../classes/Bot';
 export default async function sendTradeSummary(
     offer: TradeOffer,
     accepted: Accepted,
-    items: ItemSKUList,
     bot: Bot,
     processTime: number,
     isTradingKeys: boolean,
@@ -37,9 +36,11 @@ export default async function sendTradeSummary(
     const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;
     const skuToMention = optDW.tradeSummary.mentionOwner.itemSkus;
 
+    const dict = offer.data('dict') as ItemsDict;
+
     const isMentionOurItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
-              return items.our.some(ourItemSKU => {
+              return Object.keys(dict.our).some(ourItemSKU => {
                   return ourItemSKU.includes(fromEnv);
               });
           })
@@ -47,7 +48,7 @@ export default async function sendTradeSummary(
 
     const isMentionTheirItems = enableMentionOnSpecificSKU
         ? skuToMention.some(fromEnv => {
-              return items.their.some(theirItemSKU => {
+              return Object.keys(dict.their).some(theirItemSKU => {
                   return theirItemSKU.includes(fromEnv);
               });
           })
@@ -141,7 +142,7 @@ export default async function sendTradeSummary(
                     }
                 ],
                 footer: {
-                    text: `#${offer.id} • ${offer.partner.toString()} • ${t.timeNow(bot).time} • v${
+                    text: `#${offer.id} • ${offer.partner.toString()} • ${t.timeNow(bot.options).time} • v${
                         process.env.BOT_VERSION
                     }`
                 }

@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Item } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
 import isObject from 'isobject';
-
-// import log from './logger';
 
 export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     const schemaItem = schema.getItemByDefindex(item.defindex);
@@ -85,12 +83,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         }
 
         if (series !== null) {
-            // @TODO We are parsing a number from a number.
-            // If you meant to floor the int, use Math.floor()
-            // If you are expecting a string here,
-            // SchemaManager.attributes might be wrong.
-
-            // IdiNium: I don't parse it.
             item.crateseries = series;
         }
     }
@@ -110,34 +102,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
             item.quality2 = null;
         }
     }
-
-    // This is broken
-
-    // if (item.paintkit !== null) {
-    //     const hasCorrectPaintkitAttribute =
-    //         schema.raw.items_game.items[item.defindex].static_attrs !== undefined &&
-    //         schema.raw.items_game.items[item.defindex].static_attrs['paintkit_proto_def_index'] == item.paintkit;
-
-    //     if (schemaItem.item_quality != 15 || !hasCorrectPaintkitAttribute) {
-    //         for (const defindex in schema.raw.items_game.items) {
-    //             if (!Object.prototype.hasOwnProperty.call(schema.raw.items_game.items, defindex)) {
-    //                 continue;
-    //             }
-
-    //             const itemsGameItem = schema.raw.items_game.items[defindex];
-    //             if (itemsGameItem.prefab === undefined || !itemsGameItem.prefab.startsWith('paintkit')) {
-    //                 continue;
-    //             }
-
-    //             if (itemsGameItem.static_attrs['paintkit_proto_def_index'] == item.paintkit) {
-    //                 item.defindex = parseInt(defindex);
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // log.debug('item:', item);
 
     return item;
 }
