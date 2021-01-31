@@ -472,7 +472,7 @@ export default class MyHandler extends Handler {
 
                     if (
                         ([0, 2].includes(entry.intent) && amountCanBuy <= 0) ||
-                        ([0, 1].includes(entry.intent) && amountCanSell <= 0)
+                        ([1, 2].includes(entry.intent) && amountCanSell <= 0)
                     ) {
                         // Ignore items we can't buy or sell
                         return false;
