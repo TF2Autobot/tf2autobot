@@ -1848,10 +1848,10 @@ export default class MyHandler extends Handler {
                 tradesWithPeople.push({ steamID: steamID, trades: friendsWithTrades[steamID] });
             }
 
-            // Sorts people by trades and picks people with lowest amounts of trades
+            // Sorts people by trades and picks people with lowest amounts of trades but not the 2 latest people
             const friendsToRemove = tradesWithPeople
                 .sort((a, b) => a.trades - b.trades)
-                .splice(0, friendsToRemoveCount);
+                .splice(1, friendsToRemoveCount - 2 <= 0 ? 2 : friendsToRemoveCount);
 
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
             friendsToRemove.forEach(element => {
