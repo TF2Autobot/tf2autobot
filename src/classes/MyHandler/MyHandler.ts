@@ -455,6 +455,7 @@ export default class MyHandler extends Handler {
 
                 if (pricelist.length > 0) {
                     log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                    log.debug('items: ', pricelist);
                     await this.bot.listings.recursiveCheckPricelist(pricelist, true);
                     log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
                 } else {
