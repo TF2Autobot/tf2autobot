@@ -979,15 +979,6 @@ export default class MyHandler extends Handler {
                                     amountCanTrade: amountCanTrade
                                 });
 
-                                log.debug('OVERSTOCKED', {
-                                    offer: offer,
-                                    sku: sku,
-                                    which: which,
-                                    diff: diff,
-                                    amountCanTrade: amountCanTrade,
-                                    notIncludeCraftweapons: notIncludeCraftweapons
-                                });
-
                                 this.bot.listings.checkBySKU(match.sku, null, which === 'their');
                             } else {
                                 // Item was disabled
