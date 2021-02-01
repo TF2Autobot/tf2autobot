@@ -94,10 +94,12 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
         params['note'] = { buy: null, sell: null };
     }
 
-    if (typeof params.group !== undefined) {
+    if (params.group && typeof params.group !== 'string') {
         // if group parameter is defined, convert anything to string
         params.group = (params.group as string).toString();
-    } else {
+    }
+
+    if (typeof params.group === undefined) {
         // If group parameter is not defined, set it to null.
         params['group'] = 'all';
     }
@@ -236,10 +238,12 @@ export async function autoAddCommand(steamID: SteamID, message: string, bot: Bot
         params['note'] = { buy: null, sell: null };
     }
 
-    if (params.group !== undefined) {
-        // If group parameter is defined, convert anything to string
+    if (params.group && typeof params.group !== 'string') {
+        // if group parameter is defined, convert anything to string
         params.group = (params.group as string).toString();
-    } else {
+    }
+
+    if (typeof params.group === undefined) {
         // If group parameter is not defined, set it to null.
         params['group'] = 'all';
     }
@@ -782,8 +786,8 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         delete params.removesellnote;
     }
 
-    if (params.group !== undefined) {
-        // If group parameter is defined, convert anything to string
+    if (params.group && typeof params.group !== 'string') {
+        // if group parameter is defined, convert anything to string
         params.group = (params.group as string).toString();
     }
 
