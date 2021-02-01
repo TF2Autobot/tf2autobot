@@ -486,7 +486,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             return bot.sendMessage(steamID, 'Your pricelist is empty.');
         }
 
-        if (!params.withgroup || !params.withoutgroup) {
+        if (!params.withgroup && !params.withoutgroup) {
             if (typeof params.note === 'object') {
                 return bot.sendMessage(
                     steamID,
