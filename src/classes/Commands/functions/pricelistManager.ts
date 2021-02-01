@@ -486,18 +486,19 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             return bot.sendMessage(steamID, 'Your pricelist is empty.');
         }
 
-        if (!params.withgroup) {
+        if (!params.withgroup || !params.withoutgroup) {
             if (typeof params.note === 'object') {
                 return bot.sendMessage(
                     steamID,
-                    `❌ Please specify "withgroup" to change note.\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                    `❌ Please specify "withgroup" or "withoutgroup" to change note.` +
+                        `\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
                 );
             }
 
             if (typeof params.buy === 'object' || typeof params.sell === 'object') {
                 return bot.sendMessage(
                     steamID,
-                    `❌ Please specify "withgroup" to change buying/selling price.\nExample:\n` +
+                    `❌ Please specify "withgroup" or "withoutgroup" to change buying/selling price.\nExample:\n` +
                         `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
                 );
             }
