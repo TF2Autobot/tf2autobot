@@ -85,7 +85,10 @@ export default function updateListings(
             const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
 
             if (sellingMetalPriceInScrap >= keyPriceInScrap) {
-                sellingKeyPrice = Math.trunc(sellingMetalPriceInRef / keyPriceInRef);
+                const truncValue = Math.trunc(sellingMetalPriceInRef / keyPriceInRef);
+
+                sellingKeyPrice = sellingKeyPrice - truncValue === 0 ? sellingKeyPrice + 1 : sellingKeyPrice;
+
                 sellingMetalPriceInRef = Currencies.toRefined(
                     sellingMetalPriceInScrap - sellingKeyPrice * keyPriceInScrap
                 );
