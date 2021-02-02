@@ -89,9 +89,7 @@ export default function updateListings(
 
                 sellingKeyPrice = sellingKeyPrice - truncValue === 0 ? sellingKeyPrice + 1 : sellingKeyPrice;
 
-                sellingMetalPriceInRef = Currencies.toRefined(
-                    sellingMetalPriceInScrap - sellingKeyPrice * keyPriceInScrap
-                );
+                sellingMetalPriceInRef = Currencies.toRefined(sellingMetalPriceInScrap - truncValue * keyPriceInScrap);
             }
 
             const entry = {
