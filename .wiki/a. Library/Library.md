@@ -1,4 +1,20 @@
-# Options.json content
+# Table of content
+
+- [Options.json content](#optionsjson-content)
+- [Strange Parts](#strange-parts-excluding-built-in-parts)
+- [Paints](#paints)
+- [Crates/Cases](#cratescases)
+- [Sheens](#sheens)
+- [Killstreakers](#killstreakers)
+- [Spells](#spells)
+- [Default message/reply](#default-messagereply)
+    - [Auto Decline reply](#auto-decline-reply)
+    - [Declined with other reasons](#declined-with-other-reasons)
+    - [Accepted message](#accepted-message)
+        - [Automatic](#•-automatic)
+        - [Manual](#•-manual)
+
+# Options.json content [^](#table-of-content)
 
 ```
 {
@@ -327,6 +343,16 @@
             "banned": "",
             "escrow": "",
             "manual": ""
+        },
+        "accepted": {
+            "automatic": {
+                "largeOffer": '',
+                "smallOffer": ''
+            },
+            "manual": {
+                "largeOffer": '',
+                "smallOffer": ''
+            }
         },
         "tradedAway": "",
         "failedMobileConfirmation": "",
@@ -818,7 +844,7 @@
 }
 ```
 
-# Strange Parts (Excluding built-in parts)
+# Strange Parts (Excluding built-in parts) [^](#table-of-content)
 
 ```
 {
@@ -877,7 +903,7 @@
 }
 ```
 
-# Paints
+# Paints [^](#table-of-content)
 
 ```
 {
@@ -913,7 +939,7 @@
 }
 ```
 
-# Crates
+# Crates/Cases [^](#table-of-content)
 
 ```
 {
@@ -994,7 +1020,7 @@
 }
 ```
 
-# Sheen
+# Sheens [^](#table-of-content)
 
 ```
 {
@@ -1008,7 +1034,7 @@
 }
 ```
 
-# Killstreaker
+# Killstreakers [^](#table-of-content)
 
 ```
 {
@@ -1022,7 +1048,7 @@
 }
 ```
 
-# Spells
+# Spells [^](#table-of-content)
 
 ```
 {
@@ -1045,9 +1071,9 @@
 }
 ```
 
-# Default message/reply
+# Default message/reply [^](#table-of-content)
 
-## Auto Decline reply
+## - Auto Decline reply [^](#table-of-content)
 
 | Reason | Default |
 | :--: | :------ |
@@ -1058,7 +1084,7 @@
 | `🟩_UNDERSTOCKED` | "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because you're attempting to purchase item(s) that I can't sell more of." |
 | `🟫_DUPED_ITEMS` | "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because I don't accept duped items." |
 
-## Declined with other reasons
+## - Declined with other reasons [^](#table-of-content)
 
 | Reason | Default |
 | :--: | :------ |
@@ -1076,15 +1102,15 @@
 | `escrow` | "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.\nRead:\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218" |
 | `manual` | "/pre ❌ Ohh nooooes! The offer is no longer available. . Reason: The offer has been declined by the owner." |
 
-## Accepted message
+## - Accepted message [^](#table-of-content)
 
-### - Automatic
+### • Automatic [^](#table-of-content)
 | Type | Default |
 | :--: | :------ |
 | `bigOffer` | I have accepted your offer. The trade may take a while to finalize due to it being a large offer. If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
 | `smallOffer` | I have accepted your offer. The trade should be finalized shortly. If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
 
-### - Manual
+### • Manual [^](#table-of-content)
 | Type | Default |
 | :--: | :------ |
 | `bigOffer` | .\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer. If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
