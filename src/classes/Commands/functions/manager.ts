@@ -378,8 +378,6 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        // TODO: change back to master (in package.json) once ready to release
-
         const onFailed = (err: any, type: 'command' | 'restarting' | 'any') => {
             log.warn(
                 type === 'restarting'
