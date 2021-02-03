@@ -1,30 +1,33 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
+import { Meta, Understocked } from 'steam-tradeoffer-manager';
 import Bot from '../../../../Bot';
 
-import { Meta, Understocked } from 'steam-tradeoffer-manager';
-
 export default function understocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const wrong = meta.reasons;
+    const opt = bot.options.discordWebhook.offerReview;
     const understockedForTheir: string[] = [];
     const understockedForOur: string[] = [];
 
-    const understocked = wrong.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[];
-
-    understocked.forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
-        understockedForTheir.push(`${el.amountCanTrade} - ${name}`);
-        understockedForOur.push(`${name} (can only sell ${el.amountCanTrade})`);
+    (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
+        if (opt.enable && opt.url !== '') {
+            understockedForOur.push(
+                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade})`
+            );
+        } else {
+            understockedForOur.push(
+                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only sell ${el.amountCanTrade})`
+            );
+        }
+        understockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
     });
 
-    const note = bot.options.manualReview.understocked.note
-        ? `🟩_UNDERSTOCKED - ${bot.options.manualReview.understocked.note}`
-              .replace(/%name%/g, understockedForTheir.join(', ')) // %name% here will include amountCanTrade value
-              .replace(/%isName%/, pluralize('is', understockedForTheir.length))
-        : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`;
-    // Default note: I can only sell %amountCanTrade% - %name% right now.
-
-    const name = understockedForOur;
-
-    return { note, name };
+    return {
+        note: bot.options.manualReview.understocked.note
+            ? `🟩_UNDERSTOCKED - ${bot.options.manualReview.understocked.note}`
+                  .replace(/%itemsName%/g, understockedForTheir.join(', '))
+                  .replace(/%isOrAre%/, pluralize('is', understockedForTheir.length))
+            : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`,
+        // Default note: I can only sell %amountCanTrade% - %itemsName% right now.
+        name: understockedForOur
+    };
 }

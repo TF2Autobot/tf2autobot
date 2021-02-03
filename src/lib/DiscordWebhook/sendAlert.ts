@@ -1,39 +1,86 @@
-import { timeNow } from '../tools/time';
-import { Webhook } from './interfaces';
-
-import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 import { sendWebhook } from './utils';
-
+import { Webhook } from './interfaces';
 import log from '../logger';
+import { timeNow } from '../tools/time';
+import Bot from '../../classes/Bot';
+
+type AlertType =
+    | 'lowPure'
+    | 'queue-problem-perform-restart'
+    | 'queue-problem-not-restart-bptf-down'
+    | 'queue-problem-not-restart-steam-maintenance'
+    | 'failedPM2'
+    | 'failedRestartError'
+    | 'full-backpack'
+    | 'highValuedDisabled'
+    | 'highValuedInvalidItems'
+    | 'autoRemoveIntentSellFailed'
+    | 'autokeys-failedToDisable'
+    | 'autokeys-failedToAdd-bank'
+    | 'autokeys-failedToAdd-sell'
+    | 'autokeys-failedToAdd-buy'
+    | 'autokeys-failedToUpdate-bank'
+    | 'autokeys-failedToUpdate-sell'
+    | 'autokeys-failedToUpdate-buy'
+    | 'escrow-check-failed-perform-restart'
+    | 'escrow-check-failed-not-restart-bptf-down'
+    | 'escrow-check-failed-not-restart-steam-maintenance'
+    | 'tryingToTake'
+    | 'autoAddPaintedItems'
+    | 'autoAddPaintedItemsFailed';
 
 export default function sendAlert(
-    type: string,
+    type: AlertType,
     bot: Bot,
     msg: string | null = null,
-    position: number | null = null,
+    positionOrCount: number | null = null,
     err: any | null = null,
     items: string[] | null = null
 ): void {
-    const opt = bot.options;
-
-    const time = timeNow(opt.timezone, opt.customTimeFormat, opt.timeAdditionalNotes);
-
     let title: string;
     let description: string;
     let color: string;
+    let footer: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
         description = msg;
         color = '16776960'; // yellow
-    } else if (type === 'queue') {
-        title = 'Queue Alert';
-        description = `[Queue alert] Current position: ${position}, automatic restart initialized...`;
+    } else if (type === 'queue-problem-perform-restart') {
+        title = 'Queue Problem Alert';
+        description = `Current position: ${positionOrCount}, automatic restart initialized...`;
+        color = '16711680'; // red
+    } else if (
+        type === 'queue-problem-not-restart-bptf-down' ||
+        type === 'queue-problem-not-restart-steam-maintenance'
+    ) {
+        const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
+
+        title = 'Queue problem, unable to restart';
+        description = `Current position: ${positionOrCount}, unable to perform automatic restart because ${
+            isSteamDown ? 'Steam' : 'backpack.tf'
+        } is currently down.`;
+        color = '16711680'; // red
+    } else if (type === 'escrow-check-failed-perform-restart') {
+        title = 'Escrow check failed alert';
+        description = `Current failed count: ${positionOrCount}, automatic restart initialized...`;
+        color = '16711680'; // red
+    } else if (
+        type === 'escrow-check-failed-not-restart-bptf-down' ||
+        type === 'escrow-check-failed-not-restart-steam-maintenance'
+    ) {
+        const isSteamDown = type === 'escrow-check-failed-not-restart-steam-maintenance';
+
+        title = 'Escrow check failed, unable to restart';
+        description = `Current failed count: ${positionOrCount}, unable to perform automatic restart because ${
+            isSteamDown ? 'Steam' : 'backpack.tf'
+        } is currently down.`;
         color = '16711680'; // red
     } else if (type === 'failedPM2') {
         title = 'Automatic restart failed - no PM2';
-        description = `❌ Automatic restart on queue problem failed because are not running the bot with PM2! Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
+        description =
+            `❌ Automatic restart failed because you're not running the bot with PM2! ` +
+            `Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
@@ -41,8 +88,9 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
-        description = msg;
+        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
         color = '16711680'; // red
+        footer = `${items[1] ? `#${items[1]} • ` : ''}${items[0]} • `; // 0 - steamID, 1 - trade offer id
     } else if (type === 'highValuedDisabled') {
         title = 'Temporarily disabled items with High value attachments';
         description = msg;
@@ -51,22 +99,58 @@ export default function sendAlert(
         title = 'Received High-value invalid item(s)';
         description = msg;
         color = '8323327'; // purple
+    } else if (type === 'autoRemoveIntentSellFailed') {
+        title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '8323327'; // red
+    } else if (type === 'autoAddPaintedItems') {
+        title = 'Added painted items to sell';
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoAddPaintedItemsFailed') {
+        title = 'Failed to add painted items to sell';
+        description = msg;
+        color = '8323327'; // green
+    } else if (type.includes('autokeys-')) {
+        title =
+            type === 'autokeys-failedToDisable'
+                ? 'Failed to disable Autokeys'
+                : `Failed to ${type.includes('-failedToAdd') ? 'create' : 'update'} auto ${
+                      type.includes('-bank') ? 'banking' : type.includes('-buy') ? 'buying' : 'selling'
+                  } for keys - Autokeys`;
+        description = msg;
+        color = '8323327'; // red
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
         color = '8323327'; // purple
     }
 
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
-
-    const webhook = opt.discordWebhook;
+    const botInfo = bot.handler.getBotInfo;
+    const optDW = bot.options.discordWebhook;
 
     const sendAlertWebhook: Webhook = {
-        username: webhook.displayName ? webhook.displayName : botInfo.name,
-        avatar_url: webhook.avatarURL ? webhook.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName ? optDW.displayName : botInfo.name,
+        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content:
-            type === 'highValue' || type === 'highValuedDisabled' || type === 'failedRestartError'
-                ? `<@!${webhook.ownerID}>`
+            [
+                'highValue',
+                'highValuedDisabled',
+                'highValuedInvalidItems',
+                'failedRestartError',
+                'autoRemoveIntentSellFailed',
+                'autokeys-failedToDisable',
+                'autokeys-failedToAdd-bank',
+                'autokeys-failedToAdd-sell',
+                'autokeys-failedToAdd-buy',
+                'autokeys-failedToUpdate-bank',
+                'autokeys-failedToUpdate-sell',
+                'autokeys-failedToUpdate-buy',
+                'escrow-check-failed-not-restart-bptf-down',
+                'queue-problem-not-restart-bptf-down',
+                'autoAddPaintedItemsFailed'
+            ].includes(type) && optDW.sendAlert.isMention
+                ? `<@!${optDW.ownerID}>`
                 : '',
         embeds: [
             {
@@ -74,17 +158,13 @@ export default function sendAlert(
                 description: description,
                 color: color,
                 footer: {
-                    text: time.time
+                    text: `${footer ? `${footer} • ` : ''}${timeNow(bot.options).time} • v${process.env.BOT_VERSION}`
                 }
             }
         ]
     };
 
-    sendWebhook(webhook.sendAlert.url, sendAlertWebhook, 'alert')
-        .then(() => {
-            log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err);
-        });
+    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
+        .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
+        .catch(err => log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
 }

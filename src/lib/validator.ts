@@ -10,53 +10,15 @@ v.addSchema(pl.pricelistSchema);
 v.addSchema(pl.addSchema);
 v.addSchema(pl.listingSchema);
 
-import * as op from '../schemas/options-json/export';
+import { stringArrayURLSchema } from '../schemas/options-json/array-string-url';
+v.addSchema(stringArrayURLSchema);
 
-v.addSchema(op.stringArraySchema);
-v.addSchema(op.optionsSchema);
-v.addSchema(op.weaponsAsCurrencySchema);
-v.addSchema(op.tradeSummarySchema);
-v.addSchema(op.highValueSchema);
-v.addSchema(op.checkUsesSchema);
-v.addSchema(op.gameSchema);
-v.addSchema(op.normalizeSchema);
-v.addSchema(op.detailsSchema);
-v.addSchema(op.highValueDetailsSchema);
-v.addSchema(op.customMessageSchema);
-v.addSchema(op.statisticsSchema);
-
-v.addSchema(op.a.autokeysSchema);
-v.addSchema(op.a.bankingSchema);
-v.addSchema(op.a.scrapAdjustmentSchema);
-v.addSchema(op.a.acceptSchema);
-
-v.addSchema(op.c.craftingSchema);
-v.addSchema(op.c.weaponsSchema);
-v.addSchema(op.c.metalsSchema);
-
-v.addSchema(op.mv.manualReviewSchema);
-v.addSchema(op.mv.invalidValueSchema);
-v.addSchema(op.mv.autoDeclineIVSchema);
-v.addSchema(op.mv.exceptionValueIVSchema);
-v.addSchema(op.mv.invalidItemsSchema);
-v.addSchema(op.mv.overUnderstockedSchema);
-v.addSchema(op.mv.dupedSchema);
-v.addSchema(op.mv.dupedCheckFailedSchema);
-
-v.addSchema(op.dw.discordWebhookSchema);
-v.addSchema(op.dw.tradeSummaryDWSchema);
-v.addSchema(op.dw.miscTradeSummaryDWSchema);
-v.addSchema(op.dw.mentionOwnerSchema);
-v.addSchema(op.dw.offerReviewSchema);
-v.addSchema(op.dw.miscOfferReviewSchema);
-v.addSchema(op.dw.messagesSchema);
-v.addSchema(op.dw.priceUpdateSchema);
-v.addSchema(op.dw.sendAlertSchema);
+import { optionsSchema } from '../schemas/options-json/options';
+v.addSchema(optionsSchema);
 
 import { EntryData } from '../classes/Pricelist';
 import Options from '../classes/Options';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export = function (data: EntryData | Options, schema: string): string[] | null {
     const putSchema =
         schema === 'pricelist-add'
@@ -64,7 +26,7 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
             : schema === 'pricelist'
             ? pl.pricelistSchema
             : schema === 'options'
-            ? op.optionsSchema
+            ? optionsSchema
             : {};
 
     const validated = v.validate(data, putSchema);
@@ -72,8 +34,7 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
         return null;
     }
 
-    const errors = errorParser(validated);
-    return errors;
+    return errorParser(validated);
 };
 
 function errorParser(validated: jsonschema.ValidatorResult): string[] {
@@ -89,8 +50,7 @@ function errorParser(validated: jsonschema.ValidatorResult): string[] {
 
         let message = error.stack;
         if (error.name === 'additionalProperties') {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            message = `unknown property "${error.argument}"`;
+            message = `unknown property "${error.argument as string}"`;
         } else if (property) {
             if (error.name === 'anyOf') {
                 message = `"${property}" does not have a valid value`;

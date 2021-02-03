@@ -2,7 +2,7 @@
 declare module 'steam-tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager from 'tf2-schema-2';
+    import SchemaManager, { Paints } from 'tf2-schema-2';
     import Currencies from 'tf2-currencies';
 
     interface UnknownKeys<T> {
@@ -108,9 +108,14 @@ declare module 'steam-tradeoffer-manager' {
             highValue?: HighValueOutput; // Only offer sent // checked
             _dupeCheck?: string[]; // Only offer sent // checked
             _ourItems?: OutItems[]; // checked
-            reviewMeta?: ReviewMeta; // Only if offer need to be reviewed
             canceledByUser?: boolean; // checked
+            isFailedConfirmation?: boolean; // added
+            isCanceledUnknown?: boolean; // added
+            isInvalid?: boolean;
+            isDeclined?: boolean;
             switchedState?: number; // checked
+            donation?: boolean;
+            buyBptfPremium?: boolean;
         }
 
         export interface ItemsDict {
@@ -119,30 +124,24 @@ declare module 'steam-tradeoffer-manager' {
         }
 
         export interface OurTheirItemsDict {
-            [sku: string]: ItemsDictContent;
-        }
-
-        export interface ItemsDictContent {
-            amount?: number;
-            stock?: number;
-            maxStock?: number;
+            [sku: string]: number;
         }
 
         export interface ItemsValue {
-            our: Values;
-            their: Values;
-            rate: number;
+            our?: Values;
+            their?: Values;
+            rate?: number;
         }
 
         export interface Values {
-            total: number;
+            total?: number;
             keys: number;
             metal: number;
         }
 
         export interface PricesContent {
-            buy: Currencies;
-            sell: Currencies;
+            buy?: Currencies;
+            sell?: Currencies;
         }
 
         export interface Prices {
@@ -169,6 +168,11 @@ declare module 'steam-tradeoffer-manager' {
             selling: boolean;
             diff: number;
             amountCanTrade: number;
+        }
+
+        export interface DisabledItems {
+            reason: '🟧_DISABLED_ITEMS';
+            sku: string;
         }
 
         export interface InvalidItems {
@@ -212,6 +216,7 @@ declare module 'steam-tradeoffer-manager' {
         export type WrongAboutOffer =
             | Overstocked
             | Understocked
+            | DisabledItems
             | InvalidItems
             | InvalidValue
             | DupeCheckFailed
@@ -229,16 +234,25 @@ declare module 'steam-tradeoffer-manager' {
             result?: boolean[];
         }
 
-        interface HighValue {
-            has: boolean;
-            skus: string[];
-            names: string[];
-            isMention: boolean;
+        interface PartialSKUWithMention {
+            [partialSKU: string]: boolean;
         }
 
-        export interface HighValueInput {
-            our: HighValue;
-            their: HighValue;
+        interface ItemAttributes {
+            s?: string[];
+            sp?: PartialSKUWithMention;
+            ks?: PartialSKUWithMention;
+            ke?: PartialSKUWithMention;
+            p?: PartialSKUWithMention;
+        }
+
+        interface Items {
+            [sku: string]: ItemAttributes;
+        }
+
+        interface HighValue {
+            items: Items;
+            isMention: boolean;
         }
 
         interface HighValueBoolean {
@@ -246,26 +260,19 @@ declare module 'steam-tradeoffer-manager' {
             their: boolean;
         }
 
-        interface HighValueItems {
-            skus: string[];
-            names: string[];
+        interface HighValueItemsWhich {
+            our: Items;
+            their: Items;
         }
 
-        interface HighValueItemsWhich {
-            our: HighValueItems;
-            their: HighValueItems;
+        export interface HighValueInput {
+            our: HighValue;
+            their: HighValue;
         }
 
         export interface HighValueOutput {
-            has: HighValueBoolean;
             items: HighValueItemsWhich;
             isMention: HighValueBoolean;
-        }
-
-        export interface ReviewMeta {
-            uniqueReasons: string;
-            reasons: WrongAboutOffer[];
-            highValue: HighValueOutput;
         }
 
         export interface OutItems {
@@ -348,7 +355,7 @@ declare module 'steam-tradeoffer-manager' {
                 }
             ];
 
-            app_data: any;
+            app_data?: { def_index: string; quality?: string; quantity?: string; limited?: number };
 
             // Custom function added to prototype
             hasDescription(description: string): boolean;
@@ -365,7 +372,10 @@ declare module 'steam-tradeoffer-manager' {
             getSKU(
                 schema: SchemaManager.Schema,
                 normalizeFestivizedItems: boolean,
-                normalizeStrangeUnusual: boolean
+                normalizeStrangeAsSecondQuality: boolean,
+                normalizePainted: boolean,
+                paints: Paints,
+                paintsInOptions: string[]
             ): string | null;
         }
 
@@ -451,15 +461,6 @@ declare module 'steam-tradeoffer-manager' {
 
             // Custom function added to prototype
             log(level: string, message: string, ...meta: any[]);
-
-            // Custom function added to prototype
-            summarize(schema: SchemaManager.Schema): string;
-
-            summarizeWithStockChanges(schema: SchemaManager.Schema, type: string): string;
-
-            summarizeWithLink(schema: SchemaManager.Schema): string;
-
-            summarizeWithLinkWithStockChanges(schema: SchemaManager.Schema, type: string): string;
 
             // Custom function added to prototype
             getDiff(): UnknownKeys<any> | null;

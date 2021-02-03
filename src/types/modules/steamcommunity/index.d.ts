@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 declare module 'steamcommunity' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
@@ -11,14 +9,21 @@ declare module 'steamcommunity' {
         confKeyNeeded: (tag: string, callback: (err?: Error, time?: number, confKey?: string) => void) => void;
     }
 
+    interface Options {
+        request?: any; // An instance of request
+        timeout?: number;
+        userAgent?: string;
+        localAddress?: string;
+    }
+
     class SteamCommunity extends EventEmitter {
-        constructor(options?: object);
+        constructor(options?: Options);
 
         steamID: SteamID | null;
 
         _jar: CookieJar;
 
-        loggedIn(callback: Function): void;
+        loggedIn(callback: (err: any, loggedIn?: boolean, familyView?: boolean) => void): void;
 
         getSessionID(): string;
 

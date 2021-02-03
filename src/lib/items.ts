@@ -1,16 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Item } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
 import isObject from 'isobject';
 
-// import log from './logger';
-
 export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     const schemaItem = schema.getItemByDefindex(item.defindex);
-
     if (schemaItem === null) {
         return item;
     }
@@ -33,7 +30,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     const isPromo = isPromoItem(schemaItem);
-
     if (isPromo && item.quality != 1) {
         for (let i = 0; i < schema.raw.schema.items.length; i++) {
             if (
@@ -60,13 +56,8 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
 
         if (schemaItem.attributes !== undefined) {
             for (let i = 0; i < schemaItem.attributes.length; i++) {
-                const attribute = schemaItem.attributes[i];
-
-                if (
-                    attribute.name === 'set supply crate series'
-                    // !(attribute.value === 82 || attribute.value === 83 || attribute.value === 77)
-                ) {
-                    series = attribute.value;
+                if (schemaItem.attributes[i].name === 'set supply crate series') {
+                    series = schemaItem.attributes[i].value;
                 }
             }
         }
@@ -87,12 +78,6 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         }
 
         if (series !== null) {
-            // @TODO We are parsing a number from a number.
-            // If you meant to floor the int, use Math.floor()
-            // If you are expecting a string here,
-            // SchemaManager.attributes might be wrong.
-
-            // IdiNium: I don't parse it.
             item.crateseries = series;
         }
     }
@@ -100,41 +85,18 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     if (item.effect !== null) {
         if (item.quality === 11) {
             item.quality2 = 11;
+            item.quality = 5;
+        } else if (item.paintkit !== null) {
+            item.quality = 15;
+        } else {
+            item.quality = 5;
         }
-
-        item.quality = 5;
     } else if (item.paintkit !== null) {
         if (item.quality2 === 11) {
             item.quality = 11;
             item.quality2 = null;
         }
     }
-
-    // This is broken
-
-    // if (item.paintkit !== null) {
-    //     const hasCorrectPaintkitAttribute =
-    //         schema.raw.items_game.items[item.defindex].static_attrs !== undefined &&
-    //         schema.raw.items_game.items[item.defindex].static_attrs['paintkit_proto_def_index'] == item.paintkit;
-
-    //     if (schemaItem.item_quality != 15 || !hasCorrectPaintkitAttribute) {
-    //         for (const defindex in schema.raw.items_game.items) {
-    //             if (!Object.prototype.hasOwnProperty.call(schema.raw.items_game.items, defindex)) {
-    //                 continue;
-    //             }
-
-    //             const itemsGameItem = schema.raw.items_game.items[defindex];
-    //             if (itemsGameItem.prefab === undefined || !itemsGameItem.prefab.startsWith('paintkit')) {
-    //                 continue;
-    //             }
-
-    //             if (itemsGameItem.static_attrs['paintkit_proto_def_index'] == item.paintkit) {
-    //                 item.defindex = parseInt(defindex);
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
 
     return item;
 }

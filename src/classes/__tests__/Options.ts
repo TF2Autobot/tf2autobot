@@ -29,7 +29,8 @@ test('Parsing Options', () => {
     let result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.steamAccountName).toBe('abc123');
     expect(result.autokeys.minKeys).toBe(3);
-    expect(result.normalize.festivized).toBeFalsy();
+    expect(result.normalize.festivized.our).toBeFalsy();
+    expect(result.normalize.festivized.their).toBeFalsy();
 
     // test loading a string variable
     process.env.STEAM_ACCOUNT_NAME = 'test123';
@@ -61,8 +62,12 @@ test('Parsing Options', () => {
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
 
     // test loading booleans
-    result = Options.loadOptions({ steamAccountName: 'abc123', normalize: { festivized: true } });
-    expect(result.normalize.festivized).toBeTruthy();
+    result = Options.loadOptions({
+        steamAccountName: 'abc123',
+        normalize: { festivized: { our: false, their: false } }
+    });
+    expect(result.normalize.festivized.our).toBeFalsy();
+    expect(result.normalize.festivized.their).toBeFalsy();
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
 
     // test missing options in json
@@ -135,4 +140,10 @@ test('malformed json in the files dir should crash', () => {
                 "Parse error on line 2:\n...ntry\",\r\"unclosed\": \"string}\n----------------------^\nExpecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '[', got 'undefined'"
         )
     );
+});
+
+test('removes cli options', () => {
+    const testOptions = { steamAccountName: 'abc123' };
+    Options.removeCliOptions(testOptions);
+    expect(testOptions).toEqual({});
 });

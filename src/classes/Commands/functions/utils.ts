@@ -2,22 +2,22 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
+import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { Item } from '../../../types/TeamFortress2';
-import levenshtein from 'js-levenshtein';
-
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
-
-import { craftAll, uncraftAll } from '../../../lib/data';
+import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
-import { OurTheirItemsDict } from 'steam-tradeoffer-manager';
 
-export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): { match: Entry; amount: number } | null {
-    message = removeLinkProtocol(message);
-    let name = message;
+export function getItemAndAmount(
+    steamID: SteamID,
+    message: string,
+    bot: Bot,
+    from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
+): { match: Entry; amount: number } | null {
+    let name = removeLinkProtocol(message);
     let amount = 1;
-
     if (/^[-]?\d+$/.test(name.split(' ')[0])) {
         // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
         amount = parseInt(name.split(' ')[0]);
@@ -53,25 +53,89 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
     }
 
     let match = bot.pricelist.searchByName(name, true);
+    if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
+        const opt = bot.options.commands;
+
+        if (opt[from].enable === false && opt[from].disableForSKU.includes(match.sku)) {
+            const custom = opt[from].customReply.disabledForSKU;
+            bot.sendMessage(
+                steamID,
+                custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
+            );
+            return null;
+        }
+    }
+
     if (match === null) {
         // Search the item by Levenshtein distance to find a close match (if one exists)
         let lowestDistance = 999;
+        let lowestUnusualDistance = 999;
         let closestMatch: Entry = null;
-        for (const pricedItem of bot.pricelist.getPrices()) {
+        let closestUnusualMatch: Entry = null;
+        // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
+        const genericEffect = genericNameAndMatch(name, bot.effects);
+        for (const pricedItem of bot.pricelist.getPrices) {
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
                     lowestDistance = itemDistance;
                     closestMatch = pricedItem;
                 }
+                // genericNameAndMatch detected that the hat did start with an unusual effect
+                // so we will check to see if a generic SKU is found
+                if (genericEffect.effect) {
+                    const itemDistance = levenshtein(pricedItem.name, genericEffect.name);
+                    if (itemDistance < lowestUnusualDistance) {
+                        lowestUnusualDistance = itemDistance;
+                        closestUnusualMatch = pricedItem;
+                    }
+                }
             }
+        }
+
+        if (closestMatch === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
+                    '\n\nAlternatively, please try to:' +
+                    '\n• Remove "The".' +
+                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
+                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
+                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
+                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
+                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
+                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
+                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
+                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+            );
+            return null;
+        }
+
+        let matchName = closestMatch.name;
+
+        // this case is true only if someone entered 'Sunbeams Team Captain'
+        // and only 'Unusual Team Captain' was in the price list. If the
+        // specific hat is in the list the scores will be equal and we'll
+        // use the actual result
+        if (lowestUnusualDistance < lowestDistance) {
+            lowestDistance = lowestUnusualDistance;
+            closestMatch = closestUnusualMatch;
+            matchName = closestUnusualMatch.name;
+            // don't mutate any Entry objects from getPrices as they are live objects in the pricelist
+            closestMatch = closestMatch.clone();
+            // make the generic match's name equal to the specific effect that trigger the generic hit.
+            // if the hat named Sunbeams Team Captain, then the Entry result will be named Unusual Team Captain
+            closestMatch.name = closestUnusualMatch.name.replace('Unusual', genericEffect.name);
+            // the sku is generic '378;5' vs '378;5;u17' we we take the effect id that genericNameAndMatch
+            // returned and use that so that the pricelist sku now hits on the correct shopping cart item
+            closestMatch.sku = `${closestUnusualMatch.sku};u${genericEffect.effect.id}`;
         }
 
         // If we found an item that is different in 3-characters or less
         if (lowestDistance <= 3) {
             bot.sendMessage(
                 steamID,
-                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${closestMatch.name}" instead.`
+                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${matchName}" instead.`
             );
 
             return {
@@ -97,6 +161,7 @@ export function getItemAndAmount(steamID: SteamID, message: string, bot: Bot): {
         }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
+
         if (match.length > 20) {
             match = match.splice(0, 20);
         }
@@ -123,12 +188,9 @@ export function getItemFromParams(
     bot: Bot
 ): Item | null {
     const item = SKU.fromString('');
-
-    delete item.paint;
     delete item.craftnumber;
 
     let foundSomething = false;
-
     if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
@@ -136,9 +198,8 @@ export function getItemFromParams(
         const match: SchemaManager.SchemaItem[] = [];
 
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            const schemaItem = bot.schema.raw.schema.items[i];
-            if (schemaItem.item_name === params.name) {
-                match.push(schemaItem);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 
@@ -150,12 +211,12 @@ export function getItemFromParams(
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
-
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
                 ',\n'
             )}`;
+
             if (matchCount > parsed.length) {
                 const other = matchCount - parsed.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -192,7 +253,6 @@ export function getItemFromParams(
 
     if (params.defindex !== undefined) {
         const schemaItem = bot.schema.getItemByDefindex(params.defindex as number);
-
         if (schemaItem === null) {
             bot.sendMessage(
                 steamID,
@@ -213,11 +273,10 @@ export function getItemFromParams(
         if (quality === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find a quality in the schema with the name "${params.quality as number}".`
+                `❌ Could not find a quality in the schema with the name "${params.quality as string}".`
             );
             return null;
         }
-
         item.quality = quality;
     }
 
@@ -227,6 +286,18 @@ export function getItemFromParams(
             return null;
         }
         item.craftable = params.craftable;
+    }
+
+    if (params.paint !== undefined) {
+        const paint = bot.schema.getPaintDecimalByName(params.paint as string);
+        if (paint === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find a paint in the schema with the name "${params.paint as string}".`
+            );
+            return null;
+        }
+        item.paint = paint;
     }
 
     if (params.australium !== undefined) {
@@ -257,13 +328,11 @@ export function getItemFromParams(
             bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
             return null;
         }
-
         item.paintkit = paintkit;
     }
 
     if (params.effect !== undefined) {
         const effect = bot.schema.getEffectIdByName(params.effect as string);
-
         if (effect === null) {
             bot.sendMessage(
                 steamID,
@@ -271,15 +340,12 @@ export function getItemFromParams(
             );
             return null;
         }
-
         item.effect = effect;
     }
 
     if (typeof params.output === 'number') {
         // User gave defindex
-
         const schemaItem = bot.schema.getItemByDefindex(params.output);
-
         if (schemaItem === null) {
             bot.sendMessage(
                 steamID,
@@ -293,13 +359,11 @@ export function getItemFromParams(
         }
     } else if (item.output !== null) {
         // Look for all items that have the same name
-
         const match: SchemaManager.SchemaItem[] = [];
 
         for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            const schemaItem = bot.schema.raw.schema.items[i];
-            if (schemaItem.item_name === params.name) {
-                match.push(schemaItem);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 
@@ -311,12 +375,12 @@ export function getItemFromParams(
             return null;
         } else if (match.length !== 1) {
             const matchCount = match.length;
-
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
                 ',\n'
             )}`;
+
             if (matchCount > parsed.length) {
                 const other = matchCount - parsed.length;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -327,7 +391,6 @@ export function getItemFromParams(
         }
 
         item.output = match[0].defindex;
-
         if (item.outputQuality === null) {
             item.quality = match[0].item_quality;
         }
@@ -335,7 +398,6 @@ export function getItemFromParams(
 
     if (params.outputQuality !== undefined) {
         const quality = bot.schema.getQualityIdByName(params.outputQuality as string);
-
         if (quality === null) {
             bot.sendMessage(
                 steamID,
@@ -343,7 +405,6 @@ export function getItemFromParams(
             );
             return null;
         }
-
         item.outputQuality = quality;
     }
 
@@ -358,80 +419,7 @@ export function getItemFromParams(
     }
 
     delete params.name;
-
     return fixItem(item, bot.schema);
-}
-
-export function craftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
-
-    craftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: amount
-            });
-        }
-    });
-
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        return b.amount - a.amount;
-    });
-
-    const craftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            craftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return craftWeaponsStock;
-}
-
-export function uncraftWeapons(bot: Bot): string[] {
-    const items: { amount: number; name: string }[] = [];
-
-    uncraftAll.forEach(sku => {
-        const amount = bot.inventoryManager.getInventory().getAmount(sku);
-        if (amount > 0) {
-            items.push({
-                name: bot.schema.getName(SKU.fromString(sku), false),
-                amount: bot.inventoryManager.getInventory().getAmount(sku)
-            });
-        }
-    });
-
-    items.sort((a, b) => {
-        if (a.amount === b.amount) {
-            if (a.name < b.name) {
-                return -1;
-            } else if (a.name > b.name) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        return b.amount - a.amount;
-    });
-
-    const uncraftWeaponsStock: string[] = [];
-
-    if (items.length > 0) {
-        for (let i = 0; i < items.length; i++) {
-            uncraftWeaponsStock.push(`${items[i].name}: ${items[i].amount}`);
-        }
-    }
-    return uncraftWeaponsStock;
 }
 
 export function removeLinkProtocol(message: string): string {
@@ -442,33 +430,4 @@ export function testSKU(sku: string): boolean {
     return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
         sku
     );
-}
-
-export function summarizeItems(dict: OurTheirItemsDict, schema: SchemaManager.Schema): string {
-    if (dict === null) {
-        return 'unknown items';
-    }
-
-    const summary: string[] = [];
-
-    for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
-            continue;
-        }
-
-        const amount = dict[sku].amount;
-        const name = schema.getName(SKU.fromString(sku), false);
-
-        summary.push(name + (amount > 1 ? `x${amount}` : ''));
-    }
-
-    if (summary.length === 0) {
-        return 'nothing';
-    }
-
-    return summary.join(', ');
-}
-
-export function shufflePricelist(arr: Entry[]): Entry[] {
-    return arr.sort(() => Math.random() - 0.5);
 }

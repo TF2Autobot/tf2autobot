@@ -11,7 +11,5 @@ export = function (description: string): boolean {
         return false;
     }
 
-    return self.descriptions.some(d => {
-        return d.value === description;
-    });
+    return self.descriptions.some(d => d.value === description);
 };

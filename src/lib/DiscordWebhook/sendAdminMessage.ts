@@ -1,10 +1,7 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
 import log from '../logger';
-
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendAdminMessage(
     steamID: string,
@@ -15,7 +12,7 @@ export default function sendAdminMessage(
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
 
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
@@ -29,7 +26,7 @@ export default function sendAdminMessage(
                     icon_url: their.avatar_url_full
                 },
                 footer: {
-                    text: `v${process.env.BOT_VERSION} • ${steamID} • ${time}`
+                    text: `${steamID} • ${time} • v${process.env.BOT_VERSION}`
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,

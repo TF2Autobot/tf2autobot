@@ -1,23 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import { EconItem } from 'steam-tradeoffer-manager';
-import SchemaManager from 'tf2-schema-2';
-
+import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
-
-// import log from '../../../lib/logger';
-
 import { fixItem } from '../../items';
-import { crates } from '../../data';
 
 let isCrate = false;
 
 export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
-    normalizeStrangeUnusual: boolean
+    normalizeStrangeAsSecondQuality: boolean,
+    normalizePainted: boolean,
+    paints: Paints,
+    paintsInOptions: string[]
 ): string {
     const self = this as EconItem;
 
@@ -36,8 +32,9 @@ export = function (
             effect: getEffect(self, schema),
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self, normalizeStrangeUnusual),
-            crateseries: getCrateSeries(self)
+            quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
+            crateseries: getCrateSeries(self),
+            paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
         getOutput(self, schema)
     );
@@ -55,8 +52,6 @@ export = function (
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
 
-    // log.debug(SKU.fromObject(item).toString());
-
     return SKU.fromObject(item);
 };
 
@@ -70,7 +65,6 @@ function getDefindex(item: EconItem): number | null {
     }
 
     const link = item.getAction('Item Wiki Page...');
-
     if (link !== null) {
         return parseInt(url.parse(link, true).query.id.toString(), 10);
     }
@@ -153,7 +147,6 @@ function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null 
     }
 
     const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
-
     if (effects.length !== 1) {
         return null;
     }
@@ -186,12 +179,13 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     let skin: string | null = null;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (!hasCaseCollection && description.endsWith('Collection')) {
+        if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
             hasCaseCollection = true;
-        } else if (hasCaseCollection && (description.startsWith('✔') || description.startsWith('★'))) {
-            skin = description.substring(1).replace(' War Paint', '').trim();
+        } else if (
+            hasCaseCollection &&
+            (item.descriptions[i].value.startsWith('✔') || item.descriptions[i].value.startsWith('★'))
+        ) {
+            skin = item.descriptions[i].value.substring(1).replace(' War Paint', '').trim();
             break;
         }
     }
@@ -205,9 +199,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     }
 
     const schemaItem = schema.getItemByDefindex(getDefindex(item));
-
     // Remove weapon from skin name
-    skin = skin.replace(schemaItem.item_type_name, '').trim();
+    if (schemaItem !== null) {
+        skin = skin.replace(schemaItem.item_type_name, '').trim();
+    }
 
     return schema.getSkinIdByName(skin);
 }
@@ -215,17 +210,26 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
 /**
  * Gets the elevated quality of an item
  * @param item - Item object
- * @param normalizeStrangeUnusual - toggle strange unusual normalization
+ * @param normalizeStrangeAsSecondQuality - toggle strange unusual normalization
  */
-function getElevatedQuality(item: EconItem, normalizeStrangeUnusual: boolean): number | null {
-    const isNotNormalized = !normalizeStrangeUnusual;
-    const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
+function getElevatedQuality(
+    item: EconItem,
+    schema: SchemaManager.Schema,
+    normalizeStrangeAsSecondQuality: boolean
+): number | null {
+    const isNotNormalized = !normalizeStrangeAsSecondQuality;
+    const quality = getQuality(item, schema);
+
+    const isUnusualHat =
+        item.getTag('Type') === 'Cosmetic' &&
+        quality === 5 &&
+        item.type.includes('Strange') &&
+        item.type.includes('Points Scored');
+    const isOtherItemsNotStrangeQuality = item.type.startsWith('Strange') && quality !== 11;
+
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
-        (item.type.includes('Strange') &&
-            item.type.includes('Points Scored') &&
-            effects.length === 1 &&
-            isNotNormalized)
+        ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
     ) {
         return 11;
     } else {
@@ -240,9 +244,10 @@ function getOutput(
     let index = -1;
 
     for (let i = 0; i < item.descriptions.length; i++) {
-        const description = item.descriptions[i].value;
-
-        if (description == 'You will receive all of the following outputs once all of the inputs are fulfilled.') {
+        if (
+            item.descriptions[i].value ==
+            'You will receive all of the following outputs once all of the inputs are fulfilled.'
+        ) {
             index = i;
             break;
         }
@@ -263,7 +268,6 @@ function getOutput(
     let outputDefindex: number | null = null;
 
     const killstreak = getKillstreak(item);
-
     if (killstreak !== 0) {
         // Killstreak Kit Fabricator
 
@@ -326,7 +330,37 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         throw new Error('Could not find target for item "' + item.market_hash_name + '"');
     }
 
-    if (defindex === 6527) {
+    if (
+        [
+            6527, // general
+            5726, // Rocket Launcher
+            5727, // Scattergun
+            5728, // Sniper Rifle
+            5729, // Shotgun
+            5730, // Ubersaw
+            5731, // GRU
+            5732, // Spy-cicle
+            5733, // Axtinguisher
+            5743, // Sticky Launcher
+            5744, // Minigun
+            5745, // Direct Hit
+            5746, // Huntsman
+            5747, // Backburner
+            5748, // Backscatter
+            5749, // Kritzkrieg
+            5750, // Ambassador
+            5751, // Frontier Justice
+            5793, // Flaregun
+            5794, // Wrench
+            5795, // Revolver
+            5796, // Machina
+            5797, // Baby Face Blaster
+            5798, // Huo Long Heatmaker
+            5799, // Loose Cannon
+            5800, // Vaccinator
+            5801 // Air Strike
+        ].includes(defindex)
+    ) {
         // Killstreak Kit
         return schema.getItemByItemName(
             item.market_hash_name
@@ -360,6 +394,70 @@ function getCrateSeries(item: EconItem): number | null {
 
     let series: number | null = null;
 
+    const crates: { [type: string]: { [name: string]: number } } = {
+        is5022: {
+            'Mann Co. Supply Crate Series #1': 1,
+            'Mann Co. Supply Crate Series #3': 3,
+            'Mann Co. Supply Crate Series #7': 7,
+            'Mann Co. Supply Crate Series #12': 12,
+            'Mann Co. Supply Crate Series #13': 13,
+            'Mann Co. Supply Crate Series #18': 18,
+            'Mann Co. Supply Crate Series #19': 19,
+            'Mann Co. Supply Crate Series #23': 23,
+            'Mann Co. Supply Crate Series #26': 26,
+            'Mann Co. Supply Crate Series #31': 31,
+            'Mann Co. Supply Crate Series #34': 34,
+            'Mann Co. Supply Crate Series #39': 39,
+            'Mann Co. Supply Crate Series #43': 43,
+            'Mann Co. Supply Crate Series #47': 47,
+            'Mann Co. Supply Crate Series #54': 54,
+            'Mann Co. Supply Crate Series #57': 57,
+            'Mann Co. Supply Crate Series #75': 75
+        },
+        is5041: {
+            'Mann Co. Supply Crate Series #2': 2,
+            'Mann Co. Supply Crate Series #4': 4,
+            'Mann Co. Supply Crate Series #8': 8,
+            'Mann Co. Supply Crate Series #11': 11,
+            'Mann Co. Supply Crate Series #14': 14,
+            'Mann Co. Supply Crate Series #17': 17,
+            'Mann Co. Supply Crate Series #20': 20,
+            'Mann Co. Supply Crate Series #24': 24,
+            'Mann Co. Supply Crate Series #27': 27,
+            'Mann Co. Supply Crate Series #32': 32,
+            'Mann Co. Supply Crate Series #37': 37,
+            'Mann Co. Supply Crate Series #42': 42,
+            'Mann Co. Supply Crate Series #44': 44,
+            'Mann Co. Supply Crate Series #49': 49,
+            'Mann Co. Supply Crate Series #56': 56,
+            'Mann Co. Supply Crate Series #71': 71,
+            'Mann Co. Supply Crate Series #76': 76
+        },
+        is5045: {
+            'Mann Co. Supply Crate Series #5': 5,
+            'Mann Co. Supply Crate Series #9': 9,
+            'Mann Co. Supply Crate Series #10': 10,
+            'Mann Co. Supply Crate Series #15': 15,
+            'Mann Co. Supply Crate Series #16': 16,
+            'Mann Co. Supply Crate Series #21': 21,
+            'Mann Co. Supply Crate Series #25': 25,
+            'Mann Co. Supply Crate Series #28': 28,
+            'Mann Co. Supply Crate Series #29': 29,
+            'Mann Co. Supply Crate Series #33': 33,
+            'Mann Co. Supply Crate Series #38': 38,
+            'Mann Co. Supply Crate Series #41': 41,
+            'Mann Co. Supply Crate Series #45': 45,
+            'Mann Co. Supply Crate Series #55': 55,
+            'Mann Co. Supply Crate Series #59': 59,
+            'Mann Co. Supply Crate Series #77': 77
+        },
+        is5068: {
+            'Salvaged Mann Co. Supply Crate #30': 30,
+            'Salvaged Mann Co. Supply Crate #40': 40,
+            'Salvaged Mann Co. Supply Crate #50': 50
+        }
+    };
+
     if (defindex === 5022 && Object.keys(crates.is5022).includes(item.market_hash_name)) {
         series = crates.is5022[item.market_hash_name];
     } else if (defindex === 5041 && Object.keys(crates.is5041).includes(item.market_hash_name)) {
@@ -368,8 +466,6 @@ function getCrateSeries(item: EconItem): number | null {
         series = crates.is5045[item.market_hash_name];
     } else if (defindex === 5068 && Object.keys(crates.is5068).includes(item.market_hash_name)) {
         series = crates.is5068[item.market_hash_name];
-    } else if (Object.keys(crates.isOther).includes(defindex.toString())) {
-        series = crates.isOther[defindex];
     }
 
     if (series !== null) {
@@ -379,4 +475,29 @@ function getCrateSeries(item: EconItem): number | null {
         isCrate = false;
         return null;
     }
+}
+
+function getPainted(
+    item: EconItem,
+    normalizePainted: boolean,
+    paints: Paints,
+    paintsInOptions: string[]
+): number | null {
+    if (normalizePainted) {
+        return null;
+    }
+
+    const descriptions = item.descriptions;
+
+    for (let i = 0; i < descriptions.length; i++) {
+        if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
+            const name = descriptions[i].value.replace('Paint Color: ', '').trim();
+
+            if (paintsInOptions.includes(name.toLowerCase())) {
+                return +paints[name].replace('p', '');
+            }
+        }
+    }
+
+    return null;
 }

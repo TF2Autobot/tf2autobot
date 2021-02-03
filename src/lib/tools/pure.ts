@@ -33,13 +33,15 @@ export function stock(bot: Bot): string[] {
         if (i < 1 && totalKeys < 1) {
             continue;
         }
+
         pureStock.push(`${pureCombine[i].amount} ${pureCombine[i].name}`);
     }
+
     return pureStock;
 }
 
 export function currPure(bot: Bot): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
-    const currencies = bot.inventoryManager.getInventory().getCurrencies();
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
 
     const currKeys = currencies['5021;6'].length;
     const currScrap = currencies['5000;6'].length;
@@ -50,14 +52,13 @@ export function currPure(bot: Bot): { key: number; scrap: number; rec: number; r
 
     const currRef = currencies['5002;6'].length;
 
-    const currReftoScrap = Currencies.toScrap(currRef + currRecValue + currScrapValue);
+    const currRefToScrap = Currencies.toScrap(currRef + currRecValue + currScrapValue);
 
-    const pure = {
+    return {
         key: currKeys,
         scrap: currScrap,
         rec: currRec,
         ref: currRef,
-        refTotalInScrap: currReftoScrap
+        refTotalInScrap: currRefToScrap
     };
-    return pure;
 }

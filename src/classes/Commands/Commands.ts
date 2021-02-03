@@ -2,58 +2,114 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
-import sleepasync from 'sleep-async';
-
 import dayjs from 'dayjs';
 
 import * as c from './functions/export';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
+import { getSkuAmountCanTrade } from '../Inventory';
 import Cart from '../Carts/Cart';
 import AdminCart from '../Carts/AdminCart';
 import UserCart from '../Carts/UserCart';
-import MyHandler from '../MyHandler/MyHandler';
-import CartQueue from '../Carts/CartQueue';
-import Autokeys from '../Autokeys/Autokeys';
-
-import { fixItem } from '../../lib/items';
-import { requestCheck, getPrice, getSales } from '../../lib/ptf-api';
-import log from '../../lib/logger';
-import { ignoreWords } from '../../lib/data';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
+import CartQueue from '../Carts/CartQueue';
+
+import { fixItem } from '../../lib/items';
+
+type Instant = 'buy' | 'b' | 'sell' | 's';
+type CraftUncraft = 'craftweapon' | 'uncraftweapon';
+type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
+type BlockUnblock = 'block' | 'unblock';
+type NameAvatar = 'name' | 'avatar';
+type TF2GC = 'expand' | 'use' | 'delete';
+type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
 
 export default class Commands {
     private readonly bot: Bot;
-
-    readonly autokeys: Autokeys;
 
     private isDonating = false;
 
     constructor(bot: Bot) {
         this.bot = bot;
-        this.autokeys = new Autokeys(bot);
     }
 
-    get cartQueue(): CartQueue {
-        return (this.bot.getHandler() as MyHandler).cartQueue;
+    private get cartQueue(): CartQueue {
+        return this.bot.handler.cartQueue;
+    }
+
+    private get weaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
+        return {
+            enable: this.bot.options.miscSettings.weaponsAsCurrency.enable,
+            withUncraft: this.bot.options.miscSettings.weaponsAsCurrency.withUncraft
+        };
     }
 
     processMessage(steamID: SteamID, message: string): void {
         const command = CommandParser.getCommand(message.toLowerCase());
-
         const isAdmin = this.bot.isAdmin(steamID);
 
-        const opt = this.bot.options;
+        const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
 
-        const isNoReply =
-            ignoreWords.startsWith.some(word => {
-                return message.startsWith(word);
-            }) ||
-            ignoreWords.endsWith.some(word => {
-                return message.endsWith(word);
-            });
+        if (checkMessage > 1) {
+            return this.bot.sendMessage(steamID, "⛔ Don't spam");
+        }
+
+        const ignoreWords: { [type: string]: string[] } = {
+            startsWith: [
+                'I',
+                '❌',
+                'Hi',
+                '🙋🏻‍♀️Hi',
+                '⚠',
+                '⚠️',
+                '✅',
+                '⌛',
+                '💲',
+                '📜',
+                '🛒',
+                '💰',
+                'Here',
+                'The',
+                'Please',
+                'You',
+                '/quote',
+                '/pre',
+                '/me',
+                '/code',
+                'Oh',
+                'Success!',
+                'Hey',
+                'Unfortunately',
+                '==',
+                '💬',
+                '⇌',
+                'Command',
+                'Hello',
+                '✋ Hold on',
+                'Hold on',
+                'Sending',
+                '👋 Welcome',
+                'Welcome',
+                'To',
+                '🔰',
+                'My',
+                'Owner',
+                'Bot',
+                'Those',
+                '👨🏼‍💻',
+                '🔶',
+                'Buying',
+                '🔷',
+                'Selling',
+                '📥',
+                'Stock',
+                'Thank',
+                'Unknown'
+            ],
+            endsWith: ['cart.', 'checkout.', '✅']
+        };
 
         if (command === 'help') {
             c.help.helpCommand(steamID, this.bot);
@@ -61,16 +117,14 @@ export default class Commands {
             c.help.howToTradeCommand(steamID, this.bot);
         } else if (['price', 'pc'].includes(command)) {
             this.priceCommand(steamID, message);
-        } else if (['buy', 'b'].includes(command)) {
-            this.buyCommand(steamID, message);
-        } else if (['sell', 's'].includes(command)) {
-            this.sellCommand(steamID, message);
+        } else if (['buy', 'b', 'sell', 's'].includes(command)) {
+            this.buyOrSellCommand(steamID, message, command as Instant);
         } else if (command === 'buycart') {
             this.buyCartCommand(steamID, message);
         } else if (command === 'sellcart') {
             this.sellCartCommand(steamID, message);
         } else if (command === 'cart') {
-            this.cartCommand(steamID, opt.weaponsAsCurrency.enable);
+            this.cartCommand(steamID);
         } else if (command === 'clearcart') {
             this.clearCartCommand(steamID);
         } else if (command === 'checkout') {
@@ -79,32 +133,20 @@ export default class Commands {
             this.cancelCommand(steamID);
         } else if (command === 'queue') {
             this.queueCommand(steamID);
-        } else if (command === 'owner') {
-            c.misc.ownerCommand(steamID, this.bot);
-        } else if (command === 'discord') {
-            c.misc.discordCommand(steamID, this.bot);
+        } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
+            c.misc.miscCommand(steamID, this.bot, command as Misc);
+        } else if (command === 'paints' && isAdmin) {
+            c.misc.paintsCommand(steamID, this.bot);
         } else if (command === 'more') {
             c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
-            c.manager.autoKeysCommand(steamID, this.bot, this.autokeys);
+            c.manager.autoKeysCommand(steamID, this.bot);
         } else if (command === 'message') {
             c.messageCommand(steamID, message, this.bot);
-        } else if (command === 'time') {
-            c.misc.timeCommand(steamID, this.bot);
-        } else if (command === 'uptime') {
-            c.misc.uptimeCommand(steamID, this.bot);
-        } else if (command === 'pure') {
-            c.misc.pureCommand(steamID, this.bot);
-        } else if (command === 'rate') {
-            c.misc.rateCommand(steamID, this.bot);
-        } else if (command === 'stock') {
-            c.misc.stockCommand(steamID, this.bot);
-        } else if (command === 'craftweapon') {
-            c.misc.craftweaponCommand(steamID, this.bot);
-        } else if (command === 'uncraftweapon') {
-            c.misc.uncraftweaponCommand(steamID, this.bot);
+        } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
+            c.misc.weaponCommand(steamID, this.bot, command as CraftUncraft);
         } else if (command === 'sales' && isAdmin) {
-            void this.getSalesCommand(steamID, message);
+            void c.request.getSalesCommand(steamID, message, this.bot);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
@@ -112,39 +154,39 @@ export default class Commands {
         } else if (command === 'add' && isAdmin) {
             c.pricelist.addCommand(steamID, message, this.bot);
         } else if (command === 'update' && isAdmin) {
-            c.pricelist.updateCommand(steamID, message, this.bot);
+            void c.pricelist.updateCommand(steamID, message, this.bot);
         } else if (command === 'remove' && isAdmin) {
-            c.pricelist.removeCommand(steamID, message, this.bot);
+            void c.pricelist.removeCommand(steamID, message, this.bot);
         } else if (command === 'get' && isAdmin) {
             c.pricelist.getCommand(steamID, message, this.bot);
+        } else if (command === 'autoadd' && isAdmin) {
+            void c.pricelist.autoAddCommand(steamID, message, this.bot);
+        } else if (command === 'stopautoadd' && isAdmin) {
+            c.pricelist.stopAutoAddCommand();
         } else if (command === 'shuffle' && isAdmin) {
-            c.pricelist.shuffleCommand(steamID, this.bot);
-        } else if (command === 'expand' && isAdmin) {
-            c.manager.expandCommand(steamID, message, this.bot);
-        } else if (command === 'delete' && isAdmin) {
-            c.manager.deleteCommand(steamID, message, this.bot);
-        } else if (command === 'use' && isAdmin) {
-            c.manager.useCommand(steamID, message, this.bot);
-        } else if (command === 'name' && isAdmin) {
-            c.manager.nameCommand(steamID, message, this.bot);
-        } else if (command === 'avatar' && isAdmin) {
-            c.manager.avatarCommand(steamID, message, this.bot);
-        } else if (command === 'unblock' && isAdmin) {
-            c.manager.unblockCommand(steamID, message, this.bot);
-        } else if (command === 'block' && isAdmin) {
-            c.manager.blockCommand(steamID, message, this.bot);
+            void c.pricelist.shuffleCommand(steamID, this.bot);
+        } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
+            c.manager.TF2GCCommand(steamID, message, this.bot, command as TF2GC);
+        } else if (['name', 'avatar'].includes(command) && isAdmin) {
+            c.manager.nameAvatarCommand(steamID, message, this.bot, command as NameAvatar);
+        } else if (['block', 'unblock'].includes(command) && isAdmin) {
+            c.manager.blockUnblockCommand(steamID, message, this.bot, command as BlockUnblock);
+        } else if (command === 'clearfriends' && isAdmin) {
+            c.manager.clearFriendsCommand(steamID, this.bot);
         } else if (command === 'stop' && isAdmin) {
             c.manager.stopCommand(steamID, this.bot);
         } else if (command === 'restart' && isAdmin) {
             c.manager.restartCommand(steamID, this.bot);
+        } else if (command === 'updaterepo' && isAdmin) {
+            void c.manager.updaterepoCommand(steamID, this.bot, message);
         } else if (command === 'refreshautokeys' && isAdmin) {
-            c.manager.refreshAutokeysCommand(steamID, this.bot, this.autokeys);
+            c.manager.refreshAutokeysCommand(steamID, this.bot);
         } else if (command === 'refreshlist' && isAdmin) {
             c.manager.refreshListingsCommand(steamID, this.bot);
-        } else if (command === 'resetqueue') {
-            c.manager.resetQueueCommand(steamID, this.bot, this.cartQueue);
         } else if (command === 'stats' && isAdmin) {
             c.botStatus.statsCommand(steamID, this.bot);
+        } else if (command === 'statsdw' && isAdmin) {
+            c.botStatus.statsDWCommand(steamID, this.bot);
         } else if (command === 'inventory' && isAdmin) {
             c.botStatus.inventoryCommand(steamID, this.bot);
         } else if (command === 'version' && isAdmin) {
@@ -153,16 +195,14 @@ export default class Commands {
             c.review.tradesCommand(steamID, this.bot);
         } else if (command === 'trade' && isAdmin) {
             c.review.tradeCommand(steamID, message, this.bot);
-        } else if (['accepttrade', 'accept'].includes(command) && isAdmin) {
-            c.review.accepttradeCommand(steamID, message, this.bot);
-        } else if (['declinetrade', 'decline'].includes(command) && isAdmin) {
-            c.review.declinetradeCommand(steamID, message, this.bot);
+        } else if (['accepttrade', 'accept', 'declinetrade', 'decline'].includes(command) && isAdmin) {
+            void c.review.actionOnTradeCommand(steamID, message, this.bot, command as ActionOnTrade);
         } else if (command === 'pricecheck' && isAdmin) {
-            this.pricecheckCommand(steamID, message);
+            c.request.pricecheckCommand(steamID, message, this.bot);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void this.pricecheckAllCommand(steamID);
+            void c.request.pricecheckAllCommand(steamID, this.bot);
         } else if (command === 'check' && isAdmin) {
-            void this.checkCommand(steamID, message);
+            void c.request.checkCommand(steamID, message, this.bot);
         } else if (command === 'find' && isAdmin) {
             c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
@@ -174,29 +214,37 @@ export default class Commands {
         } else if (command === 'donatenow' && isAdmin) {
             this.donateNowCommand(steamID);
         } else if (command === 'donatecart' && isAdmin) {
-            this.donateCartCommand(steamID, opt.weaponsAsCurrency.enable);
+            this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
-        } else if (isNoReply) {
+        } else if (
+            ignoreWords.startsWith.some(word => message.startsWith(word)) ||
+            ignoreWords.endsWith.some(word => message.endsWith(word))
+        ) {
             return;
         } else {
+            const custom = this.bot.options.customMessage.iDontKnowWhatYouMean;
             this.bot.sendMessage(
                 steamID,
-                opt.customMessage.iDontKnowWhatYouMean
-                    ? opt.customMessage.iDontKnowWhatYouMean
-                    : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
+                custom ? custom : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.price;
 
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
         if (info === null) {
             return;
         }
-
-        const isAdmin = this.bot.isAdmin(steamID);
 
         const match = info.match;
         const amount = info.amount;
@@ -206,9 +254,7 @@ export default class Commands {
         const isBuying = match.intent === 0 || match.intent === 2;
         const isSelling = match.intent === 1 || match.intent === 2;
 
-        const keyPrice = this.bot.pricelist.getKeyPrice();
-
-        const isKey = match.sku === '5021;6';
+        const keyPrice = this.bot.pricelist.getKeyPrice;
 
         if (isBuying) {
             reply = '💲 I am buying ';
@@ -218,15 +264,13 @@ export default class Commands {
             }
 
             // If the amount is 1, then don't convert to value and then to currencies. If it is for keys, then don't use conversion rate
-            const currencies =
-                amount === 1
-                    ? match.buy
-                    : Currencies.toCurrencies(
-                          match.buy.toValue(keyPrice.metal) * amount,
-                          isKey ? undefined : keyPrice.metal
-                      );
-
-            reply += `${pluralize(match.name, 2)} for ${currencies.toString()}`;
+            reply += `${pluralize(match.name, 2)} for ${(amount === 1
+                ? match.buy
+                : Currencies.toCurrencies(
+                      match.buy.toValue(keyPrice.metal) * amount,
+                      match.sku === '5021;6' ? undefined : keyPrice.metal
+                  )
+            ).toString()}`;
         }
 
         if (isSelling) {
@@ -235,7 +279,7 @@ export default class Commands {
                     ? match.sell
                     : Currencies.toCurrencies(
                           match.sell.toValue(keyPrice.metal) * amount,
-                          isKey ? undefined : keyPrice.metal
+                          match.sku === '5021;6' ? undefined : keyPrice.metal
                       );
 
             if (reply === '') {
@@ -253,7 +297,7 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory().getAmount(match.sku)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, true)}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
@@ -265,7 +309,7 @@ export default class Commands {
 
         reply += '. ';
 
-        if (match.autoprice && isAdmin) {
+        if (match.autoprice && this.bot.isAdmin(steamID)) {
             reply += ` (price last updated ${dayjs.unix(match.time).fromNow()})`;
         }
 
@@ -274,38 +318,36 @@ export default class Commands {
 
     // Instant item trade
 
-    private buyCommand(steamID: SteamID, message: string): void {
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant): void {
+        const opt = this.bot.options.commands[command === 'b' ? 'buy' : command === 's' ? 'sell' : command];
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(
+            steamID,
+            CommandParser.removeCommand(message),
+            this.bot,
+            command === 'b' ? 'buy' : command === 's' ? 'sell' : command
+        );
 
         if (info === null) {
             return;
         }
 
-        const match = info.match;
-        const amount = info.amount;
+        const cart = new UserCart(
+            steamID,
+            this.bot,
+            this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+        );
 
-        const cart = new UserCart(steamID, this.bot);
-        cart.setNotify(true);
-
-        cart.addOurItem(match.sku, amount);
-
-        this.addCartToQueue(cart, false, false);
-    }
-
-    private sellCommand(steamID: SteamID, message: string): void {
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
-
-        if (info === null) {
-            return;
-        }
-
-        const match = info.match;
-        const amount = info.amount;
-
-        const cart = new UserCart(steamID, this.bot);
-        cart.setNotify(true);
-
-        cart.addTheirItem(match.sku, amount);
+        cart.setNotify = true;
+        cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
 
         this.addCartToQueue(cart, false, false);
     }
@@ -314,51 +356,63 @@ export default class Commands {
 
     private buyCartCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
+
         if (currentCart !== null && !(currentCart instanceof UserCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
-            return;
         }
 
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.buycart;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            }
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buycart');
 
         if (info === null) {
             return;
         }
 
-        const match = info.match;
         let amount = info.amount;
+        const cart =
+            Cart.getCart(steamID) ||
+            new UserCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
 
-        const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
+        const cartAmount = cart.getOurCount(info.match.sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, true);
+        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
 
-        const cartAmount = cart.getOurCount(match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(match.sku);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, false) - cartAmount;
-
-        const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(info.match.sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 'I ' +
                     (ourAmount > 0 ? "can't sell" : "don't have") +
                     ` any ${(cartAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
             );
-            return;
         }
 
         if (amount > amountCanTrade) {
             amount = amountCanTrade;
 
             if (amount === cartAmount && cartAmount > 0) {
-                this.bot.sendMessage(
+                return this.bot.sendMessage(
                     steamID,
                     `I don't have any ${(ourAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
                 );
-                return;
             }
 
             this.bot.sendMessage(
@@ -367,121 +421,135 @@ export default class Commands {
                     (amount > 1 ? 'They have' : 'It has') +
                     ' been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
-        } else {
+        } else
             this.bot.sendMessage(
                 steamID,
                 `✅ ${pluralize(name, Math.abs(amount), true)}` +
                     ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
-        }
 
-        cart.addOurItem(match.sku, amount);
-
+        cart.addOurItem(info.match.sku, amount);
         Cart.addCart(cart);
     }
 
     private sellCartCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
         if (currentCart !== null && !(currentCart instanceof UserCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
-            return;
         }
 
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        const opt = this.bot.options.commands.sellcart;
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            }
+        }
 
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sellcart');
         if (info === null) {
             return;
         }
 
-        const match = info.match;
         let amount = info.amount;
 
-        const cart = Cart.getCart(steamID) || new UserCart(steamID, this.bot);
+        const cart =
+            Cart.getCart(steamID) ||
+            new UserCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
+        const skuCount = getSkuAmountCanTrade(info.match.sku, this.bot);
 
-        const cartAmount = cart.getTheirCount(match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(match.sku);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(match.sku, true) - cartAmount;
+        let cartAmount: number;
+        if (skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric) {
+            cartAmount = cart.getTheirCount(info.match.sku);
+        } else {
+            cartAmount = cart.getTheirGenericCount(info.match.sku);
+        }
 
-        const name = this.bot.schema.getName(SKU.fromString(match.sku), false);
+        const amountCanTrade = skuCount.mostCanTrade - cartAmount;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 'I ' +
-                    (ourAmount > 0 ? "can't buy" : "don't want") +
-                    ` any ${(cartAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
+                    (skuCount.mostCanTrade > 0 ? "can't buy" : "don't want") +
+                    ` any ${(cartAmount > 0 ? 'more ' : '') + pluralize(skuCount.name, 0)}.`
             );
-            return;
         }
 
         if (amount > amountCanTrade) {
             amount = amountCanTrade;
 
             if (amount === cartAmount && cartAmount > 0) {
-                this.bot.sendMessage(steamID, `I unable to trade any more ${pluralize(name, 0)}.`);
-                return;
+                return this.bot.sendMessage(steamID, `I unable to trade any more ${pluralize(skuCount.name, 0)}.`);
             }
 
             this.bot.sendMessage(
                 steamID,
-                `I can only buy ${pluralize(name, amount, true)}. ` +
+                `I can only buy ${pluralize(skuCount.name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
                     ' been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
         } else {
             this.bot.sendMessage(
                 steamID,
-                `✅ ${pluralize(name, Math.abs(amount), true)}` +
+                `✅ ${pluralize(skuCount.name, Math.abs(amount), true)}` +
                     ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
         }
 
-        cart.addTheirItem(match.sku, amount);
-
+        cart.addTheirItem(info.match.sku, amount);
         Cart.addCart(cart);
     }
 
-    private cartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
+    private cartCommand(steamID: SteamID): void {
+        const opt = this.bot.options.commands.cart;
+
+        if (!opt.enable) {
+            if (!this.bot.isAdmin(steamID)) {
+                const custom = opt.customReply.disabled;
+                return this.bot.sendMessage(steamID, custom ? custom : '❌ This command is disabled by the owner.');
+            }
+        }
         if (this.isDonating) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `You're about to send donation. Send "!donatecart" to view your donation cart summary or "!donatenow" to send donation now.`
             );
-            return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, false));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, false));
     }
 
     private clearCartCommand(steamID: SteamID): void {
         Cart.removeCart(steamID);
-
-        this.bot.sendMessage(steamID, '🛒 Your cart has been cleared.');
+        const custom = this.bot.options.commands.clearcart.customReply.reply;
+        this.bot.sendMessage(steamID, custom ? custom : '🛒 Your cart has been cleared.');
     }
 
     private checkoutCommand(steamID: SteamID): void {
         if (this.isDonating) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `You're about to send donation. Send "!donatecart" to view your donation cart summary or "!donatenow" to send donation now.`
             );
-            return;
         }
 
         const cart = Cart.getCart(steamID);
-
         if (cart === null) {
-            this.bot.sendMessage(steamID, '🛒 Your cart is empty.');
-            return;
+            const custom = this.bot.options.commands.checkout.customReply.empty;
+            return this.bot.sendMessage(steamID, custom ? custom : '🛒 Your cart is empty.');
         }
 
-        cart.setNotify(true);
-
-        cart.isDonating(false);
-
+        cart.setNotify = true;
+        cart.isDonating = false;
         this.addCartToQueue(cart, false, false);
     }
 
@@ -494,46 +562,54 @@ export default class Commands {
 
         // If a user is in the queue, then they can't have an active offer
 
+        const custom = this.bot.options.commands.cancel.customReply;
         if (positionInQueue === 0) {
             // The user is in the queue and the offer is already being processed
             const cart = this.cartQueue.getCart(steamID);
 
-            if (cart.isMade()) {
-                this.bot.sendMessage(
+            if (cart.isMade) {
+                return this.bot.sendMessage(
                     steamID,
-                    '⚠️ Your offer is already being sent! Please try again when the offer is active.'
+                    custom.isBeingSent
+                        ? custom.isBeingSent
+                        : '⚠️ Your offer is already being sent! Please try again when the offer is active.'
                 );
-                return;
-            } else if (cart.isCanceled()) {
-                this.bot.sendMessage(
+            } else if (cart.isCanceled) {
+                return this.bot.sendMessage(
                     steamID,
-                    '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
+                    custom.isCancelling
+                        ? custom.isCancelling
+                        : '⚠️ Your offer is already being canceled. Please wait a few seconds for it to be canceled.'
                 );
-                return;
             }
 
-            cart.setCanceled('BY_USER');
+            cart.setCanceled = 'BY_USER';
         } else if (positionInQueue !== -1) {
             // The user is in the queue
             this.cartQueue.dequeue(steamID);
-            this.bot.sendMessage(steamID, '✅ You have been removed from the queue.');
+            this.bot.sendMessage(
+                steamID,
+                custom.isRemovedFromQueue ? custom.isRemovedFromQueue : '✅ You have been removed from the queue.'
+            );
         } else {
             // User is not in the queue, check if they have an active offer
 
             const activeOffer = this.bot.trades.getActiveOffer(steamID);
 
             if (activeOffer === null) {
-                this.bot.sendMessage(steamID, "❌ You don't have an active offer.");
-                return;
+                return this.bot.sendMessage(
+                    steamID,
+                    custom.noActiveOffer ? custom.noActiveOffer : "❌ You don't have an active offer."
+                );
             }
 
             void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
-                if (err) {
-                    this.bot.sendMessage(
+                if (err || !offer) {
+                    return this.bot.sendMessage(
                         steamID,
-                        '❌ Ohh nooooes! Something went wrong while trying to cancel the offer.'
+                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${JSON.stringify(err)}` +
+                            (!offer ? ` (or the offer might already be canceled)` : '')
                     );
-                    return;
                 }
 
                 offer.data('canceledByUser', true);
@@ -545,7 +621,7 @@ export default class Commands {
                     if (err) {
                         this.bot.sendMessage(
                             steamID,
-                            '❌ Ohh nooooes! Something went wrong while trying to cancel the offer.'
+                            `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
                         );
                     }
                 });
@@ -556,12 +632,18 @@ export default class Commands {
     private addCartToQueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): void {
         const activeOfferID = this.bot.trades.getActiveOffer(cart.partner);
 
+        const custom = this.bot.options.commands.addToQueue;
+
         if (activeOfferID !== null) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 cart.partner,
-                `❌ You already have an active offer! Please finish it before requesting a new one:  https://steamcommunity.com/tradeoffer/${activeOfferID}/`
+                custom.alreadyHaveActiveOffer
+                    ? custom.alreadyHaveActiveOffer.replace(
+                          /%tradeurl%/g,
+                          `https://steamcommunity.com/tradeoffer/${activeOfferID}/`
+                      )
+                    : `❌ You already have an active offer! Please finish it before requesting a new one: https://steamcommunity.com/tradeoffer/${activeOfferID}/`
             );
-            return;
         }
 
         const currentPosition = this.cartQueue.getPosition(cart.partner);
@@ -570,14 +652,20 @@ export default class Commands {
             if (currentPosition === 0) {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⚠️ You are already in the queue! Please wait while I process your offer.'
+                    custom.alreadyInQueueProcessingOffer
+                        ? custom.alreadyInQueueProcessingOffer
+                        : '⚠️ You are already in the queue! Please wait while I process your offer.'
                 );
             } else {
                 this.bot.sendMessage(
                     cart.partner,
-                    '⚠️ You are already in the queue! Please wait your turn, there ' +
-                        (currentPosition !== 1 ? 'are' : 'is') +
-                        ` ${currentPosition} infront of you.`
+                    custom.alreadyInQueueWaitingTurn
+                        ? custom.alreadyInQueueWaitingTurn
+                              .replace(/%isOrAre%/g, currentPosition !== 1 ? 'are' : 'is')
+                              .replace(/%currentPosition%/g, String(currentPosition))
+                        : '⚠️ You are already in the queue! Please wait your turn, there ' +
+                              (currentPosition !== 1 ? 'are' : 'is') +
+                              ` ${currentPosition} in front of you.`
                 );
             }
             return;
@@ -588,123 +676,36 @@ export default class Commands {
         if (position !== 0) {
             this.bot.sendMessage(
                 cart.partner,
-                '✅ You have been added to the queue! Please wait your turn, there ' +
-                    (position !== 1 ? 'are' : 'is') +
-                    ` ${position} infront of you.`
+                custom.addedToQueueWaitingTurn
+                    ? custom.addedToQueueWaitingTurn
+                          .replace(/%isOrAre%/g, position !== 1 ? 'are' : 'is')
+                          .replace(/%position%/g, String(position))
+                    : '✅ You have been added to the queue! Please wait your turn, there ' +
+                          (position !== 1 ? 'are' : 'is') +
+                          ` ${position} in front of you.`
             );
         }
     }
 
     private queueCommand(steamID: SteamID): void {
-        const position = (this.bot.handler as MyHandler).cartQueue.getPosition(steamID);
+        const position = this.bot.handler.cartQueue.getPosition(steamID);
+        const custom = this.bot.options.commands.queue.customReply;
 
         if (position === -1) {
-            this.bot.sendMessage(steamID, '❌ You are not in the queue.');
+            this.bot.sendMessage(steamID, custom.notInQueue ? custom.notInQueue : '❌ You are not in the queue.');
         } else if (position === 0) {
-            this.bot.sendMessage(steamID, '⌛ Your offer is being made.');
+            this.bot.sendMessage(
+                steamID,
+                custom.offerBeingMade ? custom.offerBeingMade : '⌛ Your offer is being made.'
+            );
         } else {
-            this.bot.sendMessage(steamID, `There are ${position} users ahead of you.`);
-        }
-    }
-
-    // under !more command
-
-    private async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const item = SKU.fromString(params.sku);
-        const name = this.bot.schema.getName(item);
-
-        let salesData: getSalesData;
-
-        try {
-            salesData = (await getSales(params.sku, 'bptf')) as getSalesData;
-        } catch (err) {
-            const thisErr = err as ErrorRequest;
             this.bot.sendMessage(
                 steamID,
-                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
-                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                }`
+                custom.hasPosition
+                    ? custom.hasPosition.replace(/%position%/g, String(position))
+                    : `There are ${position} users ahead of you.`
             );
-            return;
         }
-
-        if (!salesData) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-            );
-            return;
-        }
-
-        if (salesData.sales.length === 0) {
-            this.bot.sendMessage(
-                steamID,
-                `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-            );
-            return;
-        }
-
-        const sales: {
-            seller: string;
-            itemHistory: string;
-            keys: number;
-            metal: number;
-            date: number;
-        }[] = [];
-
-        salesData.sales.forEach(sale => {
-            sales.push({
-                seller: 'https://backpack.tf/profiles/' + sale.steamid,
-                itemHistory: 'https://backpack.tf/item/' + sale.id.replace('440_', ''),
-                keys: sale.currencies.keys,
-                metal: sale.currencies.metal,
-                date: sale.time
-            });
-        });
-
-        sales.sort((a, b) => {
-            return b.date - a.date;
-        });
-
-        let left = 0;
-        const SalesList: string[] = [];
-
-        for (let i = 0; i < sales.length; i++) {
-            if (SalesList.length > 40) {
-                left += 1;
-            } else {
-                SalesList.push(
-                    `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sales[i].date).utc().toString()}\n• Item: ${
-                        sales[i].itemHistory
-                    }\n• Seller: ${sales[i].seller}\n• Was selling for: ${
-                        sales[i].keys > 0 ? `${sales[i].keys} keys,` : ''
-                    } ${sales[i].metal} ref`
-                );
-            }
-        }
-
-        let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
-            salesData.name
-        }\n\n-----${SalesList.join('\n\n-----')}`;
-        if (left > 0) {
-            reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
-        }
-
-        this.bot.sendMessage(steamID, reply);
     }
 
     // Admin commands
@@ -712,42 +713,45 @@ export default class Commands {
     private depositCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
         if (currentCart !== null && !(currentCart instanceof AdminCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
-            return;
         }
 
-        message = c.utils.removeLinkProtocol(message);
-        const paramStr = CommandParser.removeCommand(message);
-
-        const params = CommandParser.parseParams(paramStr);
-
+        const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
+            if (item === null) return;
 
             params.sku = SKU.fromObject(item);
+        } else {
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        const sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         const amount = typeof params.amount === 'number' ? params.amount : 1;
+        if (!Number.isInteger(amount)) {
+            return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        }
 
-        const cart = AdminCart.getCart(steamID) || new AdminCart(steamID, this.bot);
-
-        cart.addTheirItem(sku, amount);
-
+        const cart =
+            AdminCart.getCart(steamID) ||
+            new AdminCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
+        cart.addTheirItem(params.sku, amount);
         Cart.addCart(cart);
-
-        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         this.bot.sendMessage(
             steamID,
-            `✅ ${pluralize(name, Math.abs(amount), true)} has been ` +
+            `✅ ${pluralize(
+                this.bot.schema.getName(SKU.fromString(params.sku), false),
+                Math.abs(amount),
+                true
+            )} has been ` +
                 (amount >= 0 ? 'added to' : 'removed from') +
                 ' your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
         );
@@ -756,38 +760,41 @@ export default class Commands {
     private withdrawCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
         if (currentCart !== null && !(currentCart instanceof AdminCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one. 🛒'
             );
-            return;
         }
 
-        message = c.utils.removeLinkProtocol(message);
-        const paramStr = CommandParser.removeCommand(message);
-
-        const params = CommandParser.parseParams(paramStr);
-
+        const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
             if (item === null) {
                 return;
             }
 
             params.sku = SKU.fromObject(item);
+        } else {
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        const sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         let amount = typeof params.amount === 'number' ? params.amount : 1;
+        if (!Number.isInteger(amount)) {
+            return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        }
 
-        const cart = AdminCart.getCart(steamID) || new AdminCart(steamID, this.bot);
-
-        const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(sku);
-        const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
-
-        const name = this.bot.schema.getName(SKU.fromString(sku), false);
+        const cart =
+            AdminCart.getCart(steamID) ||
+            new AdminCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
+        const cartAmount = cart.getOurCount(params.sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const amountCanTrade = ourAmount - cartAmount;
+        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -800,11 +807,10 @@ export default class Commands {
             amount = amountCanTrade;
 
             if (amount === cartAmount && cartAmount > 0) {
-                this.bot.sendMessage(
+                return this.bot.sendMessage(
                     steamID,
                     `❌ I don't have any ${(ourAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
                 );
-                return;
             }
 
             this.bot.sendMessage(
@@ -822,43 +828,39 @@ export default class Commands {
             );
         }
 
-        cart.addOurItem(sku, amount);
-
+        cart.addOurItem(params.sku, amount);
         Cart.addCart(cart);
     }
 
     private donateBPTFCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
+
         if (currentCart !== null && !(currentCart instanceof DonateCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one.'
             );
-            return;
         }
 
-        message = c.utils.removeLinkProtocol(message);
-        const paramStr = CommandParser.removeCommand(message);
-
-        const params = CommandParser.parseParams(paramStr);
-
+        const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
             if (item === null) {
                 return;
             }
 
             params.sku = SKU.fromObject(item);
+        } else {
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        const sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
-        const name = this.bot.schema.getName(SKU.fromString(sku), false);
-
-        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(sku)) {
-            this.bot.sendMessage(
+        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(params.sku)) {
+            return this.bot.sendMessage(
                 steamID,
-                `❌ Invalid item ${name}. Items that can only be donated to Backpack.tf:` +
+                `❌ Invalid item ${this.bot.schema.getName(
+                    SKU.fromString(params.sku),
+                    false
+                )}. Items that can only be donated to Backpack.tf:` +
                     '\n• Non-Craftable Tour of Duty Ticket (725;6;uncraftable)' +
                     '\n• Mann Co. Supply Crate Key (5021;6)' +
                     "\n• Bill's Hat (126;6)" +
@@ -866,16 +868,24 @@ export default class Commands {
                     "\n• Max's Severed Head (162;6)" +
                     '\n\nhttps://backpack.tf/donate'
             );
-            return;
         }
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
 
-        const cart = DonateCart.getCart(steamID) || new DonateCart(steamID, this.bot);
+        const cart =
+            DonateCart.getCart(steamID) ||
+            new DonateCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
 
-        const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount(sku);
-        const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
+        const cartAmount = cart.getOurCount(params.sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
+
+        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -888,11 +898,10 @@ export default class Commands {
             amount = amountCanTrade;
 
             if (amount === cartAmount && cartAmount > 0) {
-                this.bot.sendMessage(
+                return this.bot.sendMessage(
                     steamID,
                     `❌ I don't have any ${(ourAmount > 0 ? 'more ' : '') + pluralize(name, 0)}.`
                 );
-                return;
             }
 
             this.bot.sendMessage(
@@ -912,73 +921,62 @@ export default class Commands {
 
         this.isDonating = true;
 
-        cart.addOurItem(sku, amount);
-
+        cart.addOurItem(params.sku, amount);
         Cart.addCart(cart);
     }
 
     private donateNowCommand(steamID: SteamID): void {
         if (!this.isDonating) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "!clearcart"`
             );
-            return;
         }
-        const cart = Cart.getCart(steamID);
 
+        const cart = Cart.getCart(steamID);
         if (cart === null) {
-            this.bot.sendMessage(steamID, '💰 Your donation cart is empty.');
-            return;
+            return this.bot.sendMessage(steamID, '💰 Your donation cart is empty.');
         }
 
         this.isDonating = false;
 
-        cart.setNotify(true);
-
-        cart.isDonating(true);
+        cart.setNotify = true;
+        cart.isDonating = true;
 
         this.addCartToQueue(cart, true, false);
     }
 
-    private donateCartCommand(steamID: SteamID, enableCraftweaponsAsCurrency: boolean): void {
+    private donateCartCommand(steamID: SteamID): void {
         if (!this.isDonating) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "!clearcart"`
             );
-            return;
         }
-        this.bot.sendMessage(steamID, Cart.stringify(steamID, enableCraftweaponsAsCurrency, true));
+        this.bot.sendMessage(steamID, Cart.stringify(steamID, true));
     }
 
     private buyBPTFPremiumCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
         if (currentCart !== null && !(currentCart instanceof PremiumCart)) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ You already have an active cart, please finalize it before making a new one.'
             );
-            return;
         }
 
-        message = c.utils.removeLinkProtocol(message);
-        const paramStr = CommandParser.removeCommand(message);
-
-        const params = CommandParser.parseParams(paramStr);
-
+        const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (
             params.months === undefined ||
             typeof params.months !== 'number' ||
             !Number.isInteger(params.months) ||
             params.months < 1
         ) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 '❌ Wrong syntax. Example: !premium months=1' +
                     '\n\n📌 Note: 📌\n- 1 month = 3 keys\n- 2 months = 5 keys\n- 3 months = 8 keys\n- 4 months = 10 keys\n- 1 year (12 months) = 30 keys'
             );
-            return;
         }
 
         const amountMonths = params.months;
@@ -987,10 +985,10 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory().getAmount('5021;6');
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', true);
 
         if (ourAmount < amountKeys) {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `❌ I don't have enough keys to buy premium for ${pluralize(
                     'month',
@@ -1002,235 +1000,30 @@ export default class Commands {
                     true
                 )} more.`
             );
-            return;
         }
 
         if (params.i_am_sure !== 'yes_i_am') {
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 `⚠️ Are you sure that you want to buy premium for ${pluralize('month', amountMonths, true)}?` +
                     `\nThis will cost you ${pluralize('key', amountKeys, true)}.` +
                     `\nIf yes, retry by sending !premium months=${amountMonths}&i_am_sure=yes_i_am`
             );
-            return;
         }
 
-        const cart = new PremiumCart(steamID, this.bot);
+        const cart = new PremiumCart(
+            steamID,
+            this.bot,
+            this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+            this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+        );
 
         cart.addOurItem('5021;6', amountKeys);
-
         Cart.addCart(cart);
 
-        cart.setNotify(true);
-
-        cart.isBuyingPremium(true);
+        cart.setNotify = true;
+        cart.isBuyingPremium = true;
 
         this.addCartToQueue(cart, false, true);
     }
-
-    // Request commands
-
-    private pricecheckCommand(steamID: SteamID, message: string): void {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
-            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-            return;
-        }
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
-
-        void requestCheck(params.sku, 'bptf').asCallback((err, body: PriceCheckRequest) => {
-            if (err) {
-                const thisErr = err as ErrorRequest;
-                this.bot.sendMessage(
-                    steamID,
-                    `❌ Error while requesting price check: ${
-                        thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                    }`
-                );
-                return;
-            }
-
-            if (!body) {
-                this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
-            } else {
-                this.bot.sendMessage(
-                    steamID,
-                    `⌛ Price check requested for ${
-                        body.name.includes('War Paint') ||
-                        body.name.includes('Mann Co. Supply Crate Series #') ||
-                        body.name.includes('Salvaged Mann Co. Supply Crate #')
-                            ? name
-                            : body.name
-                    }, the item will be checked.`
-                );
-            }
-        });
-    }
-
-    private async pricecheckAllCommand(steamID): Promise<void> {
-        const pricelist = this.bot.pricelist.getPrices();
-
-        const total = pricelist.length;
-        const totalTime = total * 2 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
-        this.bot.sendMessage(
-            steamID,
-            `⌛ Price check requested for ${total} items. It will be completed in approximately ${
-                totalTime < aMin
-                    ? `${Math.round(totalTime / aSecond)} seconds.`
-                    : totalTime < anHour
-                    ? `${Math.round(totalTime / aMin)} minutes.`
-                    : `${Math.round(totalTime / anHour)} hours.`
-            } (about 2 seconds for each item).`
-        );
-
-        const skus = pricelist.map(entry => entry.sku);
-
-        let submitted = 0;
-        let success = 0;
-        let failed = 0;
-        for (const sku of skus) {
-            await sleepasync().Promise.sleep(2 * 1000);
-            void requestCheck(sku, 'bptf').asCallback(err => {
-                if (err) {
-                    const thisErr = err as ErrorRequest;
-                    submitted++;
-                    failed++;
-                    log.warn(
-                        `pricecheck failed for ${sku}: ${
-                            thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                        }`
-                    );
-                    log.debug(
-                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                } else {
-                    submitted++;
-                    success++;
-                    log.debug(
-                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                }
-                if (submitted === total) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
-                    );
-                }
-            });
-        }
-    }
-
-    private async checkCommand(steamID: SteamID, message: string): Promise<void> {
-        message = c.utils.removeLinkProtocol(message);
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-
-        if (params.sku !== undefined && !c.utils.testSKU(params.sku as string)) {
-            this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-            return;
-        }
-
-        if (params.sku === undefined) {
-            const item = c.utils.getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        }
-
-        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        const item = SKU.fromString(params.sku);
-        const name = this.bot.schema.getName(item);
-
-        let price: GetPrices;
-
-        try {
-            price = (await getPrice(params.sku, 'bptf')) as GetPrices;
-        } catch (err) {
-            const thisErr = err as ErrorRequest;
-            this.bot.sendMessage(
-                steamID,
-                `Error getting price for ${name === null ? (params.sku as string) : name}: ${
-                    thisErr.body && thisErr.body.message ? thisErr.body.message : thisErr.message
-                }`
-            );
-            return;
-        }
-
-        if (!price) {
-            return;
-        }
-        const currBuy = new Currencies(price.buy);
-        const currSell = new Currencies(price.sell);
-
-        this.bot.sendMessage(
-            steamID,
-            `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                params.sku as string
-            }`
-        );
-    }
-}
-
-interface ErrorRequest {
-    body?: ErrorBody;
-    message?: string;
-}
-
-interface ErrorBody {
-    message: string;
-}
-
-interface getSalesData {
-    success: boolean;
-    sku: string;
-    name: string;
-    sales: Sales[];
-}
-
-interface Sales {
-    id: string;
-    steamid: string;
-    automatic: boolean;
-    attributes: Record<string, unknown>;
-    intent: number;
-    currencies: Currencies;
-    time: number;
-}
-
-interface PriceCheckRequest {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    message?: string;
-}
-
-interface GetPrices {
-    success: boolean;
-    sku?: string;
-    name?: string;
-    currency?: number | string;
-    source?: string;
-    time?: number;
-    buy?: Currencies;
-    sell?: Currencies;
-    message?: string;
 }

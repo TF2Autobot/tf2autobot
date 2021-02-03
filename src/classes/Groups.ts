@@ -1,7 +1,5 @@
 import SteamID from 'steamid';
-
 import Bot from './Bot';
-
 import log from '../lib/logger';
 
 export default class Groups {

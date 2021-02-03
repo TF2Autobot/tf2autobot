@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import SteamID from 'steamid';
 import TradeOfferManager from 'steam-tradeoffer-manager';
 import request from 'request-retry-dayjs';
@@ -54,15 +50,15 @@ export default class TF2Inventory {
         this.manager = manager;
     }
 
-    getSteamID(): SteamID {
+    private get getSteamID(): SteamID {
         return this.steamID;
     }
 
-    getItems(): TF2Item[] {
+    private get getItems(): TF2Item[] {
         return this.items;
     }
 
-    getSlots(): number {
+    private get getSlots(): number {
         return this.slots;
     }
 
@@ -77,17 +73,17 @@ export default class TF2Inventory {
         // Inventory is not updated on bptf, get the original id
 
         // Fetch inventory using TF2 GetPlayerItems API if we haven't already
-        if (this.getItems().length === 0) {
+        if (this.getItems.length === 0) {
             await this.fetch();
         }
 
         // Find item in the inventory
-        const item = this.getItems().find(item => item.id.toString() == assetid);
+        const item = this.getItems.find(item => item.id.toString() == assetid);
 
         if (item === undefined) {
-            // Could not find the item in the inventory, failed to check if the item is duped
             throw new Error('Could not find item in inventory');
         }
+        // Could not find the item in the inventory, failed to check if the item is duped
 
         // Get history using original id
         const historyFromOriginal = await TF2Inventory.getItemHistory(item.original_id.toString());
@@ -102,27 +98,27 @@ export default class TF2Inventory {
         return null;
     }
 
-    fetch(): Promise<void> {
+    private fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
                     method: 'GET',
                     qs: {
                         key: this.manager.apiKey,
-                        steamid: this.getSteamID().toString()
+                        steamid: this.getSteamID.toString()
                     },
                     json: true,
                     gzip: true
                 },
-                (err, response, body) => {
+                (err: Error, response, body: GetPlayerItems) => {
                     if (err) {
                         return reject(err);
                     }
 
                     if (body.result.status != 1) {
                         err = new Error(body.result.statusDetail);
-                        err.status = body.result.status;
+                        err['status'] = body.result.status;
                         return reject(err);
                     }
 
@@ -135,7 +131,7 @@ export default class TF2Inventory {
         });
     }
 
-    static getItemHistory(
+    private static getItemHistory(
         assetid: string
     ): Promise<{
         recorded: boolean;
@@ -143,7 +139,7 @@ export default class TF2Inventory {
         history?: [];
     }> {
         return new Promise((resolve, reject) => {
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/item/' + assetid,
                     method: 'GET',
@@ -177,4 +173,50 @@ export default class TF2Inventory {
             );
         });
     }
+}
+
+interface GetPlayerItems {
+    result?: Result;
+}
+
+interface Result {
+    status?: number;
+    statusDetail?: string;
+    num_backpack_slots?: number;
+    items?: Item[];
+}
+
+interface Item {
+    id: number;
+    original_id: number;
+    defindex: number;
+    level: number;
+    quality: number;
+    inventory: number;
+    quantity: number;
+    origin: number;
+    style?: number;
+    flag_cannot_trade?: boolean;
+    flag_cannot_craft?: boolean;
+    custom_name?: string;
+    custom_desc?: string;
+    equipped?: Equipped[];
+    attributes?: Attribute[];
+}
+
+interface Equipped {
+    class: number;
+    slot: number;
+}
+
+interface Attribute {
+    defindex: number;
+    value: number | string;
+    float_value?: number;
+    account_info?: AccountInfo; // attr defindex: 228
+}
+
+interface AccountInfo {
+    steamid: number;
+    personaname: string;
 }

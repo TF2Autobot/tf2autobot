@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import SteamID from 'steamid';
 import dayjs from 'dayjs';
 import SKU from 'tf2-sku-2';
@@ -7,12 +5,10 @@ import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from 'steam-tradeoff
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../../types/common';
-
+import Bot from '../Bot';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-
-import Bot from '../Bot';
 
 /**
  * An abstract class used for sending offers
@@ -22,13 +18,13 @@ import Bot from '../Bot';
 export default abstract class Cart {
     private static carts: UnknownDictionary<Cart> = {};
 
-    ourInventoryCount = 0;
+    protected ourInventoryCount = 0;
 
-    theirInventoryCount = 0;
+    protected theirInventoryCount = 0;
 
-    ourItemsCount = 0;
+    protected ourItemsCount = 0;
 
-    theirItemsCount = 0;
+    protected theirItemsCount = 0;
 
     readonly partner: SteamID;
 
@@ -54,108 +50,128 @@ export default abstract class Cart {
 
     protected cancelReason: string | undefined;
 
-    constructor(partner: SteamID, bot: Bot);
+    protected craftAll: string[] = [];
 
-    constructor(partner: SteamID, token: string, bot: Bot);
+    protected uncraftAll: string[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    constructor(...args) {
+    constructor(partner: SteamID, bot: Bot, craftAll: string[], uncraftAll: string[]);
+
+    constructor(partner: SteamID, token: string, bot: Bot, craftAll: string[], uncraftAll: string[]);
+
+    constructor(...args: [SteamID, Bot, string[], string[]] | [SteamID, string, Bot, string[], string[]]) {
         this.partner = args[0];
 
-        if (args.length === 2) {
+        if (args.length === 4) {
             this.bot = args[1];
+            this.craftAll = args[2];
+            this.uncraftAll = args[3];
         } else {
             this.bot = args[2];
 
-            this.setToken(args[1]);
+            this.setToken = args[1];
+            this.craftAll = args[3];
+            this.uncraftAll = args[4];
         }
     }
 
-    isCanceled(): boolean {
+    get isCanceled(): boolean {
         return this.canceled;
     }
 
-    setCanceled(reason: string): void {
+    set setCanceled(reason: string) {
         this.canceled = true;
         this.cancelReason = reason;
     }
 
-    getToken(): string {
-        return this.token;
-    }
+    // getToken(): string {
+    //     return this.token;
+    // }
 
-    setToken(token: string | null): void {
+    private set setToken(token: string | null) {
         this.token = token;
     }
 
-    getNotify(): boolean {
-        return this.notify;
-    }
+    // getNotify(): boolean {
+    //     return this.notify;
+    // }
 
-    setNotify(allowed: boolean): void {
+    set setNotify(allowed: boolean) {
         this.notify = allowed;
     }
 
-    isDonating(isDonation: boolean): void {
+    set isDonating(isDonation: boolean) {
         this.donation = isDonation;
     }
 
-    isBuyingPremium(isBuyingPremium: boolean): void {
+    set isBuyingPremium(isBuyingPremium: boolean) {
         this.buyPremium = isBuyingPremium;
     }
 
-    sendNotification(message: string): void {
+    set sendNotification(message: string) {
         if (this.notify) {
             this.bot.sendMessage(this.partner, message);
         }
     }
 
-    isMade(): boolean {
+    get isMade(): boolean {
         return this.offer?.state !== TradeOfferManager.ETradeOfferState['Invalid'];
     }
 
-    getOffer(): TradeOffer | null {
+    get getOffer(): TradeOffer | null {
         return this.offer;
     }
 
-    getCancelReason(): string | undefined {
-        return this.cancelReason;
-    }
+    // getCancelReason(): string | undefined {
+    //     return this.cancelReason;
+    // }
 
     getOurCount(sku: string): number {
-        return this.our[sku] !== undefined ? this.our[sku].amount : 0;
+        return this.our[sku] || 0;
+    }
+
+    getOurGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getOurCount(s));
+    }
+
+    getGenericCount(sku: string, getCountFn: (sku: string) => number): number {
+        const pSku = SKU.fromString(sku);
+        if (pSku.quality === 5) {
+            // try to count all unusual types
+            return (
+                this.bot.effects
+                    .map(e => {
+                        pSku.effect = e.id;
+                        const s = SKU.fromObject(pSku);
+                        return getCountFn(s);
+                    })
+                    // add up total found; total is undefined to being with
+                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
+            );
+        } else {
+            return getCountFn(sku);
+        }
     }
 
     getTheirCount(sku: string): number {
-        return this.their[sku] !== undefined ? this.their[sku].amount : 0;
+        return this.their[sku] || 0;
+    }
+
+    getTheirGenericCount(sku: string): number {
+        return this.getGenericCount(sku, s => this.getTheirCount(s));
     }
 
     addOurItem(sku: string, amount = 1): void {
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
-        const entry = this.bot.pricelist.getPrice(sku, false);
+        this.our[sku] = this.getOurCount(sku) + amount;
 
-        this.our[sku] = {
-            amount: this.getOurCount(sku) + amount,
-            stock: currentStock,
-            maxStock: entry !== null ? entry.max : 0
-        };
-
-        if (this.our[sku].amount < 1) {
+        if (this.our[sku] < 1) {
             delete this.our[sku];
         }
     }
 
     addTheirItem(sku: string, amount = 1): void {
-        const currentStock = this.bot.inventoryManager.getInventory().getAmount(sku, true);
-        const entry = this.bot.pricelist.getPrice(sku, false);
+        this.their[sku] = this.getTheirCount(sku) + amount;
 
-        this.their[sku] = {
-            amount: this.getTheirCount(sku) + amount,
-            stock: currentStock,
-            maxStock: entry !== null ? entry.max : 0
-        };
-
-        if (this.their[sku].amount < 1) {
+        if (this.their[sku] < 1) {
             delete this.their[sku];
         }
     }
@@ -176,12 +192,7 @@ export default abstract class Cart {
         }
     }
 
-    clear(): void {
-        this.our = {};
-        this.their = {};
-    }
-
-    isEmpty(): boolean {
+    get isEmpty(): boolean {
         return Object.keys(this.our).length === 0 && Object.keys(this.their).length === 0;
     }
 
@@ -229,7 +240,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
+            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
         }
 
         let summary: string[];
@@ -259,7 +270,7 @@ export default abstract class Cart {
 
             items.push({
                 name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku].amount
+                amount: this.their[sku]
             });
         }
 
@@ -273,101 +284,7 @@ export default abstract class Cart {
                     return pluralize(v.name, v.amount, true);
                 }
             });
-        } else {
-            summary = items.map(v => pluralize(v.name, v.amount, true));
-        }
-
-        return summary;
-    }
-
-    summarizeWithWeapons(isDonating: boolean, isBuyingPremium: boolean): string {
-        const ourSummary = this.summarizeOurWithWeapons();
-
-        let ourSummaryString: string;
-
-        if (ourSummary.length > 1) {
-            ourSummaryString =
-                ourSummary.slice(0, ourSummary.length - 1).join(', ') + ' and ' + ourSummary[ourSummary.length - 1];
-        } else if (ourSummary.length === 0) {
-            ourSummaryString = 'nothing';
-        } else {
-            ourSummaryString = ourSummary.join(', ');
-        }
-
-        const theirSummary = this.summarizeTheirWithWeapons();
-
-        let theirSummaryString: string;
-
-        if (theirSummary.length > 1) {
-            theirSummaryString =
-                theirSummary.slice(0, theirSummary.length - 1).join(', ') +
-                ' and ' +
-                theirSummary[theirSummary.length - 1];
-        } else if (theirSummary.length === 0) {
-            theirSummaryString = 'nothing';
-        } else {
-            theirSummaryString = theirSummary.join(', ');
-        }
-
-        return `You${isDonating || isBuyingPremium ? `'re` : ' will'} ${
-            isDonating ? 'donating' : isBuyingPremium ? 'purchasing premium with' : 'be offered'
-        } ${ourSummaryString} ${
-            isDonating ? 'to backpack.tf' : isBuyingPremium ? 'from backpack.tf' : `for ${theirSummaryString}`
-        }`;
-    }
-
-    summarizeOurWithWeapons(): string[] {
-        const items: { name: string; amount: number }[] = [];
-
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                continue;
-            }
-
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku].amount });
-        }
-
-        let summary: string[];
-
-        if (items.length <= 1) {
-            summary = items.map(v => {
-                if (v.amount === 1) {
-                    return 'a ' + v.name;
-                } else {
-                    return pluralize(v.name, v.amount, true);
-                }
-            });
-        } else {
-            summary = items.map(v => pluralize(v.name, v.amount, true));
-        }
-
-        return summary;
-    }
-
-    summarizeTheirWithWeapons(): string[] {
-        const items: { name: string; amount: number }[] = [];
-
-        for (const sku in this.their) {
-            if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                continue;
-            }
-
-            items.push({
-                name: this.bot.schema.getName(SKU.fromString(sku), false),
-                amount: this.their[sku].amount
-            });
-        }
-
-        let summary: string[];
-
-        if (items.length <= 1) {
-            summary = items.map(v => {
-                if (v.amount === 1) {
-                    return 'a ' + v.name;
-                } else {
-                    return pluralize(v.name, v.amount, true);
-                }
-            });
+            //
         } else {
             summary = items.map(v => pluralize(v.name, v.amount, true));
         }
@@ -379,12 +296,10 @@ export default abstract class Cart {
 
     abstract constructOffer(): Promise<string>;
 
-    abstract constructOfferWithWeapons(): Promise<string>;
-
     sendOffer(): Promise<string | void> {
         const opt = this.bot.options;
 
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return Promise.reject("❌ I don't or you don't have enough items for this trade");
         }
 
@@ -404,13 +319,15 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage('Powered by TF2Autobot' + (opt.sendOfferMessage ? '. ' + opt.sendOfferMessage : ''));
+        this.offer.setMessage(
+            'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
+        );
 
         if (this.notify === true) {
             this.offer.data('notify', true);
         }
 
-        if (this.isCanceled()) {
+        if (this.isCanceled) {
             return Promise.reject('Offer was canceled');
         }
 
@@ -420,7 +337,7 @@ export default abstract class Cart {
 
         return this.preSendOffer()
             .then(() => {
-                if (this.isCanceled()) {
+                if (this.isCanceled) {
                     return Promise.reject('Offer was canceled');
                 }
 
@@ -465,9 +382,12 @@ export default abstract class Cart {
                 ) {
                     const msg = "I don't have space for more items in my inventory";
 
-                    if (opt.sendAlert) {
+                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('full-backpack', this.bot, msg);
+                            sendAlert('full-backpack', this.bot, msg, null, err, [
+                                this.offer.partner.getSteamID64(),
+                                this.offer.id
+                            ]);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
@@ -479,7 +399,7 @@ export default abstract class Cart {
                     );
                 } else if (error.eresult == 15) {
                     const ourUsedSlots = this.ourInventoryCount;
-                    const outTotalSlots = this.bot.tf2.backpackSlots;
+                    const ourTotalSlots = this.bot.tf2.backpackSlots;
 
                     const theirUsedSlots = this.theirInventoryCount;
                     const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
@@ -487,32 +407,44 @@ export default abstract class Cart {
                     const ourNumItems = this.ourItemsCount;
                     const theirNumItems = this.theirItemsCount;
 
+                    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+
                     const msg =
-                        `Either I, or the trade partner, did not have enough backpack space to complete a trade. A summary of our backpacks can be seen below.` +
-                        `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                        `Either I, or the trade partner${
+                            !dwEnabled ? ` (${this.offer.partner.getSteamID64()})` : ''
+                        }, ` +
+                        `did not have enough backpack space (or near full) to complete a trade${
+                            !dwEnabled ? (this.offer.id ? ` (${this.offer.id})` : '') : ''
+                        }. ` +
+                        `A summary of our backpacks can be seen below.` +
+                        `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
                             ourUsedSlots + theirNumItems
-                        } / ${outTotalSlots} slots used` +
-                        `\n➡️ They would have received ${ourNumItems} item(s) → ${
+                        } / ${ourTotalSlots} slots used` +
+                        `\n➡️ They would have received ${pluralize('item', ourNumItems, true)} → ${
                             theirUsedSlots + ourNumItems
                         } / ${theirTotalSlots} slots used`;
-                    if (opt.sendAlert) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('full-backpack', this.bot, msg);
+                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
+                        if (dwEnabled) {
+                            sendAlert('full-backpack', this.bot, msg, null, err, [
+                                this.offer.partner.getSteamID64(),
+                                this.offer.id
+                            ]);
                         } else {
                             this.bot.messageAdmins(msg, []);
                         }
                     }
                     return Promise.reject(
                         `It appears as if ${
-                            ourUsedSlots + theirNumItems > outTotalSlots ? 'my' : 'your'
-                        } backpack is full!` +
-                            `\n⬅️ I would have received ${theirNumItems} item(s) → ${
+                            ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
+                        } backpack is full/almost full!` +
+                            `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
                                 ourUsedSlots + theirNumItems
-                            } / ${outTotalSlots} slots used` +
-                            `\n➡️ You would have received ${ourNumItems} item(s) → ${
+                            } / ${ourTotalSlots} slots used` +
+                            `\n➡️ You would have received ${pluralize('item', ourNumItems, true)} → ${
                                 theirUsedSlots + ourNumItems
                             } / ${theirTotalSlots} slots used` +
-                            `\nIf this is in error, please give Steam time to refresh our backpacks`
+                            `\nIf this is in error, please give Steam time to refresh our backpacks.` +
+                            '\nMore info about this error: https://steamerrors.com/15'
                     );
                 } else if (error.eresult == 20) {
                     return Promise.reject(
@@ -531,11 +463,13 @@ export default abstract class Cart {
     }
 
     toString(isDonating: boolean): string {
-        if (this.isEmpty()) {
+        if (this.isEmpty) {
             return '❌ Your cart is empty.';
         }
 
-        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
+        const customTitle = this.bot.options.commands.cart.customReply.title;
+
+        let str = isDonating ? '💰 == DONATION CART == 💰' : customTitle ? customTitle : '🛒== YOUR CART ==🛒';
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
         for (const sku in this.our) {
@@ -543,8 +477,7 @@ export default abstract class Cart {
                 continue;
             }
 
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku].amount}x ${name}`;
+            str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
         }
 
         if (!isDonating) {
@@ -554,44 +487,7 @@ export default abstract class Cart {
                     continue;
                 }
 
-                const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku].amount}x ${name}`;
-            }
-        }
-
-        str += `\n\nType ${isDonating ? '"!donatenow"' : '"!checkout"'} to ${
-            isDonating ? 'donate' : 'checkout'
-        } and proceed trade, or "!clearcart" to cancel.`;
-
-        return str;
-    }
-
-    toStringWithWeapons(isDonating: boolean): string {
-        if (this.isEmpty()) {
-            return '❌ Your cart is empty.';
-        }
-
-        let str = isDonating ? '💰 == DONATION CART == 💰' : '🛒== YOUR CART ==🛒';
-
-        str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
-                continue;
-            }
-
-            const name = this.bot.schema.getName(SKU.fromString(sku), false);
-            str += `\n- ${this.our[sku].amount}x ${name}`;
-        }
-
-        if (!isDonating) {
-            str += '\n\nYour side (items you will lose):';
-            for (const sku in this.their) {
-                if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                    continue;
-                }
-
-                const name = this.bot.schema.getName(SKU.fromString(sku), false);
-                str += `\n- ${this.their[sku].amount}x ${name}`;
+                str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
             }
         }
 
@@ -622,24 +518,19 @@ export default abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, enableCraftweaponAsCurrency: boolean, isDonating: boolean): string {
+    static stringify(steamID: SteamID, isDonating: boolean): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
             return '❌ Your cart is empty.';
         }
 
-        if (enableCraftweaponAsCurrency) {
-            return cart.toStringWithWeapons(isDonating);
-        } else {
-            return cart.toString(isDonating);
-        }
+        return cart.toString(isDonating);
     }
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            request(
+            void request(
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',

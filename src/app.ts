@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
 import { loadOptions } from './classes/Options';
-process.env.BOT_VERSION = BOT_VERSION;
+
+process.env.BOT_VERSION = BOT_VERSION as string;
 
 import fs from 'fs';
 import path from 'path';
@@ -44,48 +39,60 @@ if (process.env.pm_id === undefined) {
     );
 }
 
-import SchemaManager from 'tf2-schema-2';
-import { getSchema } from './lib/ptf-api';
-
-// Make the schema manager request the schema from PricesTF
-
-/* eslint-disable-next-line @typescript-eslint/unbound-method */
-SchemaManager.prototype.getSchema = function (callback): void {
-    getSchema()
-        .then(schema => {
-            this.setSchema(schema, true);
-            callback(null, this.schema);
-        })
-        .catch(err => {
-            callback(err);
-        });
-};
-
 import BotManager from './classes/BotManager';
 
 const botManager = new BotManager();
 
 import ON_DEATH from 'death';
+import * as inspect from 'util';
+import { Webhook } from './lib/DiscordWebhook/interfaces';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { uptime } from './lib/tools/time';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';
 
     if (crashed) {
-        const botReady = botManager.isBotReady();
+        const botReady = botManager.isBotReady;
 
-        log.error(
-            [
-                'TF2Autobot' +
-                    (!botReady
-                        ? ' failed to start properly, this is most likely a temporary error. See the log:'
-                        : ' crashed! Please create an issue with the following log:'),
-                `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${
-                    process.platform
-                } ${process.arch}}`,
-                'Stack trace:',
-                require('util').inspect(origin)
-            ].join('\r\n')
-        );
+        const errorMessage = [
+            'TF2Autobot' +
+                (!botReady
+                    ? ' failed to start properly, this is most likely a temporary error. See the log:'
+                    : ' crashed! Please create an issue with the following log:'),
+            `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${process.platform} ${
+                process.arch
+            }}`,
+            'Stack trace:',
+            inspect.inspect(origin),
+            `${uptime()}`
+        ].join('\r\n');
+
+        log.error(errorMessage);
+
+        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url !== '') {
+            const optDW = options.discordWebhook;
+            const sendAlertWebhook: Webhook = {
+                username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
+                avatar_url: optDW.avatarURL ? optDW.avatarURL : '',
+                content: optDW.sendAlert.isMention ? `<@!${optDW.ownerID}>` : '',
+                embeds: [
+                    {
+                        title: 'Bot crashed!',
+                        description: errorMessage,
+                        color: '16711680',
+                        footer: {
+                            text: `${String(new Date(Date.now()))} • v${process.env.BOT_VERSION}`
+                        }
+                    }
+                ]
+            };
+
+            const request = new XMLHttpRequest();
+            request.open('POST', optDW.sendAlert.url);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(JSON.stringify(sendAlertWebhook));
+        }
 
         if (botReady) {
             log.error(
@@ -93,7 +100,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             );
         }
     } else {
-        log.warn('Received kill signal `' + signalOrErr + '`');
+        log.warn('Received kill signal `' + (signalOrErr as string) + '`');
     }
 
     botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
@@ -105,29 +112,8 @@ process.on('message', message => {
 
         botManager.stop(null, true, false);
     } else {
-        log.warn('Process received unknown message `' + message + '`');
+        log.warn('Process received unknown message `' + (message as string) + '`');
     }
-});
-
-import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
-import CEconItem from 'steamcommunity/classes/CEconItem.js';
-
-['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
-    EconItem.prototype[v] = require('./lib/extend/item/' + v);
-    CEconItem.prototype[v] = require('./lib/extend/item/' + v);
-});
-
-import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
-
-[
-    'log',
-    'summarize',
-    'summarizeWithStockChanges',
-    'getDiff',
-    'summarizeWithLink',
-    'summarizeWithLinkWithStockChanges'
-].forEach(v => {
-    TradeOffer.prototype[v] = require('./lib/extend/offer/' + v);
 });
 
 void botManager.start(options).asCallback(err => {

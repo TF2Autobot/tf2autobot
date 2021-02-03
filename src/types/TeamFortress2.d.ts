@@ -31,6 +31,7 @@ export interface Item {
     target: number;
     output: number;
     outputQuality: number;
+    paint: number;
 }
 
 export interface MinimumItem {
@@ -50,4 +51,5 @@ export interface MinimumItem {
     target?: number;
     output?: number;
     outputQuality?: number;
+    paint?: number;
 }

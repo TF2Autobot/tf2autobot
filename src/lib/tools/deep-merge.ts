@@ -12,7 +12,7 @@ interface AnyObject {
 }
 
 interface DeepMerge {
-    (target: AnyObject, ...sources: Array<AnyObject>): AnyObject;
+    (target: AnyObject, ...sources: AnyObject[]): AnyObject;
 }
 
 /**
@@ -25,7 +25,7 @@ export const isObject: O = (item: any): boolean => {
     return item === Object(item) && !Array.isArray(item);
 };
 
-export const deepMerge: DeepMerge = (target: AnyObject, ...sources: Array<AnyObject>): AnyObject => {
+export const deepMerge: DeepMerge = (target: AnyObject, ...sources: AnyObject[]): AnyObject => {
     // return the target if no sources passed
     if (!sources.length) {
         return target;

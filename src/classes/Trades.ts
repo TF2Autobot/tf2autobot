@@ -1,17 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import TradeOfferManager, { EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
-
 import Bot from './Bot';
-
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
+import { sendAlert } from '../lib/DiscordWebhook/export';
+import { isBptfBanned } from '../lib/bans';
 
 export default class Trades {
     private readonly bot: Bot;
@@ -23,6 +20,10 @@ export default class Trades {
     private processingOffer = false;
 
     private pollCount = 0;
+
+    private escrowCheckFailedCount = 0;
+
+    private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -41,7 +42,6 @@ export default class Trades {
             }
 
             const state = pollData.sent[id];
-
             if (
                 state === TradeOfferManager.ETradeOfferState['Active'] ||
                 state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
@@ -56,7 +56,6 @@ export default class Trades {
             }
 
             const state = pollData.received[id];
-
             if (state === TradeOfferManager.ETradeOfferState['Active']) {
                 activeOrCreatedNeedsConfirmation.push(id);
             }
@@ -68,36 +67,34 @@ export default class Trades {
 
             const offerData: UnknownDictionaryKnownValues =
                 pollData.offerData === undefined ? {} : pollData.offerData[id] || {};
-            const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
 
+            const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
             for (let i = 0; i < items.length; i++) {
-                this.setItemInTrade(items[i].assetid);
+                this.setItemInTrade = items[i].assetid;
             }
         }
 
         this.bot.manager.pollData = pollData;
     }
 
-    onNewOffer(offer: TradeOfferManager.TradeOffer): void {
+    onNewOffer(offer: TradeOffer): void {
         if (offer.isGlitched()) {
             offer.log('debug', 'is glitched');
             return;
         }
 
         offer.log('info', 'received offer');
-
         this.enqueueOffer(offer);
     }
 
-    onOfferList(filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]): void {
+    onOfferList(filter: number, sent: TradeOffer[], received: TradeOffer[]): void {
         // Go through all offers and add offers that we have not checked
 
         this.pollCount++;
 
         received.concat(sent).forEach(offer => {
             if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
-                const ourItems = offer.data('_ourItems');
-                if (ourItems !== undefined) {
+                if (offer.data('_ourItems') !== undefined) {
                     // Make sure that offers that are not active does not have items saved
                     offer.data('_ourItems', undefined);
                 }
@@ -140,13 +137,11 @@ export default class Trades {
 
     getActiveOffer(steamID: SteamID): string | null {
         const pollData = this.bot.manager.pollData;
-
         if (!pollData.offerData) {
             return null;
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
-
         for (const id in pollData.sent) {
             if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) {
                 continue;
@@ -182,7 +177,6 @@ export default class Trades {
             }
 
             const offerData = this.bot.manager.pollData.offerData[offerID];
-
             if (!offerData.partner || tradesBySteamID[offerData.partner] === undefined) {
                 continue;
             }
@@ -196,8 +190,8 @@ export default class Trades {
     getOffers(
         includeInactive = false
     ): Promise<{
-        sent: TradeOfferManager.TradeOffer[];
-        received: TradeOfferManager.TradeOffer[];
+        sent: TradeOffer[];
+        received: TradeOffer[];
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
@@ -224,9 +218,11 @@ export default class Trades {
         });
     }
 
-    private enqueueOffer(offer: TradeOfferManager.TradeOffer): void {
+    private enqueueOffer(offer: TradeOffer): void {
         if (!this.receivedOffers.includes(offer.id)) {
-            offer.itemsToGive.forEach(item => this.setItemInTrade(item.assetid));
+            offer.itemsToGive.forEach(item => {
+                this.setItemInTrade = item.assetid;
+            });
 
             offer.data('partner', offer.partner.getSteamID64());
 
@@ -255,7 +251,7 @@ export default class Trades {
         }
     }
 
-    private handlerProcessOffer(offer: TradeOfferManager.TradeOffer): void {
+    private handlerProcessOffer(offer: TradeOffer): void {
         log.debug('Giving offer to handler');
 
         const start = dayjs().valueOf();
@@ -369,7 +365,7 @@ export default class Trades {
         });
     }
 
-    getOffer(offerId: string, attempts = 0): Promise<TradeOfferManager.TradeOffer> {
+    getOffer(offerId: string, attempts = 0): Promise<TradeOffer> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffer(offerId, (err, offer) => {
                 attempts++;
@@ -386,19 +382,17 @@ export default class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.getOffer(offerId, attempts));
                         });
-                        return;
                     }
 
-                    void this.bot.getWebSession(true).asCallback(err => {
+                    return void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
                         void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.getOffer(offerId, attempts));
                         });
                     });
-                    return;
                 }
 
                 if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
@@ -412,7 +406,7 @@ export default class Trades {
         });
     }
 
-    private acceptOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    private acceptOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -429,8 +423,9 @@ export default class Trades {
 
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
-                    this.acceptConfirmation(offer).catch(() => {
-                        // catch errors like a boss
+                    this.acceptConfirmation(offer).catch(err => {
+                        log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
+                        return reject(err);
                     });
                 }
 
@@ -439,9 +434,9 @@ export default class Trades {
         });
     }
 
-    acceptConfirmation(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    acceptConfirmation(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
-            log.debug('Accepting mobile confirmation...', {
+            log.debug(`Accepting mobile confirmation...`, {
                 offerId: offer.id
             });
 
@@ -454,7 +449,6 @@ export default class Trades {
                 offer.data('confirmationTime', confirmationTime);
 
                 if (err) {
-                    log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
                     return reject(err);
                 }
 
@@ -463,7 +457,7 @@ export default class Trades {
         });
     }
 
-    private acceptOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.accept((err: CustomError, status) => {
                 attempts++;
@@ -475,19 +469,17 @@ export default class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.acceptOfferRetry(offer, attempts));
                         });
-                        return;
                     }
 
-                    void this.bot.getWebSession(true).asCallback(err => {
+                    return void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
                         void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.acceptOfferRetry(offer, attempts));
                         });
                     });
-                    return;
                 }
 
                 return resolve(status);
@@ -495,7 +487,7 @@ export default class Trades {
         });
     }
 
-    private declineOffer(offer: TradeOfferManager.TradeOffer): Promise<void> {
+    private declineOffer(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
@@ -513,14 +505,14 @@ export default class Trades {
         });
     }
 
-    sendOffer(offer: TradeOfferManager.TradeOffer): Promise<string> {
+    sendOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.data('partner', offer.partner.getSteamID64());
 
             const ourItems: TradeOfferManager.TradeOfferItem[] = [];
 
             offer.itemsToGive.forEach(item => {
-                this.setItemInTrade(item.assetid);
+                this.setItemInTrade = item.assetid;
                 ourItems.push(Trades.mapItem(item));
             });
 
@@ -538,7 +530,9 @@ export default class Trades {
                 offer.data('actionTime', actionTime);
 
                 if (err) {
-                    offer.itemsToGive.forEach(item => this.unsetItemInTrade(item.assetid));
+                    offer.itemsToGive.forEach(item => {
+                        this.unsetItemInTrade = item.assetid;
+                    });
                     return reject(err);
                 }
 
@@ -549,7 +543,7 @@ export default class Trades {
         });
     }
 
-    private sendOfferRetry(offer: TradeOfferManager.TradeOffer, attempts = 0): Promise<string> {
+    private sendOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
         return new Promise((resolve, reject) => {
             offer.send((err: CustomError, status) => {
                 attempts++;
@@ -570,16 +564,12 @@ export default class Trades {
 
                     if (err.eresult === TradeOfferManager.EResult['Revoked']) {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
-                        void this.bot.inventoryManager
-                            .getInventory()
-                            .fetch()
-                            .asCallback(() => {
-                                reject(err);
-                            });
-                        return;
+                        return void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+                            reject(err);
+                        });
                     } else if (err.eresult === TradeOfferManager.EResult['Timeout']) {
                         // The offer may or may not have been made, will wait some time and check if if we can find a matching offer
-                        void Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
+                        return void Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
                             // Done waiting, try and find matching offer
                             void this.findMatchingOffer(offer, true).asCallback((err, match) => {
                                 if (err) {
@@ -589,8 +579,7 @@ export default class Trades {
 
                                 if (match === null) {
                                     // Did not find a matching offer, retry sending the offer
-                                    void this.sendOfferRetry(offer, attempts);
-                                    return;
+                                    return void this.sendOfferRetry(offer, attempts);
                                 }
 
                                 // Update the offer we attempted to send with the properties from the matching offer
@@ -606,6 +595,7 @@ export default class Trades {
                                         offer.manager.pollData.offerData = offer.manager.pollData.offerData || {};
                                         offer.manager.pollData.offerData[offer.id] =
                                             offer.manager.pollData.offerData[offer.id] || {};
+                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                         offer.manager.pollData.offerData[offer.id][property] =
                                             offer._tempData[property];
                                     }
@@ -622,26 +612,23 @@ export default class Trades {
                                 );
                             });
                         });
-                        return;
                     } else if (err.eresult !== undefined) {
                         return reject(err);
                     }
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
                             resolve(this.sendOfferRetry(offer, attempts));
                         });
-                        return;
                     }
 
-                    void this.bot.getWebSession(true).asCallback(err => {
+                    return void this.bot.getWebSession(true).asCallback(err => {
                         // If there is no error when waiting for web session, then attempt to fetch the offer right away
                         void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
                             resolve(this.sendOfferRetry(offer, attempts));
                         });
                     });
-                    return;
                 }
 
                 resolve(status);
@@ -649,8 +636,9 @@ export default class Trades {
         });
     }
 
-    checkEscrow(offer: TradeOfferManager.TradeOffer): Promise<boolean> {
+    checkEscrow(offer: TradeOffer): Promise<boolean> {
         log.debug('Checking escrow');
+        clearTimeout(this.restartOnEscrowCheckFailed);
 
         return new Promise((resolve, reject) => {
             const operation = retry.operation({
@@ -671,11 +659,20 @@ export default class Trades {
                         }
 
                         if (err) {
+                            this.escrowCheckFailedCount++;
+
+                            clearTimeout(this.restartOnEscrowCheckFailed);
+                            this.restartOnEscrowCheckFailed = setTimeout(() => {
+                                // call function to automatically restart the bot after 2 seconds
+                                void this.triggerRestartBot(offer.partner);
+                            }, 2 * 1000);
+
                             return reject(operation.mainError());
                         }
 
                         log.debug('Done checking escrow');
 
+                        this.escrowCheckFailedCount = 0;
                         return resolve(them.escrowDays !== 0);
                     }
 
@@ -692,7 +689,126 @@ export default class Trades {
         });
     }
 
-    onOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number): void {
+    private retryToRestart(steamID: SteamID | string): void {
+        this.restartOnEscrowCheckFailed = setTimeout(() => {
+            void this.triggerRestartBot(steamID);
+        }, 3 * 60 * 1000);
+    }
+
+    private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
+        log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
+
+        if (this.escrowCheckFailedCount >= 2) {
+            // if escrow check failed more than or equal to 2 times, then perform automatic restart (PM2 only)
+
+            const dwEnabled =
+                this.bot.options.discordWebhook.sendAlert.enable &&
+                this.bot.options.discordWebhook.sendAlert.url !== '';
+
+            // determine whether it's good time to restart or not
+            try {
+                // test if backpack.tf is alive by performing bptf banned check request
+                await isBptfBanned(steamID, this.bot.options.bptfAPIKey);
+            } catch (err) {
+                // do not restart, try again after 3 minutes
+                clearTimeout(this.restartOnEscrowCheckFailed);
+                this.retryToRestart(steamID);
+
+                if (dwEnabled) {
+                    return sendAlert(
+                        'escrow-check-failed-not-restart-bptf-down',
+                        this.bot,
+                        null,
+                        this.escrowCheckFailedCount
+                    );
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            this.escrowCheckFailedCount,
+                            true
+                        )} because backpack.tf is currently down.`,
+                        []
+                    );
+                }
+            }
+
+            const now = dayjs().tz('UTC').format('dddd THH:mm');
+            const array30Minutes = [];
+            array30Minutes.length = 30;
+
+            const isSteamNotGoodNow =
+                now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
+
+            if (isSteamNotGoodNow) {
+                // do not restart during Steam weekly maintenance, try again after 3 minutes
+                clearTimeout(this.restartOnEscrowCheckFailed);
+                this.retryToRestart(steamID);
+
+                if (dwEnabled) {
+                    return sendAlert(
+                        'escrow-check-failed-not-restart-steam-maintenance',
+                        this.bot,
+                        null,
+                        this.escrowCheckFailedCount
+                    );
+                } else {
+                    return this.bot.messageAdmins(
+                        `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
+                            'time',
+                            this.escrowCheckFailedCount,
+                            true
+                        )} because Steam is currently down.`,
+                        []
+                    );
+                }
+            } else {
+                // Good to perform automatic restart
+                if (dwEnabled) {
+                    sendAlert('escrow-check-failed-perform-restart', this.bot, null, this.escrowCheckFailedCount);
+                    void this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                return sendAlert('failedPM2', this.bot);
+                            }
+                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            sendAlert('failedRestartError', this.bot, null, null, err);
+                        });
+                } else {
+                    this.bot.messageAdmins(
+                        `⚠️ [Escrow check failed alert] Current failed count: ${this.escrowCheckFailedCount}`,
+                        []
+                    );
+                    void this.bot.botManager
+                        .restartProcess()
+                        .then(restarting => {
+                            if (!restarting) {
+                                return this.bot.messageAdmins(
+                                    `❌ Automatic restart on Escrow check problem failed because you're not running the bot with PM2!`,
+                                    []
+                                );
+                            }
+                            this.bot.messageAdmins(`🔄 Restarting...`, []);
+                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                        })
+                        .catch(err => {
+                            log.warn('Error occurred while trying to restart: ', err);
+                            this.bot.messageAdmins(
+                                `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`,
+                                []
+                            );
+                        });
+                }
+            }
+        }
+    }
+
+    onOfferChanged(offer: TradeOffer, oldState: number): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
         offer.log(
@@ -718,7 +834,9 @@ export default class Trades {
             // Offer is active
 
             // Mark items as in trade
-            offer.itemsToGive.forEach(item => this.setItemInTrade(item.id));
+            offer.itemsToGive.forEach(item => {
+                this.setItemInTrade = item.id;
+            });
 
             if (offer.isOurOffer && offer.data('_ourItems') === undefined) {
                 // Items are not saved for sent offer, save them
@@ -729,7 +847,9 @@ export default class Trades {
             }
         } else {
             // Offer is not active and the items are no longer in trade
-            offer.itemsToGive.forEach(item => this.unsetItemInTrade(item.assetid));
+            offer.itemsToGive.forEach(item => {
+                this.unsetItemInTrade = item.assetid;
+            });
 
             // Unset items
             offer.data('_ourItems', undefined);
@@ -748,34 +868,19 @@ export default class Trades {
             offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
-            this.bot.handler.onTradeOfferChanged(offer, oldState);
-            return;
+            return this.bot.handler.onTradeOfferChanged(offer, oldState);
         }
 
         offer.data('isAccepted', true);
 
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory().removeItem(item.assetid));
+        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
 
-        void this.bot.inventoryManager
-            .getInventory()
-            .fetch()
-            .asCallback(() => {
-                // Update listings
-                const diff = offer.getDiff() || {};
-
-                for (const sku in diff) {
-                    if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
-                        continue;
-                    }
-
-                    this.bot.listings.checkBySKU(sku);
-                }
-
-                this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
-            });
+        void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+            this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
+        });
     }
 
-    private setItemInTrade(assetid: string): void {
+    private set setItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
         if (index === -1) {
@@ -792,7 +897,7 @@ export default class Trades {
         this.itemsInTrade = fixDuplicate;
     }
 
-    private unsetItemInTrade(assetid: string): void {
+    private set unsetItemInTrade(assetid: string) {
         const index = this.itemsInTrade.indexOf(assetid);
 
         if (index !== -1) {
@@ -800,7 +905,7 @@ export default class Trades {
         }
     }
 
-    static offerEquals(a: TradeOfferManager.TradeOffer, b: TradeOfferManager.TradeOffer): boolean {
+    static offerEquals(a: TradeOffer, b: TradeOffer): boolean {
         return (
             a.isOurOffer === b.isOurOffer &&
             a.partner.getSteamID64() === b.partner.getSteamID64() &&
@@ -815,11 +920,9 @@ export default class Trades {
         }
 
         const copy = b.slice(0);
-
         for (let i = 0; i < a.length; i++) {
             // Find index of matching item
             const index = copy.findIndex(item => Trades.itemEquals(item, a[i]));
-
             if (index === -1) {
                 // Item was not found, offers don't match
                 return false;

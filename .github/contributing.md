@@ -24,13 +24,13 @@ The following is a set of guidelines for contributing to TF2Autobot. These are g
 
 ### Reporting bugs
 
-Please don't use GitHub issues for questions, we have a [TF2Autobot Discord server](https://discord.gg/ZrVT7mc) for that.
+Please don't use GitHub issues for questions, we have a [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8) for that.
 
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find that you don't need to create one. When creating a bug report please include as many details as possible.
 
 * **Make sure that it an actual problem.** You might be able to find the cause of the problem and fix it yourself. Most importantly, check if you can reproduce the problem.
 * **Check perviously made issues** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
-* **Ask for help in the [TF2Autobot Discord server](https://discord.gg/ZrVT7mc).** Someone might know the issue and tell you what to do to fix it.
+* **Ask for help in the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8).** Someone might know the issue and tell you what to do to fix it.
 
 #### How to submit a bug report
 

@@ -1,12 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/ban-types */
-
 import Bot from './Bot';
-
 import log from '../lib/logger';
-import { craftAll } from '../lib/data';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
@@ -17,6 +10,15 @@ type Job = {
     sortType?: number;
     callback?: (err?: Error) => void;
 };
+
+type ListenForEvent =
+    | [string, (...args: any[]) => void, (err: Error) => void]
+    | [
+          string,
+          (...args: any[]) => { success: boolean; clearTimeout?: boolean },
+          (...args: any[]) => void,
+          (err: Error) => void
+      ];
 
 export default class TF2GC {
     private readonly bot: Bot;
@@ -52,7 +54,7 @@ export default class TF2GC {
     }
 
     combineWeapon(sku: string, callback?: (err: Error | null) => void): void {
-        if (!craftAll.includes(sku)) {
+        if (!this.bot.craftWeapons.includes(sku)) {
             return;
         }
 
@@ -63,7 +65,7 @@ export default class TF2GC {
 
     combineClassWeapon(skus: string[], callback?: (err: Error | null) => void): void {
         skus.forEach(sku => {
-            if (!craftAll.includes(sku)) {
+            if (!this.bot.craftWeapons.includes(sku)) {
                 return;
             }
         });
@@ -160,28 +162,24 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process job"));
         }
 
-        const assetids = this.bot.inventoryManager
-            .getInventory()
+        const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(String(job.defindex) + ';6', true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, job.type === 'smelt' ? 1 : 3);
-
         log.debug('Sending craft request');
-
         this.bot.tf2.craft(ids);
 
         const gainDefindex = job.defindex + (job.type === 'smelt' ? -1 : 1);
         const gainSKU = String(gainDefindex) + ';6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory().removeItem(assetid));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -196,27 +194,23 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process weapon crafting job"));
         }
 
-        const assetids = this.bot.inventoryManager
-            .getInventory()
+        const assetids = this.bot.inventoryManager.getInventory
             .findBySKU(job.sku, true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, 2);
-
         log.debug('Sending weapon craft request');
-
         this.bot.tf2.craft(ids);
 
         const gainSKU = '5000;6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory().removeItem(assetid));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -231,33 +225,25 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process class weapon crafting job"));
         }
 
-        const assetids1 = this.bot.inventoryManager
-            .getInventory()
-            .findBySKU(job.skus[0], true)
-            .filter(assetid => !this.bot.trades.isInTrade(assetid));
-        const assetids2 = this.bot.inventoryManager
-            .getInventory()
-            .findBySKU(job.skus[1], true)
-            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const inventory = this.bot.inventoryManager.getInventory;
+        const assetids1 = inventory.findBySKU(job.skus[0], true).filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const assetids2 = inventory.findBySKU(job.skus[1], true).filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const id1 = assetids1[0];
         const id2 = assetids2[0];
-
         log.debug('Sending weapon craft request');
-
         this.bot.tf2.craft([id1, id2]);
 
         const gainSKU = '5000;6';
-
         this.listenForEvent(
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                this.bot.inventoryManager.getInventory().removeItem(id1);
-                this.bot.inventoryManager.getInventory().removeItem(id2);
+                this.bot.inventoryManager.getInventory.removeItem(id1);
+                this.bot.inventoryManager.getInventory.removeItem(id2);
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory().addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -283,7 +269,7 @@ export default class TF2GC {
                 return { success: item.id === job.assetid };
             },
             () => {
-                this.bot.inventoryManager.getInventory().removeItem(job.assetid);
+                this.bot.inventoryManager.getInventory.removeItem(job.assetid);
 
                 this.finishedProcessingJob();
             },
@@ -297,8 +283,7 @@ export default class TF2GC {
         log.debug('Sending sort request');
 
         this.bot.tf2.sortBackpack(job.sortType);
-
-        let timeout;
+        let timeout: NodeJS.Timeout;
 
         const cancel = this.listenForEvent(
             'itemChanged',
@@ -339,8 +324,11 @@ export default class TF2GC {
      *
      * @returns Call this function to cancel
      */
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private listenForEvent(event: string, onSuccess: (...args: any[]) => void, onFail: (err: Error) => void): Function;
+    private listenForEvent(
+        event: string,
+        onSuccess: (...args: any[]) => void,
+        onFail: (err: Error) => void
+    ): () => void;
 
     /**
      * Listens for GC event
@@ -360,10 +348,9 @@ export default class TF2GC {
         iterator: (...args: any[]) => { success: boolean; clearTimeout?: boolean },
         onSuccess: (...args: any[]) => void,
         onFail: (err: Error) => void
-    ): Function;
+    ): () => void;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private listenForEvent(...args: any[]): Function {
+    private listenForEvent(...args: ListenForEvent): () => void {
         const event = args[0];
         const iterator =
             args.length === 4
@@ -391,7 +378,7 @@ export default class TF2GC {
         function onDisconnected(): void {
             removeListeners();
 
-            failCallback(new Error('Diconnected from TF2 GC'));
+            failCallback(new Error('Disconnected from TF2 GC'));
         }
 
         function onTimeout(): void {
@@ -432,14 +419,13 @@ export default class TF2GC {
 
     private canProcessJob(job: Job): boolean {
         if (job.type === 'smelt' || job.type === 'combine') {
-            const assetids = this.bot.inventoryManager
-                .getInventory()
+            const assetids = this.bot.inventoryManager.getInventory
                 .findBySKU(String(job.defindex) + ';6', true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
             return (job.type === 'smelt' && assetids.length > 0) || (job.type === 'combine' && assetids.length >= 3);
         } else if (job.type === 'use' || job.type === 'delete') {
-            return this.bot.inventoryManager.getInventory().findByAssetid(job.assetid) !== null;
+            return this.bot.inventoryManager.getInventory.findByAssetid(job.assetid) !== null;
         }
 
         return true;
@@ -447,19 +433,16 @@ export default class TF2GC {
 
     private canProcessJobWeapon(job: Job): boolean {
         if (job.type === 'combineWeapon') {
-            const assetids = this.bot.inventoryManager
-                .getInventory()
+            const assetids = this.bot.inventoryManager.getInventory
                 .findBySKU(job.sku, true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
             return job.type === 'combineWeapon' && assetids.length >= 2;
         } else if (job.type === 'combineClassWeapon') {
-            const assetids1 = this.bot.inventoryManager
-                .getInventory()
+            const assetids1 = this.bot.inventoryManager.getInventory
                 .findBySKU(job.skus[0], true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
-            const assetids2 = this.bot.inventoryManager
-                .getInventory()
+            const assetids2 = this.bot.inventoryManager.getInventory
                 .findBySKU(job.skus[1], true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
@@ -470,7 +453,7 @@ export default class TF2GC {
 
     private connectToGC(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (!this.isConnectedToGC()) {
+            if (!this.isConnectedToGC) {
                 log.debug('Not playing TF2');
                 this.bot.client.gamesPlayed(440);
             }
@@ -501,7 +484,7 @@ export default class TF2GC {
         });
     }
 
-    private isConnectedToGC(): boolean {
+    private get isConnectedToGC(): boolean {
         return this.bot.client._playingAppIds.some(game => game == 440);
     }
 }

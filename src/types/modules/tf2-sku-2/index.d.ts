@@ -13,10 +13,10 @@ declare module 'tf2-sku-2' {
         quality2?: number;
         craftnumber?: number;
         crateseries?: number;
-        paint?: number;
         target?: number;
         output?: number;
         outputQuality?: number;
+        paint?: number;
     }): string;
 
     export function fromString(
@@ -35,9 +35,9 @@ declare module 'tf2-sku-2' {
         quality2: number;
         craftnumber: number;
         crateseries: number;
-        paint: number;
         target: number;
         output: number;
         outputQuality: number;
+        paint: number;
     };
 }

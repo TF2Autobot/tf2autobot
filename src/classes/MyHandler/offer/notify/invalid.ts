@@ -2,6 +2,7 @@ import { TradeOffer } from 'steam-tradeoffer-manager';
 import Bot from '../../../Bot';
 
 export default function invalid(offer: TradeOffer, bot: Bot): void {
+    offer.data('isInvalid', true);
     bot.sendMessage(
         offer.partner,
         bot.options.customMessage.tradedAway

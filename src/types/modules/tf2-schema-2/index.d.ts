@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 declare module 'tf2-schema-2' {
     import { EventEmitter } from 'events';
 
@@ -23,14 +21,64 @@ declare module 'tf2-schema-2' {
 
         constructor(options: { apiKey?: string; updateTime?: number });
 
-        init(callback: Function): void;
+        init(callback: (err: any) => void): void;
 
-        setSchema(data: object, fromUpdate?: boolean): void;
+        setAPIKey(apiKey: string): void;
 
-        getSchema(callback: Function): void;
+        setSchema(data: GetSchemaResponse, fromUpdate?: boolean): void;
+
+        getSchema(callback: (err: any, schema?: any) => void): void;
+    }
+
+    interface PricesResponse {
+        success: boolean;
+        message?: string;
+    }
+
+    interface GetSchemaResponse extends PricesResponse {
+        version: string;
+        time: number;
+        raw: any;
     }
 
     namespace SchemaManager {
+        interface SchemaAttribute {
+            name: string;
+            defindex: number;
+            attribute_class: string;
+            description_string?: string;
+            description_format?: string;
+            effect_type: string;
+            hidden: boolean;
+            stored_as_integer: boolean;
+        }
+
+        interface ItemSet {
+            item_set: string;
+            name: string;
+            items: string[];
+            attributes?: Attribute[];
+        }
+
+        interface Attribute {
+            name: string;
+            class: string;
+            value: number;
+        }
+
+        interface SchemaAttributeControlledAttachedParticle {
+            system: string;
+            id: number;
+            attach_to_rootbone: boolean;
+            name: string;
+        }
+
+        interface SchemaStrangeParts {
+            type: number;
+            type_name: string;
+            level_data: string;
+        }
+
         export interface SchemaItem {
             name: string;
             defindex: number;
@@ -49,69 +97,58 @@ declare module 'tf2-schema-2' {
             drop_type?: string;
             craft_class?: string;
             craft_material_type?: string;
-            capabilities?: {
-                decodable?: boolean;
-                paintable?: boolean;
-                nameable?: boolean;
-                usable_gc?: boolean;
-                usable?: boolean;
-                can_craft_if_purchased?: boolean;
-                can_gift_wrap?: boolean;
-                usable_out_of_game?: boolean;
-                can_craft_count?: boolean;
-                can_craft_mark?: boolean;
-                can_be_restored?: boolean;
-                strange_parts?: boolean;
-                can_card_upgrade?: boolean;
-                can_strangify?: boolean;
-                can_killstreakify?: boolean;
-                can_consume?: boolean;
-            };
-            styles?: [
-                {
-                    name: string;
-                }
-            ];
-            tool?: {
-                type: string;
-                use_string?: string;
-                restriction?: string;
-                usage_capabilities?: {
-                    decodeable?: boolean;
-                    paintable?: boolean;
-                    can_customize_texture?: boolean;
-                    can_gift_wrap?: boolean;
-                    paintable_team_colors?: boolean;
-                    strange_parts?: boolean;
-                    nameable?: boolean;
-                    can_card_upgrade?: boolean;
-                    can_consume?: boolean;
-                    can_killstreakify?: boolean;
-                    can_spell_page?: boolean;
-                    can_strangify?: boolean;
-                    can_unusualify?: boolean;
-                    duck_upgradable?: boolean;
-                };
-            };
+            capabilities?: SchemaItemCapabilities;
+            styles?: SchemaItemStyle[];
+            tool?: SchemaItemTools;
             used_by_classes: string[];
-            attributes: [
-                {
-                    name: string;
-                    class: string;
-                    value: number;
-                }
-            ];
+            attributes: Attribute[];
         }
 
-        interface SchemaAttribute {
+        interface SchemaItemStyle {
             name: string;
-            defindex: number;
-            attribute_class: string;
-            description_string?: string;
-            description_format?: string;
-            effect_type: string;
-            hidden: boolean;
-            stored_as_integer: boolean;
+        }
+
+        interface SchemaItemTools {
+            type: string;
+            use_string?: string;
+            restriction?: string;
+            usage_capabilities?: SchemaItemUsageCapabilities;
+        }
+
+        interface SchemaItemUsageCapabilities {
+            decodeable?: boolean;
+            paintable?: boolean;
+            can_customize_texture?: boolean;
+            can_gift_wrap?: boolean;
+            paintable_team_colors?: boolean;
+            strange_parts?: boolean;
+            nameable?: boolean;
+            can_card_upgrade?: boolean;
+            can_consume?: boolean;
+            can_killstreakify?: boolean;
+            can_spell_page?: boolean;
+            can_strangify?: boolean;
+            can_unusualify?: boolean;
+            duck_upgradable?: boolean;
+        }
+
+        interface SchemaItemCapabilities {
+            decodable?: boolean;
+            paintable?: boolean;
+            nameable?: boolean;
+            usable_gc?: boolean;
+            usable?: boolean;
+            can_craft_if_purchased?: boolean;
+            can_gift_wrap?: boolean;
+            usable_out_of_game?: boolean;
+            can_craft_count?: boolean;
+            can_craft_mark?: boolean;
+            can_be_restored?: boolean;
+            strange_parts?: boolean;
+            can_card_upgrade?: boolean;
+            can_strangify?: boolean;
+            can_killstreakify?: boolean;
+            can_consume?: boolean;
         }
 
         interface Item {
@@ -131,31 +168,63 @@ declare module 'tf2-schema-2' {
             crateseries?: number;
             output?: number;
             outputQuality?: number;
+            paint?: number;
         }
 
+        export interface Effect {
+            name: string;
+            id: number;
+        }
+
+        export interface Paints {
+            [name: string]: string;
+        }
+
+        export interface StrangeParts {
+            [name: string]: string;
+        }
+
+        export type CharacterClasses =
+            | 'Scout'
+            | 'Soldier'
+            | 'Pyro'
+            | 'Demoman'
+            | 'Heavy'
+            | 'Engineer'
+            | 'Medic'
+            | 'Sniper'
+            | 'Spy';
+
         export class Schema {
-            static getOverview(apiKey: string, callback: Function): void;
+            static getOverview(apiKey: string, callback: (err: any, result?: Record<string, unknown>) => void): void;
 
-            static getItems(apiKey: string, callback: Function): void;
+            static getItems(apiKey: string, callback: (err: any, result?: Record<string, unknown>) => void): void;
 
-            static getPaintKits(callback: Function): void;
+            static getPaintKits(callback: (err: any, result?: Record<string, unknown>) => void): void;
 
-            static getItemsGame(callback: Function): void;
+            static getItemsGame(callback: (err: any, result?: Record<string, unknown>) => void): void;
 
             version: string;
 
             raw: {
                 schema: {
+                    items_game_url: string;
+                    attributes: SchemaAttribute[];
+                    item_sets: ItemSet[];
+                    attribute_controlled_attached_particles: SchemaAttributeControlledAttachedParticle[];
+                    kill_eater_score_types: SchemaStrangeParts[];
                     items: SchemaItem[];
+                    paintkits: Record<string, string>;
                 };
                 items_game: {
-                    items: object;
+                    items: Record<string, Record<string, any>>;
+                    attributes: Record<string, Record<string, any>>;
                 };
             };
 
             time: number;
 
-            constructor(data: { version: string; raw: object; time: number });
+            constructor(data: { version: string; raw: Record<string, unknown>; time: number });
 
             getItemByDefindex(defindex: number): SchemaItem | null;
 
@@ -177,7 +246,27 @@ declare module 'tf2-schema-2' {
 
             getName(item: Item, proper?: boolean): string | null;
 
-            toJSON(): { version: string; time: number; raw: object };
+            getUnusualEffects(): Effect[];
+
+            getPaintNameByDecimal(decimal: number): string | null;
+
+            getPaintDecimalByName(name: string): number | null;
+
+            getPaints(): Paints;
+
+            getStrangeParts(): StrangeParts;
+
+            getPaintableItemDefindexes(): number[];
+
+            getCraftableWeaponsSchema(): SchemaItem[];
+
+            getWeaponsForCraftingByClass(charClass: CharacterClasses): string[];
+
+            getCraftableWeaponsForTrading(): string[];
+
+            getUncraftableWeaponsForTrading(): string[];
+
+            toJSON(): { version: string; time: number; raw: Record<string, any> };
         }
     }
 

@@ -1,10 +1,7 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-
 import log from '../logger';
-
 import Bot from '../../classes/Bot';
-import MyHandler from '../../classes/MyHandler/MyHandler';
 
 export default function sendPartnerMessage(
     steamID: string,
@@ -15,12 +12,12 @@ export default function sendPartnerMessage(
     bot: Bot
 ): void {
     const opt = bot.options.discordWebhook;
-    const botInfo = (bot.handler as MyHandler).getBotInfo();
+    const botInfo = bot.handler.getBotInfo;
 
     const discordPartnerMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: `<@!${opt.ownerID}>, new message! - ${steamID}`,
+        content: `${opt.messages.isMention ? `<@!${opt.ownerID}>, ` : ''}new message! - ${steamID}`,
         embeds: [
             {
                 author: {
@@ -29,7 +26,7 @@ export default function sendPartnerMessage(
                     icon_url: their.avatar_url_full
                 },
                 footer: {
-                    text: `Partner SteamID: ${steamID} • ${time}`
+                    text: `Partner SteamID: ${steamID} • ${time} • v${process.env.BOT_VERSION}`
                 },
                 title: '',
                 description: `💬 ${msg}\n\n${quickLinks(their.player_name, links)}`,
@@ -39,12 +36,10 @@ export default function sendPartnerMessage(
     };
 
     sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message')
-        .then(() => {
-            log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err);
-        });
+        .then(() => log.debug(`✅ Sent partner-message webhook (from ${their.player_name}) to Discord.`))
+        .catch(err =>
+            log.debug(`❌ Failed to send partner-message webhook (from ${their.player_name}) to Discord: `, err)
+        );
 }
 
 interface Links {

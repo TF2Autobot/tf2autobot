@@ -6,6 +6,7 @@ import * as pricelist from './pricelistManager';
 import * as review from './review';
 import * as utils from './utils';
 import * as options from './options';
-import * as manager from './botManager';
+import * as manager from './manager';
+import * as request from './request';
 
-export { botStatus, help, messageCommand, misc, pricelist, review, utils, options, manager };
+export { botStatus, help, messageCommand, misc, pricelist, review, utils, options, manager, request };

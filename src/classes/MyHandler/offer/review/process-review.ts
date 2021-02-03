@@ -1,10 +1,6 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
-import { Meta } from 'steam-tradeoffer-manager';
-
-import Bot from '../../../Bot';
+import { TradeOffer, Meta } from 'steam-tradeoffer-manager';
 import * as re from './reasons/export-reasons';
-
+import Bot from '../../../Bot';
 import { valueDiff } from '../../../../lib/tools/export';
 
 export default function processReview(
@@ -16,6 +12,7 @@ export default function processReview(
     notes: string[];
     itemNames: {
         invalidItems: string[];
+        disabledItems: string[];
         overstocked: string[];
         understocked: string[];
         duped: string[];
@@ -23,23 +20,22 @@ export default function processReview(
     };
     missing: string;
     value: { diff: number; diffRef: number; diffKey: string };
-    keyPrices: { buy: Currencies; sell: Currencies };
 } {
-    const keyPrices = bot.pricelist.getKeyPrices();
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.showOnlyMetal);
-
+    const keyPrices = bot.pricelist.getKeyPrices;
+    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.miscSettings.showOnlyMetal.enable);
     const reasons = meta.uniqueReasons;
-
     const reviewReasons: string[] = [];
 
     const names: {
         invalidItems: string[];
+        disabledItems: string[];
         overstocked: string[];
         understocked: string[];
         duped: string[];
         dupedFailed: string[];
     } = {
         invalidItems: [],
+        disabledItems: [],
         overstocked: [],
         understocked: [],
         duped: [],
@@ -51,6 +47,13 @@ export default function processReview(
 
         reviewReasons.push(invalid.note);
         names.invalidItems = invalid.name;
+    }
+
+    if (reasons.includes('🟧_DISABLED_ITEMS')) {
+        const disabled = re.disabledItems(meta, bot);
+
+        reviewReasons.push(disabled.note);
+        names.disabledItems = disabled.name;
     }
 
     if (reasons.includes('🟦_OVERSTOCKED')) {
@@ -74,7 +77,6 @@ export default function processReview(
         names.duped = dupe.name;
     }
 
-    // for 🟪_DUPE_CHECK_FAILED
     if (reasons.includes('🟪_DUPE_CHECK_FAILED')) {
         const dupeFail = re.dupedCheckFailed(meta, bot);
 
@@ -90,15 +92,17 @@ export default function processReview(
         missingPureNote = invalidV.missing;
     }
 
-    const notes = reviewReasons;
-    const itemNames = {
-        invalidItems: names.invalidItems,
-        overstocked: names.overstocked,
-        understocked: names.understocked,
-        duped: names.duped,
-        dupedCheckFailed: names.dupedFailed
+    return {
+        notes: reviewReasons,
+        itemNames: {
+            invalidItems: names.invalidItems,
+            disabledItems: names.disabledItems,
+            overstocked: names.overstocked,
+            understocked: names.understocked,
+            duped: names.duped,
+            dupedCheckFailed: names.dupedFailed
+        },
+        missing: missingPureNote,
+        value: value
     };
-    const missing = missingPureNote;
-
-    return { notes, itemNames, missing, value, keyPrices };
 }

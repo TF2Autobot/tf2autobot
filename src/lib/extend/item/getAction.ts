@@ -15,7 +15,5 @@ export = function (action: string): string | null {
 
     if (match === undefined) {
         return null;
-    } else {
-        return match.link;
-    }
+    } else return match.link;
 };

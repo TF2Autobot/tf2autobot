@@ -1,23 +1,26 @@
 import async from 'async';
 import SchemaManager from 'tf2-schema-2';
-import io from 'socket.io-client';
 import pm2 from 'pm2';
-
 import Bot from './Bot';
-
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
+import SocketManager from './MyHandler/SocketManager';
+import { getSchema } from '../lib/ptf-api';
+import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
+import CEconItem from 'steamcommunity/classes/CEconItem.js';
+import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
+import { camelCase } from 'change-case';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
 export default class BotManager {
-    private readonly socket: SocketIOClient.Socket;
+    private readonly socketManager: SocketManager;
 
     private readonly schemaManager: SchemaManager;
 
-    private bot: Bot = null;
+    public bot: Bot = null;
 
     private stopRequested = false;
 
@@ -29,56 +32,63 @@ export default class BotManager {
 
     constructor(pricestfApiToken?: string) {
         this.schemaManager = new SchemaManager({});
-        this.socket = io('https://api.prices.tf', {
-            forceNew: true,
-            autoConnect: false
+        this.patchSchemaManager();
+        this.extendTradeOfferApis();
+        this.socketManager = new SocketManager('https://api.prices.tf', pricestfApiToken);
+    }
+
+    private extendTradeOfferApis() {
+        ['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            EconItem.prototype[v] = require('../lib/extend/item/' + v);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            CEconItem.prototype[v] = require('../lib/extend/item/' + v);
         });
 
-        this.socket.on('connect', () => {
-            log.debug('Connected to socket server');
-            this.socket.emit('authentication', pricestfApiToken);
-        });
-
-        this.socket.on('authenticated', () => {
-            log.debug('Authenticated with socket server');
-        });
-
-        this.socket.on('unauthorized', err => {
-            log.debug('Failed to authenticate with socket server', {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                error: err
-            });
-        });
-
-        this.socket.on('disconnect', (reason: string) => {
-            log.debug('Disconnected from socket server', { reason: reason });
-
-            if (reason === 'io server disconnect') {
-                this.socket.connect();
-            }
+        ['log', 'getDiff'].forEach(v => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+            TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
         });
     }
 
-    getSchema(): SchemaManager.Schema | null {
+    private patchSchemaManager() {
+        // Make the schema manager request the schema from PricesTF
+        this.schemaManager.getSchema = function (callback): void {
+            getSchema()
+                .then(schema => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+                    this.setSchema(schema, true);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    callback(null, this.schema);
+                })
+                .catch(err => callback(err));
+        };
+    }
+
+    get getSchema(): SchemaManager.Schema | null {
         return this.schemaManager.schema;
     }
 
-    getSocket(): SocketIOClient.Socket {
-        return this.socket;
+    set setAPIKeyForSchema(apiKey: string) {
+        this.schemaManager.setAPIKey(apiKey);
     }
 
-    isStopping(): boolean {
+    get getSocketManager(): SocketManager {
+        return this.socketManager;
+    }
+
+    get isStopping(): boolean {
         return this.stopping || this.stopRequested;
     }
 
-    isBotReady(): boolean {
-        return this.bot !== null && this.bot.isReady();
+    get isBotReady(): boolean {
+        return this.bot !== null && this.bot.isReady;
     }
 
     start(options: Options): Promise<void> {
         return new Promise((resolve, reject) => {
             REQUIRED_OPTS.forEach(optName => {
-                if (!process.env[optName]) {
+                if (!process.env[optName] && !options[camelCase(optName)]) {
                     return reject(new Error(`Missing required environment variable "${optName}"`));
                 }
             });
@@ -90,21 +100,25 @@ export default class BotManager {
                         void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
+                        log.info('Starting Socket Manager...');
+                        void this.socketManager.init().asCallback(callback);
+                    },
+                    (callback): void => {
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Starting bot...');
+
                         this.bot = new Bot(this, options);
 
                         void this.bot.start().asCallback(callback);
                     }
                 ],
                 (item, callback) => {
-                    if (this.isStopping()) {
+                    if (this.isStopping) {
                         // Shutdown is requested, stop the bot
-                        this.stop(null, false, false);
-                        return;
+                        return this.stop(null, false, false);
                     }
 
                     item(callback);
@@ -114,14 +128,10 @@ export default class BotManager {
                         return reject(err);
                     }
 
-                    if (this.isStopping()) {
+                    if (this.isStopping) {
                         // Shutdown is requested, stop the bot
-                        this.stop(null, false, false);
-                        return;
+                        return this.stop(null, false, false);
                     }
-
-                    // Connect to socket server
-                    this.socket.open();
 
                     return resolve();
                 }
@@ -141,11 +151,10 @@ export default class BotManager {
 
         if (rudely) {
             log.warn('Forcefully exiting');
-            this.exit(err);
-            return;
+            return this.exit(err);
         }
 
-        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady()) {
+        if (err === null && checkIfReady && this.bot !== null && !this.bot.isReady) {
             return;
         }
 
@@ -162,8 +171,7 @@ export default class BotManager {
 
         if (this.bot === null) {
             log.debug('Bot instance was not yet created');
-            this.exit(err);
-            return;
+            return this.exit(err);
         }
 
         this.bot.handler.onShutdown().finally(() => {
@@ -197,8 +205,6 @@ export default class BotManager {
                 return resolve(false);
             }
 
-            // TODO: Make restart function take arguments, for example, an option to update the environment variables
-
             log.warn('Restart has been initialized, restarting...');
 
             pm2.restart(process.env.pm_id, err => {
@@ -223,6 +229,7 @@ export default class BotManager {
             // Stop updating schema
             clearTimeout(this.schemaManager._updateTimeout);
             clearInterval(this.schemaManager._updateInterval);
+            clearInterval(this.bot.updateSchemaPropertiesInterval);
 
             // Stop heartbeat and inventory timers
             clearInterval(this.bot.listingManager._heartbeatInterval);
@@ -230,7 +237,7 @@ export default class BotManager {
         }
 
         // Disconnect from socket server to stop price updates
-        this.socket.disconnect();
+        this.socketManager.shutDown();
     }
 
     private exit(err: Error | null): void {
