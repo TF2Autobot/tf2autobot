@@ -201,16 +201,20 @@ export async function actionOnTradeCommand(
                 if (isManyItems) {
                     bot.sendMessage(
                         offer.partner,
-                        '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use ' +
-                            'the !sell/!sellcart or !buy/!buycart command.'
+                        bot.options.customMessage.accepted.manual.largeOffer
+                            ? bot.options.customMessage.accepted.manual.largeOffer
+                            : '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                  ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use ' +
+                                  'the !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     bot.sendMessage(
                         offer.partner,
-                        '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
-                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use ' +
-                            'the !sell/!sellcart or !buy/!buycart command.'
+                        bot.options.customMessage.accepted.manual.smallOffer
+                            ? bot.options.customMessage.accepted.manual.smallOffer
+                            : '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
+                                  ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use ' +
+                                  'the !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
             }

@@ -1075,3 +1075,17 @@
 | `banned` | "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community." |
 | `escrow` | "/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because I do not accept escrow (trade holds). To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.\nRead:\n• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218" |
 | `manual` | "/pre ❌ Ohh nooooes! The offer is no longer available. . Reason: The offer has been declined by the owner." |
+
+## Accepted message
+
+### - Automatic
+| Type | Default |
+| :--: | :------ |
+| `bigOffer` | I have accepted your offer. The trade may take a while to finalize due to it being a large offer. If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
+| `smallOffer` | I have accepted your offer. The trade should be finalized shortly. If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
+
+### - Manual
+| Type | Default |
+| :--: | :------ |
+| `bigOffer` | .\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer. If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
+| `smallOffer` | .\nMy owner has manually accepted your offer. The trade should be finalized shortly. If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |

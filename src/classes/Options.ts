@@ -364,6 +364,16 @@ export const DEFAULTS = {
             escrow: '',
             manual: ''
         },
+        accepted: {
+            automatic: {
+                largeOffer: '',
+                smallOffer: ''
+            },
+            manual: {
+                largeOffer: '',
+                smallOffer: ''
+            }
+        },
         tradedAway: '',
         failedMobileConfirmation: '',
         cancelledActiveForAwhile: '',
@@ -1219,6 +1229,7 @@ interface CustomMessage {
     success?: string;
     successEscrow?: string;
     decline?: DeclineNote;
+    accepted?: AcceptedNote;
     tradedAway?: string;
     failedMobileConfirmation?: string;
     cancelledActiveForAwhile?: string;
@@ -1239,6 +1250,16 @@ interface DeclineNote {
     banned?: string;
     escrow?: string;
     manual?: string;
+}
+
+interface AcceptedNote {
+    automatic?: OfferType;
+    manual?: OfferType;
+}
+
+interface OfferType {
+    largeOffer: string;
+    smallOffer: string;
 }
 
 // ------------ Commands ------------

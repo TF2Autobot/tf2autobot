@@ -1534,14 +1534,20 @@ export default class MyHandler extends Handler {
                 if (offer.itemsToGive.length + offer.itemsToReceive.length > 50) {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                            ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        opt.customMessage.accepted.automatic.largeOffer
+                            ? opt.customMessage.accepted.automatic.largeOffer
+                            : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                  ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 } else {
                     this.bot.sendMessage(
                         offer.partner,
-                        'I have accepted your offer. The trade should be finalized shortly.' +
-                            ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        opt.customMessage.accepted.automatic.smallOffer
+                            ? opt.customMessage.accepted.automatic.smallOffer
+                            : 'I have accepted your offer. The trade should be finalized shortly.' +
+                                  ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
                     );
                 }
 
@@ -1645,14 +1651,20 @@ export default class MyHandler extends Handler {
         if (offer.itemsToGive.length + offer.itemsToReceive.length > 50) {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                    ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                opt.customMessage.accepted.automatic.largeOffer
+                    ? opt.customMessage.accepted.automatic.largeOffer
+                    : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                          ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
             this.bot.sendMessage(
                 offer.partner,
-                'I have accepted your offer. The trade will be finalized shortly.' +
-                    ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                opt.customMessage.accepted.automatic.smallOffer
+                    ? opt.customMessage.accepted.automatic.smallOffer
+                    : 'I have accepted your offer. The trade will be finalized shortly.' +
+                          ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         }
 

@@ -250,6 +250,17 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['stringNote', 'price'],
             additionalProperties: false
+        },
+        'large-or-small-offer': {
+            type: 'object',
+            properties: {
+                largeOffer: {
+                    type: 'string'
+                },
+                smallOffer: {
+                    type: 'string'
+                }
+            }
         }
     },
     properties: {
@@ -1055,6 +1066,19 @@ export const optionsSchema: jsonschema.Schema = {
                         'escrow',
                         'manual'
                     ],
+                    additionalProperties: false
+                },
+                accepted: {
+                    type: 'object',
+                    properties: {
+                        automatic: {
+                            $ref: '#/definitions/large-or-small-offer'
+                        },
+                        manual: {
+                            $ref: '#/definitions/large-or-small-offer'
+                        }
+                    },
+                    required: ['automatic', 'manual'],
                     additionalProperties: false
                 },
                 tradedAway: {
