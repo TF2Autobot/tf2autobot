@@ -33,3 +33,5 @@ So how can I find the sku of a specific item?
 -   If your desired item appeared, click on it and take a look at the URL. The item sku is right at the end of the URL.
 
 <div align="center"><img src="https://media.giphy.com/media/Pj78znBQro1BZu0CiE/giphy.gif" alt="listings" style="display: block; margin-left: auto; margin-right: auto;"></div>
+
+Continue: [Listing settings parameters](https://github.com/TF2Autobot/tf2autobot/wiki/Listing-settings-parameters)
