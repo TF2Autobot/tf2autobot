@@ -45,11 +45,11 @@ Based on the results above, you're about to expect that this will happen sometim
 </details>
 
 ## How much does bot count a Craftable weapon as? 0.05 or 0.11 ref?
-All craft weapons listed [here](https://github.com/idinium96/tf2autobot/blob/master/src/lib/data.ts#L171-L454) and uncraft weapons [here](https://github.com/idinium96/tf2autobot/blob/master/src/lib/data.ts#L316-L454) (if you set `weaponsAsCurrency.withUncraft` to `true`) are counted as 0.05 ref **IF** you set `weaponsAsCurrency.enable` as `true` and you did not add that particular item in your price list.
+All craft weapons listed [here](https://github.com/idinium96/tf2autobot/blob/master/src/lib/data.ts#L171-L454) and uncraft weapons [here](https://github.com/idinium96/tf2autobot/blob/master/src/lib/data.ts#L316-L454) (if you set `miscSettings.weaponsAsCurrency.withUncraft` to `true`) are counted as 0.05 ref **IF** you set `miscSettings.weaponsAsCurrency.enable` as `true` and you did not add that particular item in your price list.
 
-IF you set `weaponsAsCurrency.enable` to `true` AND you manually add and set the price, it will not count as 0.05 ref, instead will follow your manually set prices.
+If you set `miscSettings.weaponsAsCurrency.enable` to `true` AND you manually add and set the price, it will not count as 0.05 ref, instead will follow your manually set prices.
 
-IF you set `weaponsAsCurrency.enable` to `false`, then all of that craft/uncraft weapons will not be priced if you not manually set the prices.
+If you set `miscSettings.weaponsAsCurrency.enable` to `false`, then all of that craft/uncraft weapons will not be priced if you not manually set the prices.
 
 ## Why my bot don't accept/decline the trade automatically?
 If someone sent an offer with wrong values, any items that are not in the pricelist, items that already reached maximum stock and etc, and `manualReview.enable` is set to `true`, then you should expect this to happen.
@@ -57,33 +57,33 @@ If someone sent an offer with wrong values, any items that are not in the pricel
 Some descriptions of each reason:
 <details><summary>🟥_INVALID_VALUE</summary>
 <p>
-The value of your side (Asked) and the trade partner side (Offered) and not equal or more. If you want to automatically decline any offer that <b>ONLY</b> has this reason, you need to set <code>manualReview.invalidValue.autoDecline.enable</code> to <code>true</code>. You can also set an exceptional value for an offer with this reason to be accepted by filling the item sku(s) in the <code>manualReview.invalidValue.exceptionValue.skus</code> array and set the <code>manualReview.invalidValue.exceptionValue.valueInRef</code> value. Find more about it <a href="https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-(v2)#_invalid_value">here</a>.
+The value of your side (Asked) and the trade partner side (Offered) and not equal or more. If you want to automatically decline any offer that <b>ONLY</b> has this reason, you need to set <code>offerReceived.invalidValue.autoDecline.enable</code> to <code>true</code>. You can also set an exceptional value for an offer with this reason to be accepted by filling the item sku(s) in the <code>offerReceived.invalidValue.exceptionValue.skus</code> array and set the <code>offerReceived.invalidValue.exceptionValue.valueInRef</code> value. Find more about it <a href="https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-#--on-offer-with-`🟥_invalid_value`">here</a>.
 </p>
 </details>
 
 <details><summary>🟦_OVERSTOCKED</summary>
 <p>
-Some of their items might already in your bot inventory and will reach or have already reached maximum stock if you accept the trade. The bot will automatically accept overstocked offers by default if the trade partner is overpaying. If you don't want this, simply set <code>manualReview.overstocked.autoAcceptOverpay</code> to <code>false</code>. If you want your bot to automatically decline any offer that <b>ONLY</b> has this reason, you'll need to set <code>manualReview.overstocked.autoDecline</code> to <code>true</code>.
+Some of their items might already in your bot inventory and will reach or have already reached maximum stock if you accept the trade. The bot will automatically accept overstocked offers by default if the trade partner is overpaying. If you don't want this, simply set <code>offerReceived.overstocked.autoAcceptOverpay</code> to <code>false</code>. If you want your bot to automatically decline any offer that <b>ONLY</b> has this reason, you'll need to set <code>offerReceived.overstocked.autoDecline.enable</code> to <code>true</code>.
 </p>
 </details>
 
 <details><summary>🟩_UNDERSTOCKED</summary>
 <p>
-Some of our items will be less than the minimum stock if you accept the trade (if you set the item minimum to other than 0). Your bot will automatically accept understocked offers by default if the trade partner is overpaying. If you don't want this, simply set <code>manualReview.understocked.autoAcceptOverpay</code> to <code>false</code>. If you want your bot to automatically decline any offer that <b>ONLY</b> has this reason, you'll need to set <code>manualReview.understocked.autoDecline</code> to <code>true</code>.
+Some of our items will be less than the minimum stock if you accept the trade (if you set the item minimum to other than 0). Your bot will automatically accept understocked offers by default if the trade partner is overpaying. If you don't want this, simply set <code>offerReceived.understocked.autoAcceptOverpay</code> to <code>false</code>. If you want your bot to automatically decline any offer that <b>ONLY</b> has this reason, you'll need to set <code>offerReceived.understocked.autoDecline.enable</code> to <code>true</code>.
 </p>
 </details>
 
 <details><summary>🟨_INVALID_ITEMS</summary>
 <p>
-Some of the items are not in your bot price list. If you have used <code>tf2-automatic</code> before, any <code>INVALID_ITEMS</code> items will not be priced (0 keys, 0 ref value), but <code>TF2Autobot</code> will get the price of that particular item from prices.tf and price it by default. You can disable this feature by changing the <code>manualReview.invalidItems.givePrice</code> default value to <code>false</code>. Your bot will also accept invalid items offers by default if the trade partner is overpaying (set <code>manualReview.invalidItems.autoAcceptOverpay</code> to <code>false</code> if you want to disable it).
+Some of the items are not in your bot price list. If you have used <code>tf2-automatic</code> before, any <code>🟨_INVALID_ITEMS</code> items will not be priced (0 keys, 0 ref value), but <code>TF2Autobot</code> will get the price of that particular item from prices.tf and price it by default. You can disable this feature by changing the <code>offerReceived.invalidItems.givePrice</code> default value to <code>false</code>. Your bot will also accept invalid items offers by default if the trade partner is overpaying (set <code>offerReceived.invalidItems.autoAcceptOverpay</code> to <code>false</code> if you want to disable it).
 
-Don't worry, if your bot has accepted any <code>INVALID_ITEMS</code>, your bot will mention you (if you enable Discord Webhook for trade summary), AND your bot will automatically add that particular item(s) to the pricelist with <code>intent=sell</code> (if and only if the items are priced with prices.tf).
+Don't worry, if your bot has accepted any <code>🟨_INVALID_ITEMS</code>, your bot will mention you (if you enable Discord Webhook for trade summary), AND your bot will automatically add that particular item(s) to the pricelist with <code>intent=sell</code> (if and only if the items are priced with prices.tf).
 </p>
 </details>
 
 <details><summary>🟫_DUPED_ITEMS</summary>
 <p>
-The setting for this can be found <a href="https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-(v2)#_duped_items">here</a>. <code>manualReview.duped.enable</code> is set to <code>true</code> by default. If some items the trade partner is/are offering more than <code>manualReview.duped.minKeys</code> value, then your bot will run a duped check on that particular item. If it's found that it's duped, then you should expect your bot to send this to you. If you want to decline duped items that are more than the <code>manualReview.duped.minKeys</code> value, simply set the <code>manualReview.duped.declineDuped</code> to <code>true</code>.
+The setting for this can be found <a href="https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot#--on-offer-with-`🟫_duped_items`">here</a>. <code>offerReceived.duped.enableCheck</code> is set to <code>true</code> by default. If some items the trade partner is/are offering more than <code>offerReceived.duped.minKeys</code> value, then your bot will run a duped check on that particular item. If it's found that it's duped, then you should expect your bot to send this to you. If you want to decline duped items that are more than the <code>manualReview.duped.minKeys</code> value, simply set the <code>offerReceived.duped.autoDecline.enable</code> to <code>true</code>.
 </p>
 </details>
 
@@ -95,7 +95,7 @@ This might occur if the item is not fully loaded by backpack.tf, which the histo
 
 <details><summary>⬜_ESCROW_CHECK_FAILED</summary>
 <p>
-This can occur when the Steam Client is down. It's temporary but if the trade partner keeps on sending it, you might just manually accept it. Escrow means trade holds, in which your and their items will be held to the Steam items server for some period of time. If you don't care about Escrow, simply set <code>ALLOW_ESCROW</code> to <code>true</code>. 
+This can occur when the Steam Client is down. It's temporary but if the trade partner keeps on sending it, you might just manually accept it. Escrow means trade holds, in which your and their items will be held to the Steam items server for some period of time. If you don't care about Escrow, simply set <code>bypass.escrow.allow</code> to <code>true</code>. 
 </p>
 </details>
 
@@ -113,7 +113,7 @@ Please make sure to stop your bot when you're replacing your `pricelist.json` fr
 # Custom settings
 
 ## How to set custom welcome/success messages?
-All settings for custom messages can be found [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-(v2)#custom-bot-reply).
+All settings for custom messages can be found [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot#💬-custom-message/reply).
 
 When you're applying your custom messages, make sure to always obey the JSON format. You can not add a new line with `ENTER`, but instead you'll need to add `\n` for the new line. The `\` symbol is called escape characters. Another important escape characters are:
 
