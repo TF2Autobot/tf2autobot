@@ -544,8 +544,8 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
             if (params.withgroup || params.withoutgroup) {
                 if (typeof params.note === 'object') {
                     // can change note if have withgroup/withoutgroup parameter
-                    entry.note.buy = params.note.buy || null;
-                    entry.note.sell = params.note.sell || null;
+                    entry.note.buy = params.note.buy || entry.note.buy;
+                    entry.note.sell = params.note.sell || entry.note.sell;
                 }
 
                 if (typeof params.buy === 'object' && params.buy !== null) {
@@ -739,8 +739,8 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
     const itemEntry = bot.pricelist.getPrice(params.sku as string, false);
 
     if (typeof params.note === 'object') {
-        params.note.buy = (params.note.buy === '' ? null : params.note.buy) || itemEntry.note.buy;
-        params.note.sell = (params.note.sell === '' ? null : params.note.sell) || itemEntry.note.sell;
+        params.note.buy = params.note.buy || itemEntry.note.buy;
+        params.note.sell = params.note.sell || itemEntry.note.sell;
     }
 
     if (params.removenote) {
