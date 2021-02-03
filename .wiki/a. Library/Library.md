@@ -13,6 +13,7 @@
     - [Accepted message](#--accepted-message-)
         - [Automatic](#-automatic-)
         - [Manual](#-manual-)
+- [Gift words](#gift-words-)
 
 # Options.json content [^](#table-of-content)
 
@@ -1115,3 +1116,32 @@
 | :--: | :------ |
 | `bigOffer` | .\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer. If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
 | `smallOffer` | .\nMy owner has manually accepted your offer. The trade should be finalized shortly. If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use the !sell/!sellcart or !buy/!buycart command. |
+
+
+# Gift words [^](#table-of-content)
+
+```
+[
+    'gift',
+    'donat',        // So that 'donate' or 'donation' will also be accepted
+    'tip',          // All others are synonyms
+    'tribute',
+    'souvenir',
+    'favor',
+    'giveaway',
+    'bonus',
+    'grant',
+    'bounty',
+    'present',
+    'contribution',
+    'award',
+    'nice',         // Up until here actually
+    'happy',        // All below people might also use
+    'thank',
+    'goo',          // For 'good', 'goodie' or anything else
+    'awesome',
+    'rep',
+    'joy',
+    'cute'
+]
+```
