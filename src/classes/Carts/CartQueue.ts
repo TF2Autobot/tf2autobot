@@ -244,7 +244,7 @@ export default class CartQueue {
                         : isBuyingPremium
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
                             ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                            : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
                         : custom.hasBeenMadeAcceptingMobileConfirmation.offer
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
                         : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
