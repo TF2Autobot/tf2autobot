@@ -25,7 +25,7 @@ export const DEFAULTS = {
             enable: true
         },
         autobump: {
-            enable: false
+            enable: true
         },
         skipItemsInTrade: {
             enable: true
@@ -40,7 +40,7 @@ export const DEFAULTS = {
         },
         game: {
             playOnlyTF2: false,
-            customName: ''
+            customName: 'TF2Autobot'
         }
     },
 
@@ -95,7 +95,7 @@ export const DEFAULTS = {
     tradeSummary: {
         showStockChanges: false,
         showTimeTakenInMS: false,
-        showItemPrices: false
+        showItemPrices: true
     },
 
     highValue: {
