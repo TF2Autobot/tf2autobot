@@ -541,9 +541,9 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                 entry.autoprice = params.autoprice;
             }
 
-            if (params.withgroup) {
+            if (params.withgroup || params.withoutgroup) {
                 if (typeof params.note === 'object') {
-                    // can change note if have withgroup parameter
+                    // can change note if have withgroup/withoutgroup parameter
                     entry.note.buy = params.note.buy || null;
                     entry.note.sell = params.note.sell || null;
                 }
