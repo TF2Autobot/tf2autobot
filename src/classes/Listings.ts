@@ -514,17 +514,24 @@ export default class Listings {
                                             )}`
                                         );
                                     } else {
-                                        const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
-                                        toJoin.push(
-                                            `${name.replace(
-                                                name,
-                                                attachment === 'ke'
-                                                    ? optR.killstreakers[name]
-                                                    : attachment === 'ks'
-                                                    ? optR.sheens[name]
-                                                    : optR.painted[name as PaintedNames].stringNote
-                                            )}`
-                                        );
+                                        if (attachment !== 'sp') {
+                                            const name = getAttachmentName(
+                                                attachment,
+                                                pSKU,
+                                                getPaints,
+                                                getStrangeParts
+                                            );
+                                            toJoin.push(
+                                                `${name.replace(
+                                                    name,
+                                                    attachment === 'ke'
+                                                        ? optR.killstreakers[name]
+                                                        : attachment === 'ks'
+                                                        ? optR.sheens[name]
+                                                        : optR.painted[name as PaintedNames].stringNote
+                                                )}`
+                                            );
+                                        }
                                     }
                                 }
 
