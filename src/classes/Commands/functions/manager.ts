@@ -396,6 +396,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
             bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
             bot.manager.pollInterval = 1000;
             bot.handler.isUpdatingStatus = false;
+            return;
         };
 
         try {
@@ -406,13 +407,13 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                 osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                 err => {
-                    if (err) {
-                        onFailed(err, 'command');
+                    if (err.signal !== null) {
+                        return onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
 
                     bot.botManager.restartProcess().catch(err => {
-                        onFailed(err, 'restarting');
+                        return onFailed(err, 'restarting');
                     });
                 }
             );
