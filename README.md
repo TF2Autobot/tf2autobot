@@ -50,8 +50,8 @@ Join the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8) and head ove
 
 ## Environmental Variables and Options.json properties summary
 
-Env variables: [Windows](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Windows) | [Linux/MacOS/Others](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Linux)
-Options properties: [↗](https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file)
+- Env variables: [Windows](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Windows) | [Linux/MacOS/Others](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Linux)
+- Options properties: [↗](https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file)
 
 <!-- ## Useful Modules
 
