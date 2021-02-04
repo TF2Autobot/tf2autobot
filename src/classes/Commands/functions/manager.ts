@@ -294,10 +294,13 @@ export async function clearFriendsCommand(steamID: SteamID, bot: Bot): Promise<v
     for (const steamid of friendsToRemove) {
         bot.sendMessage(
             steamid,
-            `/quote Hey ${
-                bot.friends.getFriend(steamid).player_name
-            }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+            bot.options.customMessage.clearFriends
+                ? bot.options.customMessage.clearFriends
+                : `/quote Hey ${
+                      bot.friends.getFriend(steamid).player_name
+                  }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
         );
+
         bot.client.removeFriend(steamid);
 
         // Prevent Steam from detecting the bot as spamming
