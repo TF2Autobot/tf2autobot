@@ -3,7 +3,7 @@
 In order to have your bot to start trading, you will need to tell your bot what items to buy/sell/bank by adding the items to the pricelist through Steam Chat.
 The command that you will use is **!add** command. 
 
-## 3.4.1 Using item [`name` or `defindex`](https://github.com/TF2Autobot/tf2autobot/wiki/3.2-item-identifying-parameters#3.2.1---`name`-and-`defindex`-parameters) parameters
+## 3.4.1 Using item [`name` or `defindex`](https://github.com/TF2Autobot/tf2autobot/wiki/Item-Identifying-parameters#321---name-and-defindex-parameters) parameters
 
 Example:
 
@@ -57,7 +57,7 @@ Example:
 
 -   If you want to add `Name Tag` or `Non-Craftable Name Tag`, you will need to use the correct defindex, which is `5020` instead of `2093`. This bug can not be fixed unless Team Fortress 2 updates its schema to remove the wrong defindex.
 
-## 3.4.2 Using [sku](https://github.com/TF2Autobot/tf2autobot/wiki/3.2-item-identifying-parameters#3.2.2---`sku`-parameter) parameter
+## 3.4.2 Using [sku](https://github.com/TF2Autobot/tf2autobot/wiki/Item-Identifying-parameters#322---sku-parameter) parameter
 
 -   Example 1:
 
