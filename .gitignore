@@ -79,3 +79,6 @@ logs/
 
 # ignore compiled code
 dist/
+
+# any .bat file
+*.bat
