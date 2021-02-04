@@ -5,6 +5,7 @@ import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
 import child from 'child_process';
 import fs from 'graceful-fs';
+import sleepasync from 'sleep-async';
 import path from 'path';
 import { EPersonaState } from 'steam-user';
 import { utils } from './export';
@@ -287,23 +288,24 @@ export function blockUnblockCommand(steamID: SteamID, message: string, bot: Bot,
     });
 }
 
-export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
+export async function clearFriendsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const friendsToRemove = bot.friends.getFriends.filter(steamid => !bot.handler.friendsToKeep.includes(steamid));
 
-    const promiseDelay = (ms: number) => {
-        return new Promise(resolve => setTimeout(() => resolve(), ms));
-    };
-
-    friendsToRemove.forEach(steamid => {
-        void promiseDelay(1000);
+    for (const steamid of friendsToRemove) {
         bot.sendMessage(
             steamid,
-            `/quote Hey ${
-                bot.friends.getFriend(steamid).player_name
-            }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+            bot.options.customMessage.clearFriends
+                ? bot.options.customMessage.clearFriends
+                : `/quote Hey ${
+                      bot.friends.getFriend(steamid).player_name
+                  }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
         );
+
         bot.client.removeFriend(steamid);
-    });
+
+        // Prevent Steam from detecting the bot as spamming
+        await sleepasync().Promise.sleep(2 * 1000);
+    }
 
     bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${friendsToRemove.length} friends.`);
 }
@@ -343,7 +345,13 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
     }
 
     if (process.env.pm_id === undefined) {
-        return bot.sendMessage(steamID, '❌ You did not start the bot with pm2!');
+        return bot.sendMessage(
+            steamID,
+            `❌ You're not running the bot with PM2!` +
+                `\n\nNavigate to your bot folder and run ` +
+                `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
+                `and then restart your bot.`
+        );
     }
 
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
@@ -396,6 +404,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
             bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
             bot.manager.pollInterval = 1000;
             bot.handler.isUpdatingStatus = false;
+            return;
         };
 
         try {
@@ -406,13 +415,13 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                 osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                 err => {
-                    if (err) {
-                        onFailed(err, 'command');
+                    if (err.signal !== null) {
+                        return onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
 
                     bot.botManager.restartProcess().catch(err => {
-                        onFailed(err, 'restarting');
+                        return onFailed(err, 'restarting');
                     });
                 }
             );
