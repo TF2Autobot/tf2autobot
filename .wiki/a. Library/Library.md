@@ -17,7 +17,7 @@
 
 # Options.json content [^](#table-of-content)
 
-```
+```json
 {
     "miscSettings": {
         "showOnlyMetal": {
@@ -351,8 +351,8 @@
                 "smallOffer": ''
             },
             "manual": {
-                "largeOffer": '',
-                "smallOffer": ''
+                "largeOffer": "",
+                "smallOffer": ""
             }
         },
         "tradedAway": "",
@@ -604,7 +604,7 @@
                     "metal": 5
                 }
             },
-            "A Mann"s Mint": {
+            "A Mann's Mint": {
                 "stringNote": "👽",
                 "price": {
                     "keys": 0,
@@ -681,7 +681,7 @@
                     "metal": 2
                 }
             },
-            "Noble Hatter"s Violet": {
+            "Noble Hatter's Violet": {
                 "stringNote": "🍇",
                 "price": {
                     "keys": 0,
@@ -716,7 +716,7 @@
                     "metal": 10
                 }
             },
-            "The Color of a Gentlemann"s Business Pants": {
+            "The Color of a Gentlemann's Business Pants": {
                 "stringNote": "🧽",
                 "price": {
                     "keys": 0,
@@ -730,7 +730,7 @@
                     "metal": 2
                 }
             },
-            "Zepheniah"s Greed": {
+            "Zepheniah's Greed": {
                 "stringNote": "🌳",
                 "price": {
                     "keys": 0,
@@ -751,7 +751,7 @@
                     "metal": 30
                 }
             },
-            "Operator"s Overalls": {
+            "Operator's Overalls": {
                 "stringNote": "👜🔷",
                 "price": {
                     "keys": 0,
@@ -847,7 +847,7 @@
 
 # Strange Parts (Excluding built-in parts) [^](#table-of-content)
 
-```
+```json
 {
     "Scouts Killed": "sp10-6003",
     "Snipers Killed": "sp11-6005",
@@ -877,7 +877,7 @@
     "Giant Robots Destroyed": "sp40-6028",
     "Kills While Low Health": "sp44-6032",
     "Kills During Halloween": "sp45-6033",
-    "Robots Killed During Halloween": "sp46-6034"
+    "Robots Killed During Halloween": "sp46-6034",
     "Defenders Killed": "sp47-6035",
     "Submerged Enemy Kills": "sp48-6036",
     "Kills While Invuln ÜberCharged": "sp49-6037",
@@ -906,12 +906,12 @@
 
 # Paints [^](#table-of-content)
 
-```
+```json
 {
     "A Color Similar to Slate": "p3100495",
     "A Deep Commitment to Purple": "p8208497",
     "A Distinctive Lack of Hue": "p1315860",
-    "A Mann"s Mint": "p12377523",
+    "A Mann's Mint": "p12377523",
     "After Eight": "p2960676",
     "Aged Moustache Grey": "p8289918",
     "An Extraordinary Abundance of Tinge": "p15132390",
@@ -922,18 +922,18 @@
     "Indubitably Green": "p7511618",
     "Mann Co. Orange": "p13595446",
     "Muskelmannbraun": "p10843461",
-    "Noble Hatter"s Violet": "p5322826",
+    "Noble Hatter's Violet": "p5322826",
     "Peculiarly Drab Tincture": "p12955537",
     "Pink as Hell": "p16738740",
     "Radigan Conagher Brown": "p6901050",
     "The Bitter Taste of Defeat and Lime": "p3329330",
-    "The Color of a Gentlemann"s Business Pants": "p15787660",
+    "The Color of a Gentlemann's Business Pants": "p15787660",
     "Ye Olde Rustic Colour": "p8154199",
-    "Zepheniah"s Greed": "p4345659",
+    "Zepheniah's Greed": "p4345659",
     "An Air of Debonair": "p6637376",
     "Balaclavas Are Forever": "p3874595",
     "Cream Spirit": "p12807213",
-    "Operator"s Overalls": "p4732984",
+    "Operator's Overalls": "p4732984",
     "Team Spirit": "p12073019",
     "The Value of Teamwork": "p8400928",
     "Waterlogged Lab Coat": "p11049612"
@@ -942,7 +942,7 @@
 
 # Crates/Cases [^](#table-of-content)
 
-```
+```json
 {
     "Festive Winter Crate #6": "5048;6;c6",
     "Refreshing Summer Cooler #22": "5066;6;c22",
@@ -1023,7 +1023,7 @@
 
 # Sheens [^](#table-of-content)
 
-```
+```json
 {
     "Team Shine": "ks-1",
     "Deadly Daffodil": "ks-2",
@@ -1037,7 +1037,7 @@
 
 # Killstreakers [^](#table-of-content)
 
-```
+```json
 {
     "Fire Horns": "ke-2002",
     "Cerebral Discharge": "ke-2002",
@@ -1051,7 +1051,7 @@
 
 # Spells [^](#table-of-content)
 
-```
+```json
 {
     "Team Spirit Footprints": "s-1000",
     "Gangreen Footprints": "s-1001",
@@ -1120,7 +1120,7 @@
 
 # Gift words [^](#table-of-content)
 
-```
+```js
 [
     'gift',
     'donat',        // So that 'donate' or 'donation' will also be accepted
