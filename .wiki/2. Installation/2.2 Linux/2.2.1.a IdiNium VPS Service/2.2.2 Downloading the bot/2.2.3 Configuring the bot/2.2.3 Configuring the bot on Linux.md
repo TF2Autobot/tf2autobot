@@ -35,7 +35,7 @@ The content of `ecosystem.json` file:
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "GROUPS": ["103582791464047777", "103582791462300957"],
-                "ALERTS": ["trade"],
+                "ALERTS": ["trade", "version"],
 
                 "PRICESTF_API_TOKEN": "",
 
@@ -104,7 +104,7 @@ Answer:
 | `ADMINS` | `string[]` | `[""]` | The SteamID64 of your primary account (not your bot). Example: `["76561198013127982"]`. If you would like to have multiple admins, you can do the following: `["76561198013127982", "76561198077208792"]`. Any accounts in this list are designated as an admin/owner. |
 |  `KEEP`  | `string[]` | `[""]` | The **same list** as `ADMINS`, **you must fill in BOTH**. Any accounts in this will not be removed from the bot's friends list in the event that its friend's list is full. |
 | `GROUPS` | `string[]` | `["103582791469033930"]` | Default group is [TF2Autobot](https://steamcommunity.com/groups/TF2Autobot). If you have a Steam group, [find your group ID](https://user-images.githubusercontent.com/47635037/97783524-53a05d00-1bd3-11eb-9778-e92545f2de1e.gif) and paste it here. The bot will automatically invite new trade partners to all groups in this list (by group ID). |
-| `ALERTS` | `string[]` |  `["trade"]` | By default your bot will send a message/discord webhook every time a successful trade is made. Another option is `["none"]`. |
+| `ALERTS` | `string[]` |  `["trade", "version"]` | By default your bot will send a message/discord webhook every time a successful trade is made and send notification in Steam chat if new version has been released. To disable both, set to only `["none"]` |
 
 ## Please ensure you fill in all of the above Environmental variables.
 
