@@ -942,6 +942,12 @@
 
 # Crates/Cases [^](#table-of-content)
 
+## - Crates
+
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/106851775-d31d5b00-66f1-11eb-873c-4692fbd7fada.png" alt="listings" style="display: block; margin-left: auto; margin-right: auto;"></div>
+
+## - Cases
+
 ```json
 {
     "Festive Winter Crate #6": "5048;6;c6",
