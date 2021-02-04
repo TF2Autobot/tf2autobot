@@ -345,7 +345,13 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
     }
 
     if (process.env.pm_id === undefined) {
-        return bot.sendMessage(steamID, '❌ You did not start the bot with pm2!');
+        return bot.sendMessage(
+            steamID,
+            `❌ You're not running the bot with PM2!` +
+                `\n\nNavigate to your bot folder and run ` +
+                `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
+                `and then restart your bot.`
+        );
     }
 
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));

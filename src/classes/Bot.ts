@@ -305,13 +305,13 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                        `Release note: https://github.com/idinium96/tf2autobot/releases` +
-                        `\n\nNavigate to your bot folder and run ` +
-                        `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                        `and then restart your bot.` +
-                        `\nIf the update required you to update ecosystem.json, please make sure to restart your bot with ` +
-                        `[pm2 restart ecosystem.json --update-env] command.` +
-                        '\nContact IdiNium if you have any other problem. Thank you.',
+                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
+                        (process.env.pm_id !== undefined
+                            ? `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"`
+                            : `\n\nNavigate to your bot folder and run ` +
+                              `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
+                              `and then restart your bot.`) +
+                        '\n\nContact IdiNium if you have any other problem. Thank you.',
                     []
                 );
             }
@@ -325,7 +325,7 @@ export default class Bot {
             void request(
                 {
                     method: 'GET',
-                    url: 'https://raw.githubusercontent.com/idinium96/tf2autobot/master/package.json',
+                    url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
                     json: true
                 },
                 (err, response, body) => {
