@@ -172,7 +172,7 @@ export default class Commands {
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             c.manager.blockUnblockCommand(steamID, message, this.bot, command as BlockUnblock);
         } else if (command === 'clearfriends' && isAdmin) {
-            c.manager.clearFriendsCommand(steamID, this.bot);
+            void c.manager.clearFriendsCommand(steamID, this.bot);
         } else if (command === 'stop' && isAdmin) {
             c.manager.stopCommand(steamID, this.bot);
         } else if (command === 'restart' && isAdmin) {

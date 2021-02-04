@@ -5,6 +5,7 @@ import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
 import child from 'child_process';
 import fs from 'graceful-fs';
+import sleepasync from 'sleep-async';
 import path from 'path';
 import { EPersonaState } from 'steam-user';
 import { utils } from './export';
@@ -287,15 +288,10 @@ export function blockUnblockCommand(steamID: SteamID, message: string, bot: Bot,
     });
 }
 
-export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
+export async function clearFriendsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const friendsToRemove = bot.friends.getFriends.filter(steamid => !bot.handler.friendsToKeep.includes(steamid));
 
-    const promiseDelay = (ms: number) => {
-        return new Promise(resolve => setTimeout(() => resolve(), ms));
-    };
-
-    friendsToRemove.forEach(steamid => {
-        void promiseDelay(1000);
+    for (const steamid of friendsToRemove) {
         bot.sendMessage(
             steamid,
             `/quote Hey ${
@@ -303,7 +299,10 @@ export function clearFriendsCommand(steamID: SteamID, bot: Bot): void {
             }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
         );
         bot.client.removeFriend(steamid);
-    });
+
+        // Prevent Steam from detecting the bot as spamming
+        await sleepasync().Promise.sleep(2 * 1000);
+    }
 
     bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${friendsToRemove.length} friends.`);
 }
