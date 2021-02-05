@@ -514,7 +514,7 @@ export default class UserCart extends Cart {
                         skuCount.mostCanTrade
                     )}`;
 
-                    // Add the amount we can trade and substract added amount from command (if exist)
+                    // Add the amount we can trade
                     this.addTheirItem(sku, skuCount.mostCanTrade);
                 }
             }
