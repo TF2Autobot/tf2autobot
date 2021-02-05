@@ -68,7 +68,7 @@ Click [`here`](https://github.com/TF2Autobot/tf2autobot/wiki/Library#optionsjson
     -   [`.weaponsAsCurrency`](#--weapons-as-currency--)
     -   [`.checkUses`](#--full-uses-check-%EF%B8%8F-)
     -   [`.game`](#--bot-playing-game--)
-*   [`sendAlert`](#-send-alert-to-owner-)
+*   [`sendAlert`](#-send-alert-to-owner--)
     -   [`.autokeys`](#--autokeys-alert--)
     -   [`.backpackFull`](#--backpack-fullalmost-full-alert--)
     -   [`.highValue`](#--high-value-items-alert--)
@@ -96,7 +96,7 @@ Click [`here`](https://github.com/TF2Autobot/tf2autobot/wiki/Library#optionsjson
     -   [`.uses`](#--custom-uses-parameter-output--)
 *   [`statistics`](#-trade-statistic-settings-)
     -   `...`
-    -   [`.sendStats`](#--automatic-sending-stats--)
+    -   [`.sendStats`](#--automatic-sending-stats---)
 *   [`autokeys`](#-autokeys-settings-)
     -   `...`
     -   [`.banking`](#--banking--)
@@ -212,7 +212,7 @@ Property: `.game`
 
 ---
 
-## 🔊 Send Alert to owner [^](#optionsjson-structure)
+## 🔊 Send Alert to owner [^](#optionsjson-structure) [↓](#--send-alert-configuration--)
 Parent property key: `sendAlert`
 
 | Option | Type | Default | Description |
@@ -453,7 +453,7 @@ Property: `.uses`
 
 ---
 
-## 📊 Trade Statistic settings [^](#optionsjson-structure)
+## 📊 Trade Statistic settings [^](#optionsjson-structure) [↓](#--send-statistic-configuration--)
 Parent property key: `statistics`
 
 | Option | Type | Default | Description |
@@ -934,7 +934,7 @@ Property: `.priceUpdate`
 
 ---
 
-### - Send Alert Configuration [⁇](#-send-alert-to-owner-) [^](#optionsjson-structure)
+### - Send Alert Configuration [⁇](#-send-alert-to-owner--) [^](#optionsjson-structure)
 Property: `.sendAlert`
 
 | Option | Type | Default | Description |
@@ -949,7 +949,7 @@ Property: `.sendAlert`
 
 ---
 
-### - Send Statistic Configuration [⁇](#--automatic-sending-stats--) [^](#optionsjson-structure)
+### - Send Statistic Configuration [⁇](#--automatic-sending-stats---) [^](#optionsjson-structure)
 Property: `.sendStats`
 
 | Option | Type | Default | Description |
