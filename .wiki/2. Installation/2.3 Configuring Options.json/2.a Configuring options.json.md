@@ -672,7 +672,7 @@ Property: `.escrowCheckFailed`
 
 | Option | Type | Default | Description |
 | :----: | :--: | :-----: | :---------- |
-| `.ignoreFailed` | `boolean`  |   `false`   | By default, your bot will skip the trade and put to review if escrow check failed (probably because Steam is down, or some problem with your bot - restart will help). Set this to `false` if you want your bot to **ignore** trade with failed escrow check (not recommended). |
+| `.ignoreFailed` | `boolean`  |   `false`   | By default, your bot will skip the trade and put to review if escrow check failed (probably because Steam is down, or some problem with your bot - restart will help). Set this to `true` if you want your bot to **ignore** trade with failed escrow check (not recommended). |
 
 ===
 
@@ -681,7 +681,7 @@ Property: `.bannedCheckFailed`
 
 | Option | Type | Default | Description |
 | :----: | :--: | :-----: | :---------- |
-| `.ignoreFailed` | `boolean`  |   `false`   | By default, your bot will skip the trade and put to review if banned check failed (probably because Steamrep.com or backpack.tf is down). Set this to `false` if you want your bot to **ignore** trade with banned check failed (not recommended). |
+| `.ignoreFailed` | `boolean`  |   `false`   | By default, your bot will skip the trade and put to review if banned check failed (probably because Steamrep.com or backpack.tf is down). Set this to `true` if you want your bot to **ignore** trade with banned check failed (not recommended). |
 
 ---
 
