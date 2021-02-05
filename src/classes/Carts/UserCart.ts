@@ -434,7 +434,8 @@ export default class UserCart extends Cart {
                         skuCount.mostCanTrade
                     )}`;
 
-                    this.addOurItem(sku, amount);
+                    // Add the amount we can trade
+                    this.addOurItem(sku, skuCount.mostCanTrade);
                 }
             }
 
@@ -513,6 +514,7 @@ export default class UserCart extends Cart {
                         skuCount.mostCanTrade
                     )}`;
 
+                    // Add the amount we can trade
                     this.addTheirItem(sku, skuCount.mostCanTrade);
                 }
             }
