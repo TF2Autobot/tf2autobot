@@ -415,8 +415,8 @@ export default class UserCart extends Cart {
                         'I only have ' +
                         pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetids.length, true);
 
-                    // Add the max amount to the cart
-                    this.addOurItem(sku, amount);
+                    // Add the max amount to the cart and substract added amount from command (if exist)
+                    this.addOurItem(sku, this.our[sku] ? amount - this.our[sku] : amount);
                 }
             }
 
@@ -434,7 +434,8 @@ export default class UserCart extends Cart {
                         skuCount.mostCanTrade
                     )}`;
 
-                    this.addOurItem(sku, amount);
+                    // Add the amount we can trade and substract added amount from command (if exist)
+                    this.addOurItem(sku, this.our[sku] ? skuCount.mostCanTrade - this.our[sku] : skuCount.mostCanTrade);
                 }
             }
 
@@ -495,8 +496,8 @@ export default class UserCart extends Cart {
                         'you only have ' +
                         pluralize(this.bot.schema.getName(SKU.fromString(sku), false), theirAssetids.length, true);
 
-                    // Add the max amount to the cart
-                    this.addTheirItem(sku, amount);
+                    // Add the max amount to the cart and and substract added amount from command (if exist)
+                    this.addTheirItem(sku, this.their[sku] ? amount - this.their[sku] : amount);
                 }
             }
 
@@ -513,7 +514,11 @@ export default class UserCart extends Cart {
                         skuCount.mostCanTrade
                     )}`;
 
-                    this.addTheirItem(sku, skuCount.mostCanTrade);
+                    // Add the amount we can trade and substract added amount from command (if exist)
+                    this.addTheirItem(
+                        sku,
+                        this.their[sku] ? skuCount.mostCanTrade - this.their[sku] : skuCount.mostCanTrade
+                    );
                 }
             }
 

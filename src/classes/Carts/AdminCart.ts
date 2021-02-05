@@ -44,7 +44,7 @@ export default class AdminCart extends Cart {
                         );
 
                         // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, ourAssetids.length - this.our[sku]);
+                        this.addOurItem(sku, this.our[sku] ? ourAssetids.length - this.our[sku] : ourAssetids.length);
                     }
                 }
 
@@ -153,7 +153,10 @@ export default class AdminCart extends Cart {
                             );
 
                             // Add the max amount to the offer substract current added amount
-                            this.addTheirItem(sku, theirAssetids.length - this.their[sku]);
+                            this.addTheirItem(
+                                sku,
+                                this.their[sku] ? theirAssetids.length - this.their[sku] : theirAssetids.length
+                            );
                         }
                     }
 
