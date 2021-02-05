@@ -43,8 +43,8 @@ export default class AdminCart extends Cart {
                                 pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetids.length, true)
                         );
 
-                        // Add the max amount to the offer and substract current added amount
-                        this.addOurItem(sku, this.our[sku] ? ourAssetids.length - this.our[sku] : ourAssetids.length);
+                        // Add the max amount to the offer
+                        this.addOurItem(sku, ourAssetids.length);
                     }
                 }
 
