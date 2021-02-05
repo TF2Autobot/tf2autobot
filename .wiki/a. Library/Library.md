@@ -561,7 +561,7 @@
             "Bruised Purple Footprints": "BP-FP 🍷",
             "Headless Horseshoes": "HH 🍇",
             "Exorcism": "👻",
-            "Pumpkin Bomb": "🎃💣",
+            "Pumpkin Bombs": "🎃💣",
             "Halloween Fire": "🔥🟢"
         },
         "sheens": {
