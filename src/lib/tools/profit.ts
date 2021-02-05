@@ -5,19 +5,30 @@ import Currencies from 'tf2-currencies';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
-export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit: number; since: number } {
+export default function profit(bot: Bot, start: Number): {tradeProfit: number; overpriceProfit: number; since: number; profitTimed: Number } {
     const pollData = bot.manager.pollData;
     const now = dayjs();
 
     if (pollData.offerData) {
         const trades = Object.keys(pollData.offerData).map(offerID => {
-            return pollData.offerData[offerID];
+            const ret = pollData.offerData[offerID];
+            ret.time = pollData.timestamps[offerID];
+            return ret;
+        });
+        trades.sort((a, b) => {
+            const aTime = a.handleTimestamp;
+            const bTime = b.handleTimestamp;
+
+            // check for undefined time, sort those at the beginning, they will be skipped
+            if ((!aTime || isNaN(aTime)) && !(!bTime || isNaN(bTime))) return -1;
+            if (!(!aTime || isNaN(aTime)) && (!bTime || isNaN(bTime))) return 1;
+            if ((!aTime || isNaN(aTime)) && (!bTime || isNaN(bTime))) return 0;
+            return aTime - bTime;
         });
 
-        const oldestId = !pollData.offerData ? undefined : Object.keys(pollData.offerData)[0];
         const timeSince =
             +bot.options.statistics.profitDataSinceInUnix === 0
-                ? pollData.timestamps[oldestId]
+                ? pollData.timestamps[Object.keys(pollData.offerData)[0]]
                 : +bot.options.statistics.profitDataSinceInUnix;
 
         const keyPrice = bot.pricelist.getKeyPrice;
@@ -29,6 +40,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
         let overpriceProfit = 0;
         let tradeProfit = 0;
+        let profitTimed = 0;
+
 
         const tracker = new itemTracker();
 
@@ -108,13 +121,16 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                         }
 
                         // const prices = trades[i].prices[sku].buy;
-
-                        tradeProfit += tracker.boughtItem(
+                        let tempProfit =tracker.boughtItem(
                             itemCount,
                             sku,
                             trades[i].prices[sku].buy,
                             trades[i].value.rate
                         );
+                        if (trades[i].time >= start) { // is within time of interest
+                            this.profitTimed += tempProfit;
+                        }
+                        tradeProfit += tempProfit
                     }
                 }
             }
@@ -136,19 +152,27 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
                             continue; // item is not in pricelist, so we will just skip it
                         }
                         // const prices = trades[i].prices[sku].sell;
-
-                        tradeProfit += tracker.soldItem(
+                        let tempProfit =tracker.soldItem(
                             itemCount,
                             sku,
                             trades[i].prices[sku].sell,
                             trades[i].value.rate
                         );
+                        if (trades[i].time >= start) { // is within time of interest
+                            this.profitTimed += tempProfit;
+                        }
+                        tradeProfit += tempProfit
                     }
                 }
             }
 
             if (!isGift) {
                 // calculate overprice profit
+                if (trades[i].time >= start) { // is within time of interest
+                    this.profitTimed +=
+                        tracker.convert(trades[i].value.their, trades[i].value.rate) -
+                        tracker.convert(trades[i].value.our, trades[i].value.rate);
+                }
                 tradeProfit +=
                     tracker.convert(trades[i].value.their, trades[i].value.rate) -
                     tracker.convert(trades[i].value.our, trades[i].value.rate);
@@ -166,7 +190,8 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
         return {
             tradeProfit: Math.round(tradeProfit + fromPrevious.made),
             overpriceProfit: Math.round(overpriceProfit + fromPrevious.overpay),
-            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day')
+            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day'),
+            profitTimed
         };
     } else {
         const fromPrevious = {
@@ -177,10 +202,12 @@ export default function profit(bot: Bot): { tradeProfit: number; overpriceProfit
 
         const timeSince = fromPrevious.since === 0 ? undefined : fromPrevious.since;
 
+
         return {
             tradeProfit: Math.round(fromPrevious.made),
             overpriceProfit: Math.round(fromPrevious.overpay),
-            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day')
+            since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day'),
+            0 /* carry from previous somehow */
         };
     }
 }
