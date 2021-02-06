@@ -1698,8 +1698,8 @@ export default class MyHandler extends Handler {
             items: {}
         };
 
-        if (offer.data('handledByUs') === true && offer.data('switchedState') !== offer.state) {
-            if (offer.data('notify') === true) {
+        if (offer.data('handledByUs') === true) {
+            if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
                     accepted(offer, this.bot);
 
