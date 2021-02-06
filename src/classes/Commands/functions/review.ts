@@ -243,3 +243,50 @@ export async function actionOnTradeCommand(
         );
     }
 }
+
+export async function forceAccept(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+    const offerIdAndMessage = CommandParser.removeCommand(message);
+    const offerIdRegex = /\d+/.exec(offerIdAndMessage);
+
+    if (isNaN(+offerIdRegex) || !offerIdRegex) {
+        return bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!faccept 3957959294"`);
+    }
+
+    const offerId = offerIdRegex[0];
+
+    const state = bot.manager.pollData.received[offerId];
+    if (state === undefined) {
+        return bot.sendMessage(steamID, 'Offer does not exist. ❌');
+    }
+
+    try {
+        const offer = await bot.trades.getOffer(offerId);
+        bot.sendMessage(steamID, `Force accepting offer...`);
+
+        const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
+        const reply = offerIdAndMessage.substr(offerId.length);
+        const adminDetails = bot.friends.getFriend(steamID);
+
+        try {
+            await bot.trades.applyActionToOffer('accept', 'MANUAL', (offer.data('action') as Action).meta || {}, offer);
+
+            // Send message to recipient if includes some messages
+            if (reply) {
+                bot.sendMessage(
+                    partnerId,
+                    `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                );
+            }
+        } catch (err) {
+            return bot.sendMessage(
+                steamID,
+                `❌ Ohh nooooes! Something went wrong while trying to force accept the offer: ${JSON.stringify(err)}`
+            );
+        }
+    } catch (err) {
+        return bot.sendMessage(
+            steamID,
+            `❌ Ohh nooooes! Something went wrong while trying to force accept' the offer: ${JSON.stringify(err)}`
+        );
+    }
+}

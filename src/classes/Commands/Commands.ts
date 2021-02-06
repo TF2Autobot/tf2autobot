@@ -197,6 +197,8 @@ export default class Commands {
             c.review.tradeCommand(steamID, message, this.bot);
         } else if (['accepttrade', 'accept', 'declinetrade', 'decline'].includes(command) && isAdmin) {
             void c.review.actionOnTradeCommand(steamID, message, this.bot, command as ActionOnTrade);
+        } else if (command === 'faccept' && isAdmin) {
+            void c.review.forceAccept(steamID, message, this.bot);
         } else if (command === 'pricecheck' && isAdmin) {
             c.request.pricecheckCommand(steamID, message, this.bot);
         } else if (command === 'pricecheckall' && isAdmin) {
