@@ -268,7 +268,12 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
         const adminDetails = bot.friends.getFriend(steamID);
 
         try {
-            await bot.trades.applyActionToOffer('accept', 'MANUAL', (offer.data('action') as Action).meta || {}, offer);
+            await bot.trades.applyActionToOffer(
+                'accept',
+                'MANUAL-FORCE',
+                (offer.data('action') as Action).meta || {},
+                offer
+            );
 
             // Send message to recipient if includes some messages
             if (reply) {
