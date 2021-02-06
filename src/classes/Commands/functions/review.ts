@@ -259,10 +259,6 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
         return bot.sendMessage(steamID, 'Offer does not exist. ❌');
     }
 
-    if (state !== TradeOfferManager.ETradeOfferState['Active']) {
-        return bot.sendMessage(steamID, 'Offer is not active. ❌');
-    }
-
     try {
         const offer = await bot.trades.getOffer(offerId);
         bot.sendMessage(steamID, `Force accepting offer...`);
