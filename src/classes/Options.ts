@@ -1792,7 +1792,7 @@ export function loadOptions(options?: Options): Options {
     return deepMerge(jsonOptions, envOptions, incomingOptions);
 }
 
-function getFilesPath(accountName: string): string {
+export function getFilesPath(accountName: string): string {
     return path.resolve(__dirname, '..', '..', 'files', accountName);
 }
 
