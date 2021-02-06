@@ -134,7 +134,7 @@ export default class Listings {
                 this.enableAutoRelist();
             } else if (this.isAutoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
-                updateOptionsCommand(null, '!config autobump=false', this.bot);
+                updateOptionsCommand(null, '!config miscSettings.autobump.enable=false', this.bot);
             }
         });
     }
