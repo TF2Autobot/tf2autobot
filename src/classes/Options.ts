@@ -60,7 +60,8 @@ export const DEFAULTS = {
         },
         autoRemoveIntentSellFailed: true,
         autoAddPaintedItems: true,
-        failedAccept: true
+        failedAccept: true,
+        unableToProcessOffer: true
     },
 
     pricelist: {
@@ -939,6 +940,7 @@ interface SendAlert extends OnlyEnable {
     autoRemoveIntentSellFailed?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
+    unableToProcessOffer?: boolean;
 }
 
 interface AutokeysAlert {

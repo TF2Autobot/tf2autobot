@@ -411,6 +411,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 failedAccept: {
                     type: 'boolean'
+                },
+                unableToProcessOffer: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -420,7 +423,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'highValue',
                 'autoRemoveIntentSellFailed',
                 'autoAddPaintedItems',
-                'failedAccept'
+                'failedAccept',
+                'unableToProcessOffer'
             ],
             additionalProperties: false
         },

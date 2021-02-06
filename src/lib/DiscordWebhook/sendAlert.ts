@@ -28,7 +28,8 @@ type AlertType =
     | 'tryingToTake'
     | 'autoAddPaintedItems'
     | 'autoAddPaintedItemsFailed'
-    | 'failed-accept';
+    | 'failed-accept'
+    | 'failed-processing-offer';
 
 export default function sendAlert(
     type: AlertType,
@@ -126,6 +127,12 @@ export default function sendAlert(
         title = 'Failed to accept trade';
         description = msg + `\n\nError:\n${JSON.stringify(err)}`;
         content = items[0]; // offer id
+        color = '8323327'; // red
+    } else if (type === 'failed-processing-offer') {
+        title = 'Unable to process an offer';
+        description =
+            `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
+            ' The offer data received was broken because our side and their side are both empty.';
         color = '8323327'; // red
     } else {
         title = 'High Valued Items';
