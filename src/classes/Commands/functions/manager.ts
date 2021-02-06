@@ -405,7 +405,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                 osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                 err => {
-                    if (err.signal !== null) {
+                    if (err?.signal !== null) {
                         return onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
