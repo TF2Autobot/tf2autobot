@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
+import sleepasync from 'sleep-async';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
@@ -7,7 +8,7 @@ import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 import { deepMerge } from '../../../lib/tools/deep-merge';
 
-export function optionsCommand(steamID: SteamID, bot: Bot): void {
+export async function optionsCommand(steamID: SteamID, bot: Bot): Promise<void> {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
@@ -17,14 +18,10 @@ export function optionsCommand(steamID: SteamID, bot: Bot): void {
     delete liveOptions.commands;
     delete liveOptions.detailsExtra;
 
-    const promiseDelay = (ms: number) => {
-        return new Promise(resolve => setTimeout(() => resolve(), ms));
-    };
-
     bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
-    void promiseDelay(1000);
+    await sleepasync().Promise.sleep(1 * 1000);
     bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: commands }, null, 4)}`);
-    void promiseDelay(1000);
+    await sleepasync().Promise.sleep(1 * 1000);
     bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
 }
 
@@ -123,7 +120,6 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
             }
 
             if (typeof knownParams.autokeys === 'object') {
-                bot.handler.autokeys.check();
                 if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
                     bot.handler.autokeys.disable(bot.pricelist.getKeyPrices);
                 }

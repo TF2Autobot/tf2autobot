@@ -116,7 +116,7 @@ export function addCommand(steamID: SteamID, message: string, bot: Bot): void {
         const item = getItemFromParams(steamID, params, bot);
 
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
@@ -726,7 +726,7 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
         const item = getItemFromParams(steamID, params, bot);
 
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
@@ -1044,7 +1044,7 @@ export async function removeCommand(steamID: SteamID, message: string, bot: Bot)
         const item = getItemFromParams(steamID, params, bot);
 
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
@@ -1095,7 +1095,7 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
         const item = getItemFromParams(steamID, params, bot);
 
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
@@ -1113,7 +1113,7 @@ export function getCommand(steamID: SteamID, message: string, bot: Bot): void {
     }
 }
 
-export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
+export async function findCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
     if (
         !(
@@ -1236,15 +1236,21 @@ export function findCommand(steamID: SteamID, message: string, bot: Bot): void {
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 20, length > 40 ? 40 : length)}`);
         } else if (length <= 60) {
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 20, 40)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 40, length > 60 ? 60 : length)}`);
         } else if (length <= 80) {
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 20, 40)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 40, 60)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 60, length > 80 ? 80 : length)}`);
         } else if (length > 80) {
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 20, 40)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 40, 60)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 60, 80)}`);
+            await sleepasync().Promise.sleep(1 * 1000);
             bot.sendMessage(steamID, `/code ${generateOutput(filter, true, 80, length > 100 ? 100 : length)}`);
         }
     } else {

@@ -140,7 +140,7 @@ export default class Commands {
         } else if (command === 'more') {
             c.help.moreCommand(steamID, this.bot);
         } else if (command === 'autokeys') {
-            c.manager.autoKeysCommand(steamID, this.bot);
+            c.manager.autokeysCommand(steamID, this.bot);
         } else if (command === 'message') {
             c.messageCommand(steamID, message, this.bot);
         } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
@@ -204,9 +204,9 @@ export default class Commands {
         } else if (command === 'check' && isAdmin) {
             void c.request.checkCommand(steamID, message, this.bot);
         } else if (command === 'find' && isAdmin) {
-            c.pricelist.findCommand(steamID, message, this.bot);
+            void c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
-            c.options.optionsCommand(steamID, this.bot);
+            void c.options.optionsCommand(steamID, this.bot);
         } else if (command === 'config' && isAdmin) {
             c.options.updateOptionsCommand(steamID, message, this.bot);
         } else if (command === 'donatebptf' && isAdmin) {
@@ -466,12 +466,10 @@ export default class Commands {
             );
         const skuCount = getSkuAmountCanTrade(info.match.sku, this.bot);
 
-        let cartAmount: number;
-        if (skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric) {
-            cartAmount = cart.getTheirCount(info.match.sku);
-        } else {
-            cartAmount = cart.getTheirGenericCount(info.match.sku);
-        }
+        const cartAmount =
+            skuCount.amountCanTrade >= skuCount.amountCanTradeGeneric
+                ? cart.getTheirCount(info.match.sku)
+                : cart.getTheirGenericCount(info.match.sku);
 
         const amountCanTrade = skuCount.mostCanTrade - cartAmount;
 
@@ -722,7 +720,9 @@ export default class Commands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(c.utils.removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
-            if (item === null) return;
+            if (item === null) {
+                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+            }
 
             params.sku = SKU.fromObject(item);
         } else {
@@ -770,7 +770,7 @@ export default class Commands {
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
             if (item === null) {
-                return;
+                return this.bot.sendMessage(steamID, `❌ Item not found.`);
             }
 
             params.sku = SKU.fromObject(item);
@@ -846,7 +846,7 @@ export default class Commands {
         if (params.sku === undefined) {
             const item = c.utils.getItemFromParams(steamID, params, this.bot);
             if (item === null) {
-                return;
+                return this.bot.sendMessage(steamID, `❌ Item not found.`);
             }
 
             params.sku = SKU.fromObject(item);
@@ -860,12 +860,14 @@ export default class Commands {
                 `❌ Invalid item ${this.bot.schema.getName(
                     SKU.fromString(params.sku),
                     false
-                )}. Items that can only be donated to Backpack.tf:` +
-                    '\n• Non-Craftable Tour of Duty Ticket (725;6;uncraftable)' +
-                    '\n• Mann Co. Supply Crate Key (5021;6)' +
-                    "\n• Bill's Hat (126;6)" +
-                    '\n• Earbuds (143;6)' +
-                    "\n• Max's Severed Head (162;6)" +
+                )}. Items that can only be donated to Backpack.tf:\n• ` +
+                    [
+                        'Non-Craftable Tour of Duty Ticket (725;6;uncraftable)',
+                        'Mann Co. Supply Crate Key (5021;6)',
+                        "Bill's Hat (126;6)",
+                        'Earbuds (143;6)',
+                        "Max's Severed Head (162;6)"
+                    ].join('\n• ') +
                     '\n\nhttps://backpack.tf/donate'
             );
         }
@@ -975,7 +977,14 @@ export default class Commands {
             return this.bot.sendMessage(
                 steamID,
                 '❌ Wrong syntax. Example: !premium months=1' +
-                    '\n\n📌 Note: 📌\n- 1 month = 3 keys\n- 2 months = 5 keys\n- 3 months = 8 keys\n- 4 months = 10 keys\n- 1 year (12 months) = 30 keys'
+                    '\n\n📌 Note: 📌\n- ' +
+                    [
+                        '1 month = 3 keys',
+                        '2 months = 5 keys',
+                        '3 months = 8 keys',
+                        '4 months = 10 keys',
+                        '1 year (12 months) = 30 keys'
+                    ].join('\n- ')
             );
         }
 

@@ -13,8 +13,9 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                 steamID,
                 '❌ The message command is disabled. Enable it by sending `!config commands.message.enable=true`.'
             );
-            //
-        } else bot.sendMessage(steamID, custom.disabled ? custom.disabled : '❌ The owner has disabled messages.');
+        } else {
+            bot.sendMessage(steamID, custom.disabled ? custom.disabled : '❌ The owner has disabled messages.');
+        }
         return;
     }
 
@@ -35,7 +36,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                     "\n\nHow to get the targeted user's SteamID?" +
                     '\n1. Go to his/her profile page.' +
                     '\n2. Go to https://steamrep.com/' +
-                    '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                    '\n3. View this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
             );
         }
 
@@ -48,7 +49,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                     "\n\nHow to get the targeted user's SteamID?" +
                     '\n1. Go to his/her profile page.' +
                     '\n2. Go to https://steamrep.com/' +
-                    '\n3. Watch this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
+                    '\n3. View this gif: https://user-images.githubusercontent.com/47635037/96715154-be80b580-13d5-11eb-9bd5-39613f600f6d.gif'
             );
         } else if (!bot.friends.isFriend(recipientSteamID)) {
             return bot.sendMessage(steamID, `❌ I am not friends with the user.`);
