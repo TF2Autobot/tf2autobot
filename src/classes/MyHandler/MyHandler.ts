@@ -538,6 +538,39 @@ export default class MyHandler extends Handler {
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
         offer.log('info', 'is being processed...');
 
+        // check if the trade is valid
+        const canProceedProcessingOffer = offer.itemsToGive.length > 0 && offer.itemsToReceive.length > 0;
+
+        if (!canProceedProcessingOffer) {
+            // Both itemsToGive and itemsToReceive are an empty array, abort.
+            this.bot.sendMessage(
+                offer.partner,
+                `❌ Looks like there was some issue with Steam getting your offer data.` +
+                    ` I am sorry but I am not able to proceed with processing your offer.`
+            );
+
+            const optDw = this.bot.options.discordWebhook;
+
+            if (this.bot.options.sendAlert.unableToProcessOffer) {
+                if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
+                    sendAlert('failed-processing-offer', this.bot, null, null, null, [
+                        offer.partner.getSteamID64(),
+                        offer.id
+                    ]);
+                } else {
+                    this.bot.messageAdmins(
+                        '',
+                        `Unable to process offer #${offer.id} with ${offer.partner.getSteamID64()}.` +
+                            ' The offer data received was broken because our side and their side are both empty.',
+                        []
+                    );
+                }
+            }
+
+            // Abort processing the offer.
+            return;
+        }
+
         // Allow sending notifications
         offer.data('notify', true);
 
@@ -1698,8 +1731,8 @@ export default class MyHandler extends Handler {
             items: {}
         };
 
-        if (offer.data('handledByUs') === true && offer.data('switchedState') !== offer.state) {
-            if (offer.data('notify') === true) {
+        if (offer.data('handledByUs') === true) {
+            if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
                     accepted(offer, this.bot);
 

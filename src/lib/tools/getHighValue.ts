@@ -48,19 +48,11 @@ export default function getHighValueItems(
                             continue;
                         }
 
-                        if (items[sku][attachment as Attachment][pSKU] === true) {
-                            toJoin.push(
-                                `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
-                                } 🌟`
-                            );
-                        } else {
-                            toJoin.push(
-                                `${getAttachmentName(attachment, pSKU, paints, parts)}${
-                                    attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
-                                }`
-                            );
-                        }
+                        toJoin.push(
+                            `${getAttachmentName(attachment, pSKU, paints, parts)}${
+                                attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
+                            }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
+                        );
                     }
 
                     toString += toJoin.join(' + ');

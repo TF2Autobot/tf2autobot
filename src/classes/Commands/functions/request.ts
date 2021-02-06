@@ -17,7 +17,7 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
         const item = getItemFromParams(steamID, params, bot);
 
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
@@ -99,12 +99,13 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
-        //
-    } else params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), bot.schema));
+    } else {
+        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), bot.schema));
+    }
 
     const name = bot.schema.getName(SKU.fromString(params.sku), false);
     void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
@@ -188,12 +189,13 @@ export async function checkCommand(steamID: SteamID, message: string, bot: Bot):
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
         if (item === null) {
-            return;
+            return bot.sendMessage(steamID, `❌ Item not found.`);
         }
 
         params.sku = SKU.fromObject(item);
-        //
-    } else params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), bot.schema));
+    } else {
+        params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), bot.schema));
+    }
 
     const name = bot.schema.getName(SKU.fromString(params.sku));
     try {

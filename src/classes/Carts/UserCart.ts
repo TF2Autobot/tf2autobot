@@ -170,9 +170,6 @@ export default class UserCart extends Cart {
 
             weapons.forEach(sku => {
                 currencyValues[sku] = 0.5;
-            });
-
-            weapons.forEach(sku => {
                 pickedCurrencies[sku] = 0;
             });
         }
@@ -790,7 +787,7 @@ export default class UserCart extends Cart {
                                     getHighValue[whichIs].isMention = true;
                                 }
 
-                                if (item.hv[attachment] !== undefined) {
+                                if (attachment !== 's' && item.hv[attachment] !== undefined) {
                                     for (const pSku in item.hv[attachment]) {
                                         if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;

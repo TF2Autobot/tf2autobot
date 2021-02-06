@@ -33,7 +33,7 @@ export default function processAccepted(
         // doing this because if an offer is being made by bot (from command), then this is undefined
         if (offerReceived.reason === 'VALID_WITH_OVERPAY' || offerReceived.reason === 'MANUAL') {
             // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
-            if (offerReceived.meta?.uniqueReasons.includes('🟨_INVALID_ITEMS')) {
+            if (offerReceived.meta?.uniqueReasons?.includes('🟨_INVALID_ITEMS')) {
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
                 (offerReceived.meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(
@@ -48,7 +48,7 @@ export default function processAccepted(
                     }
                 );
             }
-            if (offerReceived.meta?.uniqueReasons.includes('🟧_DISABLED_ITEMS')) {
+            if (offerReceived.meta?.uniqueReasons?.includes('🟧_DISABLED_ITEMS')) {
                 // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
 
                 (offerReceived.meta.reasons.filter(
@@ -61,7 +61,7 @@ export default function processAccepted(
                     );
                 });
             }
-            if (offerReceived.meta?.uniqueReasons.includes('🟦_OVERSTOCKED')) {
+            if (offerReceived.meta?.uniqueReasons?.includes('🟦_OVERSTOCKED')) {
                 // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
                 (offerReceived.meta.reasons.filter(el =>
@@ -77,7 +77,7 @@ export default function processAccepted(
                 });
             }
 
-            if (offerReceived.meta?.uniqueReasons.includes('🟩_UNDERSTOCKED')) {
+            if (offerReceived.meta?.uniqueReasons?.includes('🟩_UNDERSTOCKED')) {
                 // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
                 (offerReceived.meta.reasons.filter(el =>

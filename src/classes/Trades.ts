@@ -9,6 +9,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { sendAlert } from '../lib/DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
+import * as t from '../lib/tools/export';
 
 export default class Trades {
     private readonly bot: Bot;
@@ -315,6 +316,53 @@ export default class Trades {
         return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+
+                const opt = this.bot.options;
+                if (opt.sendAlert.failedAccept) {
+                    const keyPrices = this.bot.pricelist.getKeyPrices;
+                    const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        const summary = t.summarizeToChat(
+                            offer,
+                            this.bot,
+                            'summary-accepting',
+                            true,
+                            value,
+                            keyPrices,
+                            false,
+                            false
+                        );
+                        sendAlert(
+                            'failed-accept',
+                            this.bot,
+                            `Failed to ${action} on the offer #${offer.id}\n\n` +
+                                summary +
+                                `\n\nYou can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                            null,
+                            err,
+                            [offer.id]
+                        );
+                    } else {
+                        const summary = t.summarizeToChat(
+                            offer,
+                            this.bot,
+                            'summary-accepting',
+                            false,
+                            value,
+                            keyPrices,
+                            true,
+                            false
+                        );
+
+                        this.bot.messageAdmins(
+                            `Failed to ${action} on the offer #${offer.id}:\n\n${JSON.stringify(err, null, 4)}\n\n` +
+                                summary +
+                                `\n\nYou can try to force accept this trade, reply "!faccept ${offer.id}" now.`,
+                            []
+                        );
+                    }
+                }
             })
             .finally(() => {
                 offer.log('debug', 'done doing action on offer', {

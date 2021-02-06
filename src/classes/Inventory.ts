@@ -95,6 +95,11 @@ export default class Inventory {
         (items[sku] = items[sku] || []).push({ id: assetid });
     }
 
+    addNonTradableItem(sku: string, assetid: string): void {
+        const items = this.nonTradable;
+        (items[sku] = items[sku] || []).push({ id: assetid });
+    }
+
     removeItem(assetid: string): void;
 
     removeItem(item: EconItem): void;
@@ -252,24 +257,21 @@ export default class Inventory {
             );
 
             const attributes = highValue(items[i], opt, paints, strangeParts);
+            const isUses =
+                sku === '241;6'
+                    ? isFull(items[i], 'duel')
+                    : Object.keys(noiseMakers).includes(sku)
+                    ? isFull(items[i], 'noise')
+                    : null;
 
-            let isDuel5xUses: boolean | null = null;
-            if (sku === '241;6') {
-                isDuel5xUses = isFull(items[i], 'duel');
-            }
-
-            let isNoiseMaker25xUses: boolean | null = null;
-            if (Object.keys(noiseMakers).includes(sku)) {
-                isNoiseMaker25xUses = isFull(items[i], 'noise');
-            }
-
-            if (Object.keys(attributes).length === 0 && isDuel5xUses === null && isNoiseMaker25xUses === null) {
+            if (Object.keys(attributes).length === 0 && isUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });
             } else {
-                if (isDuel5xUses !== null) {
-                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isDuel5xUses });
-                } else if (isNoiseMaker25xUses !== null) {
-                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, isFullUses: isNoiseMaker25xUses });
+                if (isUses !== null) {
+                    (dict[sku] = dict[sku] || []).push({
+                        id: items[i].id,
+                        isFullUses: isUses
+                    });
                 } else {
                     (dict[sku] = dict[sku] || []).push({ id: items[i].id, hv: attributes });
                 }
@@ -377,38 +379,24 @@ function highValue(
             // Color of this description must be rgb(117, 107, 94) or 756b5e
             // https://www.spycolor.com/756b5e#
 
-            if (strangeParts.includes(partsString.toLowerCase())) {
-                // if the particular strange part is one of the parts that the user wants,
-                // then mention and put "(🌟)"
-                sp[`${parts[partsString]}`] = true;
-            } else {
-                // else no mention and just the name.
-                sp[`${parts[partsString]}`] = false;
-            }
+            // if the particular strange part is one of the parts that the user wants,
+            // then mention and put "(🌟)"
+            // else no mention and just the name.
+            sp[`${parts[partsString]}`] = strangeParts.includes(partsString.toLowerCase()) ? true : false;
+            //
         } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Killstreaker: ', '').trim();
-
-            if (killstreakers.includes(extractedName.toLowerCase())) {
-                ke[`${killstreakersData[extractedName]}`] = true;
-            } else {
-                ke[`${killstreakersData[extractedName]}`] = false;
-            }
+            ke[`${killstreakersData[extractedName]}`] = killstreakers.includes(extractedName.toLowerCase())
+                ? true
+                : false;
+            //
         } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Sheen: ', '').trim();
-
-            if (sheens.includes(extractedName.toLowerCase())) {
-                ks[`${sheensData[extractedName]}`] = true;
-            } else {
-                ks[`${sheensData[extractedName]}`] = false;
-            }
+            ks[`${sheensData[extractedName]}`] = sheens.includes(extractedName.toLowerCase()) ? true : false;
+            //
         } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
             const extractedName = content.value.replace('Paint Color: ', '').trim();
-
-            if (painted.includes(extractedName.toLowerCase())) {
-                p[`${paints[extractedName]}`] = true;
-            } else {
-                p[`${paints[extractedName]}`] = false;
-            }
+            p[`${paints[extractedName]}`] = painted.includes(extractedName.toLowerCase()) ? true : false;
         }
     }
 
@@ -458,11 +446,11 @@ export function getSkuAmountCanTrade(
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
     const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false);
     const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
-    const mostCanTrade = amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric;
+
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,
         amountCanTrade: amountCanTrade,
-        mostCanTrade: mostCanTrade,
+        mostCanTrade: amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric,
         name:
             amountCanTrade > amountCanTradeGeneric
                 ? bot.schema.getName(SKU.fromString(sku))

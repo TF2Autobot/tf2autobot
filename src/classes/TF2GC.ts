@@ -264,9 +264,9 @@ export default class TF2GC {
 
         this.listenForEvent(
             'itemRemoved',
-            item => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                return { success: item.id === job.assetid };
+            (item: TF2GCItem) => {
+                log.debug('itemRemoved - item', item);
+                return { success: item.id.includes(job.assetid) };
             },
             () => {
                 this.bot.inventoryManager.getInventory.removeItem(job.assetid);
@@ -277,6 +277,49 @@ export default class TF2GC {
                 this.finishedProcessingJob(err);
             }
         );
+
+        if (job.type === 'use') {
+            let timeout: NodeJS.Timeout;
+
+            const cancel = this.listenForEvent(
+                'itemAcquired',
+                (item: TF2GCItem) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        // 1 second after the last item acquired, we will mark the job as finished
+                        cancel();
+                        this.finishedProcessingJob();
+                    }, 1000);
+
+                    log.debug('itemAcquired', {
+                        sku: `${item.def_index};${item.quality}`,
+                        assetid: item.id
+                    });
+
+                    const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
+
+                    this.bot.inventoryManager.getInventory[isNotTradable ? 'addNonTradableItem' : 'addItem'](
+                        `${item.def_index};${item.quality}`,
+                        item.id
+                    );
+
+                    // Clear fail timeout
+                    return { success: false, clearTimeout: true };
+                },
+                () => {
+                    this.finishedProcessingJob();
+                },
+                err => {
+                    if (err.message === 'Canceled') {
+                        // Was canceled because of timeout
+                        this.finishedProcessingJob();
+                    } else {
+                        // Job failed
+                        this.finishedProcessingJob(err);
+                    }
+                }
+            );
+        }
     }
 
     private handleSortJob(job: Job): void {
@@ -487,4 +530,36 @@ export default class TF2GC {
     private get isConnectedToGC(): boolean {
         return this.bot.client._playingAppIds.some(game => game == 440);
     }
+}
+
+interface TF2GCItem {
+    attribute: Attribute[];
+    equipped_state: any[];
+    id: string;
+    account_id: number;
+    inventory: number;
+    def_index: number;
+    quantity: number;
+    level: number;
+    quality: number;
+    flags: number;
+    origin: number;
+    custom_name: string | null;
+    custom_desc: string | null;
+    interior_item: any | null;
+    in_use: boolean;
+    style: number;
+    original_id: string | null;
+    contains_equipped_state: boolean | null;
+    contains_equipped_state_v2: boolean | null;
+    position: number;
+}
+
+interface Attribute {
+    def_index: number;
+    value: any;
+    value_bytes: {
+        type: string;
+        data: number[];
+    };
 }
