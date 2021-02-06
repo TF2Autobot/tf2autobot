@@ -292,8 +292,8 @@ export default class TF2GC {
                     }, 1000);
 
                     log.debug('itemAcquired', {
-                        item: item,
-                        sku: `${item.def_index};${item.quality}`
+                        sku: `${item.def_index};${item.quality}`,
+                        assetid: item.id
                     });
 
                     const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
