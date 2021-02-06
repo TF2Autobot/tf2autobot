@@ -73,11 +73,11 @@ Click [`here`](https://github.com/TF2Autobot/tf2autobot/wiki/Library#optionsjson
     -   [`.backpackFull`](#--backpack-fullalmost-full-alert--)
     -   [`.highValue`](#--high-value-items-alert--)
     -   [`.autoRemoveIntentSellFailed`](#--automatic-remove-intentsell-failed--)
-    -   [`.autoAddPaintedItems`](#--automatic-add-painted-items---)
+    -   [`.autoAddPaintedItems`](#--automatic-add-painted-items--)
 *   [`pricelist`](#-pricelist-manager-)
     -   [`.autoRemoveIntentSell`](#--automatic-remove-intentsell--)
     -   [`.autoAddInvalidItems`](#--automatic-add-_invalid_items--)
-    -   [`.autoAddPaintedItems`](#--automatic-add-painted-items---1)
+    -   [`.autoAddPaintedItems`](#--automatic-add-painted-items---)
     -   [`.priceAge`](#--price-age-%EF%B8%8F-)
 *   [`bypass`](#-trade-bypass-settings-)
     -   [`.escrow`](#--allow-trade-with-escrow-trade-hold--)
@@ -94,9 +94,9 @@ Click [`here`](https://github.com/TF2Autobot/tf2autobot/wiki/Library#optionsjson
     -   `...`
     -   [`.highValue`](#--high-value-in-listings-note-decoration--)
     -   [`.uses`](#--custom-uses-parameter-output--)
-*   [`statistics`](#-trade-statistic-settings-)
+*   [`statistics`](#-trade-statistic-settings--)
     -   `...`
-    -   [`.sendStats`](#--automatic-sending-stats---)
+    -   [`.sendStats`](#--automatic-sending-stats--)
 *   [`autokeys`](#-autokeys-settings-)
     -   `...`
     -   [`.banking`](#--banking--)
@@ -949,7 +949,7 @@ Property: `.sendAlert`
 
 ---
 
-### - Send Statistic Configuration [⁇](#--automatic-sending-stats---) [^](#optionsjson-structure)
+### - Send Statistic Configuration [⁇](#--automatic-sending-stats--) [^](#optionsjson-structure)
 Property: `.sendStats`
 
 | Option | Type | Default | Description |
