@@ -408,6 +408,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 autoAddPaintedItems: {
                     type: 'boolean'
+                },
+                failedAccept: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -416,7 +419,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'backpackFull',
                 'highValue',
                 'autoRemoveIntentSellFailed',
-                'autoAddPaintedItems'
+                'autoAddPaintedItems',
+                'failedAccept'
             ],
             additionalProperties: false
         },

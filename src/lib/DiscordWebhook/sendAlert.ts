@@ -27,7 +27,8 @@ type AlertType =
     | 'escrow-check-failed-not-restart-steam-maintenance'
     | 'tryingToTake'
     | 'autoAddPaintedItems'
-    | 'autoAddPaintedItemsFailed';
+    | 'autoAddPaintedItemsFailed'
+    | 'failed-accept';
 
 export default function sendAlert(
     type: AlertType,
@@ -41,6 +42,7 @@ export default function sendAlert(
     let description: string;
     let color: string;
     let footer: string;
+    let content: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
@@ -110,7 +112,7 @@ export default function sendAlert(
     } else if (type === 'autoAddPaintedItemsFailed') {
         title = 'Failed to add painted items to sell';
         description = msg;
-        color = '8323327'; // green
+        color = '8323327'; // red
     } else if (type.includes('autokeys-')) {
         title =
             type === 'autokeys-failedToDisable'
@@ -119,6 +121,11 @@ export default function sendAlert(
                       type.includes('-bank') ? 'banking' : type.includes('-buy') ? 'buying' : 'selling'
                   } for keys - Autokeys`;
         description = msg;
+        color = '8323327'; // red
+    } else if (type === 'failed-accept') {
+        title = 'Failed to accept trade';
+        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        content = items[0]; // offer id
         color = '8323327'; // red
     } else {
         title = 'High Valued Items';
@@ -133,7 +140,7 @@ export default function sendAlert(
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content:
-            [
+            ([
                 'highValue',
                 'highValuedDisabled',
                 'highValuedInvalidItems',
@@ -148,10 +155,11 @@ export default function sendAlert(
                 'autokeys-failedToUpdate-buy',
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
-                'autoAddPaintedItemsFailed'
+                'autoAddPaintedItemsFailed',
+                'failed-accept'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
-                : '',
+                : '') + (content ? ` - ${content}` : ''),
         embeds: [
             {
                 title: title,

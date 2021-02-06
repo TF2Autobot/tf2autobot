@@ -315,6 +315,27 @@ export default class Trades {
         return actionFunc()
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+
+                const opt = this.bot.options;
+                if (opt.sendAlert.failedAccept) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        sendAlert(
+                            'failed-accept',
+                            this.bot,
+                            `Failed to ${action} on the offer #${offer.id}` +
+                                `\n\nYou can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                            null,
+                            err,
+                            [offer.id]
+                        );
+                    } else {
+                        this.bot.messageAdmins(
+                            `Failed to ${action} on the offer #${offer.id}:\n\n${JSON.stringify(err, null, 4)}` +
+                                `\n\nYou can try to force accept this trade, reply "!faccept ${offer.id}" now.`,
+                            []
+                        );
+                    }
+                }
             })
             .finally(() => {
                 offer.log('debug', 'done doing action on offer', {
