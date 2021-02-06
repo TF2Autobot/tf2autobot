@@ -95,6 +95,11 @@ export default class Inventory {
         (items[sku] = items[sku] || []).push({ id: assetid });
     }
 
+    addNonTradableItem(sku: string, assetid: string): void {
+        const items = this.nonTradable;
+        (items[sku] = items[sku] || []).push({ id: assetid });
+    }
+
     removeItem(assetid: string): void;
 
     removeItem(item: EconItem): void;
