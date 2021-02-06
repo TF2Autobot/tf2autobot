@@ -300,7 +300,7 @@ export default class TF2GC {
 
                     this.bot.inventoryManager.getInventory[isNotTradable ? 'addNonTradableItem' : 'addItem'](
                         `${item.def_index};${item.quality}`,
-                        job.assetid
+                        item.id
                     );
 
                     // Clear fail timeout
