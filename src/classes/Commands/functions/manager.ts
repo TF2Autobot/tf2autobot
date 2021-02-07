@@ -409,10 +409,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                         return onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
-
-                    bot.botManager.restartProcess().catch(err => {
-                        return onFailed(err, 'restarting');
-                    });
+                    // end
                 }
             );
         } catch (err) {
