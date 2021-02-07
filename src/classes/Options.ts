@@ -97,7 +97,50 @@ export const DEFAULTS = {
     tradeSummary: {
         showStockChanges: false,
         showTimeTakenInMS: false,
-        showItemPrices: true
+        showItemPrices: true,
+        customText: {
+            summary: {
+                steamChat: 'Summary',
+                discordWebhook: '__**Summary**__'
+            },
+            asked: {
+                steamChat: '• Asked:',
+                discordWebhook: '**• Asked:**'
+            },
+            offered: {
+                steamChat: '• Offered:',
+                discordWebhook: '**• Offered:**'
+            },
+            profitFromOverpay: {
+                steamChat: '📈 Profit from overpay:',
+                discordWebhook: '📈 ***Profit from overpay:***'
+            },
+            lossFromUnderpay: {
+                steamChat: '📉 Loss from underpay:',
+                discordWebhook: '📉 ***Loss from underpay:***'
+            },
+            timeTaken: {
+                steamChat: '⏱ Time taken:',
+                discordWebhook: '⏱ **Time taken:**'
+            },
+            keyRate: {
+                steamChat: '🔑 Key rate:',
+                discordWebhook: '🔑 Key rate:'
+            },
+            pureStock: {
+                steamChat: '💰 Pure stock:',
+                discordWebhook: '💰 Pure stock:'
+            },
+            totalItems: {
+                steamChat: '🎒 Total items:',
+                discordWebhook: '🎒 Total items:'
+            },
+            spells: '🎃 Spells:',
+            strangeParts: '🎰 Parts:',
+            killstreaker: '🔥 Killstreaker:',
+            sheen: '✨ Sheen:',
+            painted: '🎨 Painted:'
+        }
     },
 
     highValue: {
@@ -995,6 +1038,29 @@ interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showItemPrices?: boolean;
+    customText?: TradeSummaryCustomText;
+}
+
+interface TradeSummaryCustomText {
+    summary: SteamDiscord;
+    asked: SteamDiscord;
+    offered: SteamDiscord;
+    profitFromOverpay: SteamDiscord;
+    lossFromUnderpay: SteamDiscord;
+    timeTaken: SteamDiscord;
+    keyRate: SteamDiscord;
+    pureStock: SteamDiscord;
+    totalItems: SteamDiscord;
+    spells: string;
+    strangeParts: string;
+    killstreaker: string;
+    sheen: string;
+    painted: string;
+}
+
+interface SteamDiscord {
+    steamChat?: string;
+    discordWebhook?: string;
 }
 
 // ------------ HighValue ------------

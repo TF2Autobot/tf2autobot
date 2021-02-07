@@ -260,7 +260,22 @@ export const optionsSchema: jsonschema.Schema = {
                 smallOffer: {
                     type: 'string'
                 }
-            }
+            },
+            required: ['largeOffer', 'smallOffer'],
+            additionalProperties: false
+        },
+        'steamChat-or-discordWebhook': {
+            type: 'object',
+            properties: {
+                steamChat: {
+                    type: 'string'
+                },
+                discordWebhook: {
+                    type: 'string'
+                }
+            },
+            required: ['steamChat', 'discordWebhook'],
+            additionalProperties: false
         }
     },
     properties: {
@@ -484,6 +499,55 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 showItemPrices: {
                     type: 'boolean'
+                },
+                customText: {
+                    type: 'object',
+                    properties: {
+                        summary: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        asked: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        offered: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        profitFromOverpay: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        lossFromUnderpay: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        timeTaken: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        keyRate: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        pureStock: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        totalItems: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        spells: {
+                            type: 'string'
+                        },
+                        strangeParts: {
+                            type: 'string'
+                        },
+                        killstreaker: {
+                            type: 'string'
+                        },
+                        sheen: {
+                            type: 'string'
+                        },
+                        painted: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['spells', 'strangeParts', 'killstreaker', 'sheen', 'painted'],
+                    additionalProperties: false
                 }
             },
             required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices'],

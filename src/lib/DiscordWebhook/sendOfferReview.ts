@@ -56,6 +56,11 @@ export default function sendOfferReview(
     const summary = summarizeToChat(offer, bot, 'review-admin', true, value, keyPrices, false);
     const itemList = listItems(offer, bot, itemsName, false);
 
+    const cT = bot.options.tradeSummary.customText;
+    const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
+    const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
+    const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
+
     let partnerAvatar: string;
     let partnerName: string;
     log.debug('getting partner Avatar and Name...');
@@ -115,13 +120,13 @@ export default function sendOfferReview(
                             name: `__Status__`,
                             value:
                                 (isShowKeyRate
-                                    ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                                    ? `\n${cTKeyRate} ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                       ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
                                     : '') +
                                 (isShowInventory
-                                    ? `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
+                                    ? `\n${cTPureStock} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
                                     : '') +
-                                (isShowPureStock ? `\n💰 Pure stock: ${pureStock.join(', ').toString()}` : '') +
+                                (isShowPureStock ? `\n${cTTotalItems} ${pureStock.join(', ').toString()}` : '') +
                                 `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
                         }
                     ],

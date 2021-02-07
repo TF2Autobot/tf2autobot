@@ -14,6 +14,9 @@ export default function getHighValueItems(
         [name: string]: string;
     } = {};
 
+    const cT = bot.options.tradeSummary.customText;
+    const normalizePaint = bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
+
     for (const sku in items) {
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
             continue;
@@ -21,14 +24,11 @@ export default function getHighValueItems(
 
         let toString = '';
 
-        const normalizePaint =
-            bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
-
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
             if (attachment === 's') {
-                toString += '\n🎃 Spells: ';
+                toString += `\n${cT.spells ? cT.spells : '🎃 Spells:'} `;
 
                 items[sku].s.forEach(spellSKU => {
                     toJoin.push(getKeyByValue(spellsData, spellSKU));
@@ -38,10 +38,15 @@ export default function getHighValueItems(
                 toJoin.length = 0;
             } else {
                 if (items[sku][attachment]) {
-                    if (attachment === 'sp') toString += '\n🎰 Parts: ';
-                    else if (attachment === 'ke') toString += '\n🔥 Killstreaker: ';
-                    else if (attachment === 'ks') toString += '\n✨ Sheen: ';
-                    else if (attachment === 'p') toString += '\n🎨 Painted: ';
+                    if (attachment === 'sp') {
+                        toString += `\n${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
+                    } else if (attachment === 'ke') {
+                        toString += `\n${cT.killstreaker ? cT.killstreaker : '🔥 Killstreaker:'} `;
+                    } else if (attachment === 'ks') {
+                        toString += `\n${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
+                    } else if (attachment === 'p') {
+                        toString += `\n${cT.painted ? cT.painted : '🎨 Painted:'} `;
+                    }
 
                     for (const pSKU in items[sku][attachment]) {
                         if (!Object.prototype.hasOwnProperty.call(items[sku][attachment], pSKU)) {

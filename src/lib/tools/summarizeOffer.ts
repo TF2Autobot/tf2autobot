@@ -20,19 +20,58 @@ export function summarizeToChat(
 ): string {
     const generatedSummary = summarize(offer, bot, type, withLink);
 
+    const cT = bot.options.tradeSummary.customText;
+    const cTSummary = isSteamChat
+        ? cT.summary.steamChat
+            ? cT.summary.steamChat
+            : 'Summary'
+        : cT.summary.discordWebhook
+        ? cT.summary.discordWebhook
+        : '__**Summary**__';
+
+    const cTAsked = isSteamChat
+        ? cT.asked.steamChat
+            ? cT.asked.steamChat
+            : '• Asked:'
+        : cT.asked.discordWebhook
+        ? cT.asked.discordWebhook
+        : '**• Asked:**';
+
+    const cTOffered = isSteamChat
+        ? cT.offered.steamChat
+            ? cT.offered.steamChat
+            : '• Asked:'
+        : cT.offered.discordWebhook
+        ? cT.offered.discordWebhook
+        : '**• Asked:**';
+
+    const cTProfit = isSteamChat
+        ? cT.profitFromOverpay.steamChat
+            ? cT.profitFromOverpay.steamChat
+            : '📈 Profit from overpay:'
+        : cT.profitFromOverpay.discordWebhook
+        ? cT.profitFromOverpay.discordWebhook
+        : '📈 ***Profit from overpay:***';
+
+    const cTLoss = isSteamChat
+        ? cT.lossFromUnderpay.steamChat
+            ? cT.lossFromUnderpay.steamChat
+            : '📉 Loss from underpay:'
+        : cT.lossFromUnderpay.discordWebhook
+        ? cT.lossFromUnderpay.discordWebhook
+        : '📉 ***Loss from underpay:***';
+
     return (
-        `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}${
-            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
-        }\n` +
-        `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
-        `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
+        `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
+        `${cTAsked} ${generatedSummary.asked}` +
+        `\n${cTOffered} ${generatedSummary.offered}` +
         '\n──────────────────────' +
         (['summary-accepted', 'review-admin'].includes(type)
             ? value.diff > 0
-                ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
+                ? `\n${cTProfit} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : value.diff < 0
-                ? `\n📉 ${isSteamChat ? 'Loss from underpay:' : '***Loss from underpay:***'} ${value.diffRef} ref` +
+                ? `\n${cTLoss} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : ''
             : '')

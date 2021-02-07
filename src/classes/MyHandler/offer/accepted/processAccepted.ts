@@ -211,12 +211,19 @@ export default function processAccepted(
 
         const autokeys = bot.handler.autokeys;
         const status = autokeys.getOverallStatus;
+
+        const cT = bot.options.tradeSummary.customText;
+        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+        const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
+
         bot.messageAdmins(
             'trade',
             `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
                 t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
-                `\n\n🔑 Key rate: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
+                `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                 `${
                     autokeys.isEnabled
@@ -227,11 +234,11 @@ export default function processAccepted(
                               : '🛑')
                         : ''
                 }` +
-                `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
-                `\n🎒 Total items: ${bot.inventoryManager.getInventory.getTotalItems}${
+                `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
+                `\n${cTTotalItems} ${bot.inventoryManager.getInventory.getTotalItems}${
                     slots !== undefined ? `/${slots}` : ''
                 }` +
-                `\n⏱ Time taken: ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +
+                `\n${cTTimeTaken} ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );
