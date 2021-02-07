@@ -319,7 +319,9 @@ export default class Pricelist extends EventEmitter {
                     };
                 }
             } catch (err) {
-                throw new Error(`❌ Unable to get current prices for ${entry.sku}: ${JSON.stringify(err)}`);
+                throw new Error(
+                    `❌ Unable to get current prices for ${entry.sku}: ${(err as PriceTFError).body.message}`
+                );
             }
         }
 
@@ -848,4 +850,9 @@ export class ParsedPrice {
 
 interface Group {
     [quality: string]: { [killstreak: string]: Item[] };
+}
+
+interface PriceTFError {
+    statusCode: number;
+    body: { success: boolean; message: string };
 }

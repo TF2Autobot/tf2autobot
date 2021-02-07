@@ -1403,13 +1403,13 @@ export default class MyHandler extends Handler {
                     }
                 }
             } catch (err) {
-                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + JSON.stringify(err));
+                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + (err as Error).message);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
                     withError: true,
                     assetid: assetidsToCheck,
                     sku: skuToCheck,
-                    error: JSON.stringify(err)
+                    error: (err as Error).message
                 });
             }
         }

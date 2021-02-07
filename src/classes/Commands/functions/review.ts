@@ -258,15 +258,15 @@ export async function actionOnTradeCommand(
                 steamID,
                 `❌ Ohh nooooes! Something went wrong while trying to ${
                     isAccepting ? 'accept' : 'decline'
-                } the offer: ${JSON.stringify(err)}`
+                } the offer: ${(err as Error).message}`
             );
         }
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to ${
-                isAccepting ? 'accept' : 'decline'
-            } the offer: ${JSON.stringify(err)}`
+            `❌ Ohh nooooes! Something went wrong while trying to ${isAccepting ? 'accept' : 'decline'} the offer: ${
+                (err as Error).message
+            }`
         );
     }
 }
@@ -321,7 +321,7 @@ export async function forceAction(steamID: SteamID, message: string, bot: Bot, c
                 steamID,
                 `❌ Ohh nooooes! Something went wrong while trying to force ${
                     isForceAccepting ? 'accept' : 'decline'
-                } the offer: ${JSON.stringify(err)}`
+                } the offer: ${(err as Error).message}}`
             );
         }
     } catch (err) {
@@ -329,7 +329,7 @@ export async function forceAction(steamID: SteamID, message: string, bot: Bot, c
             steamID,
             `❌ Ohh nooooes! Something went wrong while trying to force ${
                 isForceAccepting ? 'accept' : 'decline'
-            } the offer: ${JSON.stringify(err)}`
+            } the offer: ${(err as Error).message}`
         );
     }
 }

@@ -88,7 +88,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
-        description = `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`;
+        description = `❌ An error occurred while trying to restart: ${(err as Error).message}`;
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';

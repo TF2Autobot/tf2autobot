@@ -81,9 +81,9 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(
-                err
-            )}`
+            `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
+                (err as PriceTFError).body.message
+            }`
         );
     }
 }
@@ -110,7 +110,10 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
     const name = bot.schema.getName(SKU.fromString(params.sku), false);
     void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
         if (err) {
-            return bot.sendMessage(steamID, `❌ Error while requesting price check: ${JSON.stringify(err)}`);
+            return bot.sendMessage(
+                steamID,
+                `❌ Error while requesting price check: ${(err as PriceTFError).body.message}`
+            );
         }
 
         if (!body) {
@@ -212,7 +215,9 @@ export async function checkCommand(steamID: SteamID, message: string, bot: Bot):
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `Error getting price for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(err)}`
+            `Error getting price for ${name === null ? (params.sku as string) : name}: ${
+                (err as PriceTFError).body.message
+            }`
         );
     }
 }
@@ -223,4 +228,9 @@ interface Sales {
     keys: number;
     metal: number;
     date: number;
+}
+
+interface PriceTFError {
+    statusCode: number;
+    body: { success: boolean; message: string };
 }
