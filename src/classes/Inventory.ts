@@ -306,6 +306,8 @@ function isFull(item: EconItem, type: 'duel' | 'noise'): boolean {
             return true;
         }
     }
+
+    return false;
 }
 
 function highValue(
