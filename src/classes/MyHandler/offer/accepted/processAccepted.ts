@@ -31,7 +31,11 @@ export default function processAccepted(
 
     if (offerReceived) {
         // doing this because if an offer is being made by bot (from command), then this is undefined
-        if (offerReceived.reason === 'VALID_WITH_OVERPAY' || offerReceived.reason === 'MANUAL') {
+        if (
+            offerReceived.reason === 'VALID_WITH_OVERPAY' ||
+            offerReceived.reason === 'MANUAL' ||
+            offerReceived.reason === 'MANUAL-FORCE'
+        ) {
             // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
             if (offerReceived.meta?.uniqueReasons?.includes('🟨_INVALID_ITEMS')) {
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
