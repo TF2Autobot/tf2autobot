@@ -11,7 +11,7 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
     const trades = stats(bot);
-    const profits = profit(bot, Date.now() - 86400000);
+    const profits = profit(bot, Math.floor((Date.now() - 86400000) / 1000));
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;

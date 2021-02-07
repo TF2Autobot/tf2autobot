@@ -10,7 +10,7 @@ import { sendStats } from '../../../lib/DiscordWebhook/export';
 export function statsCommand(steamID: SteamID, bot: Bot): void {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const trades = stats(bot);
-    const profits = profit(bot, Date.now() - 86400000); //since -24h
+    const profits = profit(bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
     const keyPrices = bot.pricelist.getKeyPrices;
 
