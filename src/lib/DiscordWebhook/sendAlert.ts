@@ -29,6 +29,7 @@ type AlertType =
     | 'autoAddPaintedItems'
     | 'autoAddPaintedItemsFailed'
     | 'failed-accept'
+    | 'failed-decline'
     | 'failed-processing-offer';
 
 export default function sendAlert(
@@ -105,7 +106,7 @@ export default function sendAlert(
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
-        color = '8323327'; // red
+        color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {
         title = 'Added painted items to sell';
         description = msg;
@@ -113,7 +114,7 @@ export default function sendAlert(
     } else if (type === 'autoAddPaintedItemsFailed') {
         title = 'Failed to add painted items to sell';
         description = msg;
-        color = '8323327'; // red
+        color = '16711680'; // red
     } else if (type.includes('autokeys-')) {
         title =
             type === 'autokeys-failedToDisable'
@@ -122,18 +123,23 @@ export default function sendAlert(
                       type.includes('-bank') ? 'banking' : type.includes('-buy') ? 'buying' : 'selling'
                   } for keys - Autokeys`;
         description = msg;
-        color = '8323327'; // red
+        color = '16711680'; // red
     } else if (type === 'failed-accept') {
         title = 'Failed to accept trade';
         description = msg + `\n\nError:\n${JSON.stringify(err)}`;
         content = items[0]; // offer id
-        color = '8323327'; // red
+        color = '16711680'; // red
+    } else if (type === 'failed-decline') {
+        title = 'Failed to decline trade';
+        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {
         title = 'Unable to process an offer';
         description =
             `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
             ' The offer data received was broken because our side and their side are both empty.';
-        color = '8323327'; // red
+        color = '16711680'; // red
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;

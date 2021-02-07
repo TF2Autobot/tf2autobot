@@ -119,10 +119,9 @@ export default class Trades {
                 .length;
 
             log.verbose(
-                `${activeReceived.length} incoming ${pluralize(
-                    'offer',
-                    activeReceived.length
-                )} (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
+                `${activeReceived.length} incoming ${pluralize('offer', activeReceived.length)}${
+                    activeReceived.length > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
+                } (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
                     'offer',
                     activeSent.length
                 )} (${sentOnHold} on hold)`
@@ -334,11 +333,11 @@ export default class Trades {
                             false
                         );
                         sendAlert(
-                            'failed-accept',
+                            `failed-${action}` as 'failed-accept' | 'failed-decline',
                             this.bot,
-                            `Failed to ${action} on the offer #${offer.id}\n\n` +
+                            `Failed to ${action} on the offer #${offer.id}` +
                                 summary +
-                                `\n\nYou can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                                `\n\nYou can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
                             null,
                             err,
                             [offer.id]
@@ -356,9 +355,10 @@ export default class Trades {
                         );
 
                         this.bot.messageAdmins(
-                            `Failed to ${action} on the offer #${offer.id}:\n\n${JSON.stringify(err, null, 4)}\n\n` +
+                            `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
-                                `\n\nYou can try to force accept this trade, reply "!faccept ${offer.id}" now.`,
+                                `\n\nYou can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                                `\n\n${JSON.stringify(err, null, 4)}`,
                             []
                         );
                     }

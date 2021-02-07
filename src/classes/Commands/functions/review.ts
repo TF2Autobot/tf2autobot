@@ -14,7 +14,9 @@ import { generateLinks } from '../../../lib/tools/export';
 export function tradesCommand(steamID: SteamID, bot: Bot): void {
     // Go through polldata and find active offers
     const pollData = bot.manager.pollData;
-    const offers: UnknownDictionaryKnownValues[] = [];
+
+    const offersForReview: UnknownDictionaryKnownValues[] = [];
+    const activeOffersNotForReview: UnknownDictionaryKnownValues[] = [];
 
     for (const id in pollData.received) {
         if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
@@ -30,28 +32,53 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
         if (data === null) {
             continue;
         } else if (data?.action?.action !== 'skip') {
+            activeOffersNotForReview.push({ id: id, data: data });
             continue;
         }
 
-        offers.push({ id: id, data: data });
+        offersForReview.push({ id: id, data: data });
     }
 
-    if (offers.length === 0) {
-        return bot.sendMessage(steamID, '❌ There are no active offers pending review.');
+    if (offersForReview.length === 0 && activeOffersNotForReview.length === 0) {
+        return bot.sendMessage(steamID, '❌ There are no active offers/ pending review.');
     }
 
-    offers.sort((a, b) => a.id - b.id);
-
-    bot.sendMessage(steamID, generateTradesReply(offers));
+    bot.sendMessage(
+        steamID,
+        (offersForReview.length > 0 ? generateTradesReply(offersForReview.sort((a, b) => a.id - b.id)) : '') +
+            (offersForReview.length > 0 ? '\n\n-----------------\n\n' : '') +
+            (activeOffersNotForReview.length > 0
+                ? generateActiveOfferReply(activeOffersNotForReview.sort((a, b) => a.id - b.id))
+                : '')
+    );
 }
 
 function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
-    let reply = `There is/are ${offers.length} active ${pluralize('offer', offers.length)} that you can review:`;
+    let reply = `There ${pluralize('is', offers.length, true)} active ${pluralize(
+        'offer',
+        offers.length
+    )} that you can review:`;
     for (let i = 0; i < offers.length; i++) {
         reply +=
             `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner} (reason: ${(offers[i]
                 .data as OfferData).action.meta.uniqueReasons.join(', ')})` +
             `\n⚠️ Send "!trade ${offers[i].id as string}" for more details.\n`;
+    }
+
+    return reply;
+}
+
+function generateActiveOfferReply(offers: UnknownDictionaryKnownValues[]): string {
+    let reply = `There ${pluralize('is', offers.length, true)} ${pluralize(
+        'offer',
+        offers.length
+    )} that currently still active:`;
+    for (let i = 0; i < offers.length; i++) {
+        reply +=
+            `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner}` +
+            `\n⚠️ Send "!trade ${
+                offers[i].id as string
+            }" for more details or "!faccept <offerID>" to force accept the trade.\n`;
     }
 
     return reply;
@@ -77,15 +104,13 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
 
     const offerData = bot.manager.pollData.offerData[offerId];
 
-    if (offerData?.action?.action !== 'skip') {
-        return bot.sendMessage(steamID, "Offer can't be reviewed. ❌");
-    }
-
     // Log offer details
 
     let reply =
-        `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review. ` +
-        `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`;
+        offerData?.action?.action === 'skip'
+            ? `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review` +
+              `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`
+            : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.`;
 
     const keyPrice = bot.pricelist.getKeyPrice;
     const value = offerData.value;
@@ -138,7 +163,9 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     const links = generateLinks(offerData.partner.toString());
     reply +=
         `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-        `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`;
+        (offerData?.action?.action === 'skip'
+            ? `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`
+            : `\n\n⚠️ Send "!faccept ${offerId}" to force accept the trade now!`);
 
     bot.sendMessage(steamID, reply);
 }
@@ -244,12 +271,19 @@ export async function actionOnTradeCommand(
     }
 }
 
-export async function forceAccept(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+type ForceAction = 'faccept' | 'fdecline';
+
+export async function forceAction(steamID: SteamID, message: string, bot: Bot, command: ForceAction): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
     const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
+    const isForceAccepting = command === 'faccept';
+
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        return bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!faccept 3957959294"`);
+        return bot.sendMessage(
+            steamID,
+            `⚠️ Missing offer id. Example: "!${isForceAccepting ? 'faccept' : 'fdecline'} 3957959294"`
+        );
     }
 
     const offerId = offerIdRegex[0];
@@ -261,7 +295,7 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
 
     try {
         const offer = await bot.trades.getOffer(offerId);
-        bot.sendMessage(steamID, `Force accepting offer...`);
+        bot.sendMessage(steamID, `Force ${isForceAccepting ? 'accepting' : 'declining'} offer...`);
 
         const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
         const reply = offerIdAndMessage.substr(offerId.length);
@@ -269,9 +303,9 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
 
         try {
             await bot.trades.applyActionToOffer(
-                'accept',
+                isForceAccepting ? 'accept' : 'decline',
                 'MANUAL-FORCE',
-                (offer.data('action') as Action).meta || {},
+                isForceAccepting ? (offer.data('action') as Action).meta : {},
                 offer
             );
 
@@ -285,13 +319,17 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
         } catch (err) {
             return bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to force accept the offer: ${JSON.stringify(err)}`
+                `❌ Ohh nooooes! Something went wrong while trying to force ${
+                    isForceAccepting ? 'accept' : 'decline'
+                } the offer: ${JSON.stringify(err)}`
             );
         }
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to force accept' the offer: ${JSON.stringify(err)}`
+            `❌ Ohh nooooes! Something went wrong while trying to force ${
+                isForceAccepting ? 'accept' : 'decline'
+            } the offer: ${JSON.stringify(err)}`
         );
     }
 }
