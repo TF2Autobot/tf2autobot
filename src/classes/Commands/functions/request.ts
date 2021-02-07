@@ -87,7 +87,9 @@ export async function getSalesCommand(
         return bot.sendMessage(
             steamID,
             `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
-                (err as PriceTFError).body.message
+                (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                    ? (err as ErrorRequest).body.message
+                    : (err as ErrorRequest).message
             }`
         );
     }
@@ -113,11 +115,13 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot, r
     }
 
     const name = bot.schema.getName(SKU.fromString(params.sku), false);
-    void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
+    void requestCheck(params.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
         if (err) {
             return bot.sendMessage(
                 steamID,
-                `❌ Error while requesting price check: ${(err as PriceTFError).body.message}`
+                `❌ Error while requesting price check: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
             );
         }
 
@@ -221,7 +225,9 @@ export async function checkCommand(steamID: SteamID, message: string, bot: Bot, 
         return bot.sendMessage(
             steamID,
             `Error getting price for ${name === null ? (params.sku as string) : name}: ${
-                (err as PriceTFError).body.message
+                (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                    ? (err as ErrorRequest).body.message
+                    : (err as ErrorRequest).message
             }`
         );
     }
@@ -235,7 +241,11 @@ interface Sales {
     date: number;
 }
 
-interface PriceTFError {
-    statusCode: number;
-    body: { success: boolean; message: string };
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }

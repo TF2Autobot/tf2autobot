@@ -321,7 +321,11 @@ export default class Pricelist extends EventEmitter {
                 }
             } catch (err) {
                 throw new Error(
-                    `❌ Unable to get current prices for ${entry.sku}: ${(err as PriceTFError).body.message}`
+                    `❌ Unable to get current prices for ${entry.sku}: ${
+                        (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                            ? (err as ErrorRequest).body.message
+                            : (err as ErrorRequest).message
+                    }`
                 );
             }
         }
@@ -855,7 +859,11 @@ interface Group {
     [quality: string]: { [killstreak: string]: Item[] };
 }
 
-interface PriceTFError {
-    statusCode: number;
-    body: { success: boolean; message: string };
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }
