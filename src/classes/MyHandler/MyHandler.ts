@@ -712,7 +712,8 @@ export default class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 `❌ Looks like there was some issue with Steam getting your offer data.` +
-                    ` I am sorry but I am not able to proceed with processing your offer.`
+                    ` I am sorry but I am not able to proceed with processing your offer.` +
+                    ` My owner has been informed, and he might manually act on your offer later.`
             );
 
             const optDw = this.bot.options.discordWebhook;

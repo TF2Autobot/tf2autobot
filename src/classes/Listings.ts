@@ -479,7 +479,7 @@ export default class Listings {
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
                         if (attachment === 's' && optD.showSpells) {
-                            highValueString += `| ${cT.spells ? cT.spells : '🎃 Spells:'} `;
+                            highValueString += `${cTSpt ? cTSpt : '| '}${cT.spells ? cT.spells : '🎃 Spells:'} `;
 
                             hv.s.forEach(pSKU => {
                                 const name = getKeyByValue(spellsData, pSKU);
@@ -500,16 +500,20 @@ export default class Listings {
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
                                 if (attachment === 'sp') {
-                                    highValueString += `${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
+                                    highValueString += `${cTSpt ? cTSpt : '| '}${
+                                        cT.strangeParts ? cT.strangeParts : '🎰 Parts:'
+                                    } `;
                                 } else if (attachment === 'ke') {
-                                    highValueString += `${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `;
+                                    highValueString += `${cTSpt ? cTSpt : '| '}${
+                                        cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'
+                                    } `;
                                 } else if (attachment === 'ks') {
-                                    highValueString += `${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
+                                    highValueString += `${cTSpt ? cTSpt : '| '}${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
                                 } else if (attachment === 'p') {
-                                    highValueString += `${cT.painted ? cT.painted : '🎨 Painted:'} `;
+                                    highValueString += `${cTSpt ? cTSpt : '| '}${
+                                        cT.painted ? cT.painted : '🎨 Painted:'
+                                    } `;
                                 }
-
-                                highValueString += cTSpt ? cTSpt : '| ';
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
