@@ -713,7 +713,7 @@ export default class MyHandler extends Handler {
                 offer.partner,
                 `❌ Looks like there was some issue with Steam getting your offer data.` +
                     ` I am sorry but I am not able to proceed with processing your offer.` +
-                    ` My owner has been informed, and he might manually act on your offer later.`
+                    ` My owner has been informed, and they might manually act on your offer later.`
             );
 
             const optDw = this.bot.options.discordWebhook;
@@ -728,7 +728,9 @@ export default class MyHandler extends Handler {
                     this.bot.messageAdmins(
                         '',
                         `Unable to process offer #${offer.id} with ${offer.partner.getSteamID64()}.` +
-                            ' The offer data received was broken because our side and their side are both empty.',
+                            ' The offer data received was broken because our side and their side are both empty.' +
+                            `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${offer.id}/` +
+                            `\nSend "!faccept ${offer.id}" to force accept, or "!fdecline ${offer.id}" to decline.`,
                         []
                     );
                 }
