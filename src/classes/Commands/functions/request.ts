@@ -9,9 +9,14 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import { getSales, GetItemSalesResponse, requestCheck, getPrice, RequestCheckResponse } from '../../../lib/ptf-api';
+import { GetPriceFn, GetSalesFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
-export async function getSalesCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+export async function getSalesCommand(
+    steamID: SteamID,
+    message: string,
+    bot: Bot,
+    getSales: GetSalesFn
+): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
@@ -27,7 +32,7 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
 
     const name = bot.schema.getName(SKU.fromString(params.sku));
     try {
-        const salesData: GetItemSalesResponse = await getSales(params.sku, 'bptf');
+        const salesData = await getSales(params.sku, 'bptf');
         if (!salesData) {
             return bot.sendMessage(
                 steamID,
@@ -90,7 +95,7 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
 
 // Request commands
 
-export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): void {
+export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot, requestCheck: RequestCheckFn): void {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         return bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
@@ -133,7 +138,7 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
     });
 }
 
-export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export async function pricecheckAllCommand(steamID: SteamID, bot: Bot, requestCheck: RequestCheckFn): Promise<void> {
     const pricelist = bot.pricelist.getPrices;
 
     const total = pricelist.length;
@@ -183,7 +188,7 @@ export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<
     }
 }
 
-export async function checkCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+export async function checkCommand(steamID: SteamID, message: string, bot: Bot, getPrice: GetPriceFn): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         return bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
