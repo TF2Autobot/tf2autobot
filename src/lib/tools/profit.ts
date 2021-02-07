@@ -8,7 +8,7 @@ import { OfferData } from 'steam-tradeoffer-manager';
 
 export default function profit(
     bot: Bot,
-    start: number
+    start = 0
 ): { tradeProfit: number; overpriceProfit: number; since: number; profitTimed: number } {
     const pollData = bot.manager.pollData;
     const now = dayjs();
