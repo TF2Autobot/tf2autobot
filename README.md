@@ -48,9 +48,10 @@ Join the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8) and head ove
 
 \*\*There are also giveaways held every Thursday, 8 AM - 8 PM (12 hours) Malaysia time!
 
-## Environmental Variables summary
+## Environmental Variables and Options.json properties summary
 
-You can know more about each variable found in the `.env` or `ecosystem.json` and `options.json` files [here](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot-(v2)).
+- Env variables: [Windows](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Windows) | [Linux/MacOS/Others](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot-on-Linux)
+- Options properties: [↗](https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file)
 
 <!-- ## Useful Modules
 

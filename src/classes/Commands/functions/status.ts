@@ -10,9 +10,14 @@ import { sendStats } from '../../../lib/DiscordWebhook/export';
 export function statsCommand(steamID: SteamID, bot: Bot): void {
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const trades = stats(bot);
-    const profits = profit(bot);
+    const profits = profit(bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
     const keyPrices = bot.pricelist.getKeyPrices;
+
+    const timedProfitmadeFull = Currencies.toCurrencies(profits.profitTimed, keyPrices.sell.metal).toString();
+    const timedProfitmadeInRef = timedProfitmadeFull.includes('key')
+        ? ` (${Currencies.toRefined(profits.profitTimed)} ref)`
+        : '';
 
     const profitmadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
     const profitmadeInRef = profitmadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
@@ -57,7 +62,8 @@ export function statsCommand(steamID: SteamID, bot: Bot): void {
             `\n---• by user: ${trades.today.canceled.byUser}` +
             `\n---• confirmation failed: ${trades.today.canceled.failedConfirmation}` +
             `\n---• unknown reason: ${trades.today.canceled.unknown}` +
-            `\n\nProfit made: ${profitmadeFull + profitmadeInRef} ${
+            `\n\n Profit (last 24h): ${timedProfitmadeFull + timedProfitmadeInRef}` +
+            `\nProfit made: ${profitmadeFull + profitmadeInRef} ${
                 profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
             }` +
             `\nProfit from overpay: ${profitOverpayFull + profitOverpayInRef}` +

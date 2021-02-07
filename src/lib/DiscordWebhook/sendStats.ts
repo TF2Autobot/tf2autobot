@@ -11,10 +11,15 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
     const trades = stats(bot);
-    const profits = profit(bot);
+    const profits = profit(bot, Math.floor((Date.now() - 86400000) / 1000));
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
+
+    const timedProfitmadeFull = Currencies.toCurrencies(profits.profitTimed, keyPrices.sell.metal).toString();
+    const timedProfitmadeInRef = timedProfitmadeFull.includes('key')
+        ? ` (${Currencies.toRefined(profits.profitTimed)} ref)`
+        : '';
 
     const profitMadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
     const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
@@ -102,7 +107,8 @@ export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID
                             profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)__` : '__'
                         }`,
                         value:
-                            `• Total made: ${profitMadeFull + profitMadeInRef}` +
+                            `• Last 24 hours: ${timedProfitmadeFull + timedProfitmadeInRef}` +
+                            `\n• Total made: ${profitMadeFull + profitMadeInRef}` +
                             `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
                     },
                     {
