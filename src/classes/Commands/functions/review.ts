@@ -57,7 +57,7 @@ function generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
     let reply = `There ${pluralize('is', offers.length, true)} active ${pluralize(
         'offer',
         offers.length
-    )} that you can review:`;
+    )} that you can review:\n`;
     for (let i = 0; i < offers.length; i++) {
         reply +=
             `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner} (reason: ${(offers[i]
@@ -72,7 +72,7 @@ function generateActiveOfferReply(offers: UnknownDictionaryKnownValues[]): strin
     let reply = `There ${pluralize('is', offers.length, true)} ${pluralize(
         'offer',
         offers.length
-    )} that currently still active:`;
+    )} that currently still active:\n`;
     for (let i = 0; i < offers.length; i++) {
         reply +=
             `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner}` +
@@ -110,7 +110,7 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
         offerData?.action?.action === 'skip'
             ? `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review` +
               `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`
-            : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.`;
+            : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.\n\n`;
 
     const keyPrice = bot.pricelist.getKeyPrice;
     const value = offerData.value;
