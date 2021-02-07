@@ -197,7 +197,7 @@ export default function profit(
             tradeProfit: Math.round(tradeProfit + fromPrevious.made),
             overpriceProfit: Math.round(overpriceProfit + fromPrevious.overpay),
             since: !timeSince ? 0 : now.diff(dayjs.unix(timeSince), 'day'),
-            profitTimed
+            profitTimed: Math.round(profitTimed)
         };
     } else {
         const fromPrevious = {
