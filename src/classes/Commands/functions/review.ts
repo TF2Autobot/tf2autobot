@@ -33,6 +33,7 @@ export function tradesCommand(steamID: SteamID, bot: Bot): void {
             continue;
         } else if (data?.action?.action !== 'skip') {
             activeOffersNotForReview.push({ id: id, data: data });
+            continue;
         }
 
         offersForReview.push({ id: id, data: data });
