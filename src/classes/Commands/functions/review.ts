@@ -270,12 +270,19 @@ export async function actionOnTradeCommand(
     }
 }
 
-export async function forceAccept(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+type ForceAction = 'faccept' | 'fdecline';
+
+export async function forceAction(steamID: SteamID, message: string, bot: Bot, command: ForceAction): Promise<void> {
     const offerIdAndMessage = CommandParser.removeCommand(message);
     const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
+    const isForceAccepting = command === 'faccept';
+
     if (isNaN(+offerIdRegex) || !offerIdRegex) {
-        return bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!faccept 3957959294"`);
+        return bot.sendMessage(
+            steamID,
+            `⚠️ Missing offer id. Example: "!${isForceAccepting ? 'faccept' : 'fdecline'} 3957959294"`
+        );
     }
 
     const offerId = offerIdRegex[0];
@@ -287,7 +294,7 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
 
     try {
         const offer = await bot.trades.getOffer(offerId);
-        bot.sendMessage(steamID, `Force accepting offer...`);
+        bot.sendMessage(steamID, `Force ${isForceAccepting ? 'accepting' : 'declining'} offer...`);
 
         const partnerId = new SteamID(bot.manager.pollData.offerData[offerId].partner);
         const reply = offerIdAndMessage.substr(offerId.length);
@@ -295,9 +302,9 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
 
         try {
             await bot.trades.applyActionToOffer(
-                'accept',
+                isForceAccepting ? 'accept' : 'decline',
                 'MANUAL-FORCE',
-                (offer.data('action') as Action).meta || {},
+                isForceAccepting ? (offer.data('action') as Action).meta : {},
                 offer
             );
 
@@ -311,13 +318,17 @@ export async function forceAccept(steamID: SteamID, message: string, bot: Bot): 
         } catch (err) {
             return bot.sendMessage(
                 steamID,
-                `❌ Ohh nooooes! Something went wrong while trying to force accept the offer: ${JSON.stringify(err)}`
+                `❌ Ohh nooooes! Something went wrong while trying to force ${
+                    isForceAccepting ? 'accept' : 'decline'
+                } the offer: ${JSON.stringify(err)}`
             );
         }
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Ohh nooooes! Something went wrong while trying to force accept' the offer: ${JSON.stringify(err)}`
+            `❌ Ohh nooooes! Something went wrong while trying to force ${
+                isForceAccepting ? 'accept' : 'decline'
+            } the offer: ${JSON.stringify(err)}`
         );
     }
 }
