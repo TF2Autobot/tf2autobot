@@ -4,6 +4,13 @@ export const optionsSchema: jsonschema.Schema = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     type: 'object',
     definitions: {
+        'string-array': {
+            type: 'array',
+            items: {
+                type: 'string'
+            },
+            required: false
+        },
         'only-enable': {
             type: 'object',
             properties: {
@@ -156,7 +163,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 disableForSKU: {
-                    $schema: '#/definitions/stringArray'
+                    $ref: '#/definitions/string-array'
                 },
                 customReply: {
                     type: 'object',
@@ -614,18 +621,18 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 sheens: {
-                    $schema: '#/definitions/stringArray',
+                    $ref: '#/definitions/string-array',
                     maxItems: 7
                 },
                 killstreakers: {
-                    $schema: '#/definitions/stringArray',
+                    $ref: '#/definitions/string-array',
                     maxItems: 7
                 },
                 strangeParts: {
-                    $schema: '#/definitions/stringArray'
+                    $ref: '#/definitions/string-array'
                 },
                 painted: {
-                    $schema: '#/definitions/stringArray'
+                    $ref: '#/definitions/string-array'
                 }
             },
             required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
@@ -765,7 +772,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         time: {
-                            $schema: '#/definitions/stringArray'
+                            $ref: '#/definitions/string-array'
                         }
                     },
                     required: ['enable', 'time'],
@@ -878,7 +885,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'object',
                             properties: {
                                 skus: {
-                                    $schema: '#/definitions/stringArray'
+                                    $ref: '#/definitions/string-array'
                                 },
                                 valueInRef: {
                                     $schema: '#/definitions/nonNegativeInteger'
@@ -1060,7 +1067,7 @@ export const optionsSchema: jsonschema.Schema = {
                                     type: 'boolean'
                                 },
                                 itemSkus: {
-                                    $schema: '#/definitions/stringArray'
+                                    $ref: '#/definitions/string-array'
                                 },
                                 tradeValueInRef: {
                                     type: 'number',
