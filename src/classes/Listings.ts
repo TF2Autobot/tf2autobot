@@ -467,6 +467,7 @@ export default class Listings {
                 const toJoin: string[] = [];
 
                 const optD = this.bot.options.details.highValue;
+                const cT = optD.customText;
                 const optR = this.bot.options.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
@@ -475,7 +476,7 @@ export default class Listings {
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
                         if (attachment === 's' && optD.showSpells) {
-                            highValueString += '| 🎃 Spells: ';
+                            highValueString += `| ${cT.spells ? cT.spells : '🎃 Spells:'} `;
 
                             hv.s.forEach(pSKU => {
                                 const name = getKeyByValue(spellsData, pSKU);
@@ -495,10 +496,15 @@ export default class Listings {
                                     ? optD.showSheen
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
-                                if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
-                                else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';
-                                else if (attachment === 'ks') highValueString += '| ✨ Sheen: ';
-                                else if (attachment === 'p') highValueString += '| 🎨 Painted: ';
+                                if (attachment === 'sp') {
+                                    highValueString += `| ${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
+                                } else if (attachment === 'ke') {
+                                    highValueString += `| ${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `;
+                                } else if (attachment === 'ks') {
+                                    highValueString += `| ${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
+                                } else if (attachment === 'p') {
+                                    highValueString += `| ${cT.painted ? cT.painted : '🎨 Painted:'} `;
+                                }
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
@@ -540,12 +546,12 @@ export default class Listings {
                                 } else {
                                     highValueString = highValueString.replace(
                                         attachment === 'sp'
-                                            ? '| 🎰 Parts: '
+                                            ? `| ${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `
                                             : attachment === 'ke'
-                                            ? '| 🤩 Killstreaker: '
+                                            ? `| ${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `
                                             : attachment === 'ks'
-                                            ? '| ✨ Sheen: '
-                                            : '| 🎨 Painted: ',
+                                            ? `| ${cT.sheen ? cT.sheen : '✨ Sheen:'} `
+                                            : `| ${cT.painted ? cT.painted : '🎨 Painted:'} `,
                                         ''
                                     );
                                 }

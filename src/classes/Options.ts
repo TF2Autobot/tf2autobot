@@ -131,7 +131,14 @@ export const DEFAULTS = {
             showStrangeParts: false,
             showKillstreaker: true,
             showSheen: true,
-            showPainted: true
+            showPainted: true,
+            customText: {
+                spells: '🎃 Spells:',
+                strangeParts: '🎰 Parts:',
+                killstreaker: '🤩 Killstreaker:',
+                sheen: '✨ Sheen:',
+                painted: '🎨 Painted:'
+            }
         },
         uses: {
             duel: '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)',
@@ -1023,11 +1030,20 @@ interface Details {
 }
 
 interface ShowHighValue {
-    showSpells: boolean;
-    showStrangeParts: boolean;
-    showKillstreaker: boolean;
-    showSheen: boolean;
-    showPainted: boolean;
+    showSpells?: boolean;
+    showStrangeParts?: boolean;
+    showKillstreaker?: boolean;
+    showSheen?: boolean;
+    showPainted?: boolean;
+    customText?: HighValueCustomText;
+}
+
+interface HighValueCustomText {
+    spells?: string;
+    strangeParts?: string;
+    killstreaker?: string;
+    sheen?: string;
+    painted?: string;
 }
 
 interface UsesDetails {

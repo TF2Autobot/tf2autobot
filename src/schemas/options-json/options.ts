@@ -557,9 +557,38 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         showPainted: {
                             type: 'boolean'
+                        },
+                        customText: {
+                            type: 'object',
+                            properties: {
+                                spells: {
+                                    type: 'string'
+                                },
+                                strangeParts: {
+                                    type: 'string'
+                                },
+                                killstreaker: {
+                                    type: 'string'
+                                },
+                                sheen: {
+                                    type: 'string'
+                                },
+                                painted: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['spells', 'strangeParts', 'killstreaker', 'sheen', 'painted'],
+                            additionalProperties: false
                         }
                     },
-                    required: ['showSpells', 'showStrangeParts', 'showKillstreaker', 'showSheen', 'showPainted'],
+                    required: [
+                        'showSpells',
+                        'showStrangeParts',
+                        'showKillstreaker',
+                        'showSheen',
+                        'showPainted',
+                        'customText'
+                    ],
                     additionalProperties: false
                 },
                 uses: {
