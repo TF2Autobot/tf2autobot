@@ -468,6 +468,9 @@ export default class Listings {
 
                 const optD = this.bot.options.details.highValue;
                 const cT = optD.customText;
+                const cTSpt = optD.customText.separator;
+                const cTEnd = optD.customText.ender;
+
                 const optR = this.bot.options.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
@@ -497,14 +500,16 @@ export default class Listings {
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
                                 if (attachment === 'sp') {
-                                    highValueString += `| ${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
+                                    highValueString += `${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
                                 } else if (attachment === 'ke') {
-                                    highValueString += `| ${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `;
+                                    highValueString += `${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `;
                                 } else if (attachment === 'ks') {
-                                    highValueString += `| ${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
+                                    highValueString += `${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
                                 } else if (attachment === 'p') {
-                                    highValueString += `| ${cT.painted ? cT.painted : '🎨 Painted:'} `;
+                                    highValueString += `${cT.painted ? cT.painted : '🎨 Painted:'} `;
                                 }
+
+                                highValueString += cTSpt ? cTSpt : '| ';
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
@@ -546,12 +551,16 @@ export default class Listings {
                                 } else {
                                     highValueString = highValueString.replace(
                                         attachment === 'sp'
-                                            ? `| ${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `
+                                            ? `${cTSpt ? cTSpt : '| '}${
+                                                  cT.strangeParts ? cT.strangeParts : '🎰 Parts:'
+                                              } `
                                             : attachment === 'ke'
-                                            ? `| ${cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'} `
+                                            ? `${cTSpt ? cTSpt : '| '}${
+                                                  cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'
+                                              } `
                                             : attachment === 'ks'
-                                            ? `| ${cT.sheen ? cT.sheen : '✨ Sheen:'} `
-                                            : `| ${cT.painted ? cT.painted : '🎨 Painted:'} `,
+                                            ? `${cTSpt ? cTSpt : '| '}${cT.sheen ? cT.sheen : '✨ Sheen:'} `
+                                            : `${cTSpt ? cTSpt : '| '}${cT.painted ? cT.painted : '🎨 Painted:'} `,
                                         ''
                                     );
                                 }
@@ -560,7 +569,7 @@ export default class Listings {
                         }
                     });
 
-                    highValueString += highValueString.length > 0 ? ' |' : '';
+                    highValueString += highValueString.length > 0 ? (cTEnd ? cTEnd : ' |') : '';
                 }
             }
         }

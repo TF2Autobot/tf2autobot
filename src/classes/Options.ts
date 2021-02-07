@@ -192,7 +192,9 @@ export const DEFAULTS = {
                 strangeParts: '🎰 Parts:',
                 killstreaker: '🤩 Killstreaker:',
                 sheen: '✨ Sheen:',
-                painted: '🎨 Painted:'
+                painted: '🎨 Painted:',
+                separator: '| ',
+                ender: ' |'
             }
         },
         uses: {
@@ -1139,6 +1141,8 @@ interface HighValueCustomText {
     killstreaker?: string;
     sheen?: string;
     painted?: string;
+    separator?: string;
+    ender?: string;
 }
 
 interface UsesDetails {

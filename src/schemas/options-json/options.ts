@@ -693,9 +693,23 @@ export const optionsSchema: jsonschema.Schema = {
                                 },
                                 painted: {
                                     type: 'string'
+                                },
+                                separator: {
+                                    type: 'string'
+                                },
+                                ender: {
+                                    type: 'string'
                                 }
                             },
-                            required: ['spells', 'strangeParts', 'killstreaker', 'sheen', 'painted'],
+                            required: [
+                                'spells',
+                                'strangeParts',
+                                'killstreaker',
+                                'sheen',
+                                'painted',
+                                'separator',
+                                'ender'
+                            ],
                             additionalProperties: false
                         }
                     },
