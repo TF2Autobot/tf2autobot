@@ -113,8 +113,12 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
         const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
 
+        const customInitializer = bot.options.steamChat.customInitializer.review;
+
         bot.messageAdmins(
-            `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
+            `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
+                offer.id
+            } from ${offer.partner.toString()} is pending review.` +
                 `\nReasons: ${reasons.join(', ')}` +
                 (reasons.includes('⬜_BANNED_CHECK_FAILED')
                     ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'

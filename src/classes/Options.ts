@@ -143,6 +143,18 @@ export const DEFAULTS = {
         }
     },
 
+    steamChat: {
+        customInitializer: {
+            acceptedTradeSummary: '/me',
+            review: '',
+            message: {
+                onReceive: '/quote',
+                toOtherAdmins: '/quote'
+                // toTradePartner is in commands.message.customReply.fromOwner
+            }
+        }
+    },
+
     highValue: {
         enableHold: true,
         sheens: [],
@@ -1063,6 +1075,23 @@ interface SteamDiscord {
     discordWebhook?: string;
 }
 
+// ----------- Steam Chat ------------
+
+interface SteamChat {
+    customInitializer?: CustomInitializer;
+}
+
+interface CustomInitializer {
+    acceptedTradeSummary?: string;
+    review?: string;
+    message?: CustomInitializerMessage;
+}
+
+interface CustomInitializerMessage {
+    onReceive?: string;
+    toOtherAdmins?: string;
+}
+
 // ------------ HighValue ------------
 
 interface HighValue {
@@ -1698,6 +1727,7 @@ export interface JsonOptions {
     pricelist?: Pricelist;
     bypass?: Bypass;
     tradeSummary?: TradeSummary;
+    steamChat?: SteamChat;
     highValue?: HighValue;
     normalize?: Normalize;
     details?: Details;

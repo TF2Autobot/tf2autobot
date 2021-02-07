@@ -218,9 +218,13 @@ export default function processAccepted(
         const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
         const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
 
+        const customInitializer = bot.options.steamChat.customInitializer.acceptedTradeSummary;
+
         bot.messageAdmins(
             'trade',
-            `/me Trade #${offer.id} with ${offer.partner.getSteamID64()} is accepted. ✅` +
+            `${customInitializer ? customInitializer : '/me'} Trade #${
+                offer.id
+            } with ${offer.partner.getSteamID64()} is accepted. ✅` +
                 t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +

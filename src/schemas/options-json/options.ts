@@ -276,6 +276,25 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['steamChat', 'discordWebhook'],
             additionalProperties: false
+        },
+        'valid-initializer': {
+            anyOf: [
+                {
+                    const: '/me'
+                },
+                {
+                    const: '/pre'
+                },
+                {
+                    const: '/quote'
+                },
+                {
+                    const: '/code'
+                },
+                {
+                    const: ''
+                }
+            ]
         }
     },
     properties: {
@@ -553,6 +572,41 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices'],
             additionalProperties: false
         },
+
+        steamChat: {
+            type: 'object',
+            properties: {
+                customInitializer: {
+                    type: 'object',
+                    properties: {
+                        acceptedTradeSummary: {
+                            $ref: '#/definitions/valid-initializer'
+                        },
+                        review: {
+                            $ref: '#/definitions/valid-initializer'
+                        },
+                        message: {
+                            type: 'object',
+                            properties: {
+                                onReceive: {
+                                    $ref: '#/definitions/valid-initializer'
+                                },
+                                toOtherAdmins: {
+                                    $ref: '#/definitions/valid-initializer'
+                                }
+                            },
+                            required: ['onReceive', 'toOtherAdmins'],
+                            additionalProperties: false
+                        }
+                    },
+                    required: ['acceptedTradeSummary', 'review', 'message'],
+                    additionalProperties: false
+                }
+            },
+            required: ['customInitializer'],
+            additionalProperties: false
+        },
+
         highValue: {
             type: 'object',
             properties: {
