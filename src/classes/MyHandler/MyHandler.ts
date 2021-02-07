@@ -708,6 +708,10 @@ export default class MyHandler extends Handler {
         const isCannotProceedProcessingOffer = offer.itemsToGive.length === 0 && offer.itemsToReceive.length === 0;
 
         if (isCannotProceedProcessingOffer) {
+            log.warn('isCannotProceedProcessingOffer', {
+                status: isCannotProceedProcessingOffer,
+                offerData: offer
+            });
             // Both itemsToGive and itemsToReceive are an empty array, abort.
             this.bot.sendMessage(
                 offer.partner,
