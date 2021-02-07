@@ -119,10 +119,9 @@ export default class Trades {
                 .length;
 
             log.verbose(
-                `${activeReceived.length} incoming ${pluralize(
-                    'offer',
-                    activeReceived.length
-                )} (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
+                `${activeReceived.length} incoming ${pluralize('offer', activeReceived.length)}${
+                    activeReceived.length > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
+                } (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
                     'offer',
                     activeSent.length
                 )} (${sentOnHold} on hold)`
