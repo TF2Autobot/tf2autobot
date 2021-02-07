@@ -98,7 +98,7 @@ export default function processAccepted(
             }
         }
 
-        if (offerReceived?.meta?.highValue && offerReceived.meta.highValue['has'] === undefined) {
+        if (offerReceived.meta?.highValue && offerReceived.meta?.highValue['has'] === undefined) {
             if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
                 const itemsName = t.getHighValueItems(
