@@ -7,11 +7,11 @@ import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
 import SocketManager from './MyHandler/SocketManager';
-import { getSchema } from '../lib/ptf-api';
 import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
+import Pricer from './Pricer';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -19,6 +19,8 @@ export default class BotManager {
     private readonly socketManager: SocketManager;
 
     private readonly schemaManager: SchemaManager;
+
+    private readonly pricer: Pricer;
 
     public bot: Bot = null;
 
@@ -30,11 +32,13 @@ export default class BotManager {
 
     private exiting = false;
 
-    constructor(pricestfApiToken?: string) {
+    constructor(pricer: Pricer) {
+        this.pricer = pricer;
         this.schemaManager = new SchemaManager({});
         this.patchSchemaManager();
         this.extendTradeOfferApis();
-        this.socketManager = new SocketManager('https://api.prices.tf', pricestfApiToken);
+        const priceToken = pricer.getOptions().pricerApiToken;
+        this.socketManager = new SocketManager(pricer.getOptions().pricerUrl, priceToken ? priceToken : null);
     }
 
     private extendTradeOfferApis() {
@@ -53,8 +57,10 @@ export default class BotManager {
 
     private patchSchemaManager() {
         // Make the schema manager request the schema from PricesTF
+        const priceManager = this.pricer;
         this.schemaManager.getSchema = function (callback): void {
-            getSchema()
+            priceManager
+                .getSchema()
                 .then(schema => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
                     this.setSchema(schema, true);
@@ -110,7 +116,7 @@ export default class BotManager {
                     (callback): void => {
                         log.info('Starting bot...');
 
-                        this.bot = new Bot(this, options);
+                        this.bot = new Bot(this, options, this.pricer);
 
                         void this.bot.start().asCallback(callback);
                     }

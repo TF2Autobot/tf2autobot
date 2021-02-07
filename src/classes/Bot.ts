@@ -26,6 +26,7 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
+import Pricer from './Pricer';
 
 export default class Bot {
     // Modules and classes
@@ -147,7 +148,7 @@ export default class Bot {
 
     private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
 
-    constructor(botManager: BotManager, public options: Options) {
+    constructor(botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema;
@@ -178,9 +179,15 @@ export default class Bot {
         this.listings = new Listings(this);
         this.tf2gc = new TF2GC(this);
 
-        this.handler = new MyHandler(this);
+        this.handler = new MyHandler(this, this.priceSource);
 
-        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager, this.options, this);
+        this.pricelist = new Pricelist(
+            this.priceSource,
+            this.schema,
+            this.botManager.getSocketManager,
+            this.options,
+            this
+        );
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));

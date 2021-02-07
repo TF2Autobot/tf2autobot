@@ -1760,7 +1760,8 @@ export default interface Options extends JsonOptions {
     groups?: string[];
     alerts?: string[];
 
-    pricestfAPIToken?: string;
+    customPricerApiToken?: string;
+    customPricerUrl?: string;
 
     skipBPTFTradeofferURL?: boolean;
     skipUpdateProfileSettings?: boolean;
@@ -1884,7 +1885,8 @@ export function loadOptions(options?: Options): Options {
         groups: getOption('groups', ['103582791464047777', '103582791462300957'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
-        pricestfAPIToken: getOption('pricestfAPIToken', '', String, incomingOptions),
+        customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
+        customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),

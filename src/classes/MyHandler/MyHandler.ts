@@ -49,6 +49,7 @@ import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
+import Pricer, { RequestCheckFn } from '../Pricer';
 
 export default class MyHandler extends Handler {
     private readonly commands: Commands;
@@ -58,6 +59,8 @@ export default class MyHandler extends Handler {
     readonly cartQueue: CartQueue;
 
     private groupsStore: string[];
+
+    private requestCheck: RequestCheckFn;
 
     private get groups(): string[] {
         if (!this.groupsStore) {
@@ -194,14 +197,15 @@ export default class MyHandler extends Handler {
 
     private autoRefreshListingsInterval: NodeJS.Timeout;
 
-    constructor(bot: Bot) {
+    constructor(bot: Bot, private priceSource: Pricer) {
         super(bot);
 
-        this.commands = new Commands(bot);
+        this.commands = new Commands(bot, priceSource);
         this.cartQueue = new CartQueue(bot);
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.bot.options.steamAccountName);
+        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     onRun(): Promise<OnRun> {
@@ -1808,7 +1812,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue);
+            updateListings(offer, this.bot, highValue, this.requestCheck);
 
             // Invite to group
             this.inviteToGroups(offer.partner);
