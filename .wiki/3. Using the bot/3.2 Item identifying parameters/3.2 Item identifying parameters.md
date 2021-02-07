@@ -8,14 +8,14 @@ You have 3 choices of item identifying parameters on how you want to add your it
 
 ## 3.2.1 - `name` and `defindex` parameters
 
-These two parameters act the same since the defindex (in integer form) is just a replacement for the name of an item (if the bot failed to choose the item, so it needs more specific detail of an item). There are 6 _optional_ sub-parameters under these two item identifying parameters:
+These two parameters act the same since the defindex (in integer form) is just a replacement for the name of an item (if the bot failed to choose the item, so it needs more specific detail of an item). There are 14 _optional_ sub-parameters under these two item identifying parameters:
 
 _Table 3.2: Sub-parameters for `name` and `defindex`._
 
 |   Parameter  |    Type   | Default  | Description |
 | :----------: | :-------: | :------: | :---------- |
+|  `quality`   | `string`  | `Unique` | Normal/ Genuine/ Vintage/ Unusual/ Unique/ Community/ Valve/ Self-made/ Strange/ Haunted/ Collector's/ Decorated (this is case sensitive). If not stated, it will default to `Unique`. |
 | `craftable`  | `boolean` |  `true`  | Set to `false` if you want the item to be a Non-Craftable. |
-|  `quality`   | `string`  | `Unique` | Normal/ Genuine/ Vintage/ Unusual/ Unique/ Community/ Valve/ Self-made/ Strange/ Haunted/ Collector's/ Decorated (this is case sensitive). |
 | `australium` | `boolean` | `false`  | Set to `true` if you want that item to be an Australium (Australium-able weapons only). |
 |   `effect`   | `string`  |  `null`  | An Unusual effect name, for example: `Sunbeams` or `Green Confetti`. |
 | `killstreak` | `number\|string`  |   `0`    | This should be killstreak type. Types: `1` or `Killstreak`, `2` or `Specialized Killstreak`, and `3` or `Professional Killstreak`. |
