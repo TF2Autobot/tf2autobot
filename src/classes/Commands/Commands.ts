@@ -17,6 +17,7 @@ import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
 
 import { fixItem } from '../../lib/items';
+import { itemStats } from '../../lib/tools/export';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -220,6 +221,8 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
+        } else if (command == 'itemstats') {
+            this.itemStatsCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))
@@ -314,6 +317,124 @@ export default class Commands {
 
         if (match.autoprice && this.bot.isAdmin(steamID)) {
             reply += ` (price last updated ${dayjs.unix(match.time).fromNow()})`;
+        }
+
+        this.bot.sendMessage(steamID, reply);
+    }
+
+    private itemStatsCommand(steamID: SteamID, message: string): void {
+        if (!this.bot.isAdmin(steamID)) {
+            return;
+        }
+
+        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
+        if (info === null) {
+            return;
+        }
+
+        const match = info.match;
+
+        let reply = '';
+        match.sku;
+
+        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
+            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                : this.bot.craftWeapons
+            : [];
+        if (
+            !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(match.sku)) &&
+            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(match.sku)
+        ) {
+            const { bought, sold } = itemStats(this.bot, match.sku);
+            const boughtTime = Object.keys(bought).sort((a, b) => {
+                return +a - +b;
+            });
+            const soldTime = Object.keys(sold).sort((a, b) => {
+                return +a - +b;
+            });
+            const boughtLastX = [
+                86400000, //DAY
+                604800000, //WEEK
+                2419200000 //4 WEEKS
+            ].map(c => {
+                const filteredTrades = boughtTime
+                    .filter(a => {
+                        return +a >= Date.now() - c;
+                    })
+                    //TODO FIX TYPE AND UNSAFE ERRORS
+                    // @ts-ignore
+                    .reduce((acc, a) => {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+                        const key = `${bought[a].keys}+${bought[a].metal}`;
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+                            acc[key] = bought[a].count;
+                        } else {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                            acc[key] += bought[a].count;
+                        }
+                        return acc;
+                    }, {});
+
+                return (
+                    Object.keys(filteredTrades)
+                        // @ts-ignore
+                        .reduce((acc, a) => {
+                            acc += filteredTrades;
+                            acc += ' @ ';
+                            acc += new Currencies({
+                                metal: Currencies.toRefined(+a.split('+')[1]),
+                                keys: +a.split('+')[0]
+                            }).toString();
+                            return acc + '\n';
+                        }, '')
+                );
+            });
+
+            reply += 'DAY\n' + boughtLastX[0] + 'WEEK' + boughtLastX[1] + '4 Weeks' + boughtLastX[2];
+
+            const soldLastX = [
+                86400000, //DAY
+                604800000, //WEEK
+                2419200000 //4 WEEKS
+            ].map(c => {
+                const filteredTrades = soldTime
+                    .filter(a => {
+                        return +a >= Date.now() - c;
+                    })
+                    //TODO FIX TYPE AND UNSAFE ERRORS
+                    // @ts-ignore
+                    .reduce((acc, a) => {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+                        const key = `${sold[a].keys}+${sold[a].metal}`;
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+                            acc[key] = sold[a].count;
+                        } else {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                            acc[key] += sold[a].count;
+                        }
+                        return acc;
+                    }, {});
+
+                return (
+                    Object.keys(filteredTrades)
+                        // @ts-ignore
+                        .reduce((acc, a) => {
+                            acc += filteredTrades;
+                            acc += ' @ ';
+                            acc += new Currencies({
+                                metal: Currencies.toRefined(+a.split('+')[1]),
+                                keys: +a.split('+')[0]
+                            }).toString();
+                            return acc + '\n';
+                        }, '')
+                );
+            });
+            reply += 'DAY\n' + soldLastX[0] + 'WEEK' + soldLastX[1] + '4 Weeks' + soldLastX[2];
+        } else {
+            reply = 'enable for keys and weapons - currently not implemented';
         }
 
         this.bot.sendMessage(steamID, reply);
