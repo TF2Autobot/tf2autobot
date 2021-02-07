@@ -333,11 +333,11 @@ export default class Trades {
                             false
                         );
                         sendAlert(
-                            'failed-accept',
+                            `failed-${action}` as 'failed-accept' | 'failed-decline',
                             this.bot,
                             `Failed to ${action} on the offer #${offer.id}` +
                                 summary +
-                                `\n\nYou can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                                `\n\nYou can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
                             null,
                             err,
                             [offer.id]
@@ -357,7 +357,7 @@ export default class Trades {
                         this.bot.messageAdmins(
                             `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
-                                `\n\nYou can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
+                                `\n\nYou can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
                                 `\n\n${JSON.stringify(err, null, 4)}`,
                             []
                         );
