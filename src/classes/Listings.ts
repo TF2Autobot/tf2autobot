@@ -214,8 +214,13 @@ export default class Listings {
                         inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                     );
 
-                    if (listing.details !== newDetails || listing.promoted !== match.promoted) {
+                    if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
                         // Listing details or promoted don't match, update listing with new details and price
+                        log.debug('updated listing', {
+                            sku: sku,
+                            intent: listing.intent
+                        });
+
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                         listing.update({
