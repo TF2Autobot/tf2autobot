@@ -109,8 +109,8 @@ export function tradeCommand(steamID: SteamID, message: string, bot: Bot): void 
     let reply =
         offerData?.action?.action === 'skip'
             ? `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review` +
-              `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}). Summary:\n\n`
-            : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.\n\n`;
+              `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}).\n\nSummary:\n\n`
+            : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.\n\nSummary:\n\n`;
 
     const keyPrice = bot.pricelist.getKeyPrice;
     const value = offerData.value;
