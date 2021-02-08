@@ -1,6 +1,7 @@
 import Bot from '../../classes/Bot';
 import { OfferData } from 'steam-tradeoffer-manager';
 
+// trigger update file name
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
 export default function itemStats(bot: Bot, SKU: string): { bought: ItemStats; sold: ItemStats } {
