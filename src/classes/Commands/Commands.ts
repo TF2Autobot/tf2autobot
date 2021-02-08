@@ -370,33 +370,25 @@ export default class Commands {
                         return +a >= Math.floor(Date.now() / 1000) - c;
                     })
                     //TODO FIX TYPE AND UNSAFE ERRORS
-                    // @ts-ignore
                     .reduce((acc, a) => {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
                         const key = `${bought[a].keys}+${bought[a].metal}`;
                         if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
                             acc[key] = bought[a].count;
                         } else {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             acc[key] += bought[a].count;
                         }
                         return acc;
                     }, {});
 
-                return (
-                    Object.keys(filteredTrades)
-                        // @ts-ignore
-                        .reduce((acc, a) => {
-                            acc += filteredTrades;
-                            acc += ' @ ';
-                            acc += new Currencies({
-                                metal: Currencies.toRefined(+a.split('+')[1]),
-                                keys: +a.split('+')[0]
-                            }).toString();
-                            return acc + '\n';
-                        }, '')
-                );
+                return Object.keys(filteredTrades).reduce((acc, a) => {
+                    acc += filteredTrades;
+                    acc += ' @ ';
+                    acc += new Currencies({
+                        metal: Currencies.toRefined(+a.split('+')[1]),
+                        keys: +a.split('+')[0]
+                    }).toString();
+                    return acc + '\n';
+                }, '');
             });
 
             reply += 'DAY\n' + boughtLastX[0] + 'WEEK' + boughtLastX[1] + '4 Weeks' + boughtLastX[2];
@@ -410,34 +402,25 @@ export default class Commands {
                     .filter(a => {
                         return +a >= Math.floor(Date.now() / 1000) - c;
                     })
-                    //TODO FIX TYPE AND UNSAFE ERRORS
-                    // @ts-ignore
                     .reduce((acc, a) => {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
                         const key = `${sold[a].keys}+${sold[a].metal}`;
                         if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
                             acc[key] = sold[a].count;
                         } else {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             acc[key] += sold[a].count;
                         }
                         return acc;
                     }, {});
 
-                return (
-                    Object.keys(filteredTrades)
-                        // @ts-ignore
-                        .reduce((acc, a) => {
-                            acc += filteredTrades;
-                            acc += ' @ ';
-                            acc += new Currencies({
-                                metal: Currencies.toRefined(+a.split('+')[1]),
-                                keys: +a.split('+')[0]
-                            }).toString();
-                            return acc + '\n';
-                        }, '')
-                );
+                return Object.keys(filteredTrades).reduce((acc, a) => {
+                    acc += filteredTrades;
+                    acc += ' @ ';
+                    acc += new Currencies({
+                        metal: Currencies.toRefined(+a.split('+')[1]),
+                        keys: +a.split('+')[0]
+                    }).toString();
+                    return acc + '\n';
+                }, '');
             });
             reply += 'DAY\n' + soldLastX[0] + 'WEEK' + soldLastX[1] + '4 Weeks' + soldLastX[2];
         } else {

@@ -86,7 +86,7 @@ export default function itemStats(bot: Bot, SKU: string): { bought: ItemStats; s
                         while (Object.prototype.hasOwnProperty.call(bought, trades[i].time)) {
                             trades[i].time++; // Prevent two trades with the same timestamp (should not happen so much)
                         }
-                        bought[trades[i].time] = {
+                        bought[String(trades[i].time)] = {
                             count: itemCount,
                             keys: trades[i].prices[sku].buy.keys,
                             metal: trades[i].prices[sku].buy.metal
@@ -114,7 +114,7 @@ export default function itemStats(bot: Bot, SKU: string): { bought: ItemStats; s
                         while (Object.prototype.hasOwnProperty.call(sold, trades[i].time)) {
                             trades[i].time++; // Prevent two trades with the same timestamp (should not happen so much)
                         }
-                        sold[trades[i].time] = {
+                        sold[String(trades[i].time)] = {
                             count: itemCount,
                             keys: trades[i].prices[sku].sell.keys,
                             metal: trades[i].prices[sku].sell.metal
@@ -134,5 +134,11 @@ interface OfferDataWithTime extends OfferData {
     time: number;
 }
 interface ItemStats {
-    [time: number]: { count: number; keys: number; metal: number };
+    [time: string]: ItemStatsValue;
+}
+
+interface ItemStatsValue {
+    count: number;
+    keys: number;
+    metal: number;
 }
