@@ -31,7 +31,9 @@ type AlertType =
     | 'autoAddPaintedItemsFailed'
     | 'failed-accept'
     | 'failed-decline'
-    | 'failed-processing-offer';
+    | 'failed-processing-offer'
+    | 'retry-success'
+    | 'retry-failed';
 
 export default function sendAlert(
     type: AlertType,
@@ -150,6 +152,14 @@ export default function sendAlert(
             ' The offer data received was broken because our side and their side are both empty.' +
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
             `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
+        color = '16711680'; // red
+    } else if (type === 'retry-success') {
+        title = `Successfully auto-retry ${items[0] === 'accept' ? 'accepting' : 'declining'} a trade`;
+        description = msg;
+        color = '9171753'; // lime green
+    } else if (type === 'retry-failed') {
+        title = `Failed to auto-retry ${items[0] === 'accept' ? 'accepting' : 'declining'} a trade`;
+        description = msg;
         color = '16711680'; // red
     } else {
         title = 'High Valued Items';
