@@ -479,7 +479,7 @@ export default class Listings {
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
                         if (attachment === 's' && optD.showSpells) {
-                            highValueString += `${cTSpt ? cTSpt : '| '}${cT.spells ? cT.spells : '🎃 Spells:'} `;
+                            highValueString += `${cTSpt}${cT.spells} `;
 
                             hv.s.forEach(pSKU => {
                                 const name = getKeyByValue(spellsData, pSKU);
@@ -499,21 +499,10 @@ export default class Listings {
                                     ? optD.showSheen
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
-                                if (attachment === 'sp') {
-                                    highValueString += `${cTSpt ? cTSpt : '| '}${
-                                        cT.strangeParts ? cT.strangeParts : '🎰 Parts:'
-                                    } `;
-                                } else if (attachment === 'ke') {
-                                    highValueString += `${cTSpt ? cTSpt : '| '}${
-                                        cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'
-                                    } `;
-                                } else if (attachment === 'ks') {
-                                    highValueString += `${cTSpt ? cTSpt : '| '}${cT.sheen ? cT.sheen : '✨ Sheen:'} `;
-                                } else if (attachment === 'p') {
-                                    highValueString += `${cTSpt ? cTSpt : '| '}${
-                                        cT.painted ? cT.painted : '🎨 Painted:'
-                                    } `;
-                                }
+                                if (attachment === 'sp') highValueString += `${cTSpt}${cT.strangeParts} `;
+                                else if (attachment === 'ke') highValueString += `${cTSpt}${cT.killstreaker} `;
+                                else if (attachment === 'ks') highValueString += `${cTSpt}${cT.sheen} `;
+                                else if (attachment === 'p') highValueString += `${cTSpt}${cT.painted} `;
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
@@ -555,16 +544,12 @@ export default class Listings {
                                 } else {
                                     highValueString = highValueString.replace(
                                         attachment === 'sp'
-                                            ? `${cTSpt ? cTSpt : '| '}${
-                                                  cT.strangeParts ? cT.strangeParts : '🎰 Parts:'
-                                              } `
+                                            ? `${cTSpt}${cT.strangeParts} `
                                             : attachment === 'ke'
-                                            ? `${cTSpt ? cTSpt : '| '}${
-                                                  cT.killstreaker ? cT.killstreaker : '🤩 Killstreaker:'
-                                              } `
+                                            ? `${cTSpt}${cT.killstreaker} `
                                             : attachment === 'ks'
-                                            ? `${cTSpt ? cTSpt : '| '}${cT.sheen ? cT.sheen : '✨ Sheen:'} `
-                                            : `${cTSpt ? cTSpt : '| '}${cT.painted ? cT.painted : '🎨 Painted:'} `,
+                                            ? `${cTSpt}${cT.sheen} `
+                                            : `${cTSpt}${cT.painted} `,
                                         ''
                                     );
                                 }
@@ -573,7 +558,7 @@ export default class Listings {
                         }
                     });
 
-                    highValueString += highValueString.length > 0 ? (cTEnd ? cTEnd : ' |') : '';
+                    highValueString += highValueString.length > 0 ? cTEnd : '';
                 }
             }
         }

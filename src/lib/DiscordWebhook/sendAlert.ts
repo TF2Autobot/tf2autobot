@@ -1,3 +1,4 @@
+import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
@@ -88,7 +89,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
-        description = `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`;
+        description = `❌ An error occurred while trying to restart: ${(err as Error).message}`;
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
@@ -126,12 +127,20 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failed-accept') {
         title = 'Failed to accept trade';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        description =
+            msg +
+            `\n\nError: [${
+                TradeOfferManager.EResult[(err as CustomError).eresult] as string
+            }](https://steamerrors.com/${(err as CustomError).eresult})`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-decline') {
         title = 'Failed to decline trade';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        description =
+            msg +
+            `\n\nError: [${
+                TradeOfferManager.EResult[(err as CustomError).eresult] as string
+            }](https://steamerrors.com/${(err as CustomError).eresult})`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {

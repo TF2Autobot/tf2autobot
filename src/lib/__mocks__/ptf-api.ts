@@ -171,3 +171,12 @@ const responses = {
 
 export const getSchema = jest.fn(() => Promise.resolve(responses.schema));
 export const getPrice = jest.fn(() => Promise.resolve(responses.itemPrice));
+
+const mock = jest.fn().mockImplementation(() => {
+    return {
+        getSchema: getSchema,
+        getPrice: getPrice
+    };
+});
+
+export default mock;

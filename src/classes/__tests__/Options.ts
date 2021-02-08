@@ -14,14 +14,14 @@ function cleanPath(p: string): void {
 }
 
 beforeEach(() => {
+    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
+    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'test123'));
     jest.resetModules(); // most important - it clears the cache
     process.env = { ...OLD_ENV }; // make a copy
 });
 
 afterAll(() => {
     process.env = OLD_ENV; // restore old env
-    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
-    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'test123'));
 });
 
 test('Parsing Options', () => {
@@ -146,4 +146,11 @@ test('removes cli options', () => {
     const testOptions = { steamAccountName: 'abc123' };
     Options.removeCliOptions(testOptions);
     expect(testOptions).toEqual({});
+});
+
+test('loads prices.tf options', () => {
+    let result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.customPricerUrl).toEqual('https://api.prices.tf');
+    result = Options.loadOptions({ steamAccountName: 'abc123', customPricerUrl: 'alternative.tf' });
+    expect(result.customPricerUrl).toEqual('alternative.tf');
 });
