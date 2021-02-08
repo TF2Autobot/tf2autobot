@@ -1,3 +1,4 @@
+import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
@@ -88,7 +89,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
-        description = `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`;
+        description = `❌ An error occurred while trying to restart: ${(err as Error).message}`;
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
@@ -126,19 +127,29 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failed-accept') {
         title = 'Failed to accept trade';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        description =
+            msg +
+            `\n\nError: [${
+                TradeOfferManager.EResult[(err as CustomError).eresult] as string
+            }](https://steamerrors.com/${(err as CustomError).eresult})`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-decline') {
         title = 'Failed to decline trade';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        description =
+            msg +
+            `\n\nError: [${
+                TradeOfferManager.EResult[(err as CustomError).eresult] as string
+            }](https://steamerrors.com/${(err as CustomError).eresult})`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {
         title = 'Unable to process an offer';
         description =
             `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
-            ' The offer data received was broken because our side and their side are both empty.';
+            ' The offer data received was broken because our side and their side are both empty.' +
+            `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
+            `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
         color = '16711680'; // red
     } else {
         title = 'High Valued Items';

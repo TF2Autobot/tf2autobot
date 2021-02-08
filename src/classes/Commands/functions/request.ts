@@ -9,9 +9,14 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import { getSales, GetItemSalesResponse, requestCheck, getPrice, RequestCheckResponse } from '../../../lib/ptf-api';
+import { GetPriceFn, GetSalesFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
-export async function getSalesCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+export async function getSalesCommand(
+    steamID: SteamID,
+    message: string,
+    bot: Bot,
+    getSales: GetSalesFn
+): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku === undefined) {
         const item = getItemFromParams(steamID, params, bot);
@@ -27,7 +32,7 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
 
     const name = bot.schema.getName(SKU.fromString(params.sku));
     try {
-        const salesData: GetItemSalesResponse = await getSales(params.sku, 'bptf');
+        const salesData = await getSales(params.sku, 'bptf');
         if (!salesData) {
             return bot.sendMessage(
                 steamID,
@@ -81,16 +86,18 @@ export async function getSalesCommand(steamID: SteamID, message: string, bot: Bo
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(
-                err
-            )}`
+            `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
+                (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                    ? (err as ErrorRequest).body.message
+                    : (err as ErrorRequest).message
+            }`
         );
     }
 }
 
 // Request commands
 
-export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): void {
+export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot, requestCheck: RequestCheckFn): void {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         return bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
@@ -108,9 +115,14 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
     }
 
     const name = bot.schema.getName(SKU.fromString(params.sku), false);
-    void requestCheck(params.sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
+    void requestCheck(params.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
         if (err) {
-            return bot.sendMessage(steamID, `❌ Error while requesting price check: ${JSON.stringify(err)}`);
+            return bot.sendMessage(
+                steamID,
+                `❌ Error while requesting price check: ${
+                    err.body && err.body.message ? err.body.message : err.message
+                }`
+            );
         }
 
         if (!body) {
@@ -130,7 +142,7 @@ export function pricecheckCommand(steamID: SteamID, message: string, bot: Bot): 
     });
 }
 
-export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export async function pricecheckAllCommand(steamID: SteamID, bot: Bot, requestCheck: RequestCheckFn): Promise<void> {
     const pricelist = bot.pricelist.getPrices;
 
     const total = pricelist.length;
@@ -180,7 +192,7 @@ export async function pricecheckAllCommand(steamID: SteamID, bot: Bot): Promise<
     }
 }
 
-export async function checkCommand(steamID: SteamID, message: string, bot: Bot): Promise<void> {
+export async function checkCommand(steamID: SteamID, message: string, bot: Bot, getPrice: GetPriceFn): Promise<void> {
     const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
     if (params.sku !== undefined && !testSKU(params.sku as string)) {
         return bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
@@ -212,7 +224,11 @@ export async function checkCommand(steamID: SteamID, message: string, bot: Bot):
     } catch (err) {
         return bot.sendMessage(
             steamID,
-            `Error getting price for ${name === null ? (params.sku as string) : name}: ${JSON.stringify(err)}`
+            `Error getting price for ${name === null ? (params.sku as string) : name}: ${
+                (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                    ? (err as ErrorRequest).body.message
+                    : (err as ErrorRequest).message
+            }`
         );
     }
 }
@@ -223,4 +239,13 @@ interface Sales {
     keys: number;
     metal: number;
     date: number;
+}
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }

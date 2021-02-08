@@ -4,15 +4,16 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
-import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
+import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
-    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
+    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items },
+    requestCheck: RequestCheckFn
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};

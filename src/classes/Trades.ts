@@ -358,7 +358,9 @@ export default class Trades {
                             `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
                                 `\n\nYou can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
-                                `\n\n${JSON.stringify(err, null, 4)}`,
+                                `\n\nError: ${
+                                    TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                } (https://steamerrors.com/${(err as CustomError).eresult})`,
                             []
                         );
                     }
@@ -846,7 +848,7 @@ export default class Trades {
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
                             this.bot.messageAdmins(
-                                `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`,
+                                `❌ An error occurred while trying to restart: ${(err as Error).message}`,
                                 []
                             );
                         });

@@ -305,7 +305,7 @@ export function stopCommand(steamID: SteamID, bot: Bot): void {
 
     bot.botManager.stopProcess().catch(err => {
         log.warn('Error occurred while trying to stop: ', err);
-        bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${JSON.stringify(err)}`);
+        bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${(err as Error).message}`);
     });
 }
 
@@ -325,7 +325,7 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
         })
         .catch(err => {
             log.warn('Error occurred while trying to restart: ', err);
-            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`);
+            bot.sendMessage(steamID, `❌ An error occurred while trying to restart: ${(err as Error).message}`);
         });
 }
 
@@ -387,7 +387,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                 steamID,
                 (type === 'restarting'
                     ? '❌ An error occurred while trying to restart: '
-                    : '❌ Failed to update bot repository: ') + JSON.stringify(err)
+                    : '❌ Failed to update bot repository: ') + (err as Error).message
             );
 
             bot.client.setPersona(EPersonaState.Online);
@@ -409,10 +409,7 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
                         return onFailed(err, 'command');
                     }
                     bot.sendMessage(steamID, '⌛ Restarting...');
-
-                    bot.botManager.restartProcess().catch(err => {
-                        return onFailed(err, 'restarting');
-                    });
+                    // end
                 }
             );
         } catch (err) {

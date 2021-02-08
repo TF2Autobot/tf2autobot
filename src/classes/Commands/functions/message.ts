@@ -57,6 +57,7 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
 
         const recipientDetails = bot.friends.getFriend(recipientSteamID);
         const reply = steamIdAndMessage.substr(steamIDString.length);
+
         // Send message to recipient
         bot.sendMessage(
             recipientSteamID,
@@ -78,10 +79,11 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
                 bot
             );
         } else {
+            const customInitializer = bot.options.steamChat.customInitializer.message.toOtherAdmins;
             bot.messageAdmins(
-                `/quote 💬 Message sent to #${recipientSteamID.toString()} (${
-                    recipientDetails.player_name
-                }): "${reply}". `,
+                `${
+                    customInitializer ? customInitializer : '/quote'
+                } 💬 Message sent to #${recipientSteamID.toString()} (${recipientDetails.player_name}): "${reply}". `,
                 []
             );
         }
@@ -120,8 +122,11 @@ export default function message(steamID: SteamID, message: string, bot: Bot): vo
         if (optDW.enable && optDW.url !== '') {
             sendPartnerMessage(steamID.toString(), msg, senderDetails, links, timeNow(bot.options).time, bot);
         } else {
+            const customInitializer = bot.options.steamChat.customInitializer.message.onReceive;
             bot.messageAdmins(
-                `/quote 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +
+                `${
+                    customInitializer ? customInitializer : '/quote'
+                } 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +
                     `"${msg}". ` +
                     `\nSteam: ${links.steam}` +
                     `\nBackpack.tf: ${links.bptf}` +

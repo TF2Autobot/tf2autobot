@@ -17,6 +17,7 @@ import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
 
 import { fixItem } from '../../lib/items';
+import Pricer, { GetPriceFn, GetSalesFn, RequestCheckFn } from '../Pricer';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -28,12 +29,18 @@ type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
 type ForceAction = 'faccept' | 'fdecline';
 
 export default class Commands {
-    private readonly bot: Bot;
-
     private isDonating = false;
 
-    constructor(bot: Bot) {
-        this.bot = bot;
+    private getSales: GetSalesFn;
+
+    private requestCheck: RequestCheckFn;
+
+    private getPrice: GetPriceFn;
+
+    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+        this.getSales = this.priceSource.getSales.bind(this.priceSource);
+        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+        this.getPrice = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     private get cartQueue(): CartQueue {
@@ -147,7 +154,7 @@ export default class Commands {
         } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
             c.misc.weaponCommand(steamID, this.bot, command as CraftUncraft);
         } else if (command === 'sales' && isAdmin) {
-            void c.request.getSalesCommand(steamID, message, this.bot);
+            void c.request.getSalesCommand(steamID, message, this.bot, this.getSales);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
@@ -201,11 +208,11 @@ export default class Commands {
         } else if (['faccept', 'fdecline'].includes(command) && isAdmin) {
             void c.review.forceAction(steamID, message, this.bot, command as ForceAction);
         } else if (command === 'pricecheck' && isAdmin) {
-            c.request.pricecheckCommand(steamID, message, this.bot);
+            c.request.pricecheckCommand(steamID, message, this.bot, this.requestCheck);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void c.request.pricecheckAllCommand(steamID, this.bot);
+            void c.request.pricecheckAllCommand(steamID, this.bot, this.requestCheck);
         } else if (command === 'check' && isAdmin) {
-            void c.request.checkCommand(steamID, message, this.bot);
+            void c.request.checkCommand(steamID, message, this.bot, this.getPrice);
         } else if (command === 'find' && isAdmin) {
             void c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
