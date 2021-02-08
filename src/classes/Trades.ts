@@ -337,7 +337,7 @@ export default class Trades {
                             this.bot,
                             `Failed to ${action} on the offer #${offer.id}` +
                                 summary +
-                                `\n\nRetrying in 2 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
+                                `\n\nRetrying in 3 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
                             null,
                             err,
                             [offer.id]
@@ -357,7 +357,7 @@ export default class Trades {
                         this.bot.messageAdmins(
                             `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
-                                `\n\nRetrying in 2 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                                `\n\nRetrying in 3 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
                                 `\n\nError: ${
                                     TradeOfferManager.EResult[(err as CustomError).eresult] as string
                                 } (https://steamerrors.com/${(err as CustomError).eresult})`,
@@ -368,9 +368,9 @@ export default class Trades {
 
                 if (['accept', 'decline'].includes(action)) {
                     setTimeout(() => {
-                        // Auto-retry after 2 seconds
+                        // Auto-retry after 3 seconds
                         void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
-                    }, 2 * 1000);
+                    }, 3 * 1000);
                 }
             })
             .finally(() => {
