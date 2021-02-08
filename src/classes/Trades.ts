@@ -358,7 +358,9 @@ export default class Trades {
                             `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
                                 `\n\nYou can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
-                                `\n\n${JSON.stringify(err, null, 4)}`,
+                                `\n\nError: ${
+                                    TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                } (https://steamerrors.com/${(err as CustomError).eresult})`,
                             []
                         );
                     }
