@@ -421,10 +421,12 @@ export default class Trades {
 
                 log.warn(msg);
 
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                    sendAlert(`retry-failed`, this.bot, msg, null, err, [action]);
-                } else {
-                    this.bot.messageAdmins(msg, []);
+                if (opt.sendAlert.failedAccept) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        sendAlert(`retry-failed`, this.bot, msg, null, err, [action]);
+                    } else {
+                        this.bot.messageAdmins(msg, []);
+                    }
                 }
 
                 return;
@@ -436,10 +438,12 @@ export default class Trades {
 
             log.warn(msg);
 
-            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                sendAlert(`retry-failed`, this.bot, msg, null, err, [action]);
-            } else {
-                this.bot.messageAdmins(msg, []);
+            if (opt.sendAlert.failedAccept) {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    sendAlert(`retry-failed`, this.bot, msg, null, err, [action]);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
             }
             return;
         }
