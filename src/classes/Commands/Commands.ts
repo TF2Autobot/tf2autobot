@@ -354,13 +354,13 @@ export default class Commands {
                 return +a - +b;
             });
             const boughtLastX = [
-                86400000, //DAY
-                604800000, //WEEK
-                2419200000 //4 WEEKS
+                86400, //DAY
+                604800, //WEEK
+                2419200 //4 WEEKS
             ].map(c => {
                 const filteredTrades = boughtTime
                     .filter(a => {
-                        return +a >= Date.now() - c;
+                        return +a >= Math.floor(Date.now() / 1000) - c;
                     })
                     //TODO FIX TYPE AND UNSAFE ERRORS
                     // @ts-ignore
@@ -395,13 +395,13 @@ export default class Commands {
             reply += 'DAY\n' + boughtLastX[0] + 'WEEK' + boughtLastX[1] + '4 Weeks' + boughtLastX[2];
 
             const soldLastX = [
-                86400000, //DAY
-                604800000, //WEEK
-                2419200000 //4 WEEKS
+                86400, //DAY
+                604800, //WEEK
+                2419200 //4 WEEKS
             ].map(c => {
                 const filteredTrades = soldTime
                     .filter(a => {
-                        return +a >= Date.now() - c;
+                        return +a >= Math.floor(Date.now() / 1000) - c;
                     })
                     //TODO FIX TYPE AND UNSAFE ERRORS
                     // @ts-ignore
