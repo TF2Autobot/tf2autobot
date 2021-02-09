@@ -13,7 +13,7 @@
         "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "npx eslint-config-prettier src/app.ts",
         "reset-head": "git reset HEAD --hard",
-        "checkout-master": "git checkout master",
+        "checkout-master": "git checkout development",
         "pull-changes": "git pull",
         "install-packages": "npm install"
     },
