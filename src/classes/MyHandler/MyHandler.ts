@@ -189,7 +189,7 @@ export default class MyHandler extends Handler {
 
     private poller: NodeJS.Timeout;
 
-    private refreshInterval: NodeJS.Timeout;
+    private refreshTimeout: NodeJS.Timeout;
 
     private sendStatsInterval: NodeJS.Timeout;
 
@@ -273,7 +273,7 @@ export default class MyHandler extends Handler {
         this.sendStats();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
-        this.refreshInterval = setTimeout(() => {
+        this.refreshTimeout = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
     }
@@ -283,8 +283,8 @@ export default class MyHandler extends Handler {
             clearInterval(this.poller);
         }
 
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
+        if (this.refreshTimeout) {
+            clearInterval(this.refreshTimeout);
         }
 
         if (this.sendStatsInterval) {
