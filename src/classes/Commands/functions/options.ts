@@ -8,22 +8,146 @@ import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 import { deepMerge } from '../../../lib/tools/deep-merge';
 
-export async function optionsCommand(steamID: SteamID, bot: Bot): Promise<void> {
+export async function optionsCommand(steamID: SteamID, bot: Bot, message: string): Promise<void> {
     const liveOptions = deepMerge({}, bot.options) as JsonOptions;
     // remove any CLI stuff
     removeCliOptions(liveOptions);
 
-    const commands = liveOptions.commands;
-    const detailsExtra = liveOptions.detailsExtra;
-    delete liveOptions.commands;
-    delete liveOptions.detailsExtra;
+    const key = CommandParser.removeCommand(message);
 
-    bot.sendMessage(steamID, `/code ${JSON.stringify(liveOptions, null, 4)}`);
-    await sleepasync().Promise.sleep(1 * 1000);
-    bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: commands }, null, 4)}`);
-    await sleepasync().Promise.sleep(1 * 1000);
-    bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: detailsExtra }, null, 4)}`);
+    if (!key || key === '!options') {
+        bot.sendMessage(
+            steamID,
+            `/code ${JSON.stringify(
+                {
+                    miscSettings: liveOptions.miscSettings,
+                    sendAlert: liveOptions.sendAlert,
+                    pricelist: liveOptions.pricelist,
+                    bypass: liveOptions.bypass,
+                    tradeSummary: liveOptions.tradeSummary
+                },
+                null,
+                4
+            )}`
+        );
+
+        await sleepasync().Promise.sleep(1 * 1000);
+
+        bot.sendMessage(
+            steamID,
+            `/code ${JSON.stringify(
+                {
+                    steamChat: liveOptions.steamChat,
+                    highValue: liveOptions.highValue,
+                    normalize: liveOptions.normalize,
+                    details: liveOptions.details,
+                    statistics: liveOptions.statistics,
+                    autokeys: liveOptions.autokeys,
+                    crafting: liveOptions.crafting
+                },
+                null,
+                4
+            )}`
+        );
+
+        await sleepasync().Promise.sleep(1 * 1000);
+
+        bot.sendMessage(
+            steamID,
+            `/code ${JSON.stringify(
+                {
+                    offerReceived: liveOptions.offerReceived,
+                    manualReview: liveOptions.manualReview
+                },
+                null,
+                4
+            )}`
+        );
+
+        await sleepasync().Promise.sleep(1 * 1000);
+
+        bot.sendMessage(
+            steamID,
+            `/code ${JSON.stringify(
+                {
+                    discordWebhook: liveOptions.discordWebhook,
+                    customMessage: liveOptions.customMessage
+                },
+                null,
+                4
+            )}`
+        );
+
+        await sleepasync().Promise.sleep(1 * 1000);
+
+        bot.sendMessage(steamID, `/code ${JSON.stringify({ commands: liveOptions.commands }, null, 4)}`);
+
+        await sleepasync().Promise.sleep(1 * 1000);
+
+        bot.sendMessage(steamID, `/code ${JSON.stringify({ detailsExtra: liveOptions.detailsExtra }, null, 4)}`);
+
+        bot.sendMessage(
+            steamID,
+            `\n\nYou can also get only the part the you want by sending "!options [OptionsParentKey]"`
+        );
+    } else {
+        const optionsKeys = Object.keys(liveOptions);
+
+        if (!optionsKeys.includes(key)) {
+            return bot.sendMessage(
+                steamID,
+                `❌ "${key}" parent key does not exist in options.` +
+                    `\n\nValid parent keys:\n• ` +
+                    [
+                        'miscSettings',
+                        'sendAlert',
+                        'pricelist',
+                        'bypass',
+                        'tradeSummary',
+                        'steamChat',
+                        'highValue',
+                        'normalize',
+                        'details',
+                        'statistics',
+                        'autokeys',
+                        'crafting',
+                        'offerReceived',
+                        'manualReview',
+                        'discordWebhook',
+                        'customMessage',
+                        'commands',
+                        'detailsExtra'
+                    ].join('\n• ')
+            );
+        }
+
+        const show = {};
+
+        show[key] = liveOptions[key as OptionsKeys];
+
+        bot.sendMessage(steamID, `/code ${JSON.stringify(show, null, 4)}`);
+    }
 }
+
+type OptionsKeys =
+    | 'miscSettings'
+    | 'sendAlert'
+    | 'pricelist'
+    | 'bypass'
+    | 'tradeSummary'
+    | 'steamChat'
+    | 'highValue'
+    | 'normalize'
+    | 'details'
+    | 'statistics'
+    | 'autokeys'
+    | 'crafting'
+    | 'offerReceived'
+    | 'manualReview'
+    | 'discordWebhook'
+    | 'customMessage'
+    | 'commands'
+    | 'detailsExtra';
 
 export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot): void {
     const opt = bot.options;
@@ -93,17 +217,17 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 );
             }
 
-            if (knownParams.miscSettings?.autobump === true) {
+            if (knownParams.miscSettings?.autobump?.enable === true) {
                 bot.listings.setupAutorelist();
                 bot.handler.disableAutoRefreshListings();
-            } else {
+            } else if (knownParams.miscSettings?.autobump?.enable === false) {
                 bot.listings.disableAutorelistOption();
                 bot.handler.enableAutoRefreshListings();
             }
 
             if (knownParams.statistics?.sendStats?.enable === true) {
                 bot.handler.sendStats();
-            } else {
+            } else if (knownParams.statistics?.sendStats?.enable === false) {
                 bot.handler.disableSendStats();
             }
 
