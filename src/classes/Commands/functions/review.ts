@@ -76,9 +76,9 @@ function generateActiveOfferReply(offers: UnknownDictionaryKnownValues[]): strin
     for (let i = 0; i < offers.length; i++) {
         reply +=
             `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner}` +
-            `\n⚠️ Send "!trade ${
+            `\n⚠️ Send "!trade ${offers[i].id as string}" for more details or "!faccept ${
                 offers[i].id as string
-            }" for more details or "!faccept <offerID>" to force accept the trade.\n`;
+            }" to force accept the trade.\n`;
     }
 
     return reply;
