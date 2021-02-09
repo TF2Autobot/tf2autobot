@@ -103,7 +103,7 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
 
             if (knownParams.statistics?.sendStats?.enable === true) {
                 bot.handler.sendStats();
-            } else {
+            } else if (knownParams.statistics?.sendStats?.enable === false) {
                 bot.handler.disableSendStats();
             }
 
