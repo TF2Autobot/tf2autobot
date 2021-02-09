@@ -13,7 +13,6 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { pure } from '../../../lib/tools/export';
-import sysInfo from 'systeminformation';
 
 // Bot manager commands
 
@@ -329,7 +328,7 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
         });
 }
 
-export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): Promise<void> {
+export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): void {
     if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
         return bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
     }
@@ -376,19 +375,9 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        const onFailed = (err: any, type: 'command' | 'restarting' | 'any') => {
-            log.warn(
-                type === 'restarting'
-                    ? 'Error occurred while trying to restart: '
-                    : '❌ Failed to update bot repository:',
-                err
-            );
-            bot.sendMessage(
-                steamID,
-                (type === 'restarting'
-                    ? '❌ An error occurred while trying to restart: '
-                    : '❌ Failed to update bot repository: ') + (err as Error).message
-            );
+        const onFailed = (err: any) => {
+            log.warn('❌ Failed to update bot repository:', err);
+            bot.sendMessage(steamID, '❌ Failed to update bot repository' + (err ? `: ${(err as Error).message}` : ''));
 
             bot.client.setPersona(EPersonaState.Online);
             bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
@@ -397,24 +386,60 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
             return;
         };
 
-        try {
-            const systemInformation = await sysInfo.osInfo();
-            const osUsed = systemInformation.platform;
+        // Callback hell 😈
 
-            child.exec(
-                osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
-                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                err => {
+        // git reset HEAD --hard
+        child.exec('npm run reset-head', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+            // ignore err
+
+            // git checkout master
+            child.exec('npm run checkout-master', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                // ignore err
+
+                bot.sendMessage(steamID, '⌛ Pulling changes...');
+
+                // git pull
+                child.exec('npm run pull-changes', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, err => {
                     if (err?.signal !== null) {
-                        return onFailed(err, 'command');
+                        return onFailed(err);
                     }
-                    bot.sendMessage(steamID, '⌛ Restarting...');
-                    // end
-                }
-            );
-        } catch (err) {
-            onFailed(err, 'any');
-        }
+
+                    bot.sendMessage(steamID, '⌛ Installing packages...');
+
+                    // npm install
+                    child.exec(
+                        'npm run install-packages',
+                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                        () => {
+                            // ignore err
+
+                            bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+
+                            // tsc -p .
+                            child.exec(
+                                'npm run build',
+                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                                err => {
+                                    if (err?.signal !== null) {
+                                        return onFailed(err);
+                                    }
+
+                                    bot.sendMessage(steamID, '⌛ Restarting...');
+
+                                    child.exec(
+                                        'pm2 restart ecosystem.json',
+                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                                        () => {
+                                            // ignore err
+                                        }
+                                    );
+                                }
+                            );
+                        }
+                    );
+                });
+            });
+        });
     }
 }
 
