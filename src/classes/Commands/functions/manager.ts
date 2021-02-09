@@ -13,7 +13,6 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { pure } from '../../../lib/tools/export';
-import sysInfo from 'systeminformation';
 
 // Bot manager commands
 
@@ -329,7 +328,7 @@ export function restartCommand(steamID: SteamID, bot: Bot): void {
         });
 }
 
-export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): Promise<void> {
+export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): void {
     if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
         return bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
     }
@@ -354,12 +353,12 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
         bot.checkForUpdates
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                    return bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (bot.lastNotifiedVersion === latestVersion) {
-                    bot.sendMessage(
+                    return bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                            '\nSend !updaterepo i_am_sure=yes_i_am to update your repo now!' +
+                            '\nSend "!updaterepo i_am_sure=yes_i_am" to update your repo now!' +
                             `\n\nRelease note: https://github.com/idinium96/tf2autobot/releases`
                     );
                 }
@@ -376,46 +375,61 @@ export async function updaterepoCommand(steamID: SteamID, bot: Bot, message: str
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        const onFailed = (err: any, type: 'command' | 'restarting' | 'any') => {
-            log.warn(
-                type === 'restarting'
-                    ? 'Error occurred while trying to restart: '
-                    : '❌ Failed to update bot repository:',
-                err
-            );
-            bot.sendMessage(
-                steamID,
-                (type === 'restarting'
-                    ? '❌ An error occurred while trying to restart: '
-                    : '❌ Failed to update bot repository: ') + (err as Error).message
-            );
+        // Callback hell 😈
 
-            bot.client.setPersona(EPersonaState.Online);
-            bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
-            bot.manager.pollInterval = 1000;
-            bot.handler.isUpdatingStatus = false;
-            return;
-        };
+        // git reset HEAD --hard
+        child.exec('git reset HEAD --hard', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+            // ignore err
 
-        try {
-            const systemInformation = await sysInfo.osInfo();
-            const osUsed = systemInformation.platform;
+            // git checkout master
+            child.exec('git checkout master', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                // ignore err
 
-            child.exec(
-                osUsed === 'win32' ? 'npm run update-windows' : 'npm run update-linux',
-                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                err => {
-                    if (err?.signal !== null) {
-                        return onFailed(err, 'command');
-                    }
-                    bot.sendMessage(steamID, '⌛ Restarting...');
-                    // end
-                }
-            );
-        } catch (err) {
-            onFailed(err, 'any');
-        }
+                bot.sendMessage(steamID, '⌛ Pulling changes...');
+
+                // git pull
+                child.exec('git pull', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                    // ignore err
+
+                    void promiseDelay(3 * 1000);
+
+                    bot.sendMessage(steamID, '⌛ Installing packages...');
+
+                    // npm install
+                    child.exec('npm install', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                        // ignore err
+
+                        // 10 seconds delay, because idk why this always cause some problem
+                        void promiseDelay(10 * 1000);
+
+                        bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+
+                        // tsc -p .
+                        child.exec('npm run build', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                            // ignore err
+
+                            // 5 seconds delay?
+                            void promiseDelay(5 * 1000);
+
+                            bot.sendMessage(steamID, '⌛ Restarting...');
+
+                            child.exec(
+                                'pm2 restart ecosystem.json',
+                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                                () => {
+                                    // ignore err
+                                }
+                            );
+                        });
+                    });
+                });
+            });
+        });
     }
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 export function autokeysCommand(steamID: SteamID, bot: Bot): void {
@@ -579,23 +593,40 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
 
         const inventory = bot.inventoryManager;
         const pricelist = bot.pricelist.getPrices.filter(entry => {
-            // Filter our pricelist to only the items that are missing.
-            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+            // First find out if lising for this item from bptf already exist.
+            const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
 
-            if (
-                ([0, 2].includes(entry.intent) && amountCanBuy <= 0) ||
-                ([1, 2].includes(entry.intent) && amountCanSell <= 0)
-            ) {
-                // Ignore items we can't buy or sell
+            if (!isExist) {
+                // undefined - listing does not exist but item is in the pricelist
+
+                // Get amountCanBuy and amountCanSell (already cover intent and so on)
+                const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
+                const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+
+                if (
+                    (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
+                    amountCanSell > 0
+                ) {
+                    // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                    // return this entry
+                    return true;
+                }
+
+                // Else ignore
                 return false;
             }
 
-            return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+            // Else if listing already exist on backpack.tf, ignore
+            return false;
         });
 
         if (pricelist.length > 0) {
-            log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+            log.debug(
+                'Checking listings for ' +
+                    pluralize('item', pricelist.length, true) +
+                    ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
+            );
+
             bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
 
             await bot.listings.recursiveCheckPricelist(pricelist, true);

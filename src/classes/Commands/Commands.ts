@@ -186,7 +186,7 @@ export default class Commands {
         } else if (command === 'restart' && isAdmin) {
             c.manager.restartCommand(steamID, this.bot);
         } else if (command === 'updaterepo' && isAdmin) {
-            void c.manager.updaterepoCommand(steamID, this.bot, message);
+            c.manager.updaterepoCommand(steamID, this.bot, message);
         } else if (command === 'refreshautokeys' && isAdmin) {
             c.manager.refreshAutokeysCommand(steamID, this.bot);
         } else if (command === 'refreshlist' && isAdmin) {
@@ -216,7 +216,7 @@ export default class Commands {
         } else if (command === 'find' && isAdmin) {
             void c.pricelist.findCommand(steamID, message, this.bot);
         } else if (command === 'options' && isAdmin) {
-            void c.options.optionsCommand(steamID, this.bot);
+            void c.options.optionsCommand(steamID, this.bot, message);
         } else if (command === 'config' && isAdmin) {
             c.options.updateOptionsCommand(steamID, message, this.bot);
         } else if (command === 'donatebptf' && isAdmin) {

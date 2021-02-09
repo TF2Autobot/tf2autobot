@@ -314,7 +314,7 @@ export default class Bot {
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
                         `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                         (process.env.pm_id !== undefined
-                            ? `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"`
+                            ? `\n\nYou're running the bot with PM2! Send "!updaterepo" now!"`
                             : `\n\nNavigate to your bot folder and run ` +
                               `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
                               `and then restart your bot.`) +
