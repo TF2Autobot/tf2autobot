@@ -297,6 +297,26 @@ export default class Listings {
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
                 const pricelist = this.bot.pricelist.getPrices
+                    .filter(entry => {
+                        // Filter pricelist to only items we can sell and we can afford to buy
+
+                        const isGenerics = /^[0-9]*;5$/.test(entry.sku);
+                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true, isGenerics);
+                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false, isGenerics);
+
+                        if (
+                            (amountCanBuy > 0 &&
+                                inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
+                            amountCanSell > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // return this entry
+                            return true;
+                        }
+
+                        // Else ignore
+                        return false;
+                    })
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
