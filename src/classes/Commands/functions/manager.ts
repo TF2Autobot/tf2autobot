@@ -399,10 +399,8 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
                 bot.sendMessage(steamID, '⌛ Pulling changes...');
 
                 // git pull
-                child.exec('npm run pull-changes', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, err => {
-                    if (err?.signal !== null) {
-                        return onFailed(err);
-                    }
+                child.exec('npm run pull-changes', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                    // ignore err
 
                     bot.sendMessage(steamID, '⌛ Installing packages...');
 
