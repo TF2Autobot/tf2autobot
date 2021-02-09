@@ -366,7 +366,7 @@ export default class Trades {
                     }
                 }
 
-                if (reason !== 'MANUAL-FORCE' && ['accept', 'decline'].includes(action)) {
+                if (['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
                     setTimeout(() => {
                         // Auto-retry after 3 seconds
                         void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
