@@ -474,7 +474,7 @@ export default class MyHandler extends Handler {
                     const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
 
                     if (!isExist) {
-                        // undefined - listings does not exist but item is in the pricelist
+                        // undefined - listing does not exist but item is in the pricelist
 
                         // Get amountCanBuy and amountCanSell (already cover intent and so on)
                         const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
@@ -489,7 +489,7 @@ export default class MyHandler extends Handler {
                         return false;
                     }
 
-                    // Else if listings already exist on backpack.tf, ignore
+                    // Else if listing already exist on backpack.tf, ignore
                     return false;
                 });
 
@@ -497,7 +497,7 @@ export default class MyHandler extends Handler {
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelist.length, true) +
-                            `[${pricelist.map(entry => entry.sku).join(', ')}] ...`
+                            ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
                     );
                     await this.bot.listings.recursiveCheckPricelist(pricelist, true);
                     log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
