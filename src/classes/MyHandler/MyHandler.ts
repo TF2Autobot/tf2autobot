@@ -437,6 +437,8 @@ export default class MyHandler extends Handler {
                     return;
                 }
 
+                const inventory = this.bot.inventoryManager;
+
                 this.bot.listingManager.listings.forEach(listing => {
                     let listingSKU = listing.getSKU();
                     if (listing.intent === 1) {
@@ -457,6 +459,17 @@ export default class MyHandler extends Handler {
                         }
                     }
 
+                    const item = this.bot.pricelist.getPrice(listingSKU);
+
+                    if (listing.intent === 0 && item !== null) {
+                        const canAffordToBuy = inventory.isCanAffordToBuy(item.buy, inventory.getInventory);
+
+                        if (!canAffordToBuy) {
+                            // Listing for buying exist but we can't afford to buy, remove.
+                            listing.remove();
+                        }
+                    }
+
                     listingsSKUs.push(listingSKU);
                 });
 
@@ -468,7 +481,6 @@ export default class MyHandler extends Handler {
                     }
                 });
 
-                const inventory = this.bot.inventoryManager;
                 const pricelist = this.bot.pricelist.getPrices.filter(entry => {
                     // First find out if lising for this item from bptf already exist.
                     const isExist = newlistingsSKUs.find(sku => entry.sku === sku);

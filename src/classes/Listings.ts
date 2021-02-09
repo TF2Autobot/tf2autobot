@@ -185,6 +185,8 @@ export default class Listings {
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
 
+        const canAffordToBuy = invManager.isCanAffordToBuy(match.buy, invManager.getInventory);
+
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
                 // Already have a sell listing, remove the listing
@@ -203,6 +205,9 @@ export default class Listings {
                 listing.remove();
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 // We are not buying / selling more, remove the listing
+                listing.remove();
+            } else if (listing.intent === 0 && !canAffordToBuy) {
+                // Listing for buying exist but we can't afford to buy, remove.
                 listing.remove();
             } else {
                 if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
@@ -241,8 +246,6 @@ export default class Listings {
             const assetids = inventory.findBySKU(sku, true);
 
             // TODO: Check if we are already making a listing for same type of item + intent
-
-            const canAffordToBuy = invManager.isCanAffordToBuy(match.buy, invManager.getInventory);
 
             if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing

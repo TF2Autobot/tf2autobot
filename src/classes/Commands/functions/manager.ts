@@ -546,6 +546,9 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
             );
         }
+
+        const inventory = bot.inventoryManager;
+
         bot.listingManager.listings.forEach(listing => {
             let listingSKU = listing.getSKU();
             if (listing.intent === 1) {
@@ -566,6 +569,17 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 }
             }
 
+            const item = bot.pricelist.getPrice(listingSKU);
+
+            if (listing.intent === 0 && item !== null) {
+                const canAffordToBuy = inventory.isCanAffordToBuy(item.buy, inventory.getInventory);
+
+                if (!canAffordToBuy) {
+                    // Listing for buying exist but we can't afford to buy, remove.
+                    listing.remove();
+                }
+            }
+
             listingsSKUs.push(listingSKU);
         });
 
@@ -577,7 +591,6 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
             }
         });
 
-        const inventory = bot.inventoryManager;
         const pricelist = bot.pricelist.getPrices.filter(entry => {
             // First find out if lising for this item from bptf already exist.
             const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
