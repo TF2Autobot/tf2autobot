@@ -375,17 +375,6 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         // Stop polling offers
         bot.manager.pollInterval = -1;
 
-        const onFailed = (err: any) => {
-            log.warn('❌ Failed to update bot repository:', err);
-            bot.sendMessage(steamID, '❌ Failed to update bot repository' + (err ? `: ${(err as Error).message}` : ''));
-
-            bot.client.setPersona(EPersonaState.Online);
-            bot.client.gamesPlayed(bot.options.miscSettings.game.playOnlyTF2 ? 440 : [bot.handler.customGameName, 440]);
-            bot.manager.pollInterval = 1000;
-            bot.handler.isUpdatingStatus = false;
-            return;
-        };
-
         // Callback hell 😈
 
         // git reset HEAD --hard
@@ -417,10 +406,8 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
                             child.exec(
                                 'npm run build',
                                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                err => {
-                                    if (err?.signal !== null) {
-                                        return onFailed(err);
-                                    }
+                                () => {
+                                    // ignore err
 
                                     bot.sendMessage(steamID, '⌛ Restarting...');
 
