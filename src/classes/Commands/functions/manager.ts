@@ -589,8 +589,12 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
                 const amountCanSell = inventory.amountCanTrade(entry.sku, false);
 
-                if (amountCanBuy > 0 || amountCanSell > 0) {
-                    // if any of this more than 0, then return this entry
+                if (
+                    (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
+                    amountCanSell > 0
+                ) {
+                    // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                    // return this entry
                     return true;
                 }
 
