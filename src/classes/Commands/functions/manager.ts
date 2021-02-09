@@ -630,7 +630,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
 
             bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
 
-            await bot.listings.recursiveCheckPricelist(pricelist, true);
+            await bot.listings.recursiveCheckPricelist(pricelist, true, pricelist.length > 400 ? 1000 : 200);
 
             log.debug('Done checking ' + pluralize('item', pricelist.length, true));
             bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));

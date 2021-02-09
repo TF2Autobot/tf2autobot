@@ -4,6 +4,7 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
+import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies';
 import Bot from './Bot';
 import { Entry } from './Pricelist';
@@ -367,32 +368,31 @@ export default class Listings {
         });
     }
 
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false): Promise<void> {
+    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
-            const iteration = (): void => {
+            const iteration = async (): Promise<void> => {
                 if (pricelist.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    setTimeout(() => {
-                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
-                        index++;
-                        iteration();
-                    }, 200);
+                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                    index++;
+                    await sleepasync().Promise.sleep(time ? time : 200);
+                    void iteration();
                 } else {
                     setImmediate(() => {
                         this.checkBySKU(pricelist[index].sku, pricelist[index]);
                         index++;
-                        iteration();
+                        void iteration();
                     });
                 }
             };
 
-            iteration();
+            void iteration();
         });
     }
 
