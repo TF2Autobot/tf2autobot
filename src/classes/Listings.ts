@@ -182,7 +182,8 @@ export default class Listings {
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
-        const inventory = this.bot.inventoryManager.getInventory;
+        const invManager = this.bot.inventoryManager;
+        const inventory = invManager.getInventory;
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -241,7 +242,9 @@ export default class Listings {
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
-            if (!hasBuyListing && amountCanBuy > 0 && !/;[p][0-9]+/.test(sku)) {
+            const canAffordToBuy = invManager.isCanAffordToBuy(match.buy, invManager.getInventory);
+
+            if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
