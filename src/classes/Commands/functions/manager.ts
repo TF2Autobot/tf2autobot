@@ -569,10 +569,10 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                 }
             }
 
-            const item = bot.pricelist.getPrice(listingSKU);
+            const match = bot.pricelist.getPrice(listingSKU);
 
-            if (listing.intent === 0 && item !== null) {
-                const canAffordToBuy = inventory.isCanAffordToBuy(item.buy, inventory.getInventory);
+            if (listing.intent === 0 && match !== null) {
+                const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
 
                 if (!canAffordToBuy) {
                     // Listing for buying exist but we can't afford to buy, remove.
