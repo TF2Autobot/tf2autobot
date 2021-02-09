@@ -93,10 +93,10 @@ export function updateOptionsCommand(steamID: SteamID, message: string, bot: Bot
                 );
             }
 
-            if (knownParams.miscSettings?.autobump === true) {
+            if (knownParams.miscSettings?.autobump?.enable === true) {
                 bot.listings.setupAutorelist();
                 bot.handler.disableAutoRefreshListings();
-            } else {
+            } else if (knownParams.miscSettings?.autobump?.enable === false) {
                 bot.listings.disableAutorelistOption();
                 bot.handler.enableAutoRefreshListings();
             }
