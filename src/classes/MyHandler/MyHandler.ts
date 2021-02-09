@@ -470,23 +470,35 @@ export default class MyHandler extends Handler {
 
                 const inventory = this.bot.inventoryManager;
                 const pricelist = this.bot.pricelist.getPrices.filter(entry => {
-                    // Filter our pricelist to only the items that are missing.
-                    const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                    const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+                    // First find out if lising for this item from bptf already exist.
+                    const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
 
-                    if (
-                        ([0, 2].includes(entry.intent) && amountCanBuy <= 0) ||
-                        ([1, 2].includes(entry.intent) && amountCanSell <= 0)
-                    ) {
-                        // Ignore items we can't buy or sell
+                    if (!isExist) {
+                        // undefined - listings does not exist but item is in the pricelist
+
+                        // Get amountCanBuy and amountCanSell (already cover intent and so on)
+                        const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
+                        const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+
+                        if (amountCanBuy > 0 || amountCanSell > 0) {
+                            // if any of this more than 0, then return this entry
+                            return true;
+                        }
+
+                        // Else ignore
                         return false;
                     }
 
-                    return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+                    // Else if listings already exist on backpack.tf, ignore
+                    return false;
                 });
 
                 if (pricelist.length > 0) {
-                    log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                    log.debug(
+                        'Checking listings for ' +
+                            pluralize('item', pricelist.length, true) +
+                            `[${pricelist.map(entry => entry.sku).join(', ')}] ...`
+                    );
                     await this.bot.listings.recursiveCheckPricelist(pricelist, true);
                     log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
                 } else {
