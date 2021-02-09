@@ -548,6 +548,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
         }
 
         const inventory = bot.inventoryManager;
+        const isFilterCantAfford = bot.options.pricelist.filterCantAfford.enable;
 
         bot.listingManager.listings.forEach(listing => {
             let listingSKU = listing.getSKU();
@@ -571,7 +572,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
 
             const match = bot.pricelist.getPrice(listingSKU);
 
-            if (listing.intent === 0 && match !== null) {
+            if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                 const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
 
                 if (!canAffordToBuy) {
@@ -597,6 +598,7 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
 
             if (!isExist) {
                 // undefined - listing does not exist but item is in the pricelist
+                // Here we will always filter anything that we can't afford
 
                 // Get amountCanBuy and amountCanSell (already cover intent and so on)
                 const amountCanBuy = inventory.amountCanTrade(entry.sku, true);

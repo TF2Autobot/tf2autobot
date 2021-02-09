@@ -472,6 +472,9 @@ export const optionsSchema: jsonschema.Schema = {
         pricelist: {
             type: 'object',
             properties: {
+                filterCantAfford: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoRemoveIntentSell: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -493,7 +496,13 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['autoRemoveIntentSell', 'autoAddInvalidItems', 'autoAddPaintedItems', 'priceAge']
+            required: [
+                'filterCantAfford',
+                'autoRemoveIntentSell',
+                'autoAddInvalidItems',
+                'autoAddPaintedItems',
+                'priceAge'
+            ]
         },
         bypass: {
             type: 'object',

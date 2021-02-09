@@ -185,6 +185,8 @@ export default class Listings {
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
 
+        const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
+
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
                 // Already have a sell listing, remove the listing
@@ -207,7 +209,8 @@ export default class Listings {
             } else if (
                 match !== null &&
                 listing.intent === 0 &&
-                !invManager.isCanAffordToBuy(match.buy, invManager.getInventory)
+                !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
+                isFilterCantAfford
             ) {
                 // Listing for buying exist but we can't afford to buy, remove.
                 listing.remove();
@@ -249,7 +252,9 @@ export default class Listings {
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
-            const canAffordToBuy = invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory);
+            const canAffordToBuy = isFilterCantAfford
+                ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
+                : true;
 
             if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing
@@ -308,6 +313,11 @@ export default class Listings {
 
                 const pricelist = this.bot.pricelist.getPrices
                     .filter(entry => {
+                        if (!this.bot.options.pricelist.filterCantAfford.enable) {
+                            // if this option is set to false, then always return true
+                            return true;
+                        }
+
                         // Filter pricelist to only items we can sell and we can afford to buy
 
                         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true);
