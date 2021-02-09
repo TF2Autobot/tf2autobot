@@ -353,12 +353,12 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         bot.checkForUpdates
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                    return bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (bot.lastNotifiedVersion === latestVersion) {
-                    bot.sendMessage(
+                    return bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                            '\nSend !updaterepo i_am_sure=yes_i_am to update your repo now!' +
+                            '\nSend "!updaterepo i_am_sure=yes_i_am" to update your repo now!' +
                             `\n\nRelease note: https://github.com/idinium96/tf2autobot/releases`
                     );
                 }
@@ -378,54 +378,58 @@ export function updaterepoCommand(steamID: SteamID, bot: Bot, message: string): 
         // Callback hell 😈
 
         // git reset HEAD --hard
-        child.exec('npm run reset-head', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+        child.exec('git reset HEAD --hard', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
             // ignore err
 
             // git checkout master
-            child.exec('npm run checkout-master', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+            child.exec('git checkout master', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
                 // ignore err
 
                 bot.sendMessage(steamID, '⌛ Pulling changes...');
 
                 // git pull
-                child.exec('npm run pull-changes', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                child.exec('git pull', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
                     // ignore err
+
+                    void promiseDelay(3 * 1000);
 
                     bot.sendMessage(steamID, '⌛ Installing packages...');
 
                     // npm install
-                    child.exec(
-                        'npm run install-packages',
-                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                        () => {
+                    child.exec('npm install', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                        // ignore err
+
+                        // 10 seconds delay, because idk why this always cause some problem
+                        void promiseDelay(10 * 1000);
+
+                        bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+
+                        // tsc -p .
+                        child.exec('npm run build', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
                             // ignore err
 
-                            bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+                            // 5 seconds delay?
+                            void promiseDelay(5 * 1000);
 
-                            // tsc -p .
+                            bot.sendMessage(steamID, '⌛ Restarting...');
+
                             child.exec(
-                                'npm run build',
+                                'pm2 restart ecosystem.json',
                                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                                 () => {
                                     // ignore err
-
-                                    bot.sendMessage(steamID, '⌛ Restarting...');
-
-                                    child.exec(
-                                        'pm2 restart ecosystem.json',
-                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                        () => {
-                                            // ignore err
-                                        }
-                                    );
                                 }
                             );
-                        }
-                    );
+                        });
+                    });
                 });
             });
         });
     }
+}
+
+function promiseDelay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
 
 export function autokeysCommand(steamID: SteamID, bot: Bot): void {
