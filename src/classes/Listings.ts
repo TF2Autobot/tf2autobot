@@ -300,9 +300,8 @@ export default class Listings {
                     .filter(entry => {
                         // Filter pricelist to only items we can sell and we can afford to buy
 
-                        const isGenerics = /^[0-9]*;5$/.test(entry.sku);
-                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true, isGenerics);
-                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false, isGenerics);
+                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true);
+                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false);
 
                         if (
                             (amountCanBuy > 0 &&
