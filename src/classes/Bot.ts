@@ -381,6 +381,8 @@ export default class Bot {
 
         this.pricelist.init();
 
+        // dummy
+
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
