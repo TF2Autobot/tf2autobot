@@ -97,7 +97,7 @@ export async function optionsCommand(steamID: SteamID, bot: Bot, message: string
             return bot.sendMessage(
                 steamID,
                 `❌ "${key}" parent key does not exist in options.` +
-                    `\n\nValid parent keys:\n •` +
+                    `\n\nValid parent keys:\n• ` +
                     [
                         'miscSettings',
                         'sendAlert',
@@ -117,7 +117,7 @@ export async function optionsCommand(steamID: SteamID, bot: Bot, message: string
                         'customMessage',
                         'commands',
                         'detailsExtra'
-                    ].join('\n •')
+                    ].join('\n• ')
             );
         }
 
