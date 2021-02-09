@@ -85,18 +85,22 @@ export default class InventoryManager {
     }
 
     isCanAffordToBuy(buyingPrice: Currencies, inventory: Inventory): boolean {
-        const buyingKeys = buyingPrice.keys;
+        const keyPrice = this.pricelist.getKeyPrice;
+
+        const buyingKeysValue = buyingPrice.keys * keyPrice.toValue();
         const buyingMetalValue = Currencies.toScrap(buyingPrice.metal);
 
         const avaiableCurrencies = inventory.getCurrencies([]);
 
-        const availableKeys = avaiableCurrencies['5021;6'].length;
+        const availableKeys = avaiableCurrencies['5021;6'].length * keyPrice.toValue();
         const availableMetalsValue =
             avaiableCurrencies['5002;6'].length * 9 +
             avaiableCurrencies['5001;6'].length * 3 +
             avaiableCurrencies['5000;6'].length;
 
-        return (buyingKeys > 0 ? availableKeys >= buyingKeys : true) && availableMetalsValue >= buyingMetalValue;
+        return (
+            (buyingPrice.keys > 0 ? availableKeys >= buyingKeysValue : true) && availableMetalsValue >= buyingMetalValue
+        );
     }
 
     amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, weapons: string[]): number {
