@@ -186,7 +186,7 @@ export default class Commands {
         } else if (command === 'restart' && isAdmin) {
             c.manager.restartCommand(steamID, this.bot);
         } else if (command === 'updaterepo' && isAdmin) {
-            void c.manager.updaterepoCommand(steamID, this.bot, message);
+            c.manager.updaterepoCommand(steamID, this.bot, message);
         } else if (command === 'refreshautokeys' && isAdmin) {
             c.manager.refreshAutokeysCommand(steamID, this.bot);
         } else if (command === 'refreshlist' && isAdmin) {

@@ -12,8 +12,10 @@
         "lint": "eslint .",
         "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "npx eslint-config-prettier src/app.ts",
-        "update-linux": "git reset HEAD --hard && git checkout master && git pull && npm install && npm run build && pm2 restart ecosystem.json",
-        "update-windows": "git reset HEAD --hard && git checkout master && git pull && npm install && npm run build && pm2 restart ecosystem.json"
+        "reset-head": "git reset HEAD --hard",
+        "checkout-master": "git checkout master",
+        "pull-changes": "git pull",
+        "install-packages": "npm install"
     },
     "repository": {
         "type": "git",
