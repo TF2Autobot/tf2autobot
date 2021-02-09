@@ -205,9 +205,9 @@ export default class Listings {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
             } else if (
-                listing.intent === 0 &&
                 match !== null &&
-                invManager.isCanAffordToBuy(match.buy, invManager.getInventory)
+                listing.intent === 0 &&
+                !invManager.isCanAffordToBuy(match.buy, invManager.getInventory)
             ) {
                 // Listing for buying exist but we can't afford to buy, remove.
                 listing.remove();
