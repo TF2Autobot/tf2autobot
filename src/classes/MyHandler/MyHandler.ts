@@ -446,6 +446,9 @@ export default class MyHandler extends Handler {
 
                     this.bot.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
+
+                        log.debug(`Raw sku: ${listingSKU}`);
+
                         if (listing.intent === 1) {
                             if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
                                 listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
@@ -467,6 +470,8 @@ export default class MyHandler extends Handler {
                             }
                         }
 
+                        log.debug(`adjusted sku: ${listingSKU}`);
+
                         const match = this.bot.pricelist.getPrice(listingSKU);
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
@@ -474,6 +479,7 @@ export default class MyHandler extends Handler {
 
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
+                                log.debug(`Intent buy, removed because not afford: ${match.sku}`);
                                 listing.remove();
                             }
                         }
@@ -489,11 +495,15 @@ export default class MyHandler extends Handler {
                         }
                     });
 
+                    log.debug(`newlistingsSKUs: [${newlistingsSKUs.join(', ')}]`);
+
                     const pricelist = this.bot.pricelist.getPrices.filter(entry => {
                         // First find out if lising for this item from bptf already exist.
+                        log.debug(`Checking exist: ${entry.sku}`);
                         const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
 
                         if (!isExist) {
+                            log.debug(`Not Exist: ${entry.sku}`);
                             // undefined - listing does not exist but item is in the pricelist
                             // Here we will always filter anything that we can't afford
 
@@ -507,14 +517,17 @@ export default class MyHandler extends Handler {
                             ) {
                                 // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
                                 // return this entry
+                                log.debug(`Match condition: ${entry.sku}`);
                                 return true;
                             }
 
                             // Else ignore
+                            log.debug(`Ignored: ${entry.sku}`);
                             return false;
                         }
 
                         // Else if listing already exist on backpack.tf, ignore
+                        log.debug(`Already exist: ${entry.sku}`);
                         return false;
                     });
 
