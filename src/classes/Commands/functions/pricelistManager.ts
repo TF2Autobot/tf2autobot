@@ -850,12 +850,8 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                           : `${newEntry.promoted === 1 ? '✅' : '❌'}`
                   }`
                 : '') +
-            `${
-                newEntry.group !== 'all'
-                    ? `\n🔰 Group: ${
-                          oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
-                      }`
-                    : ''
+            `\n🔰 Group: ${
+                oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
             `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
