@@ -365,7 +365,7 @@ function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string 
         `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
         `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
         (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
-        `${entry.group !== 'all' ? `\n🔰 Group: ${entry.group}` : ''}` +
+        `\n🔰 Group: ${entry.group}` +
         `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
         `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
     );
@@ -850,12 +850,8 @@ export async function updateCommand(steamID: SteamID, message: string, bot: Bot)
                           : `${newEntry.promoted === 1 ? '✅' : '❌'}`
                   }`
                 : '') +
-            `${
-                newEntry.group !== 'all'
-                    ? `\n🔰 Group: ${
-                          oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
-                      }`
-                    : ''
+            `\n🔰 Group: ${
+                oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
             `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
