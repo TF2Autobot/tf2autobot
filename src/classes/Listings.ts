@@ -214,6 +214,7 @@ export default class Listings {
                 isFilterCantAfford
             ) {
                 // Listing for buying exist but we can't afford to buy, remove.
+                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
                 listing.remove();
             } else {
                 if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {

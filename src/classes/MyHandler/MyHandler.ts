@@ -475,7 +475,7 @@ export default class MyHandler extends Handler {
 
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because not afford: ${match.sku}`);
+                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
                                 listing.remove();
                             }
                         }
