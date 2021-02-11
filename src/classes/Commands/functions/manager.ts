@@ -4,6 +4,7 @@ import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies';
 import validUrl from 'valid-url';
 import child from 'child_process';
+import dayjs from 'dayjs';
 import fs from 'graceful-fs';
 import sleepasync from 'sleep-async';
 import path from 'path';
@@ -551,105 +552,141 @@ export function refreshAutokeysCommand(steamID: SteamID, bot: Bot): void {
     bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
 }
 
+let pricelistLength = 0;
+let executed = false;
+let lastExecutedTime: number | null = null;
+let executeTimeout: NodeJS.Timeout;
+
 export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
-    const listingsSKUs: string[] = [];
-    bot.listingManager.getListings(async err => {
-        if (err) {
-            return bot.sendMessage(
-                steamID,
-                '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
-            );
-        }
+    const newExecutedTime = dayjs().valueOf();
+    const timeDiff = newExecutedTime - lastExecutedTime;
 
-        const inventory = bot.inventoryManager;
-        const isFilterCantAfford = bot.options.pricelist.filterCantAfford.enable;
+    if (executed === true) {
+        return bot.sendMessage(
+            steamID,
+            `⚠️ You need to wait ${Math.trunc(
+                ((pricelistLength > 1000 ? 60 : 30) * 60 * 1000 - timeDiff) / (1000 * 60)
+            )} minutes before you run refresh listings command again.`
+        );
+    } else {
+        pricelistLength = 0;
 
-        bot.listingManager.listings.forEach(listing => {
-            let listingSKU = listing.getSKU();
-            if (listing.intent === 1) {
-                if (bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                    listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                }
-
-                if (bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                    listingSKU = listingSKU.replace(';festive', '');
-                }
-
-                if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                    listingSKU = listingSKU.replace(';strange', '');
-                }
-            } else {
-                if (/;[p][0-9]+/.test(listingSKU)) {
-                    listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                }
+        const listingsSKUs: string[] = [];
+        bot.listingManager.getListings(async err => {
+            if (err) {
+                return bot.sendMessage(
+                    steamID,
+                    '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
+                );
             }
 
-            const match = bot.pricelist.getPrice(listingSKU);
+            const inventory = bot.inventoryManager;
+            const isFilterCantAfford = bot.options.pricelist.filterCantAfford.enable;
 
-            if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+            bot.listingManager.listings.forEach(listing => {
+                let listingSKU = listing.getSKU();
+                if (listing.intent === 1) {
+                    if (bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                        listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                    }
 
-                if (!canAffordToBuy) {
-                    // Listing for buying exist but we can't afford to buy, remove.
-                    listing.remove();
-                }
-            }
+                    if (bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                        listingSKU = listingSKU.replace(';festive', '');
+                    }
 
-            listingsSKUs.push(listingSKU);
-        });
-
-        // Remove duplicate elements
-        const newlistingsSKUs: string[] = [];
-        listingsSKUs.forEach(sku => {
-            if (!newlistingsSKUs.includes(sku)) {
-                newlistingsSKUs.push(sku);
-            }
-        });
-
-        const pricelist = bot.pricelist.getPrices.filter(entry => {
-            // First find out if lising for this item from bptf already exist.
-            const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
-
-            if (!isExist) {
-                // undefined - listing does not exist but item is in the pricelist
-                // Here we will always filter anything that we can't afford
-
-                // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                const amountCanSell = inventory.amountCanTrade(entry.sku, false);
-
-                if (
-                    (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
-                    amountCanSell > 0
-                ) {
-                    // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
-                    // return this entry
-                    return true;
+                    if (bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                        listingSKU = listingSKU.replace(';strange', '');
+                    }
+                } else {
+                    if (/;[p][0-9]+/.test(listingSKU)) {
+                        listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                    }
                 }
 
-                // Else ignore
+                const match = bot.pricelist.getPrice(listingSKU);
+
+                if (isFilterCantAfford && listing.intent === 0 && match !== null) {
+                    const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+
+                    if (!canAffordToBuy) {
+                        // Listing for buying exist but we can't afford to buy, remove.
+                        log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                        listing.remove();
+                    }
+                }
+
+                listingsSKUs.push(listingSKU);
+            });
+
+            // Remove duplicate elements
+            const newlistingsSKUs: string[] = [];
+            listingsSKUs.forEach(sku => {
+                if (!newlistingsSKUs.includes(sku)) {
+                    newlistingsSKUs.push(sku);
+                }
+            });
+
+            const pricelist = bot.pricelist.getPrices.filter(entry => {
+                // First find out if lising for this item from bptf already exist.
+                const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
+
+                if (!isExist) {
+                    // undefined - listing does not exist but item is in the pricelist
+                    // Here we will always filter anything that we can't afford
+
+                    // Get amountCanBuy and amountCanSell (already cover intent and so on)
+                    const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
+                    const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+
+                    if (
+                        (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
+                        amountCanSell > 0
+                    ) {
+                        // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                        // return this entry
+                        log.debug(`Missing/Re-adding can afford: ${entry.sku}`);
+                        return true;
+                    }
+
+                    // Else ignore
+                    return false;
+                }
+
+                // Else if listing already exist on backpack.tf, ignore
                 return false;
+            });
+
+            if (pricelist.length > 0) {
+                clearTimeout(executeTimeout);
+                lastExecutedTime = dayjs().valueOf();
+
+                log.debug(
+                    'Checking listings for ' +
+                        pluralize('item', pricelist.length, true) +
+                        ` [${pricelist.map(entry => entry.sku).join(', ')}]...`
+                );
+
+                bot.sendMessage(
+                    steamID,
+                    'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
+                );
+
+                pricelistLength = pricelist.length;
+
+                executed = true;
+                executeTimeout = setTimeout(() => {
+                    lastExecutedTime = null;
+                    executed = false;
+                    clearTimeout(executeTimeout);
+                }, (pricelistLength > 1000 ? 60 : 30) * 60 * 1000);
+
+                await bot.listings.recursiveCheckPricelist(pricelist, true, pricelist.length > 1000 ? 1000 : 200);
+
+                log.debug('Done checking ' + pluralize('item', pricelist.length, true));
+                bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+            } else {
+                bot.sendMessage(steamID, '❌ Nothing to refresh.');
             }
-
-            // Else if listing already exist on backpack.tf, ignore
-            return false;
         });
-
-        if (pricelist.length > 0) {
-            log.debug(
-                'Checking listings for ' +
-                    pluralize('item', pricelist.length, true) +
-                    ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
-            );
-
-            bot.sendMessage(steamID, 'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...');
-
-            await bot.listings.recursiveCheckPricelist(pricelist, true, pricelist.length > 400 ? 1000 : 200);
-
-            log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-            bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
-        } else {
-            bot.sendMessage(steamID, '❌ Nothing to refresh.');
-        }
-    });
+    }
 }
