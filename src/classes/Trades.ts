@@ -359,8 +359,12 @@ export default class Trades {
                                 summary +
                                 `\n\nRetrying in 3 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
                                 `\n\nError: ${
-                                    TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                } (https://steamerrors.com/${(err as CustomError).eresult})`,
+                                    (err as CustomError).eresult
+                                        ? `${
+                                              TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                          } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                        : JSON.stringify(err, null, 4)
+                                }`,
                             []
                         );
                     }
@@ -623,8 +627,14 @@ export default class Trades {
                                             summary +
                                             `\n\nRetrying in 3 seconds, you can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
                                             `\n\nError: ${
-                                                TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                            } (https://steamerrors.com/${(err as CustomError).eresult})`,
+                                                (err as CustomError).eresult
+                                                    ? `${
+                                                          TradeOfferManager.EResult[
+                                                              (err as CustomError).eresult
+                                                          ] as string
+                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                    : JSON.stringify(err, null, 4)
+                                            }`,
                                         []
                                     );
                                 }
