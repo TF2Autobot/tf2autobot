@@ -509,7 +509,7 @@ export default class MyHandler extends Handler {
                             ) {
                                 // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
                                 // return this entry
-                                log.debug(`Missing listing: ${entry.sku}`);
+                                log.debug(`Missing/Re-adding can afford: ${entry.sku}`);
                                 return true;
                             }
 
@@ -531,7 +531,7 @@ export default class MyHandler extends Handler {
                         await this.bot.listings.recursiveCheckPricelist(
                             pricelist,
                             true,
-                            pricelist.length > 400 ? 1000 : 200
+                            pricelist.length > 1000 ? 1000 : 200
                         );
 
                         log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
@@ -542,8 +542,8 @@ export default class MyHandler extends Handler {
                     pricelistLength = pricelist.length;
                 });
             },
-            // set check every 60 minutes if pricelist to check was more than 400 items
-            pricelistLength > 400 ? 60 * 60 * 1000 : 30 * 60 * 1000
+            // set check every 60 minutes if pricelist to check was more than 1000 items
+            pricelistLength > 1000 ? 60 * 60 * 1000 : 30 * 60 * 1000
         );
     }
 
