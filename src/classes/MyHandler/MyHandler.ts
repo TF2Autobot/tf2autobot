@@ -509,7 +509,9 @@ export default class MyHandler extends Handler {
                             ) {
                                 // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
                                 // return this entry
-                                log.debug(`Missing/Re-adding can afford: ${entry.sku}`);
+                                log.debug(
+                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
+                                );
                                 return true;
                             }
 
