@@ -131,18 +131,26 @@ export default function sendAlert(
         title = 'Failed to accept trade';
         description =
             msg +
-            `\n\nError: [${
-                TradeOfferManager.EResult[(err as CustomError).eresult] as string
-            }](https://steamerrors.com/${(err as CustomError).eresult})`;
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : JSON.stringify(err, null, 4)
+            }`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-decline') {
         title = 'Failed to decline trade';
         description =
             msg +
-            `\n\nError: [${
-                TradeOfferManager.EResult[(err as CustomError).eresult] as string
-            }](https://steamerrors.com/${(err as CustomError).eresult})`;
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : JSON.stringify(err, null, 4)
+            }`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {

@@ -26,6 +26,8 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
+    recentlyRetryToAccept: UnknownDictionary<number> = {};
+
     constructor(bot: Bot) {
         this.bot = bot;
     }
@@ -359,8 +361,12 @@ export default class Trades {
                                 summary +
                                 `\n\nRetrying in 3 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
                                 `\n\nError: ${
-                                    TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                } (https://steamerrors.com/${(err as CustomError).eresult})`,
+                                    (err as CustomError).eresult
+                                        ? `${
+                                              TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                          } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                        : JSON.stringify(err, null, 4)
+                                }`,
                             []
                         );
                     }
@@ -569,7 +575,91 @@ export default class Trades {
                     // Maybe wait for confirmation to be accepted and then resolve?
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
-                        return reject(err);
+
+                        if (!(err as Error)?.message?.includes('Could not find confirmation for object')) {
+                            // If error other than invalidItems state, retry to accept
+                            // i.e. "Could not act on confirmation" or "HTTP error 502" errors.
+                            // Maybe this can prevent the trade from getting cancelled?
+
+                            const opt = this.bot.options;
+                            if (opt.sendAlert.failedAccept) {
+                                const keyPrices = this.bot.pricelist.getKeyPrices;
+                                const value = t.valueDiff(
+                                    offer,
+                                    keyPrices,
+                                    false,
+                                    opt.miscSettings.showOnlyMetal.enable
+                                );
+
+                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        true,
+                                        value,
+                                        keyPrices,
+                                        false,
+                                        false
+                                    );
+                                    sendAlert(
+                                        `failed-accept` as 'failed-accept' | 'failed-decline',
+                                        this.bot,
+                                        `Failed to accept on the offer #${offer.id}` +
+                                            summary +
+                                            `\n\nRetrying in 3 seconds, or you can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                                        null,
+                                        err,
+                                        [offer.id]
+                                    );
+                                } else {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        false,
+                                        value,
+                                        keyPrices,
+                                        true,
+                                        false
+                                    );
+
+                                    this.bot.messageAdmins(
+                                        `Failed to accept on the offer #${offer.id}:` +
+                                            summary +
+                                            `\n\nRetrying in 3 seconds, you can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
+                                            `\n\nError: ${
+                                                (err as CustomError).eresult
+                                                    ? `${
+                                                          TradeOfferManager.EResult[
+                                                              (err as CustomError).eresult
+                                                          ] as string
+                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                    : JSON.stringify(err, null, 4)
+                                            }`,
+                                        []
+                                    );
+                                }
+                            }
+
+                            this.recentlyRetryToAccept[offer.id] =
+                                this.recentlyRetryToAccept[offer.id] === undefined
+                                    ? 0
+                                    : this.recentlyRetryToAccept[offer.id] + 1;
+
+                            if (this.recentlyRetryToAccept[offer.id] === 0) {
+                                // Just retry to accept ONCE
+                                setTimeout(() => {
+                                    // Auto-retry after 3 seconds
+                                    void this.retryActionAfterFailure(offer.id, 'accept');
+                                }, 3 * 1000);
+                            } else {
+                                return reject(err);
+                            }
+                        } else {
+                            // else just reject
+                            return reject(err);
+                        }
                     });
                 }
 
