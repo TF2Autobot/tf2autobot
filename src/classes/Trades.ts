@@ -339,7 +339,7 @@ export default class Trades {
                             this.bot,
                             `Failed to ${action} on the offer #${offer.id}` +
                                 summary +
-                                `\n\nRetrying in 3 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
+                                `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
                             null,
                             err,
                             [offer.id]
@@ -359,7 +359,7 @@ export default class Trades {
                         this.bot.messageAdmins(
                             `Failed to ${action} on the offer #${offer.id}:` +
                                 summary +
-                                `\n\nRetrying in 3 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                                `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
                                 `\n\nError: ${
                                     (err as CustomError).eresult
                                         ? `${
@@ -374,9 +374,9 @@ export default class Trades {
 
                 if (!['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
                     setTimeout(() => {
-                        // Auto-retry after 3 seconds
+                        // Auto-retry after 30 seconds
                         void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
-                    }, 3 * 1000);
+                    }, 30 * 1000);
                 }
             })
             .finally(() => {
@@ -607,7 +607,7 @@ export default class Trades {
                                         this.bot,
                                         `Failed to accept on the offer #${offer.id}` +
                                             summary +
-                                            `\n\nRetrying in 3 seconds, or you can try to force accept this trade, send "!faccept ${offer.id}" now.`,
+                                            `\n\nRetrying in 30 seconds, or you can try to force accept this trade, send "!faccept ${offer.id}" now.`,
                                         null,
                                         err,
                                         [offer.id]
@@ -627,7 +627,7 @@ export default class Trades {
                                     this.bot.messageAdmins(
                                         `Failed to accept on the offer #${offer.id}:` +
                                             summary +
-                                            `\n\nRetrying in 3 seconds, you can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
+                                            `\n\nRetrying in 30 seconds, you can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
                                             `\n\nError: ${
                                                 (err as CustomError).eresult
                                                     ? `${
@@ -650,9 +650,9 @@ export default class Trades {
                             if (this.recentlyRetryToAccept[offer.id] === 0) {
                                 // Just retry to accept ONCE
                                 setTimeout(() => {
-                                    // Auto-retry after 3 seconds
+                                    // Auto-retry after 30 seconds
                                     void this.retryActionAfterFailure(offer.id, 'accept');
-                                }, 3 * 1000);
+                                }, 30 * 1000);
                             } else {
                                 return reject(err);
                             }
