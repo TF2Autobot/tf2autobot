@@ -333,16 +333,19 @@ export default class Commands {
         if (!this.bot.isAdmin(steamID)) {
             return;
         }
-
-        const info = c.utils.getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
-        if (info === null) {
-            return;
+        message = CommandParser.removeCommand(message).trim();
+        let sku = '';
+        if (c.utils.testSKU(message)) {
+            sku = message;
+        } else {
+            const info = c.utils.getItemAndAmount(steamID, message, this.bot);
+            if (info === null) {
+                return;
+            }
+            sku = info.match.sku;
         }
 
-        const match = info.match;
-
         let reply = '';
-        match.sku;
 
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft
@@ -350,10 +353,10 @@ export default class Commands {
                 : this.bot.craftWeapons
             : [];
         if (
-            !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(match.sku)) &&
-            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(match.sku)
+            !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) &&
+            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         ) {
-            const { bought, sold } = itemStats(this.bot, match.sku);
+            const { bought, sold } = itemStats(this.bot, sku);
             const boughtTime = Object.keys(bought).sort((a, b) => {
                 return +a - +b;
             });
@@ -391,7 +394,10 @@ export default class Commands {
                 }, '');
             });
 
-            reply += 'DAY\n' + boughtLastX[0] + 'WEEK' + boughtLastX[1] + '4 Weeks' + boughtLastX[2];
+            reply +=
+                boughtLastX[0].length ? ('DAY\n' + boughtLastX[0]) : ''
+                + boughtLastX[1].length ? ('WEEK\n' + boughtLastX[1]) : ''
+                + boughtLastX[2].length ? ('4 Weeks\n' + boughtLastX[2]) : '';
 
             const soldLastX = [
                 86400, //DAY
@@ -422,7 +428,11 @@ export default class Commands {
                     return acc + '\n';
                 }, '');
             });
-            reply += 'DAY\n' + soldLastX[0] + 'WEEK' + soldLastX[1] + '4 Weeks' + soldLastX[2];
+            reply +=
+                soldLastX[0].length ? ('DAY\n' + soldLastX[0]) : ''
+                + soldLastX[1].length ? ('WEEK\n' + soldLastX[1]) : ''
+                + soldLastX[2].length ? ('4 Weeks\n' + soldLastX[2]) : '';
+
         } else {
             reply = 'enable for keys and weapons - currently not implemented';
         }
