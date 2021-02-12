@@ -98,7 +98,7 @@ export const DEFAULTS = {
         showStockChanges: false,
         showTimeTakenInMS: false,
         showItemPrices: true,
-        showPureInEmoji: true,
+        showPureInEmoji: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
