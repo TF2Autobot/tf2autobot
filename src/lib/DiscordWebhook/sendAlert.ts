@@ -33,7 +33,8 @@ type AlertType =
     | 'failed-decline'
     | 'failed-processing-offer'
     | 'retry-success'
-    | 'retry-failed';
+    | 'retry-failed'
+    | 'error-accept';
 
 export default function sendAlert(
     type: AlertType,
@@ -136,7 +137,7 @@ export default function sendAlert(
                     ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
                           (err as CustomError).eresult
                       })`
-                    : JSON.stringify(err, null, 4)
+                    : (err as Error).message
             }`;
         content = items[0]; // offer id
         color = '16711680'; // red
@@ -149,7 +150,20 @@ export default function sendAlert(
                     ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
                           (err as CustomError).eresult
                       })`
-                    : JSON.stringify(err, null, 4)
+                    : (err as Error).message
+            }`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
+    } else if (type === 'error-accept') {
+        title = 'Error while trying to accept mobile confirmation';
+        description =
+            msg +
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
             }`;
         content = items[0]; // offer id
         color = '16711680'; // red

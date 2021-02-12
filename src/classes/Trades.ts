@@ -26,8 +26,6 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
-    recentlyRetryToAccept: UnknownDictionary<number> = {};
-
     constructor(bot: Bot) {
         this.bot = bot;
     }
@@ -576,89 +574,60 @@ export default class Trades {
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                        if (!(err as Error)?.message?.includes('Could not find confirmation for object')) {
-                            // If error other than invalidItems state, retry to accept
-                            // i.e. "Could not act on confirmation" or "HTTP error 502" errors.
-                            // Maybe this can prevent the trade from getting cancelled?
+                        const opt = this.bot.options;
+                        if (opt.sendAlert.failedAccept) {
+                            const keyPrices = this.bot.pricelist.getKeyPrices;
+                            const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
-                            const opt = this.bot.options;
-                            if (opt.sendAlert.failedAccept) {
-                                const keyPrices = this.bot.pricelist.getKeyPrices;
-                                const value = t.valueDiff(
+                            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                const summary = t.summarizeToChat(
                                     offer,
+                                    this.bot,
+                                    'summary-accepting',
+                                    true,
+                                    value,
                                     keyPrices,
                                     false,
-                                    opt.miscSettings.showOnlyMetal.enable
+                                    false
+                                );
+                                sendAlert(
+                                    `error-accept`,
+                                    this.bot,
+                                    `Error while trying to accept mobile confirmation on offer #${offer.id}` +
+                                        summary +
+                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                        ` sending "!trade ${offer.id}"`,
+                                    null,
+                                    err,
+                                    [offer.id]
+                                );
+                            } else {
+                                const summary = t.summarizeToChat(
+                                    offer,
+                                    this.bot,
+                                    'summary-accepting',
+                                    false,
+                                    value,
+                                    keyPrices,
+                                    true,
+                                    false
                                 );
 
-                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        true,
-                                        value,
-                                        keyPrices,
-                                        false,
-                                        false
-                                    );
-                                    sendAlert(
-                                        `failed-accept` as 'failed-accept' | 'failed-decline',
-                                        this.bot,
-                                        `Failed to accept on the offer #${offer.id}` +
-                                            summary +
-                                            `\n\nRetrying in 30 seconds, or you can try to force accept this trade, send "!faccept ${offer.id}" now.`,
-                                        null,
-                                        err,
-                                        [offer.id]
-                                    );
-                                } else {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        false,
-                                        value,
-                                        keyPrices,
-                                        true,
-                                        false
-                                    );
-
-                                    this.bot.messageAdmins(
-                                        `Failed to accept on the offer #${offer.id}:` +
-                                            summary +
-                                            `\n\nRetrying in 30 seconds, you can try to force accept this trade, reply "!faccept ${offer.id}" now.` +
-                                            `\n\nError: ${
-                                                (err as CustomError).eresult
-                                                    ? `${
-                                                          TradeOfferManager.EResult[
-                                                              (err as CustomError).eresult
-                                                          ] as string
-                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
-                                                    : JSON.stringify(err, null, 4)
-                                            }`,
-                                        []
-                                    );
-                                }
+                                this.bot.messageAdmins(
+                                    `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
+                                        summary +
+                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                        ` sending "!trade ${offer.id}` +
+                                        `\n\nError: ${
+                                            (err as CustomError).eresult
+                                                ? `${
+                                                      TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                                  } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                : (err as Error).message
+                                        }`,
+                                    []
+                                );
                             }
-
-                            this.recentlyRetryToAccept[offer.id] =
-                                this.recentlyRetryToAccept[offer.id] === undefined
-                                    ? 0
-                                    : this.recentlyRetryToAccept[offer.id] + 1;
-
-                            if (this.recentlyRetryToAccept[offer.id] === 0) {
-                                // Just retry to accept ONCE
-                                setTimeout(() => {
-                                    // Auto-retry after 30 seconds
-                                    void this.retryActionAfterFailure(offer.id, 'accept');
-                                }, 30 * 1000);
-                            } else {
-                                return reject(err);
-                            }
-                        } else {
-                            // else just reject
-                            return reject(err);
                         }
                     });
                 }

@@ -1842,11 +1842,6 @@ export default class MyHandler extends Handler {
                 highValue.theirItems = result.theirHighValuedItems;
                 highValue.items = result.items;
             }
-
-            if (this.bot.trades.recentlyRetryToAccept[offer.id] !== undefined) {
-                // delete if exist
-                delete this.bot.trades.recentlyRetryToAccept[offer.id];
-            }
         }
 
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
