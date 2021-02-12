@@ -98,6 +98,7 @@ export const DEFAULTS = {
         showStockChanges: false,
         showTimeTakenInMS: false,
         showItemPrices: true,
+        showPureInEmoji: true,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -1052,6 +1053,7 @@ interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showItemPrices?: boolean;
+    showPureInEmoji?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
