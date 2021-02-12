@@ -668,11 +668,14 @@ export function refreshListingsCommand(steamID: SteamID, bot: Bot): void {
                     'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
                 );
 
+                bot.handler.isRecentlyExecuteRefreshlistCommand = true;
+                bot.handler.setRefreshlistExecutedDelay = (pricelistLength > 1000 ? 60 : 30) * 60 * 1000;
                 pricelistLength = pricelist.length;
                 executed = true;
                 executeTimeout = setTimeout(() => {
                     lastExecutedTime = null;
                     executed = false;
+                    bot.handler.isRecentlyExecuteRefreshlistCommand = false;
                     clearTimeout(executeTimeout);
                 }, (pricelistLength > 1000 ? 60 : 30) * 60 * 1000);
 

@@ -197,6 +197,18 @@ export default class MyHandler extends Handler {
 
     private autoRefreshListingsInterval: NodeJS.Timeout;
 
+    private alreadyExecutedRefreshlist = false;
+
+    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
+        this.alreadyExecutedRefreshlist = setExecuted;
+    }
+
+    private executedDelayTime = 30 * 60 * 1000;
+
+    set setRefreshlistExecutedDelay(delay: number) {
+        this.executedDelayTime = delay;
+    }
+
     constructor(bot: Bot, private priceSource: Pricer) {
         super(bot);
 
@@ -428,6 +440,20 @@ export default class MyHandler extends Handler {
 
         this.autoRefreshListingsInterval = setInterval(
             () => {
+                if (this.alreadyExecutedRefreshlist) {
+                    log.debug(
+                        '❌ Just recently executed refreshlist command, will not run automatic check for missing listings.'
+                    );
+                    setTimeout(() => {
+                        this.enableAutoRefreshListings();
+                    }, this.executedDelayTime);
+
+                    // reset to default
+                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
+                    clearInterval(this.autoRefreshListingsInterval);
+                    return;
+                }
+
                 pricelistLength = 0;
                 log.debug('Running automatic check for missing listings...');
 
