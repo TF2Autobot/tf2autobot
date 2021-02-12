@@ -92,14 +92,15 @@ export default class InventoryManager {
 
         const avaiableCurrencies = inventory.getCurrencies([]);
 
-        const availableKeys = avaiableCurrencies['5021;6'].length * keyPrice.toValue();
+        const availableKeysValue = avaiableCurrencies['5021;6'].length * keyPrice.toValue();
         const availableMetalsValue =
             avaiableCurrencies['5002;6'].length * 9 +
             avaiableCurrencies['5001;6'].length * 3 +
             avaiableCurrencies['5000;6'].length;
 
         return (
-            (buyingPrice.keys > 0 ? availableKeys >= buyingKeysValue : true) && availableMetalsValue >= buyingMetalValue
+            (buyingPrice.keys > 0 ? availableKeysValue >= buyingKeysValue : true) &&
+            availableMetalsValue >= buyingMetalValue
         );
     }
 

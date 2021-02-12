@@ -65,6 +65,9 @@ export const DEFAULTS = {
     },
 
     pricelist: {
+        filterCantAfford: {
+            enable: false
+        },
         autoRemoveIntentSell: {
             enable: false
         },
@@ -1024,6 +1027,7 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
+    filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
