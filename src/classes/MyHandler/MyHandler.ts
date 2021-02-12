@@ -37,8 +37,6 @@ import Inventory, { Dict } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
-import { statsCommand } from '../Commands/functions/status';
-
 import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
@@ -52,7 +50,7 @@ import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
 
 export default class MyHandler extends Handler {
-    private readonly commands: Commands;
+    readonly commands: Commands;
 
     readonly autokeys: Autokeys;
 
@@ -603,7 +601,7 @@ export default class MyHandler extends Handler {
                         sendStats(this.bot);
                     } else {
                         this.bot.getAdmins.forEach(admin => {
-                            statsCommand(admin, this.bot);
+                            this.commands.useStatsCommand(admin);
                         });
                     }
                 }

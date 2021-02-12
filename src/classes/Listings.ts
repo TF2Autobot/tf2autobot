@@ -12,7 +12,6 @@ import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
@@ -135,7 +134,7 @@ export default class Listings {
                 this.enableAutoRelist();
             } else if (this.isAutoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
-                updateOptionsCommand(null, '!config miscSettings.autobump.enable=false', this.bot);
+                this.bot.handler.commands.useUpdateOptionsCommand(null, '!config miscSettings.autobump.enable=false');
             }
         });
     }

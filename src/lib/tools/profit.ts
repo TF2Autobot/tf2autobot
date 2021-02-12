@@ -55,6 +55,11 @@ export default function profit(
                 continue;
             }
 
+            if (trades[i].action?.reason === 'ADMIN' || bot.isAdmin(trades[i].partner)) {
+                // trades was from ADMIN, ignore
+                continue;
+            }
+
             let isGift = false;
 
             if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) {

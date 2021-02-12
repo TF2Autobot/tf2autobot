@@ -212,7 +212,8 @@ export default function sendAlert(
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
-                'failed-accept'
+                'failed-accept',
+                'error-accept'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
                 : '') + (content ? ` - ${content}` : ''),

@@ -547,6 +547,9 @@ export const optionsSchema: jsonschema.Schema = {
                 showItemPrices: {
                     type: 'boolean'
                 },
+                showPureInEmoji: {
+                    type: 'boolean'
+                },
                 customText: {
                     type: 'object',
                     properties: {
@@ -612,7 +615,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices', 'customText'],
+            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices', 'showPureInEmoji', 'customText'],
             additionalProperties: false
         },
 
