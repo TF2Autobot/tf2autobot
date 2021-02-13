@@ -1,4 +1,4 @@
-import { Action, TradeOffer } from 'steam-tradeoffer-manager';
+import { Action, Meta, TradeOffer } from 'steam-tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 
@@ -6,6 +6,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
+    const meta = offer.data('meta') as Meta;
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
@@ -63,7 +64,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     } else if (offerReason.reason === 'HIGH_VALUE_ITEMS_NOT_SELLING') {
         //
         const custom = opt.customMessage.decline.highValueItemsNotSelling;
-        const highValueName = offerReason.meta.highValueName.join(', ');
+        const highValueName = meta.highValueName.join(', ');
         reply = custom
             ? custom.replace(/%highValueName%/g, highValueName)
             : `/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined because ` +

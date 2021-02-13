@@ -25,6 +25,7 @@ export default function processAccepted(
     };
 
     const offerReceived = offer.data('action') as i.Action;
+    const meta = offer.data('meta') as i.Meta;
     const offerSent = offer.data('highValue') as i.HighValueOutput;
 
     const isWebhookEnabled = opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0;
@@ -33,27 +34,23 @@ export default function processAccepted(
         // doing this because if an offer is being made by bot (from command), then this is undefined
         if (['VALID_WITH_OVERPAY', 'MANUAL', 'MANUAL-FORCE', 'AUTO-RETRY'].includes(offerReceived.reason)) {
             // only for accepted overpay with INVALID_ITEMS/OVERSTOCKED/UNDERSTOCKED or MANUAL offer
-            if (offerReceived.meta?.uniqueReasons?.includes('🟨_INVALID_ITEMS')) {
+            if (meta?.uniqueReasons?.includes('🟨_INVALID_ITEMS')) {
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                (offerReceived.meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(
-                    el => {
-                        accepted.invalidItems.push(
-                            `${
-                                isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
-                            } - ${el.price}`
-                        );
-                    }
-                );
+                (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
+                    accepted.invalidItems.push(
+                        `${
+                            isWebhookEnabled
+                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                        } - ${el.price}`
+                    );
+                });
             }
-            if (offerReceived.meta?.uniqueReasons?.includes('🟧_DISABLED_ITEMS')) {
+            if (meta?.uniqueReasons?.includes('🟧_DISABLED_ITEMS')) {
                 // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
 
-                (offerReceived.meta.reasons.filter(
-                    el => el.reason === '🟧_DISABLED_ITEMS'
-                ) as i.DisabledItems[]).forEach(el => {
+                (meta.reasons.filter(el => el.reason === '🟧_DISABLED_ITEMS') as i.DisabledItems[]).forEach(el => {
                     accepted.disabledItems.push(
                         isWebhookEnabled
                             ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
@@ -61,12 +58,10 @@ export default function processAccepted(
                     );
                 });
             }
-            if (offerReceived.meta?.uniqueReasons?.includes('🟦_OVERSTOCKED')) {
+            if (meta?.uniqueReasons?.includes('🟦_OVERSTOCKED')) {
                 // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.
 
-                (offerReceived.meta.reasons.filter(el =>
-                    el.reason.includes('🟦_OVERSTOCKED')
-                ) as i.Overstocked[]).forEach(el => {
+                (meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as i.Overstocked[]).forEach(el => {
                     accepted.overstocked.push(
                         `${
                             isWebhookEnabled
@@ -77,12 +72,10 @@ export default function processAccepted(
                 });
             }
 
-            if (offerReceived.meta?.uniqueReasons?.includes('🟩_UNDERSTOCKED')) {
+            if (meta?.uniqueReasons?.includes('🟩_UNDERSTOCKED')) {
                 // doing this so it will only executed if includes 🟩_UNDERSTOCKED reason.
 
-                (offerReceived.meta.reasons.filter(el =>
-                    el.reason.includes('🟩_UNDERSTOCKED')
-                ) as i.Understocked[]).forEach(el => {
+                (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as i.Understocked[]).forEach(el => {
                     accepted.understocked.push(
                         `${
                             isWebhookEnabled
@@ -94,15 +87,10 @@ export default function processAccepted(
             }
         }
 
-        if (offerReceived.meta?.highValue && offerReceived.meta?.highValue['has'] === undefined) {
-            if (Object.keys(offerReceived.meta.highValue.items.their).length > 0) {
+        if (meta?.highValue && meta.highValue['has'] === undefined) {
+            if (Object.keys(meta.highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(
-                    offerReceived.meta.highValue.items.their,
-                    bot,
-                    bot.paints,
-                    bot.strangeParts
-                );
+                const itemsName = t.getHighValueItems(meta.highValue.items.their, bot, bot.paints, bot.strangeParts);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -113,8 +101,8 @@ export default function processAccepted(
                     theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
-                if (offerReceived.meta.highValue.isMention.their) {
-                    Object.keys(offerReceived.meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
+                if (meta.highValue.isMention.their) {
+                    Object.keys(meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
                     if (!bot.isAdmin(offer.partner)) {
                         accepted.isMention = true;
@@ -122,14 +110,9 @@ export default function processAccepted(
                 }
             }
 
-            if (Object.keys(offerReceived.meta.highValue.items.our).length > 0) {
+            if (Object.keys(meta.highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(
-                    offerReceived.meta.highValue.items.our,
-                    bot,
-                    bot.paints,
-                    bot.strangeParts
-                );
+                const itemsName = t.getHighValueItems(meta.highValue.items.our, bot, bot.paints, bot.strangeParts);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -139,7 +122,7 @@ export default function processAccepted(
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
-                if (offerReceived.meta.highValue.isMention.our) {
+                if (meta.highValue.isMention.our) {
                     if (!bot.isAdmin(offer.partner)) {
                         accepted.isMention = true;
                     }
@@ -251,7 +234,7 @@ export default function processAccepted(
     return {
         theirHighValuedItems,
         isDisableSKU,
-        items: offerReceived?.meta?.highValue?.items?.their || offerSent?.items?.their
+        items: meta?.highValue?.items?.their || offerSent?.items?.their
     };
 }
 

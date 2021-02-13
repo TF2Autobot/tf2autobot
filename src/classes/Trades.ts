@@ -310,9 +310,10 @@ export default class Trades {
 
         offer.data('action', {
             action: action,
-            reason: reason,
-            meta: meta
+            reason: reason
         } as Action);
+
+        offer.data('meta', meta);
 
         if (actionFunc === undefined) {
             return Promise.resolve();
@@ -410,7 +411,7 @@ export default class Trades {
                 await this.applyActionToOffer(
                     isRetryAccept ? 'accept' : 'decline',
                     'AUTO-RETRY',
-                    isRetryAccept ? (offer.data('action') as Action).meta : {},
+                    isRetryAccept ? (offer.data('meta') as Meta) : {},
                     offer
                 );
 

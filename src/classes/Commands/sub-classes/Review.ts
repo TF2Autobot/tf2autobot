@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Action, OfferData, OurTheirItemsDict } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from 'steam-tradeoffer-manager';
 import Currencies from 'tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
@@ -77,7 +77,7 @@ export default class ReviewCommands {
             reply +=
                 `\n- Offer #${offer.id as string} from ${
                     (offer.data as OfferData).partner
-                } (reason: ${(offer.data as OfferData).action.meta.uniqueReasons.join(', ')})` +
+                } (reason: ${(offer.data as OfferData).meta.uniqueReasons.join(', ')})` +
                 `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
         }
 
@@ -130,7 +130,7 @@ export default class ReviewCommands {
         let reply =
             offerData?.action?.action === 'skip'
                 ? `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review` +
-                  `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}).\n\nSummary:\n\n`
+                  `\nReason: ${offerData.meta.uniqueReasons.join(', ')}).\n\nSummary:\n\n`
                 : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.\n\nSummary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
@@ -235,7 +235,7 @@ export default class ReviewCommands {
                 await this.bot.trades.applyActionToOffer(
                     isAccepting ? 'accept' : 'decline',
                     'MANUAL',
-                    isAccepting ? (offer.data('action') as Action).meta : {},
+                    isAccepting ? (offer.data('meta') as Meta) : {},
                     offer
                 );
 
@@ -320,7 +320,7 @@ export default class ReviewCommands {
                 await this.bot.trades.applyActionToOffer(
                     isForceAccepting ? 'accept' : 'decline',
                     'MANUAL-FORCE',
-                    isForceAccepting ? (offer.data('action') as Action).meta : {},
+                    isForceAccepting ? (offer.data('meta') as Meta) : {},
                     offer
                 );
 
