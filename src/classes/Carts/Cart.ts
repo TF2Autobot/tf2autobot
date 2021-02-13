@@ -122,16 +122,18 @@ export default abstract class Cart {
     }
 
     get weapons(): string[] {
-        return this.bot.handler.isWeaponsAsCurrency.withUncraft ? this.craftAll.concat(this.uncraftAll) : this.craftAll;
-    }
+        const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+            ? this.craftAll.concat(this.uncraftAll)
+            : this.craftAll;
 
-    get dontHaveWeaponsInPricelist(): boolean {
         const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
-        return this.weapons.some(sku => skusFromPricelist.includes(sku)) === false;
+
+        // return filtered weapons
+        return allWeapons.filter(sku => !skusFromPricelist.includes(sku));
     }
 
     get isWeaponsAsCurrencyEnabled(): boolean {
-        return this.bot.options.miscSettings.weaponsAsCurrency.enable && this.dontHaveWeaponsInPricelist;
+        return this.bot.options.miscSettings.weaponsAsCurrency.enable;
     }
 
     // getCancelReason(): string | undefined {
