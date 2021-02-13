@@ -27,7 +27,9 @@ export default function getHighValueItems(
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
-            if (attachment === 's') {
+            if (attachment === 'isFull') {
+                toString += `\n💯 Full uses: ${items[sku].isFull ? '✅' : '❌'}`;
+            } else if (attachment === 's') {
                 toString += `\n${cT.spells ? cT.spells : '🎃 Spells:'} `;
 
                 items[sku].s.forEach(spellSKU => {

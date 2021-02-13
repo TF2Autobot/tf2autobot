@@ -244,6 +244,7 @@ declare module 'steam-tradeoffer-manager' {
             ks?: PartialSKUWithMention;
             ke?: PartialSKUWithMention;
             p?: PartialSKUWithMention;
+            isFull?: boolean;
         }
 
         interface Items {

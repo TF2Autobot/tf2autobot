@@ -798,6 +798,8 @@ export default class UserCart extends Cart {
                                     }
                                 }
                             });
+                        } else if (item.isFullUses !== undefined) {
+                            getHighValue[whichIs].items[sku] = { isFull: item.isFullUses };
                         }
                     });
             }

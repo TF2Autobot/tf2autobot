@@ -727,6 +727,8 @@ export default class MyHandler extends Handler {
                                 }
                             }
                         });
+                    } else if (item.isFullUses !== undefined) {
+                        getHighValue[which].items[sku] = { isFull: item.isFullUses };
                     }
                 });
             }
