@@ -102,13 +102,15 @@ export default function summarize(
         };
     } else {
         // If trade with trade partner
+        const opening = showStockChanges ? '〚' : ' (';
+        const closing = showStockChanges ? '〛' : ')';
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                ` (${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)})`,
+                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                ` (${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)})`
+                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
         };
     }
 }
