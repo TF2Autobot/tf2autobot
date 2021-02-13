@@ -141,7 +141,7 @@ export default class PricelistManagerCommands {
             const item = getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
@@ -770,7 +770,7 @@ export default class PricelistManagerCommands {
             const item = getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
@@ -1088,7 +1088,7 @@ export default class PricelistManagerCommands {
             const item = getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
@@ -1141,7 +1141,7 @@ export default class PricelistManagerCommands {
             const item = getItemFromParams(steamID, params, this.bot);
 
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
