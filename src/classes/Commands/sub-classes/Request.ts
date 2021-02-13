@@ -25,7 +25,7 @@ export default class RequestCommands {
 
         this.getSales = this.priceSource.getSales.bind(this.priceSource);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
-        this.getPrice = this.priceSource.requestCheck.bind(this.priceSource);
+        this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
     }
 
     async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
