@@ -748,11 +748,11 @@ export default class PricelistManagerCommands {
                 );
             } else if (Array.isArray(match)) {
                 const matchCount = match.length;
-                if (match.length > 20) {
+                if (matchCount > 20) {
                     match = match.splice(0, 20);
                 }
 
-                let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
                     ',\n'
                 )}`;
 
@@ -1066,9 +1066,11 @@ export default class PricelistManagerCommands {
                 );
             } else if (Array.isArray(match)) {
                 const matchCount = match.length;
-                if (match.length > 20) match = match.splice(0, 20);
+                if (matchCount > 20) {
+                    match = match.splice(0, 20);
+                }
 
-                let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
                     ',\n'
                 )}`;
 
@@ -1117,11 +1119,11 @@ export default class PricelistManagerCommands {
                 );
             } else if (Array.isArray(match)) {
                 const matchCount = match.length;
-                if (match.length > 20) {
+                if (matchCount > 20) {
                     match = match.splice(0, 20);
                 }
 
-                let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
                     ',\n'
                 )}`;
 
@@ -1270,37 +1272,39 @@ export default class PricelistManagerCommands {
         const parameters = Object.values(parametersUsed);
         const display = parameters.filter(param => param !== '');
 
-        const length = filter.length;
-        if (length === 0) {
+        const filterCount = filter.length;
+        if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
-        } else if (length > 20) {
+        } else if (filterCount > 20) {
             this.bot.sendMessage(
                 steamID,
-                `Found ${pluralize('item', length, true)} with ${display.join('&')}, showing only a max of 100 items`
+                `Found ${pluralize('item', filterCount, true)} with ${display.join(
+                    '&'
+                )}, showing only a max of 100 items`
             );
             this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 0, 20)}`);
-            if (length <= 40) {
+            if (filterCount <= 40) {
                 this.bot.sendMessage(
                     steamID,
-                    `/code ${this.generateOutput(filter, true, 20, length > 40 ? 40 : length)}`
+                    `/code ${this.generateOutput(filter, true, 20, filterCount > 40 ? 40 : filterCount)}`
                 );
-            } else if (length <= 60) {
+            } else if (filterCount <= 60) {
                 this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
                 await sleepasync().Promise.sleep(1 * 1000);
                 this.bot.sendMessage(
                     steamID,
-                    `/code ${this.generateOutput(filter, true, 40, length > 60 ? 60 : length)}`
+                    `/code ${this.generateOutput(filter, true, 40, filterCount > 60 ? 60 : filterCount)}`
                 );
-            } else if (length <= 80) {
+            } else if (filterCount <= 80) {
                 this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
                 await sleepasync().Promise.sleep(1 * 1000);
                 this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
                 await sleepasync().Promise.sleep(1 * 1000);
                 this.bot.sendMessage(
                     steamID,
-                    `/code ${this.generateOutput(filter, true, 60, length > 80 ? 80 : length)}`
+                    `/code ${this.generateOutput(filter, true, 60, filterCount > 80 ? 80 : filterCount)}`
                 );
-            } else if (length > 80) {
+            } else if (filterCount > 80) {
                 this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
                 await sleepasync().Promise.sleep(1 * 1000);
                 this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
@@ -1309,11 +1313,11 @@ export default class PricelistManagerCommands {
                 await sleepasync().Promise.sleep(1 * 1000);
                 this.bot.sendMessage(
                     steamID,
-                    `/code ${this.generateOutput(filter, true, 80, length > 100 ? 100 : length)}`
+                    `/code ${this.generateOutput(filter, true, 80, filterCount > 100 ? 100 : filterCount)}`
                 );
             }
         } else {
-            this.bot.sendMessage(steamID, `Found ${pluralize('item', filter.length, true)} with ${display.join('&')}`);
+            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}`);
             this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter)}`);
         }
     }

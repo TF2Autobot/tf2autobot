@@ -246,7 +246,9 @@ export default class Inventory {
                 ? Object.keys(paints).map(paint => paint.toLowerCase())
                 : opt.highValue.painted.map(paint => paint.toLowerCase());
 
-        for (let i = 0; i < items.length; i++) {
+        const itemsCount = items.length;
+
+        for (let i = 0; i < itemsCount; i++) {
             const sku = items[i].getSKU(
                 schema,
                 opt.normalize.festivized[which],
@@ -257,6 +259,8 @@ export default class Inventory {
             );
 
             const attributes = highValue(items[i], opt, paints, strangeParts);
+            const attributesCount = Object.keys(attributes).length;
+
             const isUses =
                 sku === '241;6'
                     ? isFull(items[i], 'duel')
@@ -264,7 +268,7 @@ export default class Inventory {
                     ? isFull(items[i], 'noise')
                     : null;
 
-            if (Object.keys(attributes).length === 0 && isUses === null) {
+            if (attributesCount === 0 && isUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });
             } else {
                 if (isUses !== null) {

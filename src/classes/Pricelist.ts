@@ -241,8 +241,9 @@ export default class Pricelist extends EventEmitter {
         search = search.toLowerCase();
 
         const match: Entry[] = [];
+        const pricesCount = this.prices.length;
 
-        for (let i = 0; i < this.prices.length; i++) {
+        for (let i = 0; i < pricesCount; i++) {
             const entry = this.prices[i];
 
             if (enabledOnly && entry.enabled === false) {
@@ -282,10 +283,12 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             // No match
             return null;
-        } else if (match.length === 1) {
+        } else if (matchCount === 1) {
             // Found one that matched the search
             return match[0];
         }
@@ -681,7 +684,9 @@ export default class Pricelist extends EventEmitter {
             let pricesChanged = false;
 
             // Go through our pricelist
-            for (let i = 0; i < old.length; i++) {
+            const oldCount = old.length;
+
+            for (let i = 0; i < oldCount; i++) {
                 // const currPrice = old[i];
                 if (old[i].autoprice !== true) {
                     continue;
@@ -692,8 +697,11 @@ export default class Pricelist extends EventEmitter {
                 const name = this.schema.getName(item, true);
 
                 // Go through pricestf prices
-                for (let j = 0; j < groupedPrices[item.quality][item.killstreak].length; j++) {
-                    const newestPrice = groupedPrices[item.quality][item.killstreak][j];
+                const grouped = groupedPrices[item.quality][item.killstreak];
+                const groupedCount = grouped.length;
+
+                for (let j = 0; j < groupedCount; j++) {
+                    const newestPrice = grouped[j];
 
                     if (name === newestPrice.name) {
                         // Found matching items
@@ -800,7 +808,9 @@ export default class Pricelist extends EventEmitter {
     static groupPrices(prices: Item[]): Group {
         const sorted: Group = {};
 
-        for (let i = 0; i < prices.length; i++) {
+        const pricesCount = prices.length;
+
+        for (let i = 0; i < pricesCount; i++) {
             if (prices[i].buy === null) {
                 continue;
             }

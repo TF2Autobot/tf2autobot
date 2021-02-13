@@ -578,24 +578,26 @@ export default class ManagerCommands {
                     return false;
                 });
 
-                if (pricelist.length > 0) {
+                const pricelistCount = pricelist.length;
+
+                if (pricelistCount > 0) {
                     clearTimeout(this.executeTimeout);
                     this.lastExecutedTime = dayjs().valueOf();
 
                     log.debug(
                         'Checking listings for ' +
-                            pluralize('item', pricelist.length, true) +
+                            pluralize('item', pricelistCount, true) +
                             ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
                         steamID,
-                        'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
+                        'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
 
                     this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
                     this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000;
-                    this.pricelistLength = pricelist.length;
+                    this.pricelistLength = pricelistCount;
                     this.executed = true;
                     this.executeTimeout = setTimeout(() => {
                         this.lastExecutedTime = null;
@@ -606,8 +608,8 @@ export default class ManagerCommands {
 
                     await this.bot.listings.recursiveCheckPricelist(pricelist, true);
 
-                    log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-                    this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+                    log.debug('Done checking ' + pluralize('item', pricelistCount, true));
+                    this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelistCount, true));
                 } else {
                     this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
                 }

@@ -200,14 +200,16 @@ function getSummary(
         }
     }
 
-    if (summary.length === 0) {
+    const summaryCount = summary.length;
+
+    if (summaryCount === 0) {
         return 'nothing';
     }
 
     if (withLink) {
         let left = 0;
-        if (summary.length > 15) {
-            left = summary.length - 15;
+        if (summaryCount > 15) {
+            left = summaryCount - 15;
             summary.splice(15);
         }
 

@@ -72,24 +72,28 @@ export default class RequestCommands {
             sales.sort((a, b) => b.date - a.date);
 
             let left = 0;
-            const SalesList: string[] = [];
-            for (let i = 0; i < sales.length; i++) {
-                if (SalesList.length > 40) {
+            const salesList: string[] = [];
+            const salesListCount = salesList.length;
+            const salesCount = sales.length;
+
+            for (let i = 0; i < salesCount; i++) {
+                if (salesListCount > 40) {
                     left += 1;
                 } else {
-                    SalesList.push(
-                        `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sales[i].date).utc().toString()}\n• Item: ${
-                            sales[i].itemHistory
-                        }\n• Seller: ${sales[i].seller}\n• Was selling for: ${
-                            sales[i].keys > 0 ? `${sales[i].keys} keys,` : ''
-                        } ${sales[i].metal} ref`
+                    const sale = sales[i];
+                    salesList.push(
+                        `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sale.date).utc().toString()}\n• Item: ${
+                            sale.itemHistory
+                        }\n• Seller: ${sale.seller}\n• Was selling for: ${sale.keys > 0 ? `${sale.keys} keys,` : ''} ${
+                            sale.metal
+                        } ref`
                     );
                 }
             }
 
             let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
                 salesData.name
-            }\n\n-----${SalesList.join('\n\n-----')}`;
+            }\n\n-----${salesList.join('\n\n-----')}`;
             if (left > 0) {
                 reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
             }

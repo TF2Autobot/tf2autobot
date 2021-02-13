@@ -157,7 +157,9 @@ export default class MiscCommands {
 
             const max = (opt as Stock).maximumItems;
 
-            for (let i = 0; i < parsed.length; i++) {
+            const parsedCount = parsed.length;
+
+            for (let i = 0; i < parsedCount; i++) {
                 if (stock.length > max) {
                     left += parsed[i].amount;
                 } else {
@@ -243,9 +245,10 @@ export default class MiscCommands {
         });
 
         const stock: string[] = [];
+        const itemsCount = items.length;
 
-        if (items.length > 0) {
-            for (let i = 0; i < items.length; i++) {
+        if (itemsCount > 0) {
+            for (let i = 0; i < itemsCount; i++) {
                 stock.push(`${items[i].name}: ${items[i].amount}`);
             }
         }

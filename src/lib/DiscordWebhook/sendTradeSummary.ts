@@ -166,17 +166,18 @@ export default async function sendTradeSummary(
         acceptedTradeSummary.embeds[0].fields.length = 0;
 
         const separate = itemList.split('@');
+        const separateCount = separate.length;
 
         let newSentences = '';
         let j = 1;
         separate.forEach((sentence, i) => {
-            if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
+            if ((newSentences.length >= 800 || i === separateCount - 1) && !(j > 4)) {
                 acceptedTradeSummary.embeds[0].fields.push({
                     name: `__Item list ${j}__`,
                     value: newSentences.replace(/@/g, '')
                 });
 
-                if (i === separate.length - 1 || j > 4) {
+                if (i === separateCount - 1 || j > 4) {
                     acceptedTradeSummary.embeds[0].fields.push(statusElement);
                 }
 

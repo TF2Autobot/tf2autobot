@@ -29,14 +29,16 @@ export default function duped(meta: Meta, bot: Bot): { note: string; name: strin
         );
     });
 
+    const dupedItemsNameTheirCount = dupedItemsNameTheir.length;
+
     return {
         note: bot.options.manualReview.duped.note
             ? `🟫_DUPED_ITEMS - ${bot.options.manualReview.duped.note}`
                   .replace(/%itemsName%/g, dupedItemsNameTheir.join(', '))
-                  .replace(/%isOrAre%/g, pluralize('is', dupedItemsNameTheir.length))
+                  .replace(/%isOrAre%/g, pluralize('is', dupedItemsNameTheirCount))
             : `🟫_DUPED_ITEMS - ${dupedItemsNameTheir.join(', ')} ${pluralize(
                   'is',
-                  dupedItemsNameTheir.length
+                  dupedItemsNameTheirCount
               )} appeared to be duped.`,
         // Default note: %itemsName% is|are appeared to be duped.
         name: dupedItemsNameOur

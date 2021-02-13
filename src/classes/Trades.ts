@@ -63,14 +63,18 @@ export default class Trades {
         }
 
         // Go through all sent / received offers and mark the items as in trade
-        for (let i = 0; i < activeOrCreatedNeedsConfirmation.length; i++) {
+        const activeCount = activeOrCreatedNeedsConfirmation.length;
+
+        for (let i = 0; i < activeCount; i++) {
             const id = activeOrCreatedNeedsConfirmation[i];
 
             const offerData: UnknownDictionaryKnownValues =
                 pollData.offerData === undefined ? {} : pollData.offerData[id] || {};
 
             const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
-            for (let i = 0; i < items.length; i++) {
+            const itemsCount = items.length;
+
+            for (let i = 0; i < itemsCount; i++) {
                 this.setItemInTrade = items[i].assetid;
             }
         }
@@ -103,6 +107,7 @@ export default class Trades {
         });
 
         const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
+        const activeReceivedCount = activeReceived.length;
 
         if (
             filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
@@ -111,19 +116,21 @@ export default class Trades {
             this.pollCount = 0;
 
             const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
+            const activeSentCount = activeSent.length;
 
             const receivedOnHold = received.filter(
                 offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
             ).length;
+
             const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow'])
                 .length;
 
             log.verbose(
-                `${activeReceived.length} incoming ${pluralize('offer', activeReceived.length)}${
-                    activeReceived.length > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
-                } (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
+                `${activeReceivedCount} incoming ${pluralize('offer', activeReceivedCount)}${
+                    activeReceivedCount > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
+                } (${receivedOnHold} on hold), ${activeSentCount} outgoing ${pluralize(
                     'offer',
-                    activeSent.length
+                    activeSentCount
                 )} (${sentOnHold} on hold)`
             );
         }
@@ -1123,7 +1130,9 @@ export default class Trades {
         }
 
         const copy = b.slice(0);
-        for (let i = 0; i < a.length; i++) {
+        const aCount = a.length;
+
+        for (let i = 0; i < aCount; i++) {
             // Find index of matching item
             const index = copy.findIndex(item => Trades.itemEquals(item, a[i]));
             if (index === -1) {
