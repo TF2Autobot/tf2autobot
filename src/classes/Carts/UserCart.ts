@@ -221,17 +221,15 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            if (!this.isWeaponsAsCurrencyEnabled) {
-                log.debug('Iteration', {
-                    index: index,
-                    key: key,
-                    amount: amount,
-                    remaining: remaining,
-                    reverse: reverse,
-                    hasReversed: hasReversed,
-                    picked: pickedCurrencies
-                });
-            }
+            log.debug('Iteration', {
+                index: index,
+                key: key,
+                amount: amount,
+                remaining: remaining,
+                reverse: reverse,
+                hasReversed: hasReversed,
+                picked: pickedCurrencies
+            });
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -271,14 +269,12 @@ export default class UserCart extends Cart {
                     pickedCurrencies[skus[i]] -= amount;
                 }
 
-                if (!this.isWeaponsAsCurrencyEnabled) {
-                    log.debug('Iteration', {
-                        sku: skus[i],
-                        amount: amount,
-                        remaining: remaining,
-                        picked: pickedCurrencies
-                    });
-                }
+                log.debug('Iteration', {
+                    sku: skus[i],
+                    amount: amount,
+                    remaining: remaining,
+                    picked: pickedCurrencies
+                });
             }
         }
 
@@ -865,6 +861,12 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            log.debug('Added changes:', {
+                                whose: whose,
+                                sku: sku,
+                                assetid: currencies[sku][i]
+                            });
+
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 
