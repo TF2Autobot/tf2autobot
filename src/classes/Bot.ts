@@ -561,7 +561,7 @@ export default class Bot {
                     log.debug('Setting Steam API Key to schema');
                     this.botManager.setAPIKeyForSchema = this.manager.apiKey;
 
-                    this.manager.pollInterval = 1000;
+                    this.manager.pollInterval = 30 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();
