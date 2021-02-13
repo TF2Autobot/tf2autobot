@@ -163,12 +163,8 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 currencyValues[sku] = 0.5;
                 pickedCurrencies[sku] = 0;
             });
@@ -225,17 +221,15 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            if (!this.bot.handler.isWeaponsAsCurrency.enable) {
-                log.debug('Iteration', {
-                    index: index,
-                    key: key,
-                    amount: amount,
-                    remaining: remaining,
-                    reverse: reverse,
-                    hasReversed: hasReversed,
-                    picked: pickedCurrencies
-                });
-            }
+            log.debug('Iteration', {
+                index: index,
+                key: key,
+                amount: amount,
+                remaining: remaining,
+                reverse: reverse,
+                hasReversed: hasReversed,
+                picked: pickedCurrencies
+            });
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -275,14 +269,12 @@ export default class UserCart extends Cart {
                     pickedCurrencies[skus[i]] -= amount;
                 }
 
-                if (!this.bot.handler.isWeaponsAsCurrency.enable) {
-                    log.debug('Iteration', {
-                        sku: skus[i],
-                        amount: amount,
-                        remaining: remaining,
-                        picked: pickedCurrencies
-                    });
-                }
+                log.debug('Iteration', {
+                    sku: skus[i],
+                    amount: amount,
+                    remaining: remaining,
+                    picked: pickedCurrencies
+                });
             }
         }
 
@@ -303,12 +295,8 @@ export default class UserCart extends Cart {
         const refined = ourDict['5002;6'] || 0;
 
         let addWeapons = 0;
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += ourDict[sku] || 0;
             });
         }
@@ -341,12 +329,8 @@ export default class UserCart extends Cart {
         const refined = theirDict['5002;6'] || 0;
 
         let addWeapons = 0;
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += theirDict[sku] || 0;
             });
         }
@@ -541,16 +525,10 @@ export default class UserCart extends Cart {
         // Figure out who the buyer is and what they are offering
         const { isBuyer, currencies } = this.getCurrencies;
 
-        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
-            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll
-            : [];
-
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, weapons) < 1) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, []) < 1) {
             // Buyer can't afford the items
             theirInventory.clearFetch();
 
@@ -576,7 +554,9 @@ export default class UserCart extends Cart {
 
         // Figure out what pure to pick from the buyer, and if change is needed
 
-        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(weapons);
+        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(
+            this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+        );
 
         const buyerCurrenciesCount = {
             '5021;6': buyerCurrenciesWithAssetids['5021;6'].length,
@@ -585,8 +565,8 @@ export default class UserCart extends Cart {
             '5000;6': buyerCurrenciesWithAssetids['5000;6'].length
         };
 
-        if (opt.miscSettings.weaponsAsCurrency.enable) {
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 buyerCurrenciesCount[sku] = buyerCurrenciesWithAssetids[sku].length;
             });
         }
@@ -594,8 +574,8 @@ export default class UserCart extends Cart {
         const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys);
 
         let addWeapons = 0;
-        if (opt.miscSettings.weaponsAsCurrency.enable) {
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
             });
         }
@@ -831,7 +811,10 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(weapons); // sellerInventory
+            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(
+                this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+            ); // sellerInventory
+
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -851,8 +834,8 @@ export default class UserCart extends Cart {
                 } else if (sku === '5000;6') {
                     value = 1;
                 } else if (
-                    this.bot.handler.isWeaponsAsCurrency.enable &&
-                    weapons.includes(sku) &&
+                    this.isWeaponsAsCurrencyEnabled &&
+                    this.weapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
@@ -878,6 +861,12 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
+                            log.debug('Added changes:', {
+                                whose: whose,
+                                sku: sku,
+                                assetid: currencies[sku][i]
+                            });
+
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 
