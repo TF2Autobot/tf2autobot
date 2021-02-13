@@ -183,7 +183,7 @@ export default class Pricelist extends EventEmitter {
         schema: SchemaManager.Schema,
         private socketManager: SocketManager,
         private options?: Options,
-        private readonly bot?: Bot
+        private bot?: Bot
     ) {
         super();
         this.schema = schema;
@@ -512,7 +512,7 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    setPricelist(prices: EntryData[]): Promise<void> {
+    setPricelist(prices: EntryData[], bot: Bot): Promise<void> {
         if (prices.length !== 0) {
             const errors = validator(
                 {
@@ -536,6 +536,8 @@ export default class Pricelist extends EventEmitter {
                 throw new Error(errors.join(', '));
             }
         }
+
+        this.bot = bot;
 
         this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
         return this.setupPricelist();
@@ -680,14 +682,23 @@ export default class Pricelist extends EventEmitter {
 
             let pricesChanged = false;
 
+            const inventory = this.bot.inventoryManager.getInventory;
+
             // Go through our pricelist
             for (let i = 0; i < old.length; i++) {
-                // const currPrice = old[i];
-                if (old[i].autoprice !== true) {
+                const currPrice = old[i];
+                if (currPrice.autoprice !== true) {
                     continue;
                 }
 
-                const item = SKU.fromString(old[i].sku);
+                if (/;[p][0-9]+/.test(currPrice.sku)) {
+                    continue;
+                }
+
+                const isInStock = inventory.findBySKU(currPrice.sku, true).length > 0;
+                const keyPrice = this.getKeyPrice.metal;
+
+                const item = SKU.fromString(currPrice.sku);
                 // PricesTF includes "The" in the name, we need to use proper name
                 const name = this.schema.getName(item, true);
 
@@ -697,13 +708,40 @@ export default class Pricelist extends EventEmitter {
 
                     if (name === newestPrice.name) {
                         // Found matching items
-                        if (old[i].time < newestPrice.time) {
+                        if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
-                            old[i].buy = new Currencies(newestPrice.buy);
-                            old[i].sell = new Currencies(newestPrice.sell);
-                            old[i].time = newestPrice.time;
+                            if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
+                                // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
+                                if (
+                                    new Currencies(newestPrice.buy).toValue(keyPrice) <
+                                    new Currencies(newestPrice.sell).toValue(keyPrice)
+                                ) {
+                                    // if new buying price is less than new selling price
+                                    // update only the buying price.
+                                    currPrice.buy = new Currencies(newestPrice.buy);
 
-                            pricesChanged = true;
+                                    if (
+                                        new Currencies(newestPrice.sell).toValue(keyPrice) >
+                                        currPrice.sell.toValue(keyPrice)
+                                    ) {
+                                        // If new selling price is more than old, then update selling price too
+                                        currPrice.sell = new Currencies(newestPrice.sell);
+                                    }
+
+                                    currPrice.time = newestPrice.time;
+                                    pricesChanged = true;
+
+                                    // else, just don't update for now.
+                                }
+                            } else {
+                                // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
+                                // update everything
+                                currPrice.buy = new Currencies(newestPrice.buy);
+                                currPrice.sell = new Currencies(newestPrice.sell);
+                                currPrice.time = newestPrice.time;
+
+                                pricesChanged = true;
+                            }
                         }
 
                         // When a match is found remove it from the ptf pricelist
@@ -725,6 +763,7 @@ export default class Pricelist extends EventEmitter {
         }
 
         const match = this.getPrice(data.sku);
+
         if (data.sku === '5021;6') {
             /**New received prices data.*/
             const newPTF = {
@@ -765,11 +804,36 @@ export default class Pricelist extends EventEmitter {
         }
 
         if (match !== null && match.autoprice) {
-            match.buy = new Currencies(data.buy);
-            match.sell = new Currencies(data.sell);
-            match.time = data.time;
+            const isInStock = this.bot.inventoryManager.getInventory.findBySKU(match.sku, true).length > 0;
+            const keyPrice = this.getKeyPrice.metal;
 
-            this.priceChanged(match.sku, match);
+            if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
+                // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
+                if (new Currencies(data.buy).toValue(keyPrice) < new Currencies(data.sell).toValue(keyPrice)) {
+                    // if new buying price is less than new selling price
+                    // update only the buying price.
+                    match.buy = new Currencies(data.buy);
+
+                    if (new Currencies(data.sell).toValue(keyPrice) > match.sell.toValue(keyPrice)) {
+                        // If new selling price is more than old, then update selling price too
+                        match.sell = new Currencies(data.sell);
+                    }
+
+                    match.time = data.time;
+                    this.priceChanged(match.sku, match);
+
+                    // else, just don't update for now.
+                }
+            } else {
+                // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
+                // update everything
+
+                match.buy = new Currencies(data.buy);
+                match.sell = new Currencies(data.sell);
+                match.time = data.time;
+
+                this.priceChanged(match.sku, match);
+            }
 
             if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
                 const time = dayjs()

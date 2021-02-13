@@ -483,6 +483,9 @@ export const optionsSchema: jsonschema.Schema = {
         pricelist: {
             type: 'object',
             properties: {
+                onlyUpdateBuyingPriceIfInStock: {
+                    $ref: '#/definitions/only-enable'
+                },
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -508,6 +511,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'onlyUpdateBuyingPriceIfInStock',
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',

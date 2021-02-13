@@ -65,6 +65,9 @@ export const DEFAULTS = {
     },
 
     pricelist: {
+        onlyUpdateBuyingPriceIfInStock: {
+            enable: false
+        },
         filterCantAfford: {
             enable: false
         },
@@ -1027,6 +1030,7 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
+    onlyUpdateBuyingPriceIfInStock?: OnlyEnable;
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
