@@ -121,6 +121,19 @@ export default abstract class Cart {
         return this.offer;
     }
 
+    get weapons(): string[] {
+        return this.bot.handler.isWeaponsAsCurrency.withUncraft ? this.craftAll.concat(this.uncraftAll) : this.craftAll;
+    }
+
+    get dontHaveWeaponsInPricelist(): boolean {
+        const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
+        return this.weapons.some(sku => skusFromPricelist.includes(sku)) === false;
+    }
+
+    get isWeaponsAsCurrencyEnabled(): boolean {
+        return this.bot.options.miscSettings.weaponsAsCurrency.enable && this.dontHaveWeaponsInPricelist;
+    }
+
     // getCancelReason(): string | undefined {
     //     return this.cancelReason;
     // }
