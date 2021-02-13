@@ -1518,14 +1518,26 @@ export default class MyHandler extends Handler {
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_ESCROW_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
+                if (isContainsHighValue) {
+                    return {
+                        action: 'skip',
+                        reason: '⬜_ESCROW_CHECK_FAILED',
+                        meta: {
+                            uniqueReasons: filterReasons(uniqueReasons),
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                } else {
+                    return {
+                        action: 'skip',
+                        reason: '⬜_ESCROW_CHECK_FAILED',
+                        meta: {
+                            uniqueReasons: filterReasons(uniqueReasons),
+                            reasons: wrongAboutOffer,
+                            highValue: highValueMeta(input)
+                        }
+                    };
+                }
             } else {
                 // Do nothing. bad.
                 return;
@@ -1560,14 +1572,26 @@ export default class MyHandler extends Handler {
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_BANNED_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
+                if (isContainsHighValue) {
+                    return {
+                        action: 'skip',
+                        reason: '⬜_BANNED_CHECK_FAILED',
+                        meta: {
+                            uniqueReasons: filterReasons(uniqueReasons),
+                            reasons: wrongAboutOffer,
+                            highValue: highValueMeta(input)
+                        }
+                    };
+                } else {
+                    return {
+                        action: 'skip',
+                        reason: '⬜_BANNED_CHECK_FAILED',
+                        meta: {
+                            uniqueReasons: filterReasons(uniqueReasons),
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
             } else {
                 // Do nothing. bad.
                 return;
@@ -1759,15 +1783,26 @@ export default class MyHandler extends Handler {
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
-                return {
-                    action: 'skip',
-                    reason: 'REVIEW',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        highValue: highValueMeta(input)
-                    }
-                };
+                if (isContainsHighValue) {
+                    return {
+                        action: 'skip',
+                        reason: 'REVIEW',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer,
+                            highValue: highValueMeta(input)
+                        }
+                    };
+                } else {
+                    return {
+                        action: 'skip',
+                        reason: 'REVIEW',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
             }
         }
 
