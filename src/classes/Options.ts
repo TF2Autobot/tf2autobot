@@ -65,6 +65,9 @@ export const DEFAULTS = {
     },
 
     pricelist: {
+        filterCantAfford: {
+            enable: false
+        },
         autoRemoveIntentSell: {
             enable: false
         },
@@ -98,6 +101,7 @@ export const DEFAULTS = {
         showStockChanges: false,
         showTimeTakenInMS: false,
         showItemPrices: true,
+        showPureInEmoji: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -1023,6 +1027,7 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
+    filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
@@ -1052,6 +1057,7 @@ interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showItemPrices?: boolean;
+    showPureInEmoji?: boolean;
     customText?: TradeSummaryCustomText;
 }
 

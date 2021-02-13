@@ -37,8 +37,6 @@ import Inventory, { Dict } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
-import { statsCommand } from '../Commands/functions/status';
-
 import { Paths } from '../../resources/paths';
 import log from '../../lib/logger';
 import * as files from '../../lib/files';
@@ -52,7 +50,7 @@ import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
 
 export default class MyHandler extends Handler {
-    private readonly commands: Commands;
+    readonly commands: Commands;
 
     readonly autokeys: Autokeys;
 
@@ -189,13 +187,25 @@ export default class MyHandler extends Handler {
 
     private poller: NodeJS.Timeout;
 
-    private refreshInterval: NodeJS.Timeout;
+    private refreshTimeout: NodeJS.Timeout;
 
     private sendStatsInterval: NodeJS.Timeout;
 
     private classWeaponsTimeout: NodeJS.Timeout;
 
     private autoRefreshListingsInterval: NodeJS.Timeout;
+
+    private alreadyExecutedRefreshlist = false;
+
+    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
+        this.alreadyExecutedRefreshlist = setExecuted;
+    }
+
+    private executedDelayTime = 30 * 60 * 1000;
+
+    set setRefreshlistExecutedDelay(delay: number) {
+        this.executedDelayTime = delay;
+    }
 
     constructor(bot: Bot, private priceSource: Pricer) {
         super(bot);
@@ -273,7 +283,7 @@ export default class MyHandler extends Handler {
         this.sendStats();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
-        this.refreshInterval = setTimeout(() => {
+        this.refreshTimeout = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
     }
@@ -283,8 +293,8 @@ export default class MyHandler extends Handler {
             clearInterval(this.poller);
         }
 
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
+        if (this.refreshTimeout) {
+            clearInterval(this.refreshTimeout);
         }
 
         if (this.sendStatsInterval) {
@@ -424,76 +434,140 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        this.autoRefreshListingsInterval = setInterval(() => {
-            log.debug('Running automatic check for missing listings...');
+        let pricelistLength = 0;
 
-            const listingsSKUs: string[] = [];
-            this.bot.listingManager.getListings(async err => {
-                if (err) {
+        this.autoRefreshListingsInterval = setInterval(
+            () => {
+                if (this.alreadyExecutedRefreshlist) {
+                    log.debug(
+                        '❌ Just recently executed refreshlist command, will not run automatic check for missing listings.'
+                    );
                     setTimeout(() => {
                         this.enableAutoRefreshListings();
-                    }, 30 * 60 * 1000);
+                    }, this.executedDelayTime);
+
+                    // reset to default
+                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
                     clearInterval(this.autoRefreshListingsInterval);
                     return;
                 }
 
-                this.bot.listingManager.listings.forEach(listing => {
-                    let listingSKU = listing.getSKU();
-                    if (listing.intent === 1) {
-                        if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                            listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                        }
+                pricelistLength = 0;
+                log.debug('Running automatic check for missing listings...');
 
-                        if (this.bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                            listingSKU = listingSKU.replace(';festive', '');
-                        }
-
-                        if (this.bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                            listingSKU = listingSKU.replace(';strange', '');
-                        }
-                    } else {
-                        if (/;[p][0-9]+/.test(listingSKU)) {
-                            listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                        }
+                const listingsSKUs: string[] = [];
+                this.bot.listingManager.getListings(async err => {
+                    if (err) {
+                        setTimeout(() => {
+                            this.enableAutoRefreshListings();
+                        }, 30 * 60 * 1000);
+                        clearInterval(this.autoRefreshListingsInterval);
+                        return;
                     }
 
-                    listingsSKUs.push(listingSKU);
-                });
+                    const inventory = this.bot.inventoryManager;
+                    const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable;
 
-                // Remove duplicate elements
-                const newlistingsSKUs: string[] = [];
-                listingsSKUs.forEach(sku => {
-                    if (!newlistingsSKUs.includes(sku)) {
-                        newlistingsSKUs.push(sku);
-                    }
-                });
+                    this.bot.listingManager.listings.forEach(listing => {
+                        let listingSKU = listing.getSKU();
+                        if (listing.intent === 1) {
+                            if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                            }
 
-                const inventory = this.bot.inventoryManager;
-                const pricelist = this.bot.pricelist.getPrices.filter(entry => {
-                    // Filter our pricelist to only the items that are missing.
-                    const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                    const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+                            if (this.bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                                listingSKU = listingSKU.replace(';festive', '');
+                            }
 
-                    if (
-                        ([0, 2].includes(entry.intent) && amountCanBuy <= 0) ||
-                        ([1, 2].includes(entry.intent) && amountCanSell <= 0)
-                    ) {
-                        // Ignore items we can't buy or sell
+                            if (
+                                this.bot.options.normalize.strangeAsSecondQuality.our &&
+                                listingSKU.includes(';strange')
+                            ) {
+                                listingSKU = listingSKU.replace(';strange', '');
+                            }
+                        } else {
+                            if (/;[p][0-9]+/.test(listingSKU)) {
+                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                            }
+                        }
+
+                        const match = this.bot.pricelist.getPrice(listingSKU);
+
+                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
+                            const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+                            if (!canAffordToBuy) {
+                                // Listing for buying exist but we can't afford to buy, remove.
+                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                                listing.remove();
+                            }
+                        }
+
+                        listingsSKUs.push(listingSKU);
+                    });
+
+                    // Remove duplicate elements
+                    const newlistingsSKUs: string[] = [];
+                    listingsSKUs.forEach(sku => {
+                        if (!newlistingsSKUs.includes(sku)) {
+                            newlistingsSKUs.push(sku);
+                        }
+                    });
+
+                    const pricelist = this.bot.pricelist.getPrices.filter(entry => {
+                        // First find out if lising for this item from bptf already exist.
+                        const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
+
+                        if (!isExist) {
+                            // undefined - listing does not exist but item is in the pricelist
+
+                            // Get amountCanBuy and amountCanSell (already cover intent and so on)
+                            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
+                            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+
+                            if (
+                                (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
+                                amountCanSell > 0
+                            ) {
+                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                                // return this entry
+                                log.debug(
+                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
+                                );
+                                return true;
+                            }
+
+                            // Else ignore
+                            return false;
+                        }
+
+                        // Else if listing already exist on backpack.tf, ignore
                         return false;
+                    });
+
+                    if (pricelist.length > 0) {
+                        log.debug(
+                            'Checking listings for ' +
+                                pluralize('item', pricelist.length, true) +
+                                ` [${pricelist.map(entry => entry.sku).join(', ')}]...`
+                        );
+
+                        await this.bot.listings.recursiveCheckPricelist(
+                            pricelist,
+                            true,
+                            pricelist.length > 1000 ? 1000 : 200
+                        );
+
+                        log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
+                    } else {
+                        log.debug('❌ Nothing to refresh.');
                     }
 
-                    return entry.enabled && !newlistingsSKUs.includes(entry.sku);
+                    pricelistLength = pricelist.length;
                 });
-
-                if (pricelist.length > 0) {
-                    log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
-                    await this.bot.listings.recursiveCheckPricelist(pricelist, true);
-                    log.debug('✅ Done checking ' + pluralize('item', pricelist.length, true));
-                } else {
-                    log.debug('❌ Nothing to refresh.');
-                }
-            });
-        }, 30 * 60 * 1000);
+            },
+            // set check every 60 minutes if pricelist to check was more than 1000 items
+            pricelistLength > 1000 ? 60 * 60 * 1000 : 30 * 60 * 1000
+        );
     }
 
     disableAutoRefreshListings(): void {
@@ -527,7 +601,7 @@ export default class MyHandler extends Handler {
                         sendStats(this.bot);
                     } else {
                         this.bot.getAdmins.forEach(admin => {
-                            statsCommand(admin, this.bot);
+                            this.commands.useStatsCommand(admin);
                         });
                     }
                 }

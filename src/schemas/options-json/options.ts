@@ -9,7 +9,8 @@ export const optionsSchema: jsonschema.Schema = {
             items: {
                 type: 'string'
             },
-            required: false
+            required: false,
+            additionalProperties: false
         },
         'only-enable': {
             type: 'object',
@@ -18,7 +19,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['enable']
+            required: ['enable'],
+            additionalProperties: false
         },
         'normalize-which': {
             type: 'object',
@@ -65,7 +67,8 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable-declineReply'
                 }
             },
-            required: ['autoAcceptOverpay', 'autoDecline']
+            required: ['autoAcceptOverpay', 'autoDecline'],
+            additionalProperties: false
         },
         'only-ignore-failed': {
             type: 'object',
@@ -84,7 +87,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string'
                 }
             },
-            required: ['note']
+            required: ['note'],
+            additionalProperties: false
         },
         'discord-webhook-misc': {
             type: 'object',
@@ -102,7 +106,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory']
+            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory'],
+            additionalProperties: false
         },
         'discord-webhook-enable-url': {
             type: 'object',
@@ -115,7 +120,8 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
                 }
             },
-            required: ['enable', 'url']
+            required: ['enable', 'url'],
+            additionalProperties: false
         },
         'only-customReply-reply': {
             type: 'object',
@@ -141,7 +147,8 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string'
                 }
             },
-            required: ['disabled']
+            required: ['disabled'],
+            additionalProperties: false
         },
         'only-enable-customReply-disabled': {
             type: 'object',
@@ -223,7 +230,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['disabled', 'dontHave', 'have']
+                    required: ['disabled', 'dontHave', 'have'],
+                    additionalProperties: false
                 }
             },
             required: ['enable', 'customReply'],
@@ -401,7 +409,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'weaponsAsCurrency',
                 'checkUses',
                 'game'
-            ]
+            ],
+            additionalProperties: false
         },
         sendAlert: {
             properties: {
@@ -424,7 +433,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         }
                     },
-                    required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable']
+                    required: ['lowPure', 'failedToAdd', 'failedToUpdate', 'failedToDisable'],
+                    additionalProperties: false
                 },
                 backpackFull: {
                     type: 'boolean'
@@ -442,7 +452,8 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         }
                     },
-                    required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake']
+                    required: ['gotDisabled', 'receivedNotInPricelist', 'tryingToTake'],
+                    additionalProperties: false
                 },
                 autoRemoveIntentSellFailed: {
                     type: 'boolean'
@@ -472,6 +483,9 @@ export const optionsSchema: jsonschema.Schema = {
         pricelist: {
             type: 'object',
             properties: {
+                filterCantAfford: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoRemoveIntentSell: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -493,7 +507,14 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['autoRemoveIntentSell', 'autoAddInvalidItems', 'autoAddPaintedItems', 'priceAge']
+            required: [
+                'filterCantAfford',
+                'autoRemoveIntentSell',
+                'autoAddInvalidItems',
+                'autoAddPaintedItems',
+                'priceAge'
+            ],
+            additionalProperties: false
         },
         bypass: {
             type: 'object',
@@ -524,6 +545,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 showItemPrices: {
+                    type: 'boolean'
+                },
+                showPureInEmoji: {
                     type: 'boolean'
                 },
                 customText: {
@@ -572,11 +596,26 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['spells', 'strangeParts', 'killstreaker', 'sheen', 'painted'],
+                    required: [
+                        'summary',
+                        'asked',
+                        'offered',
+                        'profitFromOverpay',
+                        'lossFromUnderpay',
+                        'timeTaken',
+                        'keyRate',
+                        'pureStock',
+                        'totalItems',
+                        'spells',
+                        'strangeParts',
+                        'killstreaker',
+                        'sheen',
+                        'painted'
+                    ],
                     additionalProperties: false
                 }
             },
-            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices'],
+            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices', 'showPureInEmoji', 'customText'],
             additionalProperties: false
         },
 
@@ -899,19 +938,20 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 invalidItems: {
-                    allOf: [
-                        {
-                            properties: {
-                                givePrice: {
-                                    type: 'boolean'
-                                }
-                            },
-                            required: ['givePrice']
+                    type: 'object',
+                    properties: {
+                        givePrice: {
+                            type: 'boolean'
                         },
-                        {
-                            $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
+                        autoAcceptOverpay: {
+                            type: 'boolean'
+                        },
+                        autoDecline: {
+                            $ref: '#/definitions/only-enable-declineReply'
                         }
-                    ]
+                    },
+                    required: ['givePrice', 'autoAcceptOverpay', 'autoDecline'],
+                    additionalProperties: false
                 },
                 disabledItems: {
                     $ref: '#/definitions/only-autoAcceptOverpay-autoDecline'
@@ -1052,14 +1092,26 @@ export const optionsSchema: jsonschema.Schema = {
                             $ref: 'array-string-url'
                         },
                         misc: {
-                            allOf: [
-                                {
-                                    $ref: '#/definitions/discord-webhook-misc'
+                            type: 'object',
+                            properties: {
+                                showQuickLinks: {
+                                    type: 'boolean'
                                 },
-                                {
-                                    $ref: '#/definitions/only-note'
+                                showKeyRate: {
+                                    type: 'boolean'
+                                },
+                                showPureStock: {
+                                    type: 'boolean'
+                                },
+                                showInventory: {
+                                    type: 'boolean'
+                                },
+                                note: {
+                                    type: 'string'
                                 }
-                            ]
+                            },
+                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory', 'note'],
+                            additionalProperties: false
                         },
                         mentionOwner: {
                             properties: {
@@ -1082,71 +1134,97 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 offerReview: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/discord-webhook-enable-url'
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
                         },
-                        {
+                        url: {
+                            type: 'string',
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                        },
+                        mentionInvalidValue: {
+                            type: 'boolean'
+                        },
+                        isMention: {
+                            type: 'boolean'
+                        },
+                        misc: {
                             type: 'object',
                             properties: {
-                                mentionInvalidValue: {
-                                    type: 'boolean'
-                                },
-                                isMention: {
-                                    type: 'boolean'
-                                },
-                                misc: {
-                                    $ref: '#/definitions/discord-webhook-misc'
-                                }
-                            },
-                            required: ['mentionInvalidValue', 'isMention', 'misc']
-                        }
-                    ]
-                },
-                messages: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/discord-webhook-enable-url'
-                        },
-                        {
-                            type: 'object',
-                            properties: {
-                                isMention: {
-                                    type: 'boolean'
-                                },
                                 showQuickLinks: {
                                     type: 'boolean'
-                                }
-                            },
-                            required: ['isMention', 'showQuickLinks']
-                        }
-                    ]
-                },
-                priceUpdate: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/discord-webhook-enable-url'
-                        },
-                        {
-                            $ref: '#/definitions/only-note'
-                        }
-                    ]
-                },
-                sendAlert: {
-                    allOf: [
-                        {
-                            $ref: '#/definitions/discord-webhook-enable-url'
-                        },
-                        {
-                            type: 'object',
-                            properties: {
-                                isMention: {
+                                },
+                                showKeyRate: {
+                                    type: 'boolean'
+                                },
+                                showPureStock: {
+                                    type: 'boolean'
+                                },
+                                showInventory: {
                                     type: 'boolean'
                                 }
                             },
-                            required: ['isMention']
+                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory'],
+                            additionalProperties: false
                         }
-                    ]
+                    },
+                    required: ['enable', 'url', 'mentionInvalidValue', 'isMention', 'misc'],
+                    additionalProperties: false
+                },
+                messages: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            type: 'string',
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                        },
+                        isMention: {
+                            type: 'boolean'
+                        },
+                        showQuickLinks: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable', 'url', 'isMention', 'showQuickLinks'],
+                    additionalProperties: false
+                },
+                priceUpdate: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            type: 'string',
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                        },
+                        note: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['enable', 'url', 'note'],
+                    additionalProperties: false
+                },
+                sendAlert: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            type: 'string',
+                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                        },
+                        isMention: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable', 'url', 'isMention'],
+                    additionalProperties: false
                 },
                 sendStats: {
                     $ref: '#/definitions/discord-webhook-enable-url'
@@ -1277,6 +1355,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'success',
                 'successEscrow',
                 'decline',
+                'accepted',
                 'tradedAway',
                 'failedMobileConfirmation',
                 'cancelledActiveForAwhile',
@@ -1449,7 +1528,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 owner: {
-                    $ref: '#/definitions/only-enable-customReply-disabled'
+                    $ref: '#/definitions/only-enabled-disabled-reply'
                 },
                 discord: {
                     type: 'object',
@@ -1458,7 +1537,17 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         customReply: {
-                            $ref: '#/definitions/only-disabled'
+                            type: 'object',
+                            properties: {
+                                disabled: {
+                                    type: 'string'
+                                },
+                                reply: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['disabled', 'reply'],
+                            additionalProperties: false
                         },
                         inviteURL: {
                             type: 'string'
@@ -1731,88 +1820,88 @@ export const optionsSchema: jsonschema.Schema = {
                             $ref: '#/definitions/painted-properties'
                         },
                         'A Deep Commitment to Purple': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'A Distinctive Lack of Hue': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         "A Mann's Mint": {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'After Eight': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Aged Moustache Grey': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'An Extraordinary Abundance of Tinge': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Australium Gold': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Color No. 216-190-216': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Dark Salmon Injustice': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Drably Olive': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Indubitably Green': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Mann Co. Orange': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         Muskelmannbraun: {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         "Noble Hatter's Violet": {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Peculiarly Drab Tincture': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Pink as Hell': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Radigan Conagher Brown': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'The Bitter Taste of Defeat and Lime': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         "The Color of a Gentlemann's Business Pants": {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Ye Olde Rustic Colour': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         "Zepheniah's Greed": {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'An Air of Debonair': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Balaclavas Are Forever': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         "Operator's Overalls": {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Cream Spirit': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Team Spirit': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'The Value of Teamwork': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         },
                         'Waterlogged Lab Coat': {
-                            type: '#/definitions/painted-properties'
+                            $ref: '#/definitions/painted-properties'
                         }
                     },
                     required: [
