@@ -770,18 +770,11 @@ export default class MyHandler extends Handler {
                 )}`
             );
 
-            if (isContainsHighValue) {
-                return {
-                    action: 'accept',
-                    reason: 'ADMIN',
-                    meta: { highValue: highValueMeta(input) }
-                };
-            } else {
-                return {
-                    action: 'accept',
-                    reason: 'ADMIN'
-                };
-            }
+            return {
+                action: 'accept',
+                reason: 'ADMIN',
+                meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+            };
         }
 
         // check if the trade is valid
@@ -864,18 +857,11 @@ export default class MyHandler extends Handler {
                     4
                 )}`
             );
-            if (isContainsHighValue) {
-                return {
-                    action: 'accept',
-                    reason: 'GIFT',
-                    meta: { highValue: highValueMeta(input) }
-                };
-            } else {
-                return {
-                    action: 'accept',
-                    reason: 'GIFT'
-                };
-            }
+            return {
+                action: 'accept',
+                reason: 'GIFT',
+                meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+            };
         } else if (offer.itemsToGive.length === 0 && offer.itemsToReceive.length > 0 && !isGift) {
             if (opt.bypass.giftWithoutMessage.allow) {
                 offer.log(
@@ -883,18 +869,11 @@ export default class MyHandler extends Handler {
                     'is a gift offer without any offer message, but allowed to be accepted, accepting...'
                 );
 
-                if (isContainsHighValue) {
-                    return {
-                        action: 'accept',
-                        reason: 'GIFT',
-                        meta: { highValue: highValueMeta(input) }
-                    };
-                } else {
-                    return {
-                        action: 'accept',
-                        reason: 'GIFT'
-                    };
-                }
+                return {
+                    action: 'accept',
+                    reason: 'GIFT',
+                    meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+                };
             } else {
                 offer.log('info', 'is a gift offer without any offer message, declining...');
                 return { action: 'decline', reason: 'GIFT_NO_NOTE' };
@@ -1518,26 +1497,15 @@ export default class MyHandler extends Handler {
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
-                if (isContainsHighValue) {
-                    return {
-                        action: 'skip',
-                        reason: '⬜_ESCROW_CHECK_FAILED',
-                        meta: {
-                            uniqueReasons: filterReasons(uniqueReasons),
-                            reasons: wrongAboutOffer
-                        }
-                    };
-                } else {
-                    return {
-                        action: 'skip',
-                        reason: '⬜_ESCROW_CHECK_FAILED',
-                        meta: {
-                            uniqueReasons: filterReasons(uniqueReasons),
-                            reasons: wrongAboutOffer,
-                            highValue: highValueMeta(input)
-                        }
-                    };
-                }
+                return {
+                    action: 'skip',
+                    reason: '⬜_ESCROW_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer,
+                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                    }
+                };
             } else {
                 // Do nothing. bad.
                 return;
@@ -1572,26 +1540,15 @@ export default class MyHandler extends Handler {
             const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
 
             if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
-                if (isContainsHighValue) {
-                    return {
-                        action: 'skip',
-                        reason: '⬜_BANNED_CHECK_FAILED',
-                        meta: {
-                            uniqueReasons: filterReasons(uniqueReasons),
-                            reasons: wrongAboutOffer,
-                            highValue: highValueMeta(input)
-                        }
-                    };
-                } else {
-                    return {
-                        action: 'skip',
-                        reason: '⬜_BANNED_CHECK_FAILED',
-                        meta: {
-                            uniqueReasons: filterReasons(uniqueReasons),
-                            reasons: wrongAboutOffer
-                        }
-                    };
-                }
+                return {
+                    action: 'skip',
+                    reason: '⬜_BANNED_CHECK_FAILED',
+                    meta: {
+                        uniqueReasons: filterReasons(uniqueReasons),
+                        reasons: wrongAboutOffer,
+                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                    }
+                };
             } else {
                 // Do nothing. bad.
                 return;
@@ -1703,26 +1660,15 @@ export default class MyHandler extends Handler {
                     );
                 }
 
-                if (isContainsHighValue) {
-                    return {
-                        action: 'accept',
-                        reason: 'VALID_WITH_OVERPAY',
-                        meta: {
-                            uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer,
-                            highValue: highValueMeta(input)
-                        }
-                    };
-                } else {
-                    return {
-                        action: 'accept',
-                        reason: 'VALID_WITH_OVERPAY',
-                        meta: {
-                            uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer
-                        }
-                    };
-                }
+                return {
+                    action: 'accept',
+                    reason: 'VALID_WITH_OVERPAY',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer,
+                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                    }
+                };
             } else if (
                 opt.offerReceived.invalidValue.autoDecline.enable &&
                 isInvalidValue &&
@@ -1783,26 +1729,15 @@ export default class MyHandler extends Handler {
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
-                if (isContainsHighValue) {
-                    return {
-                        action: 'skip',
-                        reason: 'REVIEW',
-                        meta: {
-                            uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer,
-                            highValue: highValueMeta(input)
-                        }
-                    };
-                } else {
-                    return {
-                        action: 'skip',
-                        reason: 'REVIEW',
-                        meta: {
-                            uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer
-                        }
-                    };
-                }
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer,
+                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                    }
+                };
             }
         }
 
@@ -1831,18 +1766,11 @@ export default class MyHandler extends Handler {
             );
         }
 
-        if (isContainsHighValue) {
-            return {
-                action: 'accept',
-                reason: 'VALID',
-                meta: { highValue: highValueMeta(input) }
-            };
-        } else {
-            return {
-                action: 'accept',
-                reason: 'VALID'
-            };
-        }
+        return {
+            action: 'accept',
+            reason: 'VALID',
+            meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+        };
     }
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
