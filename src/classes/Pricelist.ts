@@ -714,9 +714,9 @@ export default class Pricelist extends EventEmitter {
                                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                                 if (
                                     new Currencies(newestPrice.buy).toValue(keyPrice) <
-                                    new Currencies(newestPrice.sell).toValue(keyPrice)
+                                    new Currencies(currPrice.sell).toValue(keyPrice)
                                 ) {
-                                    // if new buying price is less than new selling price
+                                    // if new buying price is less than current selling price
                                     // update only the buying price.
                                     currPrice.buy = new Currencies(newestPrice.buy);
 
@@ -809,8 +809,8 @@ export default class Pricelist extends EventEmitter {
 
             if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
-                if (new Currencies(data.buy).toValue(keyPrice) < new Currencies(data.sell).toValue(keyPrice)) {
-                    // if new buying price is less than new selling price
+                if (new Currencies(data.buy).toValue(keyPrice) < new Currencies(match.sell).toValue(keyPrice)) {
+                    // if new buying price is less than current selling price
                     // update only the buying price.
                     match.buy = new Currencies(data.buy);
 
