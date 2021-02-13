@@ -171,6 +171,11 @@ export default class AdminCart extends Cart {
                     }
                 }
 
+                if (this.isEmpty) {
+                    theirInventory.clearFetch();
+                    return reject(alteredMessages.join(', '));
+                }
+
                 offer.data('dict', { our: this.our, their: this.their });
 
                 this.offer = offer;
