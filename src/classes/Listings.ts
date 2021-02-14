@@ -5,13 +5,13 @@ import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies';
+import sleepasync from 'sleep-async';
 import Bot from './Bot';
 import { Entry } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import { updateOptionsCommand } from './Commands/functions/options';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
@@ -134,7 +134,7 @@ export default class Listings {
                 this.enableAutoRelist();
             } else if (this.isAutoRelistEnabled && info.premium === 1) {
                 log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
-                updateOptionsCommand(null, '!config autobump=false', this.bot);
+                this.bot.handler.commands.useUpdateOptionsCommand(null, '!config miscSettings.autobump.enable=false');
             }
         });
     }
@@ -182,7 +182,10 @@ export default class Listings {
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
         const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
-        const inventory = this.bot.inventoryManager.getInventory;
+        const invManager = this.bot.inventoryManager;
+        const inventory = invManager.getInventory;
+
+        const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
@@ -203,6 +206,15 @@ export default class Listings {
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 // We are not buying / selling more, remove the listing
                 listing.remove();
+            } else if (
+                match !== null &&
+                listing.intent === 0 &&
+                !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
+                isFilterCantAfford
+            ) {
+                // Listing for buying exist but we can't afford to buy, remove.
+                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                listing.remove();
             } else {
                 if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
                     // do nothing
@@ -214,8 +226,13 @@ export default class Listings {
                         inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                     );
 
-                    if (listing.details !== newDetails || listing.promoted !== match.promoted) {
+                    if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
                         // Listing details or promoted don't match, update listing with new details and price
+                        log.debug('updated listing', {
+                            sku: sku,
+                            intent: listing.intent
+                        });
+
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                         listing.update({
@@ -236,7 +253,11 @@ export default class Listings {
 
             // TODO: Check if we are already making a listing for same type of item + intent
 
-            if (!hasBuyListing && amountCanBuy > 0 && !/;[p][0-9]+/.test(sku)) {
+            const canAffordToBuy = isFilterCantAfford
+                ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
+                : true;
+
+            if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
                 // We have no buy order and we can buy more items, create buy listing
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
@@ -292,6 +313,30 @@ export default class Listings {
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
                 const pricelist = this.bot.pricelist.getPrices
+                    .filter(entry => {
+                        if (!this.bot.options.pricelist.filterCantAfford.enable) {
+                            // if this option is set to false, then always return true
+                            return true;
+                        }
+
+                        // Filter pricelist to only items we can sell and we can afford to buy
+
+                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true);
+                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false);
+
+                        if (
+                            (amountCanBuy > 0 &&
+                                inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
+                            amountCanSell > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // return this entry
+                            return true;
+                        }
+
+                        // Else ignore
+                        return false;
+                    })
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
@@ -323,32 +368,31 @@ export default class Listings {
         });
     }
 
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false): Promise<void> {
+    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
-            const iteration = (): void => {
+            const iteration = async (): Promise<void> => {
                 if (pricelist.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    setTimeout(() => {
-                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
-                        index++;
-                        iteration();
-                    }, 200);
+                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                    index++;
+                    await sleepasync().Promise.sleep(time ? time : 200);
+                    void iteration();
                 } else {
                     setImmediate(() => {
                         this.checkBySKU(pricelist[index].sku, pricelist[index]);
                         index++;
-                        iteration();
+                        void iteration();
                     });
                 }
             };
 
-            iteration();
+            void iteration();
         });
     }
 
@@ -467,6 +511,10 @@ export default class Listings {
                 const toJoin: string[] = [];
 
                 const optD = this.bot.options.details.highValue;
+                const cT = optD.customText;
+                const cTSpt = optD.customText.separator;
+                const cTEnd = optD.customText.ender;
+
                 const optR = this.bot.options.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
@@ -475,7 +523,7 @@ export default class Listings {
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
                         if (attachment === 's' && optD.showSpells) {
-                            highValueString += '| 🎃 Spells: ';
+                            highValueString += `${cTSpt}${cT.spells} `;
 
                             hv.s.forEach(pSKU => {
                                 const name = getKeyByValue(spellsData, pSKU);
@@ -495,10 +543,10 @@ export default class Listings {
                                     ? optD.showSheen
                                     : optD.showPainted && opt.normalize.painted.our)
                             ) {
-                                if (attachment === 'sp') highValueString += '| 🎰 Parts: ';
-                                else if (attachment === 'ke') highValueString += '| 🤩 Killstreaker: ';
-                                else if (attachment === 'ks') highValueString += '| ✨ Sheen: ';
-                                else if (attachment === 'p') highValueString += '| 🎨 Painted: ';
+                                if (attachment === 'sp') highValueString += `${cTSpt}${cT.strangeParts} `;
+                                else if (attachment === 'ke') highValueString += `${cTSpt}${cT.killstreaker} `;
+                                else if (attachment === 'ks') highValueString += `${cTSpt}${cT.sheen} `;
+                                else if (attachment === 'p') highValueString += `${cTSpt}${cT.painted} `;
 
                                 for (const pSKU in hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
@@ -540,12 +588,12 @@ export default class Listings {
                                 } else {
                                     highValueString = highValueString.replace(
                                         attachment === 'sp'
-                                            ? '| 🎰 Parts: '
+                                            ? `${cTSpt}${cT.strangeParts} `
                                             : attachment === 'ke'
-                                            ? '| 🤩 Killstreaker: '
+                                            ? `${cTSpt}${cT.killstreaker} `
                                             : attachment === 'ks'
-                                            ? '| ✨ Sheen: '
-                                            : '| 🎨 Painted: ',
+                                            ? `${cTSpt}${cT.sheen} `
+                                            : `${cTSpt}${cT.painted} `,
                                         ''
                                     );
                                 }
@@ -554,7 +602,7 @@ export default class Listings {
                         }
                     });
 
-                    highValueString += highValueString.length > 0 ? ' |' : '';
+                    highValueString += highValueString.length > 0 ? cTEnd : '';
                 }
             }
         }

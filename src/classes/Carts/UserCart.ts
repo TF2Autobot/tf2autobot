@@ -62,7 +62,9 @@ export default class UserCart extends Cart {
 
                 log.debug(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
-                for (let i = 0; i < result.length; i++) {
+                const resultCount = result.length;
+
+                for (let i = 0; i < resultCount; i++) {
                     if (result[i] === true) {
                         // Found duped item
                         return Promise.reject('offer contains duped items');
@@ -163,21 +165,15 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 currencyValues[sku] = 0.5;
-            });
-
-            weapons.forEach(sku => {
                 pickedCurrencies[sku] = 0;
             });
         }
 
         const skus = Object.keys(currencyValues);
+        const skusCount = skus.length;
 
         let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
 
@@ -197,7 +193,7 @@ export default class UserCart extends Cart {
                 amount = buyerCurrencies[key];
             }
 
-            if (index === skus.length - 1) {
+            if (index === skusCount - 1) {
                 // If we are at the end of the list and have a postive remaining amount,
                 // then we need to loop the other way and pick the value that will make the remaining 0 or negative
 
@@ -228,17 +224,15 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            if (!this.bot.handler.isWeaponsAsCurrency.enable) {
-                log.debug('Iteration', {
-                    index: index,
-                    key: key,
-                    amount: amount,
-                    remaining: remaining,
-                    reverse: reverse,
-                    hasReversed: hasReversed,
-                    picked: pickedCurrencies
-                });
-            }
+            log.debug('Iteration', {
+                index: index,
+                key: key,
+                amount: amount,
+                remaining: remaining,
+                reverse: reverse,
+                hasReversed: hasReversed,
+                picked: pickedCurrencies
+            });
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -263,29 +257,29 @@ export default class UserCart extends Cart {
             log.debug('Picked too much value, removing...');
 
             // Removes unnecessary items
-            for (let i = 0; i < skus.length; i++) {
-                if (pickedCurrencies[skus[i]] === undefined) {
+            for (let i = 0; i < skusCount; i++) {
+                const sku = skus[i];
+
+                if (pickedCurrencies[sku] === undefined) {
                     continue;
                 }
 
-                let amount = Math.floor(Math.abs(remaining) / currencyValues[skus[i]]);
-                if (pickedCurrencies[skus[i]] < amount) {
-                    amount = pickedCurrencies[skus[i]];
+                let amount = Math.floor(Math.abs(remaining) / currencyValues[sku]);
+                if (pickedCurrencies[sku] < amount) {
+                    amount = pickedCurrencies[sku];
                 }
 
                 if (amount >= 1) {
-                    remaining += amount * currencyValues[skus[i]];
-                    pickedCurrencies[skus[i]] -= amount;
+                    remaining += amount * currencyValues[sku];
+                    pickedCurrencies[sku] -= amount;
                 }
 
-                if (!this.bot.handler.isWeaponsAsCurrency.enable) {
-                    log.debug('Iteration', {
-                        sku: skus[i],
-                        amount: amount,
-                        remaining: remaining,
-                        picked: pickedCurrencies
-                    });
-                }
+                log.debug('Iteration', {
+                    sku: skus[i],
+                    amount: amount,
+                    remaining: remaining,
+                    picked: pickedCurrencies
+                });
             }
         }
 
@@ -306,12 +300,8 @@ export default class UserCart extends Cart {
         const refined = ourDict['5002;6'] || 0;
 
         let addWeapons = 0;
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += ourDict[sku] || 0;
             });
         }
@@ -344,12 +334,8 @@ export default class UserCart extends Cart {
         const refined = theirDict['5002;6'] || 0;
 
         let addWeapons = 0;
-        if (this.bot.handler.isWeaponsAsCurrency.enable) {
-            const weapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll;
-
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += theirDict[sku] || 0;
             });
         }
@@ -400,20 +386,21 @@ export default class UserCart extends Cart {
 
             let amount = this.getOurCount(sku);
             const ourAssetids = ourInventory.findBySKU(sku, true);
+            const ourAssetidsCount = ourAssetids.length;
 
-            if (amount > ourAssetids.length) {
-                amount = ourAssetids.length;
+            if (amount > ourAssetidsCount) {
+                amount = ourAssetidsCount;
 
                 // Remove the item from the cart
                 this.removeOurItem(sku, Infinity);
 
-                if (ourAssetids.length === 0) {
+                if (ourAssetidsCount === 0) {
                     alteredMessage =
                         "I don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
                 } else {
                     alteredMessage =
                         'I only have ' +
-                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetids.length, true);
+                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetidsCount, true);
 
                     // Add the max amount to the cart
                     this.addOurItem(sku, amount);
@@ -482,19 +469,20 @@ export default class UserCart extends Cart {
 
             let amount = this.getTheirCount(sku);
             const theirAssetids = theirInventory.findBySKU(sku, true);
+            const theirAssetidsCount = theirAssetids.length;
 
-            if (amount > theirAssetids.length) {
+            if (amount > theirAssetidsCount) {
                 // Remove the item from the cart
                 this.removeTheirItem(sku, Infinity);
 
-                if (theirAssetids.length === 0) {
+                if (theirAssetidsCount === 0) {
                     alteredMessage =
                         "you don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
                 } else {
-                    amount = theirAssetids.length;
+                    amount = theirAssetidsCount;
                     alteredMessage =
                         'you only have ' +
-                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false), theirAssetids.length, true);
+                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false), theirAssetidsCount, true);
 
                     // Add the max amount to the cart
                     this.addTheirItem(sku, amount);
@@ -544,16 +532,10 @@ export default class UserCart extends Cart {
         // Figure out who the buyer is and what they are offering
         const { isBuyer, currencies } = this.getCurrencies;
 
-        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
-            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
-                ? this.craftAll.concat(this.uncraftAll)
-                : this.craftAll
-            : [];
-
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, weapons) < 1) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, []) < 1) {
             // Buyer can't afford the items
             theirInventory.clearFetch();
 
@@ -579,7 +561,9 @@ export default class UserCart extends Cart {
 
         // Figure out what pure to pick from the buyer, and if change is needed
 
-        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(weapons);
+        const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(
+            this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+        );
 
         const buyerCurrenciesCount = {
             '5021;6': buyerCurrenciesWithAssetids['5021;6'].length,
@@ -588,8 +572,8 @@ export default class UserCart extends Cart {
             '5000;6': buyerCurrenciesWithAssetids['5000;6'].length
         };
 
-        if (opt.miscSettings.weaponsAsCurrency.enable) {
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 buyerCurrenciesCount[sku] = buyerCurrenciesWithAssetids[sku].length;
             });
         }
@@ -597,8 +581,8 @@ export default class UserCart extends Cart {
         const required = this.getRequired(buyerCurrenciesCount, currencies, this.canUseKeys);
 
         let addWeapons = 0;
-        if (opt.miscSettings.weaponsAsCurrency.enable) {
-            weapons.forEach(sku => {
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
                 addWeapons += (required.currencies[sku] !== undefined ? required.currencies[sku] : 0) * 0.5;
             });
         }
@@ -622,25 +606,28 @@ export default class UserCart extends Cart {
 
             const amount = this.our[sku];
             const assetids = ourInventory.findBySKU(sku, true);
+            const ourAssetidsCount = assetids.length;
 
             this.ourItemsCount += amount;
             let missing = amount;
             let isSkipped = false;
 
-            for (let i = 0; i < assetids.length; i++) {
-                if (opt.miscSettings.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetids[i])) {
+            for (let i = 0; i < ourAssetidsCount; i++) {
+                const assetid = assetids[i];
+
+                if (opt.miscSettings.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetid)) {
                     isSkipped = true;
                     continue;
                 }
                 const isAdded = offer.addMyItem({
                     appid: 440,
                     contextid: '2',
-                    assetid: assetids[i]
+                    assetid: assetid
                 });
 
                 if (isAdded) {
                     // The item was added to the offer
-                    whichAssetIds.our.push(assetids[i]);
+                    whichAssetIds.our.push(assetid);
                     missing--;
                     if (missing === 0) {
                         // We added all the items
@@ -705,20 +692,24 @@ export default class UserCart extends Cart {
                 assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
             }
 
-            for (let i = 0; i < assetids.length; i++) {
+            const theirAssetidsCount = assetids.length;
+
+            for (let i = 0; i < theirAssetidsCount; i++) {
+                const assetid = assetids[i];
+
                 const isAdded = offer.addTheirItem({
                     appid: 440,
                     contextid: '2',
-                    assetid: assetids[i]
+                    assetid: assetid
                 });
 
                 if (isAdded) {
                     missing--;
 
-                    whichAssetIds.their.push(assetids[i]);
+                    whichAssetIds.their.push(assetid);
 
                     if (addToDupeCheckList) {
-                        assetidsToCheck.push(assetids[i]);
+                        assetidsToCheck.push(assetid);
                     }
 
                     if (missing === 0) {
@@ -790,7 +781,7 @@ export default class UserCart extends Cart {
                                     getHighValue[whichIs].isMention = true;
                                 }
 
-                                if (item.hv[attachment] !== undefined) {
+                                if (attachment !== 's' && item.hv[attachment] !== undefined) {
                                     for (const pSku in item.hv[attachment]) {
                                         if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;
@@ -801,6 +792,8 @@ export default class UserCart extends Cart {
                                     }
                                 }
                             });
+                        } else if (item.isFullUses !== undefined) {
+                            getHighValue[whichIs].items[sku] = { isFull: item.isFullUses };
                         }
                     });
             }
@@ -834,7 +827,10 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].value += change;
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
-            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(weapons); // sellerInventory
+            const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(
+                this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+            ); // sellerInventory
+
             // We won't use keys when giving change
             delete currencies['5021;6'];
 
@@ -854,8 +850,8 @@ export default class UserCart extends Cart {
                 } else if (sku === '5000;6') {
                     value = 1;
                 } else if (
-                    this.bot.handler.isWeaponsAsCurrency.enable &&
-                    weapons.includes(sku) &&
+                    this.isWeaponsAsCurrencyEnabled &&
+                    this.weapons.includes(sku) &&
                     this.bot.pricelist.getPrice(sku, true) === null
                 ) {
                     value = 0.5;
@@ -864,23 +860,33 @@ export default class UserCart extends Cart {
                 if (change / value >= 1) {
                     const whose = isBuyer ? 'their' : 'our';
 
-                    for (let i = 0; i < currencies[sku].length; i++) {
+                    const currenciesCount = currencies[sku].length;
+
+                    for (let i = 0; i < currenciesCount; i++) {
+                        const assetid = currencies[sku][i];
+
                         if (
                             !isBuyer &&
                             opt.miscSettings.skipItemsInTrade.enable &&
-                            this.bot.trades.isInTrade(currencies[sku][i])
+                            this.bot.trades.isInTrade(assetid)
                         ) {
                             isSkipped = true;
                             continue;
                         }
                         const isAdded = offer[isBuyer ? 'addTheirItem' : 'addMyItem']({
-                            assetid: currencies[sku][i],
+                            assetid: assetid,
                             appid: 440,
                             contextid: '2',
                             amount: 1
                         });
 
                         if (isAdded) {
+                            log.debug('Added changes:', {
+                                whose: whose,
+                                sku: sku,
+                                assetid: currencies[sku][i]
+                            });
+
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 
@@ -931,17 +937,17 @@ export default class UserCart extends Cart {
 
             let isSkipped = false;
 
-            for (let i = 0; i < buyerCurrenciesWithAssetids[sku].length; i++) {
-                if (
-                    isBuyer &&
-                    opt.miscSettings.skipItemsInTrade.enable &&
-                    this.bot.trades.isInTrade(buyerCurrenciesWithAssetids[sku][i])
-                ) {
+            const buyerCurrenciesWithAssetidsCount = buyerCurrenciesWithAssetids[sku].length;
+
+            for (let i = 0; i < buyerCurrenciesWithAssetidsCount; i++) {
+                const assetid = buyerCurrenciesWithAssetids[sku][i];
+
+                if (isBuyer && opt.miscSettings.skipItemsInTrade.enable && this.bot.trades.isInTrade(assetid)) {
                     isSkipped = true;
                     continue;
                 }
                 const isAdded = offer[isBuyer ? 'addMyItem' : 'addTheirItem']({
-                    assetid: buyerCurrenciesWithAssetids[sku][i],
+                    assetid: assetid,
                     appid: 440,
                     contextid: '2',
                     amount: 1

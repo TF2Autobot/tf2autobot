@@ -9,7 +9,7 @@ assignees: ''
 
 <!--
 Your feature may already be requested!
-Please search on the [issue tracker](https://github.com/idinium96/tf2autobot/search?type=Issues) before creating one.
+Please search on the [issue tracker](https://github.com/TF2Autobot/tf2autobot/search?type=Issues) before creating one.
 -->
 
 **Is your feature request related to a problem? Please describe.**

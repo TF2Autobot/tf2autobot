@@ -59,10 +59,15 @@ export const DEFAULTS = {
             tryingToTake: true
         },
         autoRemoveIntentSellFailed: true,
-        autoAddPaintedItems: true
+        autoAddPaintedItems: true,
+        failedAccept: true,
+        unableToProcessOffer: true
     },
 
     pricelist: {
+        filterCantAfford: {
+            enable: false
+        },
         autoRemoveIntentSell: {
             enable: false
         },
@@ -95,7 +100,63 @@ export const DEFAULTS = {
     tradeSummary: {
         showStockChanges: false,
         showTimeTakenInMS: false,
-        showItemPrices: true
+        showItemPrices: true,
+        showPureInEmoji: false,
+        customText: {
+            summary: {
+                steamChat: 'Summary',
+                discordWebhook: '__**Summary**__'
+            },
+            asked: {
+                steamChat: '• Asked:',
+                discordWebhook: '**• Asked:**'
+            },
+            offered: {
+                steamChat: '• Offered:',
+                discordWebhook: '**• Offered:**'
+            },
+            profitFromOverpay: {
+                steamChat: '📈 Profit from overpay:',
+                discordWebhook: '📈 ***Profit from overpay:***'
+            },
+            lossFromUnderpay: {
+                steamChat: '📉 Loss from underpay:',
+                discordWebhook: '📉 ***Loss from underpay:***'
+            },
+            timeTaken: {
+                steamChat: '⏱ Time taken:',
+                discordWebhook: '⏱ **Time taken:**'
+            },
+            keyRate: {
+                steamChat: '🔑 Key rate:',
+                discordWebhook: '🔑 Key rate:'
+            },
+            pureStock: {
+                steamChat: '💰 Pure stock:',
+                discordWebhook: '💰 Pure stock:'
+            },
+            totalItems: {
+                steamChat: '🎒 Total items:',
+                discordWebhook: '🎒 Total items:'
+            },
+            spells: '🎃 Spells:',
+            strangeParts: '🎰 Parts:',
+            killstreaker: '🔥 Killstreaker:',
+            sheen: '✨ Sheen:',
+            painted: '🎨 Painted:'
+        }
+    },
+
+    steamChat: {
+        customInitializer: {
+            acceptedTradeSummary: '/me',
+            review: '',
+            message: {
+                onReceive: '/quote',
+                toOtherAdmins: '/quote'
+                // toTradePartner is in commands.message.customReply.fromOwner
+            }
+        }
     },
 
     highValue: {
@@ -129,7 +190,16 @@ export const DEFAULTS = {
             showStrangeParts: false,
             showKillstreaker: true,
             showSheen: true,
-            showPainted: true
+            showPainted: true,
+            customText: {
+                spells: '🎃 Spells:',
+                strangeParts: '🎰 Parts:',
+                killstreaker: '🤩 Killstreaker:',
+                sheen: '✨ Sheen:',
+                painted: '🎨 Painted:',
+                separator: '| ',
+                ender: ' |'
+            }
         },
         uses: {
             duel: '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)',
@@ -937,6 +1007,8 @@ interface SendAlert extends OnlyEnable {
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
     autoAddPaintedItems?: boolean;
+    failedAccept?: boolean;
+    unableToProcessOffer?: boolean;
 }
 
 interface AutokeysAlert {
@@ -955,6 +1027,7 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
+    filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
@@ -984,6 +1057,47 @@ interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showItemPrices?: boolean;
+    showPureInEmoji?: boolean;
+    customText?: TradeSummaryCustomText;
+}
+
+interface TradeSummaryCustomText {
+    summary: SteamDiscord;
+    asked: SteamDiscord;
+    offered: SteamDiscord;
+    profitFromOverpay: SteamDiscord;
+    lossFromUnderpay: SteamDiscord;
+    timeTaken: SteamDiscord;
+    keyRate: SteamDiscord;
+    pureStock: SteamDiscord;
+    totalItems: SteamDiscord;
+    spells: string;
+    strangeParts: string;
+    killstreaker: string;
+    sheen: string;
+    painted: string;
+}
+
+interface SteamDiscord {
+    steamChat?: string;
+    discordWebhook?: string;
+}
+
+// ----------- Steam Chat ------------
+
+interface SteamChat {
+    customInitializer?: CustomInitializer;
+}
+
+interface CustomInitializer {
+    acceptedTradeSummary?: string;
+    review?: string;
+    message?: CustomInitializerMessage;
+}
+
+interface CustomInitializerMessage {
+    onReceive?: string;
+    toOtherAdmins?: string;
 }
 
 // ------------ HighValue ------------
@@ -1019,11 +1133,22 @@ interface Details {
 }
 
 interface ShowHighValue {
-    showSpells: boolean;
-    showStrangeParts: boolean;
-    showKillstreaker: boolean;
-    showSheen: boolean;
-    showPainted: boolean;
+    showSpells?: boolean;
+    showStrangeParts?: boolean;
+    showKillstreaker?: boolean;
+    showSheen?: boolean;
+    showPainted?: boolean;
+    customText?: HighValueCustomText;
+}
+
+interface HighValueCustomText {
+    spells?: string;
+    strangeParts?: string;
+    killstreaker?: string;
+    sheen?: string;
+    painted?: string;
+    separator?: string;
+    ender?: string;
 }
 
 interface UsesDetails {
@@ -1612,6 +1737,7 @@ export interface JsonOptions {
     pricelist?: Pricelist;
     bypass?: Bypass;
     tradeSummary?: TradeSummary;
+    steamChat?: SteamChat;
     highValue?: HighValue;
     normalize?: Normalize;
     details?: Details;
@@ -1640,7 +1766,8 @@ export default interface Options extends JsonOptions {
     groups?: string[];
     alerts?: string[];
 
-    pricestfAPIToken?: string;
+    customPricerApiToken?: string;
+    customPricerUrl?: string;
 
     skipBPTFTradeofferURL?: boolean;
     skipUpdateProfileSettings?: boolean;
@@ -1764,7 +1891,8 @@ export function loadOptions(options?: Options): Options {
         groups: getOption('groups', ['103582791464047777', '103582791462300957'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
-        pricestfAPIToken: getOption('pricestfAPIToken', '', String, incomingOptions),
+        customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
+        customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),

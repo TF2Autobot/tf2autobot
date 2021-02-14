@@ -4,15 +4,16 @@ import Currencies from 'tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
-import { requestCheck, RequestCheckResponse } from '../../../../lib/ptf-api';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
+import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
-    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
+    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items },
+    requestCheck: RequestCheckFn
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
@@ -186,7 +187,9 @@ export default function updateListings(
             let msg =
                 'I have received a high-valued items which is not in my pricelist.' + '\n\nItem information:\n\n- ';
 
-            for (let i = 0; i < highValue.theirItems.length; i++) {
+            const theirCount = highValue.theirItems.length;
+
+            for (let i = 0; i < theirCount; i++) {
                 if (highValue.theirItems[i].includes(name)) {
                     msg += `${highValue.isDisableSKU[i]}: ` + highValue.theirItems[i];
                 }
@@ -264,7 +267,9 @@ export default function updateListings(
                         ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
                         '\n\nItem information:\n\n- ';
 
-                    for (let i = 0; i < highValue.theirItems.length; i++) {
+                    const theirCount = highValue.theirItems.length;
+
+                    for (let i = 0; i < theirCount; i++) {
                         if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
                     }
 

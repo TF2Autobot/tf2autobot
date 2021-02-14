@@ -178,7 +178,9 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     let hasCaseCollection = false;
     let skin: string | null = null;
 
-    for (let i = 0; i < item.descriptions.length; i++) {
+    const descriptionsCount = item.descriptions.length;
+
+    for (let i = 0; i < descriptionsCount; i++) {
         if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
             hasCaseCollection = true;
         } else if (
@@ -243,7 +245,9 @@ function getOutput(
 ): { target: number | null; output: number | null; outputQuality: number | null } {
     let index = -1;
 
-    for (let i = 0; i < item.descriptions.length; i++) {
+    const descriptionsCount = item.descriptions.length;
+
+    for (let i = 0; i < descriptionsCount; i++) {
         if (
             item.descriptions[i].value ==
             'You will receive all of the following outputs once all of the inputs are fulfilled.'
@@ -330,6 +334,8 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         throw new Error('Could not find target for item "' + item.market_hash_name + '"');
     }
 
+    const itemHashNameLength = item.market_hash_name.length;
+
     if (
         [
             6527, // general
@@ -364,22 +370,19 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         // Killstreak Kit
         return schema.getItemByItemName(
             item.market_hash_name
-                .substring(10, item.market_hash_name.length - 3)
+                .substring(10, itemHashNameLength - 3)
                 .replace('Killstreak', '')
                 .trim()
         ).defindex;
     } else if (defindex === 6523) {
         // Specialized Killstreak Kit
-        return schema.getItemByItemName(item.market_hash_name.substring(22, item.market_hash_name.length - 3).trim())
-            .defindex;
+        return schema.getItemByItemName(item.market_hash_name.substring(22, itemHashNameLength - 3).trim()).defindex;
     } else if (defindex === 6526) {
         // Professional Killstreak Kit
-        return schema.getItemByItemName(item.market_hash_name.substring(23, item.market_hash_name.length - 3).trim())
-            .defindex;
+        return schema.getItemByItemName(item.market_hash_name.substring(23, itemHashNameLength - 3).trim()).defindex;
     } else if (defindex === 9258) {
         // Unusualifier
-        return schema.getItemByItemName(item.market_hash_name.substring(7, item.market_hash_name.length - 12).trim())
-            .defindex;
+        return schema.getItemByItemName(item.market_hash_name.substring(7, itemHashNameLength - 12).trim()).defindex;
     }
 
     return null;
@@ -458,14 +461,16 @@ function getCrateSeries(item: EconItem): number | null {
         }
     };
 
-    if (defindex === 5022 && Object.keys(crates.is5022).includes(item.market_hash_name)) {
-        series = crates.is5022[item.market_hash_name];
-    } else if (defindex === 5041 && Object.keys(crates.is5041).includes(item.market_hash_name)) {
-        series = crates.is5041[item.market_hash_name];
-    } else if (defindex === 5045 && Object.keys(crates.is5045).includes(item.market_hash_name)) {
-        series = crates.is5045[item.market_hash_name];
-    } else if (defindex === 5068 && Object.keys(crates.is5068).includes(item.market_hash_name)) {
-        series = crates.is5068[item.market_hash_name];
+    const itemHashMarketName = item.market_hash_name;
+
+    if (defindex === 5022 && Object.keys(crates.is5022).includes(itemHashMarketName)) {
+        series = crates.is5022[itemHashMarketName];
+    } else if (defindex === 5041 && Object.keys(crates.is5041).includes(itemHashMarketName)) {
+        series = crates.is5041[itemHashMarketName];
+    } else if (defindex === 5045 && Object.keys(crates.is5045).includes(itemHashMarketName)) {
+        series = crates.is5045[itemHashMarketName];
+    } else if (defindex === 5068 && Object.keys(crates.is5068).includes(itemHashMarketName)) {
+        series = crates.is5068[itemHashMarketName];
     }
 
     if (series !== null) {
@@ -488,8 +493,9 @@ function getPainted(
     }
 
     const descriptions = item.descriptions;
+    const descriptionCount = descriptions.length;
 
-    for (let i = 0; i < descriptions.length; i++) {
+    for (let i = 0; i < descriptionCount; i++) {
         if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
 

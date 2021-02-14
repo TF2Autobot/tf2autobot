@@ -108,8 +108,17 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         const offerMessage = offer.message;
         const list = t.listItems(offer, bot, items, true);
 
+        const cT = bot.options.tradeSummary.customText;
+        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+
+        const customInitializer = bot.options.steamChat.customInitializer.review;
+
         bot.messageAdmins(
-            `⚠️ Offer #${offer.id} from ${offer.partner.toString()} is pending review.` +
+            `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
+                offer.id
+            } from ${offer.partner.toString()} is pending review.` +
                 `\nReasons: ${reasons.join(', ')}` +
                 (reasons.includes('⬜_BANNED_CHECK_FAILED')
                     ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
@@ -120,10 +129,10 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-                `\n\n🔑 Key rate: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
+                `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
                 ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
-                `\n🎒 Total items: ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
-                `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` +
+                `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
+                `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []

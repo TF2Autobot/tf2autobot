@@ -26,6 +26,7 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
+import Pricer from './Pricer';
 
 export default class Bot {
     // Modules and classes
@@ -147,7 +148,7 @@ export default class Bot {
 
     private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
 
-    constructor(botManager: BotManager, public options: Options) {
+    constructor(botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema;
@@ -178,9 +179,15 @@ export default class Bot {
         this.listings = new Listings(this);
         this.tf2gc = new TF2GC(this);
 
-        this.handler = new MyHandler(this);
+        this.handler = new MyHandler(this, this.priceSource);
 
-        this.pricelist = new Pricelist(this.schema, this.botManager.getSocketManager, this.options, this);
+        this.pricelist = new Pricelist(
+            this.priceSource,
+            this.schema,
+            this.botManager.getSocketManager,
+            this.options,
+            this
+        );
         this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
@@ -307,7 +314,7 @@ export default class Bot {
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
                         `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                         (process.env.pm_id !== undefined
-                            ? `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"`
+                            ? `\n\nYou're running the bot with PM2! Send "!updaterepo" now!"`
                             : `\n\nNavigate to your bot folder and run ` +
                               `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
                               `and then restart your bot.`) +
@@ -373,6 +380,8 @@ export default class Bot {
         this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
 
         this.pricelist.init();
+
+        // dummy
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -552,7 +561,7 @@ export default class Bot {
                     log.debug('Setting Steam API Key to schema');
                     this.botManager.setAPIKeyForSchema = this.manager.apiKey;
 
-                    this.manager.pollInterval = 1000;
+                    this.manager.pollInterval = 30 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();

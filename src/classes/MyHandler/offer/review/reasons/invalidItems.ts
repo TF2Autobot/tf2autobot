@@ -21,14 +21,16 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
         invalidForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
     });
 
+    const invalidForTheirCount = invalidForTheir.length;
+
     return {
         note: bot.options.manualReview.invalidItems.note
             ? `🟨_INVALID_ITEMS - ${bot.options.manualReview.invalidItems.note}`
                   .replace(/%itemsName%/g, invalidForTheir.join(', '))
-                  .replace(/%isOrAre%/g, pluralize('is', invalidForTheir.length))
+                  .replace(/%isOrAre%/g, pluralize('is', invalidForTheirCount))
             : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(
                   'is',
-                  invalidForTheir.length
+                  invalidForTheirCount
               )} not in my pricelist.`,
         // Default note: %itemsName% %isOrAre% not in my pricelist.
         name: invalidForOur

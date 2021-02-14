@@ -7,10 +7,10 @@ import { Currency } from '../types/TeamFortress2';
 import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
-import { getPricelist, getPrice, GetItemPriceResponse, Item } from '../lib/ptf-api';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
+import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -179,6 +179,7 @@ export default class Pricelist extends EventEmitter {
     private retryGetKeyPrices: NodeJS.Timeout;
 
     constructor(
+        private priceSource: Pricer,
         schema: SchemaManager.Schema,
         private socketManager: SocketManager,
         private options?: Options,
@@ -240,8 +241,9 @@ export default class Pricelist extends EventEmitter {
         search = search.toLowerCase();
 
         const match: Entry[] = [];
+        const pricesCount = this.prices.length;
 
-        for (let i = 0; i < this.prices.length; i++) {
+        for (let i = 0; i < pricesCount; i++) {
             const entry = this.prices[i];
 
             if (enabledOnly && entry.enabled === false) {
@@ -281,10 +283,12 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             // No match
             return null;
-        } else if (match.length === 1) {
+        } else if (matchCount === 1) {
             // Found one that matched the search
             return match[0];
         }
@@ -298,7 +302,7 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice) {
             try {
-                const pricePTF = await getPrice(entry.sku, 'bptf');
+                const pricePTF = await this.priceSource.getPrice(entry.sku, 'bptf');
 
                 entry.buy = new Currencies(pricePTF.buy);
                 entry.sell = new Currencies(pricePTF.sell);
@@ -319,7 +323,13 @@ export default class Pricelist extends EventEmitter {
                     };
                 }
             } catch (err) {
-                throw new Error(`❌ Unable to get current prices for ${entry.sku}: ${JSON.stringify(err)}`);
+                throw new Error(
+                    `❌ Unable to get current prices for ${entry.sku}: ${
+                        (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                            ? (err as ErrorRequest).body.message
+                            : (err as ErrorRequest).message
+                    }`
+                );
             }
         }
 
@@ -344,7 +354,7 @@ export default class Pricelist extends EventEmitter {
 
     async getPricesTF(sku: string): Promise<ParsedPrice | null> {
         try {
-            return await getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
+            return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
             log.debug(`getPricesTF failed ${JSON.stringify(err)}`);
             return null;
@@ -538,7 +548,8 @@ export default class Pricelist extends EventEmitter {
         log.debug('Getting key prices...');
         const entryKey = this.getPrice('5021;6', false);
 
-        return getPrice('5021;6', 'bptf')
+        return this.priceSource
+            .getPrice('5021;6', 'bptf')
             .then(keyPricesPTF => {
                 log.debug('Got key price');
 
@@ -636,7 +647,8 @@ export default class Pricelist extends EventEmitter {
         const entryKey = this.getPrice('5021;6', false);
         clearTimeout(this.retryGetKeyPrices);
 
-        return getPrice('5021;6', 'bptf')
+        return this.priceSource
+            .getPrice('5021;6', 'bptf')
             .then(keyPricesPTF => {
                 log.debug('✅ Got current key prices, updating...');
 
@@ -664,7 +676,7 @@ export default class Pricelist extends EventEmitter {
     private updateOldPrices(old: Entry[]): Promise<void> {
         log.debug('Getting pricelist...');
 
-        return getPricelist('bptf').then(pricelist => {
+        return this.priceSource.getPricelist('bptf').then(pricelist => {
             log.debug('Got pricelist');
 
             const groupedPrices = Pricelist.groupPrices(pricelist.items);
@@ -672,7 +684,9 @@ export default class Pricelist extends EventEmitter {
             let pricesChanged = false;
 
             // Go through our pricelist
-            for (let i = 0; i < old.length; i++) {
+            const oldCount = old.length;
+
+            for (let i = 0; i < oldCount; i++) {
                 // const currPrice = old[i];
                 if (old[i].autoprice !== true) {
                     continue;
@@ -683,8 +697,11 @@ export default class Pricelist extends EventEmitter {
                 const name = this.schema.getName(item, true);
 
                 // Go through pricestf prices
-                for (let j = 0; j < groupedPrices[item.quality][item.killstreak].length; j++) {
-                    const newestPrice = groupedPrices[item.quality][item.killstreak][j];
+                const grouped = groupedPrices[item.quality][item.killstreak];
+                const groupedCount = grouped.length;
+
+                for (let j = 0; j < groupedCount; j++) {
+                    const newestPrice = grouped[j];
 
                     if (name === newestPrice.name) {
                         // Found matching items
@@ -791,7 +808,9 @@ export default class Pricelist extends EventEmitter {
     static groupPrices(prices: Item[]): Group {
         const sorted: Group = {};
 
-        for (let i = 0; i < prices.length; i++) {
+        const pricesCount = prices.length;
+
+        for (let i = 0; i < pricesCount; i++) {
             if (prices[i].buy === null) {
                 continue;
             }
@@ -848,4 +867,13 @@ export class ParsedPrice {
 
 interface Group {
     [quality: string]: { [killstreak: string]: Item[] };
+}
+
+interface ErrorRequest {
+    body?: ErrorBody;
+    message?: string;
+}
+
+interface ErrorBody {
+    message: string;
 }

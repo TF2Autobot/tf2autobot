@@ -21,14 +21,16 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
         disabledForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
     });
 
+    const disabledForTheirCount = disabledForTheir.length;
+
     return {
         note: bot.options.manualReview.disabledItems.note
             ? `🟧_DISABLED_ITEMS - ${bot.options.manualReview.disabledItems.note}`
                   .replace(/%itemsName%/g, disabledForTheir.join(', '))
-                  .replace(/%isOrAre%/g, pluralize('is', disabledForTheir.length))
+                  .replace(/%isOrAre%/g, pluralize('is', disabledForTheirCount))
             : `🟧_DISABLED_ITEMS - ${disabledForTheir.join(', ')} ${pluralize(
                   'is',
-                  disabledForTheir.length
+                  disabledForTheirCount
               )} currently disabled.`,
         // Default note: %itemsName% %isOrAre% currently disabled.
         name: disabledForOur

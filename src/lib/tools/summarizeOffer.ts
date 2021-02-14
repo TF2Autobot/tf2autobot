@@ -20,19 +20,58 @@ export function summarizeToChat(
 ): string {
     const generatedSummary = summarize(offer, bot, type, withLink);
 
+    const cT = bot.options.tradeSummary.customText;
+    const cTSummary = isSteamChat
+        ? cT.summary.steamChat
+            ? cT.summary.steamChat
+            : 'Summary'
+        : cT.summary.discordWebhook
+        ? cT.summary.discordWebhook
+        : '__**Summary**__';
+
+    const cTAsked = isSteamChat
+        ? cT.asked.steamChat
+            ? cT.asked.steamChat
+            : '• Asked:'
+        : cT.asked.discordWebhook
+        ? cT.asked.discordWebhook
+        : '**• Asked:**';
+
+    const cTOffered = isSteamChat
+        ? cT.offered.steamChat
+            ? cT.offered.steamChat
+            : '• Asked:'
+        : cT.offered.discordWebhook
+        ? cT.offered.discordWebhook
+        : '**• Asked:**';
+
+    const cTProfit = isSteamChat
+        ? cT.profitFromOverpay.steamChat
+            ? cT.profitFromOverpay.steamChat
+            : '📈 Profit from overpay:'
+        : cT.profitFromOverpay.discordWebhook
+        ? cT.profitFromOverpay.discordWebhook
+        : '📈 ***Profit from overpay:***';
+
+    const cTLoss = isSteamChat
+        ? cT.lossFromUnderpay.steamChat
+            ? cT.lossFromUnderpay.steamChat
+            : '📉 Loss from underpay:'
+        : cT.lossFromUnderpay.discordWebhook
+        ? cT.lossFromUnderpay.discordWebhook
+        : '📉 ***Loss from underpay:***';
+
     return (
-        `\n\n${isSteamChat ? 'Summary' : '__**Summary**__'}${
-            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''
-        }\n` +
-        `${isSteamChat ? '• Asked:' : '**• Asked:**'} ${generatedSummary.asked}` +
-        `\n${isSteamChat ? '• Offered:' : '**• Offered:**'} ${generatedSummary.offered}` +
+        `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
+        `${cTAsked} ${generatedSummary.asked}` +
+        `\n${cTOffered} ${generatedSummary.offered}` +
         '\n──────────────────────' +
         (['summary-accepted', 'review-admin'].includes(type)
             ? value.diff > 0
-                ? `\n📈 ${isSteamChat ? 'Profit from overpay:' : '***Profit from overpay:***'} ${value.diffRef} ref` +
+                ? `\n${cTProfit} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : value.diff < 0
-                ? `\n📉 ${isSteamChat ? 'Loss from underpay:' : '***Loss from underpay:***'} ${value.diffRef} ref` +
+                ? `\n${cTLoss} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : ''
             : '')
@@ -63,13 +102,15 @@ export default function summarize(
         };
     } else {
         // If trade with trade partner
+        const opening = showStockChanges ? '〚' : ' (';
+        const closing = showStockChanges ? '〛' : ')';
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                ` (${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)})`,
+                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                ` (${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)})`
+                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
         };
     }
 }
@@ -111,7 +152,19 @@ function getSummary(
 
             if (withLink) {
                 summary.push(
-                    `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    `[${
+                        bot.options.tradeSummary.showPureInEmoji
+                            ? sku === '5021;6'
+                                ? '<:tf2key:742725387968184371>'
+                                : sku === '5002;6'
+                                ? '<:tf2refined:735533220942053396>'
+                                : sku === '5001;6'
+                                ? '<:tf2reclaimed:809644301633323048>'
+                                : sku === '5000;6'
+                                ? '<:tf2scrap:809644301067091968>'
+                                : name
+                            : name
+                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
                     }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
@@ -129,7 +182,19 @@ function getSummary(
         } else {
             if (withLink) {
                 summary.push(
-                    '[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : '')
+                    `[${
+                        bot.options.tradeSummary.showPureInEmoji
+                            ? sku === '5021;6'
+                                ? '<:tf2key:742725387968184371>'
+                                : sku === '5002;6'
+                                ? '<:tf2refined:735533220942053396>'
+                                : sku === '5001;6'
+                                ? '<:tf2reclaimed:809644301633323048>'
+                                : sku === '5000;6'
+                                ? '<:tf2scrap:809644301067091968>'
+                                : name
+                            : name
+                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
                 );
             } else {
                 summary.push(name + (amount > 1 ? ` x${amount}` : ''));
@@ -137,14 +202,16 @@ function getSummary(
         }
     }
 
-    if (summary.length === 0) {
+    const summaryCount = summary.length;
+
+    if (summaryCount === 0) {
         return 'nothing';
     }
 
     if (withLink) {
         let left = 0;
-        if (summary.length > 15) {
-            left = summary.length - 15;
+        if (summaryCount > 15) {
+            left = summaryCount - 15;
             summary.splice(15);
         }
 

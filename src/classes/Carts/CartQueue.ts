@@ -148,7 +148,7 @@ export default class CartQueue {
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
                             this.bot.messageAdmins(
-                                `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`,
+                                `❌ An error occurred while trying to restart: ${(err as Error).message}`,
                                 []
                             );
                             // try again after 3 minutes

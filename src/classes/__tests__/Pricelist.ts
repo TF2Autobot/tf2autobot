@@ -2,20 +2,21 @@ import Pricelist from '../Pricelist';
 import SchemaManager from 'tf2-schema-2';
 import SocketManager from '../MyHandler/SocketManager';
 import { DEFAULTS } from '../Options';
-import { getSchema } from '../../lib/ptf-api';
 import Currencies from 'tf2-currencies';
 import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
+import { getPricer } from '../../lib/pricer/pricer';
 
 jest.mock('../../lib/ptf-api');
 
 it('can pricecheck', async done => {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
+    const prices = getPricer({});
     const schemaManager = new SchemaManager({});
-    schemaManager.setSchema(await getSchema());
+    schemaManager.setSchema(await prices.getSchema());
     const socketManager = new SocketManager('');
-    const priceList = new Pricelist(schemaManager.schema, socketManager, DEFAULTS);
+    const priceList = new Pricelist(prices, schemaManager.schema, socketManager, DEFAULTS);
     expect(priceList.maxAge).toEqual(8 * 60 * 60);
     await priceList.setupPricelist();
     expect(priceList.getKeyPrices).toEqual({

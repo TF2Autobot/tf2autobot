@@ -9,7 +9,7 @@ assignees: ''
 
 <!--
   Your issue may already be reported!
-  Please search on the [issue tracker](https://github.com/idinium96/tf2autobot/search?type=Issues) before creating one.
+  Please search on the [issue tracker](https://github.com/TF2Autobot/tf2autobot/search?type=Issues) before creating one.
 -->
 
 **Describe the bug**

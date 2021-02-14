@@ -162,11 +162,11 @@ export function getItemAndAmount(
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
 
-        if (match.length > 20) {
+        if (matchCount > 20) {
             match = match.splice(0, 20);
         }
 
-        let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(',\n')}`;
+        let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
         if (matchCount > match.length) {
             const other = matchCount - match.length;
             reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -197,28 +197,33 @@ export function getItemFromParams(
 
         const match: SchemaManager.SchemaItem[] = [];
 
-        for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
+        const items = bot.schema.raw.schema.items;
+        const itemsCount = items.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            if (items[i].item_name === params.name) {
+                match.push(items[i]);
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             bot.sendMessage(
                 steamID,
                 `❌ Could not find an item in the schema with the name "${params.name as string}".`
             );
             return null;
-        } else if (match.length !== 1) {
-            const matchCount = match.length;
+        } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
+            const parsedCount = parsed.length;
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
                 ',\n'
             )}`;
 
-            if (matchCount > parsed.length) {
-                const other = matchCount - parsed.length;
+            if (matchCount > parsedCount) {
+                const other = matchCount - parsedCount;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 
@@ -300,6 +305,14 @@ export function getItemFromParams(
         item.paint = paint;
     }
 
+    if (params.festive !== undefined) {
+        if (typeof params.festive !== 'boolean') {
+            bot.sendMessage(steamID, `"festive" (for Festivized item) must be "true" or "false".`);
+            return null;
+        }
+        item.festive = params.festive;
+    }
+
     if (params.australium !== undefined) {
         if (typeof params.australium !== 'boolean') {
             bot.sendMessage(steamID, `Australium must be "true" or "false".`);
@@ -308,27 +321,36 @@ export function getItemFromParams(
         item.australium = params.australium;
     }
 
-    if (params.killstreak !== undefined) {
-        const killstreak = parseInt(params.killstreak);
-        if (isNaN(killstreak) || killstreak < 1 || killstreak > 3) {
+    if (typeof params.killstreak === 'number') {
+        // user gave killstreak in number
+        if (params.killstreak < 1 || params.killstreak > 3) {
             bot.sendMessage(
                 steamID,
-                `Unknown killstreak "${
-                    params.killstreak as number
-                }", it must either be 1 (Basic KS), 2 (Spec KS) or 3 (Pro KS).`
+                `Unknown killstreak "${params.killstreak}", it must either be 1 (Killstreak), 2 (Specialized Killstreak) or 3 (Professional Killstreak).`
             );
             return null;
         }
-        item.killstreak = killstreak;
-    }
 
-    if (params.paintkit !== undefined) {
-        const paintkit = bot.schema.getSkinIdByName(params.paintkit as string);
-        if (paintkit === null) {
-            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
+        item.killstreak = params.killstreak;
+    } else if (params.killstreak !== undefined) {
+        const killstreaks = ['Killstreak', 'Specialized Killstreak', 'Professional Killstreak'];
+
+        const ksCaseSensitive = killstreaks.indexOf(params.killstreak as string);
+        const ksCaseInsensitive = killstreaks
+            .map(killstreak => killstreak.toLowerCase())
+            .indexOf(params.killstreak as string);
+
+        if (ksCaseSensitive === -1 && ksCaseInsensitive === -1) {
+            bot.sendMessage(
+                steamID,
+                `Unknown killstreak "${
+                    params.killstreak as string
+                }", it must either be "Killstreak", "Specialized Killstreak", "Professional Killstreak".`
+            );
             return null;
         }
-        item.paintkit = paintkit;
+
+        item.killstreak = ksCaseSensitive !== -1 ? ksCaseSensitive + 1 : ksCaseInsensitive + 1;
     }
 
     if (params.effect !== undefined) {
@@ -341,6 +363,78 @@ export function getItemFromParams(
             return null;
         }
         item.effect = effect;
+    }
+
+    if (params.paintkit !== undefined) {
+        const paintkit = bot.schema.getSkinIdByName(params.paintkit as string);
+        if (paintkit === null) {
+            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
+            return null;
+        }
+        item.paintkit = paintkit;
+    }
+
+    if (params.quality2 !== undefined) {
+        if (typeof params.quality2 !== 'boolean') {
+            bot.sendMessage(steamID, `❌ "quality2" must only be type boolean (true or false).`);
+            return null;
+        }
+
+        item.quality2 = params.quality2 ? 11 : null;
+    }
+
+    if (typeof params.wear === 'number') {
+        // user gave wear in number
+        if (params.wear < 1 || params.wear > 5) {
+            bot.sendMessage(
+                steamID,
+                `Unknown wear "${params.wear}", it must either be 1 (Factory New), 2 (Minimal Wear), 3 (Field-Tested), 4 (Well-Worn), or 5 (Battle Scarred).`
+            );
+            return null;
+        }
+
+        item.wear = params.wear;
+    } else if (params.wear !== undefined) {
+        const wears = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'];
+
+        const wearCaseSensitive = wears.indexOf(params.wear as string);
+        const wearCaseInsensitive = wears.map(wear => wear.toLowerCase()).indexOf(params.wear as string);
+
+        if (wearCaseSensitive === -1 && wearCaseInsensitive === -1) {
+            bot.sendMessage(
+                steamID,
+                `Unknown wear "${
+                    params.wear as string
+                }", it must either be "Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", or "Battle Scarred".`
+            );
+            return null;
+        }
+
+        item.wear = wearCaseSensitive !== -1 ? wearCaseSensitive + 1 : wearCaseInsensitive + 1;
+    }
+
+    if (typeof params.target === 'number') {
+        const schemaItem = bot.schema.getItemByDefindex(params.target);
+        if (schemaItem === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an item in the schema with the target defindex "${params.target}".`
+            );
+            return null;
+        }
+
+        item.target = schemaItem.defindex;
+    } else if (params.target !== undefined) {
+        const schemaItem = bot.schema.getItemByItemName(params.target as string);
+        if (schemaItem === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an item in the schema with the target name "${params.target as string}".`
+            );
+            return null;
+        }
+
+        item.target = schemaItem.defindex;
     }
 
     if (typeof params.output === 'number') {
@@ -361,28 +455,33 @@ export function getItemFromParams(
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
 
-        for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
+        const items = bot.schema.raw.schema.items;
+        const itemsCount = bot.schema.raw.schema.items.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            if (items[i].item_name === params.name) {
+                match.push(items[i]);
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             bot.sendMessage(
                 steamID,
                 `❌ Could not find an item in the schema with the name "${params.name as string}".`
             );
             return null;
-        } else if (match.length !== 1) {
-            const matchCount = match.length;
+        } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
+            const parsedCount = parsed.length;
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
                 ',\n'
             )}`;
 
-            if (matchCount > parsed.length) {
-                const other = matchCount - parsed.length;
+            if (matchCount > parsedCount) {
+                const other = matchCount - parsedCount;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 
@@ -406,6 +505,25 @@ export function getItemFromParams(
             return null;
         }
         item.outputQuality = quality;
+    }
+
+    if (params.crateseries !== undefined) {
+        if (typeof params.crateseries !== 'number') {
+            bot.sendMessage(steamID, `❌ crateseries must only be type number!.`);
+            return null;
+        }
+
+        if ([1, 3, 7, 12, 13, 18, 19, 23, 26, 31, 34, 39, 43, 47, 54, 57, 75].includes(params.crateseries)) {
+            item.defindex = 5022;
+        } else if ([2, 4, 8, 11, 14, 17, 20, 24, 27, 32, 37, 42, 44, 49, 56, 71, 76].includes(params.crateseries)) {
+            item.defindex = 5041;
+        } else if ([5, 9, 10, 15, 16, 21, 25, 28, 29, 33, 38, 41, 45, 55, 59, 77].includes(params.crateseries)) {
+            item.defindex = 5045;
+        } else if ([30, 40, 50].includes(params.crateseries)) {
+            item.defindex = 5068;
+        }
+
+        item.crateseries = params.crateseries;
     }
 
     for (const key in params) {

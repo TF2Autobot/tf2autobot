@@ -1,3 +1,4 @@
+import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
@@ -27,7 +28,13 @@ type AlertType =
     | 'escrow-check-failed-not-restart-steam-maintenance'
     | 'tryingToTake'
     | 'autoAddPaintedItems'
-    | 'autoAddPaintedItemsFailed';
+    | 'autoAddPaintedItemsFailed'
+    | 'failed-accept'
+    | 'failed-decline'
+    | 'failed-processing-offer'
+    | 'retry-success'
+    | 'retry-failed'
+    | 'error-accept';
 
 export default function sendAlert(
     type: AlertType,
@@ -41,6 +48,7 @@ export default function sendAlert(
     let description: string;
     let color: string;
     let footer: string;
+    let content: string;
 
     if (type === 'lowPure') {
         title = 'Low Pure Alert';
@@ -84,7 +92,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';
-        description = `❌ An error occurred while trying to restart: ${JSON.stringify(err)}`;
+        description = `❌ An error occurred while trying to restart: ${(err as Error).message}`;
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
@@ -102,7 +110,7 @@ export default function sendAlert(
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
-        color = '8323327'; // red
+        color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {
         title = 'Added painted items to sell';
         description = msg;
@@ -110,7 +118,7 @@ export default function sendAlert(
     } else if (type === 'autoAddPaintedItemsFailed') {
         title = 'Failed to add painted items to sell';
         description = msg;
-        color = '8323327'; // green
+        color = '16711680'; // red
     } else if (type.includes('autokeys-')) {
         title =
             type === 'autokeys-failedToDisable'
@@ -119,7 +127,62 @@ export default function sendAlert(
                       type.includes('-bank') ? 'banking' : type.includes('-buy') ? 'buying' : 'selling'
                   } for keys - Autokeys`;
         description = msg;
-        color = '8323327'; // red
+        color = '16711680'; // red
+    } else if (type === 'failed-accept') {
+        title = 'Failed to accept trade';
+        description =
+            msg +
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
+    } else if (type === 'failed-decline') {
+        title = 'Failed to decline trade';
+        description =
+            msg +
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
+    } else if (type === 'error-accept') {
+        title = 'Error while trying to accept mobile confirmation';
+        description =
+            msg +
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
+    } else if (type === 'failed-processing-offer') {
+        title = 'Unable to process an offer';
+        description =
+            `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
+            ' The offer data received was broken because our side and their side are both empty.' +
+            `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
+            `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
+        color = '16711680'; // red
+    } else if (type === 'retry-success') {
+        title = `Successfully auto-retry ${items[0] === 'accept' ? 'accepting' : 'declining'} a trade`;
+        description = msg;
+        color = '9171753'; // lime green
+    } else if (type === 'retry-failed') {
+        title = `Failed to auto-retry ${items[0] === 'accept' ? 'accepting' : 'declining'} a trade`;
+        description = msg;
+        color = '16711680'; // red
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;
@@ -133,7 +196,7 @@ export default function sendAlert(
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
         content:
-            [
+            ([
                 'highValue',
                 'highValuedDisabled',
                 'highValuedInvalidItems',
@@ -148,10 +211,12 @@ export default function sendAlert(
                 'autokeys-failedToUpdate-buy',
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
-                'autoAddPaintedItemsFailed'
+                'autoAddPaintedItemsFailed',
+                'failed-accept',
+                'error-accept'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
-                : '',
+                : '') + (content ? ` - ${content}` : ''),
         embeds: [
             {
                 title: title,

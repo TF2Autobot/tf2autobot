@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "ES2018",
         "module": "CommonJS",
         "moduleResolution": "Node",
@@ -14,7 +15,10 @@
         "strictNullChecks": false,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@pricer/*": ["src/lib/pricer/*"]
+        }
     },
     "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],
     "include": ["./src"]

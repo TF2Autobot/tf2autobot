@@ -89,6 +89,12 @@ export default async function sendTradeSummary(
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
 
+    const cT = bot.options.tradeSummary.customText;
+    const cTTimeTaken = cT.timeTaken.discordWebhook ? cT.timeTaken.discordWebhook : '⏱ **Time taken:**';
+    const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
+    const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
+    const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
+
     const acceptedTradeSummary: Webhook = {
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
@@ -103,7 +109,7 @@ export default async function sendTradeSummary(
                 },
                 description:
                     summary +
-                    `\n⏱ **Time taken:** ${t.convertTime(processTime, optBot.tradeSummary.showTimeTakenInMS)}\n\n` +
+                    `\n${cTTimeTaken} ${t.convertTime(processTime, optBot.tradeSummary.showTimeTakenInMS)}\n\n` +
                     (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
                     {
@@ -114,7 +120,7 @@ export default async function sendTradeSummary(
                         name: `__Status__`,
                         value:
                             (misc.showKeyRate
-                                ? `\n🔑 Key rate: ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
+                                ? `\n${cTKeyRate} ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
                                   ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
                                   `${
                                       autokeys.isEnabled
@@ -130,9 +136,9 @@ export default async function sendTradeSummary(
                                           : ''
                                   }`
                                 : '') +
-                            (misc.showPureStock ? `\n💰 Pure stock: ${t.pure.stock(bot).join(', ').toString()}` : '') +
+                            (misc.showPureStock ? `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` : '') +
                             (misc.showInventory
-                                ? `\n🎒 Total items: ${bot.inventoryManager.getInventory.getTotalItems}${
+                                ? `\n${cTTotalItems} ${bot.inventoryManager.getInventory.getTotalItems}${
                                       slots !== undefined ? `/${slots}` : ''
                                   }`
                                 : '') +
@@ -160,17 +166,18 @@ export default async function sendTradeSummary(
         acceptedTradeSummary.embeds[0].fields.length = 0;
 
         const separate = itemList.split('@');
+        const separateCount = separate.length;
 
         let newSentences = '';
         let j = 1;
         separate.forEach((sentence, i) => {
-            if ((newSentences.length >= 800 || i === separate.length - 1) && !(j > 4)) {
+            if ((newSentences.length >= 800 || i === separateCount - 1) && !(j > 4)) {
                 acceptedTradeSummary.embeds[0].fields.push({
                     name: `__Item list ${j}__`,
                     value: newSentences.replace(/@/g, '')
                 });
 
-                if (i === separate.length - 1 || j > 4) {
+                if (i === separateCount - 1 || j > 4) {
                     acceptedTradeSummary.embeds[0].fields.push(statusElement);
                 }
 
@@ -185,11 +192,11 @@ export default async function sendTradeSummary(
 
     url.forEach((link, i) => {
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
-            .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord${url.length > 1 ? `(${i + 1})` : ''}.`))
+            .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err =>
                 log.debug(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
-                        url.length > 1 ? ` (${i + 1})` : ''
+                        url.length > 1 ? `(${i + 1})` : ''
                     }: `,
                     err
                 )

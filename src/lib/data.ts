@@ -39,12 +39,12 @@ export const sheensData: { [name: string]: string } = {
 
 export const killstreakersData: { [name: string]: string } = {
     'Fire Horns': 'ke-2002',
-    'Cerebral Discharge': 'ke-2002',
-    Tornado: 'ke-2002',
-    Flames: 'ke-2002',
-    Singularity: 'ke-2002',
-    Incinerator: 'ke-2002',
-    'Hypno-Beam': 'ke-2002'
+    'Cerebral Discharge': 'ke-2003',
+    Tornado: 'ke-2004',
+    Flames: 'ke-2005',
+    Singularity: 'ke-2006',
+    Incinerator: 'ke-2007',
+    'Hypno-Beam': 'ke-2008'
 };
 
 export const spellsData: { [name: string]: string } = {
