@@ -1,4 +1,4 @@
-import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
