@@ -21,46 +21,50 @@ export default function listItems(
     const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
     let list = itemsPrices;
 
+    const itemsPricesLength = itemsPrices.length;
+    const invalidCount = items.invalid.length;
+    const disabledCount = items.disabled.length;
+    const overstockedCount = items.overstock.length;
+    const understockedCount = items.understock.length;
+    const dupedCount = items.duped.length;
+    const dupedFailedCount = items.dupedFailed.length;
+    const highValueCount = items.highValue.length;
+
     list +=
-        items.invalid.length > 0
-            ? (itemsPrices.length > 0 ? '\n\n' : '') +
+        invalidCount > 0
+            ? (itemsPricesLength > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟨_INVALID_ITEMS:\n- ' + items.invalid.join(',\n- ')
                   : '🟨`_INVALID_ITEMS:`\n- ' + items.invalid.join(',@\n- '))
             : '';
     list +=
-        items.disabled.length > 0
-            ? (itemsPrices.length > 0 || items.invalid.length > 0 ? '\n\n' : '') +
+        disabledCount > 0
+            ? (itemsPricesLength > 0 || invalidCount > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟧_DISABLED_ITEMS:\n- ' + items.disabled.join(',\n- ')
                   : '🟧`_DISABLED_ITEMS:`\n- ' + items.disabled.join(',@\n- '))
             : '';
     list +=
-        items.overstock.length > 0
-            ? (itemsPrices.length > 0 || items.invalid.length > 0 || items.disabled.length > 0 ? '\n\n' : '') +
+        overstockedCount > 0
+            ? (itemsPricesLength > 0 || invalidCount > 0 || disabledCount > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟦_OVERSTOCKED:\n- ' + items.overstock.join(',\n- ')
                   : '🟦`_OVERSTOCKED:`\n- ' + items.overstock.join(',@\n- '))
             : '';
     list +=
-        items.understock.length > 0
-            ? (itemsPrices.length > 0 ||
-              items.invalid.length > 0 ||
-              items.disabled.length > 0 ||
-              items.overstock.length > 0
-                  ? '\n\n'
-                  : '') +
+        understockedCount > 0
+            ? (itemsPricesLength > 0 || invalidCount > 0 || disabledCount > 0 || overstockedCount > 0 ? '\n\n' : '') +
               (isSteamChat
                   ? '🟩_UNDERSTOCKED:\n- ' + items.understock.join(',\n- ')
                   : '🟩`_UNDERSTOCKED:`\n- ' + items.understock.join(',@\n- '))
             : '';
     list +=
-        items.duped.length > 0
-            ? (itemsPrices.length > 0 ||
-              items.invalid.length > 0 ||
-              items.disabled.length > 0 ||
-              items.overstock.length > 0 ||
-              items.understock.length > 0
+        dupedCount > 0
+            ? (itemsPricesLength > 0 ||
+              invalidCount > 0 ||
+              disabledCount > 0 ||
+              overstockedCount > 0 ||
+              understockedCount > 0
                   ? '\n\n'
                   : '') +
               (isSteamChat
@@ -68,13 +72,13 @@ export default function listItems(
                   : '🟫`_DUPED_ITEMS:`\n- ' + items.duped.join(',@\n- '))
             : '';
     list +=
-        items.dupedFailed.length > 0
-            ? (itemsPrices.length > 0 ||
-              items.invalid.length > 0 ||
-              items.disabled.length > 0 ||
-              items.overstock.length > 0 ||
-              items.understock.length > 0 ||
-              items.duped.length > 0
+        dupedFailedCount > 0
+            ? (itemsPricesLength > 0 ||
+              invalidCount > 0 ||
+              disabledCount > 0 ||
+              overstockedCount > 0 ||
+              understockedCount > 0 ||
+              dupedCount > 0
                   ? '\n\n'
                   : '') +
               (isSteamChat
@@ -82,14 +86,14 @@ export default function listItems(
                   : '🟪`_DUPE_CHECK_FAILED:`\n- ' + items.dupedFailed.join(',@\n- '))
             : '';
     list +=
-        items.highValue.length > 0
-            ? (itemsPrices.length > 0 ||
-              items.invalid.length > 0 ||
-              items.disabled.length > 0 ||
-              items.overstock.length > 0 ||
-              items.understock.length > 0 ||
-              items.duped.length > 0 ||
-              items.dupedFailed.length > 0
+        highValueCount > 0
+            ? (itemsPricesLength > 0 ||
+              invalidCount > 0 ||
+              disabledCount > 0 ||
+              overstockedCount > 0 ||
+              understockedCount > 0 ||
+              dupedCount > 0 ||
+              dupedFailedCount > 0
                   ? '\n\n'
                   : '') +
               (isSteamChat

@@ -213,28 +213,28 @@ export default abstract class Cart {
 
     summarize(isDonating: boolean, isBuyingPremium: boolean): string {
         const ourSummary = this.summarizeOur();
+        const ourSummaryCount = ourSummary.length;
 
         let ourSummaryString: string;
 
-        if (ourSummary.length > 1) {
+        if (ourSummaryCount > 1) {
             ourSummaryString =
-                ourSummary.slice(0, ourSummary.length - 1).join(', ') + ' and ' + ourSummary[ourSummary.length - 1];
-        } else if (ourSummary.length === 0) {
+                ourSummary.slice(0, ourSummaryCount - 1).join(', ') + ' and ' + ourSummary[ourSummaryCount - 1];
+        } else if (ourSummaryCount === 0) {
             ourSummaryString = 'nothing';
         } else {
             ourSummaryString = ourSummary.join(', ');
         }
 
         const theirSummary = this.summarizeTheir();
+        const theirSummaryCount = theirSummary.length;
 
         let theirSummaryString: string;
 
-        if (theirSummary.length > 1) {
+        if (theirSummaryCount > 1) {
             theirSummaryString =
-                theirSummary.slice(0, theirSummary.length - 1).join(', ') +
-                ' and ' +
-                theirSummary[theirSummary.length - 1];
-        } else if (theirSummary.length === 0) {
+                theirSummary.slice(0, theirSummaryCount - 1).join(', ') + ' and ' + theirSummary[theirSummaryCount - 1];
+        } else if (theirSummaryCount === 0) {
             theirSummaryString = 'nothing';
         } else {
             theirSummaryString = theirSummary.join(', ');

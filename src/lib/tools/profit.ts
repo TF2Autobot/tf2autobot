@@ -48,10 +48,17 @@ export default function profit(
 
         const tracker = new itemTracker();
 
-        for (let i = 0; i < trades.length; i++) {
+        const tradesCount = trades.length;
+
+        for (let i = 0; i < tradesCount; i++) {
             // const trade = trades[i];
             if (!(trades[i].handledByUs && trades[i].isAccepted)) {
                 // trade was not accepted, go to next trade
+                continue;
+            }
+
+            if (trades[i].action?.reason === 'ADMIN' || bot.isAdmin(trades[i].partner)) {
+                // trades was from ADMIN, ignore
                 continue;
             }
 
@@ -62,9 +69,11 @@ export default function profit(
                 continue;
             }
 
-            if (typeof Object.keys(trades[i].dict.our).length === 'undefined') {
+            const ourDictCount = Object.keys(trades[i].dict.our).length;
+
+            if (typeof ourDictCount === 'undefined') {
                 isGift = true; // no items on our side, so it is probably gift
-            } else if (Object.keys(trades[i].dict.our).length > 0) {
+            } else if (ourDictCount > 0) {
                 // trade is not a gift
                 if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
                     // trade is missing value object

@@ -31,31 +31,32 @@ export default class DonateCart extends Cart {
 
                 let amount = this.getOurCount(sku);
                 const ourAssetids = ourInventory.findBySKU(sku, true);
+                const ourAssetidsCount = ourAssetids.length;
 
-                if (amount > ourAssetids.length) {
-                    amount = ourAssetids.length;
+                if (amount > ourAssetidsCount) {
+                    amount = ourAssetidsCount;
                     // Remove the item from the cart
                     this.removeOurItem(sku);
 
-                    if (ourAssetids.length === 0) {
+                    if (ourAssetidsCount === 0) {
                         alteredMessages.push(
                             "I don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
                         );
                     } else {
                         alteredMessages.push(
                             'I only have ' +
-                                pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetids.length, true)
+                                pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetidsCount, true)
                         );
 
                         // Add the max amount to the offer
-                        this.addOurItem(sku, ourAssetids.length);
+                        this.addOurItem(sku, ourAssetidsCount);
                     }
                 }
 
                 let missing = amount;
                 let isSkipped = false;
 
-                for (let i = 0; i < ourAssetids.length; i++) {
+                for (let i = 0; i < ourAssetidsCount; i++) {
                     if (
                         this.bot.options.miscSettings.skipItemsInTrade.enable &&
                         this.bot.trades.isInTrade(ourAssetids[i])

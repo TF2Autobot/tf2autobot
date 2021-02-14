@@ -33,7 +33,8 @@ type AlertType =
     | 'failed-decline'
     | 'failed-processing-offer'
     | 'retry-success'
-    | 'retry-failed';
+    | 'retry-failed'
+    | 'error-accept';
 
 export default function sendAlert(
     type: AlertType,
@@ -131,18 +132,39 @@ export default function sendAlert(
         title = 'Failed to accept trade';
         description =
             msg +
-            `\n\nError: [${
-                TradeOfferManager.EResult[(err as CustomError).eresult] as string
-            }](https://steamerrors.com/${(err as CustomError).eresult})`;
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-decline') {
         title = 'Failed to decline trade';
         description =
             msg +
-            `\n\nError: [${
-                TradeOfferManager.EResult[(err as CustomError).eresult] as string
-            }](https://steamerrors.com/${(err as CustomError).eresult})`;
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
+        content = items[0]; // offer id
+        color = '16711680'; // red
+    } else if (type === 'error-accept') {
+        title = 'Error while trying to accept mobile confirmation';
+        description =
+            msg +
+            `\n\nError: ${
+                (err as CustomError).eresult
+                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                          (err as CustomError).eresult
+                      })`
+                    : (err as Error).message
+            }`;
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {
@@ -190,7 +212,8 @@ export default function sendAlert(
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
-                'failed-accept'
+                'failed-accept',
+                'error-accept'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
                 : '') + (content ? ` - ${content}` : ''),

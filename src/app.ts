@@ -38,7 +38,8 @@ init(paths, options);
 
 if (process.env.pm_id === undefined) {
     log.warn(
-        "You are not running the bot with PM2! If the bot crashes it won't start again. Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS"
+        "You are not running the bot with PM2! If the bot crashes it won't start again." +
+            ' Get a VPS and run your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS'
     );
 }
 
@@ -104,7 +105,8 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
 
         if (botReady) {
             log.error(
-                'Refer to Wiki here: https://github.com/idinium96/tf2autobot/wiki/Common-Errors OR Create an issue here: https://github.com/idinium96/tf2autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
+                'Refer to Wiki here: https://github.com/TF2Autobot/tf2autobot/wiki/Common-Errors OR ' +
+                    'Create an issue here: https://github.com/idinium96/TF2Autobot/issues/new?assignees=&labels=bug&template=bug_report.md&title='
             );
         }
     } else {

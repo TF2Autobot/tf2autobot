@@ -187,7 +187,9 @@ export default function updateListings(
             let msg =
                 'I have received a high-valued items which is not in my pricelist.' + '\n\nItem information:\n\n- ';
 
-            for (let i = 0; i < highValue.theirItems.length; i++) {
+            const theirCount = highValue.theirItems.length;
+
+            for (let i = 0; i < theirCount; i++) {
                 if (highValue.theirItems[i].includes(name)) {
                     msg += `${highValue.isDisableSKU[i]}: ` + highValue.theirItems[i];
                 }
@@ -265,7 +267,9 @@ export default function updateListings(
                         ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
                         '\n\nItem information:\n\n- ';
 
-                    for (let i = 0; i < highValue.theirItems.length; i++) {
+                    const theirCount = highValue.theirItems.length;
+
+                    for (let i = 0; i < theirCount; i++) {
                         if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
                     }
 

@@ -29,7 +29,10 @@ export function stock(bot: Bot): string[] {
             }`
         }
     ];
-    for (let i = 0; i < pureCombine.length; i++) {
+
+    const pureCombineCount = pureCombine.length;
+
+    for (let i = 0; i < pureCombineCount; i++) {
         if (i < 1 && totalKeys < 1) {
             continue;
         }

@@ -466,7 +466,9 @@ export default class TF2GC {
                 .findBySKU(String(job.defindex) + ';6', true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
-            return (job.type === 'smelt' && assetids.length > 0) || (job.type === 'combine' && assetids.length >= 3);
+            const assetidsCount = assetids.length;
+
+            return (job.type === 'smelt' && assetidsCount > 0) || (job.type === 'combine' && assetidsCount >= 3);
         } else if (job.type === 'use' || job.type === 'delete') {
             return this.bot.inventoryManager.getInventory.findByAssetid(job.assetid) !== null;
         }

@@ -12,13 +12,13 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         return item;
     }
 
+    const items = schema.raw.schema.items;
+    const itemsCount = items.length;
+
     if (schemaItem.name.includes(schemaItem.item_class.toUpperCase())) {
-        for (let i = 0; i < schema.raw.schema.items.length; i++) {
-            if (
-                schema.raw.schema.items[i].item_class === schemaItem.item_class &&
-                schema.raw.schema.items[i].name.startsWith('Upgradeable ')
-            ) {
-                item.defindex = schema.raw.schema.items[i].defindex;
+        for (let i = 0; i < itemsCount; i++) {
+            if (items[i].item_class === schemaItem.item_class && items[i].name.startsWith('Upgradeable ')) {
+                item.defindex = items[i].defindex;
             }
         }
     }
@@ -30,23 +30,18 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     const isPromo = isPromoItem(schemaItem);
+
     if (isPromo && item.quality != 1) {
-        for (let i = 0; i < schema.raw.schema.items.length; i++) {
-            if (
-                !isPromoItem(schema.raw.schema.items[i]) &&
-                schema.raw.schema.items[i].item_name == schemaItem.item_name
-            ) {
+        for (let i = 0; i < itemsCount; i++) {
+            if (!isPromoItem(items[i]) && items[i].item_name == schemaItem.item_name) {
                 // This is the non-promo version, use that defindex instead
-                item.defindex = schema.raw.schema.items[i].defindex;
+                item.defindex = items[i].defindex;
             }
         }
     } else if (!isPromo && item.quality == 1) {
-        for (let i = 0; i < schema.raw.schema.items.length; i++) {
-            if (
-                isPromoItem(schema.raw.schema.items[i]) &&
-                schema.raw.schema.items[i].item_name == schemaItem.item_name
-            ) {
-                item.defindex = schema.raw.schema.items[i].defindex;
+        for (let i = 0; i < itemsCount; i++) {
+            if (isPromoItem(items[i]) && items[i].item_name == schemaItem.item_name) {
+                item.defindex = items[i].defindex;
             }
         }
     }
@@ -55,7 +50,9 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
         let series: number | null = null;
 
         if (schemaItem.attributes !== undefined) {
-            for (let i = 0; i < schemaItem.attributes.length; i++) {
+            const attributesCount = schemaItem.attributes.length;
+
+            for (let i = 0; i < attributesCount; i++) {
                 if (schemaItem.attributes[i].name === 'set supply crate series') {
                     series = schemaItem.attributes[i].value;
                 }

@@ -102,13 +102,15 @@ export default function summarize(
         };
     } else {
         // If trade with trade partner
+        const opening = showStockChanges ? '〚' : ' (';
+        const closing = showStockChanges ? '〛' : ')';
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                ` (${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)})`,
+                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                ` (${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)})`
+                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
         };
     }
 }
@@ -150,7 +152,19 @@ function getSummary(
 
             if (withLink) {
                 summary.push(
-                    `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    `[${
+                        bot.options.tradeSummary.showPureInEmoji
+                            ? sku === '5021;6'
+                                ? '<:tf2key:742725387968184371>'
+                                : sku === '5002;6'
+                                ? '<:tf2refined:735533220942053396>'
+                                : sku === '5001;6'
+                                ? '<:tf2reclaimed:809644301633323048>'
+                                : sku === '5000;6'
+                                ? '<:tf2scrap:809644301067091968>'
+                                : name
+                            : name
+                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
                     }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
@@ -168,7 +182,19 @@ function getSummary(
         } else {
             if (withLink) {
                 summary.push(
-                    '[' + name + '](https://www.prices.tf/items/' + sku + ')' + (amount > 1 ? ` x${amount}` : '')
+                    `[${
+                        bot.options.tradeSummary.showPureInEmoji
+                            ? sku === '5021;6'
+                                ? '<:tf2key:742725387968184371>'
+                                : sku === '5002;6'
+                                ? '<:tf2refined:735533220942053396>'
+                                : sku === '5001;6'
+                                ? '<:tf2reclaimed:809644301633323048>'
+                                : sku === '5000;6'
+                                ? '<:tf2scrap:809644301067091968>'
+                                : name
+                            : name
+                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
                 );
             } else {
                 summary.push(name + (amount > 1 ? ` x${amount}` : ''));
@@ -176,14 +202,16 @@ function getSummary(
         }
     }
 
-    if (summary.length === 0) {
+    const summaryCount = summary.length;
+
+    if (summaryCount === 0) {
         return 'nothing';
     }
 
     if (withLink) {
         let left = 0;
-        if (summary.length > 15) {
-            left = summary.length - 15;
+        if (summaryCount > 15) {
+            left = summaryCount - 15;
             summary.splice(15);
         }
 
