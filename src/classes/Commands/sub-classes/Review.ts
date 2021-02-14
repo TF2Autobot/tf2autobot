@@ -359,8 +359,8 @@ export default class ReviewCommands {
 
         const offerId = offerIdRegex[0];
 
-        const state = this.bot.manager.pollData.received[offerId];
-        if (state === undefined) {
+        const timestamp = this.bot.manager.pollData.timestamps[offerId];
+        if (timestamp === undefined) {
             return this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
         }
 
