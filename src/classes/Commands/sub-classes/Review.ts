@@ -348,4 +348,30 @@ export default class ReviewCommands {
             );
         }
     }
+
+    offerInfo(steamID: SteamID, message: string): void {
+        const offerIdAndMessage = CommandParser.removeCommand(message);
+        const offerIdRegex = /\d+/.exec(offerIdAndMessage);
+
+        if (isNaN(+offerIdRegex) || !offerIdRegex) {
+            return this.bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!offerinfo 3957959294"`);
+        }
+
+        const offerId = offerIdRegex[0];
+
+        const state = this.bot.manager.pollData.received[offerId];
+        if (state === undefined) {
+            return this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
+        }
+
+        try {
+            const offer = this.bot.manager.pollData.offerData[offerId];
+            const show = {};
+            show[offerId] = offer;
+
+            this.bot.sendMessage(steamID, '/code ' + JSON.stringify(show, null, 4));
+        } catch (err) {
+            return this.bot.sendMessage(steamID, `❌ Error getting offer #${offerId} info: ${(err as Error).message}`);
+        }
+    }
 }

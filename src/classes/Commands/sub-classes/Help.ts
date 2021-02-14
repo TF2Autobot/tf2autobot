@@ -53,6 +53,7 @@ export default class HelpCommands {
                           '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
                           '!trades - Get a list of trade offers pending for manual review 🔍',
                           '!trade <offerID> - Get information about a trade',
+                          '!offerinfo <offerID> - Get information about the offer from polldata 🔍',
                           '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
                           '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
                           '!faccept <offerID> [Your Message] - Force accept any failed to accept offer ✅🔂',

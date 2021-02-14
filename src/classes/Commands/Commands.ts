@@ -233,6 +233,8 @@ export default class Commands {
             void this.review.actionOnTradeCommand(steamID, message, command as ActionOnTrade);
         } else if (['faccept', 'fdecline'].includes(command) && isAdmin) {
             void this.review.forceAction(steamID, message, command as ForceAction);
+        } else if (command === 'offerinfo' && isAdmin) {
+            this.review.offerInfo(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
