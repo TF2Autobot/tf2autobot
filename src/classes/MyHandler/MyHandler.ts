@@ -1811,10 +1811,13 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
+                    this.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
+                    this.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     invalid(offer, this.bot);
+                    this.removePolldataKeys(offer);
                 }
             }
 
@@ -1862,7 +1865,15 @@ export default class MyHandler extends Handler {
 
             // Invite to group
             this.inviteToGroups(offer.partner);
+
+            // delete notify and meta keys from polldata after each successful trades
+            this.removePolldataKeys(offer);
         }
+    }
+
+    private removePolldataKeys(offer: TradeOffer): void {
+        offer.data('notify', undefined);
+        offer.data('meta', undefined);
     }
 
     onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
