@@ -582,59 +582,70 @@ export default class Trades {
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                        const opt = this.bot.options;
-                        if (opt.sendAlert.failedAccept) {
-                            const keyPrices = this.bot.pricelist.getKeyPrices;
-                            const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                        if (!(err as CustomError).message?.includes('Could not act on confirmation')) {
+                            // Only notify is error is not "Could not act on confirmation"
 
-                            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                                const summary = t.summarizeToChat(
+                            const opt = this.bot.options;
+                            if (opt.sendAlert.failedAccept) {
+                                const keyPrices = this.bot.pricelist.getKeyPrices;
+                                const value = t.valueDiff(
                                     offer,
-                                    this.bot,
-                                    'summary-accepting',
-                                    true,
-                                    value,
                                     keyPrices,
                                     false,
-                                    false
-                                );
-                                sendAlert(
-                                    `error-accept`,
-                                    this.bot,
-                                    `Error while trying to accept mobile confirmation on offer #${offer.id}` +
-                                        summary +
-                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                        ` sending "!trade ${offer.id}"`,
-                                    null,
-                                    err,
-                                    [offer.id]
-                                );
-                            } else {
-                                const summary = t.summarizeToChat(
-                                    offer,
-                                    this.bot,
-                                    'summary-accepting',
-                                    false,
-                                    value,
-                                    keyPrices,
-                                    true,
-                                    false
+                                    opt.miscSettings.showOnlyMetal.enable
                                 );
 
-                                this.bot.messageAdmins(
-                                    `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
-                                        summary +
-                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                        ` sending "!trade ${offer.id}` +
-                                        `\n\nError: ${
-                                            (err as CustomError).eresult
-                                                ? `${
-                                                      TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                                  } (https://steamerrors.com/${(err as CustomError).eresult})`
-                                                : (err as Error).message
-                                        }`,
-                                    []
-                                );
+                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        true,
+                                        value,
+                                        keyPrices,
+                                        false,
+                                        false
+                                    );
+                                    sendAlert(
+                                        `error-accept`,
+                                        this.bot,
+                                        `Error while trying to accept mobile confirmation on offer #${offer.id}` +
+                                            summary +
+                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                            ` sending "!trade ${offer.id}"`,
+                                        null,
+                                        err,
+                                        [offer.id]
+                                    );
+                                } else {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        false,
+                                        value,
+                                        keyPrices,
+                                        true,
+                                        false
+                                    );
+
+                                    this.bot.messageAdmins(
+                                        `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
+                                            summary +
+                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                            ` sending "!trade ${offer.id}` +
+                                            `\n\nError: ${
+                                                (err as CustomError).eresult
+                                                    ? `${
+                                                          TradeOfferManager.EResult[
+                                                              (err as CustomError).eresult
+                                                          ] as string
+                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                    : (err as Error).message
+                                            }`,
+                                        []
+                                    );
+                                }
                             }
                         }
                     });
