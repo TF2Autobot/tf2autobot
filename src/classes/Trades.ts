@@ -111,7 +111,7 @@ export default class Trades {
 
         if (
             filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
-            (this.pollCount * this.bot.manager.pollInterval) / (2 * 30 * 60 * 1000) >= 1
+            (this.pollCount * this.bot.manager.pollInterval) / (2 * 2 * 60 * 1000) >= 1
         ) {
             this.pollCount = 0;
 
