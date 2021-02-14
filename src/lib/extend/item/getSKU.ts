@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { EconItem } from 'steam-tradeoffer-manager';
+import { EconItem } from '@tf2autobot/tradeoffer-manager';
 import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';

@@ -1,4 +1,4 @@
-import { TradeOffer, Meta } from 'steam-tradeoffer-manager';
+import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import * as re from './reasons/export-reasons';
 import Bot from '../../../Bot';
 import { valueDiff } from '../../../../lib/tools/export';

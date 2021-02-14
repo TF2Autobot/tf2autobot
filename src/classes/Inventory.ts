@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
 import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';

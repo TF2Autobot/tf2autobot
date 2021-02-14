@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import SteamUser, { EResult } from 'steam-user';
-import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';

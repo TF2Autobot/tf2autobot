@@ -12,7 +12,7 @@ import TradeOfferManager, {
     WrongAboutOffer,
     Prices,
     Items
-} from 'steam-tradeoffer-manager';
+} from '@tf2autobot/tradeoffer-manager';
 
 import pluralize from 'pluralize';
 import SteamID from 'steamid';

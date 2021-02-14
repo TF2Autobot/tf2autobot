@@ -1,6 +1,6 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import { Meta, DisabledItems } from 'steam-tradeoffer-manager';
+import { Meta, DisabledItems } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../../Bot';
 
 export default function disabledItems(meta: Meta, bot: Bot): { note: string; name: string[] } {

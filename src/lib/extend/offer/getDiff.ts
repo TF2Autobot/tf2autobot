@@ -1,4 +1,4 @@
-import { TradeOffer, ItemsDict } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import { UnknownDictionary } from '../../../types/common';
 
 export = function (): UnknownDictionary<number> | null {

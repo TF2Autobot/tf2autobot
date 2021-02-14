@@ -1,4 +1,4 @@
-import { Action, TradeOffer } from 'steam-tradeoffer-manager';
+import { Action, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 

@@ -2,7 +2,7 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies';
 import async from 'async';
-import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from 'steam-tradeoffer-manager';
+import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';

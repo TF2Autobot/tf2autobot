@@ -1,4 +1,4 @@
-import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
