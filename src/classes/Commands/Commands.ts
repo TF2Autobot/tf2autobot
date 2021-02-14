@@ -20,6 +20,8 @@ import Pricer from '../Pricer';
 import { fixItem } from '../../lib/items';
 import { itemStats } from '../../lib/tools/export';
 
+import log from '../../lib/logger';
+
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
@@ -398,7 +400,6 @@ export default class Commands {
                     .filter(a => {
                         return +a >= Math.floor(Date.now() / 1000) - c;
                     })
-                    //TODO FIX TYPE AND UNSAFE ERRORS
                     .reduce((acc, a) => {
                         const key = `${bought[a].keys}+${bought[a].metal}`;
                         if (!Object.prototype.hasOwnProperty.call(acc, key)) {
@@ -409,8 +410,10 @@ export default class Commands {
                         return acc;
                     }, {});
 
+                log.debug('filteredTrades - bought', filteredTrades);
+
                 return Object.keys(filteredTrades).reduce((acc, a) => {
-                    acc += filteredTrades;
+                    acc += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
                         metal: Currencies.toRefined(+a.split('+')[1]),
@@ -444,8 +447,10 @@ export default class Commands {
                         return acc;
                     }, {});
 
+                log.debug('filteredTrades - sold', filteredTrades);
+
                 return Object.keys(filteredTrades).reduce((acc, a) => {
-                    acc += filteredTrades;
+                    acc += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
                         metal: Currencies.toRefined(+a.split('+')[1]),
