@@ -342,7 +342,7 @@ export default class ManagerCommands {
                     this.bot.sendMessage(
                         steamID,
                         '❌ You are not running the bot with PM2! Get a VPS and run ' +
-                            'your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS'
+                            'your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS'
                     );
                 }
             })
@@ -386,7 +386,7 @@ export default class ManagerCommands {
                             steamID,
                             `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
                                 '\nSend "!updaterepo i_am_sure=yes_i_am" to update your repo now!' +
-                                `\n\nRelease note: https://github.com/idinium96/tf2autobot/releases`
+                                `\n\nRelease note: https://github.com/TF2Autobot/tf2autobot/releases`
                         );
                     }
                 })

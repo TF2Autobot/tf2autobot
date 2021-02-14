@@ -34,7 +34,7 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 
 #### How to submit a bug report
 
-Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/idinium96/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
+Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/TF2Autobot/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
 
 #### Before submitting a bug report
 
@@ -70,7 +70,7 @@ Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHu
 
 When contributing to this repository, please first discuss the change you wish to make via issue, or any other method with the owners or contributors of this repository before making a change.
 
-All pull requests should be made to [the development branch](https://github.com/idinium96/tf2autobot/tree/development). When a new release is made the development branch will be merged with the master branch.
+All pull requests should be made to [the development branch](https://github.com/TF2Autobot/tf2autobot/tree/development). When a new release is made the development branch will be merged with the master branch.
 
 Please make sure that you follow the [style guides](#styleguides).
 
@@ -99,7 +99,7 @@ The body of the commit message should be one or more paragraphs, explaining
 things in more detail. Please word-wrap to keep columns to 72 characters or
 less.
 
-Fixes: https://github.com/Nicklason/tf2autobot/issues/1337
+Fixes: https://github.com/TF2Autobot/tf2autobot/issues/1337
 Refs: https://eslint.org/docs/rules/space-in-parens.html
 ```
 
