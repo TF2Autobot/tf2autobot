@@ -257,7 +257,7 @@ export default class Commands {
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
         } else if (command == 'itemstats') {
-            this.itemStatsCommand(steamID, message);
+            void this.itemStatsCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))
@@ -357,7 +357,7 @@ export default class Commands {
         this.bot.sendMessage(steamID, reply);
     }
 
-    private itemStatsCommand(steamID: SteamID, message: string): void {
+    private async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
         if (!this.bot.isAdmin(steamID)) {
             return;
         }
@@ -386,129 +386,137 @@ export default class Commands {
         ) {
             const now = Date.now();
 
-            const { bought, sold } = itemStats(this.bot, sku);
+            try {
+                const { bought, sold } = await itemStats(this.bot, sku);
 
-            // ----------------------Bought calculations----------------------
+                // ----------------------Bought calculations----------------------
 
-            const boughtTime = Object.keys(bought).sort((a, b) => {
-                return +a - +b;
-            });
+                const boughtTime = Object.keys(bought).sort((a, b) => {
+                    return +a - +b;
+                });
 
-            let totalBought = 0;
+                let totalBought = 0;
 
-            const boughtLastX = [
-                86400, // Last 24 hours
-                604800, // Last 7 days
-                2419200 // Last 4 weeks
-            ].map(c => {
-                const filteredTrades = boughtTime
-                    .filter(a => {
-                        return +a >= Math.floor(now / 1000) - c;
-                    })
-                    .reduce((acc, a) => {
-                        const boughtObj = bought[a];
-                        const key = `${boughtObj.keys}+${boughtObj.metal}`;
+                const boughtLastX = [
+                    86400, // Last 24 hours
+                    604800, // Last 7 days
+                    2419200 // Last 4 weeks
+                ].map(c => {
+                    const filteredTrades = boughtTime
+                        .filter(a => {
+                            return +a >= Math.floor(now / 1000) - c;
+                        })
+                        .reduce((acc, a) => {
+                            const boughtObj = bought[a];
+                            const key = `${boughtObj.keys}+${boughtObj.metal}`;
 
-                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                            acc[key] = boughtObj.count;
-                        } else {
-                            acc[key] += boughtObj.count;
-                        }
+                            if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                                acc[key] = boughtObj.count;
+                            } else {
+                                acc[key] += boughtObj.count;
+                            }
 
-                        return acc;
-                    }, {});
+                            return acc;
+                        }, {});
 
-                log.debug('filteredTrades - bought', filteredTrades);
+                    log.debug('filteredTrades - bought', filteredTrades);
 
-                return Object.keys(filteredTrades).reduce((acc, a) => {
-                    const boughtCount = filteredTrades[a] as number;
+                    return Object.keys(filteredTrades).reduce((acc, a) => {
+                        const boughtCount = filteredTrades[a] as number;
 
-                    totalBought += boughtCount;
+                        totalBought += boughtCount;
 
-                    const keysAndMetal = a.split('+');
+                        const keysAndMetal = a.split('+');
 
-                    acc += boughtCount;
-                    acc += ' @ ';
-                    acc += new Currencies({
-                        keys: +keysAndMetal[0],
-                        metal: +keysAndMetal[1]
-                    }).toString();
+                        acc += boughtCount;
+                        acc += ' @ ';
+                        acc += new Currencies({
+                            keys: +keysAndMetal[0],
+                            metal: +keysAndMetal[1]
+                        }).toString();
 
-                    return acc + '\n';
-                }, '');
-            });
+                        return acc + '\n';
+                    }, '');
+                });
 
-            const last24HoursBoughtCount = boughtLastX[0].length;
-            const lastWeekBoughtCount = boughtLastX[1].length;
-            const last4WeeksBoughtCount = boughtLastX[2].length;
+                const last24HoursBoughtCount = boughtLastX[0].length;
+                const lastWeekBoughtCount = boughtLastX[1].length;
+                const last4WeeksBoughtCount = boughtLastX[2].length;
 
-            reply +=
-                `⬅️ ${totalBought} bought\n\n` +
-                (last24HoursBoughtCount ? 'Last 24 hours\n' + boughtLastX[0] : '') +
-                (lastWeekBoughtCount ? (last24HoursBoughtCount ? '\n' : '') + 'Last 7 days\n' + boughtLastX[1] : '') +
-                (last4WeeksBoughtCount
-                    ? (last24HoursBoughtCount || lastWeekBoughtCount ? '\n' : '') + 'Last 4 weeks\n' + boughtLastX[2]
-                    : '');
+                reply +=
+                    `⬅️ ${totalBought} bought\n\n` +
+                    (last24HoursBoughtCount ? 'Last 24 hours\n' + boughtLastX[0] : '') +
+                    (lastWeekBoughtCount
+                        ? (last24HoursBoughtCount ? '\n' : '') + 'Last 7 days\n' + boughtLastX[1]
+                        : '') +
+                    (last4WeeksBoughtCount
+                        ? (last24HoursBoughtCount || lastWeekBoughtCount ? '\n' : '') +
+                          'Last 4 weeks\n' +
+                          boughtLastX[2]
+                        : '');
 
-            // ----------------------Sold calculations----------------------
+                // ----------------------Sold calculations----------------------
 
-            const soldTime = Object.keys(sold).sort((a, b) => {
-                return +a - +b;
-            });
+                const soldTime = Object.keys(sold).sort((a, b) => {
+                    return +a - +b;
+                });
 
-            let totalSold = 0;
+                let totalSold = 0;
 
-            const soldLastX = [
-                86400, // Last 24 hours
-                604800, // Last 7 days
-                2419200 // Last 4 weeks
-            ].map(c => {
-                const filteredTrades = soldTime
-                    .filter(a => {
-                        return +a >= Math.floor(now / 1000) - c;
-                    })
-                    .reduce((acc, a) => {
-                        const soldObj = sold[a];
-                        const key = `${soldObj.keys}+${soldObj.metal}`;
+                const soldLastX = [
+                    86400, // Last 24 hours
+                    604800, // Last 7 days
+                    2419200 // Last 4 weeks
+                ].map(c => {
+                    const filteredTrades = soldTime
+                        .filter(a => {
+                            return +a >= Math.floor(now / 1000) - c;
+                        })
+                        .reduce((acc, a) => {
+                            const soldObj = sold[a];
+                            const key = `${soldObj.keys}+${soldObj.metal}`;
 
-                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                            acc[key] = soldObj.count;
-                        } else {
-                            acc[key] += soldObj.count;
-                        }
+                            if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                                acc[key] = soldObj.count;
+                            } else {
+                                acc[key] += soldObj.count;
+                            }
 
-                        return acc;
-                    }, {});
+                            return acc;
+                        }, {});
 
-                log.debug('filteredTrades - sold', filteredTrades);
+                    log.debug('filteredTrades - sold', filteredTrades);
 
-                return Object.keys(filteredTrades).reduce((acc, a) => {
-                    const soldCount = filteredTrades[a] as number;
-                    totalSold += soldCount;
+                    return Object.keys(filteredTrades).reduce((acc, a) => {
+                        const soldCount = filteredTrades[a] as number;
+                        totalSold += soldCount;
 
-                    const keysAndMetal = a.split('+');
+                        const keysAndMetal = a.split('+');
 
-                    acc += soldCount;
-                    acc += ' @ ';
-                    acc += new Currencies({
-                        keys: +keysAndMetal[0],
-                        metal: +keysAndMetal[1]
-                    }).toString();
-                    return acc + '\n';
-                }, '');
-            });
+                        acc += soldCount;
+                        acc += ' @ ';
+                        acc += new Currencies({
+                            keys: +keysAndMetal[0],
+                            metal: +keysAndMetal[1]
+                        }).toString();
+                        return acc + '\n';
+                    }, '');
+                });
 
-            const last24HoursSoldCount = soldLastX[0].length;
-            const lastWeekSoldCount = soldLastX[1].length;
-            const last4WeeksSoldCount = soldLastX[2].length;
+                const last24HoursSoldCount = soldLastX[0].length;
+                const lastWeekSoldCount = soldLastX[1].length;
+                const last4WeeksSoldCount = soldLastX[2].length;
 
-            reply +=
-                `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
-                (last24HoursSoldCount ? 'Last 24 hours\n' + soldLastX[0] : '') +
-                (lastWeekSoldCount ? (last24HoursSoldCount ? '\n' : '') + 'Last 7 days\n' + soldLastX[1] : '') +
-                (last4WeeksSoldCount
-                    ? (last24HoursSoldCount || lastWeekSoldCount ? '\n' : '') + 'Last 4 weeks\n' + soldLastX[2]
-                    : '');
+                reply +=
+                    `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
+                    (last24HoursSoldCount ? 'Last 24 hours\n' + soldLastX[0] : '') +
+                    (lastWeekSoldCount ? (last24HoursSoldCount ? '\n' : '') + 'Last 7 days\n' + soldLastX[1] : '') +
+                    (last4WeeksSoldCount
+                        ? (last24HoursSoldCount || lastWeekSoldCount ? '\n' : '') + 'Last 4 weeks\n' + soldLastX[2]
+                        : '');
+            } catch (err) {
+                reply = err as string;
+            }
         } else {
             reply = 'enable for keys and weapons - currently not implemented';
         }
