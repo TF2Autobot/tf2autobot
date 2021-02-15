@@ -385,12 +385,15 @@ export default class Commands {
             !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         ) {
             const { bought, sold } = itemStats(this.bot, sku);
+
             const boughtTime = Object.keys(bought).sort((a, b) => {
                 return +a - +b;
             });
             const soldTime = Object.keys(sold).sort((a, b) => {
                 return +a - +b;
             });
+
+            const now = Date.now();
 
             let totalBought = 0;
 
@@ -401,7 +404,7 @@ export default class Commands {
             ].map(c => {
                 const filteredTrades = boughtTime
                     .filter(a => {
-                        return +a >= Math.floor(Date.now() / 1000) - c;
+                        return +a >= Math.floor(now / 1000) - c;
                     })
                     .reduce((acc, a) => {
                         const key = `${bought[a].keys}+${bought[a].metal}`;
@@ -446,7 +449,7 @@ export default class Commands {
             ].map(c => {
                 const filteredTrades = soldTime
                     .filter(a => {
-                        return +a >= Math.floor(Date.now() / 1000) - c;
+                        return +a >= Math.floor(now / 1000) - c;
                     })
                     .reduce((acc, a) => {
                         const key = `${sold[a].keys}+${sold[a].metal}`;
