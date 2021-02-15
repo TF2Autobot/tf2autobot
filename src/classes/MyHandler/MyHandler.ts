@@ -552,7 +552,7 @@ export default class MyHandler extends Handler {
                         await this.bot.listings.recursiveCheckPricelist(
                             pricelist,
                             true,
-                            pricelistCount > 1000 ? 1000 : 200
+                            pricelistCount > 4000 ? 400 : 200
                         );
 
                         log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
@@ -563,8 +563,8 @@ export default class MyHandler extends Handler {
                     pricelistLength = pricelistCount;
                 });
             },
-            // set check every 60 minutes if pricelist to check was more than 1000 items
-            pricelistLength > 1000 ? 60 * 60 * 1000 : 30 * 60 * 1000
+            // set check every 60 minutes if pricelist to check was more than 4000 items
+            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
         );
     }
 
