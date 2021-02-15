@@ -416,12 +416,14 @@ export default class Commands {
                 log.debug('filteredTrades - bought', filteredTrades);
 
                 return Object.keys(filteredTrades).reduce((acc, a) => {
+                    const keysAndMetal = a.split('+');
+
                     acc += filteredTrades[a];
                     totalBought += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
-                        metal: Currencies.toRefined(+a.split('+')[1]),
-                        keys: +a.split('+')[0]
+                        keys: +keysAndMetal[0],
+                        metal: +keysAndMetal[1]
                     }).toString();
                     return acc + '\n';
                 }, '');
@@ -459,12 +461,14 @@ export default class Commands {
                 log.debug('filteredTrades - sold', filteredTrades);
 
                 return Object.keys(filteredTrades).reduce((acc, a) => {
+                    const keysAndMetal = a.split('+');
+
                     acc += filteredTrades[a];
                     totalSold += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
-                        metal: Currencies.toRefined(+a.split('+')[1]),
-                        keys: +a.split('+')[0]
+                        keys: +keysAndMetal[0],
+                        metal: +keysAndMetal[1]
                     }).toString();
                     return acc + '\n';
                 }, '');
