@@ -52,7 +52,7 @@
         "sleep-async": "^1.0.5",
         "socket.io-client": "^2.3.1",
         "steam-totp": "^2.1.1",
-        "@tf2autobot/tradeoffer-manager": "^2.11.0",
+        "@tf2autobot/tradeoffer-manager": "^2.11.1",
         "steam-user": "^4.19.3",
         "steamcommunity": "^3.42.0",
         "steamid": "^1.1.3",
