@@ -391,6 +391,9 @@ export default class Commands {
             const soldTime = Object.keys(sold).sort((a, b) => {
                 return +a - +b;
             });
+
+            let totalBought = 0;
+
             const boughtLastX = [
                 86400, //DAY
                 604800, //WEEK
@@ -414,6 +417,7 @@ export default class Commands {
 
                 return Object.keys(filteredTrades).reduce((acc, a) => {
                     acc += filteredTrades[a];
+                    totalBought += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
                         metal: Currencies.toRefined(+a.split('+')[1]),
@@ -424,9 +428,14 @@ export default class Commands {
             });
 
             reply +=
-                (boughtLastX[0].length ? 'DAY\n' + boughtLastX[0] : '') +
-                (boughtLastX[1].length ? 'WEEK\n' + boughtLastX[1] : '') +
-                (boughtLastX[2].length ? '4 Weeks\n' + boughtLastX[2] : '');
+                `⬅️ ${totalBought} bought\n\n` +
+                (boughtLastX[0].length ? 'Last 24 hours\n' + boughtLastX[0] : '') +
+                (boughtLastX[1].length ? (boughtLastX[0].length ? '\n' : '') + 'Last 7 days\n' + boughtLastX[1] : '') +
+                (boughtLastX[2].length
+                    ? (boughtLastX[0].length || boughtLastX[1].length ? '\n' : '') + 'Last 4 weeks\n' + boughtLastX[2]
+                    : '');
+
+            let totalSold = 0;
 
             const soldLastX = [
                 86400, //DAY
@@ -451,6 +460,7 @@ export default class Commands {
 
                 return Object.keys(filteredTrades).reduce((acc, a) => {
                     acc += filteredTrades[a];
+                    totalSold += filteredTrades[a];
                     acc += ' @ ';
                     acc += new Currencies({
                         metal: Currencies.toRefined(+a.split('+')[1]),
@@ -460,9 +470,12 @@ export default class Commands {
                 }, '');
             });
             reply +=
-                (soldLastX[0].length ? 'DAY\n' + soldLastX[0] : '') +
-                (soldLastX[1].length ? 'WEEK\n' + soldLastX[1] : '') +
-                (soldLastX[2].length ? '4 Weeks\n' + soldLastX[2] : '');
+                `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
+                (soldLastX[0].length ? 'Last 24 hours\n' + soldLastX[0] : '') +
+                (soldLastX[1].length ? (soldLastX[0].length ? '\n' : '') + 'Last 7 days\n' + soldLastX[1] : '') +
+                (soldLastX[2].length
+                    ? (soldLastX[0].length || soldLastX[1].length ? '\n' : '') + 'Last 4 weeks\n' + soldLastX[2]
+                    : '');
         } else {
             reply = 'enable for keys and weapons - currently not implemented';
         }
