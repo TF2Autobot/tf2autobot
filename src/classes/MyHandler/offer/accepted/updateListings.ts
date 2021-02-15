@@ -35,27 +35,6 @@ export default function updateListings(
             ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         );
 
-        /**
-         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
-         */
-        if (isNotPureOrWeapons) {
-            void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-                if (err) {
-                    log.debug(`❌ Failed to request pricecheck for ${name} (${sku}): ${JSON.stringify(err)}`);
-                } else {
-                    log.debug(
-                        `✅ Requested pricecheck for ${
-                            body.name.includes('War Paint') ||
-                            body.name.includes('Mann Co. Supply Crate Series #') ||
-                            body.name.includes('Salvaged Mann Co. Supply Crate #')
-                                ? name
-                                : body.name
-                        } (${sku}).`
-                    );
-                }
-            });
-        }
-
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         if (
@@ -310,7 +289,28 @@ export default function updateListings(
                 });
         }
 
-        // Update listings
-        bot.listings.checkBySKU(sku);
+        /**
+         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
+         */
+        if (isNotPureOrWeapons) {
+            void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
+                if (err) {
+                    log.debug(`❌ Failed to request pricecheck for ${name} (${sku}): ${JSON.stringify(err)}`);
+                } else {
+                    log.debug(
+                        `✅ Requested pricecheck for ${
+                            body.name.includes('War Paint') ||
+                            body.name.includes('Mann Co. Supply Crate Series #') ||
+                            body.name.includes('Salvaged Mann Co. Supply Crate #')
+                                ? name
+                                : body.name
+                        } (${sku}).`
+                    );
+                }
+            });
+
+            // Update listings (exclude weapons/pure)
+            bot.listings.checkBySKU(sku);
+        }
     }
 }
