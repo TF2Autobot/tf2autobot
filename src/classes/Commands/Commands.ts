@@ -419,8 +419,6 @@ export default class Commands {
                             return acc;
                         }, {});
 
-                    log.debug('filteredTrades - bought', filteredTrades);
-
                     return Object.keys(filteredTrades).reduce((acc, a) => {
                         const boughtCount = filteredTrades[a] as number;
 
@@ -484,8 +482,6 @@ export default class Commands {
 
                             return acc;
                         }, {});
-
-                    log.debug('filteredTrades - sold', filteredTrades);
 
                     return Object.keys(filteredTrades).reduce((acc, a) => {
                         const soldCount = filteredTrades[a] as number;
