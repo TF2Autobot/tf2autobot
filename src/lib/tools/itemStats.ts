@@ -8,6 +8,8 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
     return new Promise((resolve, reject) => {
         const pollData = bot.manager.pollData;
 
+        const isCheckForPainted = /;[p][0-9]+/.test(SKU); // true if use input with painted partial sku
+
         if (pollData.offerData) {
             const trades = Object.keys(pollData.offerData).map(offerID => {
                 const ret = pollData.offerData[offerID] as OfferDataWithTime;
@@ -68,7 +70,10 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
 
                 for (const sku in trades[i].dict.their) {
                     // item bought
-                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku) && sku === SKU) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku) &&
+                        (!isCheckForPainted ? sku.replace(/;[p][0-9]+/, '') : sku) === SKU
+                    ) {
                         const itemCount =
                             typeof trades[i].dict.their[sku] === 'object'
                                 ? (trades[i].dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
@@ -97,7 +102,10 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                 }
 
                 for (const sku in trades[i].dict.our) {
-                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku) && sku === SKU) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku) &&
+                        (!isCheckForPainted ? sku.replace(/;[p][0-9]+/, '') : sku) === SKU
+                    ) {
                         const itemCount =
                             typeof trades[i].dict.our[sku] === 'object'
                                 ? (trades[i].dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
