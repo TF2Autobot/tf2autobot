@@ -666,7 +666,7 @@ export const DEFAULTS = {
          */
         sheens: {
             'Team Shine': '🔵🔴',
-            'Hot Rod': '🎗️',
+            'Hot Rod': '🌸',
             Manndarin: '🟠',
             'Deadly Daffodil': '🟡',
             'Mean Green': '🟢',
