@@ -20,8 +20,6 @@ import Pricer from '../Pricer';
 import { fixItem } from '../../lib/items';
 import { itemStats } from '../../lib/tools/export';
 
-import log from '../../lib/logger';
-
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
