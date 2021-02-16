@@ -165,10 +165,20 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
+        let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
+
+        const needToPickWeapons = remaining - Math.trunc(remaining) !== 0;
+        // Let say our selling price is 0.05 ref, so 0.05 - Math.trunc(0.05) = 0.05, it will be true.
+
+        if (this.isWeaponsAsCurrencyEnabled && needToPickWeapons) {
+            this.weapons.forEach(sku => {
+                currencyValues[sku] = 0.5;
+                pickedCurrencies[sku] = 0;
+            });
+        }
+
         const skus = Object.keys(currencyValues);
         const skusCount = skus.length;
-
-        let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
 
         let hasReversed = false;
         let reverse = false;
@@ -278,7 +288,8 @@ export default class UserCart extends Cart {
 
         log.debug('Done constructing offer', { picked: pickedCurrencies, change: remaining });
 
-        if (this.isWeaponsAsCurrencyEnabled) {
+        if (this.isWeaponsAsCurrencyEnabled && !needToPickWeapons) {
+            // if needToPickWeapons is false, then we add weapons after picking up metals.
             this.weapons.forEach(sku => {
                 pickedCurrencies[sku] = 0;
             });
