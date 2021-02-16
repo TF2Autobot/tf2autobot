@@ -168,7 +168,8 @@ export default class UserCart extends Cart {
         let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
 
         const needToPickWeapons = remaining - Math.trunc(remaining) !== 0;
-        // Let say our selling price is 0.05 ref, so 0.05 - Math.trunc(0.05) = 0.05, it will be true.
+        // Let say our selling price is 0.05 ref, so convert to value (scrap) is
+        // 0.5 - Math.trunc(0.5) = 0.5, it will be true.
 
         if (this.isWeaponsAsCurrencyEnabled && needToPickWeapons) {
             this.weapons.forEach(sku => {
