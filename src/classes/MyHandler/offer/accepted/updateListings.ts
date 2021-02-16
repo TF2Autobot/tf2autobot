@@ -1,6 +1,6 @@
 import { Items, TradeOffer } from 'steam-tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';

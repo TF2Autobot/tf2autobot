@@ -1,6 +1,6 @@
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import async from 'async';
 import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from 'steam-tradeoffer-manager';
 import Cart from './Cart';

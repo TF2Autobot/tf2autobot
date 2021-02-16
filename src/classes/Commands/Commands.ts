@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
