@@ -81,7 +81,7 @@
         "@types/semver": "^7.3.4",
         "@types/socket.io-client": "^1.4.34",
         "@types/valid-url": "^1.0.3",
-        "@typescript-eslint/eslint-plugin": "^4.15.0",
+        "@typescript-eslint/eslint-plugin": "^4.15.1",
         "@typescript-eslint/parser": "^4.15.0",
         "eslint": "^7.20.0",
         "eslint-plugin-jest": "^24.1.3",
