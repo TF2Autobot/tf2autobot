@@ -3,7 +3,7 @@
 
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';

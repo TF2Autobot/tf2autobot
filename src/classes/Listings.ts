@@ -4,7 +4,7 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
 import { Entry } from './Pricelist';

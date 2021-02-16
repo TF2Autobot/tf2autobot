@@ -80,7 +80,7 @@ export function summarizeToChat(
 
 type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
 
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
 import { replace } from '../tools/export';
 

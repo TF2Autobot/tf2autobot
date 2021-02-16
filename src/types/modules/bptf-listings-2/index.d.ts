@@ -2,7 +2,7 @@ declare module 'bptf-listings-2' {
     import { EventEmitter } from 'events';
     import SchemaManager from 'tf2-schema-2';
     import SteamID from 'steamid';
-    import TF2Currencies from 'tf2-currencies';
+    import TF2Currencies from 'tf2-currencies-2';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
