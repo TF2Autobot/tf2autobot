@@ -165,13 +165,6 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        if (this.isWeaponsAsCurrencyEnabled) {
-            this.weapons.forEach(sku => {
-                currencyValues[sku] = 0.5;
-                pickedCurrencies[sku] = 0;
-            });
-        }
-
         const skus = Object.keys(currencyValues);
         const skusCount = skus.length;
 
@@ -284,6 +277,12 @@ export default class UserCart extends Cart {
         }
 
         log.debug('Done constructing offer', { picked: pickedCurrencies, change: remaining });
+
+        if (this.isWeaponsAsCurrencyEnabled) {
+            this.weapons.forEach(sku => {
+                pickedCurrencies[sku] = 0;
+            });
+        }
 
         return {
             currencies: pickedCurrencies,
