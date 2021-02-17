@@ -405,7 +405,7 @@ export default class Commands {
                         return +a >= now - c;
                     });
 
-                    boughtTime = boughtTime.splice(0, filteredTrades.length);
+                    boughtTime = boughtTime.slice(0).splice(0, filteredTrades.length);
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const boughtObj = bought[a];
@@ -478,7 +478,7 @@ export default class Commands {
                         return +a >= now - c;
                     });
 
-                    soldTime = soldTime.splice(0, filteredTrades.length);
+                    soldTime = soldTime.slice(0).splice(0, filteredTrades.length);
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const soldObj = sold[a];
