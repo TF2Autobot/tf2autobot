@@ -170,9 +170,13 @@ export default class Listings {
         });
     }
 
-    checkBySKU(sku: string, data?: Entry | null, generics = false): void {
+    checkBySKU(sku: string, data?: Entry | null, generics = false, showLogs = false): void {
         if (!this.isCreateListing) {
             return;
+        }
+
+        if (showLogs) {
+            log.debug(`Checking ${sku}...`);
         }
 
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
@@ -189,7 +193,9 @@ export default class Listings {
 
         this.bot.listingManager.findListings(sku).forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
-                // Already have a sell listing, remove the listing
+                if (showLogs) {
+                    log.debug('Already have a sell listing, remove the listing.');
+                }
                 listing.remove();
                 return;
             }
@@ -201,10 +207,14 @@ export default class Listings {
             }
 
             if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
-                // We are not trading the item, remove the listing
+                if (showLogs) {
+                    log.debug('We are not trading the item, remove the listing.');
+                }
                 listing.remove();
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
-                // We are not buying / selling more, remove the listing
+                if (showLogs) {
+                    log.debug(`We are not ${listing.intent === 0 ? 'buying' : 'selling'} more, remove the listing.`);
+                }
                 listing.remove();
             } else if (
                 match !== null &&
@@ -212,8 +222,9 @@ export default class Listings {
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
                 isFilterCantAfford
             ) {
-                // Listing for buying exist but we can't afford to buy, remove.
-                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                if (showLogs) {
+                    log.debug(`we can't afford to buy, remove the listing.`);
+                }
                 listing.remove();
             } else {
                 if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
@@ -228,10 +239,12 @@ export default class Listings {
 
                     if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
                         // Listing details or promoted don't match, update listing with new details and price
-                        log.debug('updated listing', {
-                            sku: sku,
-                            intent: listing.intent
-                        });
+                        if (showLogs) {
+                            log.debug(`Listing details don't match, updated listing`, {
+                                sku: sku,
+                                intent: listing.intent
+                            });
+                        }
 
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
@@ -258,7 +271,9 @@ export default class Listings {
                 : true;
 
             if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
-                // We have no buy order and we can buy more items, create buy listing
+                if (showLogs) {
+                    log.debug(`We have no buy order and we can buy more items, create buy listing.`);
+                }
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
@@ -269,7 +284,9 @@ export default class Listings {
             }
 
             if (!hasSellListing && amountCanSell > 0) {
-                // We have no sell order and we can sell items, create sell listing
+                if (showLogs) {
+                    log.debug(`We have no sell order and we can sell items, create sell listing.`);
+                }
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
                     id: assetids[assetids.length - 1],
@@ -368,7 +385,7 @@ export default class Listings {
         });
     }
 
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number): Promise<void> {
+    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number, showLogs = false): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
@@ -379,7 +396,7 @@ export default class Listings {
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                    this.checkBySKU(pricelist[index].sku, pricelist[index], false, showLogs);
                     index++;
                     await sleepasync().Promise.sleep(time ? time : 200);
                     void iteration();

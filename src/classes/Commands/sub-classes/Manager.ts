@@ -609,7 +609,8 @@ export default class ManagerCommands {
                     await this.bot.listings.recursiveCheckPricelist(
                         pricelist,
                         true,
-                        this.pricelistCount > 4000 ? 400 : 200
+                        this.pricelistCount > 4000 ? 400 : 200,
+                        true
                     );
 
                     log.debug('Done checking ' + pluralize('item', pricelistCount, true));

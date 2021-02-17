@@ -552,7 +552,8 @@ export default class MyHandler extends Handler {
                         await this.bot.listings.recursiveCheckPricelist(
                             pricelist,
                             true,
-                            pricelistCount > 4000 ? 400 : 200
+                            pricelistCount > 4000 ? 400 : 200,
+                            true
                         );
 
                         log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
@@ -1098,7 +1099,7 @@ export default class MyHandler extends Handler {
                                     amountCanTrade: amountCanTrade
                                 });
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1127,7 +1128,7 @@ export default class MyHandler extends Handler {
                                     amountCanTrade: amountCanTrade
                                 });
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1252,17 +1253,17 @@ export default class MyHandler extends Handler {
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -1290,7 +1291,7 @@ export default class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
 
-                    this.bot.listings.checkBySKU('5021;6');
+                    this.bot.listings.checkBySKU('5021;6', null, false, true);
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
@@ -1306,7 +1307,7 @@ export default class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
 
-                    this.bot.listings.checkBySKU('5021;6');
+                    this.bot.listings.checkBySKU('5021;6', null, false, true);
                 }
             }
         }
@@ -2152,7 +2153,7 @@ export default class MyHandler extends Handler {
         if (!this.isPriceUpdateWebhook) {
             log.debug(`${sku} updated`);
         }
-        this.bot.listings.checkBySKU(sku, entry);
+        this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
     onLoginThrottle(wait: number): void {

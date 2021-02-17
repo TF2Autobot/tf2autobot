@@ -310,7 +310,7 @@ export default function updateListings(
             });
 
             // Update listings (exclude weapons/pure)
-            bot.listings.checkBySKU(sku);
+            bot.listings.checkBySKU(sku, null, false, true);
         }
     }
 }
