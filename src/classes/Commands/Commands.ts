@@ -389,7 +389,7 @@ export default class Commands {
 
                 // ----------------------Bought calculations----------------------
 
-                const boughtTime = Object.keys(bought).sort((a, b) => {
+                let boughtTime = Object.keys(bought).sort((a, b) => {
                     return +a - +b;
                 });
 
@@ -400,26 +400,28 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map((c, i, arr) => {
-                    const filteredTrades = boughtTime
-                        .filter(a => {
-                            return +a >= now - c && +a <= now + (i === 0 ? 0 : arr[i - 1]);
-                        })
-                        .reduce((acc, a) => {
-                            const boughtObj = bought[a];
-                            const key = `${boughtObj.keys}+${boughtObj.metal}`;
+                ].map(c => {
+                    const filteredTrades = boughtTime.filter(a => {
+                        return +a >= now - c;
+                    });
 
-                            if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                                acc[key] = boughtObj.count;
-                            } else {
-                                acc[key] += boughtObj.count;
-                            }
+                    boughtTime = boughtTime.splice(0, filteredTrades.length);
 
-                            return acc;
-                        }, {});
+                    const reducedTrades = filteredTrades.reduce((acc, a) => {
+                        const boughtObj = bought[a];
+                        const key = `${boughtObj.keys}+${boughtObj.metal}`;
 
-                    return Object.keys(filteredTrades).reduce((acc, a) => {
-                        const boughtCount = filteredTrades[a] as number;
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            acc[key] = boughtObj.count;
+                        } else {
+                            acc[key] += boughtObj.count;
+                        }
+
+                        return acc;
+                    }, {});
+
+                    return Object.keys(reducedTrades).reduce((acc, a) => {
+                        const boughtCount = reducedTrades[a] as number;
 
                         totalBought += boughtCount;
 
@@ -460,7 +462,7 @@ export default class Commands {
 
                 // ----------------------Sold calculations----------------------
 
-                const soldTime = Object.keys(sold).sort((a, b) => {
+                let soldTime = Object.keys(sold).sort((a, b) => {
                     return +a - +b;
                 });
 
@@ -471,26 +473,28 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map((c, i, arr) => {
-                    const filteredTrades = soldTime
-                        .filter(a => {
-                            return +a >= now - c && +a <= now + (i === 0 ? 0 : arr[i - 1]);
-                        })
-                        .reduce((acc, a) => {
-                            const soldObj = sold[a];
-                            const key = `${soldObj.keys}+${soldObj.metal}`;
+                ].map(c => {
+                    const filteredTrades = soldTime.filter(a => {
+                        return +a >= now - c;
+                    });
 
-                            if (!Object.prototype.hasOwnProperty.call(acc, key)) {
-                                acc[key] = soldObj.count;
-                            } else {
-                                acc[key] += soldObj.count;
-                            }
+                    soldTime = soldTime.splice(0, filteredTrades.length);
 
-                            return acc;
-                        }, {});
+                    const reducedTrades = filteredTrades.reduce((acc, a) => {
+                        const soldObj = sold[a];
+                        const key = `${soldObj.keys}+${soldObj.metal}`;
 
-                    return Object.keys(filteredTrades).reduce((acc, a) => {
-                        const soldCount = filteredTrades[a] as number;
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            acc[key] = soldObj.count;
+                        } else {
+                            acc[key] += soldObj.count;
+                        }
+
+                        return acc;
+                    }, {});
+
+                    return Object.keys(reducedTrades).reduce((acc, a) => {
+                        const soldCount = reducedTrades[a] as number;
                         totalSold += soldCount;
 
                         const keysAndMetal = a.split('+');
