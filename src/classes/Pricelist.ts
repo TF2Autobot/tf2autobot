@@ -728,7 +728,6 @@ export default class Pricelist extends EventEmitter {
                                         currPrice.sell = new Currencies(newestPrice.sell);
                                     }
 
-                                    currPrice.time = newestPrice.time;
                                     pricesChanged = true;
 
                                     // else, just don't update for now.
@@ -819,7 +818,6 @@ export default class Pricelist extends EventEmitter {
                         match.sell = new Currencies(data.sell);
                     }
 
-                    match.time = data.time;
                     this.priceChanged(match.sku, match);
 
                     // else, just don't update for now.
