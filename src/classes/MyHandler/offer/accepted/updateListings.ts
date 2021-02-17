@@ -304,6 +304,41 @@ export default function updateListings(
                         }
                     }
                 });
+        } else if (
+            inPrice !== null &&
+            inPrice.autoprice &&
+            inPrice.group === 'inStockUpdate' &&
+            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            isNotPureOrWeapons
+        ) {
+            // If item exist in pricelist with group "inStockUpdate" and we no longer have that in stock,
+            // then update entry with the latest prices.
+
+            const entry = {
+                sku: sku,
+                enabled: inPrice.enabled,
+                autoprice: true,
+                min: inPrice.min,
+                max: inPrice.max,
+                intent: inPrice.intent,
+                group: 'all'
+            } as EntryData;
+
+            bot.pricelist
+                .updatePrice(entry, true)
+                .then(() => log.debug(`✅ Automatically update prices for ${name} (${sku})`))
+                .catch(err => {
+                    const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
+                    log.warn(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoUpdateNotInStockPrices', bot, msg);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
+                });
         }
 
         // Update listings

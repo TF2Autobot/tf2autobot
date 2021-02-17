@@ -34,7 +34,8 @@ type AlertType =
     | 'failed-processing-offer'
     | 'retry-success'
     | 'retry-failed'
-    | 'error-accept';
+    | 'error-accept'
+    | 'autoUpdateNotInStockPrices';
 
 export default function sendAlert(
     type: AlertType,
@@ -109,6 +110,10 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoUpdateNotInStockPrices') {
+        title = 'Failed update item prices (notInStock)';
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {
