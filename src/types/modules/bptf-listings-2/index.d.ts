@@ -38,7 +38,7 @@ declare module 'bptf-listings-2' {
 
         listings: ListingManager.Listing[];
 
-        actions: { create: Record<string, unknown>[]; remove: string[] };
+        actions: { create: Create[]; remove: string[] };
 
         ready: boolean;
 
@@ -71,6 +71,16 @@ declare module 'bptf-listings-2' {
         shutdown(): void;
 
         _processActions: (callback: (err?: Error) => void) => void;
+    }
+
+    interface Create {
+        time: number;
+        id?: string;
+        sku?: string;
+        intent: 0 | 1;
+        promoted: 0 | 1;
+        details: string;
+        currencies: TF2Currencies;
     }
 
     namespace ListingManager {
