@@ -84,6 +84,7 @@ export default class Commands {
     processMessage(steamID: SteamID, message: string): void {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
+        const isWhitelisted = this.bot.isWhitelisted(steamID);
 
         const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
 
@@ -254,7 +255,7 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
-        } else if (command == 'itemstats') {
+        } else if (command == 'itemstats' && (isAdmin || isWhitelisted)) {
             void this.itemStatsCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
@@ -356,9 +357,6 @@ export default class Commands {
     }
 
     private async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
-        if (!this.bot.isAdmin(steamID)) {
-            return;
-        }
         message = CommandParser.removeCommand(message).trim();
         let sku = '';
         if (testSKU(message)) {
