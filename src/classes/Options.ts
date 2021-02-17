@@ -1763,6 +1763,7 @@ export default interface Options extends JsonOptions {
 
     admins?: string[];
     keep?: string[];
+    itemStatsWhitelist?: string[];
     groups?: string[];
     alerts?: string[];
 
@@ -1888,6 +1889,7 @@ export function loadOptions(options?: Options): Options {
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
+        itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
         groups: getOption('groups', ['103582791464047777', '103582791462300957'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
