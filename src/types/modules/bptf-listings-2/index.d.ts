@@ -75,12 +75,19 @@ declare module 'bptf-listings-2' {
 
     interface Create {
         time: number;
-        id?: string;
-        sku?: string;
+        id?: string; // only when intent 1 (sell)
+        sku?: string; // only when intent 0 (buy)
         intent: 0 | 1;
         promoted: 0 | 1;
         details: string;
         currencies: TF2Currencies;
+        item?: Item; // only when intent 0 (buy)
+    }
+
+    interface Item {
+        item_name: string;
+        quality: string;
+        craftable: 0 | 1;
     }
 
     namespace ListingManager {
