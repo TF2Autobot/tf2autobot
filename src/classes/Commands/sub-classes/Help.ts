@@ -48,6 +48,7 @@ export default class HelpCommands {
                           "!name <new_name> - Change the bot's name",
                           "!avatar <image_URL> - Change the bot's avatar\n\n✨=== Bot status ===✨",
                           '!stats - Get statistics for accepted trades 📊',
+                          '!itemstats <item name|sku> - Get statistics for specific item (keys/weapons not supported) 📊',
                           '!statsdw - Send statistics to Discord Webhook 📊',
                           "!inventory - Get the bot's current inventory spaces 🎒",
                           '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
