@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import SteamUser, { EResult } from 'steam-user';
-import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
@@ -561,7 +561,7 @@ export default class Bot {
                     log.debug('Setting Steam API Key to schema');
                     this.botManager.setAPIKeyForSchema = this.manager.apiKey;
 
-                    this.manager.pollInterval = 30 * 1000;
+                    this.manager.pollInterval = 2 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();

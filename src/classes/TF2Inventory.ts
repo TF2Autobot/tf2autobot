@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import TradeOfferManager from 'steam-tradeoffer-manager';
+import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import request from 'request-retry-dayjs';
 import cheerio from 'cheerio';
 import { uid } from 'rand-token';

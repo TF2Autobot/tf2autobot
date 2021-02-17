@@ -1,4 +1,4 @@
-import { TradeOffer, Meta } from 'steam-tradeoffer-manager';
+import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
 import Bot from '../../../Bot';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';

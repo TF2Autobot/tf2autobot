@@ -1,4 +1,4 @@
-import { Items, TradeOffer } from 'steam-tradeoffer-manager';
+import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';

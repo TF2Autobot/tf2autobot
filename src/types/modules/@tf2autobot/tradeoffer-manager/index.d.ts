@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-declare module 'steam-tradeoffer-manager' {
+declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import SchemaManager, { Paints } from 'tf2-schema-2';

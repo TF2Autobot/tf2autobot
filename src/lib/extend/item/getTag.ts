@@ -1,4 +1,4 @@
-import { EconItem } from 'steam-tradeoffer-manager';
+import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 /**
  * Gets a tag by category

@@ -1,4 +1,4 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';

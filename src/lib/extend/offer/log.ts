@@ -1,4 +1,4 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 
 import log from '../../logger';
 

@@ -1,4 +1,4 @@
-import { ItemsValue, TradeOffer } from 'steam-tradeoffer-manager';
+import { ItemsValue, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Currencies from 'tf2-currencies-2';
 import { Currency } from '../../types/TeamFortress2';
 import { KeyPrices } from '../../classes/Pricelist';

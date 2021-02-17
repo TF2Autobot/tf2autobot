@@ -1,4 +1,4 @@
-import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -111,7 +111,7 @@ export default class Trades {
 
         if (
             filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
-            (this.pollCount * this.bot.manager.pollInterval) / (2 * 30 * 60 * 1000) >= 1
+            (this.pollCount * this.bot.manager.pollInterval) / (2 * 2 * 60 * 1000) >= 1
         ) {
             this.pollCount = 0;
 
