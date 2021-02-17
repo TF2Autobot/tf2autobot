@@ -403,7 +403,7 @@ export default class Commands {
                 ].map((c, i, arr) => {
                     const filteredTrades = boughtTime
                         .filter(a => {
-                            return +a >= now + (i === 0 ? 0 : arr[i - 1]) && +a <= now - c;
+                            return +a >= now - c && +a <= now + (i === 0 ? 0 : arr[i - 1]);
                         })
                         .reduce((acc, a) => {
                             const boughtObj = bought[a];
@@ -474,7 +474,7 @@ export default class Commands {
                 ].map((c, i, arr) => {
                     const filteredTrades = soldTime
                         .filter(a => {
-                            return +a >= now + (i === 0 ? 0 : arr[i - 1]) && +a <= now - c;
+                            return +a >= now - c && +a <= now + (i === 0 ? 0 : arr[i - 1]);
                         })
                         .reduce((acc, a) => {
                             const soldObj = sold[a];
