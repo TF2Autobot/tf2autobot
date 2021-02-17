@@ -20,6 +20,8 @@ import Pricer from '../Pricer';
 import { fixItem } from '../../lib/items';
 import { itemStats } from '../../lib/tools/export';
 
+import log from '../../lib/logger';
+
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
@@ -393,6 +395,8 @@ export default class Commands {
                     return +a - +b;
                 });
 
+                log.debug('boughtTime: ', boughtTime);
+
                 let totalBought = 0;
 
                 const boughtLastX = [
@@ -400,12 +404,22 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map(c => {
+                ].map((c, i) => {
                     const filteredTrades = boughtTime.filter(a => {
                         return +a >= now - c;
                     });
 
+                    log.debug('boughtLastX - filteredTrades: ', {
+                        iteration: i,
+                        filteredTrades: filteredTrades
+                    });
+
                     boughtTime = boughtTime.slice(0).splice(0, filteredTrades.length);
+
+                    log.debug('boughtLastX - new boughtTime: ', {
+                        iteration: i,
+                        newBoughtTime: boughtTime
+                    });
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const boughtObj = bought[a];
@@ -466,6 +480,8 @@ export default class Commands {
                     return +a - +b;
                 });
 
+                log.debug('soldTime: ', soldTime);
+
                 let totalSold = 0;
 
                 const soldLastX = [
@@ -473,12 +489,22 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map(c => {
+                ].map((c, i) => {
                     const filteredTrades = soldTime.filter(a => {
                         return +a >= now - c;
                     });
 
+                    log.debug('soldLastX - filteredTrades: ', {
+                        iteration: i,
+                        filteredTrades: filteredTrades
+                    });
+
                     soldTime = soldTime.slice(0).splice(0, filteredTrades.length);
+
+                    log.debug('soldLastX - newSoldTime: ', {
+                        iteration: i,
+                        newSoldTime: soldTime
+                    });
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const soldObj = sold[a];
