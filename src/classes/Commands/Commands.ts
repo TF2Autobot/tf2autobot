@@ -389,7 +389,7 @@ export default class Commands {
 
                 // ----------------------Bought calculations----------------------
 
-                let boughtTime = Object.keys(bought).sort((a, b) => {
+                const boughtTime = Object.keys(bought).sort((a, b) => {
                     return +a - +b;
                 });
 
@@ -405,7 +405,7 @@ export default class Commands {
                         return +a >= now - c;
                     });
 
-                    boughtTime = boughtTime.slice(0).filter(time => !filteredTrades.includes(time));
+                    boughtTime.splice(0, filteredTrades.length);
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const boughtObj = bought[a];
@@ -462,7 +462,7 @@ export default class Commands {
 
                 // ----------------------Sold calculations----------------------
 
-                let soldTime = Object.keys(sold).sort((a, b) => {
+                const soldTime = Object.keys(sold).sort((a, b) => {
                     return +a - +b;
                 });
 
@@ -478,7 +478,7 @@ export default class Commands {
                         return +a >= now - c;
                     });
 
-                    soldTime = soldTime.slice(0).filter(time => !filteredTrades.includes(time));
+                    soldTime.splice(0, filteredTrades.length);
 
                     const reducedTrades = filteredTrades.reduce((acc, a) => {
                         const soldObj = sold[a];
