@@ -382,7 +382,7 @@ export default class Commands {
             !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) &&
             !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
         ) {
-            const now = Date.now();
+            const now = Math.floor(Date.now() / 1000);
 
             try {
                 const { bought, sold } = await itemStats(this.bot, sku);
@@ -403,7 +403,7 @@ export default class Commands {
                 ].map(c => {
                     const filteredTrades = boughtTime
                         .filter(a => {
-                            return +a >= Math.floor(now / 1000) - c;
+                            return +a >= now && +a <= now - c;
                         })
                         .reduce((acc, a) => {
                             const boughtObj = bought[a];
@@ -474,7 +474,7 @@ export default class Commands {
                 ].map(c => {
                     const filteredTrades = soldTime
                         .filter(a => {
-                            return +a >= Math.floor(now / 1000) - c;
+                            return +a >= now && +a <= now - c;
                         })
                         .reduce((acc, a) => {
                             const soldObj = sold[a];
