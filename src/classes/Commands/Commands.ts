@@ -414,7 +414,10 @@ export default class Commands {
                         filteredTrades: filteredTrades
                     });
 
-                    boughtTime = boughtTime.slice(0).splice(0, filteredTrades.length);
+                    filteredTrades.forEach(time => {
+                        const index = boughtTime.findIndex(t => t === time);
+                        boughtTime = boughtTime.slice(0).splice(0, index);
+                    });
 
                     log.debug('boughtLastX - new boughtTime: ', {
                         iteration: i,
@@ -499,7 +502,10 @@ export default class Commands {
                         filteredTrades: filteredTrades
                     });
 
-                    soldTime = soldTime.slice(0).splice(0, filteredTrades.length);
+                    filteredTrades.forEach(time => {
+                        const index = soldTime.findIndex(t => t === time);
+                        soldTime = soldTime.slice(0).splice(0, index);
+                    });
 
                     log.debug('soldLastX - newSoldTime: ', {
                         iteration: i,
