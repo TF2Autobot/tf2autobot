@@ -400,10 +400,10 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map(c => {
+                ].map((c, i, arr) => {
                     const filteredTrades = boughtTime
                         .filter(a => {
-                            return +a >= now && +a <= now - c;
+                            return +a >= now + (i < 0 ? 0 : arr[i - 1]) && +a <= now - c;
                         })
                         .reduce((acc, a) => {
                             const boughtObj = bought[a];
@@ -471,10 +471,10 @@ export default class Commands {
                     86400, // Past 24 hours
                     604800, // Past 7 days
                     2419200 // Past 4 weeks
-                ].map(c => {
+                ].map((c, i, arr) => {
                     const filteredTrades = soldTime
                         .filter(a => {
-                            return +a >= now && +a <= now - c;
+                            return +a >= now + (i < 0 ? 0 : arr[i - 1]) && +a <= now - c;
                         })
                         .reduce((acc, a) => {
                             const soldObj = sold[a];
