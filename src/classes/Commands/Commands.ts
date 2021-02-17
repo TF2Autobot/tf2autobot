@@ -255,7 +255,7 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
-        } else if (command == 'itemstats' && (isAdmin || isWhitelisted)) {
+        } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {
             void this.itemStatsCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
