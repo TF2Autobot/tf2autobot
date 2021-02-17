@@ -394,9 +394,10 @@ export default class Commands {
                 let totalBought = 0;
 
                 const boughtLastX = [
-                    86400, // Last 24 hours
-                    604800, // Last 7 days
-                    2419200 // Last 4 weeks
+                    3600, // Past 60 minutes
+                    86400, // Past 24 hours
+                    604800, // Past 7 days
+                    2419200 // Past 4 weeks
                 ].map(c => {
                     const filteredTrades = boughtTime
                         .filter(a => {
@@ -433,20 +434,26 @@ export default class Commands {
                     }, '');
                 });
 
-                const last24HoursBoughtCount = boughtLastX[0].length;
-                const lastWeekBoughtCount = boughtLastX[1].length;
-                const last4WeeksBoughtCount = boughtLastX[2].length;
+                const past60MinutesBoughtCount = boughtLastX[0].length;
+                const past24HoursBoughtCount = boughtLastX[1].length;
+                const pastWeekBoughtCount = boughtLastX[2].length;
+                const past4WeeksBoughtCount = boughtLastX[3].length;
 
                 reply +=
                     `⬅️ ${totalBought} bought\n\n` +
-                    (last24HoursBoughtCount ? 'Last 24 hours\n' + boughtLastX[0] : '') +
-                    (lastWeekBoughtCount
-                        ? (last24HoursBoughtCount ? '\n' : '') + 'Last 7 days\n' + boughtLastX[1]
+                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
+                    (past24HoursBoughtCount
+                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
                         : '') +
-                    (last4WeeksBoughtCount
-                        ? (last24HoursBoughtCount || lastWeekBoughtCount ? '\n' : '') +
-                          'Last 4 weeks\n' +
+                    (pastWeekBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
+                          'Past 7 days\n' +
                           boughtLastX[2]
+                        : '') +
+                    (past4WeeksBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          boughtLastX[3]
                         : '');
 
                 // ----------------------Sold calculations----------------------
@@ -458,9 +465,10 @@ export default class Commands {
                 let totalSold = 0;
 
                 const soldLastX = [
-                    86400, // Last 24 hours
-                    604800, // Last 7 days
-                    2419200 // Last 4 weeks
+                    3600, // Past 60 minutes
+                    86400, // Past 24 hours
+                    604800, // Past 7 days
+                    2419200 // Past 4 weeks
                 ].map(c => {
                     const filteredTrades = soldTime
                         .filter(a => {
@@ -495,16 +503,24 @@ export default class Commands {
                     }, '');
                 });
 
-                const last24HoursSoldCount = soldLastX[0].length;
-                const lastWeekSoldCount = soldLastX[1].length;
-                const last4WeeksSoldCount = soldLastX[2].length;
+                const past60MinutesSoldCount = soldLastX[0].length;
+                const past24HoursSoldCount = soldLastX[1].length;
+                const pastWeekSoldCount = soldLastX[2].length;
+                const past4WeeksSoldCount = soldLastX[3].length;
 
                 reply +=
                     `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
-                    (last24HoursSoldCount ? 'Last 24 hours\n' + soldLastX[0] : '') +
-                    (lastWeekSoldCount ? (last24HoursSoldCount ? '\n' : '') + 'Last 7 days\n' + soldLastX[1] : '') +
-                    (last4WeeksSoldCount
-                        ? (last24HoursSoldCount || lastWeekSoldCount ? '\n' : '') + 'Last 4 weeks\n' + soldLastX[2]
+                    (past60MinutesSoldCount ? 'Past 60 minutes\n' + soldLastX[0] : '') +
+                    (past24HoursSoldCount
+                        ? (past60MinutesSoldCount ? '\n' : '') + 'Past 24 hours\n' + soldLastX[1]
+                        : '') +
+                    (pastWeekSoldCount
+                        ? (past60MinutesSoldCount || past24HoursSoldCount ? '\n' : '') + 'Past 7 days\n' + soldLastX[2]
+                        : '') +
+                    (past4WeeksSoldCount
+                        ? (past60MinutesSoldCount || past24HoursSoldCount || pastWeekSoldCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          soldLastX[3]
                         : '');
             } catch (err) {
                 reply = err as string;
