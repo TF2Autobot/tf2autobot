@@ -179,6 +179,8 @@ export default class Listings {
             log.debug(`Checking ${sku}...`);
         }
 
+        let doneSomething = false;
+
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = SKU.fromString(sku).paintkit !== null;
@@ -196,6 +198,7 @@ export default class Listings {
                 if (showLogs) {
                     log.debug('Already have a sell listing, remove the listing.');
                 }
+                doneSomething = true;
                 listing.remove();
                 return;
             }
@@ -210,11 +213,13 @@ export default class Listings {
                 if (showLogs) {
                     log.debug('We are not trading the item, remove the listing.');
                 }
+                doneSomething = true;
                 listing.remove();
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 if (showLogs) {
                     log.debug(`We are not ${listing.intent === 0 ? 'buying' : 'selling'} more, remove the listing.`);
                 }
+                doneSomething = true;
                 listing.remove();
             } else if (
                 match !== null &&
@@ -225,6 +230,7 @@ export default class Listings {
                 if (showLogs) {
                     log.debug(`we can't afford to buy, remove the listing.`);
                 }
+                doneSomething = true;
                 listing.remove();
             } else {
                 if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
@@ -238,13 +244,14 @@ export default class Listings {
                     );
 
                     if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
-                        // Listing details or promoted don't match, update listing with new details and price
                         if (showLogs) {
                             log.debug(`Listing details don't match, updated listing`, {
                                 sku: sku,
                                 intent: listing.intent
                             });
                         }
+
+                        doneSomething = true;
 
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
@@ -307,6 +314,9 @@ export default class Listings {
                     if (showLogs) {
                         log.debug(`We have no buy order and we can buy more items, create buy listing.`);
                     }
+
+                    doneSomething = true;
+
                     this.bot.listingManager.createListing({
                         time: matchNew.time || dayjs().unix(),
                         sku: sku,
@@ -320,6 +330,9 @@ export default class Listings {
                     if (showLogs) {
                         log.debug(`We have no sell order and we can sell items, create sell listing.`);
                     }
+
+                    doneSomething = true;
+
                     this.bot.listingManager.createListing({
                         time: matchNew.time || dayjs().unix(),
                         id: assetids[assetids.length - 1],
@@ -335,6 +348,10 @@ export default class Listings {
                     });
                 }
             }
+        }
+
+        if (showLogs && !doneSomething) {
+            log.debug('Done check, nothing changed');
         }
     }
 
