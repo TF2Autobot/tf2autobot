@@ -1179,6 +1179,9 @@ export default class MyHandler extends Handler {
                         // else means the item is truly not in pricelist and make "isCanBePriced" true
                         const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
 
+                        const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
+                        // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
+
                         let itemSuggestedValue: string;
                         if (price === null) {
                             itemSuggestedValue = 'No price';
@@ -1187,8 +1190,12 @@ export default class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (opt.offerReceived.invalidItems.givePrice && item.wear === null && isCanBePriced) {
-                                // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                            if (
+                                opt.offerReceived.invalidItems.givePrice &&
+                                (item.wear === null || !isCrateOrCases) &&
+                                isCanBePriced
+                            ) {
+                                // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
                                 // and the item is not enabled=false,
                                 // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
