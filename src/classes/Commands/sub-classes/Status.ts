@@ -299,7 +299,7 @@ export default class StatusCommands {
                     this.bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/idinium96/tf2autobot/releases` +
+                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                             `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"` +
                             '\n\nContact IdiNium if you have any other problem. Thank you.'
                     );

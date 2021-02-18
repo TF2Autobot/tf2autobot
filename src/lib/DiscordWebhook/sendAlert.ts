@@ -86,7 +86,7 @@ export default function sendAlert(
         title = 'Automatic restart failed - no PM2';
         description =
             `❌ Automatic restart failed because you're not running the bot with PM2! ` +
-            `Get a VPS and run your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS`;
+            `Get a VPS and run your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS`;
         color = '16711680'; // red
     } else if (type === 'failedRestartError') {
         title = 'Automatic restart failed - Error';

@@ -19,7 +19,7 @@ export default class HelpCommands {
                       '\n• [a] = Optionally add "a"' +
                       '\n• (a|b) = Directly input "a" OR "b"' +
                       '\n• <a> = Replace "a" with relevant content' +
-                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
                     : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
             }\n\n📜 Here's a list of my commands:\n- ${
                 isAdmin
