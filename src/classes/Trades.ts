@@ -401,8 +401,6 @@ export default class Trades {
             return;
         }
 
-        const opt = this.bot.options;
-
         try {
             const offer = await this.getOffer(offerID);
             log.debug(`Auto retry ${isRetryAccept ? 'accepting' : 'declining'} offer...`);
@@ -414,68 +412,11 @@ export default class Trades {
                     isRetryAccept ? (offer.data('meta') as Meta) : {},
                     offer
                 );
-
-                const msg = `✅ Auto retry to ${action} on the offer #${offer.id} was a success!`;
-
-                if (opt.sendAlert.failedAccept) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert(`retry-success`, this.bot, msg, null, [action]);
-                    } else {
-                        this.bot.messageAdmins(msg, []);
-                    }
-                }
-
-                return;
             } catch (err) {
-                const msg = `❌ Auto retry to ${action} on the offer #${offer.id} was a failure: ${
-                    (err as Error).message
-                }`;
-
-                log.warn(msg);
-
-                if (opt.sendAlert.failedAccept) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert(
-                            `retry-failed`,
-                            this.bot,
-                            msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                            null,
-                            err,
-                            [action]
-                        );
-                    } else {
-                        this.bot.messageAdmins(
-                            msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                            []
-                        );
-                    }
-                }
-
-                return;
+                // Ignore err
             }
         } catch (err) {
-            const msg = `❌ Auto retry to ${action} on the offer #${offerID} was a failure: ${(err as Error).message}.`;
-
-            log.warn(msg);
-
-            if (opt.sendAlert.failedAccept) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                    sendAlert(
-                        `retry-failed`,
-                        this.bot,
-                        msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                        null,
-                        err,
-                        [action]
-                    );
-                } else {
-                    this.bot.messageAdmins(
-                        msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                        []
-                    );
-                }
-            }
-            return;
+            // Ignore err
         }
     }
 
