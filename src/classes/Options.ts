@@ -880,14 +880,14 @@ export const DEFAULTS = {
                 }
             },
             'The Value of Teamwork': {
-                stringNote: '👨🏽‍🤝‍👨🏻',
+                stringNote: '🎎',
                 price: {
                     keys: 0,
                     metal: 30
                 }
             },
             'Waterlogged Lab Coat': {
-                stringNote: '👨🏽‍🤝‍👨🏽',
+                stringNote: '🎏',
                 price: {
                     keys: 0,
                     metal: 30
