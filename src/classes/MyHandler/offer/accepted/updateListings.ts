@@ -26,7 +26,6 @@ export default function updateListings(
         : [];
 
     const skus: string[] = [];
-    let pricecheckTimeout: NodeJS.Timeout;
 
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
@@ -41,6 +40,11 @@ export default function updateListings(
         const isNotPureOrWeapons = !(weapons.includes(sku) || ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
         const inPrice = bot.pricelist.getPrice(sku, false);
 
+        const existInPricelist = inPrice !== null;
+        const isDisabledHV = highValue.isDisableSKU.includes(sku);
+        const isAdmin = bot.isAdmin(offer.partner);
+        const isNotSkinsOrWarPaint = SKU.fromString(sku).wear === null;
+
         const isAutoaddPainted =
             normalizePainted.our === false && // must meet this setting
             normalizePainted.their === true && // must meet this setting
@@ -54,23 +58,23 @@ export default function updateListings(
             opt.pricelist.autoAddPaintedItems.enable; // autoAddPaintedItems must enabled
 
         const isAutoaddInvalidItems =
-            inPrice === null &&
+            !existInPricelist &&
             isNotPureOrWeapons &&
-            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
-            !highValue.isDisableSKU.includes(sku) &&
-            !bot.isAdmin(offer.partner) &&
+            isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
+            !isDisabledHV &&
+            !isAdmin &&
             opt.pricelist.autoAddInvalidItems.enable;
 
         const receivedNotInPricelist =
-            inPrice === null &&
+            !existInPricelist &&
             isNotPureOrWeapons &&
-            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
-            highValue.isDisableSKU.includes(sku) && // This is the only difference
-            !bot.isAdmin(offer.partner);
+            isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
+            isDisabledHV && // This is the only difference
+            !isAdmin;
 
         const isAutoDisableHighValueItems =
-            inPrice !== null &&
-            highValue.isDisableSKU.includes(sku) &&
+            existInPricelist &&
+            isDisabledHV &&
             (normalizePainted.our === false
                 ? !highValue.theirItems.some(
                       str =>
@@ -89,7 +93,7 @@ export default function updateListings(
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
-            inPrice !== null &&
+            existInPricelist &&
             inPrice.intent === 1 &&
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
@@ -299,13 +303,11 @@ export default function updateListings(
             // Update listings (exclude weapons/pure)
             bot.listings.checkBySKU(sku, null, false, true);
         }
+    }
 
-        if (skus.length > 0) {
-            clearTimeout(pricecheckTimeout);
-
-            pricecheckTimeout = setTimeout(() => {
-                void pricecheck(skus, requestCheck);
-            }, 1 * 1000);
-        }
+    if (skus.length > 0) {
+        setTimeout(() => {
+            void pricecheck(skus, requestCheck);
+        }, 1 * 1000);
     }
 }
