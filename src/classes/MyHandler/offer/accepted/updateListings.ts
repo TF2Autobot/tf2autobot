@@ -26,7 +26,6 @@ export default function updateListings(
         : [];
 
     const skus: string[] = [];
-    let pricecheckTimeout: NodeJS.Timeout;
 
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
@@ -299,13 +298,11 @@ export default function updateListings(
             // Update listings (exclude weapons/pure)
             bot.listings.checkBySKU(sku, null, false, true);
         }
+    }
 
-        if (skus.length > 0) {
-            clearTimeout(pricecheckTimeout);
-
-            pricecheckTimeout = setTimeout(() => {
-                void pricecheck(skus, requestCheck);
-            }, 1 * 1000);
-        }
+    if (skus.length > 0) {
+        setTimeout(() => {
+            void pricecheck(skus, requestCheck);
+        }, 1 * 1000);
     }
 }
