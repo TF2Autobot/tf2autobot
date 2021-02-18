@@ -27,6 +27,13 @@ export default class UserCart extends Cart {
         ]);
 
         if (banned) {
+            this.bot.client.blockUser(this.partner, err => {
+                if (err) {
+                    log.warn(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
+                }
+                log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+            });
+
             return Promise.reject('you are banned in one or more trading communities');
         }
 

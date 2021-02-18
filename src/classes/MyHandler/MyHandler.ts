@@ -1529,13 +1529,12 @@ export default class MyHandler extends Handler {
                 offer.log('info', 'partner is banned in one or more communities, declining...');
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
-                        log.warn(`Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                        return { action: 'decline', reason: 'BANNED' };
+                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
                     }
-
                     log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
-                    return { action: 'decline', reason: 'BANNED' };
                 });
+
+                return { action: 'decline', reason: 'BANNED' };
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
