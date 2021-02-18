@@ -43,6 +43,7 @@ export default function updateListings(
             !/;[p][0-9]+/.test(sku) && // sku must NOT include any painted partial sku
             highValue.items && // this must be defined
             highValue.items[sku]?.p && // painted must be defined
+            highValue.items[sku]?.s === undefined && // make sure spelled is undefined
             inPrice !== null && // base items must already in pricelist
             bot.pricelist.getPrice(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, false) === null && // painted items must not in pricelist
             bot.inventoryManager.getInventory.getAmount(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, true) > 0 &&
