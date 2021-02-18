@@ -197,6 +197,9 @@ export default class UserCart extends Cart {
             const key = skus[index];
             // Start at highest currency and check if we should pick that
 
+            const isWeapons = !['5021;6', '5002;6', '5001;6', '5000;6'].includes(key);
+            let havePickedWeapons = false;
+
             // Amount to pick of the currency
             let amount = remaining / currencyValues[key];
             if (amount > buyerCurrencies[key]) {
@@ -230,9 +233,14 @@ export default class UserCart extends Cart {
 
             if (amount >= 1) {
                 // If the amount is greater than or equal to 1, then I need to pick it
-                pickedCurrencies[key] = currAmount + Math.floor(amount);
+                pickedCurrencies[key] = currAmount + (isWeapons ? 1 : Math.floor(amount));
                 // Remove value from remaining
-                remaining -= Math.floor(amount) * currencyValues[key];
+                remaining -= (isWeapons ? 1 : Math.floor(amount)) * currencyValues[key];
+
+                if (isWeapons) {
+                    // if picked currency is not keys or pure metals, then just limit to pick only one and once
+                    havePickedWeapons = true;
+                }
             }
 
             log.debug('Iteration', {
@@ -244,6 +252,11 @@ export default class UserCart extends Cart {
                 hasReversed: hasReversed,
                 picked: pickedCurrencies
             });
+
+            if (havePickedWeapons) {
+                // Picked currencies other than keys or pure metal once, stop
+                break;
+            }
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
