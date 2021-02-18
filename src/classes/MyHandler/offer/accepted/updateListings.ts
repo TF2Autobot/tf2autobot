@@ -2,11 +2,13 @@ import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+
+import pricecheck from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
+import { RequestCheckFn } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
 
 export default function updateListings(
@@ -22,6 +24,9 @@ export default function updateListings(
             ? bot.craftWeapons.concat(bot.uncraftWeapons)
             : bot.craftWeapons
         : [];
+
+    const skus: string[] = [];
+    let pricecheckTimeout: NodeJS.Timeout;
 
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
@@ -289,24 +294,18 @@ export default function updateListings(
          * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
          */
         if (isNotPureOrWeapons) {
-            void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-                if (err) {
-                    log.debug(`❌ Failed to request pricecheck for ${name} (${sku}): ${JSON.stringify(err)}`);
-                } else {
-                    log.debug(
-                        `✅ Requested pricecheck for ${
-                            body.name.includes('War Paint') ||
-                            body.name.includes('Mann Co. Supply Crate Series #') ||
-                            body.name.includes('Salvaged Mann Co. Supply Crate #')
-                                ? name
-                                : body.name
-                        } (${sku}).`
-                    );
-                }
-            });
+            skus.push(sku);
 
             // Update listings (exclude weapons/pure)
             bot.listings.checkBySKU(sku, null, false, true);
+        }
+
+        if (skus.length > 0) {
+            clearTimeout(pricecheckTimeout);
+
+            pricecheckTimeout = setTimeout(() => {
+                void pricecheck(skus, requestCheck);
+            }, 1 * 1000);
         }
     }
 }
