@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 
 interface ScrapAdjustment {
     enabled: boolean;

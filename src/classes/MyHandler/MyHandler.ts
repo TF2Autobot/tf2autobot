@@ -12,11 +12,11 @@ import TradeOfferManager, {
     WrongAboutOffer,
     Prices,
     Items
-} from 'steam-tradeoffer-manager';
+} from '@tf2autobot/tradeoffer-manager';
 
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import async from 'async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
@@ -552,7 +552,8 @@ export default class MyHandler extends Handler {
                         await this.bot.listings.recursiveCheckPricelist(
                             pricelist,
                             true,
-                            pricelistCount > 1000 ? 1000 : 200
+                            pricelistCount > 4000 ? 400 : 200,
+                            true
                         );
 
                         log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
@@ -563,8 +564,8 @@ export default class MyHandler extends Handler {
                     pricelistLength = pricelistCount;
                 });
             },
-            // set check every 60 minutes if pricelist to check was more than 1000 items
-            pricelistLength > 1000 ? 60 * 60 * 1000 : 30 * 60 * 1000
+            // set check every 60 minutes if pricelist to check was more than 4000 items
+            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
         );
     }
 
@@ -1098,7 +1099,7 @@ export default class MyHandler extends Handler {
                                     amountCanTrade: amountCanTrade
                                 });
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1127,7 +1128,7 @@ export default class MyHandler extends Handler {
                                     amountCanTrade: amountCanTrade
                                 });
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their');
+                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1178,6 +1179,9 @@ export default class MyHandler extends Handler {
                         // else means the item is truly not in pricelist and make "isCanBePriced" true
                         const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
 
+                        const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
+                        // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
+
                         let itemSuggestedValue: string;
                         if (price === null) {
                             itemSuggestedValue = 'No price';
@@ -1186,8 +1190,12 @@ export default class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            if (opt.offerReceived.invalidItems.givePrice && item.wear === null && isCanBePriced) {
-                                // if DISABLE_GIVE_PRICE_TO_INVALID_ITEMS is set to false (enable) and items is not skins/war paint,
+                            if (
+                                opt.offerReceived.invalidItems.givePrice &&
+                                (item.wear === null || !isCrateOrCases) &&
+                                isCanBePriced
+                            ) {
+                                // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
                                 // and the item is not enabled=false,
                                 // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
@@ -1252,17 +1260,17 @@ export default class MyHandler extends Handler {
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
-                this.bot.listings.checkBySKU('5021;6');
+                this.bot.listings.checkBySKU('5021;6', null, false, true);
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -1290,7 +1298,7 @@ export default class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
 
-                    this.bot.listings.checkBySKU('5021;6');
+                    this.bot.listings.checkBySKU('5021;6', null, false, true);
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
@@ -1306,7 +1314,7 @@ export default class MyHandler extends Handler {
                         amountCanTrade: amountCanTrade
                     });
 
-                    this.bot.listings.checkBySKU('5021;6');
+                    this.bot.listings.checkBySKU('5021;6', null, false, true);
                 }
             }
         }
@@ -1528,13 +1536,12 @@ export default class MyHandler extends Handler {
                 offer.log('info', 'partner is banned in one or more communities, declining...');
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
-                        log.warn(`Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                        return { action: 'decline', reason: 'BANNED' };
+                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
                     }
-
                     log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
-                    return { action: 'decline', reason: 'BANNED' };
                 });
+
+                return { action: 'decline', reason: 'BANNED' };
             }
         } catch (err) {
             log.warn('Failed to check banned: ', err);
@@ -2152,7 +2159,7 @@ export default class MyHandler extends Handler {
         if (!this.isPriceUpdateWebhook) {
             log.debug(`${sku} updated`);
         }
-        this.bot.listings.checkBySKU(sku, entry);
+        this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
     onLoginThrottle(wait: number): void {

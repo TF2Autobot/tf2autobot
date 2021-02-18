@@ -2,7 +2,7 @@ import Pricelist from '../Pricelist';
 import SchemaManager from 'tf2-schema-2';
 import SocketManager from '../MyHandler/SocketManager';
 import { DEFAULTS } from '../Options';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';

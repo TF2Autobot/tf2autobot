@@ -1,6 +1,6 @@
-import { TradeOffer, Prices } from 'steam-tradeoffer-manager';
+import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import Bot from '../../classes/Bot';
 import { replace } from '../tools/export';
 

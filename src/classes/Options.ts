@@ -666,7 +666,7 @@ export const DEFAULTS = {
          */
         sheens: {
             'Team Shine': '🔵🔴',
-            'Hot Rod': '🎗️',
+            'Hot Rod': '🌸',
             Manndarin: '🟠',
             'Deadly Daffodil': '🟡',
             'Mean Green': '🟢',
@@ -880,14 +880,14 @@ export const DEFAULTS = {
                 }
             },
             'The Value of Teamwork': {
-                stringNote: '👨🏽‍🤝‍👨🏻',
+                stringNote: '🎎',
                 price: {
                     keys: 0,
                     metal: 30
                 }
             },
             'Waterlogged Lab Coat': {
-                stringNote: '👨🏽‍🤝‍👨🏽',
+                stringNote: '🎏',
                 price: {
                     keys: 0,
                     metal: 30
@@ -1763,6 +1763,7 @@ export default interface Options extends JsonOptions {
 
     admins?: string[];
     keep?: string[];
+    itemStatsWhitelist?: string[];
     groups?: string[];
     alerts?: string[];
 
@@ -1888,7 +1889,8 @@ export function loadOptions(options?: Options): Options {
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
-        groups: getOption('groups', ['103582791464047777', '103582791462300957'], jsonParseArray, incomingOptions),
+        itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
+        groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),

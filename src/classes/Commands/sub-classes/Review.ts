@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
+import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from '@tf2autobot/tradeoffer-manager';
+import Currencies from 'tf2-currencies-2';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';

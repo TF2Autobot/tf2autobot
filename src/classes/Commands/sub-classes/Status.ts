@@ -1,8 +1,10 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
+import { getItemAndAmount, testSKU } from '../functions/utils';
 import Bot from '../../Bot';
-import { stats, profit } from '../../../lib/tools/export';
+import CommandParser from '../../CommandParser';
+import { stats, profit, itemStats } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
 
 // Bot status
@@ -103,6 +105,186 @@ export default class StatusCommands {
         );
     }
 
+    async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
+        message = CommandParser.removeCommand(message).trim();
+        let sku = '';
+        if (testSKU(message)) {
+            sku = message;
+        } else {
+            const info = getItemAndAmount(steamID, message, this.bot);
+            if (info === null) {
+                return;
+            }
+            sku = info.match.sku;
+        }
+
+        let reply = '';
+
+        const weapons = this.bot.handler.isWeaponsAsCurrency.enable
+            ? this.bot.handler.isWeaponsAsCurrency.withUncraft
+                ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                : this.bot.craftWeapons
+            : [];
+        if (
+            !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) &&
+            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+        ) {
+            const now = Math.floor(Date.now() / 1000);
+
+            try {
+                const { bought, sold } = await itemStats(this.bot, sku);
+
+                // ----------------------Bought calculations----------------------
+
+                let boughtTime = Object.keys(bought).sort((a, b) => {
+                    return +a - +b;
+                });
+
+                let totalBought = 0;
+
+                const boughtLastX = [
+                    3600, // Past 60 minutes
+                    86400, // Past 24 hours
+                    604800, // Past 7 days
+                    2419200 // Past 4 weeks
+                ].map(c => {
+                    const filteredTrades = boughtTime.filter(a => {
+                        return +a >= now - c;
+                    });
+
+                    boughtTime = boughtTime.filter(time => !filteredTrades.includes(time));
+
+                    const reducedTrades = filteredTrades.reduce((acc, a) => {
+                        const boughtObj = bought[a];
+                        const key = `${boughtObj.keys}+${boughtObj.metal}`;
+
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            acc[key] = boughtObj.count;
+                        } else {
+                            acc[key] += boughtObj.count;
+                        }
+
+                        return acc;
+                    }, {});
+
+                    return Object.keys(reducedTrades).reduce((acc, a) => {
+                        const boughtCount = reducedTrades[a] as number;
+
+                        totalBought += boughtCount;
+
+                        const keysAndMetal = a.split('+');
+
+                        acc += boughtCount;
+                        acc += ' @ ';
+                        acc += new Currencies({
+                            keys: +keysAndMetal[0],
+                            metal: +keysAndMetal[1]
+                        }).toString();
+
+                        return acc + '\n';
+                    }, '');
+                });
+
+                const past60MinutesBoughtCount = boughtLastX[0].length;
+                const past24HoursBoughtCount = boughtLastX[1].length;
+                const pastWeekBoughtCount = boughtLastX[2].length;
+                const past4WeeksBoughtCount = boughtLastX[3].length;
+
+                reply +=
+                    `⬅️ ${totalBought} bought\n\n` +
+                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
+                    (past24HoursBoughtCount
+                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
+                        : '') +
+                    (pastWeekBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
+                          'Past 7 days\n' +
+                          boughtLastX[2]
+                        : '') +
+                    (past4WeeksBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          boughtLastX[3]
+                        : '');
+
+                // ----------------------Sold calculations----------------------
+
+                let soldTime = Object.keys(sold).sort((a, b) => {
+                    return +a - +b;
+                });
+
+                let totalSold = 0;
+
+                const soldLastX = [
+                    3600, // Past 60 minutes
+                    86400, // Past 24 hours
+                    604800, // Past 7 days
+                    2419200 // Past 4 weeks
+                ].map(c => {
+                    const filteredTrades = soldTime.filter(a => {
+                        return +a >= now - c;
+                    });
+
+                    soldTime = soldTime.filter(time => !filteredTrades.includes(time));
+
+                    const reducedTrades = filteredTrades.reduce((acc, a) => {
+                        const soldObj = sold[a];
+                        const key = `${soldObj.keys}+${soldObj.metal}`;
+
+                        if (!Object.prototype.hasOwnProperty.call(acc, key)) {
+                            acc[key] = soldObj.count;
+                        } else {
+                            acc[key] += soldObj.count;
+                        }
+
+                        return acc;
+                    }, {});
+
+                    return Object.keys(reducedTrades).reduce((acc, a) => {
+                        const soldCount = reducedTrades[a] as number;
+                        totalSold += soldCount;
+
+                        const keysAndMetal = a.split('+');
+
+                        acc += soldCount;
+                        acc += ' @ ';
+                        acc += new Currencies({
+                            keys: +keysAndMetal[0],
+                            metal: +keysAndMetal[1]
+                        }).toString();
+                        return acc + '\n';
+                    }, '');
+                });
+
+                const past60MinutesSoldCount = soldLastX[0].length;
+                const past24HoursSoldCount = soldLastX[1].length;
+                const pastWeekSoldCount = soldLastX[2].length;
+                const past4WeeksSoldCount = soldLastX[3].length;
+
+                reply +=
+                    `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
+                    (past60MinutesSoldCount ? 'Past 60 minutes\n' + soldLastX[0] : '') +
+                    (past24HoursSoldCount
+                        ? (past60MinutesSoldCount ? '\n' : '') + 'Past 24 hours\n' + soldLastX[1]
+                        : '') +
+                    (pastWeekSoldCount
+                        ? (past60MinutesSoldCount || past24HoursSoldCount ? '\n' : '') + 'Past 7 days\n' + soldLastX[2]
+                        : '') +
+                    (past4WeeksSoldCount
+                        ? (past60MinutesSoldCount || past24HoursSoldCount || pastWeekSoldCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          soldLastX[3]
+                        : '');
+            } catch (err) {
+                reply = err as string;
+            }
+        } else {
+            reply = 'enable for keys and weapons - currently not implemented';
+        }
+
+        this.bot.sendMessage(steamID, reply);
+    }
+
     versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
@@ -117,7 +299,7 @@ export default class StatusCommands {
                     this.bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/idinium96/tf2autobot/releases` +
+                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                             `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"` +
                             '\n\nContact IdiNium if you have any other problem. Thank you.'
                     );

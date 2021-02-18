@@ -1,5 +1,5 @@
 import SKU from 'tf2-sku-2';
-import { Items } from 'steam-tradeoffer-manager';
+import { Items } from '@tf2autobot/tradeoffer-manager';
 import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
 import { Paints, StrangeParts } from 'tf2-schema-2';

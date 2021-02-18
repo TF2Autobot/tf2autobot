@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import validUrl from 'valid-url';
 import child from 'child_process';
 import fs from 'graceful-fs';
@@ -24,7 +24,7 @@ type BlockUnblock = 'block' | 'unblock';
 export default class ManagerCommands {
     private readonly bot: Bot;
 
-    private pricelistLength = 0;
+    private pricelistCount = 0;
 
     private executed = false;
 
@@ -488,7 +488,7 @@ export default class ManagerCommands {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ You need to wait ${Math.trunc(
-                    ((this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000 - timeDiff) / (1000 * 60)
+                    ((this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000 - timeDiff) / (1000 * 60)
                 )} minutes before you run refresh listings command again.`
             );
         } else {
@@ -596,17 +596,22 @@ export default class ManagerCommands {
                     );
 
                     this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
-                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000;
-                    this.pricelistLength = pricelistCount;
+                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
+                    this.pricelistCount = pricelistCount;
                     this.executed = true;
                     this.executeTimeout = setTimeout(() => {
                         this.lastExecutedTime = null;
                         this.executed = false;
                         this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
                         clearTimeout(this.executeTimeout);
-                    }, (this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000);
+                    }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
-                    await this.bot.listings.recursiveCheckPricelist(pricelist, true);
+                    await this.bot.listings.recursiveCheckPricelist(
+                        pricelist,
+                        true,
+                        this.pricelistCount > 4000 ? 400 : 200,
+                        true
+                    );
 
                     log.debug('Done checking ' + pluralize('item', pricelistCount, true));
                     this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelistCount, true));

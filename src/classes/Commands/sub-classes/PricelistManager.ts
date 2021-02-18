@@ -3,7 +3,7 @@
 
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
@@ -511,7 +511,7 @@ export default class PricelistManagerCommands {
                 if (this.bot.options.autokeys.enable) {
                     // Autokeys is a feature, so when updating multiple entry with
                     // "!update all=true", key entry will be removed from newPricelist.
-                    // https://github.com/idinium96/tf2autobot/issues/131
+                    // https://github.com/TF2Autobot/tf2autobot/issues/131
                     const keyEntry = this.bot.pricelist.getPrice('5021;6');
                     if (keyEntry !== null) {
                         const index = this.bot.pricelist.getIndex('5021;6');

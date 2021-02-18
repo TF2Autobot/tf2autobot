@@ -1,4 +1,4 @@
-import { TradeOffer } from 'steam-tradeoffer-manager';
+import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../Bot';
 
 export default function invalid(offer: TradeOffer, bot: Bot): void {

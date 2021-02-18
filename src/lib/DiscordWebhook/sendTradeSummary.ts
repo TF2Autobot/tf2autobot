@@ -1,6 +1,6 @@
-import { TradeOffer, ItemsDict } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';

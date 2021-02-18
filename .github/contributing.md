@@ -59,7 +59,7 @@ Before suggesting changes, please check [this list](#before-submitting-a-feature
 
 #### How to suggest changes
 
-Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/idinium96/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
+Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/TF2Autobot/tf2autobot/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
 
 #### Before submitting a feature request
 

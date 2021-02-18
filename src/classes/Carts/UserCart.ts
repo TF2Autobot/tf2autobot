@@ -1,8 +1,8 @@
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import async from 'async';
-import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from 'steam-tradeoffer-manager';
+import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
@@ -27,6 +27,13 @@ export default class UserCart extends Cart {
         ]);
 
         if (banned) {
+            this.bot.client.blockUser(this.partner, err => {
+                if (err) {
+                    log.warn(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
+                }
+                log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+            });
+
             return Promise.reject('you are banned in one or more trading communities');
         }
 
@@ -165,7 +172,13 @@ export default class UserCart extends Cart {
             '5000;6': 0
         };
 
-        if (this.isWeaponsAsCurrencyEnabled) {
+        let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
+
+        const needToPickWeapons = remaining - Math.trunc(remaining) !== 0;
+        // Let say our selling price is 0.05 ref, so convert to value (scrap) is
+        // 0.5 - Math.trunc(0.5) = 0.5, it will be true.
+
+        if (this.isWeaponsAsCurrencyEnabled && needToPickWeapons) {
             this.weapons.forEach(sku => {
                 currencyValues[sku] = 0.5;
                 pickedCurrencies[sku] = 0;
@@ -175,8 +188,6 @@ export default class UserCart extends Cart {
         const skus = Object.keys(currencyValues);
         const skusCount = skus.length;
 
-        let remaining = price.toValue(useKeys ? keyPrice.metal : undefined);
-
         let hasReversed = false;
         let reverse = false;
         let index = 0;
@@ -185,6 +196,9 @@ export default class UserCart extends Cart {
         while (true) {
             const key = skus[index];
             // Start at highest currency and check if we should pick that
+
+            const isWeapons = !['5021;6', '5002;6', '5001;6', '5000;6'].includes(key);
+            let havePickedWeapons = false;
 
             // Amount to pick of the currency
             let amount = remaining / currencyValues[key];
@@ -219,9 +233,14 @@ export default class UserCart extends Cart {
 
             if (amount >= 1) {
                 // If the amount is greater than or equal to 1, then I need to pick it
-                pickedCurrencies[key] = currAmount + Math.floor(amount);
+                pickedCurrencies[key] = currAmount + (isWeapons ? 1 : Math.floor(amount));
                 // Remove value from remaining
-                remaining -= Math.floor(amount) * currencyValues[key];
+                remaining -= (isWeapons ? 1 : Math.floor(amount)) * currencyValues[key];
+
+                if (isWeapons) {
+                    // if picked currency is not keys or pure metals, then just limit to pick only one and once
+                    havePickedWeapons = true;
+                }
             }
 
             log.debug('Iteration', {
@@ -233,6 +252,11 @@ export default class UserCart extends Cart {
                 hasReversed: hasReversed,
                 picked: pickedCurrencies
             });
+
+            if (havePickedWeapons) {
+                // Picked currencies other than keys or pure metal once, stop
+                break;
+            }
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -284,6 +308,13 @@ export default class UserCart extends Cart {
         }
 
         log.debug('Done constructing offer', { picked: pickedCurrencies, change: remaining });
+
+        if (this.isWeaponsAsCurrencyEnabled && !needToPickWeapons) {
+            // if needToPickWeapons is false, then we add weapons after picking up metals.
+            this.weapons.forEach(sku => {
+                pickedCurrencies[sku] = 0;
+            });
+        }
 
         return {
             currencies: pickedCurrencies,
@@ -414,7 +445,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = `I can't sell more ${skuCount.name}`;
-                    this.bot.listings.checkBySKU(sku);
+                    this.bot.listings.checkBySKU(sku, null, false, true);
                 } else {
                     alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,
@@ -495,7 +526,7 @@ export default class UserCart extends Cart {
                 this.removeTheirItem(sku, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = "I can't buy more " + pluralize(skuCount.name);
-                    this.bot.listings.checkBySKU(sku);
+                    this.bot.listings.checkBySKU(sku, null, false, true);
                 } else {
                     alteredMessage = `I can only buy ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,

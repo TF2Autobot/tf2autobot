@@ -1,4 +1,4 @@
-declare module 'tf2-currencies' {
+declare module 'tf2-currencies-2' {
     class Currencies {
         static toCurrencies(value: number, conversion?: number): Currencies;
 

@@ -1,4 +1,4 @@
-import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { Webhook } from './interfaces';
 import Bot from '../../classes/Bot';

@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import SteamUser, { EResult } from 'steam-user';
-import TradeOfferManager, { CustomError } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from 'bptf-listings-2';
@@ -104,6 +104,8 @@ export default class Bot {
 
     private admins: SteamID[] = [];
 
+    private itemStatsWhitelist: SteamID[] = [];
+
     private ready = false;
 
     private handleLoggedOn: OmitThisParameter<() => void>;
@@ -198,6 +200,17 @@ export default class Bot {
             }
         });
 
+        this.itemStatsWhitelist =
+            this.options.itemStatsWhitelist.length > 0
+                ? ['76561198013127982'].concat(this.options.itemStatsWhitelist).map(steamID => new SteamID(steamID))
+                : ['76561198013127982'].map(steamID => new SteamID(steamID)); // IdiNium
+
+        this.itemStatsWhitelist.forEach(steamID => {
+            if (!steamID.isValid()) {
+                throw new Error('Invalid Item stats whitelist steamID');
+            }
+        });
+
         this.handleLoggedOn = this.handler.onLoggedOn.bind(this.handler);
         this.handleMessage = this.onMessage.bind(this);
         this.handleFriendRelationship = this.handler.onFriendRelationship.bind(this.handler);
@@ -229,6 +242,15 @@ export default class Bot {
 
     get getAdmins(): SteamID[] {
         return this.admins;
+    }
+
+    isWhitelisted(steamID: SteamID | string): boolean {
+        const steamID64 = steamID.toString();
+        return this.itemStatsWhitelist.some(whitelistSteamID => whitelistSteamID.toString() === steamID64);
+    }
+
+    get getWhitelist(): SteamID[] {
+        return this.itemStatsWhitelist;
     }
 
     checkBanned(steamID: SteamID | string): Promise<boolean> {
@@ -561,7 +583,7 @@ export default class Bot {
                     log.debug('Setting Steam API Key to schema');
                     this.botManager.setAPIKeyForSchema = this.manager.apiKey;
 
-                    this.manager.pollInterval = 30 * 1000;
+                    this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();

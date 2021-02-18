@@ -1,12 +1,14 @@
-import { Items, TradeOffer } from 'steam-tradeoffer-manager';
+import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+
+import pricecheck from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
+import { RequestCheckFn } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
 
 export default function updateListings(
@@ -23,53 +25,79 @@ export default function updateListings(
             : bot.craftWeapons
         : [];
 
+    const skus: string[] = [];
+    let pricecheckTimeout: NodeJS.Timeout;
+
+    const inventory = bot.inventoryManager.getInventory;
+    const hv = highValue.items;
+    const normalizePainted = opt.normalize.painted;
+
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
             continue;
         }
 
         const name = bot.schema.getName(SKU.fromString(sku), false);
-
-        const isNotPureOrWeapons = !(
-            (opt.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-            ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
-        );
-
-        /**
-         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
-         */
-        if (isNotPureOrWeapons) {
-            void requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-                if (err) {
-                    log.debug(`❌ Failed to request pricecheck for ${name} (${sku}): ${JSON.stringify(err)}`);
-                } else {
-                    log.debug(
-                        `✅ Requested pricecheck for ${
-                            body.name.includes('War Paint') ||
-                            body.name.includes('Mann Co. Supply Crate Series #') ||
-                            body.name.includes('Salvaged Mann Co. Supply Crate #')
-                                ? name
-                                : body.name
-                        } (${sku}).`
-                    );
-                }
-            });
-        }
-
+        const isNotPureOrWeapons = !(weapons.includes(sku) || ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
         const inPrice = bot.pricelist.getPrice(sku, false);
 
-        if (
-            opt.normalize.painted.our === false && // must meet this setting
-            opt.normalize.painted.their === true && // must meet this setting
+        const isAutoaddPainted =
+            normalizePainted.our === false && // must meet this setting
+            normalizePainted.their === true && // must meet this setting
             !/;[p][0-9]+/.test(sku) && // sku must NOT include any painted partial sku
-            highValue.items && // this must be defined
-            highValue.items[sku]?.p && // painted must be defined
+            hv && // this must be defined
+            hv[sku]?.p && // painted must be defined
+            hv[sku]?.s === undefined && // make sure spelled is undefined
             inPrice !== null && // base items must already in pricelist
-            bot.pricelist.getPrice(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, false) === null && // painted items must not in pricelist
-            bot.inventoryManager.getInventory.getAmount(`${sku};${Object.keys(highValue.items[sku].p)[0]}`, true) > 0 &&
-            opt.pricelist.autoAddPaintedItems.enable // autoAddPaintedItems must enabled
-        ) {
-            const pSKU = Object.keys(highValue.items[sku].p)[0];
+            bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
+            inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, true) > 0 &&
+            opt.pricelist.autoAddPaintedItems.enable; // autoAddPaintedItems must enabled
+
+        const isAutoaddInvalidItems =
+            inPrice === null &&
+            isNotPureOrWeapons &&
+            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
+            !highValue.isDisableSKU.includes(sku) &&
+            !bot.isAdmin(offer.partner) &&
+            opt.pricelist.autoAddInvalidItems.enable;
+
+        const receivedNotInPricelist =
+            inPrice === null &&
+            isNotPureOrWeapons &&
+            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
+            highValue.isDisableSKU.includes(sku) && // This is the only difference
+            !bot.isAdmin(offer.partner);
+
+        const isAutoDisableHighValueItems =
+            inPrice !== null &&
+            highValue.isDisableSKU.includes(sku) &&
+            (normalizePainted.our === false
+                ? !highValue.theirItems.some(
+                      str =>
+                          str.includes(name) &&
+                          str.includes('🎨 Painted') &&
+                          !(
+                              str.includes('🎰 Parts') ||
+                              str.includes('🔥 Killstreaker') ||
+                              str.includes('✨ Sheen') ||
+                              str.includes('🎃 Spells')
+                          )
+                  )
+                : true) &&
+            isNotPureOrWeapons &&
+            opt.highValue.enableHold;
+
+        const isAutoRemoveIntentSell =
+            opt.pricelist.autoRemoveIntentSell.enable &&
+            inPrice !== null &&
+            inPrice.intent === 1 &&
+            inventory.getAmount(sku, true) < 1 && // current stock
+            isNotPureOrWeapons;
+
+        //
+
+        if (isAutoaddPainted) {
+            const pSKU = Object.keys(hv[sku].p)[0];
             const paintedSKU = `${sku};${pSKU}`;
 
             const priceFromOptions =
@@ -81,15 +109,12 @@ export default function updateListings(
             const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);
 
             let sellingKeyPrice = inPrice.sell.keys + priceFromOptions.keys;
-
             let sellingMetalPriceInRef = inPrice.sell.metal + priceFromOptions.metal;
             const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
 
             if (sellingMetalPriceInScrap >= keyPriceInScrap) {
                 const truncValue = Math.trunc(sellingMetalPriceInRef / keyPriceInRef);
-
                 sellingKeyPrice = sellingKeyPrice - truncValue <= 0 ? sellingKeyPrice + 1 : sellingKeyPrice;
-
                 sellingMetalPriceInRef = Currencies.toRefined(sellingMetalPriceInScrap - truncValue * keyPriceInScrap);
             }
 
@@ -149,14 +174,8 @@ export default function updateListings(
                         }
                     }
                 });
-        } else if (
-            inPrice === null &&
-            isNotPureOrWeapons &&
-            SKU.fromString(sku).wear === null && // exclude War Paint (could be skins)
-            !highValue.isDisableSKU.includes(sku) &&
-            !bot.isAdmin(offer.partner) &&
-            opt.pricelist.autoAddInvalidItems.enable
-        ) {
+            //
+        } else if (isAutoaddInvalidItems) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
             // from ADMINS, then add INVALID_ITEMS to the pricelist.
             const entry = {
@@ -175,13 +194,8 @@ export default function updateListings(
                 .catch(err =>
                     log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`)
                 );
-        } else if (
-            inPrice === null &&
-            isNotPureOrWeapons &&
-            SKU.fromString(sku).wear === null &&
-            highValue.isDisableSKU.includes(sku) && // This is the only difference
-            !bot.isAdmin(offer.partner)
-        ) {
+            //
+        } else if (receivedNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a highValue items, and not
             // from ADMINS, then notify admin.
             let msg =
@@ -202,57 +216,28 @@ export default function updateListings(
                     bot.messageAdmins(msg, []);
                 }
             }
-        } else if (
-            inPrice !== null &&
-            highValue.isDisableSKU.includes(sku) &&
-            (opt.normalize.painted.our === false
-                ? !highValue.theirItems.some(
-                      str =>
-                          str.includes(name) &&
-                          str.includes('🎨 Painted') &&
-                          !(
-                              str.includes('🎰 Parts') ||
-                              str.includes('🔥 Killstreaker') ||
-                              str.includes('✨ Sheen') ||
-                              str.includes('🎃 Spells')
-                          )
-                  )
-                : true) &&
-            isNotPureOrWeapons &&
-            opt.highValue.enableHold
-        ) {
+        } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
-            let entry: EntryData;
+            const entry: EntryData = {
+                sku: sku, // required
+                enabled: false, // required
+                autoprice: inPrice.autoprice, // required
+                min: inPrice.min, // required
+                max: inPrice.max, // required
+                intent: inPrice.intent, // required
+                group: 'highValue'
+            };
 
             if (!inPrice.autoprice) {
                 // if not autopriced, then explicitly set the buy/sell prices
                 // with the current buy/sell prices
-                entry = {
-                    sku: sku, // required
-                    enabled: false, // required
-                    autoprice: inPrice.autoprice, // required
-                    buy: {
-                        keys: inPrice.buy.keys,
-                        metal: inPrice.buy.metal
-                    },
-                    sell: {
-                        keys: inPrice.sell.keys,
-                        metal: inPrice.sell.metal
-                    },
-                    min: inPrice.min, // required
-                    max: inPrice.max, // required
-                    intent: inPrice.intent, // required
-                    group: 'highValue'
+                entry.buy = {
+                    keys: inPrice.buy.keys,
+                    metal: inPrice.buy.metal
                 };
-            } else {
-                entry = {
-                    sku: sku, // required
-                    enabled: false, // required
-                    autoprice: inPrice.autoprice, // required
-                    min: inPrice.min, // required
-                    max: inPrice.max, // required
-                    intent: inPrice.intent, // required
-                    group: 'highValue'
+                entry.sell = {
+                    keys: inPrice.sell.keys,
+                    metal: inPrice.sell.metal
                 };
             }
 
@@ -284,13 +269,8 @@ export default function updateListings(
                 .catch(err => {
                     log.warn(`❌ Failed to disable high value ${sku}: ${(err as Error).message}`);
                 });
-        } else if (
-            opt.pricelist.autoRemoveIntentSell.enable &&
-            inPrice !== null &&
-            inPrice.intent === 1 &&
-            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
-            isNotPureOrWeapons
-        ) {
+            //
+        } else if (isAutoRemoveIntentSell) {
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
             // then remove the item entry from pricelist.
             bot.pricelist
@@ -310,7 +290,22 @@ export default function updateListings(
                 });
         }
 
-        // Update listings
-        bot.listings.checkBySKU(sku);
+        /**
+         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
+         */
+        if (isNotPureOrWeapons) {
+            skus.push(sku);
+
+            // Update listings (exclude weapons/pure)
+            bot.listings.checkBySKU(sku, null, false, true);
+        }
+
+        if (skus.length > 0) {
+            clearTimeout(pricecheckTimeout);
+
+            pricecheckTimeout = setTimeout(() => {
+                void pricecheck(skus, requestCheck);
+            }, 1 * 1000);
+        }
     }
 }

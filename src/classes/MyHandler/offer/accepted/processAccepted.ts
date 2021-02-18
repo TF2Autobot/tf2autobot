@@ -1,4 +1,4 @@
-import * as i from 'steam-tradeoffer-manager';
+import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Bot from '../../../Bot';
 import * as t from '../../../../lib/tools/export';

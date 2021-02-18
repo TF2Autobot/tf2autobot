@@ -1,4 +1,4 @@
-import { Action, Meta, TradeOffer } from 'steam-tradeoffer-manager';
+import { Action, Meta, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 
@@ -32,7 +32,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     } else if (offerReason.reason === 'CRIME_ATTEMPT') {
         //
         const custom = opt.customMessage.decline.crimeAttempt;
-        reply = custom ? custom : declined + " because you're taking free items. No.";
+        reply = custom ? custom : declined + " because you're attempting to take items for free.";
         //
     } else if (offerReason.reason === 'ONLY_METAL') {
         //

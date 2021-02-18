@@ -97,17 +97,21 @@ export function getItemAndAmount(
             bot.sendMessage(
                 steamID,
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:' +
-                    '\n• Remove "The".' +
-                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
-                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
-                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
-                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
-                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
-                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    '\n\nAlternatively, please try to:\n• ' +
+                    [
+                        'Remove "The".',
+                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
+                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                    ].join('\n• ')
             );
+
             return null;
         }
 
@@ -146,17 +150,21 @@ export function getItemAndAmount(
             bot.sendMessage(
                 steamID,
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:' +
-                    '\n• Remove "The".' +
-                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
-                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
-                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
-                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
-                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
-                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    '\n\nAlternatively, please try to:\n• ' +
+                    [
+                        'Remove "The".',
+                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
+                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                    ].join('\n• ')
             );
+
             return null;
         }
     } else if (Array.isArray(match)) {
@@ -251,7 +259,7 @@ export function getItemFromParams(
     if (!foundSomething) {
         bot.sendMessage(
             steamID,
-            '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F'
+            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F'
         );
         return null;
     }

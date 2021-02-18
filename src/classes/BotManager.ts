@@ -7,9 +7,9 @@ import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
 import SocketManager from './MyHandler/SocketManager';
-import EconItem from 'steam-tradeoffer-manager/lib/classes/EconItem.js';
+import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
-import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
+import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
 import Pricer from './Pricer';
 
