@@ -106,7 +106,8 @@ export function getItemAndAmount(
                     `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
                     '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
                     '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".` +
+                    `\n• If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
             );
             return null;
         }
@@ -155,7 +156,8 @@ export function getItemAndAmount(
                     `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
                     '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
                     '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".` +
+                    `\n• If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
             );
             return null;
         }
