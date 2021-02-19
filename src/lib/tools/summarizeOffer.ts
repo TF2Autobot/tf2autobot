@@ -152,19 +152,7 @@ function getSummary(
 
             if (withLink) {
                 summary.push(
-                    `[${
-                        bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:742725387968184371>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:735533220942053396>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:809644301633323048>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:809644301067091968>'
-                                : name
-                            : name
-                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    `[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
                     }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
@@ -181,21 +169,7 @@ function getSummary(
             }
         } else {
             if (withLink) {
-                summary.push(
-                    `[${
-                        bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:742725387968184371>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:735533220942053396>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:809644301633323048>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:809644301067091968>'
-                                : name
-                            : name
-                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
-                );
+                summary.push(`[${name}](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`);
             } else {
                 summary.push(name + (amount > 1 ? ` x${amount}` : ''));
             }
