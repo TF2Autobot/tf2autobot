@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-declare module 'steam-tradeoffer-manager' {
+declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import SchemaManager, { Paints } from 'tf2-schema-2';
-    import Currencies from 'tf2-currencies';
+    import Currencies from 'tf2-currencies-2';
 
     interface UnknownKeys<T> {
         [key: string]: T;
@@ -105,6 +105,7 @@ declare module 'steam-tradeoffer-manager' {
             finishTimestamp?: number; // checked
             isAccepted?: boolean; // checked
             action?: Action; // checked
+            meta?: Meta;
             highValue?: HighValueOutput; // Only offer sent // checked
             _dupeCheck?: string[]; // Only offer sent // checked
             _ourItems?: OutItems[]; // checked
@@ -151,7 +152,6 @@ declare module 'steam-tradeoffer-manager' {
         export interface Action {
             action: 'accept' | 'decline' | 'skip';
             reason: string;
-            meta: Meta;
         }
 
         export interface Overstocked {
@@ -244,6 +244,7 @@ declare module 'steam-tradeoffer-manager' {
             ks?: PartialSKUWithMention;
             ke?: PartialSKUWithMention;
             p?: PartialSKUWithMention;
+            isFull?: boolean;
         }
 
         interface Items {

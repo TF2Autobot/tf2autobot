@@ -17,12 +17,14 @@ function craftEachClassWeapons(bot: Bot, weapons: string[], currencies: { [sku: 
     return new Promise(resolve => {
         let stopLoop = false;
 
-        for (let i = 0; i < weapons.length; i++) {
+        const weaponsCount = weapons.length;
+
+        for (let i = 0; i < weaponsCount; i++) {
             // first loop
             // check if that weapon1 only have 1 in inventory AND it's not in pricelist
             const isWep1 = currencies[weapons[i]].length === 1 && bot.pricelist.getPrice(weapons[i], true) === null;
 
-            for (let j = 0; j < weapons.length; j++) {
+            for (let j = 0; j < weaponsCount; j++) {
                 if (j === i) {
                     // second loop inside first loop, but ignore same index (same weapons)
                     continue;

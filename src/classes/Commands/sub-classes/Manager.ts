@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import validUrl from 'valid-url';
 import child from 'child_process';
 import fs from 'graceful-fs';
@@ -24,7 +24,7 @@ type BlockUnblock = 'block' | 'unblock';
 export default class ManagerCommands {
     private readonly bot: Bot;
 
-    private pricelistLength = 0;
+    private pricelistCount = 0;
 
     private executed = false;
 
@@ -342,7 +342,7 @@ export default class ManagerCommands {
                     this.bot.sendMessage(
                         steamID,
                         '❌ You are not running the bot with PM2! Get a VPS and run ' +
-                            'your bot with PM2: https://github.com/idinium96/tf2autobot/wiki/Getting-a-VPS'
+                            'your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS'
                     );
                 }
             })
@@ -386,7 +386,7 @@ export default class ManagerCommands {
                             steamID,
                             `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
                                 '\nSend "!updaterepo i_am_sure=yes_i_am" to update your repo now!' +
-                                `\n\nRelease note: https://github.com/idinium96/tf2autobot/releases`
+                                `\n\nRelease note: https://github.com/TF2Autobot/tf2autobot/releases`
                         );
                     }
                 })
@@ -488,7 +488,7 @@ export default class ManagerCommands {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ You need to wait ${Math.trunc(
-                    ((this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000 - timeDiff) / (1000 * 60)
+                    ((this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000 - timeDiff) / (1000 * 60)
                 )} minutes before you run refresh listings command again.`
             );
         } else {
@@ -578,36 +578,43 @@ export default class ManagerCommands {
                     return false;
                 });
 
-                if (pricelist.length > 0) {
+                const pricelistCount = pricelist.length;
+
+                if (pricelistCount > 0) {
                     clearTimeout(this.executeTimeout);
                     this.lastExecutedTime = dayjs().valueOf();
 
                     log.debug(
                         'Checking listings for ' +
-                            pluralize('item', pricelist.length, true) +
+                            pluralize('item', pricelistCount, true) +
                             ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
                         steamID,
-                        'Refreshing listings for ' + pluralize('item', pricelist.length, true) + '...'
+                        'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
 
                     this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
-                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000;
-                    this.pricelistLength = pricelist.length;
+                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
+                    this.pricelistCount = pricelistCount;
                     this.executed = true;
                     this.executeTimeout = setTimeout(() => {
                         this.lastExecutedTime = null;
                         this.executed = false;
                         this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
                         clearTimeout(this.executeTimeout);
-                    }, (this.pricelistLength > 1000 ? 60 : 30) * 60 * 1000);
+                    }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
-                    await this.bot.listings.recursiveCheckPricelist(pricelist, true);
+                    await this.bot.listings.recursiveCheckPricelist(
+                        pricelist,
+                        true,
+                        this.pricelistCount > 4000 ? 400 : 200,
+                        true
+                    );
 
-                    log.debug('Done checking ' + pluralize('item', pricelist.length, true));
-                    this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelist.length, true));
+                    log.debug('Done checking ' + pluralize('item', pricelistCount, true));
+                    this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelistCount, true));
                 } else {
                     this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
                 }

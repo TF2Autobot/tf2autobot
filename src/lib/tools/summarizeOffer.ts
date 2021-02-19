@@ -1,5 +1,5 @@
 import { KeyPrices } from '../../classes/Pricelist';
-import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from 'steam-tradeoffer-manager';
+import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../classes/Bot';
 
 interface ValueDiff {
@@ -80,7 +80,7 @@ export function summarizeToChat(
 
 type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
 
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
 import { replace } from '../tools/export';
 
@@ -102,13 +102,15 @@ export default function summarize(
         };
     } else {
         // If trade with trade partner
+        const opening = showStockChanges ? '〚' : ' (';
+        const closing = showStockChanges ? '〛' : ')';
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                ` (${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)})`,
+                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                ` (${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)})`
+                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
         };
     }
 }
@@ -200,14 +202,16 @@ function getSummary(
         }
     }
 
-    if (summary.length === 0) {
+    const summaryCount = summary.length;
+
+    if (summaryCount === 0) {
         return 'nothing';
     }
 
     if (withLink) {
         let left = 0;
-        if (summary.length > 15) {
-            left = summary.length - 15;
+        if (summaryCount > 15) {
+            left = summaryCount - 15;
             summary.splice(15);
         }
 

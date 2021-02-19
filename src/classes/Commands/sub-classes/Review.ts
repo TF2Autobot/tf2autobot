@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import TradeOfferManager, { Action, OfferData, OurTheirItemsDict } from 'steam-tradeoffer-manager';
-import Currencies from 'tf2-currencies';
+import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from '@tf2autobot/tradeoffer-manager';
+import Currencies from 'tf2-currencies-2';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
@@ -64,31 +64,41 @@ export default class ReviewCommands {
     }
 
     private generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
-        let reply = `There ${pluralize('is', offers.length, true)} active ${pluralize(
+        const offersCount = offers.length;
+
+        let reply = `There ${pluralize('is', offersCount, true)} active ${pluralize(
             'offer',
-            offers.length
+            offersCount
         )} that you can review:\n`;
-        for (let i = 0; i < offers.length; i++) {
+
+        for (let i = 0; i < offersCount; i++) {
+            const offer = offers[i];
+
             reply +=
-                `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner} (reason: ${(offers[
-                    i
-                ].data as OfferData).action.meta.uniqueReasons.join(', ')})` +
-                `\n⚠️ Send "!trade ${offers[i].id as string}" for more details.\n`;
+                `\n- Offer #${offer.id as string} from ${
+                    (offer.data as OfferData).partner
+                } (reason: ${(offer.data as OfferData).meta.uniqueReasons.join(', ')})` +
+                `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
         }
 
         return reply;
     }
 
     private generateActiveOfferReply(offers: UnknownDictionaryKnownValues[]): string {
-        let reply = `There ${pluralize('is', offers.length, true)} ${pluralize(
+        const offersCount = offers.length;
+
+        let reply = `There ${pluralize('is', offersCount, true)} ${pluralize(
             'offer',
-            offers.length
+            offersCount
         )} that currently still active:\n`;
-        for (let i = 0; i < offers.length; i++) {
+
+        for (let i = 0; i < offersCount; i++) {
+            const offer = offers[i];
+
             reply +=
-                `\n- Offer #${offers[i].id as string} from ${(offers[i].data as OfferData).partner}` +
-                `\n⚠️ Send "!trade ${offers[i].id as string}" for more details or "!faccept ${
-                    offers[i].id as string
+                `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner}` +
+                `\n⚠️ Send "!trade ${offer.id as string}" for more details or "!faccept ${
+                    offer.id as string
                 }" to force accept the trade.\n`;
         }
 
@@ -120,7 +130,7 @@ export default class ReviewCommands {
         let reply =
             offerData?.action?.action === 'skip'
                 ? `⚠️ Offer #${offerId} from ${offerData.partner} is pending for review` +
-                  `\nReason: ${offerData.action.meta.uniqueReasons.join(', ')}).\n\nSummary:\n\n`
+                  `\nReason: ${offerData.meta.uniqueReasons.join(', ')}).\n\nSummary:\n\n`
                 : `⚠️ Offer #${offerId} from ${offerData.partner} is still active.\n\nSummary:\n\n`;
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
@@ -225,7 +235,7 @@ export default class ReviewCommands {
                 await this.bot.trades.applyActionToOffer(
                     isAccepting ? 'accept' : 'decline',
                     'MANUAL',
-                    isAccepting ? (offer.data('action') as Action).meta : {},
+                    isAccepting ? (offer.data('meta') as Meta) : {},
                     offer
                 );
 
@@ -310,7 +320,7 @@ export default class ReviewCommands {
                 await this.bot.trades.applyActionToOffer(
                     isForceAccepting ? 'accept' : 'decline',
                     'MANUAL-FORCE',
-                    isForceAccepting ? (offer.data('action') as Action).meta : {},
+                    isForceAccepting ? (offer.data('meta') as Meta) : {},
                     offer
                 );
 
@@ -336,6 +346,32 @@ export default class ReviewCommands {
                     isForceAccepting ? 'accept' : 'decline'
                 } the offer: ${(err as Error).message}`
             );
+        }
+    }
+
+    offerInfo(steamID: SteamID, message: string): void {
+        const offerIdAndMessage = CommandParser.removeCommand(message);
+        const offerIdRegex = /\d+/.exec(offerIdAndMessage);
+
+        if (isNaN(+offerIdRegex) || !offerIdRegex) {
+            return this.bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!offerinfo 3957959294"`);
+        }
+
+        const offerId = offerIdRegex[0];
+
+        const timestamp = this.bot.manager.pollData.timestamps[offerId];
+        if (timestamp === undefined) {
+            return this.bot.sendMessage(steamID, 'Offer does not exist. ❌');
+        }
+
+        try {
+            const offer = this.bot.manager.pollData.offerData[offerId];
+            const show = {};
+            show[offerId] = offer;
+
+            this.bot.sendMessage(steamID, '/code ' + JSON.stringify(show, null, 4));
+        } catch (err) {
+            return this.bot.sendMessage(steamID, `❌ Error getting offer #${offerId} info: ${(err as Error).message}`);
         }
     }
 }

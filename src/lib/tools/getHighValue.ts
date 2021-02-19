@@ -1,5 +1,5 @@
 import SKU from 'tf2-sku-2';
-import { Items } from 'steam-tradeoffer-manager';
+import { Items } from '@tf2autobot/tradeoffer-manager';
 import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
 import { Paints, StrangeParts } from 'tf2-schema-2';
@@ -27,7 +27,9 @@ export default function getHighValueItems(
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
-            if (attachment === 's') {
+            if (attachment === 'isFull') {
+                toString += `\n💯 Full uses: ${items[sku].isFull ? '✅' : '❌'}`;
+            } else if (attachment === 's') {
                 toString += `\n${cT.spells ? cT.spells : '🎃 Spells:'} `;
 
                 items[sku].s.forEach(spellSKU => {

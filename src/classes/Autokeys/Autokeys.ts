@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import { genUserPure, genScrapAdjustment } from './userSettings';
 import Bot from '../Bot';
 import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';
@@ -525,7 +525,7 @@ export default class Autokeys {
                 }`
         );
 
-        this.bot.listings.checkBySKU('5021;6');
+        this.bot.listings.checkBySKU('5021;6', null, false, true);
     }
 
     private generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {

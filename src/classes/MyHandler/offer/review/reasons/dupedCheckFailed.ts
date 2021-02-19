@@ -1,6 +1,6 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import { Meta, DupeCheckFailed } from 'steam-tradeoffer-manager';
+import { Meta, DupeCheckFailed } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../../Bot';
 
 export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {

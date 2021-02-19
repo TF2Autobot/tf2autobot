@@ -19,7 +19,7 @@ export default class HelpCommands {
                       '\n• [a] = Optionally add "a"' +
                       '\n• (a|b) = Directly input "a" OR "b"' +
                       '\n• <a> = Replace "a" with relevant content' +
-                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
                     : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
             }\n\n📜 Here's a list of my commands:\n- ${
                 isAdmin
@@ -48,11 +48,13 @@ export default class HelpCommands {
                           "!name <new_name> - Change the bot's name",
                           "!avatar <image_URL> - Change the bot's avatar\n\n✨=== Bot status ===✨",
                           '!stats - Get statistics for accepted trades 📊',
+                          '!itemstats <item name|sku> - Get statistics for specific item (keys/weapons not supported) 📊',
                           '!statsdw - Send statistics to Discord Webhook 📊',
                           "!inventory - Get the bot's current inventory spaces 🎒",
                           '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
                           '!trades - Get a list of trade offers pending for manual review 🔍',
                           '!trade <offerID> - Get information about a trade',
+                          '!offerinfo <offerID> - Get information about the offer from polldata 🔍',
                           '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
                           '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
                           '!faccept <offerID> [Your Message] - Force accept any failed to accept offer ✅🔂',

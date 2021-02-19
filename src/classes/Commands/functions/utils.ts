@@ -97,17 +97,21 @@ export function getItemAndAmount(
             bot.sendMessage(
                 steamID,
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:' +
-                    '\n• Remove "The".' +
-                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
-                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
-                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
-                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
-                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
-                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    '\n\nAlternatively, please try to:\n• ' +
+                    [
+                        'Remove "The".',
+                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
+                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                    ].join('\n• ')
             );
+
             return null;
         }
 
@@ -146,27 +150,31 @@ export function getItemAndAmount(
             bot.sendMessage(
                 steamID,
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:' +
-                    '\n• Remove "The".' +
-                    '\n• Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".' +
-                    '\n• Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".' +
-                    '\n• Some Taunts need "The" such as "Taunt: The High Five!", while others do not.' +
-                    '\n• Check for a dash (-) like "All-Father" or "Mini-Engy".' +
-                    `\n• Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".` +
-                    '\n• Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".' +
-                    '\n• Check for an exclamation mark (!) like "Bonk! Atomic Punch".' +
-                    `\n• If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`
+                    '\n\nAlternatively, please try to:\n• ' +
+                    [
+                        'Remove "The".',
+                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
+                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                    ].join('\n• ')
             );
+
             return null;
         }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
 
-        if (match.length > 20) {
+        if (matchCount > 20) {
             match = match.splice(0, 20);
         }
 
-        let reply = `I've found ${match.length} items. Try with one of the items shown below:\n${match.join(',\n')}`;
+        let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
         if (matchCount > match.length) {
             const other = matchCount - match.length;
             reply += `,\nand ${other} other ${pluralize('item', other)}.`;
@@ -197,28 +205,33 @@ export function getItemFromParams(
 
         const match: SchemaManager.SchemaItem[] = [];
 
-        for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
+        const items = bot.schema.raw.schema.items;
+        const itemsCount = items.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            if (items[i].item_name === params.name) {
+                match.push(items[i]);
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             bot.sendMessage(
                 steamID,
                 `❌ Could not find an item in the schema with the name "${params.name as string}".`
             );
             return null;
-        } else if (match.length !== 1) {
-            const matchCount = match.length;
+        } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
+            const parsedCount = parsed.length;
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "defindex":\n${parsed.join(
                 ',\n'
             )}`;
 
-            if (matchCount > parsed.length) {
-                const other = matchCount - parsed.length;
+            if (matchCount > parsedCount) {
+                const other = matchCount - parsedCount;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 
@@ -246,7 +259,7 @@ export function getItemFromParams(
     if (!foundSomething) {
         bot.sendMessage(
             steamID,
-            '⚠️ Missing item properties. Please refer to: https://github.com/idinium96/tf2autobot/wiki/What-is-the-pricelist%3F'
+            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F'
         );
         return null;
     }
@@ -450,28 +463,33 @@ export function getItemFromParams(
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
 
-        for (let i = 0; i < bot.schema.raw.schema.items.length; i++) {
-            if (bot.schema.raw.schema.items[i].item_name === params.name) {
-                match.push(bot.schema.raw.schema.items[i]);
+        const items = bot.schema.raw.schema.items;
+        const itemsCount = bot.schema.raw.schema.items.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            if (items[i].item_name === params.name) {
+                match.push(items[i]);
             }
         }
 
-        if (match.length === 0) {
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
             bot.sendMessage(
                 steamID,
                 `❌ Could not find an item in the schema with the name "${params.name as string}".`
             );
             return null;
-        } else if (match.length !== 1) {
-            const matchCount = match.length;
+        } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
+            const parsedCount = parsed.length;
 
             let reply = `I've found ${matchCount} items with a matching name. Please use one of the defindexes below as "output":\n${parsed.join(
                 ',\n'
             )}`;
 
-            if (matchCount > parsed.length) {
-                const other = matchCount - parsed.length;
+            if (matchCount > parsedCount) {
+                const other = matchCount - parsedCount;
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 

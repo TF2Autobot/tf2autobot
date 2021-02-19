@@ -1,4 +1,4 @@
-import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
@@ -63,14 +63,18 @@ export default class Trades {
         }
 
         // Go through all sent / received offers and mark the items as in trade
-        for (let i = 0; i < activeOrCreatedNeedsConfirmation.length; i++) {
+        const activeCount = activeOrCreatedNeedsConfirmation.length;
+
+        for (let i = 0; i < activeCount; i++) {
             const id = activeOrCreatedNeedsConfirmation[i];
 
             const offerData: UnknownDictionaryKnownValues =
                 pollData.offerData === undefined ? {} : pollData.offerData[id] || {};
 
             const items = (offerData.items || []) as TradeOfferManager.TradeOfferItem[];
-            for (let i = 0; i < items.length; i++) {
+            const itemsCount = items.length;
+
+            for (let i = 0; i < itemsCount; i++) {
                 this.setItemInTrade = items[i].assetid;
             }
         }
@@ -103,27 +107,30 @@ export default class Trades {
         });
 
         const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
+        const activeReceivedCount = activeReceived.length;
 
         if (
             filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
-            (this.pollCount * this.bot.manager.pollInterval) / (2 * 60 * 1000) >= 1
+            (this.pollCount * this.bot.manager.pollInterval) / (2 * 5 * 60 * 1000) >= 1
         ) {
             this.pollCount = 0;
 
             const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
+            const activeSentCount = activeSent.length;
 
             const receivedOnHold = received.filter(
                 offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
             ).length;
+
             const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow'])
                 .length;
 
             log.verbose(
-                `${activeReceived.length} incoming ${pluralize('offer', activeReceived.length)}${
-                    activeReceived.length > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
-                } (${receivedOnHold} on hold), ${activeSent.length} outgoing ${pluralize(
+                `${activeReceivedCount} incoming ${pluralize('offer', activeReceivedCount)}${
+                    activeReceivedCount > 0 ? ` [${activeReceived.map(offer => offer.id).join(', ')}]` : ''
+                } (${receivedOnHold} on hold), ${activeSentCount} outgoing ${pluralize(
                     'offer',
-                    activeSent.length
+                    activeSentCount
                 )} (${sentOnHold} on hold)`
             );
         }
@@ -303,9 +310,10 @@ export default class Trades {
 
         offer.data('action', {
             action: action,
-            reason: reason,
-            meta: meta
+            reason: reason
         } as Action);
+
+        offer.data('meta', meta);
 
         if (actionFunc === undefined) {
             return Promise.resolve();
@@ -393,8 +401,6 @@ export default class Trades {
             return;
         }
 
-        const opt = this.bot.options;
-
         try {
             const offer = await this.getOffer(offerID);
             log.debug(`Auto retry ${isRetryAccept ? 'accepting' : 'declining'} offer...`);
@@ -403,71 +409,14 @@ export default class Trades {
                 await this.applyActionToOffer(
                     isRetryAccept ? 'accept' : 'decline',
                     'AUTO-RETRY',
-                    isRetryAccept ? (offer.data('action') as Action).meta : {},
+                    isRetryAccept ? (offer.data('meta') as Meta) : {},
                     offer
                 );
-
-                const msg = `✅ Auto retry to ${action} on the offer #${offer.id} was a success!`;
-
-                if (opt.sendAlert.failedAccept) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert(`retry-success`, this.bot, msg, null, [action]);
-                    } else {
-                        this.bot.messageAdmins(msg, []);
-                    }
-                }
-
-                return;
             } catch (err) {
-                const msg = `❌ Auto retry to ${action} on the offer #${offer.id} was a failure: ${
-                    (err as Error).message
-                }`;
-
-                log.warn(msg);
-
-                if (opt.sendAlert.failedAccept) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert(
-                            `retry-failed`,
-                            this.bot,
-                            msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                            null,
-                            err,
-                            [action]
-                        );
-                    } else {
-                        this.bot.messageAdmins(
-                            msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                            []
-                        );
-                    }
-                }
-
-                return;
+                // Ignore err
             }
         } catch (err) {
-            const msg = `❌ Auto retry to ${action} on the offer #${offerID} was a failure: ${(err as Error).message}.`;
-
-            log.warn(msg);
-
-            if (opt.sendAlert.failedAccept) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                    sendAlert(
-                        `retry-failed`,
-                        this.bot,
-                        msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                        null,
-                        err,
-                        [action]
-                    );
-                } else {
-                    this.bot.messageAdmins(
-                        msg + '.\n\nCheck if this offer still active by sending "!trades" command.',
-                        []
-                    );
-                }
-            }
-            return;
+            // Ignore err
         }
     }
 
@@ -574,59 +523,70 @@ export default class Trades {
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                        const opt = this.bot.options;
-                        if (opt.sendAlert.failedAccept) {
-                            const keyPrices = this.bot.pricelist.getKeyPrices;
-                            const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                        if (!(err as CustomError).message?.includes('Could not act on confirmation')) {
+                            // Only notify is error is not "Could not act on confirmation"
 
-                            if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                                const summary = t.summarizeToChat(
+                            const opt = this.bot.options;
+                            if (opt.sendAlert.failedAccept) {
+                                const keyPrices = this.bot.pricelist.getKeyPrices;
+                                const value = t.valueDiff(
                                     offer,
-                                    this.bot,
-                                    'summary-accepting',
-                                    true,
-                                    value,
                                     keyPrices,
                                     false,
-                                    false
-                                );
-                                sendAlert(
-                                    `error-accept`,
-                                    this.bot,
-                                    `Error while trying to accept mobile confirmation on offer #${offer.id}` +
-                                        summary +
-                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                        ` sending "!trade ${offer.id}"`,
-                                    null,
-                                    err,
-                                    [offer.id]
-                                );
-                            } else {
-                                const summary = t.summarizeToChat(
-                                    offer,
-                                    this.bot,
-                                    'summary-accepting',
-                                    false,
-                                    value,
-                                    keyPrices,
-                                    true,
-                                    false
+                                    opt.miscSettings.showOnlyMetal.enable
                                 );
 
-                                this.bot.messageAdmins(
-                                    `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
-                                        summary +
-                                        `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                        ` sending "!trade ${offer.id}` +
-                                        `\n\nError: ${
-                                            (err as CustomError).eresult
-                                                ? `${
-                                                      TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                                  } (https://steamerrors.com/${(err as CustomError).eresult})`
-                                                : (err as Error).message
-                                        }`,
-                                    []
-                                );
+                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        true,
+                                        value,
+                                        keyPrices,
+                                        false,
+                                        false
+                                    );
+                                    sendAlert(
+                                        `error-accept`,
+                                        this.bot,
+                                        `Error while trying to accept mobile confirmation on offer #${offer.id}` +
+                                            summary +
+                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                            ` sending "!trade ${offer.id}"`,
+                                        null,
+                                        err,
+                                        [offer.id]
+                                    );
+                                } else {
+                                    const summary = t.summarizeToChat(
+                                        offer,
+                                        this.bot,
+                                        'summary-accepting',
+                                        false,
+                                        value,
+                                        keyPrices,
+                                        true,
+                                        false
+                                    );
+
+                                    this.bot.messageAdmins(
+                                        `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
+                                            summary +
+                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                            ` sending "!trade ${offer.id}` +
+                                            `\n\nError: ${
+                                                (err as CustomError).eresult
+                                                    ? `${
+                                                          TradeOfferManager.EResult[
+                                                              (err as CustomError).eresult
+                                                          ] as string
+                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                    : (err as Error).message
+                                            }`,
+                                        []
+                                    );
+                                }
                             }
                         }
                     });
@@ -1123,7 +1083,9 @@ export default class Trades {
         }
 
         const copy = b.slice(0);
-        for (let i = 0; i < a.length; i++) {
+        const aCount = a.length;
+
+        for (let i = 0; i < aCount; i++) {
             // Find index of matching item
             const index = copy.findIndex(item => Trades.itemEquals(item, a[i]));
             if (index === -1) {

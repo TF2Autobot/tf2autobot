@@ -2,7 +2,7 @@ declare module 'bptf-listings-2' {
     import { EventEmitter } from 'events';
     import SchemaManager from 'tf2-schema-2';
     import SteamID from 'steamid';
-    import TF2Currencies from 'tf2-currencies';
+    import TF2Currencies from 'tf2-currencies-2';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
@@ -38,7 +38,7 @@ declare module 'bptf-listings-2' {
 
         listings: ListingManager.Listing[];
 
-        actions: { create: Record<string, unknown>[]; remove: string[] };
+        actions: { create: Create[]; remove: string[] };
 
         ready: boolean;
 
@@ -71,6 +71,23 @@ declare module 'bptf-listings-2' {
         shutdown(): void;
 
         _processActions: (callback: (err?: Error) => void) => void;
+    }
+
+    interface Create {
+        time: number;
+        id?: string; // only when intent 1 (sell)
+        sku?: string; // only when intent 0 (buy)
+        intent: 0 | 1;
+        promoted: 0 | 1;
+        details: string;
+        currencies: TF2Currencies;
+        item?: Item; // only when intent 0 (buy)
+    }
+
+    interface Item {
+        item_name: string;
+        quality: string;
+        craftable: 0 | 1;
     }
 
     namespace ListingManager {

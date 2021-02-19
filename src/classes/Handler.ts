@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import SteamID from 'steamid';
-import TradeOfferManager, { PollData, Meta } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
 

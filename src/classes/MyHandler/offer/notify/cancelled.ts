@@ -1,4 +1,4 @@
-import TradeOfferManager, { TradeOffer } from 'steam-tradeoffer-manager';
+import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../Bot';
 
 export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot): void {

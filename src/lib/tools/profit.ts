@@ -1,8 +1,8 @@
 import Bot from '../../classes/Bot';
 import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
-import Currencies from 'tf2-currencies';
-import { OfferData } from 'steam-tradeoffer-manager';
+import Currencies from 'tf2-currencies-2';
+import { OfferData } from '@tf2autobot/tradeoffer-manager';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
@@ -48,7 +48,9 @@ export default function profit(
 
         const tracker = new itemTracker();
 
-        for (let i = 0; i < trades.length; i++) {
+        const tradesCount = trades.length;
+
+        for (let i = 0; i < tradesCount; i++) {
             // const trade = trades[i];
             if (!(trades[i].handledByUs && trades[i].isAccepted)) {
                 // trade was not accepted, go to next trade
@@ -67,9 +69,11 @@ export default function profit(
                 continue;
             }
 
-            if (typeof Object.keys(trades[i].dict.our).length === 'undefined') {
+            const ourDictCount = Object.keys(trades[i].dict.our).length;
+
+            if (typeof ourDictCount === 'undefined') {
                 isGift = true; // no items on our side, so it is probably gift
-            } else if (Object.keys(trades[i].dict.our).length > 0) {
+            } else if (ourDictCount > 0) {
                 // trade is not a gift
                 if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
                     // trade is missing value object

@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies';
+import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
@@ -83,6 +83,7 @@ export default class Commands {
     processMessage(steamID: SteamID, message: string): void {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
+        const isWhitelisted = this.bot.isWhitelisted(steamID);
 
         const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
 
@@ -221,6 +222,8 @@ export default class Commands {
             this.status.statsCommand(steamID);
         } else if (command === 'statsdw' && isAdmin) {
             this.status.statsDWCommand(steamID);
+        } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {
+            void this.status.itemStatsCommand(steamID, message);
         } else if (command === 'inventory' && isAdmin) {
             this.status.inventoryCommand(steamID);
         } else if (command === 'version' && isAdmin) {
@@ -233,6 +236,8 @@ export default class Commands {
             void this.review.actionOnTradeCommand(steamID, message, command as ActionOnTrade);
         } else if (['faccept', 'fdecline'].includes(command) && isAdmin) {
             void this.review.forceAction(steamID, message, command as ForceAction);
+        } else if (command === 'offerinfo' && isAdmin) {
+            this.review.offerInfo(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
@@ -757,7 +762,7 @@ export default class Commands {
         if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
@@ -806,7 +811,7 @@ export default class Commands {
         if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
@@ -882,7 +887,7 @@ export default class Commands {
         if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
             if (item === null) {
-                return this.bot.sendMessage(steamID, `❌ Item not found.`);
+                return;
             }
 
             params.sku = SKU.fromObject(item);
