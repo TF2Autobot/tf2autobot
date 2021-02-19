@@ -98,6 +98,13 @@ export default function updateListings(
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
+        const isUpdatePriceNotInStock =
+            inPrice !== null &&
+            inPrice.autoprice &&
+            inPrice.group === 'inStockUpdate' &&
+            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            isNotPureOrWeapons;
+
         //
 
         if (isAutoaddPainted) {
@@ -292,13 +299,7 @@ export default function updateListings(
                         }
                     }
                 });
-        } else if (
-            inPrice !== null &&
-            inPrice.autoprice &&
-            inPrice.group === 'inStockUpdate' &&
-            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
-            isNotPureOrWeapons
-        ) {
+        } else if (isUpdatePriceNotInStock) {
             // If item exist in pricelist with group "inStockUpdate" and we no longer have that in stock,
             // then update entry with the latest prices.
 
