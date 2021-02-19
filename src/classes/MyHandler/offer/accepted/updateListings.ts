@@ -37,7 +37,7 @@ export default function updateListings(
         }
 
         const name = bot.schema.getName(SKU.fromString(sku), false);
-        const isNotPureOrWeapons = !(weapons.includes(sku) || ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+        const isNotPureOrWeapons = !(weapons.includes(sku) || ['5000;6', '5001;6', '5002;6'].includes(sku));
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         const existInPricelist = inPrice !== null;
