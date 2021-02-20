@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
+import SKU from 'tf2-sku-2';
 import { getItemAndAmount, testSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -118,7 +119,7 @@ export default class StatusCommands {
             sku = info.match.sku;
         }
 
-        let reply = '';
+        let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
 
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft
