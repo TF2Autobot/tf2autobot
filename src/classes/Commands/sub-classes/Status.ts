@@ -300,7 +300,7 @@ export default class StatusCommands {
                     const netProfit = Currencies.toCurrencies(totalSoldValue - totalBoughtValue, keyPrice);
                     const netProfitToString = netProfit.toString();
 
-                    reply += '\n\nOverall pass 30 days summary:';
+                    reply += '\n\nOverall past 30 days summary:';
                     reply += `\n• Total bought value: ${boughtValueToString}${
                         boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)})` : ''
                     }`;
