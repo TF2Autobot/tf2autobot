@@ -127,7 +127,7 @@ export default class StatusCommands {
             : [];
         if (
             !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) &&
-            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+            !['5000;6', '5001;6', '5002;6'].includes(sku)
         ) {
             const now = Math.floor(Date.now() / 1000);
 
@@ -279,7 +279,7 @@ export default class StatusCommands {
                 reply = err as string;
             }
         } else {
-            reply = 'enable for keys and weapons - currently not implemented';
+            reply = 'Stats for currency is not enabled.';
         }
 
         this.bot.sendMessage(steamID, reply);
