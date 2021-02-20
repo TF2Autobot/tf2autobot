@@ -70,11 +70,12 @@ export default async function profit(
                     continue;
                 }
 
-                const ourDictCount = Object.keys(trades[i].dict.our).length;
+                const ourDicts = Object.keys(trades[i].dict.our);
+                const ourDictsCount = ourDicts.length;
 
-                if (typeof ourDictCount === 'undefined') {
+                if (typeof ourDicts === 'undefined') {
                     isGift = true; // no items on our side, so it is probably gift
-                } else if (ourDictCount > 0) {
+                } else if (ourDictsCount > 0) {
                     // trade is not a gift
                     if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
                         // trade is missing value object
