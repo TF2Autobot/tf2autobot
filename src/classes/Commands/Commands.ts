@@ -180,8 +180,8 @@ export default class Commands {
             this.message.message(steamID, message);
         } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
             this.misc.weaponCommand(steamID, command as CraftUncraft);
-        } else if (command === 'sales' && isAdmin) {
-            void this.request.getSalesCommand(steamID, message);
+        } else if (command === 'snapshots' && isAdmin) {
+            void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {

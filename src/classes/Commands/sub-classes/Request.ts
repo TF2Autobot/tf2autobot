@@ -28,7 +28,7 @@ export default class RequestCommands {
         this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
     }
 
-    async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
+    async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
         if (this.bot.options.customPricerUrl !== '' && this.bot.options.customPricerApiToken !== '') {
             return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
         }

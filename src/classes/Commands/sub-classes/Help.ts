@@ -71,7 +71,7 @@ export default class HelpCommands {
                           "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                           "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
                           '!paints - Get a list of paints partial sku 🎨',
-                          '!sales (sku|name|defindex)=<a> - Get the sales history for an item 🔍',
+                          '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍',
                           '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍',
                           '!options [OptionsKey] - Get options.json content (current bot option settings) 🔧',
                           '!config <Options>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
