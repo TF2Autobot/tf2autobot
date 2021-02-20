@@ -17,10 +17,10 @@ export default class StatusCommands {
         this.bot = bot;
     }
 
-    statsCommand(steamID: SteamID): void {
+    async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
         const trades = stats(this.bot);
-        const profits = profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
+        const profits = await profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 

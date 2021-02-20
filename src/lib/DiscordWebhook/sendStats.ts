@@ -7,11 +7,11 @@ import log from '../logger';
 import { stats, profit, timeNow } from '../../lib/tools/export';
 import Bot from '../../classes/Bot';
 
-export default function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): void {
+export default async function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): Promise<void> {
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
     const trades = stats(bot);
-    const profits = profit(bot, Math.floor((Date.now() - 86400000) / 1000));
+    const profits = await profit(bot, Math.floor((Date.now() - 86400000) / 1000));
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
