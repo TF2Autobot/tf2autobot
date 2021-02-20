@@ -227,6 +227,7 @@ export default class RequestCommands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         }
 
+        const customUrl = this.bot.options.customPricerUrl;
         const name = this.bot.schema.getName(SKU.fromString(params.sku));
         try {
             const price = await this.getPrice(params.sku, 'bptf');
@@ -235,9 +236,9 @@ export default class RequestCommands {
 
             this.bot.sendMessage(
                 steamID,
-                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                    params.sku as string
-                }`
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\n${
+                    customUrl ? `Link: ${customUrl}` : 'Prices.TF: https://prices.tf'
+                }/items/${params.sku as string}`
             );
         } catch (err) {
             return this.bot.sendMessage(
