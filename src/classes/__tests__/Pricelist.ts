@@ -7,7 +7,7 @@ import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';
 
-jest.mock('../../lib/ptf-api');
+jest.mock('../../lib/pricer-api');
 
 it('can pricecheck', async done => {
     const paths = genPaths('test');
@@ -17,10 +17,11 @@ it('can pricecheck', async done => {
     schemaManager.setSchema(await prices.getSchema());
     const socketManager = new SocketManager('');
     const priceList = new Pricelist(prices, schemaManager.schema, socketManager, DEFAULTS);
+    const isUseCustomPricer = priceList.isUseCustomPricer;
     expect(priceList.maxAge).toEqual(8 * 60 * 60);
     await priceList.setupPricelist();
     expect(priceList.getKeyPrices).toEqual({
-        src: 'ptf',
+        src: isUseCustomPricer ? 'customPricer' : 'ptf',
         time: 1608739762,
         buy: new Currencies({ keys: 0, metal: 55.11 }),
         sell: new Currencies({ keys: 0, metal: 55.22 })

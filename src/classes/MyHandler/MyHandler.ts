@@ -1182,6 +1182,8 @@ export default class MyHandler extends Handler {
                         const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
                         // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
 
+                        const isSkinsOrWarPaints = item.wear !== null;
+
                         let itemSuggestedValue: string;
                         if (price === null) {
                             itemSuggestedValue = 'No price';
@@ -1192,7 +1194,7 @@ export default class MyHandler extends Handler {
 
                             if (
                                 opt.offerReceived.invalidItems.givePrice &&
-                                (item.wear === null || !isCrateOrCases) &&
+                                (!isSkinsOrWarPaints || !isCrateOrCases) &&
                                 isCanBePriced
                             ) {
                                 // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
