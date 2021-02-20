@@ -29,6 +29,10 @@ export default class RequestCommands {
     }
 
     async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
+        if (this.bot.options.customPricerUrl !== '' && this.bot.options.customPricerApiToken !== '') {
+            return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
