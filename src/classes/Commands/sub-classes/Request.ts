@@ -9,12 +9,12 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import Pricer, { GetPriceFn, GetSalesFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
+import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
     private readonly bot: Bot;
 
-    private getSales: GetSalesFn;
+    private getSnapshots: GetSnapshotsFn;
 
     private requestCheck: RequestCheckFn;
 
@@ -23,7 +23,7 @@ export default class RequestCommands {
     constructor(bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
 
-        this.getSales = this.priceSource.getSales.bind(this.priceSource);
+        this.getSnapshots = this.priceSource.getSnapshots.bind(this.priceSource);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
         this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
     }
@@ -48,7 +48,7 @@ export default class RequestCommands {
 
         const name = this.bot.schema.getName(SKU.fromString(params.sku));
         try {
-            const salesData = await this.getSales(params.sku, 'bptf');
+            const salesData = await this.getSnapshots(params.sku, 'bptf');
             if (!salesData) {
                 return this.bot.sendMessage(
                     steamID,

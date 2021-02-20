@@ -21,7 +21,7 @@ export default interface Pricer {
 
     getPrice(sku: string, source: string): Promise<GetItemPriceResponse>;
 
-    getSales(sku: string, source: string): Promise<GetItemSalesResponse>;
+    getSnapshots(sku: string, source: string): Promise<GetItemSnapshotsResponse>;
 
     getPricelist(source: string): Promise<GetPricelistResponse>;
 
@@ -30,7 +30,7 @@ export default interface Pricer {
 
 export type RequestCheckFn = (sku: string, source: string) => Promise<RequestCheckResponse>;
 export type GetPriceFn = (sku: string, source: string) => Promise<GetItemPriceResponse>;
-export type GetSalesFn = (sku: string, source: string) => Promise<GetItemSalesResponse>;
+export type GetSnapshotsFn = (sku: string, source: string) => Promise<GetItemSnapshotsResponse>;
 export type GetPrice = (sku: string, source: string) => Promise<GetItemPriceResponse>;
 export type GetPricelist = (source: string) => Promise<GetPricelistResponse>;
 export type GetSchema = () => Promise<GetSchemaResponse>;
@@ -87,7 +87,7 @@ export interface GetItemPriceResponse extends PricesResponse {
     message?: string;
 }
 
-export interface GetItemSalesResponse extends PricesResponse {
+export interface GetItemSnapshotsResponse extends PricesResponse {
     sku: string;
     name: string;
     sales: Sale[];

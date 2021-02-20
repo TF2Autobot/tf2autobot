@@ -3,7 +3,7 @@ import { OptionsWithUrl, ResponseAsJSON } from 'request';
 import request from 'request-retry-dayjs';
 import Pricer, {
     GetItemPriceResponse,
-    GetItemSalesResponse,
+    GetItemSnapshotsResponse,
     GetPricelistResponse,
     GetSchemaResponse,
     PricerOptions,
@@ -11,7 +11,7 @@ import Pricer, {
     RequestCheckResponse
 } from '../classes/Pricer';
 
-export default class PricesTf implements Pricer {
+export default class PricerApi implements Pricer {
     public constructor(public url?: string, public apiToken?: string) {}
 
     private apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
@@ -47,7 +47,7 @@ export default class PricesTf implements Pricer {
         return this.apiRequest('POST', `/items/${sku}`, { source: source });
     }
 
-    getSales(sku: string, source: string): Promise<GetItemSalesResponse> {
+    getSnapshots(sku: string, source: string): Promise<GetItemSnapshotsResponse> {
         return this.apiRequest('GET', `/items/${sku}/sales`, { src: source });
     }
 
