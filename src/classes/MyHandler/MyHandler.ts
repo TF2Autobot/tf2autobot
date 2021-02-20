@@ -1194,7 +1194,8 @@ export default class MyHandler extends Handler {
 
                             if (
                                 opt.offerReceived.invalidItems.givePrice &&
-                                (!isSkinsOrWarPaints || !isCrateOrCases) &&
+                                !isSkinsOrWarPaints &&
+                                !isCrateOrCases && // both of these should be false in order to be true
                                 isCanBePriced
                             ) {
                                 // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
