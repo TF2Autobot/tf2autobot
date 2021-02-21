@@ -781,7 +781,10 @@ export default class Pricelist extends EventEmitter {
         }
 
         if (match !== null && match.autoprice) {
-            const oldPrice = match;
+            const oldPrice = {
+                buy: new Currencies(match.buy),
+                sell: new Currencies(match.sell)
+            };
 
             match.buy = new Currencies(data.buy);
             match.sell = new Currencies(data.sell);

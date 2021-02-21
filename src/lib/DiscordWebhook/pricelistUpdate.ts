@@ -14,7 +14,7 @@ export default function sendWebHookPriceUpdateV1(
     schema: SchemaManager.Schema,
     options: Options,
     currentStock: number,
-    oldPrice: Entry,
+    oldPrice: { buy: Currencies; sell: Currencies },
     keyPrice: number
 ): void {
     const parts = sku.split(';');
@@ -64,9 +64,9 @@ export default function sendWebHookPriceUpdateV1(
     const oldSellValue = oldPrice.sell.toValue(keyPrice);
     const newSellValue = newPrice.sell.toValue(keyPrice);
 
-    const buyChangesValue = newBuyValue + oldBuyValue;
+    const buyChangesValue = newBuyValue - oldBuyValue;
     const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
-    const sellChangesValue = newSellValue + oldSellValue;
+    const sellChangesValue = newSellValue - oldSellValue;
     const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
     const opt = options.discordWebhook;
