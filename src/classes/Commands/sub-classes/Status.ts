@@ -186,7 +186,7 @@ export default class StatusCommands {
                             metal: +keysAndMetal[1]
                         });
 
-                        totalBoughtValue += sale.toValue(keyPrice);
+                        totalBoughtValue += sale.toValue(keyPrice) * boughtCount;
 
                         acc += sale.toString();
 
@@ -264,7 +264,7 @@ export default class StatusCommands {
                             metal: +keysAndMetal[1]
                         });
 
-                        totalSoldValue += sale.toValue(keyPrice);
+                        totalSoldValue += sale.toValue(keyPrice) * soldCount;
 
                         acc += sale.toString();
                         return acc + '\n';
