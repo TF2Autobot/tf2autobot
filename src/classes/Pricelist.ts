@@ -798,7 +798,16 @@ export default class Pricelist extends EventEmitter {
 
                 const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
 
-                sendWebHookPriceUpdateV1(data.sku, match, time, this.schema, this.options, currentStock, oldPrice);
+                sendWebHookPriceUpdateV1(
+                    data.sku,
+                    match,
+                    time,
+                    this.schema,
+                    this.options,
+                    currentStock,
+                    oldPrice,
+                    this.getKeyPrice.metal
+                );
             }
         }
     }
