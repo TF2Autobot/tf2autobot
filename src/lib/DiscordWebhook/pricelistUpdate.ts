@@ -96,16 +96,14 @@ export default function sendWebHookPriceUpdateV1(
                     {
                         name: 'Buying for',
                         value: `${oldPrice.buy.toString()} → ${newPrice.buy.toString()} (${
-                            buyChangesValue > 0 ? `+ ${buyChanges}` : buyChanges
-                        })`,
-                        inline: true
+                            buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
+                        })`
                     },
                     {
                         name: 'Selling for',
-                        value: `• old: ${oldPrice.sell.toString()} → ${newPrice.sell.toString()} ${
-                            sellChangesValue > 0 ? `+ ${sellChanges}` : sellChanges
-                        })`,
-                        inline: true
+                        value: `${oldPrice.sell.toString()} → ${newPrice.sell.toString()} (${
+                            sellChangesValue > 0 ? `+${sellChanges}` : sellChangesValue === 0 ? `0 ref` : sellChanges
+                        })`
                     }
                 ],
                 description: `Stock: ${currentStock}${opt.priceUpdate.note ? `\n${opt.priceUpdate.note}` : ''}`,
