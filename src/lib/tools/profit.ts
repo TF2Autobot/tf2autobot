@@ -48,41 +48,41 @@ export default async function profit(
             let profitTimed = 0;
 
             const tracker = new itemTracker();
-
             const tradesCount = trades.length;
 
             for (let i = 0; i < tradesCount; i++) {
-                // const trade = trades[i];
-                if (!(trades[i].handledByUs && trades[i].isAccepted)) {
+                const trade = trades[i];
+
+                if (!(trade.handledByUs && trade.isAccepted)) {
                     // trade was not accepted, go to next trade
                     continue;
                 }
 
-                if (trades[i].action?.reason === 'ADMIN' || bot.isAdmin(trades[i].partner)) {
+                if (trade.action?.reason === 'ADMIN' || bot.isAdmin(trade.partner)) {
                     // trades was from ADMIN, ignore
                     continue;
                 }
 
                 let isGift = false;
 
-                if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) {
+                if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
                     // trade has no items involved (not possible, but who knows)
                     continue;
                 }
 
-                const ourDicts = Object.keys(trades[i].dict.our);
+                const ourDicts = Object.keys(trade.dict.our);
                 const ourDictsCount = ourDicts.length;
 
                 if (typeof ourDicts === 'undefined') {
                     isGift = true; // no items on our side, so it is probably gift
                 } else if (ourDictsCount > 0) {
                     // trade is not a gift
-                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
                         // trade is missing value object
                         continue;
                     }
 
-                    if (!(Object.keys(trades[i].prices).length > 0)) {
+                    if (!(Object.keys(trade.prices).length > 0)) {
                         // have no prices, broken data, skip
                         continue;
                     }
@@ -90,26 +90,26 @@ export default async function profit(
                     isGift = true; // no items on our side, so it is probably gift
                 }
 
-                if (typeof trades[i].value === 'undefined') {
-                    trades[i].value = {};
+                if (typeof trade.value === 'undefined') {
+                    trade.value = {};
                 }
 
-                if (typeof trades[i].value.rate === 'undefined') {
-                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
+                if (typeof trade.value.rate === 'undefined') {
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
                         // in case it was gift
-                        trades[i].value = {};
+                        trade.value = {};
                     }
 
-                    trades[i].value.rate = keyPrice.metal; // set key value to current value if it is not defined
+                    trade.value.rate = keyPrice.metal; // set key value to current value if it is not defined
                 }
 
-                for (const sku in trades[i].dict.their) {
+                for (const sku in trade.dict.their) {
                     // item bought
-                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku)) {
+                    if (Object.prototype.hasOwnProperty.call(trade.dict.their, sku)) {
                         const itemCount =
-                            typeof trades[i].dict.their[sku] === 'object'
-                                ? (trades[i].dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
-                                : trades[i].dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
+                            typeof trade.dict.their[sku] === 'object'
+                                ? (trade.dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                : trade.dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (
                             !(
@@ -119,29 +119,28 @@ export default async function profit(
                         ) {
                             // if it is not currency
                             if (isGift) {
-                                if (!Object.prototype.hasOwnProperty.call(trades[i], 'prices')) {
-                                    trades[i].prices = {};
+                                if (!Object.prototype.hasOwnProperty.call(trade, 'prices')) {
+                                    trade.prices = {};
                                 }
 
-                                trades[i].prices[sku] = {
+                                trade.prices[sku] = {
                                     // set price to 0 because it's a gift
                                     buy: new Currencies({
                                         keys: 0,
                                         metal: 0
                                     })
                                 };
-                            } else if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
+                            } else if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
 
-                            // const prices = trades[i].prices[sku].buy;
                             const tempProfit = tracker.boughtItem(
                                 itemCount,
                                 sku,
-                                trades[i].prices[sku].buy,
-                                trades[i].value.rate
+                                trade.prices[sku].buy,
+                                trade.value.rate
                             );
-                            if (trades[i].time >= start) {
+                            if (trade.time >= start) {
                                 // is within time of interest
                                 profitTimed += tempProfit;
                             }
@@ -150,12 +149,12 @@ export default async function profit(
                     }
                 }
 
-                for (const sku in trades[i].dict.our) {
-                    if (Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku)) {
+                for (const sku in trade.dict.our) {
+                    if (Object.prototype.hasOwnProperty.call(trade.dict.our, sku)) {
                         const itemCount =
-                            typeof trades[i].dict.our[sku] === 'object'
-                                ? (trades[i].dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
-                                : trades[i].dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
+                            typeof trade.dict.our[sku] === 'object'
+                                ? (trade.dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                : trade.dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (
                             !(
@@ -163,17 +162,17 @@ export default async function profit(
                                 ['5000;6', '5001;6', '5002;6'].includes(sku)
                             )
                         ) {
-                            if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
+                            if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
-                            // const prices = trades[i].prices[sku].sell;
+
                             const tempProfit = tracker.soldItem(
                                 itemCount,
                                 sku,
-                                trades[i].prices[sku].sell,
-                                trades[i].value.rate
+                                trade.prices[sku].sell,
+                                trade.value.rate
                             );
-                            if (trades[i].time >= start) {
+                            if (trade.time >= start) {
                                 // is within time of interest
                                 profitTimed += tempProfit;
                             }
@@ -184,18 +183,18 @@ export default async function profit(
 
                 if (!isGift) {
                     // calculate overprice profit
-                    if (trades[i].time >= start) {
+                    if (trade.time >= start) {
                         // is within time of interest
                         profitTimed +=
-                            tracker.convert(trades[i].value.their, trades[i].value.rate) -
-                            tracker.convert(trades[i].value.our, trades[i].value.rate);
+                            tracker.convert(trade.value.their, trade.value.rate) -
+                            tracker.convert(trade.value.our, trade.value.rate);
                     }
                     tradeProfit +=
-                        tracker.convert(trades[i].value.their, trades[i].value.rate) -
-                        tracker.convert(trades[i].value.our, trades[i].value.rate);
+                        tracker.convert(trade.value.their, trade.value.rate) -
+                        tracker.convert(trade.value.our, trade.value.rate);
                     overpriceProfit +=
-                        tracker.convert(trades[i].value.their, trades[i].value.rate) -
-                        tracker.convert(trades[i].value.our, trades[i].value.rate);
+                        tracker.convert(trade.value.their, trade.value.rate) -
+                        tracker.convert(trade.value.our, trade.value.rate);
                 }
             }
 
