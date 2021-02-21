@@ -82,7 +82,7 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                         if (
                             !(
                                 (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                                ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                                ['5000;6', '5001;6', '5002;6'].includes(sku)
                             )
                         ) {
                             // if it is not currency
@@ -114,7 +114,7 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                         if (
                             !(
                                 (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                                ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+                                ['5000;6', '5001;6', '5002;6'].includes(sku)
                             )
                         ) {
                             if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {

@@ -73,7 +73,7 @@ export default class Commands {
     }
 
     useStatsCommand(steamID: SteamID): void {
-        this.status.statsCommand(steamID);
+        void this.status.statsCommand(steamID);
     }
 
     useUpdateOptionsCommand(steamID: SteamID | null, message: string): void {
@@ -219,7 +219,7 @@ export default class Commands {
         } else if (command === 'refreshlist' && isAdmin) {
             this.manager.refreshListingsCommand(steamID);
         } else if (command === 'stats' && isAdmin) {
-            this.status.statsCommand(steamID);
+            void this.status.statsCommand(steamID);
         } else if (command === 'statsdw' && isAdmin) {
             this.status.statsDWCommand(steamID);
         } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {

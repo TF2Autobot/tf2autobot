@@ -597,7 +597,7 @@ export default class MyHandler extends Handler {
 
                 if (times.some(time => now.includes(time))) {
                     if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
-                        sendStats(this.bot);
+                        void sendStats(this.bot);
                     } else {
                         this.bot.getAdmins.forEach(admin => {
                             this.commands.useStatsCommand(admin);
@@ -1182,6 +1182,8 @@ export default class MyHandler extends Handler {
                         const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
                         // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
 
+                        const isWinterNoiseMaker = ['673;6'].includes(sku);
+
                         const isSkinsOrWarPaints = item.wear !== null;
 
                         let itemSuggestedValue: string;
@@ -1194,7 +1196,9 @@ export default class MyHandler extends Handler {
 
                             if (
                                 opt.offerReceived.invalidItems.givePrice &&
-                                (!isSkinsOrWarPaints || !isCrateOrCases) &&
+                                !isSkinsOrWarPaints &&
+                                !isCrateOrCases &&
+                                !isWinterNoiseMaker && // all of these (with !) should be false in order to be true
                                 isCanBePriced
                             ) {
                                 // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,

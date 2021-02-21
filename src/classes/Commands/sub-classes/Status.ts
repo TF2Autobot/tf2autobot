@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
+import SKU from 'tf2-sku-2';
 import { getItemAndAmount, testSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -16,10 +17,10 @@ export default class StatusCommands {
         this.bot = bot;
     }
 
-    statsCommand(steamID: SteamID): void {
+    async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
         const trades = stats(this.bot);
-        const profits = profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
+        const profits = await profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
@@ -93,7 +94,7 @@ export default class StatusCommands {
             return this.bot.sendMessage(steamID, '❌ Your discordWebhook.sendStats.url is empty.');
         }
 
-        sendStats(this.bot, true, steamID);
+        void sendStats(this.bot, true, steamID);
     }
 
     inventoryCommand(steamID: SteamID): void {
@@ -118,7 +119,7 @@ export default class StatusCommands {
             sku = info.match.sku;
         }
 
-        let reply = '';
+        let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
 
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft
@@ -127,9 +128,11 @@ export default class StatusCommands {
             : [];
         if (
             !(this.bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) &&
-            !['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku)
+            !['5000;6', '5001;6', '5002;6'].includes(sku)
         ) {
             const now = Math.floor(Date.now() / 1000);
+            const keyPrices = this.bot.pricelist.getKeyPrices;
+            const keyPrice = keyPrices.sell.metal;
 
             try {
                 const { bought, sold } = await itemStats(this.bot, sku);
@@ -141,6 +144,7 @@ export default class StatusCommands {
                 });
 
                 let totalBought = 0;
+                let totalBoughtValue = 0;
 
                 const boughtLastX = [
                     3600, // Past 60 minutes
@@ -176,10 +180,15 @@ export default class StatusCommands {
 
                         acc += boughtCount;
                         acc += ' @ ';
-                        acc += new Currencies({
+
+                        const sale = new Currencies({
                             keys: +keysAndMetal[0],
                             metal: +keysAndMetal[1]
-                        }).toString();
+                        });
+
+                        totalBoughtValue += sale.toValue(keyPrice);
+
+                        acc += sale.toString();
 
                         return acc + '\n';
                     }, '');
@@ -214,6 +223,7 @@ export default class StatusCommands {
                 });
 
                 let totalSold = 0;
+                let totalSoldValue = 0;
 
                 const soldLastX = [
                     3600, // Past 60 minutes
@@ -248,10 +258,15 @@ export default class StatusCommands {
 
                         acc += soldCount;
                         acc += ' @ ';
-                        acc += new Currencies({
+
+                        const sale = new Currencies({
                             keys: +keysAndMetal[0],
                             metal: +keysAndMetal[1]
-                        }).toString();
+                        });
+
+                        totalSoldValue += sale.toValue(keyPrice);
+
+                        acc += sale.toString();
                         return acc + '\n';
                     }, '');
                 });
@@ -275,11 +290,35 @@ export default class StatusCommands {
                           'Past 4 weeks\n' +
                           soldLastX[3]
                         : '');
+
+                if (this.bot.isAdmin(steamID)) {
+                    // Admin only
+                    const boughtValue = Currencies.toCurrencies(totalBoughtValue, keyPrice);
+                    const boughtValueToString = boughtValue.toString();
+                    const soldValue = Currencies.toCurrencies(totalSoldValue, keyPrice);
+                    const soldValueToString = soldValue.toString();
+                    const netProfit = Currencies.toCurrencies(totalSoldValue - totalBoughtValue, keyPrice);
+                    const netProfitToString = netProfit.toString();
+
+                    reply += '\n\nOverall past 30 days summary:';
+                    reply += `\n• Total bought value: ${boughtValueToString}${
+                        boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)})` : ''
+                    }`;
+                    reply += `\n• Total sold value: ${soldValueToString}${
+                        soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)})` : ''
+                    }`;
+                    reply += `\n• Net profit: ${netProfitToString}${
+                        netProfitToString.includes('key')
+                            ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)})`
+                            : ''
+                    }`;
+                    reply += `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;
+                }
             } catch (err) {
                 reply = err as string;
             }
         } else {
-            reply = 'enable for keys and weapons - currently not implemented';
+            reply = 'Stats for currency is not enabled.';
         }
 
         this.bot.sendMessage(steamID, reply);
