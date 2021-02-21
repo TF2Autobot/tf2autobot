@@ -11,7 +11,9 @@ export default function sendWebHookPriceUpdateV1(
     newPrice: Entry,
     time: string,
     schema: SchemaManager.Schema,
-    options: Options
+    options: Options,
+    currentStock: number,
+    oldPrice: Entry
 ): void {
     const parts = sku.split(';');
     const newItem = SKU.fromString(`${parts[0]};6`);
@@ -81,16 +83,16 @@ export default function sendWebHookPriceUpdateV1(
                 fields: [
                     {
                         name: 'Buying for',
-                        value: newPrice.buy.toString(),
+                        value: `• old: ${oldPrice.buy.toString()}\n• new: ${newPrice.buy.toString()}`,
                         inline: true
                     },
                     {
                         name: 'Selling for',
-                        value: newPrice.sell.toString(),
+                        value: `• old: ${oldPrice.sell.toString()}\n• new: ${newPrice.sell.toString()}`,
                         inline: true
                     }
                 ],
-                description: opt.priceUpdate.note ? opt.priceUpdate.note : '',
+                description: `Stock: ${currentStock}${opt.priceUpdate.note ? `\n${opt.priceUpdate.note}` : ''}`,
                 color: qualityColorPrint
             }
         ]
