@@ -68,8 +68,10 @@ export default class PricelistManagerCommands {
                 params.autoprice = false;
             }
         } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
-            params.buy.keys = 0;
-            params.buy.metal = 0;
+            params['buy'] = {
+                keys: 0,
+                metal: 0
+            };
         }
 
         if (typeof params.sell === 'object') {
@@ -80,8 +82,10 @@ export default class PricelistManagerCommands {
                 params.autoprice = false;
             }
         } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
-            params.sell.keys = 0;
-            params.sell.metal = 0;
+            params['sell'] = {
+                keys: 0,
+                metal: 0
+            };
         }
 
         const isPremium = this.bot.handler.getBotInfo.premium;
