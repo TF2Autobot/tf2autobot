@@ -401,10 +401,6 @@ export default class Bot {
         this.addListener(this.pricelist, 'pricelist', this.handlePricelist, false);
         this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
 
-        this.pricelist.init();
-
-        // dummy
-
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
@@ -431,13 +427,6 @@ export default class Bot {
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
-                    },
-                    (callback): void => {
-                        log.info('Setting up pricelist...');
-
-                        void this.pricelist
-                            .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist)
-                            .asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Signing in to Steam...');
@@ -479,6 +468,15 @@ export default class Bot {
                         };
 
                         void this.login(data.loginKey || null).asCallback(loginResponse);
+                    },
+                    (callback): void => {
+                        this.pricelist.init();
+
+                        log.info('Setting up pricelist...');
+
+                        void this.pricelist
+                            .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist, this)
+                            .asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');

@@ -302,14 +302,14 @@ export default class StatusCommands {
 
                     reply += '\n\nOverall past 30 days summary:';
                     reply += `\n• Total bought value: ${boughtValueToString}${
-                        boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)})` : ''
+                        boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)} ref)` : ''
                     }`;
                     reply += `\n• Total sold value: ${soldValueToString}${
-                        soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)})` : ''
+                        soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)} ref)` : ''
                     }`;
                     reply += `\n• Net profit: ${netProfitToString}${
                         netProfitToString.includes('key')
-                            ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)})`
+                            ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)} ref)`
                             : ''
                     }`;
                     reply += `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;

@@ -140,9 +140,9 @@ export default class TF2GC {
                 func = this.handleCraftJobWeapon.bind(this, job);
             } else if (job.type === 'combineClassWeapon') {
                 func = this.handleCraftJobClassWeapon.bind(this, job);
-            } else if (job.type === 'smelt' || job.type === 'combine') {
+            } else if (['smelt', 'combine'].includes(job.type)) {
                 func = this.handleCraftJob.bind(this, job);
-            } else if (job.type === 'use' || job.type === 'delete') {
+            } else if (['use', 'delete'].includes(job.type)) {
                 func = this.handleUseOrDeleteJob.bind(this, job);
             } else if (job.type === 'sort') {
                 func = this.handleSortJob.bind(this, job);
@@ -461,7 +461,7 @@ export default class TF2GC {
     }
 
     private canProcessJob(job: Job): boolean {
-        if (job.type === 'smelt' || job.type === 'combine') {
+        if (['smelt', 'combine'].includes(job.type)) {
             const assetids = this.bot.inventoryManager.getInventory
                 .findBySKU(String(job.defindex) + ';6', true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
@@ -469,7 +469,7 @@ export default class TF2GC {
             const assetidsCount = assetids.length;
 
             return (job.type === 'smelt' && assetidsCount > 0) || (job.type === 'combine' && assetidsCount >= 3);
-        } else if (job.type === 'use' || job.type === 'delete') {
+        } else if (['use', 'delete'].includes(job.type)) {
             return this.bot.inventoryManager.getInventory.findByAssetid(job.assetid) !== null;
         }
 

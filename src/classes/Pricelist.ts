@@ -183,7 +183,7 @@ export default class Pricelist extends EventEmitter {
         schema: SchemaManager.Schema,
         private socketManager: SocketManager,
         private options?: Options,
-        private readonly bot?: Bot
+        private bot?: Bot
     ) {
         super();
         this.schema = schema;
@@ -341,7 +341,7 @@ export default class Pricelist extends EventEmitter {
             throw new Error('Pricelist entry does not have a price');
         }
 
-        if (entry.intent !== 0) {
+        if (entry.intent !== 0 || entry.sku === '5021;6') {
             if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
                 throw new Error('Sell must be higher than buy');
             }
@@ -521,7 +521,7 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    setPricelist(prices: EntryData[]): Promise<void> {
+    setPricelist(prices: EntryData[], bot: Bot): Promise<void> {
         if (prices.length !== 0) {
             const errors = validator(
                 {
@@ -545,6 +545,8 @@ export default class Pricelist extends EventEmitter {
                 throw new Error(errors.join(', '));
             }
         }
+
+        this.bot = bot;
 
         this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
         return this.setupPricelist();
@@ -779,6 +781,11 @@ export default class Pricelist extends EventEmitter {
         }
 
         if (match !== null && match.autoprice) {
+            const oldPrice = {
+                buy: new Currencies(match.buy),
+                sell: new Currencies(match.sell)
+            };
+
             match.buy = new Currencies(data.buy);
             match.sell = new Currencies(data.sell);
             match.time = data.time;
@@ -792,7 +799,18 @@ export default class Pricelist extends EventEmitter {
                         this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                sendWebHookPriceUpdateV1(data.sku, match, time, this.schema, this.options);
+                const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+
+                sendWebHookPriceUpdateV1(
+                    data.sku,
+                    match,
+                    time,
+                    this.schema,
+                    this.options,
+                    currentStock,
+                    oldPrice,
+                    this.getKeyPrice.metal
+                );
             }
         }
     }
