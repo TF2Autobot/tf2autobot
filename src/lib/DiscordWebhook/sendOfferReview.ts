@@ -124,9 +124,9 @@ export default function sendOfferReview(
                                       ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
                                     : '') +
                                 (isShowInventory
-                                    ? `\n${cTPureStock} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
+                                    ? `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
                                     : '') +
-                                (isShowPureStock ? `\n${cTTotalItems} ${pureStock.join(', ').toString()}` : '') +
+                                (isShowPureStock ? `\n${cTPureStock} ${pureStock.join(', ').toString()}` : '') +
                                 `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
                         }
                     ],
