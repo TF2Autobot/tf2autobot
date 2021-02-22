@@ -299,15 +299,12 @@ export default function updateListings(
          */
         if (isNotPureOrWeapons) {
             skus.push(sku);
-
-            // Update listings (exclude weapons/pure)
-            bot.listings.checkBySKU(sku, null, false, true);
         }
     }
 
     if (skus.length > 0) {
         setTimeout(() => {
-            void pricecheck(skus, requestCheck);
+            void pricecheck(bot, skus, requestCheck);
         }, 1 * 1000);
     }
 }
