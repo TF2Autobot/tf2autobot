@@ -341,7 +341,7 @@ export default class Pricelist extends EventEmitter {
             throw new Error('Pricelist entry does not have a price');
         }
 
-        if (entry.intent !== 0) {
+        if (entry.intent !== 0 || entry.sku === '5021;6') {
             if (entry.buy.toValue(keyPrices.buy.metal) >= entry.sell.toValue(keyPrices.sell.metal)) {
                 throw new Error('Sell must be higher than buy');
             }
