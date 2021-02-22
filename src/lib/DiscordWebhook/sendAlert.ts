@@ -56,10 +56,7 @@ export default function sendAlert(
         title = 'Queue Problem Alert';
         description = `Current position: ${positionOrCount}, automatic restart initialized...`;
         color = '16711680'; // red
-    } else if (
-        type === 'queue-problem-not-restart-bptf-down' ||
-        type === 'queue-problem-not-restart-steam-maintenance'
-    ) {
+    } else if (['queue-problem-not-restart-bptf-down', 'queue-problem-not-restart-steam-maintenance'].includes(type)) {
         const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
 
         title = 'Queue problem, unable to restart';
@@ -72,8 +69,9 @@ export default function sendAlert(
         description = `Current failed count: ${positionOrCount}, automatic restart initialized...`;
         color = '16711680'; // red
     } else if (
-        type === 'escrow-check-failed-not-restart-bptf-down' ||
-        type === 'escrow-check-failed-not-restart-steam-maintenance'
+        ['escrow-check-failed-not-restart-bptf-down', 'escrow-check-failed-not-restart-steam-maintenance'].includes(
+            type
+        )
     ) {
         const isSteamDown = type === 'escrow-check-failed-not-restart-steam-maintenance';
 

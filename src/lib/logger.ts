@@ -121,7 +121,7 @@ export function init(paths: Paths, options: Options): void {
 
         delete transport.type;
 
-        if (type === 'File' || type === 'DailyRotateFile') {
+        if (['File', 'DailyRotateFile'].includes(type)) {
             transport['format'] = fileFormat;
         } else if (type === 'Console') {
             transport['format'] = consoleFormat;

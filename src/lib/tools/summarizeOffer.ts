@@ -171,7 +171,7 @@ function getSummary(
             } else {
                 summary.push(
                     `${name}${amount > 1 ? ` x${amount}` : ''}${
-                        type === 'review-partner' || type === 'declined'
+                        ['review-partner', 'declined'].includes(type)
                             ? ''
                             : ` (${
                                   type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
