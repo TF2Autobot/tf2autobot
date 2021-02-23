@@ -10,6 +10,7 @@ export default class HelpCommands {
 
     helpCommand(steamID: SteamID): void {
         const isAdmin = this.bot.isAdmin(steamID);
+        const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
 
         this.bot.sendMessage(
             steamID,
@@ -59,9 +60,15 @@ export default class HelpCommands {
                           '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
                           '!faccept <offerID> [Your Message] - Force accept any failed to accept offer ✅🔂',
                           '!fdecline <offerID> [Your Message] - Force decline any failed to decline offer ❌🔂\n\n✨=== Request ===✨',
-                          '!check (sku|name|defindex)=<a> - Request the current price for an item from Prices.TF',
-                          '!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by Prices.TF',
-                          "!pricecheckall - Request all items in the bot's pricelist to be price checked by Prices.TF\n\n✨=== Misc ===✨",
+                          `!check (sku|name|defindex)=<a> - Request the current price for an item from ${
+                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                          }`,
+                          `!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
+                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                          }`,
+                          `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
+                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                          }\n\n✨=== Misc ===✨`,
                           "!autokeys - Get info on the bot's current autokeys settings 🔑",
                           "!time - Show the owner's current time 🕥",
                           '!uptime - Show the bot uptime 🔌',

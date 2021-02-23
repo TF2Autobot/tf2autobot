@@ -140,6 +140,8 @@ export default function updateListings(
                 group: 'painted'
             } as EntryData;
 
+            const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
             bot.pricelist
                 .addPrice(entry, true)
                 .then(data => {
@@ -151,7 +153,9 @@ export default function updateListings(
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
                         } ref)` +
-                        `\nhttps://www.prices.tf/items/${sku}`;
+                        (isCustomPricer
+                            ? '\n - Base selling price was fetched from custom auto-pricer'
+                            : `\nhttps://www.prices.tf/items/${sku}`);
 
                     log.debug(msg);
 

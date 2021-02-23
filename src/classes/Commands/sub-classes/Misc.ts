@@ -51,8 +51,14 @@ export default class MiscCommands {
             );
         } else if (command === 'rate') {
             const key = this.bot.pricelist.getKeyPrices;
+            const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
             const keyRate = key.sell.toString();
-            const source = key.src === 'manual' ? 'manual' : 'https://api.prices.tf/items/5021;6?src=bptf';
+            const source =
+                key.src === 'manual'
+                    ? 'manual'
+                    : isCustomPricer
+                    ? 'custom-pricer'
+                    : 'https://api.prices.tf/items/5021;6?src=bptf';
 
             this.bot.sendMessage(
                 steamID,

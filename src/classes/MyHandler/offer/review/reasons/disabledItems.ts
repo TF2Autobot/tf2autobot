@@ -10,10 +10,8 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
 
     (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
-            // show both item name and prices.tf price
             disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
         } else {
-            // show both item name and prices.tf price
             disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
         }
 
