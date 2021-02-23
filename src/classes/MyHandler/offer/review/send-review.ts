@@ -107,6 +107,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         const slots = bot.tf2.backpackSlots;
         const offerMessage = offer.message;
         const list = t.listItems(offer, bot, items, true);
+        const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
         const cT = bot.options.tradeSummary.customText;
         const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
@@ -130,7 +131,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
                 (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
                 `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
                 `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-                ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
+                ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
                 `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
                 `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
                 `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +

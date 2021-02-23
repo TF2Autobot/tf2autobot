@@ -1168,7 +1168,7 @@ export default class MyHandler extends Handler {
                         }
 
                         // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = await this.bot.pricelist.getPricesTF(sku);
+                        const price = await this.bot.pricelist.getItemPrices(sku);
                         const item = SKU.fromString(sku);
 
                         // "match" will return null if the item is not enabled

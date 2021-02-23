@@ -15,7 +15,8 @@ export default function sendWebHookPriceUpdateV1(
     options: Options,
     currentStock: number,
     oldPrice: { buy: Currencies; sell: Currencies },
-    keyPrice: number
+    keyPrice: number,
+    isCustomPricer: boolean
 ): void {
     const parts = sku.split(';');
     const newItem = SKU.fromString(`${parts[0]};6`);
@@ -79,8 +80,9 @@ export default function sendWebHookPriceUpdateV1(
                 author: {
                     name: schema.getName(SKU.fromString(sku), false),
                     url: `https://www.prices.tf/items/${sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                    icon_url: isCustomPricer
+                        ? 'https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/81/818fb1e235ccf685e8532a17f111f2697451b0d0_full.jpg'
+                        : 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
                     text: `${sku} • ${time} • v${process.env.BOT_VERSION}`
