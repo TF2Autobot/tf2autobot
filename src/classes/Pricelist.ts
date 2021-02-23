@@ -568,7 +568,10 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                if (entryKey !== null && !entryKey.autoprice) {
+                if (entryKey !== null && !entryKey.autoprice && entryKey.sell.toValue() > 0) {
+                    // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
+                    // If the owner set the selling price for like 1 ref or 0.11 ref, that's up to them
+                    // I can easily buy an Australium for probably less than a key if they did that.
                     this.globalKeyPrices = {
                         buy: entryKey.buy,
                         sell: entryKey.sell,
