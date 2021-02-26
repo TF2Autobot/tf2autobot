@@ -52,6 +52,7 @@ export default function sendOfferReview(
 
     const slots = bot.tf2.backpackSlots;
     const currentItems = bot.inventoryManager.getInventory.getTotalItems;
+    const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const summary = summarizeToChat(offer, bot, 'review-admin', true, value, keyPrices, false);
     const itemList = listItems(offer, bot, itemsName, false);
@@ -121,12 +122,18 @@ export default function sendOfferReview(
                             value:
                                 (isShowKeyRate
                                     ? `\n${cTKeyRate} ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                                      ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})`
+                                      ` (${
+                                          keyPrices.src === 'manual'
+                                              ? 'manual'
+                                              : isCustomPricer
+                                              ? 'custom-pricer'
+                                              : 'prices.tf'
+                                      })`
                                     : '') +
                                 (isShowInventory
-                                    ? `\n${cTPureStock} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
+                                    ? `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
                                     : '') +
-                                (isShowPureStock ? `\n${cTTotalItems} ${pureStock.join(', ').toString()}` : '') +
+                                (isShowPureStock ? `\n${cTPureStock} ${pureStock.join(', ').toString()}` : '') +
                                 `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
                         }
                     ],

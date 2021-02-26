@@ -230,6 +230,8 @@ declare module 'tf2-schema-2' {
 
             getItemByItemName(name: string): SchemaItem | null;
 
+            getItemBySKU(sku: string): SchemaItem | null;
+
             getAttributeByDefindex(defindex: number): SchemaAttribute | null;
 
             getQualityById(id: number): string | null;

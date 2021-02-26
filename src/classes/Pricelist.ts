@@ -358,11 +358,11 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    async getPricesTF(sku: string): Promise<ParsedPrice | null> {
+    async getItemPrices(sku: string): Promise<ParsedPrice | null> {
         try {
             return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
-            log.debug(`getPricesTF failed ${JSON.stringify(err)}`);
+            log.debug(`getItemPrices failed ${JSON.stringify(err)}`);
             return null;
         }
     }
@@ -568,7 +568,10 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                if (entryKey !== null && !entryKey.autoprice) {
+                if (entryKey !== null && !entryKey.autoprice && entryKey.sell.toValue() > 0) {
+                    // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
+                    // If the owner set the selling price for like 1 ref or 0.11 ref, that's up to them
+                    // I can easily buy an Australium for probably less than a key if they did that.
                     this.globalKeyPrices = {
                         buy: entryKey.buy,
                         sell: entryKey.sell,
@@ -701,10 +704,10 @@ export default class Pricelist extends EventEmitter {
                 }
 
                 const item = SKU.fromString(old[i].sku);
-                // PricesTF includes "The" in the name, we need to use proper name
+                // PricesTF (and custom pricer) includes "The" in the name, we need to use proper name
                 const name = this.schema.getName(item, true);
 
-                // Go through pricestf prices
+                // Go through pricestf/custom pricer prices
                 const grouped = groupedPrices[item.quality][item.killstreak];
                 const groupedCount = grouped.length;
 
@@ -809,7 +812,8 @@ export default class Pricelist extends EventEmitter {
                     this.options,
                     currentStock,
                     oldPrice,
-                    this.getKeyPrice.metal
+                    this.getKeyPrice.metal,
+                    this.isUseCustomPricer
                 );
             }
         }
