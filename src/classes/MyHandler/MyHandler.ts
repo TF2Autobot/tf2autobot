@@ -1660,24 +1660,26 @@ export default class MyHandler extends Handler {
                     )}`
                 );
 
-                if (itemsToGiveCount + itemsToReceiveCount > 50) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        opt.customMessage.accepted.automatic.largeOffer
-                            ? opt.customMessage.accepted.automatic.largeOffer
-                            : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                                  ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        opt.customMessage.accepted.automatic.smallOffer
-                            ? opt.customMessage.accepted.automatic.smallOffer
-                            : 'I have accepted your offer. The trade should be finalized shortly.' +
-                                  ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
+                if (opt.offerReceived.sendPreAcceptMessage.enable) {
+                    if (itemsToGiveCount + itemsToReceiveCount > 50) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            opt.customMessage.accepted.automatic.largeOffer
+                                ? opt.customMessage.accepted.automatic.largeOffer
+                                : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                      ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            opt.customMessage.accepted.automatic.smallOffer
+                                ? opt.customMessage.accepted.automatic.smallOffer
+                                : 'I have accepted your offer. The trade should be finalized shortly.' +
+                                      ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    }
                 }
 
                 return {
@@ -1766,24 +1768,26 @@ export default class MyHandler extends Handler {
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
         );
 
-        if (itemsToGiveCount + itemsToReceiveCount > 50) {
-            this.bot.sendMessage(
-                offer.partner,
-                opt.customMessage.accepted.automatic.largeOffer
-                    ? opt.customMessage.accepted.automatic.largeOffer
-                    : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                          ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-            );
-        } else {
-            this.bot.sendMessage(
-                offer.partner,
-                opt.customMessage.accepted.automatic.smallOffer
-                    ? opt.customMessage.accepted.automatic.smallOffer
-                    : 'I have accepted your offer. The trade will be finalized shortly.' +
-                          ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-            );
+        if (opt.offerReceived.sendPreAcceptMessage.enable) {
+            if (itemsToGiveCount + itemsToReceiveCount > 50) {
+                this.bot.sendMessage(
+                    offer.partner,
+                    opt.customMessage.accepted.automatic.largeOffer
+                        ? opt.customMessage.accepted.automatic.largeOffer
+                        : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                              ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                );
+            } else {
+                this.bot.sendMessage(
+                    offer.partner,
+                    opt.customMessage.accepted.automatic.smallOffer
+                        ? opt.customMessage.accepted.automatic.smallOffer
+                        : 'I have accepted your offer. The trade will be finalized shortly.' +
+                              ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                );
+            }
         }
 
         return {

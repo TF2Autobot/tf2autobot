@@ -914,6 +914,9 @@ export const optionsSchema: jsonschema.Schema = {
         offerReceived: {
             type: 'object',
             properties: {
+                sendPreAcceptMessage: {
+                    $ref: '#/definitions/only-enable'
+                },
                 invalidValue: {
                     type: 'object',
                     properties: {
