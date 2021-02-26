@@ -943,7 +943,9 @@ export default class Trades {
                         });
                 } else {
                     this.bot.messageAdmins(
-                        `⚠️ [Escrow check failed alert] Current failed count: ${this.escrowCheckFailedCount}`,
+                        `⚠️ [Escrow check failed alert] Current failed count: ${
+                            this.escrowCheckFailedCount
+                        }\n\nBot has been up for ${t.uptime()}`,
                         []
                     );
                     void this.bot.botManager
