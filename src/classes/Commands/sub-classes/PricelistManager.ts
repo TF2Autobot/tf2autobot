@@ -319,7 +319,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (pureAndWeapons.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
+            if (pureAndWeapons.includes(sku)) {
                 delete clonedDict[sku];
             }
         }
@@ -407,6 +407,7 @@ export default class PricelistManagerCommands {
                 });
         }
 
+        await sleepasync().Promise.sleep(2 * 1000);
         this.bot.sendMessage(
             steamID,
             `----------\n✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`
