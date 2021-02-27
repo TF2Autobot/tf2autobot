@@ -99,16 +99,15 @@ export function getItemAndAmount(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
-                        'Remove "The".',
                         'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
                         'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
-                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
 
@@ -152,16 +151,15 @@ export function getItemAndAmount(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
-                        'Remove "The".',
                         'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
                         'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
-                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
 
