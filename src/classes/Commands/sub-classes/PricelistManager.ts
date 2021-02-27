@@ -308,22 +308,23 @@ export default class PricelistManagerCommands {
 
         const pricelist = this.bot.pricelist.getPrices;
         const dict = this.bot.inventoryManager.getInventory.getItems;
+        const clonedDict = Object.assign({}, dict);
 
         const pureAndWeapons = ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
             this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
         );
 
-        for (const sku in dict) {
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+        for (const sku in clonedDict) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
                 continue;
             }
 
             if (pureAndWeapons.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
-                delete dict[sku];
+                delete clonedDict[sku];
             }
         }
 
-        const total = Object.keys(dict).length;
+        const total = Object.keys(clonedDict).length;
 
         const totalTime = total * (params.autoprice ? 2 : 1) * 1000;
         const aSecond = 1 * 1000;
@@ -346,14 +347,14 @@ export default class PricelistManagerCommands {
         let skipped = 0;
         let failed = 0;
 
-        for (const sku in dict) {
+        for (const sku in clonedDict) {
             if (this.stopAutoAdd) {
                 this.bot.sendMessage(steamID, '----------\n🛑 Stopped auto-add items');
                 this.stopAutoAdd = false;
                 break;
             }
 
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
                 continue;
             }
 
