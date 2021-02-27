@@ -1,5 +1,4 @@
 import callbackQueue from 'callback-queue';
-import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
@@ -183,7 +182,7 @@ export default class Listings {
 
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
-        let hasBuyListing = SKU.fromString(sku).paintkit !== null;
+        let hasBuyListing = false;
         let hasSellListing = false;
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
