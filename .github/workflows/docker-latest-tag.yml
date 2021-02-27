@@ -21,12 +21,11 @@ jobs:
     strategy:
       matrix:
         node:
-          - 15.10-alpine
-          - 15.10-buster
-          - 15.10-buster-slim
-          - 15.10-stretch
-          - 15.10-stretch-slim
-          - lts-alpine
+          - 14.16.0-alpine
+          - 14.16.0-buster
+          - 14.16.0-buster-slim
+          - 14.16.0-stretch
+          - 14.16.0-stretch-slim
 
     name: Tag Latest (node:${{ matrix.node }})
 
