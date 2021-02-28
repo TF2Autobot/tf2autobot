@@ -4,7 +4,6 @@ import SKU from 'tf2-sku-2';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
-import Inventory from '../Inventory';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
@@ -46,8 +45,6 @@ export default abstract class Cart {
     protected our: OurTheirItemsDict = {};
 
     protected their: OurTheirItemsDict = {};
-
-    adminInventory: UnknownDictionary<Inventory> = {};
 
     protected canceled = false;
 
