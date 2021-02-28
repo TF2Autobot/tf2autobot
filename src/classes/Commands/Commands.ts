@@ -832,6 +832,19 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
+
+        if (amount > 0) {
+            const cartAmount = cart.getTheirCount(params.sku);
+
+            if (cartAmount > currentAmount || cartAmount + amount > currentAmount) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ You can't add ${pluralize(itemName, amount, true)} ` +
+                        `because you already have ${cartAmount} in cart and you only have ${currentAmount}.`
+                );
+            }
+        }
+
         cart.addTheirItem(params.sku, amount);
         Cart.addCart(cart);
 
