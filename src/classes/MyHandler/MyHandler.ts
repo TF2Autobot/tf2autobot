@@ -176,6 +176,10 @@ export default class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
+    private sentSummary: UnknownDictionary<boolean> = {};
+
+    private resetSentSummaryTimeout: NodeJS.Timeout;
+
     private paths: Paths;
 
     private isUpdating = false;
@@ -1838,8 +1842,11 @@ export default class MyHandler extends Handler {
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                // Only run this if the bot handled the offer
+            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
+                // Only run this if the bot handled the offer and do not send again if already sent once
+
+                clearTimeout(this.resetSentSummaryTimeout);
+                this.sentSummary[offer.id] = true;
 
                 offer.data('isAccepted', true);
                 offer.log('trade', 'has been accepted.');
@@ -1885,6 +1892,10 @@ export default class MyHandler extends Handler {
 
             // delete notify and meta keys from polldata after each successful trades
             this.removePolldataKeys(offer);
+
+            this.resetSentSummaryTimeout = setTimeout(() => {
+                this.sentSummary = {};
+            }, 2 * 60 * 1000);
         }
     }
 
