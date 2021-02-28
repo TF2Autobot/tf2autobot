@@ -27,6 +27,7 @@
                 "GROUPS": ["103582791469033930"],
                 "ALERTS": ["trade", "version"],
 
+                "ENABLE_SOCKET": true,
                 "CUSTOM_PRICER_URL": "",
                 "CUSTOM_PRICER_API_TOKEN": "",
 
