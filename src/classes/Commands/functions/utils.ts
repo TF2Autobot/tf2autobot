@@ -279,7 +279,15 @@ export function getItemFromParams(
         }
     }
 
-    if (params.quality !== undefined) {
+    if (typeof params.quality === 'number') {
+        // user gave quality in number
+        if (params.quality < 0 || params.quality > 15) {
+            bot.sendMessage(steamID, `Unknown quality "${params.quality}", it must in between 0 - 15.`);
+            return null;
+        }
+
+        item.quality = params.quality;
+    } else if (params.quality !== undefined) {
         const quality = bot.schema.getQualityIdByName(params.quality as string);
         if (quality === null) {
             bot.sendMessage(
@@ -299,7 +307,14 @@ export function getItemFromParams(
         item.craftable = params.craftable;
     }
 
-    if (params.paint !== undefined) {
+    if (typeof params.paint === 'number') {
+        const paint = bot.schema.getPaintNameByDecimal(params.paint);
+        if (paint === null) {
+            bot.sendMessage(steamID, `❌ Could not find a paint in the schema with the decimal "${params.paint}".`);
+            return null;
+        }
+        item.paint = params.paint;
+    } else if (params.paint !== undefined) {
         const paint = bot.schema.getPaintDecimalByName(params.paint as string);
         if (paint === null) {
             bot.sendMessage(
@@ -359,19 +374,36 @@ export function getItemFromParams(
         item.killstreak = ksCaseSensitive !== -1 ? ksCaseSensitive + 1 : ksCaseInsensitive + 1;
     }
 
-    if (params.effect !== undefined) {
+    if (typeof params.effect === 'number') {
+        const effect = bot.schema.getEffectById(params.effect);
+        if (effect === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an unusual effect in the schema with the id "${params.effect}".`
+            );
+            return null;
+        }
+        item.effect = bot.schema.getEffectIdByName(effect);
+    } else if (params.effect !== undefined) {
         const effect = bot.schema.getEffectIdByName(params.effect as string);
         if (effect === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find an unusual effect in the schema with the name "${params.effect as number}".`
+                `❌ Could not find an unusual effect in the schema with the name "${params.effect as string}".`
             );
             return null;
         }
         item.effect = effect;
     }
 
-    if (params.paintkit !== undefined) {
+    if (typeof params.paintkit === 'number') {
+        const paintkit = bot.schema.getSkinById(params.paintkit);
+        if (paintkit === null) {
+            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the id "${item.paintkit}".`);
+            return null;
+        }
+        item.paintkit = bot.schema.getSkinIdByName(paintkit);
+    } else if (params.paintkit !== undefined) {
         const paintkit = bot.schema.getSkinIdByName(params.paintkit as string);
         if (paintkit === null) {
             bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
