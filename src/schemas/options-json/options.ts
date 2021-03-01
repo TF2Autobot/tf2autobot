@@ -1201,6 +1201,9 @@ export const optionsSchema: jsonschema.Schema = {
                         enable: {
                             type: 'boolean'
                         },
+                        showOnlyInStock: {
+                            type: 'boolean'
+                        },
                         url: {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'

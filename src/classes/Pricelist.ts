@@ -795,26 +795,33 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
-                const time = dayjs()
-                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
-                    .format(
-                        this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
-                    );
+            const opt = this.options;
+            const dw = opt.discordWebhook.priceUpdate;
 
+            if (dw.enable && dw.url !== '') {
                 const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
-                sendWebHookPriceUpdateV1(
-                    data.sku,
-                    match,
-                    time,
-                    this.schema,
-                    this.options,
-                    currentStock,
-                    oldPrice,
-                    this.getKeyPrice.metal,
-                    this.isUseCustomPricer
-                );
+                if (showOnlyInStock) {
+                    const tz = opt.timezone;
+                    const format = opt.customTimeFormat;
+
+                    const time = dayjs()
+                        .tz(tz ? tz : 'UTC')
+                        .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                    sendWebHookPriceUpdateV1(
+                        data.sku,
+                        match,
+                        time,
+                        this.schema,
+                        opt,
+                        currentStock,
+                        oldPrice,
+                        this.getKeyPrice.metal,
+                        this.isUseCustomPricer
+                    );
+                }
             }
         }
     }
