@@ -239,7 +239,7 @@ export default class ReviewCommands {
                     offer
                 );
 
-                if (isAccepting) {
+                if (isAccepting && this.bot.options.offerReceived.sendPreAcceptMessage.enable) {
                     const isManyItems = offer.itemsToGive.length + offer.itemsToReceive.length > 50;
 
                     if (isManyItems) {

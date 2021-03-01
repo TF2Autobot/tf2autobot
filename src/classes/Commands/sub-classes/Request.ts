@@ -9,12 +9,12 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import Pricer, { GetPriceFn, GetSalesFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
+import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
     private readonly bot: Bot;
 
-    private getSales: GetSalesFn;
+    private getSnapshots: GetSnapshotsFn;
 
     private requestCheck: RequestCheckFn;
 
@@ -23,12 +23,16 @@ export default class RequestCommands {
     constructor(bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
 
-        this.getSales = this.priceSource.getSales.bind(this.priceSource);
+        this.getSnapshots = this.priceSource.getSnapshots.bind(this.priceSource);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
         this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
     }
 
-    async getSalesCommand(steamID: SteamID, message: string): Promise<void> {
+    async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
+        if (this.bot.options.customPricerUrl !== '' && this.bot.options.customPricerApiToken !== '') {
+            return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
@@ -44,7 +48,7 @@ export default class RequestCommands {
 
         const name = this.bot.schema.getName(SKU.fromString(params.sku));
         try {
-            const salesData = await this.getSales(params.sku, 'bptf');
+            const salesData = await this.getSnapshots(params.sku, 'bptf');
             if (!salesData) {
                 return this.bot.sendMessage(
                     steamID,
@@ -223,6 +227,7 @@ export default class RequestCommands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         }
 
+        const customUrl = this.bot.options.customPricerUrl;
         const name = this.bot.schema.getName(SKU.fromString(params.sku));
         try {
             const price = await this.getPrice(params.sku, 'bptf');
@@ -231,9 +236,9 @@ export default class RequestCommands {
 
             this.bot.sendMessage(
                 steamID,
-                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\nPrices.TF: https://prices.tf/items/${
-                    params.sku as string
-                }`
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\n${
+                    customUrl ? `Link: ${customUrl}` : 'Prices.TF: https://prices.tf'
+                }/items/${params.sku as string}`
             );
         } catch (err) {
             return this.bot.sendMessage(

@@ -1,6 +1,7 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
+import { uptime } from '../../lib/tools/export';
 import log from '../logger';
 import { timeNow } from '../tools/time';
 import Bot from '../../classes/Bot';
@@ -55,12 +56,9 @@ export default function sendAlert(
         color = '16776960'; // yellow
     } else if (type === 'queue-problem-perform-restart') {
         title = 'Queue Problem Alert';
-        description = `Current position: ${positionOrCount}, automatic restart initialized...`;
+        description = `Current position: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
         color = '16711680'; // red
-    } else if (
-        type === 'queue-problem-not-restart-bptf-down' ||
-        type === 'queue-problem-not-restart-steam-maintenance'
-    ) {
+    } else if (['queue-problem-not-restart-bptf-down', 'queue-problem-not-restart-steam-maintenance'].includes(type)) {
         const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
 
         title = 'Queue problem, unable to restart';
@@ -70,11 +68,12 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'escrow-check-failed-perform-restart') {
         title = 'Escrow check failed alert';
-        description = `Current failed count: ${positionOrCount}, automatic restart initialized...`;
+        description = `Current failed count: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
         color = '16711680'; // red
     } else if (
-        type === 'escrow-check-failed-not-restart-bptf-down' ||
-        type === 'escrow-check-failed-not-restart-steam-maintenance'
+        ['escrow-check-failed-not-restart-bptf-down', 'escrow-check-failed-not-restart-steam-maintenance'].includes(
+            type
+        )
     ) {
         const isSteamDown = type === 'escrow-check-failed-not-restart-steam-maintenance';
 

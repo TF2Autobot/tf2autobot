@@ -6,6 +6,7 @@ import Cart from './Cart';
 import Bot from '../Bot';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { uptime } from '../../lib/tools/export';
 import { isBptfBanned } from '../../lib/bans';
 
 export default class CartQueue {
@@ -132,7 +133,10 @@ export default class CartQueue {
                             this.queueCheck(steamID);
                         });
                 } else {
-                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}`, []);
+                    this.bot.messageAdmins(
+                        `⚠️ [Queue alert] Current position: ${position}\n\nBot has been up for ${uptime()}`,
+                        []
+                    );
                     void this.bot.botManager
                         .restartProcess()
                         .then(restarting => {

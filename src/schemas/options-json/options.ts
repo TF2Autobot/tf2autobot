@@ -918,6 +918,9 @@ export const optionsSchema: jsonschema.Schema = {
         offerReceived: {
             type: 'object',
             properties: {
+                sendPreAcceptMessage: {
+                    $ref: '#/definitions/only-enable'
+                },
                 invalidValue: {
                     type: 'object',
                     properties: {
@@ -1200,6 +1203,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         enable: {
+                            type: 'boolean'
+                        },
+                        showOnlyInStock: {
                             type: 'boolean'
                         },
                         url: {

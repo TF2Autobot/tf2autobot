@@ -37,7 +37,7 @@ export default function updateListings(
         }
 
         const name = bot.schema.getName(SKU.fromString(sku), false);
-        const isNotPureOrWeapons = !(weapons.includes(sku) || ['5021;6', '5000;6', '5001;6', '5002;6'].includes(sku));
+        const isNotPureOrWeapons = !(weapons.includes(sku) || ['5000;6', '5001;6', '5002;6'].includes(sku));
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         const existInPricelist = inPrice !== null;
@@ -147,6 +147,8 @@ export default function updateListings(
                 group: 'painted'
             } as EntryData;
 
+            const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
             bot.pricelist
                 .addPrice(entry, true)
                 .then(data => {
@@ -158,7 +160,9 @@ export default function updateListings(
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
                         } ref)` +
-                        `\nhttps://www.prices.tf/items/${sku}`;
+                        (isCustomPricer
+                            ? '\n - Base selling price was fetched from custom auto-pricer'
+                            : `\nhttps://www.prices.tf/items/${sku}`);
 
                     log.debug(msg);
 
@@ -335,15 +339,12 @@ export default function updateListings(
          */
         if (isNotPureOrWeapons) {
             skus.push(sku);
-
-            // Update listings (exclude weapons/pure)
-            bot.listings.checkBySKU(sku, null, false, true);
         }
     }
 
     if (skus.length > 0) {
         setTimeout(() => {
-            void pricecheck(skus, requestCheck);
+            void pricecheck(bot, skus, requestCheck);
         }, 1 * 1000);
     }
 }

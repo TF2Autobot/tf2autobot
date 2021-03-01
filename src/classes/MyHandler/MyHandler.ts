@@ -176,6 +176,10 @@ export default class MyHandler extends Handler {
 
     recentlySentMessage: UnknownDictionary<number> = {};
 
+    private sentSummary: UnknownDictionary<boolean> = {};
+
+    private resetSentSummaryTimeout: NodeJS.Timeout;
+
     private paths: Paths;
 
     private isUpdating = false;
@@ -597,7 +601,7 @@ export default class MyHandler extends Handler {
 
                 if (times.some(time => now.includes(time))) {
                     if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
-                        sendStats(this.bot);
+                        void sendStats(this.bot);
                     } else {
                         this.bot.getAdmins.forEach(admin => {
                             this.commands.useStatsCommand(admin);
@@ -1083,7 +1087,7 @@ export default class MyHandler extends Handler {
                         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
                             sku,
                             isBuying,
-                            match === null ? which === 'their' : false
+                            which === 'their'
                         ); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
@@ -1168,7 +1172,7 @@ export default class MyHandler extends Handler {
                         }
 
                         // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = await this.bot.pricelist.getPricesTF(sku);
+                        const price = await this.bot.pricelist.getItemPrices(sku);
                         const item = SKU.fromString(sku);
 
                         // "match" will return null if the item is not enabled
@@ -1182,6 +1186,10 @@ export default class MyHandler extends Handler {
                         const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
                         // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
 
+                        const isWinterNoiseMaker = ['673;6'].includes(sku);
+
+                        const isSkinsOrWarPaints = item.wear !== null;
+
                         let itemSuggestedValue: string;
                         if (price === null) {
                             itemSuggestedValue = 'No price';
@@ -1192,7 +1200,9 @@ export default class MyHandler extends Handler {
 
                             if (
                                 opt.offerReceived.invalidItems.givePrice &&
-                                (item.wear === null || !isCrateOrCases) &&
+                                !isSkinsOrWarPaints &&
+                                !isCrateOrCases &&
+                                !isWinterNoiseMaker && // all of these (with !) should be false in order to be true
                                 isCanBePriced
                             ) {
                                 // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
@@ -1654,24 +1664,26 @@ export default class MyHandler extends Handler {
                     )}`
                 );
 
-                if (itemsToGiveCount + itemsToReceiveCount > 50) {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        opt.customMessage.accepted.automatic.largeOffer
-                            ? opt.customMessage.accepted.automatic.largeOffer
-                            : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                                  ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
-                } else {
-                    this.bot.sendMessage(
-                        offer.partner,
-                        opt.customMessage.accepted.automatic.smallOffer
-                            ? opt.customMessage.accepted.automatic.smallOffer
-                            : 'I have accepted your offer. The trade should be finalized shortly.' +
-                                  ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                                  'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                    );
+                if (opt.offerReceived.sendPreAcceptMessage.enable) {
+                    if (itemsToGiveCount + itemsToReceiveCount > 50) {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            opt.customMessage.accepted.automatic.largeOffer
+                                ? opt.customMessage.accepted.automatic.largeOffer
+                                : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                                      ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    } else {
+                        this.bot.sendMessage(
+                            offer.partner,
+                            opt.customMessage.accepted.automatic.smallOffer
+                                ? opt.customMessage.accepted.automatic.smallOffer
+                                : 'I have accepted your offer. The trade should be finalized shortly.' +
+                                      ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                        );
+                    }
                 }
 
                 return {
@@ -1760,24 +1772,26 @@ export default class MyHandler extends Handler {
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
         );
 
-        if (itemsToGiveCount + itemsToReceiveCount > 50) {
-            this.bot.sendMessage(
-                offer.partner,
-                opt.customMessage.accepted.automatic.largeOffer
-                    ? opt.customMessage.accepted.automatic.largeOffer
-                    : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                          ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-            );
-        } else {
-            this.bot.sendMessage(
-                offer.partner,
-                opt.customMessage.accepted.automatic.smallOffer
-                    ? opt.customMessage.accepted.automatic.smallOffer
-                    : 'I have accepted your offer. The trade will be finalized shortly.' +
-                          ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-            );
+        if (opt.offerReceived.sendPreAcceptMessage.enable) {
+            if (itemsToGiveCount + itemsToReceiveCount > 50) {
+                this.bot.sendMessage(
+                    offer.partner,
+                    opt.customMessage.accepted.automatic.largeOffer
+                        ? opt.customMessage.accepted.automatic.largeOffer
+                        : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                              ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                );
+            } else {
+                this.bot.sendMessage(
+                    offer.partner,
+                    opt.customMessage.accepted.automatic.smallOffer
+                        ? opt.customMessage.accepted.automatic.smallOffer
+                        : 'I have accepted your offer. The trade will be finalized shortly.' +
+                              ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                );
+            }
         }
 
         return {
@@ -1828,8 +1842,11 @@ export default class MyHandler extends Handler {
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                // Only run this if the bot handled the offer
+            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
+                // Only run this if the bot handled the offer and do not send again if already sent once
+
+                clearTimeout(this.resetSentSummaryTimeout);
+                this.sentSummary[offer.id] = true;
 
                 offer.data('isAccepted', true);
                 offer.log('trade', 'has been accepted.');
@@ -1875,6 +1892,10 @@ export default class MyHandler extends Handler {
 
             // delete notify and meta keys from polldata after each successful trades
             this.removePolldataKeys(offer);
+
+            this.resetSentSummaryTimeout = setTimeout(() => {
+                this.sentSummary = {};
+            }, 2 * 60 * 1000);
         }
     }
 

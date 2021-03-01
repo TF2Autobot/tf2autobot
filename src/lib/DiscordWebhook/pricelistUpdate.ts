@@ -1,5 +1,6 @@
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
+import Currencies from 'tf2-currencies-2';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
@@ -11,7 +12,11 @@ export default function sendWebHookPriceUpdateV1(
     newPrice: Entry,
     time: string,
     schema: SchemaManager.Schema,
-    options: Options
+    options: Options,
+    currentStock: number,
+    oldPrice: { buy: Currencies; sell: Currencies },
+    keyPrice: number,
+    isCustomPricer: boolean
 ): void {
     const parts = sku.split(';');
     const newItem = SKU.fromString(`${parts[0]};6`);
@@ -55,6 +60,16 @@ export default function sendWebHookPriceUpdateV1(
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor()[qualityItem];
 
+    const oldBuyValue = oldPrice.buy.toValue(keyPrice);
+    const newBuyValue = newPrice.buy.toValue(keyPrice);
+    const oldSellValue = oldPrice.sell.toValue(keyPrice);
+    const newSellValue = newPrice.sell.toValue(keyPrice);
+
+    const buyChangesValue = newBuyValue - oldBuyValue;
+    const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
+    const sellChangesValue = newSellValue - oldSellValue;
+    const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
+
     const opt = options.discordWebhook;
     const priceUpdate: Webhook = {
         username: opt.displayName,
@@ -65,8 +80,9 @@ export default function sendWebHookPriceUpdateV1(
                 author: {
                     name: schema.getName(SKU.fromString(sku), false),
                     url: `https://www.prices.tf/items/${sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                    icon_url: isCustomPricer
+                        ? 'https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/81/818fb1e235ccf685e8532a17f111f2697451b0d0_full.jpg'
+                        : 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
                     text: `${sku} • ${time} • v${process.env.BOT_VERSION}`
@@ -81,16 +97,18 @@ export default function sendWebHookPriceUpdateV1(
                 fields: [
                     {
                         name: 'Buying for',
-                        value: newPrice.buy.toString(),
-                        inline: true
+                        value: `${oldPrice.buy.toString()} → ${newPrice.buy.toString()} (${
+                            buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
+                        })`
                     },
                     {
                         name: 'Selling for',
-                        value: newPrice.sell.toString(),
-                        inline: true
+                        value: `${oldPrice.sell.toString()} → ${newPrice.sell.toString()} (${
+                            sellChangesValue > 0 ? `+${sellChanges}` : sellChangesValue === 0 ? `0 ref` : sellChanges
+                        })`
                     }
                 ],
-                description: opt.priceUpdate.note ? opt.priceUpdate.note : '',
+                description: `Stock: ${currentStock}${opt.priceUpdate.note ? `\n${opt.priceUpdate.note}` : ''}`,
                 color: qualityColorPrint
             }
         ]

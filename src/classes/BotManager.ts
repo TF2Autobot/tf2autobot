@@ -56,7 +56,7 @@ export default class BotManager {
     }
 
     private patchSchemaManager() {
-        // Make the schema manager request the schema from PricesTF
+        // Make the schema manager request the schema from PricesTF/custom pricer
         const priceManager = this.pricer;
         this.schemaManager.getSchema = function (callback): void {
             priceManager

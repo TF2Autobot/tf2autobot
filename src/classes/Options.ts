@@ -253,6 +253,9 @@ export const DEFAULTS = {
     },
 
     offerReceived: {
+        sendPreAcceptMessage: {
+            enable: true
+        },
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -402,6 +405,7 @@ export const DEFAULTS = {
         },
         priceUpdate: {
             enable: true,
+            showOnlyInStock: false,
             url: '',
             note: ''
         },
@@ -1217,6 +1221,7 @@ interface Metals extends OnlyEnable {
 // ------------ Offer Received ------------
 
 interface OfferReceived {
+    sendPreAcceptMessage?: OnlyEnable;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;
@@ -1337,6 +1342,7 @@ interface MessagesDW extends OnlyEnable {
 }
 
 interface PriceUpdateDW extends OnlyEnable, OnlyNote {
+    showOnlyInStock?: boolean;
     url?: string;
 }
 
@@ -1771,6 +1777,7 @@ export default interface Options extends JsonOptions {
     groups?: string[];
     alerts?: string[];
 
+    enableSocket?: boolean;
     customPricerApiToken?: string;
     customPricerUrl?: string;
 
@@ -1897,6 +1904,7 @@ export function loadOptions(options?: Options): Options {
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
+        enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
         customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 

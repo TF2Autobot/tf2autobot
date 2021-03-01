@@ -375,7 +375,7 @@ function highValue(
             // push for storage, example: s-1000
             s.push(spellsData[spellName]);
         } else if (
-            (partsString === 'Kills' || partsString === 'Assists'
+            (['Kills', 'Assists'].includes(partsString)
                 ? econ.getTag('Type') === 'Cosmetic'
                 : Object.keys(parts).includes(partsString)) &&
             content.color === '756b5e'

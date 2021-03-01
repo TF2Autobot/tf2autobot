@@ -524,8 +524,6 @@ export default class Autokeys {
                         : 'Not active'
                 }`
         );
-
-        this.bot.listings.checkBySKU('5021;6', null, false, true);
     }
 
     private generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {

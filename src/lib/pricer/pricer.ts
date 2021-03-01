@@ -1,6 +1,6 @@
 import Pricer, { PricerOptions } from '../../classes/Pricer';
-import PricesTf from '../ptf-api';
+import PricerApi from '../pricer-api';
 
 export function getPricer(options: PricerOptions): Pricer {
-    return new PricesTf(options.pricerUrl, options.pricerApiToken);
+    return new PricerApi(options.pricerUrl, options.pricerApiToken);
 }
