@@ -1289,22 +1289,37 @@ export default class PricelistManagerCommands {
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
         } else {
-            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}\n`);
             const list = filter.map(
                 (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
             );
-
             const listCount = list.length;
-            const loops = Math.ceil(listCount / 200);
+
+            const limit =
+                params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
+            this.bot.sendMessage(
+                steamID,
+                `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
+                    limit !== -1 && params.limit === undefined && listCount > 200
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }\n`
+            );
+
+            const applyLimit = limit === -1 ? listCount : limit;
+            const loops = Math.ceil(applyLimit / 200);
 
             for (let i = 0; i < loops; i++) {
                 const last = loops - i === 1;
                 const i200 = i * 200;
 
-                this.bot.sendMessage(
-                    steamID,
-                    list.slice(i200, last ? i200 + (listCount - i200) : (i + 1) * 200).join('\n')
-                );
+                const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+
+                this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
 
                 await sleepasync().Promise.sleep(1 * 1000);
             }
