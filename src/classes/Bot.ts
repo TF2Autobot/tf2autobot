@@ -470,7 +470,12 @@ export default class Bot {
                         void this.login(data.loginKey || null).asCallback(loginResponse);
                     },
                     (callback): void => {
-                        this.pricelist.init();
+                        if (this.options.enableSocket === false) {
+                            log.warn('Disabling socket...');
+                            this.botManager.getSocketManager.shutDown();
+                        } else {
+                            this.pricelist.init();
+                        }
 
                         log.info('Setting up pricelist...');
 
