@@ -1295,19 +1295,18 @@ export default class PricelistManagerCommands {
             );
 
             const listCount = list.length;
-            if (listCount > 200) {
-                const loops = Math.ceil(listCount / 200);
+            const loops = Math.ceil(listCount / 200);
 
-                for (let i = 0; i < loops; i++) {
-                    const last = loops - i === 1;
-                    await sleepasync().Promise.sleep(1 * 1000);
-                    this.bot.sendMessage(
-                        steamID,
-                        list.slice(i * 200, last ? i * 200 + (listCount - i * 200) : (i + 1) * 200).join('\n')
-                    );
-                }
-            } else {
-                this.bot.sendMessage(steamID, list.slice(0, listCount).join('\n'));
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+                const i200 = i * 200;
+
+                this.bot.sendMessage(
+                    steamID,
+                    list.slice(i200, last ? i200 + (listCount - i200) : (i + 1) * 200).join('\n')
+                );
+
+                await sleepasync().Promise.sleep(1 * 1000);
             }
         }
     }
