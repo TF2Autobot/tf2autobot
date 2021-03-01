@@ -313,7 +313,7 @@ export function getItemFromParams(
             bot.sendMessage(steamID, `❌ Could not find a paint in the schema with the decimal "${params.paint}".`);
             return null;
         }
-        item.paint = bot.schema.getPaintDecimalByName(paint);
+        item.paint = params.paint;
     } else if (params.paint !== undefined) {
         const paint = bot.schema.getPaintDecimalByName(params.paint as string);
         if (paint === null) {
