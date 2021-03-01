@@ -1288,50 +1288,41 @@ export default class PricelistManagerCommands {
         const filterCount = filter.length;
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
-        } else if (filterCount > 20) {
+        } else {
+            const list = filter.map(
+                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
+            );
+            const listCount = list.length;
+
+            const limit =
+                params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
             this.bot.sendMessage(
                 steamID,
-                `Found ${pluralize('item', filterCount, true)} with ${display.join(
-                    '&'
-                )}, showing only a max of 100 items`
+                `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
+                    limit !== -1 && params.limit === undefined && listCount > 200
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }\n`
             );
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 0, 20)}`);
-            if (filterCount <= 40) {
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 20, filterCount > 40 ? 40 : filterCount)}`
-                );
-            } else if (filterCount <= 60) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
+
+            const applyLimit = limit === -1 ? listCount : limit;
+            const loops = Math.ceil(applyLimit / 200);
+
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+                const i200 = i * 200;
+
+                const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+
+                this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
+
                 await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 40, filterCount > 60 ? 60 : filterCount)}`
-                );
-            } else if (filterCount <= 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 60, filterCount > 80 ? 80 : filterCount)}`
-                );
-            } else if (filterCount > 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 60, 80)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 80, filterCount > 100 ? 100 : filterCount)}`
-                );
             }
-        } else {
-            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}`);
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter)}`);
         }
     }
 
