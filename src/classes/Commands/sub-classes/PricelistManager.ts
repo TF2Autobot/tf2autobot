@@ -1288,50 +1288,27 @@ export default class PricelistManagerCommands {
         const filterCount = filter.length;
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
-        } else if (filterCount > 20) {
-            this.bot.sendMessage(
-                steamID,
-                `Found ${pluralize('item', filterCount, true)} with ${display.join(
-                    '&'
-                )}, showing only a max of 100 items`
-            );
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 0, 20)}`);
-            if (filterCount <= 40) {
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 20, filterCount > 40 ? 40 : filterCount)}`
-                );
-            } else if (filterCount <= 60) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 40, filterCount > 60 ? 60 : filterCount)}`
-                );
-            } else if (filterCount <= 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 60, filterCount > 80 ? 80 : filterCount)}`
-                );
-            } else if (filterCount > 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 60, 80)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 80, filterCount > 100 ? 100 : filterCount)}`
-                );
-            }
         } else {
-            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}`);
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter)}`);
+            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}\n`);
+            const list = filter.map(
+                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
+            );
+
+            const listCount = list.length;
+            if (listCount > 200) {
+                const loops = Math.ceil(listCount / 200);
+
+                for (let i = 0; i < loops; i++) {
+                    const last = loops - i === 1;
+                    await sleepasync().Promise.sleep(1 * 1000);
+                    this.bot.sendMessage(
+                        steamID,
+                        list.slice(i * 200, last ? i * 200 + (listCount - i * 200) : (i + 1) * 200).join('\n')
+                    );
+                }
+            } else {
+                this.bot.sendMessage(steamID, list.slice(0, listCount).join('\n'));
+            }
         }
     }
 
