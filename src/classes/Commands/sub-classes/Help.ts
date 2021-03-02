@@ -79,7 +79,7 @@ export default class HelpCommands {
                           "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
                           '!paints - Get a list of paints partial sku 🎨',
                           '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍',
-                          '!find <Listing-parameters> - Get the list of filtered items detail based on the parameters 🔍',
+                          '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                           '!options [OptionsKey] - Get options.json content (current bot option settings) 🔧',
                           '!config <Options>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
                           '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
