@@ -705,7 +705,7 @@ export default class Pricelist extends EventEmitter {
                     continue;
                 }
 
-                const isInStock = inventory.findBySKU(currPrice.sku, true).length > 0;
+                const isInStock = inventory.getAmount(currPrice.sku, true) > 0;
                 const keyPrice = this.getKeyPrice.metal;
 
                 const item = SKU.fromString(currPrice.sku);
@@ -724,7 +724,7 @@ export default class Pricelist extends EventEmitter {
                         if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
                             const newBuy = new Currencies(newestPrice.buy);
-                            const newSell = new Currencies(currPrice.sell);
+                            const newSell = new Currencies(newestPrice.sell);
 
                             if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
                                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
@@ -819,7 +819,7 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(match.sell)
             };
 
-            const isInStock = this.bot.inventoryManager.getInventory.findBySKU(match.sku, true).length > 0;
+            const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
             const keyPrice = this.getKeyPrice.metal;
 
             const newBuy = new Currencies(data.buy);
