@@ -315,6 +315,12 @@ export default class Trades {
 
         offer.data('meta', meta);
 
+        if (action === 'skip') {
+            offer.itemsToGive.forEach(item => {
+                this.unsetItemInTrade = item.assetid;
+            });
+        }
+
         if (actionFunc === undefined) {
             return Promise.resolve();
         }
