@@ -12,7 +12,7 @@ import { pure } from '../../lib/tools/export';
 
 type WhichHighValue = 'our' | 'their';
 
-type HighValueAttachments = 'sp' | 'ks' | 'ke' | 'p';
+type HighValueAttachments = 's' | 'sp' | 'ks' | 'ke' | 'p';
 
 export default class UserCart extends Cart {
     /**
@@ -807,16 +807,12 @@ export default class UserCart extends Cart {
                             getHighValue[whichIs].items[sku] = item.hv;
 
                             Object.keys(item.hv).forEach(attachment => {
-                                if (attachment === 's') {
-                                    // If spells exist, always mention
-                                    getHighValue[whichIs].isMention = true;
-                                }
-
-                                if (attachment !== 's' && item.hv[attachment] !== undefined) {
+                                if (item.hv[attachment] !== undefined) {
                                     for (const pSku in item.hv[attachment]) {
                                         if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;
                                         }
+
                                         if (item.hv[attachment as HighValueAttachments][pSku] === true) {
                                             getHighValue[whichIs].isMention = true;
                                         }

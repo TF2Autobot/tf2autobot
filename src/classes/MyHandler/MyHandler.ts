@@ -713,18 +713,13 @@ export default class MyHandler extends Handler {
                         getHighValue[which].items[sku] = item.hv;
 
                         Object.keys(item.hv).forEach(attachment => {
-                            if (attachment === 's') {
-                                // If spells exist, always mention
-                                getHighValue[which].isMention = true;
-                            }
-
                             if (item.hv[attachment] !== undefined) {
                                 for (const pSku in item.hv[attachment]) {
                                     if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                         continue;
                                     }
 
-                                    if (item.hv[attachment as 'sp' | 'ks' | 'ke' | 'p'][pSku] === true) {
+                                    if (item.hv[attachment as 's' | 'sp' | 'ks' | 'ke' | 'p'][pSku] === true) {
                                         getHighValue[which].isMention = true;
                                     }
                                 }

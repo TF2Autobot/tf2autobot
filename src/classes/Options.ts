@@ -161,6 +161,7 @@ export const DEFAULTS = {
 
     highValue: {
         enableHold: true,
+        spells: [],
         sheens: [],
         killstreakers: [],
         strangeParts: [],
@@ -1108,6 +1109,7 @@ interface CustomInitializerMessage {
 
 interface HighValue {
     enableHold?: boolean;
+    spells?: string[];
     sheens?: string[];
     killstreakers?: string[];
     strangeParts?: string[];
