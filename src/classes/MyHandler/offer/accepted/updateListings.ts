@@ -324,9 +324,9 @@ export default function updateListings(
                     const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
                     log.warn(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
+                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdateNotInStockPricesFailed) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('autoUpdateNotInStockPrices', bot, msg);
+                            sendAlert('autoUpdateNotInStockPricesFailed', bot, msg);
                         } else {
                             bot.messageAdmins(msg, []);
                         }

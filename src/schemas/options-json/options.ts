@@ -466,6 +466,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 unableToProcessOffer: {
                     type: 'boolean'
+                },
+                autoUpdateFixedSellingPrice: {
+                    type: 'boolean'
                 }
             },
             required: [
