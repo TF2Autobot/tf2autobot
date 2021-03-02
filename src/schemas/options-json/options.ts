@@ -659,6 +659,10 @@ export const optionsSchema: jsonschema.Schema = {
                 enableHold: {
                     type: 'boolean'
                 },
+                spells: {
+                    $ref: '#/definitions/string-array',
+                    maxItems: 16
+                },
                 sheens: {
                     $ref: '#/definitions/string-array',
                     maxItems: 7
@@ -674,7 +678,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/string-array'
                 }
             },
-            required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
             additionalProperties: false
         },
         normalize: {

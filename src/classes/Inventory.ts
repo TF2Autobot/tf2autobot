@@ -322,6 +322,11 @@ function highValue(
 ): ItemAttributes | Record<string, never> {
     const attributes: ItemAttributes = {};
 
+    const spells =
+        opt.highValue.spells.length < 1 || opt.highValue.spells[0] === ''
+            ? Object.keys(spellsData).map(spell => spell.toLowerCase())
+            : opt.highValue.spells.map(spell => spell.toLowerCase());
+
     const strangeParts =
         opt.highValue.strangeParts.length < 1 || opt.highValue.strangeParts[0] === ''
             ? Object.keys(parts).map(part => part.toLowerCase())
@@ -372,8 +377,10 @@ function highValue(
             // from "(spell only active during event)", and trim any whitespaces.
             const spellName = content.value.substring(10, content.value.length - 32).trim();
 
-            // push for storage, example: s-1000
-            s.push(spellsData[spellName]);
+            if (Object.keys(spells).includes(spellName)) {
+                // push for storage, example: s-1000
+                s.push(spellsData[spellName]);
+            }
         } else if (
             (['Kills', 'Assists'].includes(partsString)
                 ? econ.getTag('Type') === 'Cosmetic'
