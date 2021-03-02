@@ -377,7 +377,7 @@ function highValue(
             // from "(spell only active during event)", and trim any whitespaces.
             const spellName = content.value.substring(10, content.value.length - 32).trim();
 
-            if (Object.keys(spells).includes(spellName)) {
+            if (Object.keys(spells).includes(spellName.toLowerCase())) {
                 // push for storage, example: s-1000
                 s.push(spellsData[spellName]);
             }
