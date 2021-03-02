@@ -239,7 +239,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         interface ItemAttributes {
-            s?: string[];
+            s?: PartialSKUWithMention;
             sp?: PartialSKUWithMention;
             ks?: PartialSKUWithMention;
             ke?: PartialSKUWithMention;

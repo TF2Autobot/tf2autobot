@@ -347,7 +347,7 @@ function highValue(
             ? Object.keys(paints).map(paint => paint.toLowerCase())
             : opt.highValue.painted.map(paint => paint.toLowerCase());
 
-    const s: string[] = [];
+    const s: PartialSKUWithMention = {};
     const sp: PartialSKUWithMention = {};
     const ke: PartialSKUWithMention = {};
     const ks: PartialSKUWithMention = {};
@@ -377,10 +377,8 @@ function highValue(
             // from "(spell only active during event)", and trim any whitespaces.
             const spellName = content.value.substring(10, content.value.length - 32).trim();
 
-            if (Object.keys(spells).includes(spellName.toLowerCase())) {
-                // push for storage, example: s-1000
-                s.push(spellsData[spellName]);
-            }
+            // push for storage, example: s-1000
+            s[spellsData[spellName]] = spells.includes(spellName.toLowerCase());
         } else if (
             (['Kills', 'Assists'].includes(partsString)
                 ? econ.getTag('Type') === 'Cosmetic'
@@ -395,31 +393,25 @@ function highValue(
             // if the particular strange part is one of the parts that the user wants,
             // then mention and put "(🌟)"
             // else no mention and just the name.
-            sp[`${parts[partsString]}`] = strangeParts.includes(partsString.toLowerCase()) ? true : false;
+            sp[parts[partsString]] = strangeParts.includes(partsString.toLowerCase());
             //
         } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Killstreaker: ', '').trim();
-            ke[`${killstreakersData[extractedName]}`] = killstreakers.includes(extractedName.toLowerCase())
-                ? true
-                : false;
+            ke[killstreakersData[extractedName]] = killstreakers.includes(extractedName.toLowerCase());
             //
         } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
             const extractedName = content.value.replace('Sheen: ', '').trim();
-            ks[`${sheensData[extractedName]}`] = sheens.includes(extractedName.toLowerCase()) ? true : false;
+            ks[sheensData[extractedName]] = sheens.includes(extractedName.toLowerCase());
             //
         } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
             const extractedName = content.value.replace('Paint Color: ', '').trim();
-            p[`${paints[extractedName]}`] = painted.includes(extractedName.toLowerCase()) ? true : false;
+            p[paints[extractedName]] = painted.includes(extractedName.toLowerCase());
         }
     }
 
-    if (s.length > 0) {
-        attributes.s = s;
-    }
-
-    [sp, ke, ks, p].forEach((attachment, i) => {
+    [s, sp, ke, ks, p].forEach((attachment, i) => {
         if (Object.keys(attachment).length > 0) {
-            attributes[['sp', 'ke', 'ks', 'p'][i]] = attachment;
+            attributes[['s', 'sp', 'ke', 'ks', 'p'][i]] = attachment;
         }
     });
 
