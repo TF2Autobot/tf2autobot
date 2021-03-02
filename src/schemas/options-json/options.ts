@@ -487,7 +487,13 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 onlyUpdateBuyingPriceIfInStock: {
-                    $ref: '#/definitions/only-enable'
+                    type: 'object',
+                    properties: {
+                        thresholdInSeconds: {
+                            type: 'integer',
+                            minimum: 86400 // 1 day
+                        }
+                    }
                 },
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'

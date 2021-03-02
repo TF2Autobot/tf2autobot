@@ -67,7 +67,8 @@ export const DEFAULTS = {
 
     pricelist: {
         onlyUpdateBuyingPriceIfInStock: {
-            enable: false
+            enable: false,
+            thresholdInSeconds: 604800 // 7 days
         },
         filterCantAfford: {
             enable: false
@@ -1036,12 +1037,16 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
-    onlyUpdateBuyingPriceIfInStock?: OnlyEnable;
+    onlyUpdateBuyingPriceIfInStock?: OnlyUpdateBuyingPriceIfInStock;
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
+}
+
+interface OnlyUpdateBuyingPriceIfInStock extends OnlyEnable {
+    thresholdInSeconds?: number;
 }
 
 interface PriceAge {
