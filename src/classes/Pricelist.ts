@@ -723,22 +723,19 @@ export default class Pricelist extends EventEmitter {
                         // Found matching items
                         if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
+                            const newBuy = new Currencies(newestPrice.buy);
+                            const newSell = new Currencies(currPrice.sell);
+
                             if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
                                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
-                                if (
-                                    new Currencies(newestPrice.buy).toValue(keyPrice) <
-                                    new Currencies(currPrice.sell).toValue(keyPrice)
-                                ) {
+                                if (newBuy.toValue(keyPrice) < newSell.toValue(keyPrice)) {
                                     // if new buying price is less than current selling price
                                     // update only the buying price.
-                                    currPrice.buy = new Currencies(newestPrice.buy);
+                                    currPrice.buy = newBuy;
 
-                                    if (
-                                        new Currencies(newestPrice.sell).toValue(keyPrice) >
-                                        currPrice.sell.toValue(keyPrice)
-                                    ) {
+                                    if (newSell.toValue(keyPrice) > currPrice.sell.toValue(keyPrice)) {
                                         // If new selling price is more than old, then update selling price too
-                                        currPrice.sell = new Currencies(newestPrice.sell);
+                                        currPrice.sell = newSell;
                                     }
 
                                     currPrice.group = 'inStockUpdate';
@@ -749,8 +746,8 @@ export default class Pricelist extends EventEmitter {
                             } else {
                                 // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
                                 // update everything
-                                currPrice.buy = new Currencies(newestPrice.buy);
-                                currPrice.sell = new Currencies(newestPrice.sell);
+                                currPrice.buy = newBuy;
+                                currPrice.sell = newSell;
                                 currPrice.time = newestPrice.time;
 
                                 pricesChanged = true;
