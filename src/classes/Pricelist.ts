@@ -825,6 +825,8 @@ export default class Pricelist extends EventEmitter {
             const newBuy = new Currencies(data.buy);
             const newSell = new Currencies(data.sell);
 
+            let pricesChanged = false;
+
             if (this.options.pricelist.onlyUpdateBuyingPriceIfInStock.enable && isInStock) {
                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                 if (newBuy.toValue(keyPrice) < newSell.toValue(keyPrice)) {
@@ -840,7 +842,7 @@ export default class Pricelist extends EventEmitter {
                     match.time = data.time;
 
                     match.group = 'inStockUpdate';
-                    this.priceChanged(match.sku, match);
+                    pricesChanged = true;
 
                     // else, just don't update for now.
                 }
@@ -852,6 +854,10 @@ export default class Pricelist extends EventEmitter {
                 match.sell = newSell;
                 match.time = data.time;
 
+                pricesChanged = true;
+            }
+
+            if (pricesChanged) {
                 this.priceChanged(match.sku, match);
             }
 
