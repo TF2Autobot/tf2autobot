@@ -33,7 +33,8 @@ type AlertType =
     | 'failed-accept'
     | 'failed-decline'
     | 'failed-processing-offer'
-    | 'error-accept';
+    | 'error-accept'
+    | 'autoUpdateNotInStockPricesFailed';
 
 export default function sendAlert(
     type: AlertType,
@@ -106,6 +107,10 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoUpdateNotInStockPricesFailed') {
+        title = 'Failed update item prices (notInStock)';
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {

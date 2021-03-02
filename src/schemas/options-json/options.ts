@@ -466,6 +466,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 unableToProcessOffer: {
                     type: 'boolean'
+                },
+                autoUpdateNotInStockPricesFailed: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -483,6 +486,15 @@ export const optionsSchema: jsonschema.Schema = {
         pricelist: {
             type: 'object',
             properties: {
+                onlyUpdateBuyingPriceIfInStock: {
+                    type: 'object',
+                    properties: {
+                        thresholdInSeconds: {
+                            type: 'integer',
+                            minimum: 86400 // 1 day
+                        }
+                    }
+                },
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -508,6 +520,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'onlyUpdateBuyingPriceIfInStock',
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',

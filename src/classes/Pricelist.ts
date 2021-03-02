@@ -694,16 +694,22 @@ export default class Pricelist extends EventEmitter {
 
             let pricesChanged = false;
 
+            const inventory = this.bot.inventoryManager.getInventory;
+
             // Go through our pricelist
             const oldCount = old.length;
+            const opt = this.options.pricelist.onlyUpdateBuyingPriceIfInStock;
 
             for (let i = 0; i < oldCount; i++) {
-                // const currPrice = old[i];
-                if (old[i].autoprice !== true) {
+                const currPrice = old[i];
+                if (currPrice.autoprice !== true) {
                     continue;
                 }
 
-                const item = SKU.fromString(old[i].sku);
+                const isInStock = inventory.getAmount(currPrice.sku, true) > 0;
+                const keyPrice = this.getKeyPrice.metal;
+
+                const item = SKU.fromString(currPrice.sku);
                 // PricesTF (and custom pricer) includes "The" in the name, we need to use proper name
                 const name = this.schema.getName(item, true);
 
@@ -716,13 +722,46 @@ export default class Pricelist extends EventEmitter {
 
                     if (name === newestPrice.name) {
                         // Found matching items
-                        if (old[i].time < newestPrice.time) {
+                        if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
-                            old[i].buy = new Currencies(newestPrice.buy);
-                            old[i].sell = new Currencies(newestPrice.sell);
-                            old[i].time = newestPrice.time;
+                            const newBuy = new Currencies(newestPrice.buy);
+                            const newSell = new Currencies(newestPrice.sell);
 
-                            pricesChanged = true;
+                            const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+
+                            if (opt.enable && isInStock && isNotExceedThreshold) {
+                                // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
+                                // and difference between latest time and time recorded in pricelist is less than threshold
+
+                                const currSelling = currPrice.sell.toValue(keyPrice);
+
+                                if (newBuy.toValue(keyPrice) < currSelling) {
+                                    // if new buying price is less than current selling price
+                                    // update only the buying price.
+                                    currPrice.buy = newBuy;
+
+                                    if (newSell.toValue(keyPrice) > currSelling) {
+                                        // If new selling price is more than old, then update selling price too
+                                        currPrice.sell = newSell;
+                                    }
+
+                                    // no need to update time here
+
+                                    currPrice.group = 'inStockUpdate';
+                                    pricesChanged = true;
+
+                                    // else, just don't update for now.
+                                }
+                            } else {
+                                // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
+                                // and/or more than threshold, update everything
+
+                                currPrice.buy = newBuy;
+                                currPrice.sell = newSell;
+                                currPrice.time = newestPrice.time;
+
+                                pricesChanged = true;
+                            }
                         }
 
                         // When a match is found remove it from the ptf/other source pricelist
@@ -744,6 +783,8 @@ export default class Pricelist extends EventEmitter {
         }
 
         const match = this.getPrice(data.sku);
+        const opt = this.options;
+
         if (data.sku === '5021;6') {
             /**New received prices data.*/
             const newPrices = {
@@ -753,10 +794,11 @@ export default class Pricelist extends EventEmitter {
 
             const currGlobal = this.globalKeyPrices;
             const currPrices = this.currentKeyPrices;
+            const optAutokeys = opt.autokeys;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                this.options.autokeys.enable &&
-                this.options.autokeys.scrapAdjustment.enable &&
+                optAutokeys.enable &&
+                optAutokeys.scrapAdjustment.enable &&
                 currGlobal.buy === currPrices.buy &&
                 currGlobal.sell === currPrices.sell;
 
@@ -789,13 +831,55 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(match.sell)
             };
 
-            match.buy = new Currencies(data.buy);
-            match.sell = new Currencies(data.sell);
-            match.time = data.time;
+            const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
+            const keyPrice = this.getKeyPrice.metal;
 
-            this.priceChanged(match.sku, match);
+            const newBuy = new Currencies(data.buy);
+            const newSell = new Currencies(data.sell);
 
-            const opt = this.options;
+            let pricesChanged = false;
+            const optIsUpdateOnlyBuyingInStock = opt.pricelist.onlyUpdateBuyingPriceIfInStock;
+
+            const isNotExceedThreshold = data.time - match.time < optIsUpdateOnlyBuyingInStock.thresholdInSeconds;
+
+            if (optIsUpdateOnlyBuyingInStock.enable && isInStock && isNotExceedThreshold) {
+                // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
+                // and difference between latest time and time recorded in pricelist is less than threshold
+
+                const currSelling = match.sell.toValue(keyPrice);
+
+                if (newBuy.toValue(keyPrice) < currSelling) {
+                    // if new buying price is less than current selling price
+                    // update only the buying price.
+                    match.buy = newBuy;
+
+                    if (newSell.toValue(keyPrice) > currSelling) {
+                        // If new selling price is more than old, then update selling price too
+                        match.sell = newSell;
+                    }
+
+                    // no need to update time here
+
+                    match.group = 'inStockUpdate';
+                    pricesChanged = true;
+
+                    // else, just don't update for now.
+                }
+            } else {
+                // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
+                // and/or more than threshold, update everything
+
+                match.buy = newBuy;
+                match.sell = newSell;
+                match.time = data.time;
+
+                pricesChanged = true;
+            }
+
+            if (pricesChanged) {
+                this.priceChanged(match.sku, match);
+            }
+
             const dw = opt.discordWebhook.priceUpdate;
 
             if (dw.enable && dw.url !== '') {
