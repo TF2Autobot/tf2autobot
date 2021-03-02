@@ -684,6 +684,11 @@ export default class Autokeys {
     }
 
     disable(keyPrices: KeyPrices): void {
+        const match = this.bot.pricelist.getPrice('5021;6', false);
+        if (match === null) {
+            return;
+        }
+
         let entry = this.generateEntry(false, 0, 1, 2);
 
         if (keyPrices.src === 'manual') {
