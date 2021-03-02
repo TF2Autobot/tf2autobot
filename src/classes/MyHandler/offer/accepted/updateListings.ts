@@ -60,6 +60,7 @@ export default function updateListings(
         const isAutoaddInvalidItems =
             !existInPricelist &&
             isNotPureOrWeapons &&
+            sku !== '5021;6' && // not Mann Co. Supply Crate Key
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
             !isDisabledHV &&
             !isAdmin &&
