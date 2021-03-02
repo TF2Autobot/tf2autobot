@@ -733,12 +733,14 @@ export default class Pricelist extends EventEmitter {
                                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
-                                if (newBuy.toValue(keyPrice) < newSell.toValue(keyPrice)) {
+                                const currSelling = currPrice.sell.toValue(keyPrice);
+
+                                if (newBuy.toValue(keyPrice) < currSelling) {
                                     // if new buying price is less than current selling price
                                     // update only the buying price.
                                     currPrice.buy = newBuy;
 
-                                    if (newSell.toValue(keyPrice) > currPrice.sell.toValue(keyPrice)) {
+                                    if (newSell.toValue(keyPrice) > currSelling) {
                                         // If new selling price is more than old, then update selling price too
                                         currPrice.sell = newSell;
                                     }
@@ -844,12 +846,14 @@ export default class Pricelist extends EventEmitter {
                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
-                if (newBuy.toValue(keyPrice) < newSell.toValue(keyPrice)) {
+                const currSelling = match.sell.toValue(keyPrice);
+
+                if (newBuy.toValue(keyPrice) < currSelling) {
                     // if new buying price is less than current selling price
                     // update only the buying price.
                     match.buy = newBuy;
 
-                    if (newSell.toValue(keyPrice) > match.sell.toValue(keyPrice)) {
+                    if (newSell.toValue(keyPrice) > currSelling) {
                         // If new selling price is more than old, then update selling price too
                         match.sell = newSell;
                     }
