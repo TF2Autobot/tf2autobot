@@ -59,7 +59,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { uptime } from './lib/tools/time';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
-    const crashed = signalOrErr !== 'SIGINT';
+    const crashed = ['SIGINT', 'SIGTERM'].indexOf(signalOrErr) === -1;
 
     if (crashed) {
         const botReady = botManager.isBotReady;
