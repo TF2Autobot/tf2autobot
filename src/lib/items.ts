@@ -3,6 +3,7 @@
 
 import { Item } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
+import log from '../lib/logger';
 
 import isObject from 'isobject';
 
@@ -80,16 +81,30 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     if (item.effect !== null) {
-        if (item.quality === 11) {
+        if (item.quality === 11 && item.paintkit === null) {
+            log.debug('fix - 1', {
+                defindex: item.defindex
+            });
+            // For Strange Unusual Cosmetic
             item.quality2 = 11;
             item.quality = 5;
         } else if (item.paintkit !== null) {
-            item.quality = 15;
-        } else {
-            item.quality = 5;
+            // War Paint or Skins
+            if (item.quality2 === 11) {
+                // Strange Unusual
+                log.debug('fix - 2', {
+                    defindex: item.defindex
+                });
+                item.quality = 11;
+                item.quality2 = null;
+            }
         }
     } else if (item.paintkit !== null) {
+        // War Paint or Skins (No effect)
         if (item.quality2 === 11) {
+            log.debug('fix - 3', {
+                defindex: item.defindex
+            });
             item.quality = 11;
             item.quality2 = null;
         }
