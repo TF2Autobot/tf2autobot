@@ -5,8 +5,6 @@ import SKU from 'tf2-sku-2';
 import url from 'url';
 import { fixItem } from '../../items';
 
-import log from '../../../lib/logger';
-
 let isCrate = false;
 
 export = function (
@@ -45,23 +43,9 @@ export = function (
         item.target = getTarget(self, schema);
     }
 
-    if (self.tradable) {
-        log.debug('before fix', {
-            sku: SKU.fromObject(item),
-            item: item
-        });
-    }
-
     // Add missing properties, except if crates
     if (!isCrate) {
         item = fixItem(SKU.fromString(SKU.fromObject(item)), schema);
-
-        if (self.tradable) {
-            log.debug('after fix', {
-                sku: SKU.fromObject(item),
-                item: item
-            });
-        }
     }
 
     if (item === null) {
