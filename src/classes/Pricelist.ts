@@ -878,10 +878,12 @@ export default class Pricelist extends EventEmitter {
                     pricesChanged = true;
 
                     const msg =
-                        `${match.sku}:\n` +
-                        `▸ old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}\n` +
-                        `▸ current: ${match.buy.toString()}/${match.sell.toString()}` +
-                        `▸ pricestf: ${newBuy.toString()}/${newSell.toString()}`;
+                        `${match.sku}:\n▸ ` +
+                        [
+                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                            `current: ${match.buy.toString()}/${match.sell.toString()}`,
+                            `pricestf: ${newBuy.toString()}/${newSell.toString()}`
+                        ].join('\n▸ ');
 
                     if (opt.sendAlert.partialPrice.onUpdate) {
                         const dw = opt.discordWebhook.sendAlert;

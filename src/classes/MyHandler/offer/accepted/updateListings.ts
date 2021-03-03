@@ -327,9 +327,11 @@ export default function updateListings(
                 .updatePrice(entry, true)
                 .then(data => {
                     const msg =
-                        `${name} (${sku})` +
-                        `\n▸ old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}` +
-                        `\n▸ new: ${data.buy.toString()}/${data.buy.toString()}`;
+                        `${name} (${sku})\n▸ ` +
+                        [
+                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                            `new: ${data.buy.toString()}/${data.buy.toString()}`
+                        ].join('\n▸ ');
 
                     log.debug(msg);
 
