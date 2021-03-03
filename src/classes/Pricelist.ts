@@ -843,14 +843,17 @@ export default class Pricelist extends EventEmitter {
             let pricesChanged = false;
             const optIsUpdateOnlyBuyingInStock = opt.pricelist.partialPriceUpdate;
 
-            const isNotExceedThreshold = data.time - match.time < optIsUpdateOnlyBuyingInStock.thresholdInSeconds;
+            const currSelling = match.sell.toValue(keyPrice);
+
+            const isNotExceedThreshold =
+                data.time - match.time < optIsUpdateOnlyBuyingInStock.thresholdInSeconds &&
+                currSelling !== newSell.toValue(keyPrice);
 
             if (optIsUpdateOnlyBuyingInStock.enable && isInStock && isNotExceedThreshold) {
                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
                 let isUpdate = false;
-                const currSelling = match.sell.toValue(keyPrice);
 
                 if (newBuy.toValue(keyPrice) < currSelling) {
                     // if new buying price is less than current selling price
