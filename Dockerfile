@@ -6,9 +6,8 @@ LABEL maintainer="Renoki Co. <alex@renoki.org>"
 
 COPY . /app
 
-RUN npm install typescript@latest -g && \
+RUN npm install typescript@latest pm2 -g && \
     cd /app && \
-    mkdir stats && \
     npm install && \
     npm run build && \
     rm -rf src/ .idea/ .vscode/
