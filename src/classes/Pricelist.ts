@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
 import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
@@ -863,6 +863,20 @@ export default class Pricelist extends EventEmitter {
                     match.group = 'inStockUpdate';
                     pricesChanged = true;
 
+                    const msg =
+                        `${match.sku}:\n` +
+                        `▸ old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}\n` +
+                        `▸ current: ${match.buy.toString()}/${match.sell.toString()}` +
+                        `▸ pricestf: ${newBuy.toString()}/${newSell.toString()}`;
+
+                    if (opt.sendAlert.updateOnlyBuyingInStock) {
+                        const dw = opt.discordWebhook.sendAlert;
+                        if (dw.enable && dw.url !== '') {
+                            sendAlert('triggerInStockUpdate', this.bot, msg);
+                        } else {
+                            this.bot.messageAdmins('Partial price update\n\n' + msg, []);
+                        }
+                    }
                     // else, just don't update for now.
                 }
             } else {

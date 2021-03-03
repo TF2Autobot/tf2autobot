@@ -34,7 +34,8 @@ type AlertType =
     | 'failed-decline'
     | 'failed-processing-offer'
     | 'error-accept'
-    | 'autoUpdateNotInStockPricesFailed';
+    | 'autoUpdateNotInStockPricesFailed'
+    | 'triggerInStockUpdate';
 
 export default function sendAlert(
     type: AlertType,
@@ -177,6 +178,10 @@ export default function sendAlert(
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
             `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
         color = '16711680'; // red
+    } else if (type === 'triggerInStockUpdate') {
+        title = 'Partial price update';
+        description = msg;
+        color = '16776960'; // yellow
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;

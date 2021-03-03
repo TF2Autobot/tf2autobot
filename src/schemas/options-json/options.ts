@@ -467,6 +467,9 @@ export const optionsSchema: jsonschema.Schema = {
                 unableToProcessOffer: {
                     type: 'boolean'
                 },
+                updateOnlyBuyingInStock: {
+                    type: 'boolean'
+                },
                 autoUpdateNotInStockPricesFailed: {
                     type: 'boolean'
                 }

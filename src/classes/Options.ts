@@ -62,6 +62,7 @@ export const DEFAULTS = {
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
+        updateOnlyBuyingInStock: true,
         autoUpdateNotInStockPricesFailed: true
     },
 
@@ -1019,6 +1020,7 @@ interface SendAlert extends OnlyEnable {
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
+    updateOnlyBuyingInStock?: boolean;
     autoUpdateNotInStockPricesFailed?: boolean;
 }
 
