@@ -9,7 +9,7 @@ import sleepasync from 'sleep-async';
 import path from 'path';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
-import { testSKU } from '../functions/utils';
+import { testSKU, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -163,7 +163,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = params.sku as string;
+            const targetedSKU = fixSKU(params.sku);
             const [uncraft, untrade] = [targetedSKU.includes(';uncraftable'), targetedSKU.includes(';untradable')];
 
             const item = SKU.fromString(targetedSKU.replace(';uncraftable', '').replace(';untradable', ''));

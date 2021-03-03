@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
-import { getItemAndAmount, testSKU } from '../functions/utils';
+import { getItemAndAmount, testSKU, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats } from '../../../lib/tools/export';
@@ -118,6 +118,8 @@ export default class StatusCommands {
             }
             sku = info.match.sku;
         }
+
+        sku = fixSKU(sku);
 
         let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
 
