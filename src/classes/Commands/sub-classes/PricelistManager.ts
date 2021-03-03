@@ -1124,6 +1124,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = this.fixSKU(params.sku);
+
         this.bot.pricelist
             .removePrice(params.sku as string, true)
             .then(entry => this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`))
@@ -1180,6 +1182,8 @@ export default class PricelistManagerCommands {
         if (params.sku === undefined) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         }
+
+        params.sku = this.fixSKU(params.sku);
 
         const match = this.bot.pricelist.getPrice(params.sku as string);
         if (match === null) {
