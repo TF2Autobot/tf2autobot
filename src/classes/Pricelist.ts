@@ -749,9 +749,12 @@ export default class Pricelist extends EventEmitter {
 
                                     currPrice.group = 'isPartialPriced';
                                     pricesChanged = true;
-
-                                    // else, just don't update for now.
+                                } else if (newSell.toValue(keyPrice) > currSelling) {
+                                    // If new selling price is more than old, then update selling price too
+                                    currPrice.sell = newSell;
                                 }
+
+                                // else, just don't update for now.
                             } else {
                                 // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
@@ -846,6 +849,7 @@ export default class Pricelist extends EventEmitter {
                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
+                let isUpdate = false;
                 const currSelling = match.sell.toValue(keyPrice);
 
                 if (newBuy.toValue(keyPrice) < currSelling) {
@@ -858,8 +862,18 @@ export default class Pricelist extends EventEmitter {
                         match.sell = newSell;
                     }
 
-                    // no need to update time here
+                    isUpdate = true;
 
+                    // no need to update time here
+                } else if (newSell.toValue(keyPrice) > currSelling) {
+                    // If new selling price is more than old, then update selling price too
+                    match.sell = newSell;
+                    isUpdate = true;
+                }
+
+                // else, just don't update for now.
+
+                if (isUpdate) {
                     match.group = 'isPartialPriced';
                     pricesChanged = true;
 
@@ -877,7 +891,6 @@ export default class Pricelist extends EventEmitter {
                             this.bot.messageAdmins('Partial price update\n\n' + msg, []);
                         }
                     }
-                    // else, just don't update for now.
                 }
             } else {
                 // else if onlyUpdateBuyingPriceIfInStock is false and/or the item is currently not in stock
