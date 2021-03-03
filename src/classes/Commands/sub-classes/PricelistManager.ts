@@ -158,17 +158,31 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = this.fixSKU(params.sku);
+
         this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}"` + this.generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(this.bot, isPremium, entry)
                 );
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
             });
+    }
+
+    private fixSKU(sku: string): string {
+        if (sku.includes(';15') && sku.includes(';strange')) {
+            // Only fix for Strange War Paint/Skins and Strange Unusual War Paint/Skins (weird variant)
+            const item = SKU.fromString(sku);
+            item.quality = 11;
+            item.quality2 = null;
+            return SKU.fromObject(item);
+        }
+
+        return sku;
     }
 
     private generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
@@ -388,7 +402,7 @@ export default class PricelistManagerCommands {
                     added++;
                     this.bot.sendMessage(
                         steamID,
-                        `----------\n✅ Added "${entry.name}"` +
+                        `----------\n✅ Added "${entry.name}" (${entry.sku})` +
                             this.generateAddedReply(this.bot, isPremium, entry) +
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
@@ -789,6 +803,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = this.fixSKU(params.sku);
+
         if (!this.bot.pricelist.hasPrice(params.sku as string)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
         }
@@ -871,7 +887,8 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}"` + this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${entry.sku})` +
+                        this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
