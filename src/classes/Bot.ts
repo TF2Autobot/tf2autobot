@@ -27,9 +27,12 @@ import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
 import Pricer from './Pricer';
+import ipcHandler from './IPC';
 
 export default class Bot {
     // Modules and classes
+    readonly ipc: ipcHandler;
+
     readonly botManager: BotManager;
 
     readonly schema: SchemaManager.Schema;
@@ -233,6 +236,8 @@ export default class Bot {
 
         this.handlePricelist = this.handler.onPricelist.bind(this.handler);
         this.handlePriceChange = this.handler.onPriceChange.bind(this.handler);
+
+        this.ipc = new ipcHandler(this);
     }
 
     isAdmin(steamID: SteamID | string): boolean {
@@ -450,6 +455,7 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
+                            this.ipc.init();
                             this.setProperties();
 
                             this.inventoryManager.setInventory = new Inventory(
