@@ -727,13 +727,15 @@ export default class Pricelist extends EventEmitter {
                             const newBuy = new Currencies(newestPrice.buy);
                             const newSell = new Currencies(newestPrice.sell);
 
-                            const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+                            const currSelling = currPrice.sell.toValue(keyPrice);
+
+                            const isNotExceedThreshold =
+                                newestPrice.time - currPrice.time < opt.thresholdInSeconds &&
+                                currSelling !== newSell.toValue(keyPrice);
 
                             if (opt.enable && isInStock && isNotExceedThreshold) {
                                 // if onlyUpdateBuyingPriceIfInStock is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
-
-                                const currSelling = currPrice.sell.toValue(keyPrice);
 
                                 if (newBuy.toValue(keyPrice) < currSelling) {
                                     // if new buying price is less than current selling price
