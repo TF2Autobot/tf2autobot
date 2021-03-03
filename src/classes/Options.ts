@@ -63,6 +63,7 @@ export const DEFAULTS = {
         failedAccept: true,
         unableToProcessOffer: true,
         partialPriceUpdate: true,
+        autoUpdatePartialPriceSuccess: true,
         autoUpdatePartialPriceFailed: true
     },
 
@@ -1021,6 +1022,7 @@ interface SendAlert extends OnlyEnable {
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
     partialPriceUpdate?: boolean;
+    autoUpdatePartialPriceSuccess?: boolean;
     autoUpdatePartialPriceFailed?: boolean;
 }
 

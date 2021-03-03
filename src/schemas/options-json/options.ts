@@ -470,6 +470,9 @@ export const optionsSchema: jsonschema.Schema = {
                 partialPriceUpdate: {
                     type: 'boolean'
                 },
+                autoUpdatePartialPriceSuccess: {
+                    type: 'boolean'
+                },
                 autoUpdatePartialPriceFailed: {
                     type: 'boolean'
                 }
@@ -484,6 +487,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'failedAccept',
                 'unableToProcessOffer',
                 'partialPriceUpdate',
+                'autoUpdatePartialPriceSuccess',
                 'autoUpdatePartialPriceFailed'
             ],
             additionalProperties: false

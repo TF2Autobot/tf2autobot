@@ -308,6 +308,11 @@ export default function updateListings(
             // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
             // then update entry with the latest prices.
 
+            const oldPrice = {
+                buy: new Currencies(inPrice.buy),
+                sell: new Currencies(inPrice.sell)
+            };
+
             const entry = {
                 sku: sku,
                 enabled: inPrice.enabled,
@@ -320,7 +325,22 @@ export default function updateListings(
 
             bot.pricelist
                 .updatePrice(entry, true)
-                .then(() => log.debug(`✅ Automatically update prices for ${name} (${sku})`))
+                .then(data => {
+                    const msg =
+                        `${name} (${sku})` +
+                        `\n▸ old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}` +
+                        `\n▸ new: ${data.buy.toString()}/${data.buy.toString()}`;
+
+                    log.debug(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdatePartialPriceSuccess) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
+                        } else {
+                            bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
+                        }
+                    }
+                })
                 .catch(err => {
                     const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
                     log.warn(msg);
