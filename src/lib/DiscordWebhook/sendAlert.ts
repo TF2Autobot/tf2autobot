@@ -1,6 +1,7 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
+import { uptime } from '../../lib/tools/export';
 import log from '../logger';
 import { timeNow } from '../tools/time';
 import Bot from '../../classes/Bot';
@@ -32,7 +33,10 @@ type AlertType =
     | 'failed-accept'
     | 'failed-decline'
     | 'failed-processing-offer'
-    | 'error-accept';
+    | 'error-accept'
+    | 'autoUpdatePartialPriceSuccess'
+    | 'autoUpdatePartialPriceFailed'
+    | 'isPartialPriced';
 
 export default function sendAlert(
     type: AlertType,
@@ -54,7 +58,7 @@ export default function sendAlert(
         color = '16776960'; // yellow
     } else if (type === 'queue-problem-perform-restart') {
         title = 'Queue Problem Alert';
-        description = `Current position: ${positionOrCount}, automatic restart initialized...`;
+        description = `Current position: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
         color = '16711680'; // red
     } else if (['queue-problem-not-restart-bptf-down', 'queue-problem-not-restart-steam-maintenance'].includes(type)) {
         const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
@@ -66,7 +70,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'escrow-check-failed-perform-restart') {
         title = 'Escrow check failed alert';
-        description = `Current failed count: ${positionOrCount}, automatic restart initialized...`;
+        description = `Current failed count: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
         color = '16711680'; // red
     } else if (
         ['escrow-check-failed-not-restart-bptf-down', 'escrow-check-failed-not-restart-steam-maintenance'].includes(
@@ -105,6 +109,14 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoUpdatePartialPriceSuccess') {
+        title = '✅ Automatically update partially priced item';
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoUpdatePartialPriceFailed') {
+        title = 'Failed update item prices (Partial price update)';
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {
@@ -171,6 +183,10 @@ export default function sendAlert(
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
             `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
         color = '16711680'; // red
+    } else if (type === 'isPartialPriced') {
+        title = 'Partial price update';
+        description = msg;
+        color = '16776960'; // yellow
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;

@@ -202,6 +202,7 @@ export default function processAccepted(
         const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
 
         const customInitializer = bot.options.steamChat.customInitializer.acceptedTradeSummary;
+        const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
         bot.messageAdmins(
             'trade',
@@ -211,7 +212,7 @@ export default function processAccepted(
                 t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
                 (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
                 `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-                ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
+                ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
                 `${
                     autokeys.isEnabled
                         ? ' | Autokeys: ' +

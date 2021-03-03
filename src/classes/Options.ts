@@ -61,10 +61,19 @@ export const DEFAULTS = {
         autoRemoveIntentSellFailed: true,
         autoAddPaintedItems: true,
         failedAccept: true,
-        unableToProcessOffer: true
+        unableToProcessOffer: true,
+        partialPrice: {
+            onUpdate: true,
+            onSuccessUpdatePartialPriced: true,
+            onFailedUpdatePartialPriced: true
+        }
     },
 
     pricelist: {
+        partialPriceUpdate: {
+            enable: false,
+            thresholdInSeconds: 604800 // 7 days
+        },
         filterCantAfford: {
             enable: false
         },
@@ -161,6 +170,7 @@ export const DEFAULTS = {
 
     highValue: {
         enableHold: true,
+        spells: [],
         sheens: [],
         killstreakers: [],
         strangeParts: [],
@@ -250,6 +260,9 @@ export const DEFAULTS = {
     },
 
     offerReceived: {
+        sendPreAcceptMessage: {
+            enable: true
+        },
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -399,6 +412,7 @@ export const DEFAULTS = {
         },
         priceUpdate: {
             enable: true,
+            showOnlyInStock: false,
             url: '',
             note: ''
         },
@@ -1009,6 +1023,13 @@ interface SendAlert extends OnlyEnable {
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
+    partialPrice?: PartialPrice;
+}
+
+interface PartialPrice {
+    onUpdate: boolean;
+    onSuccessUpdatePartialPriced: boolean;
+    onFailedUpdatePartialPriced: boolean;
 }
 
 interface AutokeysAlert {
@@ -1027,11 +1048,16 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
+    partialPriceUpdate?: PartialPriceUpdate;
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
+}
+
+interface PartialPriceUpdate extends OnlyEnable {
+    thresholdInSeconds?: number;
 }
 
 interface PriceAge {
@@ -1104,6 +1130,7 @@ interface CustomInitializerMessage {
 
 interface HighValue {
     enableHold?: boolean;
+    spells?: string[];
     sheens?: string[];
     killstreakers?: string[];
     strangeParts?: string[];
@@ -1213,6 +1240,7 @@ interface Metals extends OnlyEnable {
 // ------------ Offer Received ------------
 
 interface OfferReceived {
+    sendPreAcceptMessage?: OnlyEnable;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;
@@ -1333,6 +1361,7 @@ interface MessagesDW extends OnlyEnable {
 }
 
 interface PriceUpdateDW extends OnlyEnable, OnlyNote {
+    showOnlyInStock?: boolean;
     url?: string;
 }
 
@@ -1767,6 +1796,7 @@ export default interface Options extends JsonOptions {
     groups?: string[];
     alerts?: string[];
 
+    enableSocket?: boolean;
     customPricerApiToken?: string;
     customPricerUrl?: string;
 
@@ -1893,6 +1923,7 @@ export function loadOptions(options?: Options): Options {
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
+        enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
         customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 

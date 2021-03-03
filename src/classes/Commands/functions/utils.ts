@@ -99,16 +99,15 @@ export function getItemAndAmount(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
-                        'Remove "The".',
                         'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
                         'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
-                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
 
@@ -152,16 +151,15 @@ export function getItemAndAmount(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
-                        'Remove "The".',
                         'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
                         'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Some Taunts need "The" such as "Taunt: The High Five!", while others do not.',
-                        'Check for a dash (-) like "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') like "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) like "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) like "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it like "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`
+                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
 
@@ -281,7 +279,15 @@ export function getItemFromParams(
         }
     }
 
-    if (params.quality !== undefined) {
+    if (typeof params.quality === 'number') {
+        // user gave quality in number
+        if (params.quality < 0 || params.quality > 15) {
+            bot.sendMessage(steamID, `Unknown quality "${params.quality}", it must in between 0 - 15.`);
+            return null;
+        }
+
+        item.quality = params.quality;
+    } else if (params.quality !== undefined) {
         const quality = bot.schema.getQualityIdByName(params.quality as string);
         if (quality === null) {
             bot.sendMessage(
@@ -301,7 +307,14 @@ export function getItemFromParams(
         item.craftable = params.craftable;
     }
 
-    if (params.paint !== undefined) {
+    if (typeof params.paint === 'number') {
+        const paint = bot.schema.getPaintNameByDecimal(params.paint);
+        if (paint === null) {
+            bot.sendMessage(steamID, `❌ Could not find a paint in the schema with the decimal "${params.paint}".`);
+            return null;
+        }
+        item.paint = params.paint;
+    } else if (params.paint !== undefined) {
         const paint = bot.schema.getPaintDecimalByName(params.paint as string);
         if (paint === null) {
             bot.sendMessage(
@@ -361,19 +374,36 @@ export function getItemFromParams(
         item.killstreak = ksCaseSensitive !== -1 ? ksCaseSensitive + 1 : ksCaseInsensitive + 1;
     }
 
-    if (params.effect !== undefined) {
+    if (typeof params.effect === 'number') {
+        const effect = bot.schema.getEffectById(params.effect);
+        if (effect === null) {
+            bot.sendMessage(
+                steamID,
+                `❌ Could not find an unusual effect in the schema with the id "${params.effect}".`
+            );
+            return null;
+        }
+        item.effect = bot.schema.getEffectIdByName(effect);
+    } else if (params.effect !== undefined) {
         const effect = bot.schema.getEffectIdByName(params.effect as string);
         if (effect === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find an unusual effect in the schema with the name "${params.effect as number}".`
+                `❌ Could not find an unusual effect in the schema with the name "${params.effect as string}".`
             );
             return null;
         }
         item.effect = effect;
     }
 
-    if (params.paintkit !== undefined) {
+    if (typeof params.paintkit === 'number') {
+        const paintkit = bot.schema.getSkinById(params.paintkit);
+        if (paintkit === null) {
+            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the id "${item.paintkit}".`);
+            return null;
+        }
+        item.paintkit = bot.schema.getSkinIdByName(paintkit);
+    } else if (params.paintkit !== undefined) {
         const paintkit = bot.schema.getSkinIdByName(params.paintkit as string);
         if (paintkit === null) {
             bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
@@ -546,6 +576,18 @@ export function getItemFromParams(
 
     delete params.name;
     return fixItem(item, bot.schema);
+}
+
+export function fixSKU(sku: string): string {
+    if (sku.includes(';15') && sku.includes(';strange')) {
+        // Only fix for Strange War Paint/Skins and Strange Unusual War Paint/Skins (weird variant)
+        const item = SKU.fromString(sku);
+        item.quality = 11;
+        item.quality2 = null;
+        return SKU.fromObject(item);
+    }
+
+    return sku;
 }
 
 export function removeLinkProtocol(message: string): string {

@@ -99,6 +99,13 @@ export default function updateListings(
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
+        const isUpdatePartialPricedItem =
+            inPrice !== null &&
+            inPrice.autoprice &&
+            inPrice.group === 'isPartialPriced' &&
+            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            isNotPureOrWeapons;
+
         //
 
         if (isAutoaddPainted) {
@@ -141,6 +148,8 @@ export default function updateListings(
                 group: 'painted'
             } as EntryData;
 
+            const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
             bot.pricelist
                 .addPrice(entry, true)
                 .then(data => {
@@ -152,7 +161,9 @@ export default function updateListings(
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
                         } ref)` +
-                        `\nhttps://www.prices.tf/items/${sku}`;
+                        (isCustomPricer
+                            ? '\n - Base selling price was fetched from custom auto-pricer'
+                            : `\nhttps://www.prices.tf/items/${sku}`);
 
                     log.debug(msg);
 
@@ -288,6 +299,57 @@ export default function updateListings(
                     if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('autoRemoveIntentSellFailed', bot, msg);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
+                });
+        } else if (isUpdatePartialPricedItem) {
+            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
+            // then update entry with the latest prices.
+
+            const oldPrice = {
+                buy: new Currencies(inPrice.buy),
+                sell: new Currencies(inPrice.sell)
+            };
+
+            const entry = {
+                sku: sku,
+                enabled: inPrice.enabled,
+                autoprice: true,
+                min: inPrice.min,
+                max: inPrice.max,
+                intent: inPrice.intent,
+                group: 'all'
+            } as EntryData;
+
+            bot.pricelist
+                .updatePrice(entry, true)
+                .then(data => {
+                    const msg =
+                        `${name} (${sku})\n▸ ` +
+                        [
+                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                            `new: ${data.buy.toString()}/${data.buy.toString()}`
+                        ].join('\n▸ ');
+
+                    log.debug(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onSuccessUpdatePartialPriced) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
+                        } else {
+                            bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
+                        }
+                    }
+                })
+                .catch(err => {
+                    const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
+                    log.warn(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            sendAlert('autoUpdatePartialPriceFailed', bot, msg);
                         } else {
                             bot.messageAdmins(msg, []);
                         }

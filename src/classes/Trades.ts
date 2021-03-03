@@ -315,6 +315,12 @@ export default class Trades {
 
         offer.data('meta', meta);
 
+        if (action === 'skip') {
+            offer.itemsToGive.forEach(item => {
+                this.unsetItemInTrade = item.assetid;
+            });
+        }
+
         if (actionFunc === undefined) {
             return Promise.resolve();
         }
@@ -370,7 +376,7 @@ export default class Trades {
                                     (err as CustomError).eresult
                                         ? `${
                                               TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                          } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                          } - https://steamerrors.com/${(err as CustomError).eresult}`
                                         : JSON.stringify(err, null, 4)
                                 }`,
                             []
@@ -581,7 +587,7 @@ export default class Trades {
                                                           TradeOfferManager.EResult[
                                                               (err as CustomError).eresult
                                                           ] as string
-                                                      } (https://steamerrors.com/${(err as CustomError).eresult})`
+                                                      } - https://steamerrors.com/${(err as CustomError).eresult}`
                                                     : (err as Error).message
                                             }`,
                                         []
@@ -943,7 +949,9 @@ export default class Trades {
                         });
                 } else {
                     this.bot.messageAdmins(
-                        `⚠️ [Escrow check failed alert] Current failed count: ${this.escrowCheckFailedCount}`,
+                        `⚠️ [Escrow check failed alert] Current failed count: ${
+                            this.escrowCheckFailedCount
+                        }\n\nBot has been up for ${t.uptime()}`,
                         []
                     );
                     void this.bot.botManager

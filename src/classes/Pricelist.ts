@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1 } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
 import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
@@ -358,11 +358,11 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    async getPricesTF(sku: string): Promise<ParsedPrice | null> {
+    async getItemPrices(sku: string): Promise<ParsedPrice | null> {
         try {
             return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
-            log.debug(`getPricesTF failed ${JSON.stringify(err)}`);
+            log.debug(`getItemPrices failed ${JSON.stringify(err)}`);
             return null;
         }
     }
@@ -568,7 +568,10 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                if (entryKey !== null && !entryKey.autoprice) {
+                if (entryKey !== null && !entryKey.autoprice && entryKey.sell.toValue() > 0) {
+                    // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
+                    // If the owner set the selling price for like 1 ref or 0.11 ref, that's up to them
+                    // I can easily buy an Australium for probably less than a key if they did that.
                     this.globalKeyPrices = {
                         buy: entryKey.buy,
                         sell: entryKey.sell,
@@ -691,20 +694,26 @@ export default class Pricelist extends EventEmitter {
 
             let pricesChanged = false;
 
+            const inventory = this.bot.inventoryManager.getInventory;
+
             // Go through our pricelist
             const oldCount = old.length;
+            const opt = this.options.pricelist.partialPriceUpdate;
+            const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
-                // const currPrice = old[i];
-                if (old[i].autoprice !== true) {
+                const currPrice = old[i];
+                if (currPrice.autoprice !== true) {
                     continue;
                 }
 
-                const item = SKU.fromString(old[i].sku);
-                // PricesTF includes "The" in the name, we need to use proper name
+                const isInStock = inventory.getAmount(currPrice.sku, true) > 0;
+
+                const item = SKU.fromString(currPrice.sku);
+                // PricesTF (and custom pricer) includes "The" in the name, we need to use proper name
                 const name = this.schema.getName(item, true);
 
-                // Go through pricestf prices
+                // Go through pricestf/custom pricer prices
                 const grouped = groupedPrices[item.quality][item.killstreak];
                 const groupedCount = grouped.length;
 
@@ -713,13 +722,65 @@ export default class Pricelist extends EventEmitter {
 
                     if (name === newestPrice.name) {
                         // Found matching items
-                        if (old[i].time < newestPrice.time) {
+                        if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
-                            old[i].buy = new Currencies(newestPrice.buy);
-                            old[i].sell = new Currencies(newestPrice.sell);
-                            old[i].time = newestPrice.time;
+                            const newBuy = new Currencies(newestPrice.buy);
+                            const newSell = new Currencies(newestPrice.sell);
 
-                            pricesChanged = true;
+                            const newBuyValue = newBuy.toValue(keyPrice);
+                            const newSellValue = newSell.toValue(keyPrice);
+                            const currBuyingValue = currPrice.buy.toValue(keyPrice);
+                            const currSellingValue = currPrice.sell.toValue(keyPrice);
+
+                            const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+
+                            if (opt.enable && isInStock && isNotExceedThreshold) {
+                                // if optPartialUpdate.enable is true and the item is currently in stock
+                                // and difference between latest time and time recorded in pricelist is less than threshold
+
+                                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+
+                                if (isNegativeDiff) {
+                                    // Only trigger this if difference of new selling price and current buying price is negative
+
+                                    if (newBuyValue < currSellingValue) {
+                                        // if new buying price is less than current selling price
+                                        // update only the buying price.
+                                        currPrice.buy = newBuy;
+
+                                        if (newSellValue > currSellingValue) {
+                                            // If new selling price is more than old, then update selling price too
+                                            currPrice.sell = newSell;
+                                        }
+
+                                        // no need to update time here
+
+                                        currPrice.group = 'isPartialPriced';
+                                        pricesChanged = true;
+                                    } else if (newSellValue > currSellingValue) {
+                                        // If new selling price is more than old, then update selling price too
+                                        currPrice.sell = newSell;
+
+                                        pricesChanged = true;
+                                    }
+                                } else {
+                                    // else, just update as usual now.
+                                    currPrice.buy = newBuy;
+                                    currPrice.sell = newSell;
+                                    currPrice.time = newestPrice.time;
+
+                                    pricesChanged = true;
+                                }
+                            } else {
+                                // else if optPartialUpdate.enable is false and/or the item is currently not in stock
+                                // and/or more than threshold, update everything
+
+                                currPrice.buy = newBuy;
+                                currPrice.sell = newSell;
+                                currPrice.time = newestPrice.time;
+
+                                pricesChanged = true;
+                            }
                         }
 
                         // When a match is found remove it from the ptf/other source pricelist
@@ -741,7 +802,9 @@ export default class Pricelist extends EventEmitter {
         }
 
         const match = this.getPrice(data.sku);
-        if (data.sku === '5021;6') {
+        const opt = this.options;
+
+        if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
             const newPrices = {
                 buy: new Currencies(data.buy),
@@ -750,10 +813,11 @@ export default class Pricelist extends EventEmitter {
 
             const currGlobal = this.globalKeyPrices;
             const currPrices = this.currentKeyPrices;
+            const optAutokeys = opt.autokeys;
 
             const isEnableScrapAdjustmentWithAutoprice =
-                this.options.autokeys.enable &&
-                this.options.autokeys.scrapAdjustment.enable &&
+                optAutokeys.enable &&
+                optAutokeys.scrapAdjustment.enable &&
                 currGlobal.buy === currPrices.buy &&
                 currGlobal.sell === currPrices.sell;
 
@@ -786,31 +850,122 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(match.sell)
             };
 
-            match.buy = new Currencies(data.buy);
-            match.sell = new Currencies(data.sell);
-            match.time = data.time;
+            const newBuy = new Currencies(data.buy);
+            const newSell = new Currencies(data.sell);
 
-            this.priceChanged(match.sku, match);
+            let pricesChanged = false;
 
-            if (this.options.discordWebhook.priceUpdate.enable && this.options.discordWebhook.priceUpdate.url !== '') {
-                const time = dayjs()
-                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
-                    .format(
-                        this.options.customTimeFormat ? this.options.customTimeFormat : 'MMMM Do YYYY, HH:mm:ss ZZ'
-                    );
+            const optPartialUpdate = opt.pricelist.partialPriceUpdate;
+            const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
+            const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
 
-                const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+            if (optPartialUpdate.enable && isInStock && isNotExceedThreshold && this.globalKeyPrices !== undefined) {
+                // if optPartialUpdate.enable is true and the item is currently in stock
+                // and difference between latest time and time recorded in pricelist is less than threshold
 
-                sendWebHookPriceUpdateV1(
-                    data.sku,
-                    match,
-                    time,
-                    this.schema,
-                    this.options,
-                    currentStock,
-                    oldPrice,
-                    this.getKeyPrice.metal
-                );
+                const keyPrice = this.getKeyPrice.metal;
+
+                const newBuyValue = newBuy.toValue(keyPrice);
+                const newSellValue = newSell.toValue(keyPrice);
+                const currBuyingValue = match.buy.toValue(keyPrice);
+                const currSellingValue = match.sell.toValue(keyPrice);
+
+                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+
+                if (isNegativeDiff) {
+                    // Only trigger this if difference of new selling price and current buying price is negative
+
+                    let isUpdate = false;
+
+                    if (newBuyValue < currSellingValue) {
+                        // if new buying price is less than current selling price
+                        // update only the buying price.
+                        match.buy = newBuy;
+
+                        if (newSellValue > currSellingValue) {
+                            // If new selling price is more than old, then update selling price too
+                            match.sell = newSell;
+                        }
+
+                        isUpdate = true;
+
+                        // no need to update time here
+                    } else if (newSellValue > currSellingValue) {
+                        // If new selling price is more than old, then update selling price too
+                        match.sell = newSell;
+                        isUpdate = true;
+                    }
+
+                    if (isUpdate) {
+                        match.group = 'isPartialPriced';
+                        pricesChanged = true;
+
+                        const msg =
+                            `${match.sku}:\n▸ ` +
+                            [
+                                `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                                `current: ${match.buy.toString()}/${match.sell.toString()}`,
+                                `pricestf: ${newBuy.toString()}/${newSell.toString()}`
+                            ].join('\n▸ ');
+
+                        if (opt.sendAlert.partialPrice.onUpdate) {
+                            const dw = opt.discordWebhook.sendAlert;
+                            if (dw.enable && dw.url !== '') {
+                                sendAlert('isPartialPriced', this.bot, msg);
+                            } else {
+                                this.bot.messageAdmins('Partial price update\n\n' + msg, []);
+                            }
+                        }
+                    }
+                } else {
+                    // else, just update as usual now.
+                    match.buy = newBuy;
+                    match.sell = newSell;
+                    match.time = data.time;
+
+                    pricesChanged = true;
+                }
+            } else {
+                // else if optPartialUpdate.enable is false and/or the item is currently not in stock
+                // and/or more than threshold, update everything
+
+                match.buy = newBuy;
+                match.sell = newSell;
+                match.time = data.time;
+
+                pricesChanged = true;
+
+                if (pricesChanged) {
+                    this.priceChanged(match.sku, match);
+                }
+
+                const dw = opt.discordWebhook.priceUpdate;
+
+                if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
+                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+
+                    if (showOnlyInStock) {
+                        const tz = opt.timezone;
+                        const format = opt.customTimeFormat;
+
+                        const time = dayjs()
+                            .tz(tz ? tz : 'UTC')
+                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                        sendWebHookPriceUpdateV1(
+                            data.sku,
+                            match,
+                            time,
+                            this.schema,
+                            opt,
+                            currentStock,
+                            oldPrice,
+                            this.getKeyPrice.metal,
+                            this.isUseCustomPricer
+                        );
+                    }
+                }
             }
         }
     }

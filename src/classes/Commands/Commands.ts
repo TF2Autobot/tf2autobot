@@ -5,11 +5,11 @@ import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount } from './functions/utils';
+import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
-import { getSkuAmountCanTrade } from '../Inventory';
+import Inventory, { getSkuAmountCanTrade } from '../Inventory';
 import Cart from '../Carts/Cart';
 import AdminCart from '../Carts/AdminCart';
 import UserCart from '../Carts/UserCart';
@@ -18,6 +18,8 @@ import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
 import Pricer from '../Pricer';
 import { fixItem } from '../../lib/items';
+import { UnknownDictionary } from '../../types/common';
+import log from '../../lib/logger';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -48,6 +50,8 @@ export default class Commands {
     private review: c.ReviewCommands;
 
     private status: c.StatusCommands;
+
+    adminInventory: UnknownDictionary<Inventory> = {};
 
     constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
         this.help = new c.HelpCommands(bot);
@@ -183,7 +187,7 @@ export default class Commands {
         } else if (command === 'snapshots' && isAdmin) {
             void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
-            this.depositCommand(steamID, message);
+            void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
@@ -590,6 +594,8 @@ export default class Commands {
         cart.setNotify = true;
         cart.isDonating = false;
         this.addCartToQueue(cart, false, false);
+
+        this.adminInventory = {};
     }
 
     // Trade actions
@@ -630,6 +636,8 @@ export default class Commands {
                 steamID,
                 custom.isRemovedFromQueue ? custom.isRemovedFromQueue : '✅ You have been removed from the queue.'
             );
+
+            this.adminInventory = {};
         } else {
             // User is not in the queue, check if they have an active offer
 
@@ -749,7 +757,7 @@ export default class Commands {
 
     // Admin commands
 
-    private depositCommand(steamID: SteamID, message: string): void {
+    private async depositCommand(steamID: SteamID, message: string): Promise<void> {
         const currentCart = Cart.getCart(steamID);
         if (currentCart !== null && !(currentCart instanceof AdminCart)) {
             return this.bot.sendMessage(
@@ -770,9 +778,52 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
+        params.sku = fixSKU(params.sku);
+
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
+        }
+
+        const itemName = this.bot.schema.getName(SKU.fromString(params.sku), false);
+
+        const steamid = steamID.getSteamID64();
+
+        const adminInventory =
+            this.adminInventory[steamid] ||
+            new Inventory(
+                steamID,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'their'
+            );
+
+        if (this.adminInventory[steamid] === undefined) {
+            try {
+                log.debug('fetching admin inventory');
+                await adminInventory.fetch();
+                this.adminInventory[steamid] = adminInventory;
+            } catch (err) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Error fetching inventory, steam might down. Please try again later.`
+                );
+            }
+        }
+
+        const dict = adminInventory.getItems;
+
+        if (dict[params.sku as string] === undefined) {
+            return this.bot.sendMessage(steamID, `❌ You don't have any ${itemName}.`);
+        }
+
+        const currentAmount = dict[params.sku as string].length;
+        if (currentAmount < amount) {
+            return this.bot.sendMessage(steamID, `❌ You only have ${pluralize(itemName, currentAmount, true)}.`);
         }
 
         const cart =
@@ -783,16 +834,25 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
+
+        if (amount > 0) {
+            const cartAmount = cart.getTheirCount(params.sku);
+
+            if (cartAmount > currentAmount || cartAmount + amount > currentAmount) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ You can't add ${pluralize(itemName, amount, true)} ` +
+                        `because you already have ${cartAmount} in cart and you only have ${currentAmount}.`
+                );
+            }
+        }
+
         cart.addTheirItem(params.sku, amount);
         Cart.addCart(cart);
 
         this.bot.sendMessage(
             steamID,
-            `✅ ${pluralize(
-                this.bot.schema.getName(SKU.fromString(params.sku), false),
-                Math.abs(amount),
-                true
-            )} has been ` +
+            `✅ ${pluralize(itemName, Math.abs(amount), true)} has been ` +
                 (amount >= 0 ? 'added to' : 'removed from') +
                 ' your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
         );
@@ -818,6 +878,8 @@ export default class Commands {
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
+
+        params.sku = fixSKU(params.sku);
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {

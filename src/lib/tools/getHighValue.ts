@@ -29,18 +29,11 @@ export default function getHighValueItems(
         Object.keys(items[sku]).forEach(attachment => {
             if (attachment === 'isFull') {
                 toString += `\n💯 Full uses: ${items[sku].isFull ? '✅' : '❌'}`;
-            } else if (attachment === 's') {
-                toString += `\n${cT.spells ? cT.spells : '🎃 Spells:'} `;
-
-                items[sku].s.forEach(spellSKU => {
-                    toJoin.push(getKeyByValue(spellsData, spellSKU));
-                });
-
-                toString += toJoin.join(' + ');
-                toJoin.length = 0;
             } else {
                 if (items[sku][attachment]) {
-                    if (attachment === 'sp') {
+                    if (attachment === 's') {
+                        toString += `\n${cT.spells ? cT.spells : '🎃 Spells:'} `;
+                    } else if (attachment === 'sp') {
                         toString += `\n${cT.strangeParts ? cT.strangeParts : '🎰 Parts:'} `;
                     } else if (attachment === 'ke') {
                         toString += `\n${cT.killstreaker ? cT.killstreaker : '🔥 Killstreaker:'} `;
@@ -74,10 +67,11 @@ export default function getHighValueItems(
     return itemsWithName;
 }
 
-type Attachment = 'sp' | 'ke' | 'ks' | 'p';
+type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
 
 function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
+    if (attachment === 's') return getKeyByValue(spellsData, pSKU);
+    else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);

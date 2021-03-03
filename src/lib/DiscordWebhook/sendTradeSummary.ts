@@ -95,6 +95,8 @@ export default async function sendTradeSummary(
     const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
     const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
 
+    const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
     const acceptedTradeSummary: Webhook = {
         username: optDW.displayName ? optDW.displayName : botInfo.name,
         avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
@@ -121,7 +123,13 @@ export default async function sendTradeSummary(
                         value:
                             (misc.showKeyRate
                                 ? `\n${cTKeyRate} ${keyPrices.buy.metal.toString()}/${keyPrices.sell.metal.toString()} ref` +
-                                  ` (${keyPrices.src === 'manual' ? 'manual' : 'prices.tf'})` +
+                                  ` (${
+                                      keyPrices.src === 'manual'
+                                          ? 'manual'
+                                          : isCustomPricer
+                                          ? 'custom-pricer'
+                                          : 'prices.tf'
+                                  })` +
                                   `${
                                       autokeys.isEnabled
                                           ? ' | Autokeys: ' +

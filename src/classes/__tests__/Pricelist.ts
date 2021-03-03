@@ -30,7 +30,7 @@ it('can pricecheck', async done => {
         keys: 0,
         metal: 55.22
     });
-    expect(await priceList.getPricesTF('5021;6')).toEqual({
+    expect(await priceList.getItemPrices('5021;6')).toEqual({
         sku: '5021;6',
         name: 'Mann Co. Supply Crate Key',
         currency: null,

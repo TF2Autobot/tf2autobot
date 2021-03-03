@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
-import { removeLinkProtocol, testSKU, getItemFromParams } from '../functions/utils';
+import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -158,12 +158,14 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}"` + this.generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(this.bot, isPremium, entry)
                 );
             })
             .catch(err => {
@@ -308,22 +310,23 @@ export default class PricelistManagerCommands {
 
         const pricelist = this.bot.pricelist.getPrices;
         const dict = this.bot.inventoryManager.getInventory.getItems;
+        const clonedDict = Object.assign({}, dict);
 
         const pureAndWeapons = ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
             this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
         );
 
-        for (const sku in dict) {
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+        for (const sku in clonedDict) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
                 continue;
             }
 
-            if (pureAndWeapons.some(pureOrWeaponsSKU => pureOrWeaponsSKU === sku)) {
-                delete dict[sku];
+            if (pureAndWeapons.includes(sku)) {
+                delete clonedDict[sku];
             }
         }
 
-        const total = Object.keys(dict).length;
+        const total = Object.keys(clonedDict).length;
 
         const totalTime = total * (params.autoprice ? 2 : 1) * 1000;
         const aSecond = 1 * 1000;
@@ -346,14 +349,14 @@ export default class PricelistManagerCommands {
         let skipped = 0;
         let failed = 0;
 
-        for (const sku in dict) {
+        for (const sku in clonedDict) {
             if (this.stopAutoAdd) {
                 this.bot.sendMessage(steamID, '----------\n🛑 Stopped auto-add items');
                 this.stopAutoAdd = false;
                 break;
             }
 
-            if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
                 continue;
             }
 
@@ -387,7 +390,7 @@ export default class PricelistManagerCommands {
                     added++;
                     this.bot.sendMessage(
                         steamID,
-                        `----------\n✅ Added "${entry.name}"` +
+                        `----------\n✅ Added "${entry.name}" (${entry.sku})` +
                             this.generateAddedReply(this.bot, isPremium, entry) +
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
@@ -406,6 +409,7 @@ export default class PricelistManagerCommands {
                 });
         }
 
+        await sleepasync().Promise.sleep(2 * 1000);
         this.bot.sendMessage(
             steamID,
             `----------\n✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`
@@ -787,6 +791,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         if (!this.bot.pricelist.hasPrice(params.sku as string)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
         }
@@ -869,7 +875,8 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}"` + this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${entry.sku})` +
+                        this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -1105,6 +1112,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         this.bot.pricelist
             .removePrice(params.sku as string, true)
             .then(entry => this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`))
@@ -1161,6 +1170,8 @@ export default class PricelistManagerCommands {
         if (params.sku === undefined) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         }
+
+        params.sku = fixSKU(params.sku);
 
         const match = this.bot.pricelist.getPrice(params.sku as string);
         if (match === null) {
@@ -1286,50 +1297,41 @@ export default class PricelistManagerCommands {
         const filterCount = filter.length;
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
-        } else if (filterCount > 20) {
+        } else {
+            const list = filter.map(
+                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
+            );
+            const listCount = list.length;
+
+            const limit =
+                params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
             this.bot.sendMessage(
                 steamID,
-                `Found ${pluralize('item', filterCount, true)} with ${display.join(
-                    '&'
-                )}, showing only a max of 100 items`
+                `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
+                    limit !== -1 && params.limit === undefined && listCount > 200
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }\n`
             );
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 0, 20)}`);
-            if (filterCount <= 40) {
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 20, filterCount > 40 ? 40 : filterCount)}`
-                );
-            } else if (filterCount <= 60) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
+
+            const applyLimit = limit === -1 ? listCount : limit;
+            const loops = Math.ceil(applyLimit / 200);
+
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+                const i200 = i * 200;
+
+                const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+
+                this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
+
                 await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 40, filterCount > 60 ? 60 : filterCount)}`
-                );
-            } else if (filterCount <= 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 60, filterCount > 80 ? 80 : filterCount)}`
-                );
-            } else if (filterCount > 80) {
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 20, 40)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 40, 60)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter, true, 60, 80)}`);
-                await sleepasync().Promise.sleep(1 * 1000);
-                this.bot.sendMessage(
-                    steamID,
-                    `/code ${this.generateOutput(filter, true, 80, filterCount > 100 ? 100 : filterCount)}`
-                );
             }
-        } else {
-            this.bot.sendMessage(steamID, `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}`);
-            this.bot.sendMessage(steamID, `/code ${this.generateOutput(filter)}`);
         }
     }
 

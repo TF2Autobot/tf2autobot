@@ -80,15 +80,20 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     }
 
     if (item.effect !== null) {
-        if (item.quality === 11) {
+        if (item.quality === 11 && item.paintkit === null) {
+            // For Strange Unusual Cosmetic
             item.quality2 = 11;
             item.quality = 5;
         } else if (item.paintkit !== null) {
-            item.quality = 15;
-        } else {
-            item.quality = 5;
+            // War Paint or Skins
+            if (item.quality2 === 11) {
+                // Strange Unusual
+                item.quality = 11;
+                item.quality2 = null;
+            }
         }
     } else if (item.paintkit !== null) {
+        // War Paint or Skins (No effect)
         if (item.quality2 === 11) {
             item.quality = 11;
             item.quality2 = null;

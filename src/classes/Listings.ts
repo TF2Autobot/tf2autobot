@@ -1,5 +1,4 @@
 import callbackQueue from 'callback-queue';
-import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
@@ -183,7 +182,7 @@ export default class Listings {
 
         const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
-        let hasBuyListing = SKU.fromString(sku).paintkit !== null;
+        let hasBuyListing = false;
         let hasSellListing = false;
 
         const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
@@ -590,83 +589,73 @@ export default class Listings {
                 const hv = item.hv;
                 if (hv) {
                     Object.keys(hv).forEach(attachment => {
-                        if (attachment === 's' && optD.showSpells) {
-                            highValueString += `${cTSpt}${cT.spells} `;
+                        if (
+                            hv[attachment] &&
+                            (attachment === 's'
+                                ? optD.showSpells
+                                : attachment === 'sp'
+                                ? optD.showStrangeParts
+                                : attachment === 'ke'
+                                ? optD.showKillstreaker
+                                : attachment === 'ks'
+                                ? optD.showSheen
+                                : optD.showPainted && opt.normalize.painted.our)
+                        ) {
+                            if (attachment === 's') highValueString += `${cTSpt}${cT.spells} `;
+                            else if (attachment === 'sp') highValueString += `${cTSpt}${cT.strangeParts} `;
+                            else if (attachment === 'ke') highValueString += `${cTSpt}${cT.killstreaker} `;
+                            else if (attachment === 'ks') highValueString += `${cTSpt}${cT.sheen} `;
+                            else if (attachment === 'p') highValueString += `${cTSpt}${cT.painted} `;
 
-                            hv.s.forEach(pSKU => {
-                                const name = getKeyByValue(spellsData, pSKU);
-                                toJoin.push(name.replace(name, optR.spells[name]));
-                            });
+                            for (const pSKU in hv[attachment]) {
+                                if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
+                                    continue;
+                                }
 
-                            highValueString += toJoin.join(' + ');
-                            toJoin.length = 0;
-                        } else {
-                            if (
-                                hv[attachment] &&
-                                (attachment === 'sp'
-                                    ? optD.showStrangeParts
-                                    : attachment === 'ke'
-                                    ? optD.showKillstreaker
-                                    : attachment === 'ks'
-                                    ? optD.showSheen
-                                    : optD.showPainted && opt.normalize.painted.our)
-                            ) {
-                                if (attachment === 'sp') highValueString += `${cTSpt}${cT.strangeParts} `;
-                                else if (attachment === 'ke') highValueString += `${cTSpt}${cT.killstreaker} `;
-                                else if (attachment === 'ks') highValueString += `${cTSpt}${cT.sheen} `;
-                                else if (attachment === 'p') highValueString += `${cTSpt}${cT.painted} `;
-
-                                for (const pSKU in hv[attachment]) {
-                                    if (!Object.prototype.hasOwnProperty.call(hv[attachment], pSKU)) {
-                                        continue;
-                                    }
-
-                                    if (attachment === 'sp' && hv[attachment as Attachment][pSKU] === true) {
+                                if (attachment === 'sp' && hv[attachment as Attachment][pSKU] === true) {
+                                    const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
+                                    toJoin.push(
+                                        `${name.replace(
+                                            name,
+                                            optR.strangeParts[name] ? optR.strangeParts[name] : name
+                                        )}`
+                                    );
+                                } else {
+                                    if (attachment !== 'sp') {
                                         const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
                                         toJoin.push(
                                             `${name.replace(
                                                 name,
-                                                optR.strangeParts[name] ? optR.strangeParts[name] : name
+                                                attachment === 's'
+                                                    ? optR.spells[name]
+                                                    : attachment === 'ke'
+                                                    ? optR.killstreakers[name]
+                                                    : attachment === 'ks'
+                                                    ? optR.sheens[name]
+                                                    : optR.painted[name as PaintedNames].stringNote
                                             )}`
                                         );
-                                    } else {
-                                        if (attachment !== 'sp') {
-                                            const name = getAttachmentName(
-                                                attachment,
-                                                pSKU,
-                                                getPaints,
-                                                getStrangeParts
-                                            );
-                                            toJoin.push(
-                                                `${name.replace(
-                                                    name,
-                                                    attachment === 'ke'
-                                                        ? optR.killstreakers[name]
-                                                        : attachment === 'ks'
-                                                        ? optR.sheens[name]
-                                                        : optR.painted[name as PaintedNames].stringNote
-                                                )}`
-                                            );
-                                        }
                                     }
                                 }
-
-                                if (toJoin.length > 0) {
-                                    highValueString += toJoin.join(' + ');
-                                } else {
-                                    highValueString = highValueString.replace(
-                                        attachment === 'sp'
-                                            ? `${cTSpt}${cT.strangeParts} `
-                                            : attachment === 'ke'
-                                            ? `${cTSpt}${cT.killstreaker} `
-                                            : attachment === 'ks'
-                                            ? `${cTSpt}${cT.sheen} `
-                                            : `${cTSpt}${cT.painted} `,
-                                        ''
-                                    );
-                                }
-                                toJoin.length = 0;
                             }
+
+                            if (toJoin.length > 0) {
+                                highValueString += toJoin.join(' + ');
+                            } else {
+                                highValueString = highValueString.replace(
+                                    attachment === 's'
+                                        ? `${cTSpt}${cT.spells} `
+                                        : attachment === 'sp'
+                                        ? `${cTSpt}${cT.strangeParts} `
+                                        : attachment === 'ke'
+                                        ? `${cTSpt}${cT.killstreaker} `
+                                        : attachment === 'ks'
+                                        ? `${cTSpt}${cT.sheen} `
+                                        : `${cTSpt}${cT.painted} `,
+                                    ''
+                                );
+                            }
+                            toJoin.length = 0;
                         }
                     });
 
@@ -743,14 +732,15 @@ export default class Listings {
     }
 }
 
-type Attachment = 'sp' | 'ke' | 'ks' | 'p';
+type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
     return Object.keys(object).find(key => object[key] === value);
 }
 
 function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 'sp') return getKeyByValue(parts, pSKU);
+    if (attachment === 's') return getKeyByValue(spellsData, pSKU);
+    else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);

@@ -9,7 +9,7 @@ import sleepasync from 'sleep-async';
 import path from 'path';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
-import { testSKU } from '../functions/utils';
+import { testSKU, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -163,7 +163,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = params.sku as string;
+            const targetedSKU = fixSKU(params.sku);
             const [uncraft, untrade] = [targetedSKU.includes(';uncraftable'), targetedSKU.includes(';untradable')];
 
             const item = SKU.fromString(targetedSKU.replace(';uncraftable', '').replace(';untradable', ''));
@@ -628,6 +628,7 @@ export default class ManagerCommands {
         const currRef = pureNow.refTotalInScrap;
 
         const keyPrices = bot.pricelist.getKeyPrices;
+        const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
         const autokeys = bot.handler.autokeys;
         const userPure = autokeys.userPure;
@@ -681,7 +682,7 @@ export default class ManagerCommands {
             (bot.isAdmin(steamID) ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n      Key prices: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()} (${
-            keyPrices.src === 'manual' ? 'manual' : 'prices.tf'
+            keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'
         })`;
 
         const scrapAdjustmentEnabled = autokeys.isEnableScrapAdjustment;

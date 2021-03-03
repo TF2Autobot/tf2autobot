@@ -12,7 +12,7 @@ import { pure } from '../../lib/tools/export';
 
 type WhichHighValue = 'our' | 'their';
 
-type HighValueAttachments = 'sp' | 'ks' | 'ke' | 'p';
+type HighValueAttachments = 's' | 'sp' | 'ks' | 'ke' | 'p';
 
 export default class UserCart extends Cart {
     /**
@@ -197,9 +197,6 @@ export default class UserCart extends Cart {
             const key = skus[index];
             // Start at highest currency and check if we should pick that
 
-            const isWeapons = !['5021;6', '5002;6', '5001;6', '5000;6'].includes(key);
-            let havePickedWeapons = false;
-
             // Amount to pick of the currency
             let amount = remaining / currencyValues[key];
             if (amount > buyerCurrencies[key]) {
@@ -233,14 +230,9 @@ export default class UserCart extends Cart {
 
             if (amount >= 1) {
                 // If the amount is greater than or equal to 1, then I need to pick it
-                pickedCurrencies[key] = currAmount + (isWeapons ? 1 : Math.floor(amount));
+                pickedCurrencies[key] = currAmount + Math.floor(amount);
                 // Remove value from remaining
-                remaining -= (isWeapons ? 1 : Math.floor(amount)) * currencyValues[key];
-
-                if (isWeapons) {
-                    // if picked currency is not keys or pure metals, then just limit to pick only one and once
-                    havePickedWeapons = true;
-                }
+                remaining -= Math.floor(amount) * currencyValues[key];
             }
 
             log.debug('Iteration', {
@@ -252,11 +244,6 @@ export default class UserCart extends Cart {
                 hasReversed: hasReversed,
                 picked: pickedCurrencies
             });
-
-            if (havePickedWeapons) {
-                // Picked currencies other than keys or pure metal once, stop
-                break;
-            }
 
             if (remaining === 0) {
                 // Picked the exact amount, stop
@@ -807,16 +794,12 @@ export default class UserCart extends Cart {
                             getHighValue[whichIs].items[sku] = item.hv;
 
                             Object.keys(item.hv).forEach(attachment => {
-                                if (attachment === 's') {
-                                    // If spells exist, always mention
-                                    getHighValue[whichIs].isMention = true;
-                                }
-
-                                if (attachment !== 's' && item.hv[attachment] !== undefined) {
+                                if (item.hv[attachment] !== undefined) {
                                     for (const pSku in item.hv[attachment]) {
                                         if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
                                             continue;
                                         }
+
                                         if (item.hv[attachment as HighValueAttachments][pSku] === true) {
                                             getHighValue[whichIs].isMention = true;
                                         }

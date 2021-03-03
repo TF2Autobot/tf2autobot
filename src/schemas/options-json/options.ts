@@ -466,6 +466,22 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 unableToProcessOffer: {
                     type: 'boolean'
+                },
+                partialPrice: {
+                    type: 'object',
+                    properties: {
+                        onUpdate: {
+                            type: 'boolean'
+                        },
+                        onSuccessUpdatePartialPriced: {
+                            type: 'boolean'
+                        },
+                        onFailedUpdatePartialPriced: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -476,13 +492,28 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoRemoveIntentSellFailed',
                 'autoAddPaintedItems',
                 'failedAccept',
-                'unableToProcessOffer'
+                'unableToProcessOffer',
+                'partialPrice'
             ],
             additionalProperties: false
         },
         pricelist: {
             type: 'object',
             properties: {
+                partialPriceUpdate: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        thresholdInSeconds: {
+                            type: 'integer',
+                            minimum: 86400 // 1 day
+                        }
+                    },
+                    required: ['enable', 'thresholdInSeconds'],
+                    additionalProperties: false
+                },
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -508,6 +539,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'partialPriceUpdate',
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
@@ -659,6 +691,10 @@ export const optionsSchema: jsonschema.Schema = {
                 enableHold: {
                     type: 'boolean'
                 },
+                spells: {
+                    $ref: '#/definitions/string-array',
+                    maxItems: 16
+                },
                 sheens: {
                     $ref: '#/definitions/string-array',
                     maxItems: 7
@@ -674,7 +710,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/string-array'
                 }
             },
-            required: ['enableHold', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
             additionalProperties: false
         },
         normalize: {
@@ -914,6 +950,9 @@ export const optionsSchema: jsonschema.Schema = {
         offerReceived: {
             type: 'object',
             properties: {
+                sendPreAcceptMessage: {
+                    $ref: '#/definitions/only-enable'
+                },
                 invalidValue: {
                     type: 'object',
                     properties: {
@@ -986,6 +1025,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'sendPreAcceptMessage',
                 'invalidValue',
                 'invalidItems',
                 'disabledItems',
@@ -1198,6 +1238,9 @@ export const optionsSchema: jsonschema.Schema = {
                         enable: {
                             type: 'boolean'
                         },
+                        showOnlyInStock: {
+                            type: 'boolean'
+                        },
                         url: {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
@@ -1206,7 +1249,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['enable', 'url', 'note'],
+                    required: ['enable', 'showOnlyInStock', 'url', 'note'],
                     additionalProperties: false
                 },
                 sendAlert: {
