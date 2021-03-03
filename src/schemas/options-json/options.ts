@@ -503,11 +503,16 @@ export const optionsSchema: jsonschema.Schema = {
                 partialPriceUpdate: {
                     type: 'object',
                     properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
                         thresholdInSeconds: {
                             type: 'integer',
                             minimum: 86400 // 1 day
                         }
-                    }
+                    },
+                    required: ['enable', 'thresholdInSeconds'],
+                    additionalProperties: false
                 },
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
@@ -1020,6 +1025,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'sendPreAcceptMessage',
                 'invalidValue',
                 'invalidItems',
                 'disabledItems',
@@ -1243,7 +1249,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['enable', 'url', 'note'],
+                    required: ['enable', 'showOnlyInStock', 'url', 'note'],
                     additionalProperties: false
                 },
                 sendAlert: {
