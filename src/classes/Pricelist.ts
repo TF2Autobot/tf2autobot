@@ -698,7 +698,7 @@ export default class Pricelist extends EventEmitter {
 
             // Go through our pricelist
             const oldCount = old.length;
-            const opt = this.options.pricelist.onlyUpdateBuyingPriceIfInStock;
+            const opt = this.options.pricelist.partialPriceUpdate;
 
             for (let i = 0; i < oldCount; i++) {
                 const currPrice = old[i];
@@ -747,7 +747,7 @@ export default class Pricelist extends EventEmitter {
 
                                     // no need to update time here
 
-                                    currPrice.group = 'inStockUpdate';
+                                    currPrice.group = 'isPartialPriced';
                                     pricesChanged = true;
 
                                     // else, just don't update for now.
@@ -838,7 +838,7 @@ export default class Pricelist extends EventEmitter {
             const newSell = new Currencies(data.sell);
 
             let pricesChanged = false;
-            const optIsUpdateOnlyBuyingInStock = opt.pricelist.onlyUpdateBuyingPriceIfInStock;
+            const optIsUpdateOnlyBuyingInStock = opt.pricelist.partialPriceUpdate;
 
             const isNotExceedThreshold = data.time - match.time < optIsUpdateOnlyBuyingInStock.thresholdInSeconds;
 
@@ -860,7 +860,7 @@ export default class Pricelist extends EventEmitter {
 
                     // no need to update time here
 
-                    match.group = 'inStockUpdate';
+                    match.group = 'isPartialPriced';
                     pricesChanged = true;
 
                     const msg =
@@ -869,10 +869,10 @@ export default class Pricelist extends EventEmitter {
                         `▸ current: ${match.buy.toString()}/${match.sell.toString()}` +
                         `▸ pricestf: ${newBuy.toString()}/${newSell.toString()}`;
 
-                    if (opt.sendAlert.updateOnlyBuyingInStock) {
+                    if (opt.sendAlert.partialPriceUpdate) {
                         const dw = opt.discordWebhook.sendAlert;
                         if (dw.enable && dw.url !== '') {
-                            sendAlert('triggerInStockUpdate', this.bot, msg);
+                            sendAlert('isPartialPriced', this.bot, msg);
                         } else {
                             this.bot.messageAdmins('Partial price update\n\n' + msg, []);
                         }

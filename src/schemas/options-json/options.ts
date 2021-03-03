@@ -467,10 +467,10 @@ export const optionsSchema: jsonschema.Schema = {
                 unableToProcessOffer: {
                     type: 'boolean'
                 },
-                updateOnlyBuyingInStock: {
+                partialPriceUpdate: {
                     type: 'boolean'
                 },
-                autoUpdateNotInStockPricesFailed: {
+                autoUpdatePartialPriceFailed: {
                     type: 'boolean'
                 }
             },
@@ -482,14 +482,16 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoRemoveIntentSellFailed',
                 'autoAddPaintedItems',
                 'failedAccept',
-                'unableToProcessOffer'
+                'unableToProcessOffer',
+                'partialPriceUpdate',
+                'autoUpdatePartialPriceFailed'
             ],
             additionalProperties: false
         },
         pricelist: {
             type: 'object',
             properties: {
-                onlyUpdateBuyingPriceIfInStock: {
+                partialPriceUpdate: {
                     type: 'object',
                     properties: {
                         thresholdInSeconds: {
@@ -523,7 +525,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
-                'onlyUpdateBuyingPriceIfInStock',
+                'partialPriceUpdate',
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',

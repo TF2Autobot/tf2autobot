@@ -62,12 +62,12 @@ export const DEFAULTS = {
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
-        updateOnlyBuyingInStock: true,
-        autoUpdateNotInStockPricesFailed: true
+        partialPriceUpdate: true,
+        autoUpdatePartialPriceFailed: true
     },
 
     pricelist: {
-        onlyUpdateBuyingPriceIfInStock: {
+        partialPriceUpdate: {
             enable: false,
             thresholdInSeconds: 604800 // 7 days
         },
@@ -1020,8 +1020,8 @@ interface SendAlert extends OnlyEnable {
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
-    updateOnlyBuyingInStock?: boolean;
-    autoUpdateNotInStockPricesFailed?: boolean;
+    partialPriceUpdate?: boolean;
+    autoUpdatePartialPriceFailed?: boolean;
 }
 
 interface AutokeysAlert {
@@ -1040,7 +1040,7 @@ interface HighValueAlert {
 // ------------ Pricelist ------------
 
 interface Pricelist {
-    onlyUpdateBuyingPriceIfInStock?: OnlyUpdateBuyingPriceIfInStock;
+    partialPriceUpdate?: PartialPriceUpdate;
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
@@ -1048,7 +1048,7 @@ interface Pricelist {
     priceAge?: PriceAge;
 }
 
-interface OnlyUpdateBuyingPriceIfInStock extends OnlyEnable {
+interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
 }
 

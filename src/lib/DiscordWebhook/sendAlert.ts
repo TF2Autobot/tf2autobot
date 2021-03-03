@@ -34,8 +34,8 @@ type AlertType =
     | 'failed-decline'
     | 'failed-processing-offer'
     | 'error-accept'
-    | 'autoUpdateNotInStockPricesFailed'
-    | 'triggerInStockUpdate';
+    | 'autoUpdatePartialPriceFailed'
+    | 'isPartialPriced';
 
 export default function sendAlert(
     type: AlertType,
@@ -110,8 +110,8 @@ export default function sendAlert(
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
         color = '16711680'; // red
-    } else if (type === 'autoUpdateNotInStockPricesFailed') {
-        title = 'Failed update item prices (notInStock)';
+    } else if (type === 'autoUpdatePartialPriceFailed') {
+        title = 'Failed update item prices (Partial price update)';
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoAddPaintedItems') {
@@ -178,7 +178,7 @@ export default function sendAlert(
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
             `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
         color = '16711680'; // red
-    } else if (type === 'triggerInStockUpdate') {
+    } else if (type === 'isPartialPriced') {
         title = 'Partial price update';
         description = msg;
         color = '16776960'; // yellow

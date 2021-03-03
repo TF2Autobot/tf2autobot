@@ -99,10 +99,10 @@ export default function updateListings(
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
-        const isUpdatePriceNotInStock =
+        const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
-            inPrice.group === 'inStockUpdate' &&
+            inPrice.group === 'isPartialPriced' &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
@@ -304,8 +304,8 @@ export default function updateListings(
                         }
                     }
                 });
-        } else if (isUpdatePriceNotInStock) {
-            // If item exist in pricelist with group "inStockUpdate" and we no longer have that in stock,
+        } else if (isUpdatePartialPricedItem) {
+            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const entry = {
@@ -325,9 +325,9 @@ export default function updateListings(
                     const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
                     log.warn(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdateNotInStockPricesFailed) {
+                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdatePartialPriceFailed) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('autoUpdateNotInStockPricesFailed', bot, msg);
+                            sendAlert('autoUpdatePartialPriceFailed', bot, msg);
                         } else {
                             bot.messageAdmins(msg, []);
                         }
