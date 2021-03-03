@@ -869,7 +869,7 @@ export default class Pricelist extends EventEmitter {
                         `▸ current: ${match.buy.toString()}/${match.sell.toString()}` +
                         `▸ pricestf: ${newBuy.toString()}/${newSell.toString()}`;
 
-                    if (opt.sendAlert.partialPriceUpdate) {
+                    if (opt.sendAlert.partialPrice.onUpdate) {
                         const dw = opt.discordWebhook.sendAlert;
                         if (dw.enable && dw.url !== '') {
                             sendAlert('isPartialPriced', this.bot, msg);

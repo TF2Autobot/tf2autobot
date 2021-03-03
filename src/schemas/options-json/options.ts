@@ -467,14 +467,21 @@ export const optionsSchema: jsonschema.Schema = {
                 unableToProcessOffer: {
                     type: 'boolean'
                 },
-                partialPriceUpdate: {
-                    type: 'boolean'
-                },
-                autoUpdatePartialPriceSuccess: {
-                    type: 'boolean'
-                },
-                autoUpdatePartialPriceFailed: {
-                    type: 'boolean'
+                partialPrice: {
+                    type: 'object',
+                    properties: {
+                        onUpdate: {
+                            type: 'boolean'
+                        },
+                        onSuccessUpdatePartialPriced: {
+                            type: 'boolean'
+                        },
+                        onFailedUpdatePartialPriced: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -486,9 +493,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
-                'partialPriceUpdate',
-                'autoUpdatePartialPriceSuccess',
-                'autoUpdatePartialPriceFailed'
+                'partialPrice'
             ],
             additionalProperties: false
         },

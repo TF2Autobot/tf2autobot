@@ -333,7 +333,7 @@ export default function updateListings(
 
                     log.debug(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdatePartialPriceSuccess) {
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onSuccessUpdatePartialPriced) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
                         } else {
@@ -345,7 +345,7 @@ export default function updateListings(
                     const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
                     log.warn(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoUpdatePartialPriceFailed) {
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
                             sendAlert('autoUpdatePartialPriceFailed', bot, msg);
                         } else {
