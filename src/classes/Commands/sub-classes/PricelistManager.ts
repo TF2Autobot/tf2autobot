@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
-import { removeLinkProtocol, testSKU, getItemFromParams } from '../functions/utils';
+import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -158,12 +158,14 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}"` + this.generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(this.bot, isPremium, entry)
                 );
             })
             .catch(err => {
@@ -388,7 +390,7 @@ export default class PricelistManagerCommands {
                     added++;
                     this.bot.sendMessage(
                         steamID,
-                        `----------\n✅ Added "${entry.name}"` +
+                        `----------\n✅ Added "${entry.name}" (${entry.sku})` +
                             this.generateAddedReply(this.bot, isPremium, entry) +
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
@@ -789,6 +791,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         if (!this.bot.pricelist.hasPrice(params.sku as string)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
         }
@@ -871,7 +875,8 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}"` + this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${entry.sku})` +
+                        this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -1107,6 +1112,8 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
+        params.sku = fixSKU(params.sku);
+
         this.bot.pricelist
             .removePrice(params.sku as string, true)
             .then(entry => this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`))
@@ -1163,6 +1170,8 @@ export default class PricelistManagerCommands {
         if (params.sku === undefined) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         }
+
+        params.sku = fixSKU(params.sku);
 
         const match = this.bot.pricelist.getPrice(params.sku as string);
         if (match === null) {

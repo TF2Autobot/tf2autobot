@@ -62,8 +62,11 @@ export const DEFAULTS = {
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
-        partialPriceUpdate: true,
-        autoUpdatePartialPriceFailed: true
+        partialPrice: {
+            onUpdate: true,
+            onSuccessUpdatePartialPriced: true,
+            onFailedUpdatePartialPriced: true
+        }
     },
 
     pricelist: {
@@ -1020,8 +1023,13 @@ interface SendAlert extends OnlyEnable {
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
-    partialPriceUpdate?: boolean;
-    autoUpdatePartialPriceFailed?: boolean;
+    partialPrice?: PartialPrice;
+}
+
+interface PartialPrice {
+    onUpdate: boolean;
+    onSuccessUpdatePartialPriced: boolean;
+    onFailedUpdatePartialPriced: boolean;
 }
 
 interface AutokeysAlert {

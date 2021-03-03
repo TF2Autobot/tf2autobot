@@ -84,8 +84,13 @@ function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null
     }
 
     const quality = item.getTag('Quality');
+    const isExterior = item.getTag('Exterior');
     if (quality !== null) {
-        return schema.getQualityIdByName(quality);
+        if (isExterior !== null) {
+            return 15;
+        } else {
+            return schema.getQualityIdByName(quality);
+        }
     }
 
     return null;

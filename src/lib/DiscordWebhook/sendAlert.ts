@@ -34,6 +34,7 @@ type AlertType =
     | 'failed-decline'
     | 'failed-processing-offer'
     | 'error-accept'
+    | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
     | 'isPartialPriced';
 
@@ -108,6 +109,10 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
         title = 'Failed to remove item(s) with intent sell';
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoUpdatePartialPriceSuccess') {
+        title = '✅ Automatically update partially priced item';
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoUpdatePartialPriceFailed') {

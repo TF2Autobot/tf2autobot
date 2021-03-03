@@ -5,7 +5,7 @@ import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount } from './functions/utils';
+import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -778,6 +778,8 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
+        params.sku = fixSKU(params.sku);
+
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
@@ -876,6 +878,8 @@ export default class Commands {
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
+
+        params.sku = fixSKU(params.sku);
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
