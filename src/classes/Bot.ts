@@ -404,6 +404,7 @@ export default class Bot {
         this.addListener(this.listingManager, 'heartbeat', this.handleHeartbeat, true);
 
         this.addListener(this.pricelist, 'pricelist', this.handlePricelist, false);
+        this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
         this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
 
         return new Promise((resolve, reject) => {
