@@ -5,7 +5,7 @@ import log from '../lib/logger';
 import Bot from './Bot';
 
 export default class ipcHandler extends IPC {
-    server: any;
+    ourServer: any;
 
     bot: Bot;
 
@@ -23,14 +23,14 @@ export default class ipcHandler extends IPC {
         // eslint-disable-next-line
         this.connectTo('autobot_gui_dev', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-            this.server = this.of.autobot_gui_dev;
+            this.ourServer = this.of.autobot_gui_dev;
             log.debug('connected IPC');
 
             //bind handlers
-            this.server.on('connect', this.connected.bind(this));
-            this.server.on('getInfo', this.sendInfo.bind(this));
-            this.server.on('getInfo', this.sendPricelist.bind(this));
-            this.server.on('getInfo', this.disconnect.bind(this));
+            this.ourServer.on('connect', this.connected.bind(this));
+            this.ourServer.on('getInfo', this.sendInfo.bind(this));
+            this.ourServer.on('getInfo', this.sendPricelist.bind(this));
+            this.ourServer.on('getInfo', this.disconnect.bind(this));
         });
     }
 
@@ -44,12 +44,12 @@ export default class ipcHandler extends IPC {
     }
 
     sendInfo(): void {
-        this.server.emit('info', {
+        this.ourServer.emit('info', {
             id: this.bot.client.steamID.getSteamID64()
         });
     }
 
     sendPricelist(): void {
-        this.server.emit('pricelist', this.bot.pricelist.getPrices);
+        this.ourServer.emit('pricelist', this.bot.pricelist.getPrices);
     }
 }
