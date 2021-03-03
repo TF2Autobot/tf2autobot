@@ -785,7 +785,7 @@ export default class Pricelist extends EventEmitter {
         const match = this.getPrice(data.sku);
         const opt = this.options;
 
-        if (data.sku === '5021;6') {
+        if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
             const newPrices = {
                 buy: new Currencies(data.buy),
@@ -882,7 +882,7 @@ export default class Pricelist extends EventEmitter {
 
             const dw = opt.discordWebhook.priceUpdate;
 
-            if (dw.enable && dw.url !== '') {
+            if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
                 const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
                 const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
