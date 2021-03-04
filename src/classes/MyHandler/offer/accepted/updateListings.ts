@@ -30,6 +30,7 @@ export default function updateListings(
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
     const normalizePainted = opt.normalize.painted;
+    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
@@ -71,11 +72,19 @@ export default function updateListings(
             !isAdmin &&
             opt.pricelist.autoAddInvalidItems.enable;
 
-        const receivedNotInPricelist =
+        const receivedHighValueNotInPricelist =
             !existInPricelist &&
             isNotPureOrWeapons &&
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
             isDisabledHV && // This is the only difference
+            !isAdmin;
+
+        const receivedUnusualNotInPricelist =
+            !existInPricelist &&
+            isNotPureOrWeapons &&
+            isNotSkinsOrWarPaint &&
+            item.quality === 5 &&
+            opt.pricelist.autoAddInvalidUnusual === false &&
             !isAdmin;
 
         const isAutoDisableHighValueItems =
@@ -173,7 +182,7 @@ export default function updateListings(
                     log.debug(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
                         } else {
                             bot.messageAdmins(msg, []);
@@ -188,7 +197,7 @@ export default function updateListings(
                     log.debug(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
                         } else {
                             bot.messageAdmins(msg, []);
@@ -216,7 +225,7 @@ export default function updateListings(
                     log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`)
                 );
             //
-        } else if (receivedNotInPricelist) {
+        } else if (receivedHighValueNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a highValue items, and not
             // from ADMINS, then notify admin.
             let msg =
@@ -231,8 +240,22 @@ export default function updateListings(
             }
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (dwEnabled) {
                     sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
+                } else {
+                    bot.messageAdmins(msg, []);
+                }
+            }
+        } else if (receivedUnusualNotInPricelist) {
+            // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a Unusual (bought with Generic Unusual), and not
+            // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
+            const msg =
+                'I have received an Unusual bought with Generic Unusual feature\n\nItem info: ' +
+                (dwEnabled ? `[${name}](https://www.prices.tf/items/${sku}) (${sku})` : `${name} (${sku})`);
+
+            if (opt.sendAlert.enable && opt.sendAlert.receivedUnusualNotInPricelist) {
+                if (dwEnabled) {
+                    sendAlert('unusualInvalidItems', bot, msg.replace(/"/g, '`'));
                 } else {
                     bot.messageAdmins(msg, []);
                 }
@@ -280,7 +303,7 @@ export default function updateListings(
                     }
 
                     if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
                         } else {
                             bot.messageAdmins(msg, []);
@@ -302,7 +325,7 @@ export default function updateListings(
                     log.warn(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('autoRemoveIntentSellFailed', bot, msg);
                         } else {
                             bot.messageAdmins(msg, []);
@@ -341,7 +364,7 @@ export default function updateListings(
                     log.debug(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onSuccessUpdatePartialPriced) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
                         } else {
                             bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
@@ -353,7 +376,7 @@ export default function updateListings(
                     log.warn(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (dwEnabled) {
                             sendAlert('autoUpdatePartialPriceFailed', bot, msg);
                         } else {
                             bot.messageAdmins(msg, []);

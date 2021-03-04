@@ -482,6 +482,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
                     additionalProperties: false
+                },
+                receivedUnusualNotInPricelist: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -493,7 +496,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
-                'partialPrice'
+                'partialPrice',
+                'receivedUnusualNotInPricelist'
             ],
             additionalProperties: false
         },

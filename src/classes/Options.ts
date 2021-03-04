@@ -66,7 +66,8 @@ export const DEFAULTS = {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
             onFailedUpdatePartialPriced: true
-        }
+        },
+        receivedUnusualNotInPricelist: true
     },
 
     pricelist: {
@@ -1027,6 +1028,7 @@ interface SendAlert extends OnlyEnable {
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
     partialPrice?: PartialPrice;
+    receivedUnusualNotInPricelist?: boolean;
 }
 
 interface PartialPrice {
