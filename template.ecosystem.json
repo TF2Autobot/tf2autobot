@@ -42,7 +42,7 @@
                 "DEBUG_FILE": true,
 
                 "ENABLE_HTTP_API": false,
-                "HTTP_API_PORT": 80
+                "HTTP_API_PORT": 3001
             }
         }
     ]
