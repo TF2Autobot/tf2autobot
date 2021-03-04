@@ -72,7 +72,8 @@ export const DEFAULTS = {
     pricelist: {
         partialPriceUpdate: {
             enable: false,
-            thresholdInSeconds: 604800 // 7 days
+            thresholdInSeconds: 604800, // 7 days
+            excludeSKU: []
         },
         filterCantAfford: {
             enable: false
@@ -1058,6 +1059,7 @@ interface Pricelist {
 
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
+    excludeSKU?: string[];
 }
 
 interface PriceAge {

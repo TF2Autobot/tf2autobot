@@ -509,9 +509,12 @@ export const optionsSchema: jsonschema.Schema = {
                         thresholdInSeconds: {
                             type: 'integer',
                             minimum: 86400 // 1 day
+                        },
+                        excludeSKU: {
+                            type: '#/definitions/string-array'
                         }
                     },
-                    required: ['enable', 'thresholdInSeconds'],
+                    required: ['enable', 'thresholdInSeconds', 'excludeSKU'],
                     additionalProperties: false
                 },
                 filterCantAfford: {
