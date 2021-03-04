@@ -4,6 +4,7 @@ const { version: BOT_VERSION } = require('../package.json');
 import { getPricer } from '@pricer/pricer';
 import Pricer, { GetPricerFn } from './classes/Pricer';
 import { loadOptions } from './classes/Options';
+import HttpManager from './classes/HttpManager';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
 
@@ -51,9 +52,6 @@ function _getPricer(): Pricer {
     });
 }
 const botManager = new BotManager(_getPricer());
-
-import HttpManager from './classes/HttpManager';
-const httpManager = new HttpManager(options);
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
@@ -134,9 +132,13 @@ void botManager.start(options).asCallback(err => {
         throw err;
     }
 
-    void httpManager.start().asCallback(err => {
-        if (err) {
-            throw err;
-        }
-    });
+    if (options.enableHttpApi) {
+        const httpManager = new HttpManager(options);
+
+        void httpManager.start().asCallback(err => {
+            if (err) {
+                throw err;
+            }
+        });
+    }
 });
