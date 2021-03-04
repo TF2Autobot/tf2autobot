@@ -333,7 +333,7 @@ export default class Bot {
 
         this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
 
-        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
+        this.addListener(this.pricelist, 'pricelist', void this.handler.onPricelist.bind(this.handler), false);
         this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
 
         return new Promise((resolve, reject) => {
