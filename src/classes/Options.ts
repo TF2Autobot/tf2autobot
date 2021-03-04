@@ -1913,6 +1913,7 @@ export function loadOptions(options?: Options): Options {
 
     const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
     const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
+    const jsonParseNumber = (jsonString: string): number => (JSON.parse(jsonString) as unknown) as number;
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -1930,7 +1931,7 @@ export function loadOptions(options?: Options): Options {
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
-        enableHttpApi: getOption('enableHttpApi', true, jsonParseBoolean, incomingOptions),
+        enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
         customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 
@@ -1942,7 +1943,9 @@ export function loadOptions(options?: Options): Options {
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
         debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
-        debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions)
+        debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
+
+        httpApiPort: getOption('httpApiPort', 80, jsonParseNumber, incomingOptions)
     };
 
     if (!envOptions.steamAccountName) {
