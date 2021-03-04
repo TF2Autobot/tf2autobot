@@ -309,6 +309,8 @@ export default class PricelistManagerCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
+        const skusFromPricelist = pricelist.map(entry => entry.sku);
+
         const dict = this.bot.inventoryManager.getInventory.getItems;
         const clonedDict = Object.assign({}, dict);
 
@@ -360,7 +362,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (pricelist.some(entry => entry.sku === sku)) {
+            if (skusFromPricelist.includes(sku)) {
                 skipped++;
                 this.bot.sendMessage(
                     steamID,
