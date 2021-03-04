@@ -734,7 +734,7 @@ export default class Pricelist extends EventEmitter {
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
 
-                            if (opt.enable && isInStock && isNotExceedThreshold) {
+                            if (opt.enable && isInStock && isNotExceedThreshold && currPrice.sku !== '5021;6') {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
@@ -860,7 +860,13 @@ export default class Pricelist extends EventEmitter {
             const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
             const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
 
-            if (optPartialUpdate.enable && isInStock && isNotExceedThreshold && this.globalKeyPrices !== undefined) {
+            if (
+                optPartialUpdate.enable &&
+                isInStock &&
+                isNotExceedThreshold &&
+                this.globalKeyPrices !== undefined &&
+                match.sku !== '5021;6'
+            ) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
