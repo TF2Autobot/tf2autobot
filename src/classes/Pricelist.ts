@@ -912,9 +912,13 @@ export default class Pricelist extends EventEmitter {
                     if (isUpdate) {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
+                        const dw = opt.discordWebhook.sendAlert;
+                        const isDwEnabled = dw.enable && dw.url !== '';
 
                         const msg =
-                            `${match.sku}:\n▸ ` +
+                            `${
+                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                            } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                                 `current: ${match.buy.toString()}/${match.sell.toString()}`,
@@ -922,8 +926,7 @@ export default class Pricelist extends EventEmitter {
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            const dw = opt.discordWebhook.sendAlert;
-                            if (dw.enable && dw.url !== '') {
+                            if (isDwEnabled) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
