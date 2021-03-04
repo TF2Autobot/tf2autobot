@@ -727,6 +727,8 @@ export default class Pricelist extends EventEmitter {
 
                             const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
+
+                            // TODO: Use last bought prices instead of current buying prices
                             const currBuyingValue = currPrice.buy.toValue(keyPrice);
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
@@ -866,6 +868,8 @@ export default class Pricelist extends EventEmitter {
 
                 const newBuyValue = newBuy.toValue(keyPrice);
                 const newSellValue = newSell.toValue(keyPrice);
+
+                // TODO: Use last bought prices instead of current buying prices
                 const currBuyingValue = match.buy.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
