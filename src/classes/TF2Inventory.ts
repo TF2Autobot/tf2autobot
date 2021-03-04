@@ -39,13 +39,11 @@ type TF2Item = {
 export default class TF2Inventory {
     private readonly steamID: SteamID;
 
-    private readonly manager: TradeOfferManager;
-
     private items: TF2Item[] = [];
 
     private slots: number = null;
 
-    constructor(steamID: SteamID | string, manager: TradeOfferManager) {
+    constructor(steamID: SteamID | string, private readonly manager: TradeOfferManager) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
     }

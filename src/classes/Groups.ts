@@ -3,9 +3,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 
 export default class Groups {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

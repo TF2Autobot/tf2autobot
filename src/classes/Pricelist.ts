@@ -140,8 +140,6 @@ export class Entry {
 }
 
 export default class Pricelist extends EventEmitter {
-    private readonly schema: SchemaManager.Schema;
-
     private prices: Entry[] = [];
 
     get getLength(): number {
@@ -179,10 +177,10 @@ export default class Pricelist extends EventEmitter {
     private retryGetKeyPrices: NodeJS.Timeout;
 
     constructor(
-        private priceSource: Pricer,
-        schema: SchemaManager.Schema,
-        private socketManager: SocketManager,
-        private options?: Options,
+        private readonly priceSource: Pricer,
+        private readonly schema: SchemaManager.Schema,
+        private readonly socketManager: SocketManager,
+        private readonly options?: Options,
         private bot?: Bot
     ) {
         super();
@@ -699,6 +697,7 @@ export default class Pricelist extends EventEmitter {
             // Go through our pricelist
             const oldCount = old.length;
             const opt = this.options.pricelist.partialPriceUpdate;
+            const excludedSKU = ['5021;6'].concat(opt.excludeSKU);
             const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
@@ -729,19 +728,23 @@ export default class Pricelist extends EventEmitter {
 
                             const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
+
+                            // TODO: Use last bought prices instead of current buying prices
                             const currBuyingValue = currPrice.buy.toValue(keyPrice);
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+                            const isNotExcluded = !excludedSKU.includes(currPrice.sku);
 
-                            if (opt.enable && isInStock && isNotExceedThreshold) {
+                            if (opt.enable && isInStock && isNotExceedThreshold && isNotExcluded) {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
                                 const isNegativeDiff = newSellValue - currBuyingValue < 0;
 
-                                if (isNegativeDiff) {
+                                if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
                                     // Only trigger this if difference of new selling price and current buying price is negative
+                                    // Or item group is "isPartialPriced".
 
                                     if (newBuyValue < currSellingValue) {
                                         // if new buying price is less than current selling price
@@ -764,12 +767,14 @@ export default class Pricelist extends EventEmitter {
                                         pricesChanged = true;
                                     }
                                 } else {
-                                    // else, just update as usual now.
-                                    currPrice.buy = newBuy;
-                                    currPrice.sell = newSell;
-                                    currPrice.time = newestPrice.time;
+                                    // else, just update as usual now (except if group is "isPartialPriced").
+                                    if (currPrice.group !== 'isPartialPriced') {
+                                        currPrice.buy = newBuy;
+                                        currPrice.sell = newSell;
+                                        currPrice.time = newestPrice.time;
 
-                                    pricesChanged = true;
+                                        pricesChanged = true;
+                                    }
                                 }
                             } else {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
@@ -858,8 +863,15 @@ export default class Pricelist extends EventEmitter {
             const optPartialUpdate = opt.pricelist.partialPriceUpdate;
             const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
             const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
+            const isNotExcluded = !['5021;6'].concat(optPartialUpdate.excludeSKU).includes(match.sku);
 
-            if (optPartialUpdate.enable && isInStock && isNotExceedThreshold && this.globalKeyPrices !== undefined) {
+            if (
+                optPartialUpdate.enable &&
+                isInStock &&
+                isNotExceedThreshold &&
+                this.globalKeyPrices !== undefined &&
+                isNotExcluded
+            ) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
@@ -867,13 +879,16 @@ export default class Pricelist extends EventEmitter {
 
                 const newBuyValue = newBuy.toValue(keyPrice);
                 const newSellValue = newSell.toValue(keyPrice);
+
+                // TODO: Use last bought prices instead of current buying prices
                 const currBuyingValue = match.buy.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
                 const isNegativeDiff = newSellValue - currBuyingValue < 0;
 
-                if (isNegativeDiff) {
+                if (isNegativeDiff || match.group === 'isPartialPriced') {
                     // Only trigger this if difference of new selling price and current buying price is negative
+                    // Or item group is "isPartialPriced".
 
                     let isUpdate = false;
 
@@ -899,9 +914,13 @@ export default class Pricelist extends EventEmitter {
                     if (isUpdate) {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
+                        const dw = opt.discordWebhook.sendAlert;
+                        const isDwEnabled = dw.enable && dw.url !== '';
 
                         const msg =
-                            `${match.sku}:\n▸ ` +
+                            `${
+                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                            } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                                 `current: ${match.buy.toString()}/${match.sell.toString()}`,
@@ -909,8 +928,7 @@ export default class Pricelist extends EventEmitter {
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            const dw = opt.discordWebhook.sendAlert;
-                            if (dw.enable && dw.url !== '') {
+                            if (isDwEnabled) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
@@ -918,12 +936,14 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    // else, just update as usual now.
-                    match.buy = newBuy;
-                    match.sell = newSell;
-                    match.time = data.time;
+                    // else, just update as usual now (except if group is "isPartialPriced").
+                    if (match.group !== 'isPartialPriced') {
+                        match.buy = newBuy;
+                        match.sell = newSell;
+                        match.time = data.time;
 
-                    pricesChanged = true;
+                        pricesChanged = true;
+                    }
                 }
             } else {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock

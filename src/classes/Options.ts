@@ -66,13 +66,15 @@ export const DEFAULTS = {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
             onFailedUpdatePartialPriced: true
-        }
+        },
+        receivedUnusualNotInPricelist: true
     },
 
     pricelist: {
         partialPriceUpdate: {
             enable: false,
-            thresholdInSeconds: 604800 // 7 days
+            thresholdInSeconds: 604800, // 7 days
+            excludeSKU: []
         },
         filterCantAfford: {
             enable: false
@@ -82,6 +84,9 @@ export const DEFAULTS = {
         },
         autoAddInvalidItems: {
             enable: true
+        },
+        autoAddInvalidUnusual: {
+            enable: false
         },
         autoAddPaintedItems: {
             enable: true
@@ -1024,6 +1029,7 @@ interface SendAlert extends OnlyEnable {
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
     partialPrice?: PartialPrice;
+    receivedUnusualNotInPricelist?: boolean;
 }
 
 interface PartialPrice {
@@ -1052,12 +1058,14 @@ interface Pricelist {
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
+    autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
 }
 
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
+    excludeSKU?: string[];
 }
 
 interface PriceAge {

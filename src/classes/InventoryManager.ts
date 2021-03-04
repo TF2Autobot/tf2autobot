@@ -3,11 +3,7 @@ import Inventory from './Inventory';
 import Pricelist from './Pricelist';
 
 export default class InventoryManager {
-    private inventory: Inventory = null;
-
-    private readonly pricelist: Pricelist;
-
-    constructor(pricelist: Pricelist, inventory?: Inventory) {
+    constructor(private readonly pricelist: Pricelist, private inventory: Inventory = null) {
         if (inventory !== null) {
             this.inventory = inventory;
         }

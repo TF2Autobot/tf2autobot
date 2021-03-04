@@ -30,8 +30,6 @@ import Pricer from './Pricer';
 
 export default class Bot {
     // Modules and classes
-    readonly botManager: BotManager;
-
     readonly schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;

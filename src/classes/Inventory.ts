@@ -13,10 +13,6 @@ export default class Inventory {
         return this.steamID;
     }
 
-    private readonly manager: TradeOfferManager;
-
-    private readonly schema: SchemaManager.Schema;
-
     private tradable: Dict = {};
 
     get getItems(): Dict {
@@ -44,25 +40,15 @@ export default class Inventory {
         return items;
     }
 
-    private options: Options;
-
-    private which: 'our' | 'their';
-
-    private effects: Effect[];
-
-    private paints: Paints;
-
-    private strangeParts: StrangeParts;
-
     constructor(
         steamID: SteamID | string,
-        manager: TradeOfferManager,
-        schema: SchemaManager.Schema,
-        options: Options,
-        effects: Effect[],
-        paints: Paints,
-        strangeParts: StrangeParts,
-        which: 'our' | 'their'
+        private readonly manager: TradeOfferManager,
+        private readonly schema: SchemaManager.Schema,
+        private readonly options: Options,
+        private readonly effects: Effect[],
+        private readonly paints: Paints,
+        private readonly strangeParts: StrangeParts,
+        private readonly which: 'our' | 'their'
     ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
