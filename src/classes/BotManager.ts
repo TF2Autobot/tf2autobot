@@ -20,8 +20,6 @@ export default class BotManager {
 
     private readonly schemaManager: SchemaManager;
 
-    private readonly pricer: Pricer;
-
     public bot: Bot = null;
 
     private stopRequested = false;
@@ -32,7 +30,7 @@ export default class BotManager {
 
     private exiting = false;
 
-    constructor(pricer: Pricer) {
+    constructor(private readonly pricer: Pricer) {
         this.pricer = pricer;
         this.schemaManager = new SchemaManager({});
         this.patchSchemaManager();

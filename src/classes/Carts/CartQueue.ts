@@ -10,15 +10,13 @@ import { uptime } from '../../lib/tools/export';
 import { isBptfBanned } from '../../lib/bans';
 
 export default class CartQueue {
-    private readonly bot: Bot;
-
     private carts: Cart[] = [];
 
     private busy = false;
 
     private queuePositionCheck: NodeJS.Timeout;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
@@ -133,10 +131,7 @@ export default class CartQueue {
                             this.queueCheck(steamID);
                         });
                 } else {
-                    this.bot.messageAdmins(
-                        `⚠️ [Queue alert] Current position: ${position}\n\nBot has been up for ${uptime()}`,
-                        []
-                    );
+                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}\n\n${uptime()}`, []);
                     void this.bot.botManager
                         .restartProcess()
                         .then(restarting => {

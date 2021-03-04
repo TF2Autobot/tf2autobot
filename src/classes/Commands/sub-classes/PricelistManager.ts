@@ -17,8 +17,6 @@ import log from '../../../lib/logger';
 // Pricelist manager
 
 export default class PricelistManagerCommands {
-    private readonly bot: Bot;
-
     private stopAutoAdd = false;
 
     private executed = false;
@@ -31,7 +29,7 @@ export default class PricelistManagerCommands {
         this.stopAutoAdd = true;
     }
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
@@ -309,6 +307,8 @@ export default class PricelistManagerCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
+        const skusFromPricelist = pricelist.map(entry => entry.sku);
+
         const dict = this.bot.inventoryManager.getInventory.getItems;
         const clonedDict = Object.assign({}, dict);
 
@@ -360,7 +360,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (pricelist.some(entry => entry.sku === sku)) {
+            if (skusFromPricelist.includes(sku)) {
                 skipped++;
                 this.bot.sendMessage(
                     steamID,

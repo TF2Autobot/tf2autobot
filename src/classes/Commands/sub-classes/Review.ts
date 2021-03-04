@@ -15,9 +15,7 @@ type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
 type ForceAction = 'faccept' | 'fdecline';
 
 export default class ReviewCommands {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

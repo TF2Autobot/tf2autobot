@@ -140,8 +140,6 @@ export class Entry {
 }
 
 export default class Pricelist extends EventEmitter {
-    private readonly schema: SchemaManager.Schema;
-
     private prices: Entry[] = [];
 
     get getLength(): number {
@@ -179,10 +177,10 @@ export default class Pricelist extends EventEmitter {
     private retryGetKeyPrices: NodeJS.Timeout;
 
     constructor(
-        private priceSource: Pricer,
-        schema: SchemaManager.Schema,
-        private socketManager: SocketManager,
-        private options?: Options,
+        private readonly priceSource: Pricer,
+        private readonly schema: SchemaManager.Schema,
+        private readonly socketManager: SocketManager,
+        private readonly options?: Options,
         private bot?: Bot
     ) {
         super();
@@ -740,8 +738,9 @@ export default class Pricelist extends EventEmitter {
 
                                 const isNegativeDiff = newSellValue - currBuyingValue < 0;
 
-                                if (isNegativeDiff) {
+                                if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
                                     // Only trigger this if difference of new selling price and current buying price is negative
+                                    // Or item group is "isPartialPriced".
 
                                     if (newBuyValue < currSellingValue) {
                                         // if new buying price is less than current selling price
@@ -872,8 +871,9 @@ export default class Pricelist extends EventEmitter {
 
                 const isNegativeDiff = newSellValue - currBuyingValue < 0;
 
-                if (isNegativeDiff) {
+                if (isNegativeDiff || match.group === 'isPartialPriced') {
                     // Only trigger this if difference of new selling price and current buying price is negative
+                    // Or item group is "isPartialPriced".
 
                     let isUpdate = false;
 

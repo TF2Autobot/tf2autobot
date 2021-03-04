@@ -12,8 +12,6 @@ import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
 
 export default class Trades {
-    private readonly bot: Bot;
-
     private itemsInTrade: string[] = [];
 
     private receivedOffers: string[] = [];
@@ -26,7 +24,7 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
@@ -951,7 +949,7 @@ export default class Trades {
                     this.bot.messageAdmins(
                         `⚠️ [Escrow check failed alert] Current failed count: ${
                             this.escrowCheckFailedCount
-                        }\n\nBot has been up for ${t.uptime()}`,
+                        }\n\n${t.uptime()}`,
                         []
                     );
                     void this.bot.botManager
