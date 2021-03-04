@@ -4,6 +4,7 @@ const { version: BOT_VERSION } = require('../package.json');
 import { getPricer } from '@pricer/pricer';
 import Pricer, { GetPricerFn } from './classes/Pricer';
 import { loadOptions } from './classes/Options';
+import HttpManager from './classes/HttpManager';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
 
@@ -129,5 +130,15 @@ process.on('message', message => {
 void botManager.start(options).asCallback(err => {
     if (err) {
         throw err;
+    }
+
+    if (options.enableHttpApi) {
+        const httpManager = new HttpManager(options);
+
+        void httpManager.start().asCallback(err => {
+            if (err) {
+                throw err;
+            }
+        });
     }
 });
