@@ -482,6 +482,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
                     additionalProperties: false
+                },
+                receivedUnusualNotInPricelist: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -493,7 +496,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
-                'partialPrice'
+                'partialPrice',
+                'receivedUnusualNotInPricelist'
             ],
             additionalProperties: false
         },
@@ -526,6 +530,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autoAddInvalidItems: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoAddInvalidUnusual: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoAddPaintedItems: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -546,6 +553,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
+                'autoAddInvalidUnusual',
                 'autoAddPaintedItems',
                 'priceAge'
             ],

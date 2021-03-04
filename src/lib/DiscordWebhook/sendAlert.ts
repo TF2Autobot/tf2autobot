@@ -36,7 +36,8 @@ type AlertType =
     | 'error-accept'
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
-    | 'isPartialPriced';
+    | 'isPartialPriced'
+    | 'unusualInvalidItems';
 
 export default function sendAlert(
     type: AlertType,
@@ -105,6 +106,10 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'highValuedInvalidItems') {
         title = 'Received High-value invalid item(s)';
+        description = msg;
+        color = '8323327'; // purple
+    } else if (type === 'unusualInvalidItems') {
+        title = 'Received Unusual bought with Generic Unusual feature';
         description = msg;
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
@@ -217,7 +222,8 @@ export default function sendAlert(
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
                 'failed-accept',
-                'error-accept'
+                'error-accept',
+                'unusualInvalidItems'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
                 : '') + (content ? ` - ${content}` : ''),
