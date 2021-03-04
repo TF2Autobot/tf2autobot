@@ -767,12 +767,14 @@ export default class Pricelist extends EventEmitter {
                                         pricesChanged = true;
                                     }
                                 } else {
-                                    // else, just update as usual now.
-                                    currPrice.buy = newBuy;
-                                    currPrice.sell = newSell;
-                                    currPrice.time = newestPrice.time;
+                                    // else, just update as usual now (except if group is "isPartialPriced").
+                                    if (currPrice.group !== 'isPartialPriced') {
+                                        currPrice.buy = newBuy;
+                                        currPrice.sell = newSell;
+                                        currPrice.time = newestPrice.time;
 
-                                    pricesChanged = true;
+                                        pricesChanged = true;
+                                    }
                                 }
                             } else {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
@@ -934,12 +936,14 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    // else, just update as usual now.
-                    match.buy = newBuy;
-                    match.sell = newSell;
-                    match.time = data.time;
+                    // else, just update as usual now (except if group is "isPartialPriced").
+                    if (match.group !== 'isPartialPriced') {
+                        match.buy = newBuy;
+                        match.sell = newSell;
+                        match.time = data.time;
 
-                    pricesChanged = true;
+                        pricesChanged = true;
+                    }
                 }
             } else {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
