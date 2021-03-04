@@ -38,6 +38,7 @@ export default class HttpManager {
      */
     protected registerRoutes(): void {
         this.app.get('/health', (req, res) => res.send('OK'));
+        this.app.get('/uptime', (req, res) => res.json({ uptime: uptimeAsUnix() }));
     }
 
     /**
