@@ -106,7 +106,7 @@ export default class Bot {
 
     private ready = false;
 
-    constructor(public botManager: BotManager, public options: Options, private priceSource: Pricer) {
+    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema;
