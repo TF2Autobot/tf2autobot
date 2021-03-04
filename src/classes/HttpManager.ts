@@ -46,10 +46,10 @@ export default class HttpManager {
      */
     start(): Promise<void> {
         return new Promise(resolve => {
-            if (this.options.http.enable) {
-                this.server = this.app.listen(this.options.http.port, () => {
+            if (this.options.enableHttpApi) {
+                this.server = this.app.listen(this.options.httpApiPort, () => {
                     resolve();
-                    log.debug(`HTTP Server started: http://127.0.0.1:${this.options.http.port}`);
+                    log.debug(`HTTP Server started: http://127.0.0.1:${this.options.httpApiPort}`);
                 });
             } else {
                 log.debug('HTTP Server is not enabled. Skipping initialization...');

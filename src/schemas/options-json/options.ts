@@ -2202,17 +2202,6 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['spells', 'sheens', 'killstreakers', 'painted', 'strangeParts'],
             additionalProperties: false
-        },
-        http: {
-            type: 'object',
-            properties: {
-                enable: {
-                    type: 'boolean'
-                },
-                port: {
-                    type: 'number'
-                }
-            }
         }
     },
     required: [

@@ -967,11 +967,6 @@ export const DEFAULTS = {
             'Kills Under A Full Moon': '',
             'Robots Killed During Halloween': ''
         }
-    },
-
-    http: {
-        enable: false,
-        port: 80
     }
 };
 
@@ -1766,13 +1761,6 @@ interface StrangeParts {
     'Robots Killed During Halloween'?: string;
 }
 
-// ------------ HTTP ------------
-
-interface Http {
-    enable: boolean;
-    port: number;
-}
-
 // ------------ JsonOptions ------------
 
 export interface JsonOptions {
@@ -1794,7 +1782,6 @@ export interface JsonOptions {
     customMessage?: CustomMessage;
     commands?: Commands;
     detailsExtra?: DetailsExtra;
-    http?: Http;
 }
 
 export default interface Options extends JsonOptions {
@@ -1813,6 +1800,7 @@ export default interface Options extends JsonOptions {
     alerts?: string[];
 
     enableSocket?: boolean;
+    enableHttpApi?: boolean;
     customPricerApiToken?: string;
     customPricerUrl?: string;
 
@@ -1828,6 +1816,8 @@ export default interface Options extends JsonOptions {
 
     folderName?: string;
     filePrefix?: string;
+
+    httpApiPort?: number;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -1940,6 +1930,7 @@ export function loadOptions(options?: Options): Options {
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
+        enableHttpApi: getOption('enableHttpApi', true, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
         customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 
