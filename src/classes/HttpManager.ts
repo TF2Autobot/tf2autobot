@@ -41,12 +41,12 @@ export default class HttpManager {
     start(): Promise<void> {
         return new Promise(resolve => {
             this.app.listen(this.options.httpApiPort, () => {
-                resolve();
                 log.debug(`HTTP Server started: http://127.0.0.1:${this.options.httpApiPort}`);
                 log.info(`This is NOT a HTTP API used to handle data within the bot.
-                    It is solely for managing the bot programatically by providing healthchecks & uptime details.`);
+                It is solely for managing the bot programatically by providing healthchecks & uptime details.`);
                 log.info(`Please use the TF2Bot GUI v3+ as the main API source.`);
                 log.info(`https://github.com/TF2Autobot/tf2autobot-gui`);
+                resolve();
             });
         });
     }
