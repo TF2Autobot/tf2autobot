@@ -28,7 +28,6 @@
                 "ALERTS": ["trade", "version"],
 
                 "ENABLE_SOCKET": true,
-                "ENABLE_HTTP_API": false,
                 "CUSTOM_PRICER_URL": "",
                 "CUSTOM_PRICER_API_TOKEN": "",
 
@@ -42,6 +41,7 @@
                 "DEBUG": true,
                 "DEBUG_FILE": true,
 
+                "ENABLE_HTTP_API": false,
                 "HTTP_API_PORT": 80
             }
         }

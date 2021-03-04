@@ -1800,7 +1800,6 @@ export default interface Options extends JsonOptions {
     alerts?: string[];
 
     enableSocket?: boolean;
-    enableHttpApi?: boolean;
     customPricerApiToken?: string;
     customPricerUrl?: string;
 
@@ -1817,6 +1816,7 @@ export default interface Options extends JsonOptions {
     folderName?: string;
     filePrefix?: string;
 
+    enableHttpApi?: boolean;
     httpApiPort?: number;
 }
 
@@ -1931,7 +1931,6 @@ export function loadOptions(options?: Options): Options {
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
-        enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
         customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
 
@@ -1945,6 +1944,7 @@ export function loadOptions(options?: Options): Options {
         debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
         debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
 
+        enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
         httpApiPort: getOption('httpApiPort', 80, jsonParseNumber, incomingOptions)
     };
 
