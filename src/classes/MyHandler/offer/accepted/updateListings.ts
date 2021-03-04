@@ -48,7 +48,7 @@ export default function updateListings(
         const isNotSkinsOrWarPaint = item.wear === null;
         // if item is unusual and autoAddInvalidUnusual is set to true then we allow addInvalidUnusual.
         // If the item is not an unusual sku, we "allow" still (no-op)
-        const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual : true;
+        const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual.enable : true;
 
         const isAutoaddPainted =
             normalizePainted.our === false && // must meet this setting
@@ -84,7 +84,7 @@ export default function updateListings(
             isNotPureOrWeapons &&
             isNotSkinsOrWarPaint &&
             item.quality === 5 &&
-            opt.pricelist.autoAddInvalidUnusual === false &&
+            opt.pricelist.autoAddInvalidUnusual.enable === false &&
             !isAdmin;
 
         const isAutoDisableHighValueItems =
