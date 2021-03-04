@@ -212,7 +212,7 @@ export default class MyHandler extends Handler {
         this.executedDelayTime = delay;
     }
 
-    constructor(bot: Bot, private priceSource: Pricer) {
+    constructor(public bot: Bot, private priceSource: Pricer) {
         super(bot);
 
         this.commands = new Commands(bot, priceSource);

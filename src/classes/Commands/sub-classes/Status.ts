@@ -11,9 +11,7 @@ import { sendStats } from '../../../lib/DiscordWebhook/export';
 // Bot status
 
 export default class StatusCommands {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

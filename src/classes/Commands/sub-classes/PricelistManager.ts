@@ -17,8 +17,6 @@ import log from '../../../lib/logger';
 // Pricelist manager
 
 export default class PricelistManagerCommands {
-    private readonly bot: Bot;
-
     private stopAutoAdd = false;
 
     private executed = false;
@@ -31,7 +29,7 @@ export default class PricelistManagerCommands {
         this.stopAutoAdd = true;
     }
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

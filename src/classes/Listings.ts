@@ -16,8 +16,6 @@ import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
-    private readonly bot: Bot;
-
     private checkingAllListings = false;
 
     private removingAllListings = false;
@@ -40,7 +38,7 @@ export default class Listings {
 
     private readonly checkFn;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
         this.templates = {
             buy:

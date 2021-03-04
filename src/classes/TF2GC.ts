@@ -21,15 +21,13 @@ type ListenForEvent =
       ];
 
 export default class TF2GC {
-    private readonly bot: Bot;
-
     private processingQueue = false;
 
     private startedProcessing = false;
 
     private jobs: Job[] = [];
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
