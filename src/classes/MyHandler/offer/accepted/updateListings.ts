@@ -36,17 +36,18 @@ export default function updateListings(
             continue;
         }
 
-        const name = bot.schema.getName(SKU.fromString(sku), false);
+        const item = SKU.fromString(sku);
+        const name = bot.schema.getName(item, false);
         const isNotPureOrWeapons = !(weapons.includes(sku) || ['5000;6', '5001;6', '5002;6'].includes(sku));
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         const existInPricelist = inPrice !== null;
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
-        const isNotSkinsOrWarPaint = SKU.fromString(sku).wear === null;
+        const isNotSkinsOrWarPaint = item.wear === null;
         // if item is unusual and autoAddInvalidUnusual is set to true then we allow addInvalidUnusual.
         // If the item is not an unusual sku, we "allow" still (no-op)
-        const addInvalidUnusual = SKU.fromString(sku).quality === 5 ? opt.pricelist.autoAddInvalidUnusual : true;
+        const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual : true;
 
         const isAutoaddPainted =
             normalizePainted.our === false && // must meet this setting

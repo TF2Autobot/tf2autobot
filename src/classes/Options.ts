@@ -83,7 +83,7 @@ export const DEFAULTS = {
         autoAddInvalidItems: {
             enable: true
         },
-        addInvalidUnusual: {
+        autoAddInvalidUnusual: {
             enable: false
         },
         autoAddPaintedItems: {
