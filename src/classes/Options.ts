@@ -654,6 +654,7 @@ export const DEFAULTS = {
             }
         }
     },
+
     detailsExtra: {
         /**
          * Custom string to be shown in listing note if details.highValue.showSpells set to true
@@ -966,6 +967,11 @@ export const DEFAULTS = {
             'Kills Under A Full Moon': '',
             'Robots Killed During Halloween': ''
         }
+    },
+
+    http: {
+        enable: false,
+        port: 80
     }
 };
 
@@ -1760,6 +1766,13 @@ interface StrangeParts {
     'Robots Killed During Halloween'?: string;
 }
 
+// ------------ HTTP ------------
+
+interface Http {
+    enable: boolean;
+    port: number;
+}
+
 // ------------ JsonOptions ------------
 
 export interface JsonOptions {
@@ -1781,6 +1794,7 @@ export interface JsonOptions {
     customMessage?: CustomMessage;
     commands?: Commands;
     detailsExtra?: DetailsExtra;
+    http?: Http;
 }
 
 export default interface Options extends JsonOptions {

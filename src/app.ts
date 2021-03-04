@@ -52,6 +52,9 @@ function _getPricer(): Pricer {
 }
 const botManager = new BotManager(_getPricer());
 
+import HttpManager from './classes/HttpManager';
+const httpManager = new HttpManager(options);
+
 import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
@@ -130,4 +133,10 @@ void botManager.start(options).asCallback(err => {
     if (err) {
         throw err;
     }
+
+    void httpManager.start().asCallback(err => {
+        if (err) {
+            throw err;
+        }
+    });
 });
