@@ -83,6 +83,9 @@ export const DEFAULTS = {
         autoAddInvalidItems: {
             enable: true
         },
+        addInvalidUnusual: {
+            enable: false
+        },
         autoAddPaintedItems: {
             enable: true
         },
@@ -1052,6 +1055,7 @@ interface Pricelist {
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
+    autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
 }

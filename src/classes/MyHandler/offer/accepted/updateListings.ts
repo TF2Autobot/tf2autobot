@@ -44,6 +44,9 @@ export default function updateListings(
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
         const isNotSkinsOrWarPaint = SKU.fromString(sku).wear === null;
+        // if item is unusual and autoAddInvalidUnusual is set to true then we allow addInvalidUnusual.
+        // If the item is not an unusual sku, we "allow" still (no-op)
+        const addInvalidUnusual = SKU.fromString(sku).quality === 5 ? opt.pricelist.autoAddInvalidUnusual : true;
 
         const isAutoaddPainted =
             normalizePainted.our === false && // must meet this setting
@@ -62,6 +65,7 @@ export default function updateListings(
             isNotPureOrWeapons &&
             sku !== '5021;6' && // not Mann Co. Supply Crate Key
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
+            addInvalidUnusual &&
             !isDisabledHV &&
             !isAdmin &&
             opt.pricelist.autoAddInvalidItems.enable;
