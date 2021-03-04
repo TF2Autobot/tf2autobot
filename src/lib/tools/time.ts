@@ -100,13 +100,9 @@ export function convertTime(time: number, showInMS: boolean): string {
     return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${showInMS ? ` (${time} ms)` : ''}`;
 }
 
-export function uptimeAsUnix(): dayjs.Dayjs {
-    return dayjs.unix(dayjs().unix() - process.uptime());
-}
-
 export function uptime(): string {
     const currentTime = dayjs();
-    const uptimeAsMoment = uptimeAsUnix();
+    const uptimeAsMoment = dayjs.unix(currentTime.unix() - process.uptime());
     const hoursDiff = currentTime.diff(uptimeAsMoment, 'hour');
     const daysDiff = currentTime.diff(uptimeAsMoment, 'day');
 

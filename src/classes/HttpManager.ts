@@ -6,7 +6,6 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 import log from '../lib/logger';
-import { uptimeAsUnix } from '../lib/tools/time';
 import Options from './Options';
 
 export default class HttpManager {
@@ -38,7 +37,7 @@ export default class HttpManager {
      */
     protected registerRoutes(): void {
         this.app.get('/health', (req, res) => res.send('OK'));
-        this.app.get('/uptime', (req, res) => res.json({ uptime: uptimeAsUnix() }));
+        this.app.get('/uptime', (req, res) => res.json({ uptime: process.uptime() }));
     }
 
     /**
