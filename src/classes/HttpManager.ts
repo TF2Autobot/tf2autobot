@@ -15,11 +15,6 @@ export default class HttpManager {
     protected app: express.Application;
 
     /**
-     * The Express.js server app.
-     */
-    public server;
-
-    /**
      * Initialize the HTTP manager.
      *
      * @param options - The options list.
@@ -45,7 +40,7 @@ export default class HttpManager {
      */
     start(): Promise<void> {
         return new Promise(resolve => {
-            this.server = this.app.listen(this.options.httpApiPort, () => {
+            this.app.listen(this.options.httpApiPort, () => {
                 resolve();
                 log.debug(`HTTP Server started: http://127.0.0.1:${this.options.httpApiPort}`);
             });
