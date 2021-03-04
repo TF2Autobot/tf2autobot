@@ -133,10 +133,7 @@ export default class CartQueue {
                             this.queueCheck(steamID);
                         });
                 } else {
-                    this.bot.messageAdmins(
-                        `⚠️ [Queue alert] Current position: ${position}\n\nBot has been up for ${uptime()}`,
-                        []
-                    );
+                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}\n\n${uptime()}`, []);
                     void this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
