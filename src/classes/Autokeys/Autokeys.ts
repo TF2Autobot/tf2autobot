@@ -28,8 +28,6 @@ interface OldAmount {
 type SetOldAmount = [number, number, number, number, number];
 
 export default class Autokeys {
-    private readonly bot: Bot;
-
     get isEnabled(): boolean {
         return this.bot.options.autokeys.enable;
     }
@@ -120,7 +118,7 @@ export default class Autokeys {
 
     private OldKeyPrices: { buy: Currencies; sell: Currencies };
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

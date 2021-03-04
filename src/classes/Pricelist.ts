@@ -140,8 +140,6 @@ export class Entry {
 }
 
 export default class Pricelist extends EventEmitter {
-    private readonly schema: SchemaManager.Schema;
-
     private prices: Entry[] = [];
 
     get getLength(): number {
@@ -179,10 +177,10 @@ export default class Pricelist extends EventEmitter {
     private retryGetKeyPrices: NodeJS.Timeout;
 
     constructor(
-        private priceSource: Pricer,
-        schema: SchemaManager.Schema,
-        private socketManager: SocketManager,
-        private options?: Options,
+        private readonly priceSource: Pricer,
+        private readonly schema: SchemaManager.Schema,
+        private readonly socketManager: SocketManager,
+        private readonly options?: Options,
         private bot?: Bot
     ) {
         super();

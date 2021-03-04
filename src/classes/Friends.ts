@@ -6,11 +6,9 @@ import { UnknownDictionary } from '../types/common';
 import Bot from './Bot';
 
 export default class Friends {
-    private readonly bot: Bot;
-
     maxFriends: number | undefined;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

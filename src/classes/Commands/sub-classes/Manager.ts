@@ -22,8 +22,6 @@ type NameAvatar = 'name' | 'avatar';
 type BlockUnblock = 'block' | 'unblock';
 
 export default class ManagerCommands {
-    private readonly bot: Bot;
-
     private pricelistCount = 0;
 
     private executed = false;
@@ -32,7 +30,7 @@ export default class ManagerCommands {
 
     private executeTimeout: NodeJS.Timeout;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

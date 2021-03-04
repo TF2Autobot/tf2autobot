@@ -29,9 +29,7 @@ export type OptionsKeys =
     | 'detailsExtra';
 
 export default class OptionsCommands {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 

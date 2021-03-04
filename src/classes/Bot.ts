@@ -30,8 +30,6 @@ import Pricer from './Pricer';
 
 export default class Bot {
     // Modules and classes
-    readonly botManager: BotManager;
-
     readonly schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;
@@ -150,7 +148,7 @@ export default class Bot {
 
     private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
 
-    constructor(botManager: BotManager, public options: Options, private priceSource: Pricer) {
+    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema;
