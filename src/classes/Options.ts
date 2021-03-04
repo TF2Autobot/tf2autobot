@@ -1945,7 +1945,7 @@ export function loadOptions(options?: Options): Options {
         debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
 
         enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
-        httpApiPort: getOption('httpApiPort', 80, jsonParseNumber, incomingOptions)
+        httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions)
     };
 
     if (!envOptions.steamAccountName) {
