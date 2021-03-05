@@ -709,10 +709,11 @@ export default class Pricelist extends EventEmitter {
                         void this.updateKeyPrices();
                     }, 15 * 60 * 1000);
 
-                    throw new Error(
+                    log.error(
                         'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                             'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                     );
+                    return;
                 }
 
                 if (entryKey !== null && entryKey.autoprice) {
@@ -871,10 +872,11 @@ export default class Pricelist extends EventEmitter {
             const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
             if (!canUseKeyPricesFromSource) {
-                throw new Error(
+                log.error(
                     'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                         'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                 );
+                return;
             }
 
             const currGlobal = this.globalKeyPrices;
