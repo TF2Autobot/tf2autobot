@@ -620,7 +620,7 @@ export default class Pricelist extends EventEmitter {
                             src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
                             time: time
                         };
-                        log.debug('Key rate is set based current key prices.', this.globalKeyPrices);
+                        log.debug(`Key rate is set based current key prices.`, this.globalKeyPrices);
                     }
 
                     if (entryKey !== null && entryKey.autoprice) {
@@ -628,6 +628,13 @@ export default class Pricelist extends EventEmitter {
                         entryKey.buy = newPrices.buy;
                         entryKey.sell = newPrices.sell;
                         entryKey.time = keyPrices.time;
+
+                        if (this.verifyKeyPrices(entryKey) === false) {
+                            log.warn(
+                                `Price for Mann Co. Supply Crate Key in your pricelist in not valid and has been reset to use current prices.`,
+                                this.globalKeyPrices
+                            );
+                        }
                     }
                 }
 
