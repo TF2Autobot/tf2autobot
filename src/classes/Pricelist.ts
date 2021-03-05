@@ -311,10 +311,6 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(price.sell)
                 };
 
-                entry.buy = newPrices.buy;
-                entry.sell = newPrices.sell;
-                entry.time = price.time;
-
                 if (entry.sku === '5021;6') {
                     clearTimeout(this.retryGetKeyPrices);
 
@@ -328,17 +324,19 @@ export default class Pricelist extends EventEmitter {
                     }
 
                     this.globalKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell,
+                        buy: newPrices.buy,
+                        sell: newPrices.sell,
                         src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: entry.time
+                        time: price.time
                     };
 
-                    this.currentKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell
-                    };
+                    this.currentKeyPrices = newPrices;
                 }
+
+                entry.buy = newPrices.buy;
+                entry.sell = newPrices.sell;
+                entry.time = price.time;
+                //
             } catch (err) {
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
@@ -585,10 +583,7 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                this.currentKeyPrices = {
-                    buy: newPrices.buy,
-                    sell: newPrices.sell
-                };
+                this.currentKeyPrices = newPrices;
 
                 const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
 
@@ -915,10 +910,7 @@ export default class Pricelist extends EventEmitter {
             }
 
             // currentKeyPrices will still need to be updated.
-            this.currentKeyPrices = {
-                buy: newPrices.buy,
-                sell: newPrices.sell
-            };
+            this.currentKeyPrices = newPrices;
         }
 
         if (match !== null && match.autoprice) {
