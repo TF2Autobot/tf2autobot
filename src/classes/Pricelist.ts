@@ -621,19 +621,19 @@ export default class Pricelist extends EventEmitter {
                             time: time
                         };
                         log.debug(`Key rate is set based current key prices.`, this.globalKeyPrices);
-                    }
 
-                    if (entryKey !== null && entryKey.autoprice) {
-                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                        entryKey.buy = newPrices.buy;
-                        entryKey.sell = newPrices.sell;
-                        entryKey.time = keyPrices.time;
+                        if (entryKey !== null && entryKey.autoprice) {
+                            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                            entryKey.buy = newPrices.buy;
+                            entryKey.sell = newPrices.sell;
+                            entryKey.time = keyPrices.time;
 
-                        if (this.verifyKeyPrices(entryKey) === false) {
-                            log.warn(
-                                `Price for Mann Co. Supply Crate Key in your pricelist in not valid and has been reset to use current prices.`,
-                                this.globalKeyPrices
-                            );
+                            if (this.verifyKeyPrices(entryKey) === false) {
+                                log.warn(
+                                    `Price for Mann Co. Supply Crate Key in your pricelist in not valid and has been reset to use current prices.`,
+                                    this.globalKeyPrices
+                                );
+                            }
                         }
                     }
                 }
@@ -655,7 +655,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     private useTemporaryKeyPrices(entryKey: Entry): void {
-        if (entryKey !== null) {
+        const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
+
+        if (canUseManuallyPriced) {
             log.debug('✅ Key entry exist, setting current and global key rate as is');
             this.currentKeyPrices = {
                 buy: entryKey.buy,
