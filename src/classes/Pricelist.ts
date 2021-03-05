@@ -318,9 +318,9 @@ export default class Pricelist extends EventEmitter {
                 if (entry.sku === '5021;6') {
                     clearTimeout(this.retryGetKeyPrices);
 
-                    const canUseNewKeyPrices = this.verifyKeyPrices(newPrices);
+                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
-                    if (!canUseNewKeyPrices) {
+                    if (!canUseKeyPricesFromSource) {
                         throw new Error(
                             'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                                 'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
@@ -604,9 +604,9 @@ export default class Pricelist extends EventEmitter {
                     };
                     log.debug('Key rate is set based on current key prices in the pricelist.', this.globalKeyPrices);
                 } else {
-                    const canUseKeypricesFromSource = this.verifyKeyPrices(newPrices);
+                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
-                    if (!canUseKeypricesFromSource) {
+                    if (!canUseKeyPricesFromSource) {
                         // Let the bot crashed from start
                         throw new Error(
                             'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
@@ -700,9 +700,9 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                const canUseKeypricesFromSource = this.verifyKeyPrices(updatedKeyPrices);
+                const canUseKeyPricesFromSource = this.verifyKeyPrices(updatedKeyPrices);
 
-                if (!canUseKeypricesFromSource) {
+                if (!canUseKeyPricesFromSource) {
                     log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
                     this.retryGetKeyPrices = setTimeout(() => {
                         void this.updateKeyPrices();
@@ -867,9 +867,9 @@ export default class Pricelist extends EventEmitter {
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
 
-            const canUseNewKeyPrices = this.verifyKeyPrices(newPrices);
+            const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
-            if (!canUseNewKeyPrices) {
+            if (!canUseKeyPricesFromSource) {
                 throw new Error(
                     'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                         'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
