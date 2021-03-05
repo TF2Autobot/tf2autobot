@@ -133,17 +133,13 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             sellPrice = new Currencies(prices[sku].sell).toString();
         }
 
+        const name = bot.schema.getName(SKU.fromString(sku), properName);
+
         toJoin.push(
             `${
                 isSteamChat
-                    ? `${bot.schema.getName(
-                          SKU.fromString(sku),
-                          properName
-                      )} - ${buyPrice} / ${sellPrice} (${autoprice})`
-                    : `_${bot.schema.getName(
-                          SKU.fromString(sku),
-                          properName
-                      )}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
+                    ? `${name} - ${buyPrice} / ${sellPrice} (${autoprice})`
+                    : `_${name}_ - ${buyPrice} / ${sellPrice} (${autoprice})`
             }`
         );
     }
