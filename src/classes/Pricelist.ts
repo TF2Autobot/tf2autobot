@@ -607,11 +607,12 @@ export default class Pricelist extends EventEmitter {
                     const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
                     if (!canUseKeyPricesFromSource) {
-                        // Let the bot crashed from start
-                        throw new Error(
-                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
-                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                        log.error(
+                            `Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct -` +
+                                ` both buy and sell "keys" property must be 0 and value ("metal") must not 0. Using temporary key prices...`
                         );
+
+                        this.useTemporaryKeyPrices(entryKey);
                     } else {
                         this.globalKeyPrices = {
                             buy: newPrices.buy,
