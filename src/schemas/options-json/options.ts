@@ -593,6 +593,9 @@ export const optionsSchema: jsonschema.Schema = {
                 showPureInEmoji: {
                     type: 'boolean'
                 },
+                showProperName: {
+                    type: 'boolean'
+                },
                 customText: {
                     type: 'object',
                     properties: {
