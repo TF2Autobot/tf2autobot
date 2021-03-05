@@ -621,13 +621,13 @@ export default class Pricelist extends EventEmitter {
                             time: time
                         };
                         log.debug('Key rate is set based current key prices.', this.globalKeyPrices);
+                    }
 
-                        if (entryKey !== null && entryKey.autoprice) {
-                            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                            entryKey.buy = newPrices.buy;
-                            entryKey.sell = newPrices.sell;
-                            entryKey.time = keyPrices.time;
-                        }
+                    if (entryKey !== null && entryKey.autoprice) {
+                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                        entryKey.buy = newPrices.buy;
+                        entryKey.sell = newPrices.sell;
+                        entryKey.time = keyPrices.time;
                     }
                 }
 
