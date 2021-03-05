@@ -341,7 +341,7 @@ export default class Pricelist extends EventEmitter {
                 }
             } catch (err) {
                 throw new Error(
-                    `❌ Unable to get current prices for ${entry.sku}: ${
+                    `Unable to get current prices for ${entry.sku}: ${
                         (err as ErrorRequest).body && (err as ErrorRequest).body.message
                             ? (err as ErrorRequest).body.message
                             : (err as ErrorRequest).message
