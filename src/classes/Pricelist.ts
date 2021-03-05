@@ -590,7 +590,7 @@ export default class Pricelist extends EventEmitter {
                     sell: newPrices.sell
                 };
 
-                const canUseManuallyPriced = this.verifyKeyPrices(entryKey);
+                const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
 
                 if (entryKey !== null && !entryKey.autoprice && canUseManuallyPriced) {
                     // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
