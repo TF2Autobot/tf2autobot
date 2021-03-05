@@ -40,15 +40,27 @@ export default function sendOfferReview(
     const pureStock = pure.stock(bot);
     const message = replace.specialChar(offer.message);
 
-    const itemsName = {
-        invalid: items.invalid.map(name => replace.itemName(name)),
-        disabled: items.disabled.map(name => replace.itemName(name)),
-        overstock: items.overstock.map(name => replace.itemName(name)),
-        understock: items.understock.map(name => replace.itemName(name)),
-        duped: items.duped.map(name => replace.itemName(name)),
-        dupedFailed: items.dupedFailed.map(name => replace.itemName(name)),
-        highValue: items.highValue.map(name => replace.itemName(name))
-    };
+    const properName = bot.options.tradeSummary.showProperName;
+
+    const itemsName = properName
+        ? {
+              invalid: items.invalid,
+              disabled: items.disabled,
+              overstock: items.overstock,
+              understock: items.understock,
+              duped: items.duped,
+              dupedFailed: items.dupedFailed,
+              highValue: items.highValue
+          }
+        : {
+              invalid: items.invalid.map(name => replace.itemName(name)),
+              disabled: items.disabled.map(name => replace.itemName(name)),
+              overstock: items.overstock.map(name => replace.itemName(name)),
+              understock: items.understock.map(name => replace.itemName(name)),
+              duped: items.duped.map(name => replace.itemName(name)),
+              dupedFailed: items.dupedFailed.map(name => replace.itemName(name)),
+              highValue: items.highValue.map(name => replace.itemName(name))
+          };
 
     const slots = bot.tf2.backpackSlots;
     const currentItems = bot.inventoryManager.getInventory.getTotalItems;

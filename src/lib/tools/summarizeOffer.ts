@@ -128,6 +128,7 @@ function getSummary(
     }
 
     const summary: string[] = [];
+    const properName = bot.options.tradeSummary.showProperName;
 
     for (const sku in dict) {
         if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
@@ -136,8 +137,8 @@ function getSummary(
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
-        const name = replace.itemName(generateName ? generateName : 'unknown');
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName);
+        const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
             let oldStock = 0;
