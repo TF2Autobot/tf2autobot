@@ -682,12 +682,12 @@ export default class Pricelist extends EventEmitter {
             };
 
             this.retryGetKeyPrices = setTimeout(() => {
-                void this.updateKeyRate();
+                void this.updateKeyPrices();
             }, 15 * 60 * 1000);
         }
     }
 
-    private updateKeyRate(): Promise<void> {
+    private updateKeyPrices(): Promise<void> {
         const entryKey = this.getPrice('5021;6', false);
         clearTimeout(this.retryGetKeyPrices);
 
@@ -706,7 +706,7 @@ export default class Pricelist extends EventEmitter {
                 if (!canUseKeypricesFromSource) {
                     log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
                     this.retryGetKeyPrices = setTimeout(() => {
-                        void this.updateKeyRate();
+                        void this.updateKeyPrices();
                     }, 15 * 60 * 1000);
 
                     throw new Error(
@@ -728,7 +728,7 @@ export default class Pricelist extends EventEmitter {
             .catch(err => {
                 log.debug('⚠️ Still unable to get current key prices, retrying in 15 minutes: ', err);
                 this.retryGetKeyPrices = setTimeout(() => {
-                    void this.updateKeyRate();
+                    void this.updateKeyPrices();
                 }, 15 * 60 * 1000);
             });
     }
