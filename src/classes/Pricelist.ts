@@ -701,6 +701,20 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
+                const canUseKeypricesFromSource = this.verifyKeyPrices(updatedKeyPrices);
+
+                if (!canUseKeypricesFromSource) {
+                    log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
+                    this.retryGetKeyPrices = setTimeout(() => {
+                        void this.updateKeyRate();
+                    }, 15 * 60 * 1000);
+
+                    throw new Error(
+                        'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                            'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                    );
+                }
+
                 if (entryKey !== null && entryKey.autoprice) {
                     this.globalKeyPrices = {
                         buy: updatedKeyPrices.buy,
