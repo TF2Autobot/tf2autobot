@@ -482,6 +482,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
                     additionalProperties: false
+                },
+                receivedUnusualNotInPricelist: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -493,7 +496,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
-                'partialPrice'
+                'partialPrice',
+                'receivedUnusualNotInPricelist'
             ],
             additionalProperties: false
         },
@@ -509,9 +513,12 @@ export const optionsSchema: jsonschema.Schema = {
                         thresholdInSeconds: {
                             type: 'integer',
                             minimum: 86400 // 1 day
+                        },
+                        excludeSKU: {
+                            type: '#/definitions/string-array'
                         }
                     },
-                    required: ['enable', 'thresholdInSeconds'],
+                    required: ['enable', 'thresholdInSeconds', 'excludeSKU'],
                     additionalProperties: false
                 },
                 filterCantAfford: {
@@ -521,6 +528,9 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 autoAddInvalidItems: {
+                    $ref: '#/definitions/only-enable'
+                },
+                autoAddInvalidUnusual: {
                     $ref: '#/definitions/only-enable'
                 },
                 autoAddPaintedItems: {
@@ -543,6 +553,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'filterCantAfford',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
+                'autoAddInvalidUnusual',
                 'autoAddPaintedItems',
                 'priceAge'
             ],
@@ -580,6 +591,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 showPureInEmoji: {
+                    type: 'boolean'
+                },
+                showProperName: {
                     type: 'boolean'
                 },
                 customText: {

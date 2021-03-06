@@ -506,16 +506,12 @@ export default class MyHandler extends Handler {
                     });
 
                     // Remove duplicate elements
-                    const newlistingsSKUs: string[] = [];
-                    listingsSKUs.forEach(sku => {
-                        if (!newlistingsSKUs.includes(sku)) {
-                            newlistingsSKUs.push(sku);
-                        }
-                    });
+                    const newlistingsSKUs = new Set(listingsSKUs);
+                    const uniqueSKUs = [...newlistingsSKUs];
 
                     const pricelist = this.bot.pricelist.getPrices.filter(entry => {
                         // First find out if lising for this item from bptf already exist.
-                        const isExist = newlistingsSKUs.find(sku => entry.sku === sku);
+                        const isExist = uniqueSKUs.find(sku => entry.sku === sku);
 
                         if (!isExist) {
                             // undefined - listing does not exist but item is in the pricelist
@@ -914,12 +910,12 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (opt.miscSettings.checkUses.noiseMaker && offerSKUs.some(sku => Object.keys(noiseMakers).includes(sku))) {
-            const noiseMaker = (noiseMakerSKUs: string[], items: Dict) => {
+        if (opt.miscSettings.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakers.has(sku))) {
+            const noiseMaker = (items: Dict) => {
                 let isNot25Uses = false;
                 const skus: string[] = [];
 
-                noiseMakerSKUs.forEach(sku => {
+                noiseMakers.forEach((name, sku: string) => {
                     if (items[sku] !== undefined) {
                         items[sku].forEach(item => {
                             isNot25Uses = item.isFullUses === false;
@@ -931,7 +927,7 @@ export default class MyHandler extends Handler {
                 return [isNot25Uses, skus] as [boolean, string[]];
             };
 
-            const [isNot25Uses, skus] = noiseMaker(Object.keys(noiseMakers), items.their);
+            const [isNot25Uses, skus] = noiseMaker(items.their);
             const isHasNoiseMaker = skus.some(sku => checkExist.getPrice(sku, true) !== null);
             if (isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
@@ -1095,7 +1091,8 @@ export default class MyHandler extends Handler {
                                     sku: sku,
                                     buying: isBuying,
                                     diff: diff,
-                                    amountCanTrade: amountCanTrade
+                                    amountCanTrade: amountCanTrade,
+                                    amountOffered: amount
                                 });
 
                                 this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
@@ -1124,7 +1121,8 @@ export default class MyHandler extends Handler {
                                     sku: sku,
                                     selling: !isBuying,
                                     diff: diff,
-                                    amountCanTrade: amountCanTrade
+                                    amountCanTrade: amountCanTrade,
+                                    amountTaking: amount
                                 });
 
                                 this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
@@ -1293,7 +1291,8 @@ export default class MyHandler extends Handler {
                         sku: '5021;6',
                         buying: isBuying,
                         diff: diff,
-                        amountCanTrade: amountCanTrade
+                        amountCanTrade: amountCanTrade,
+                        amountOffered: itemsDict['their']['5021;6']
                     });
 
                     log.debug('OVERSTOCKED', {
@@ -1316,7 +1315,8 @@ export default class MyHandler extends Handler {
                         sku: '5021;6',
                         selling: !isBuying,
                         diff: diff,
-                        amountCanTrade: amountCanTrade
+                        amountCanTrade: amountCanTrade,
+                        amountTaking: itemsDict['our']['5021;6']
                     });
 
                     this.bot.listings.checkBySKU('5021;6', null, false, true);
@@ -1366,16 +1366,8 @@ export default class MyHandler extends Handler {
         }
 
         const filterReasons = (reasons: string[]) => {
-            const filtered: string[] = [];
-
-            // Filter out duplicate reasons
-            reasons.forEach(reason => {
-                if (!filtered.includes(reason)) {
-                    filtered.push(reason);
-                }
-            });
-
-            return filtered;
+            const filtered = new Set(reasons);
+            return [...filtered];
         };
 
         const manualReviewEnabled = opt.manualReview.enable;

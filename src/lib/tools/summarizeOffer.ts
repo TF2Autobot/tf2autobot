@@ -2,6 +2,13 @@ import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../classes/Bot';
 
+const pureEmoji = new Map<string, string>();
+pureEmoji
+    .set('5021;6', '<:tf2key:813050393793658930>')
+    .set('5002;6', '<:tf2refined:813050808605212672>')
+    .set('5001;6', '<:tf2reclaimed:813048057352421417>')
+    .set('5000;6', '<:tf2scrap:813048057577996348>');
+
 interface ValueDiff {
     diff: number;
     diffRef: number;
@@ -94,11 +101,16 @@ export default function summarize(
     const items = (offer.data('dict') as ItemsDict) || { our: null, their: null };
     const showStockChanges = bot.options.tradeSummary.showStockChanges;
 
+    const ourCount = Object.keys(items.our).length;
+    const theirCount = Object.keys(items.their).length;
+
+    const isCompressSummary = (ourCount > 15 && theirCount > 15) || ourCount + theirCount > 28; // Estimate until limit reached
+
     if (!value) {
         // If trade with ADMINS or Gift
         return {
-            asked: getSummary(items.our, bot, 'our', type, withLink, showStockChanges),
-            offered: getSummary(items.their, bot, 'their', type, withLink, showStockChanges)
+            asked: getSummary(items.our, bot, 'our', type, withLink, showStockChanges, isCompressSummary),
+            offered: getSummary(items.their, bot, 'their', type, withLink, showStockChanges, isCompressSummary)
         };
     } else {
         // If trade with trade partner
@@ -107,10 +119,26 @@ export default function summarize(
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
+                `${opening}${getSummary(
+                    items.our,
+                    bot,
+                    'our',
+                    type,
+                    withLink,
+                    showStockChanges,
+                    isCompressSummary
+                )}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
+                `${opening}${getSummary(
+                    items.their,
+                    bot,
+                    'their',
+                    type,
+                    withLink,
+                    showStockChanges,
+                    isCompressSummary
+                )}${closing}`
         };
     }
 }
@@ -121,13 +149,15 @@ function getSummary(
     which: string,
     type: string,
     withLink: boolean,
-    showStockChanges: boolean
+    showStockChanges: boolean,
+    isCompressSummary: boolean
 ): string {
     if (dict === null) {
         return 'unknown items';
     }
 
     const summary: string[] = [];
+    const properName = bot.options.tradeSummary.showProperName;
 
     for (const sku in dict) {
         if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
@@ -136,15 +166,17 @@ function getSummary(
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), false);
-        const name = replace.itemName(generateName ? generateName : 'unknown');
+        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName);
+        const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
-            let oldStock = 0;
+            let oldStock: number | null = 0;
             const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
-            if (type === 'summary-accepted') {
+            const notForPartner = ['summary-accepted', 'review-admin', 'summary-accepting'].includes(type);
+
+            if (notForPartner) {
                 oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
             } else {
                 oldStock = currentStock;
@@ -154,18 +186,12 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:813050393793658930>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:813050808605212672>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:813048057352421417>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:813048057577996348>'
+                            ? pureEmoji.has(sku)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
-                        type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
+                        notForPartner && oldStock !== null ? `${oldStock} → ` : ''
                     }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
@@ -173,9 +199,9 @@ function getSummary(
                     `${name}${amount > 1 ? ` x${amount}` : ''}${
                         ['review-partner', 'declined'].includes(type)
                             ? ''
-                            : ` (${
-                                  type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
-                              }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
+                            : ` (${notForPartner && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
+                                  maxStock ? `/${maxStock.max}` : ''
+                              })`
                     }`
                 );
             }
@@ -184,14 +210,8 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:813050393793658930>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:813050808605212672>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:813048057352421417>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:813048057577996348>'
+                            ? pureEmoji.has(sku)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
@@ -210,12 +230,15 @@ function getSummary(
 
     if (withLink) {
         let left = 0;
-        if (summaryCount > 15) {
-            left = summaryCount - 15;
-            summary.splice(15);
+
+        if (isCompressSummary) {
+            if (summaryCount > 15) {
+                left = summaryCount - 15;
+                summary.splice(15);
+            }
         }
 
-        return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
+        return summary.join(', ') + (left > 0 ? ` and ${left} more items.` : '');
     } else {
         return summary.join(', ');
     }

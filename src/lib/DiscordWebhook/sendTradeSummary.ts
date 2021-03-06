@@ -18,15 +18,27 @@ export default async function sendTradeSummary(
     const optBot = bot.options;
     const optDW = optBot.discordWebhook;
 
-    const itemsName = {
-        invalid: accepted.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
-        disabled: accepted.disabledItems.map(name => t.replace.itemName(name)), // 🟧_DISABLED_ITEMS
-        overstock: accepted.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
-        understock: accepted.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
-        duped: [],
-        dupedFailed: [],
-        highValue: accepted.highValue.map(name => t.replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
-    };
+    const properName = bot.options.tradeSummary.showProperName;
+
+    const itemsName = properName
+        ? {
+              invalid: accepted.invalidItems,
+              disabled: accepted.disabledItems,
+              overstock: accepted.overstocked,
+              understock: accepted.understocked,
+              duped: [],
+              dupedFailed: [],
+              highValue: accepted.highValue
+          }
+        : {
+              invalid: accepted.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
+              disabled: accepted.disabledItems.map(name => t.replace.itemName(name)), // 🟧_DISABLED_ITEMS
+              overstock: accepted.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
+              understock: accepted.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
+              duped: [],
+              dupedFailed: [],
+              highValue: accepted.highValue.map(name => t.replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
+          };
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);

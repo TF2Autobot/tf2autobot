@@ -66,13 +66,15 @@ export const DEFAULTS = {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
             onFailedUpdatePartialPriced: true
-        }
+        },
+        receivedUnusualNotInPricelist: true
     },
 
     pricelist: {
         partialPriceUpdate: {
             enable: false,
-            thresholdInSeconds: 604800 // 7 days
+            thresholdInSeconds: 604800, // 7 days
+            excludeSKU: []
         },
         filterCantAfford: {
             enable: false
@@ -82,6 +84,9 @@ export const DEFAULTS = {
         },
         autoAddInvalidItems: {
             enable: true
+        },
+        autoAddInvalidUnusual: {
+            enable: false
         },
         autoAddPaintedItems: {
             enable: true
@@ -111,6 +116,7 @@ export const DEFAULTS = {
         showTimeTakenInMS: false,
         showItemPrices: true,
         showPureInEmoji: false,
+        showProperName: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -653,6 +659,7 @@ export const DEFAULTS = {
             }
         }
     },
+
     detailsExtra: {
         /**
          * Custom string to be shown in listing note if details.highValue.showSpells set to true
@@ -1024,6 +1031,7 @@ interface SendAlert extends OnlyEnable {
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
     partialPrice?: PartialPrice;
+    receivedUnusualNotInPricelist?: boolean;
 }
 
 interface PartialPrice {
@@ -1052,12 +1060,14 @@ interface Pricelist {
     filterCantAfford?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
+    autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
 }
 
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
+    excludeSKU?: string[];
 }
 
 interface PriceAge {
@@ -1084,6 +1094,7 @@ interface TradeSummary {
     showTimeTakenInMS?: boolean;
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
+    showProperName?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
@@ -1812,6 +1823,9 @@ export default interface Options extends JsonOptions {
 
     folderName?: string;
     filePrefix?: string;
+
+    enableHttpApi?: boolean;
+    httpApiPort?: number;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -1907,6 +1921,7 @@ export function loadOptions(options?: Options): Options {
 
     const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
     const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
+    const jsonParseNumber = (jsonString: string): number => (JSON.parse(jsonString) as unknown) as number;
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -1935,7 +1950,10 @@ export function loadOptions(options?: Options): Options {
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
 
         debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
-        debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions)
+        debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
+
+        enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
+        httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions)
     };
 
     if (!envOptions.steamAccountName) {

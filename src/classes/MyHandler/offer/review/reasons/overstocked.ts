@@ -11,11 +11,15 @@ export default function overstocked(meta: Meta, bot: Bot): { note: string; name:
     (meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             overstockedForOur.push(
-                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only buy ${el.amountCanTrade})`
+                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only buy ${el.amountCanTrade}, offering ${
+                    el.amountOffered
+                })`
             );
         } else {
             overstockedForOur.push(
-                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only buy ${el.amountCanTrade})`
+                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only buy ${el.amountCanTrade}, offering ${
+                    el.amountOffered
+                })`
             );
         }
         overstockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);

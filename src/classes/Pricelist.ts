@@ -306,27 +306,40 @@ export default class Pricelist extends EventEmitter {
             try {
                 const price = await this.priceSource.getPrice(entry.sku, 'bptf');
 
-                entry.buy = new Currencies(price.buy);
-                entry.sell = new Currencies(price.sell);
-                entry.time = price.time;
+                const newPrices = {
+                    buy: new Currencies(price.buy),
+                    sell: new Currencies(price.sell)
+                };
 
                 if (entry.sku === '5021;6') {
                     clearTimeout(this.retryGetKeyPrices);
+
+                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
+
+                    if (!canUseKeyPricesFromSource) {
+                        throw new Error(
+                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                        );
+                    }
+
                     this.globalKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell,
+                        buy: newPrices.buy,
+                        sell: newPrices.sell,
                         src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: entry.time
+                        time: price.time
                     };
 
-                    this.currentKeyPrices = {
-                        buy: entry.buy,
-                        sell: entry.sell
-                    };
+                    this.currentKeyPrices = newPrices;
                 }
+
+                entry.buy = newPrices.buy;
+                entry.sell = newPrices.sell;
+                entry.time = price.time;
+                //
             } catch (err) {
                 throw new Error(
-                    `❌ Unable to get current prices for ${entry.sku}: ${
+                    `Unable to get current prices for ${entry.sku}: ${
                         (err as ErrorRequest).body && (err as ErrorRequest).body.message
                             ? (err as ErrorRequest).body.message
                             : (err as ErrorRequest).message
@@ -550,6 +563,10 @@ export default class Pricelist extends EventEmitter {
         return this.setupPricelist();
     }
 
+    private verifyKeyPrices(prices: { buy: Currencies; sell: Currencies } | Entry): boolean {
+        return prices.buy.keys === 0 && prices.sell.keys === 0 && prices.buy.metal > 0 && prices.sell.metal > 0;
+    }
+
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
         const entryKey = this.getPrice('5021;6', false);
@@ -561,12 +578,16 @@ export default class Pricelist extends EventEmitter {
 
                 const time = keyPrices.time;
 
-                this.currentKeyPrices = {
+                const newPrices = {
                     buy: new Currencies(keyPrices.buy),
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                if (entryKey !== null && !entryKey.autoprice && entryKey.sell.toValue() > 0) {
+                this.currentKeyPrices = newPrices;
+
+                const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
+
+                if (entryKey !== null && !entryKey.autoprice && canUseManuallyPriced) {
                     // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
                     // If the owner set the selling price for like 1 ref or 0.11 ref, that's up to them
                     // I can easily buy an Australium for probably less than a key if they did that.
@@ -578,19 +599,37 @@ export default class Pricelist extends EventEmitter {
                     };
                     log.debug('Key rate is set based on current key prices in the pricelist.', this.globalKeyPrices);
                 } else {
-                    this.globalKeyPrices = {
-                        buy: new Currencies(keyPrices.buy),
-                        sell: new Currencies(keyPrices.sell),
-                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: time
-                    };
-                    log.debug('Key rate is set based current key prices.', this.globalKeyPrices);
+                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
 
-                    if (entryKey !== null && entryKey.autoprice) {
-                        // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
-                        entryKey.buy = new Currencies(keyPrices.buy);
-                        entryKey.sell = new Currencies(keyPrices.sell);
-                        entryKey.time = keyPrices.time;
+                    if (!canUseKeyPricesFromSource) {
+                        log.error(
+                            `Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct -` +
+                                ` both buy and sell "keys" property must be 0 and value ("metal") must not 0. Using temporary key prices...`
+                        );
+
+                        this.useTemporaryKeyPrices(entryKey);
+                    } else {
+                        this.globalKeyPrices = {
+                            buy: newPrices.buy,
+                            sell: newPrices.sell,
+                            src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                            time: time
+                        };
+                        log.debug(`Key rate is set based current key prices.`, this.globalKeyPrices);
+
+                        if (entryKey !== null && entryKey.autoprice) {
+                            // The price of a key in the pricelist can be different from keyPrices because the pricelist is not updated
+                            entryKey.buy = newPrices.buy;
+                            entryKey.sell = newPrices.sell;
+                            entryKey.time = keyPrices.time;
+
+                            if (this.verifyKeyPrices(entryKey) === false) {
+                                log.warn(
+                                    `Price for Mann Co. Supply Crate Key in your pricelist in not valid and has been reset to use current prices.`,
+                                    this.globalKeyPrices
+                                );
+                            }
+                        }
                     }
                 }
 
@@ -604,55 +643,55 @@ export default class Pricelist extends EventEmitter {
             .catch(err => {
                 log.debug('❌ Unable to get key prices: ', err);
 
-                if (entryKey !== null) {
-                    log.debug('✅ Key entry exist, setting current and global key rate as is');
-                    this.currentKeyPrices = {
-                        buy: entryKey.buy,
-                        sell: entryKey.sell
-                    };
-                    this.globalKeyPrices = {
-                        buy: entryKey.buy,
-                        sell: entryKey.sell,
-                        src: entryKey.time !== null ? (this.isUseCustomPricer ? 'customPricer' : 'ptf') : 'manual',
-                        time: entryKey.time
-                    };
-                } else {
-                    log.debug(
-                        '⚠️ Key entry does not exist, setting random current and global key rate, retry in 15 minutes'
-                    );
-                    this.currentKeyPrices = {
-                        buy: new Currencies({
-                            keys: 0,
-                            metal: 50
-                        }),
-                        sell: new Currencies({
-                            keys: 0,
-                            metal: 60
-                        })
-                    };
-                    this.globalKeyPrices = {
-                        buy: new Currencies({
-                            keys: 0,
-                            metal: 50
-                        }),
-                        sell: new Currencies({
-                            keys: 0,
-                            metal: 60
-                        }),
-                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: 1600000000000
-                    };
-
-                    this.retryGetKeyPrices = setTimeout(() => {
-                        void this.updateKeyRate();
-                    }, 15 * 60 * 1000);
-                }
+                this.useTemporaryKeyPrices(entryKey);
 
                 return;
             });
     }
 
-    private updateKeyRate(): Promise<void> {
+    private useTemporaryKeyPrices(entryKey: Entry): void {
+        const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
+
+        if (canUseManuallyPriced) {
+            log.debug('✅ Key entry exist, setting current and global key rate as is');
+            this.currentKeyPrices = {
+                buy: entryKey.buy,
+                sell: entryKey.sell
+            };
+            this.globalKeyPrices = {
+                buy: entryKey.buy,
+                sell: entryKey.sell,
+                src: entryKey.time !== null ? (this.isUseCustomPricer ? 'customPricer' : 'ptf') : 'manual',
+                time: entryKey.time
+            };
+        } else {
+            log.debug('⚠️ Key entry does not exist, setting random current and global key rate, retry in 15 minutes');
+            const temporaryKeyPrices = {
+                buy: new Currencies({
+                    keys: 0,
+                    metal: 50
+                }),
+                sell: new Currencies({
+                    keys: 0,
+                    metal: 60
+                })
+            };
+
+            this.currentKeyPrices = temporaryKeyPrices;
+            this.globalKeyPrices = {
+                buy: temporaryKeyPrices.buy,
+                sell: temporaryKeyPrices.sell,
+                src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                time: 1614000000
+            };
+
+            this.retryGetKeyPrices = setTimeout(() => {
+                void this.updateKeyPrices();
+            }, 15 * 60 * 1000);
+        }
+    }
+
+    private updateKeyPrices(): Promise<void> {
         const entryKey = this.getPrice('5021;6', false);
         clearTimeout(this.retryGetKeyPrices);
 
@@ -661,23 +700,40 @@ export default class Pricelist extends EventEmitter {
             .then(keyPrices => {
                 log.debug('✅ Got current key prices, updating...');
 
+                const updatedKeyPrices = {
+                    buy: new Currencies(keyPrices.buy),
+                    sell: new Currencies(keyPrices.sell)
+                };
+
+                const canUseKeyPricesFromSource = this.verifyKeyPrices(updatedKeyPrices);
+
+                if (!canUseKeyPricesFromSource) {
+                    log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
+                    this.retryGetKeyPrices = setTimeout(() => {
+                        void this.updateKeyPrices();
+                    }, 15 * 60 * 1000);
+
+                    log.error(
+                        'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                            'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                    );
+                    return;
+                }
+
                 if (entryKey !== null && entryKey.autoprice) {
                     this.globalKeyPrices = {
-                        buy: new Currencies(keyPrices.buy),
-                        sell: new Currencies(keyPrices.sell),
+                        buy: updatedKeyPrices.buy,
+                        sell: updatedKeyPrices.sell,
                         src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
                         time: keyPrices.time
                     };
                 }
-                this.currentKeyPrices = {
-                    buy: new Currencies(keyPrices.buy),
-                    sell: new Currencies(keyPrices.sell)
-                };
+                this.currentKeyPrices = updatedKeyPrices;
             })
             .catch(err => {
                 log.debug('⚠️ Still unable to get current key prices, retrying in 15 minutes: ', err);
                 this.retryGetKeyPrices = setTimeout(() => {
-                    void this.updateKeyRate();
+                    void this.updateKeyPrices();
                 }, 15 * 60 * 1000);
             });
     }
@@ -697,6 +753,7 @@ export default class Pricelist extends EventEmitter {
             // Go through our pricelist
             const oldCount = old.length;
             const opt = this.options.pricelist.partialPriceUpdate;
+            const excludedSKU = ['5021;6'].concat(opt.excludeSKU);
             const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
@@ -727,12 +784,15 @@ export default class Pricelist extends EventEmitter {
 
                             const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
+
+                            // TODO: Use last bought prices instead of current buying prices
                             const currBuyingValue = currPrice.buy.toValue(keyPrice);
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+                            const isNotExcluded = !excludedSKU.includes(currPrice.sku);
 
-                            if (opt.enable && isInStock && isNotExceedThreshold) {
+                            if (opt.enable && isInStock && isNotExceedThreshold && isNotExcluded) {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
@@ -763,12 +823,14 @@ export default class Pricelist extends EventEmitter {
                                         pricesChanged = true;
                                     }
                                 } else {
-                                    // else, just update as usual now.
-                                    currPrice.buy = newBuy;
-                                    currPrice.sell = newSell;
-                                    currPrice.time = newestPrice.time;
+                                    // else, just update as usual now (except if group is "isPartialPriced").
+                                    if (currPrice.group !== 'isPartialPriced') {
+                                        currPrice.buy = newBuy;
+                                        currPrice.sell = newSell;
+                                        currPrice.time = newestPrice.time;
 
-                                    pricesChanged = true;
+                                        pricesChanged = true;
+                                    }
                                 }
                             } else {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
@@ -803,12 +865,23 @@ export default class Pricelist extends EventEmitter {
         const match = this.getPrice(data.sku);
         const opt = this.options;
 
+        const newPrices = {
+            buy: new Currencies(data.buy),
+            sell: new Currencies(data.sell)
+        };
+
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
-            const newPrices = {
-                buy: new Currencies(data.buy),
-                sell: new Currencies(data.sell)
-            };
+
+            const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
+
+            if (!canUseKeyPricesFromSource) {
+                log.error(
+                    'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                        'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                );
+                return;
+            }
 
             const currGlobal = this.globalKeyPrices;
             const currPrices = this.currentKeyPrices;
@@ -837,10 +910,7 @@ export default class Pricelist extends EventEmitter {
             }
 
             // currentKeyPrices will still need to be updated.
-            this.currentKeyPrices = {
-                buy: newPrices.buy,
-                sell: newPrices.sell
-            };
+            this.currentKeyPrices = newPrices;
         }
 
         if (match !== null && match.autoprice) {
@@ -849,23 +919,29 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(match.sell)
             };
 
-            const newBuy = new Currencies(data.buy);
-            const newSell = new Currencies(data.sell);
-
             let pricesChanged = false;
 
             const optPartialUpdate = opt.pricelist.partialPriceUpdate;
             const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
             const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
+            const isNotExcluded = !['5021;6'].concat(optPartialUpdate.excludeSKU).includes(match.sku);
 
-            if (optPartialUpdate.enable && isInStock && isNotExceedThreshold && this.globalKeyPrices !== undefined) {
+            if (
+                optPartialUpdate.enable &&
+                isInStock &&
+                isNotExceedThreshold &&
+                this.globalKeyPrices !== undefined &&
+                isNotExcluded
+            ) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
 
                 const keyPrice = this.getKeyPrice.metal;
 
-                const newBuyValue = newBuy.toValue(keyPrice);
-                const newSellValue = newSell.toValue(keyPrice);
+                const newBuyValue = newPrices.buy.toValue(keyPrice);
+                const newSellValue = newPrices.sell.toValue(keyPrice);
+
+                // TODO: Use last bought prices instead of current buying prices
                 const currBuyingValue = match.buy.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
@@ -880,11 +956,11 @@ export default class Pricelist extends EventEmitter {
                     if (newBuyValue < currSellingValue) {
                         // if new buying price is less than current selling price
                         // update only the buying price.
-                        match.buy = newBuy;
+                        match.buy = newPrices.buy;
 
                         if (newSellValue > currSellingValue) {
                             // If new selling price is more than old, then update selling price too
-                            match.sell = newSell;
+                            match.sell = newPrices.sell;
                         }
 
                         isUpdate = true;
@@ -892,25 +968,28 @@ export default class Pricelist extends EventEmitter {
                         // no need to update time here
                     } else if (newSellValue > currSellingValue) {
                         // If new selling price is more than old, then update selling price too
-                        match.sell = newSell;
+                        match.sell = newPrices.sell;
                         isUpdate = true;
                     }
 
                     if (isUpdate) {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
+                        const dw = opt.discordWebhook.sendAlert;
+                        const isDwEnabled = dw.enable && dw.url !== '';
 
                         const msg =
-                            `${match.sku}:\n▸ ` +
+                            `${
+                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                            } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                                 `current: ${match.buy.toString()}/${match.sell.toString()}`,
-                                `pricestf: ${newBuy.toString()}/${newSell.toString()}`
+                                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            const dw = opt.discordWebhook.sendAlert;
-                            if (dw.enable && dw.url !== '') {
+                            if (isDwEnabled) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
@@ -918,19 +997,21 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    // else, just update as usual now.
-                    match.buy = newBuy;
-                    match.sell = newSell;
-                    match.time = data.time;
+                    // else, just update as usual now (except if group is "isPartialPriced").
+                    if (match.group !== 'isPartialPriced') {
+                        match.buy = newPrices.buy;
+                        match.sell = newPrices.sell;
+                        match.time = data.time;
 
-                    pricesChanged = true;
+                        pricesChanged = true;
+                    }
                 }
             } else {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                match.buy = newBuy;
-                match.sell = newSell;
+                match.buy = newPrices.buy;
+                match.sell = newPrices.sell;
                 match.time = data.time;
 
                 pricesChanged = true;
