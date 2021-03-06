@@ -2,7 +2,7 @@ import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../classes/Bot';
 
-const pureEmoji = new Map();
+const pureEmoji = new Map<string, string>();
 pureEmoji
     .set('5021;6', '<:tf2key:813050393793658930>')
     .set('5002;6', '<:tf2refined:813050808605212672>')
@@ -187,7 +187,7 @@ function getSummary(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
                             ? pureEmoji.has(sku)
-                                ? (pureEmoji.get(sku) as string)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
@@ -211,7 +211,7 @@ function getSummary(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
                             ? pureEmoji.has(sku)
-                                ? (pureEmoji.get(sku) as string)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
