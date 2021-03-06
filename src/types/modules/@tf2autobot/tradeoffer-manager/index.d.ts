@@ -160,6 +160,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             buying: boolean;
             diff: number;
             amountCanTrade: number;
+            amountOffered: number;
         }
 
         export interface Understocked {
@@ -168,6 +169,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             selling: boolean;
             diff: number;
             amountCanTrade: number;
+            amountTaking: number;
         }
 
         export interface DisabledItems {

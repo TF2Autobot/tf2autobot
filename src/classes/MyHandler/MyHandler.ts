@@ -1095,7 +1095,8 @@ export default class MyHandler extends Handler {
                                     sku: sku,
                                     buying: isBuying,
                                     diff: diff,
-                                    amountCanTrade: amountCanTrade
+                                    amountCanTrade: amountCanTrade,
+                                    amountOffered: amount
                                 });
 
                                 this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
@@ -1124,7 +1125,8 @@ export default class MyHandler extends Handler {
                                     sku: sku,
                                     selling: !isBuying,
                                     diff: diff,
-                                    amountCanTrade: amountCanTrade
+                                    amountCanTrade: amountCanTrade,
+                                    amountTaking: amount
                                 });
 
                                 this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
@@ -1293,7 +1295,8 @@ export default class MyHandler extends Handler {
                         sku: '5021;6',
                         buying: isBuying,
                         diff: diff,
-                        amountCanTrade: amountCanTrade
+                        amountCanTrade: amountCanTrade,
+                        amountOffered: itemsDict['their']['5021;6']
                     });
 
                     log.debug('OVERSTOCKED', {
@@ -1316,7 +1319,8 @@ export default class MyHandler extends Handler {
                         sku: '5021;6',
                         selling: !isBuying,
                         diff: diff,
-                        amountCanTrade: amountCanTrade
+                        amountCanTrade: amountCanTrade,
+                        amountTaking: itemsDict['our']['5021;6']
                     });
 
                     this.bot.listings.checkBySKU('5021;6', null, false, true);

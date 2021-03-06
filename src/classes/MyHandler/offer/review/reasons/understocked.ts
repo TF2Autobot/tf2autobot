@@ -11,11 +11,15 @@ export default function understocked(meta: Meta, bot: Bot): { note: string; name
     (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
         if (opt.enable && opt.url !== '') {
             understockedForOur.push(
-                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade})`
+                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade}, taking ${
+                    el.amountTaking
+                })`
             );
         } else {
             understockedForOur.push(
-                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only sell ${el.amountCanTrade})`
+                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only sell ${el.amountCanTrade}, taking ${
+                    el.amountTaking
+                })`
             );
         }
         understockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
