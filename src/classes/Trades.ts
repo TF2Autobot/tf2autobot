@@ -540,7 +540,7 @@ export default class Trades {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
                         const isNotIgnoredError =
-                            !(err as CustomError).message?.includes('Could not act on confirmation') ||
+                            !(err as CustomError).message?.includes('Could not act on confirmation') &&
                             !(err as CustomError).message?.includes('Could not find confirmation for object');
 
                         if (isNotIgnoredError) {
