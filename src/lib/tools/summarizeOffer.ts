@@ -94,11 +94,16 @@ export default function summarize(
     const items = (offer.data('dict') as ItemsDict) || { our: null, their: null };
     const showStockChanges = bot.options.tradeSummary.showStockChanges;
 
+    const ourCount = Object.keys(items.our).length;
+    const theirCount = Object.keys(items.their).length;
+
+    const isCompressSummary = (ourCount > 15 && theirCount > 15) || ourCount + theirCount > 28; // Estimate until limit reached
+
     if (!value) {
         // If trade with ADMINS or Gift
         return {
-            asked: getSummary(items.our, bot, 'our', type, withLink, showStockChanges),
-            offered: getSummary(items.their, bot, 'their', type, withLink, showStockChanges)
+            asked: getSummary(items.our, bot, 'our', type, withLink, showStockChanges, isCompressSummary),
+            offered: getSummary(items.their, bot, 'their', type, withLink, showStockChanges, isCompressSummary)
         };
     } else {
         // If trade with trade partner
@@ -107,10 +112,26 @@ export default function summarize(
         return {
             asked:
                 `${new Currencies(value.our).toString()}` +
-                `${opening}${getSummary(items.our, bot, 'our', type, withLink, showStockChanges)}${closing}`,
+                `${opening}${getSummary(
+                    items.our,
+                    bot,
+                    'our',
+                    type,
+                    withLink,
+                    showStockChanges,
+                    isCompressSummary
+                )}${closing}`,
             offered:
                 `${new Currencies(value.their).toString()}` +
-                `${opening}${getSummary(items.their, bot, 'their', type, withLink, showStockChanges)}${closing}`
+                `${opening}${getSummary(
+                    items.their,
+                    bot,
+                    'their',
+                    type,
+                    withLink,
+                    showStockChanges,
+                    isCompressSummary
+                )}${closing}`
         };
     }
 }
@@ -121,7 +142,8 @@ function getSummary(
     which: string,
     type: string,
     withLink: boolean,
-    showStockChanges: boolean
+    showStockChanges: boolean,
+    isCompressSummary: boolean
 ): string {
     if (dict === null) {
         return 'unknown items';
@@ -211,12 +233,15 @@ function getSummary(
 
     if (withLink) {
         let left = 0;
-        if (summaryCount > 15) {
-            left = summaryCount - 15;
-            summary.splice(15);
+
+        if (isCompressSummary) {
+            if (summaryCount > 15) {
+                left = summaryCount - 15;
+                summary.splice(15);
+            }
         }
 
-        return summary.join(', ') + (left !== 0 ? ` and ${left}` + ' more items.' : '');
+        return summary.join(', ') + (left > 0 ? ` and ${left} more items.` : '');
     } else {
         return summary.join(', ');
     }
