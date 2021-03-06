@@ -67,7 +67,7 @@ export default function processAccepted(
                             isWebhookEnabled
                                 ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                 : bot.schema.getName(SKU.fromString(el.sku), false)
-                        } (amount can buy was ${el.amountCanTrade})`
+                        } (amount can buy was ${el.amountCanTrade}, offered ${el.amountOffered})`
                     );
                 });
             }
@@ -81,7 +81,7 @@ export default function processAccepted(
                             isWebhookEnabled
                                 ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
                                 : bot.schema.getName(SKU.fromString(el.sku), false)
-                        } (amount can sell was ${el.amountCanTrade})`
+                        } (amount can sell was ${el.amountCanTrade}, taken ${el.amountTaking})`
                     );
                 });
             }
