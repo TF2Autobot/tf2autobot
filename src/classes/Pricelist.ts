@@ -682,7 +682,7 @@ export default class Pricelist extends EventEmitter {
                 buy: temporaryKeyPrices.buy,
                 sell: temporaryKeyPrices.sell,
                 src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                time: 1600000000000
+                time: 1614000000
             };
 
             this.retryGetKeyPrices = setTimeout(() => {
