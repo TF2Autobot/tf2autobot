@@ -705,7 +705,7 @@ export default class UserCart extends Cart {
             if (opt.miscSettings.checkUses.duel && sku === '241;6') {
                 checkedDuel = true;
                 assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
-            } else if (opt.miscSettings.checkUses.noiseMaker && Object.keys(noiseMakers).includes(sku)) {
+            } else if (opt.miscSettings.checkUses.noiseMaker && noiseMakers.has(sku)) {
                 checkNoiseMaker = true;
                 assetids = getAssetidsWithFullUses(inventoryDict.their[sku]);
             }

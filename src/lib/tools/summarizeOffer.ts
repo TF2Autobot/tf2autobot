@@ -2,6 +2,13 @@ import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../classes/Bot';
 
+const pureEmoji = new Map();
+pureEmoji
+    .set('5021;6', '<:tf2key:813050393793658930>')
+    .set('5002;6', '<:tf2refined:813050808605212672>')
+    .set('5001;6', '<:tf2reclaimed:813048057352421417>')
+    .set('5000;6', '<:tf2scrap:813048057577996348>');
+
 interface ValueDiff {
     diff: number;
     diffRef: number;
@@ -179,14 +186,8 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:813050393793658930>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:813050808605212672>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:813048057352421417>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:813048057577996348>'
+                            ? pureEmoji.has(sku)
+                                ? (pureEmoji.get(sku) as string)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
@@ -209,14 +210,8 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? sku === '5021;6'
-                                ? '<:tf2key:813050393793658930>'
-                                : sku === '5002;6'
-                                ? '<:tf2refined:813050808605212672>'
-                                : sku === '5001;6'
-                                ? '<:tf2reclaimed:813048057352421417>'
-                                : sku === '5000;6'
-                                ? '<:tf2scrap:813048057577996348>'
+                            ? pureEmoji.has(sku)
+                                ? (pureEmoji.get(sku) as string)
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`

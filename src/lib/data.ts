@@ -1,31 +1,31 @@
-export const noiseMakers: { [sku: string]: string } = {
-    '280;6': 'Noise Maker - Black Cat',
-    '280;6;uncraftable': 'Non-Craftable Noise Maker - Black Cat',
-    '281;6': 'Noise Maker - Gremlin',
-    '281;6;uncraftable': 'Non-Craftable Noise Maker - Gremlin',
-    '282;6': 'Noise Maker - Werewolf',
-    '282;6;uncraftable': 'Non-Craftable Noise Maker - Werewolf',
-    '283;6': 'Noise Maker - Witch',
-    '283;6;uncraftable': 'Non-Craftable Noise Maker - Witch',
-    '284;6': 'Noise Maker - Banshee',
-    '284;6;uncraftable': 'Non-Craftable Noise Maker - Banshee',
-    '286;6': 'Noise Maker - Crazy Laugh',
-    '286;6;uncraftable': 'Non-Craftable Noise Maker - Crazy Laugh',
-    '288;6': 'Noise Maker - Stabby',
-    '288;6;uncraftable': 'Non-Craftable Noise Maker - Stabby',
-    '362;6': 'Noise Maker - Bell',
-    '362;6;uncraftable': 'Non-Craftable Noise Maker - Bell',
-    '364;6': 'Noise Maker - Gong',
-    '364;6;uncraftable': 'Non-Craftable Noise Maker - Gong',
-    '365;6': 'Noise Maker - Koto',
-    '365;6;uncraftable': 'Non-Craftable Noise Maker - Koto',
-    '365;1': 'Genuine Noise Maker - Koto',
-    '493;6': 'Noise Maker - Fireworks',
-    '493;6;uncraftable': 'Non-Craftable Noise Maker - Fireworks',
-    '542;6': 'Noise Maker - Vuvuzela',
-    '542;6;uncraftable': 'Non-Craftable Noise Maker - Vuvuzela',
-    '542;1': 'Genuine Noise Maker - Vuvuzela'
-};
+export const noiseMakers = new Map<string, string>();
+noiseMakers
+    .set('280;6', 'Noise Maker - Black Cat')
+    .set('280;6;uncraftable', 'Non-Craftable Noise Maker - Black Cat')
+    .set('281;6', 'Noise Maker - Gremlin')
+    .set('281;6;uncraftable', 'Non-Craftable Noise Maker - Gremlin')
+    .set('282;6', 'Noise Maker - Werewolf')
+    .set('282;6;uncraftable', 'Non-Craftable Noise Maker - Werewolf')
+    .set('283;6', 'Noise Maker - Witch')
+    .set('283;6;uncraftable', 'Non-Craftable Noise Maker - Witch')
+    .set('284;6', 'Noise Maker - Banshee')
+    .set('284;6;uncraftable', 'Non-Craftable Noise Maker - Banshee')
+    .set('286;6', 'Noise Maker - Crazy Laugh')
+    .set('286;6;uncraftable', 'Non-Craftable Noise Maker - Crazy Laugh')
+    .set('288;6', 'Noise Maker - Stabby')
+    .set('288;6;uncraftable', 'Non-Craftable Noise Maker - Stabby')
+    .set('362;6', 'Noise Maker - Bell')
+    .set('362;6;uncraftable', 'Non-Craftable Noise Maker - Bell')
+    .set('364;6', 'Noise Maker - Gong')
+    .set('364;6;uncraftable', 'Non-Craftable Noise Maker - Gong')
+    .set('365;6', 'Noise Maker - Koto')
+    .set('365;6;uncraftable', 'Non-Craftable Noise Maker - Koto')
+    .set('365;1', 'Genuine Noise Maker - Koto')
+    .set('493;6', 'Noise Maker - Fireworks')
+    .set('493;6;uncraftable', 'Non-Craftable Noise Maker - Fireworks')
+    .set('542;6', 'Noise Maker - Vuvuzela')
+    .set('542;6;uncraftable', 'Non-Craftable Noise Maker - Vuvuzela')
+    .set('542;1', 'Genuine Noise Maker - Vuvuzela');
 
 export const sheensData: { [name: string]: string } = {
     'Team Shine': 'ks-1',
