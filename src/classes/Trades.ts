@@ -24,6 +24,10 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
+    private retryAcceptOffer: UnknownDictionary<boolean> = {};
+
+    private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -605,10 +609,20 @@ export default class Trades {
                                 }
                             }
 
-                            setTimeout(() => {
-                                // Auto-retry after 30 seconds
-                                void this.retryActionAfterFailure(offer.id, 'accept');
-                            }, 30 * 1000);
+                            if (!this.retryAcceptOffer[offer.id]) {
+                                // Only retry once
+                                clearTimeout(this.resetRetryAcceptOfferTimeout);
+                                this.retryAcceptOffer[offer.id] = true;
+
+                                setTimeout(() => {
+                                    // Auto-retry after 30 seconds
+                                    void this.retryActionAfterFailure(offer.id, 'accept');
+                                }, 30 * 1000);
+                            }
+
+                            this.resetRetryAcceptOfferTimeout = setTimeout(() => {
+                                this.retryAcceptOffer = {};
+                            }, 2 * 60 * 1000);
                         }
                     });
                 }
