@@ -1087,14 +1087,8 @@ export default class Trades {
             this.itemsInTrade.push(assetid);
         }
 
-        const fixDuplicate: string[] = [];
-        this.itemsInTrade.forEach(assetID => {
-            if (!fixDuplicate.includes(assetID)) {
-                fixDuplicate.push(assetID);
-            }
-        });
-
-        this.itemsInTrade = fixDuplicate;
+        const fixDuplicate = new Set(this.itemsInTrade);
+        this.itemsInTrade = [...fixDuplicate];
     }
 
     private set unsetItemInTrade(assetid: string) {

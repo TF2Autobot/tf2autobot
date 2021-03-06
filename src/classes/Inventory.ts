@@ -248,11 +248,7 @@ export default class Inventory {
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
-                sku === '241;6'
-                    ? isFull(items[i], 'duel')
-                    : Object.keys(noiseMakers).includes(sku)
-                    ? isFull(items[i], 'noise')
-                    : null;
+                sku === '241;6' ? isFull(items[i], 'duel') : noiseMakers.has(sku) ? isFull(items[i], 'noise') : null;
 
             if (attributesCount === 0 && isUses === null) {
                 (dict[sku] = dict[sku] || []).push({ id: items[i].id });
