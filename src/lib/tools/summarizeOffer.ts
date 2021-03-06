@@ -163,11 +163,13 @@ function getSummary(
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
-            let oldStock = 0;
+            let oldStock: number | null = 0;
             const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
-            if (type === 'summary-accepted') {
+            const notForPartner = ['summary-accepted', 'review-admin', 'summary-accepting'].includes(type);
+
+            if (notForPartner) {
                 oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
             } else {
                 oldStock = currentStock;
@@ -188,7 +190,7 @@ function getSummary(
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
-                        type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
+                        notForPartner && oldStock !== null ? `${oldStock} → ` : ''
                     }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
@@ -196,9 +198,9 @@ function getSummary(
                     `${name}${amount > 1 ? ` x${amount}` : ''}${
                         ['review-partner', 'declined'].includes(type)
                             ? ''
-                            : ` (${
-                                  type === 'summary-accepted' && oldStock !== null ? `${oldStock} → ` : ''
-                              }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
+                            : ` (${notForPartner && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
+                                  maxStock ? `/${maxStock.max}` : ''
+                              })`
                     }`
                 );
             }
