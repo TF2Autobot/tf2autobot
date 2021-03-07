@@ -177,7 +177,7 @@ function getSummary(
             const notForPartner = ['summary-accepted', 'review-admin', 'summary-accepting'].includes(type);
 
             if (notForPartner) {
-                oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
+                oldStock = which === 'our' ? currentStock + amount : currentStock === 0 ? 0 : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
