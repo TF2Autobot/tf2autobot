@@ -177,7 +177,7 @@ function getSummary(
             const notForPartner = ['summary-accepted', 'review-admin', 'summary-accepting'].includes(type);
 
             if (notForPartner) {
-                oldStock = which === 'our' ? currentStock + amount : currentStock - amount;
+                oldStock = which === 'our' ? currentStock + amount : currentStock === 0 ? 0 : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
@@ -192,7 +192,7 @@ function getSummary(
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         notForPartner && oldStock !== null ? `${oldStock} → ` : ''
-                    }${currentStock}${maxStock ? `/${maxStock.max}` : ''})`
+                    }${currentStock === 0 ? amount : currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
                 summary.push(
