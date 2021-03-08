@@ -413,7 +413,7 @@ export default class ManagerCommands {
                     this.bot.sendMessage(steamID, '⌛ Pulling changes...');
 
                     // git pull
-                    child.exec('git pull', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                    child.exec('git pull --prune', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
                         // ignore err
 
                         void promiseDelay(3 * 1000);
