@@ -1129,6 +1129,13 @@ export default class PricelistManagerCommands {
             );
     }
 
+    getSlotsCommand(steamID: SteamID): void {
+        const listingsCap = this.bot.listingManager.cap;
+        const currentUsedSlots = this.bot.listingManager.listings.length;
+
+        return this.bot.sendMessage(steamID, `🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`);
+    }
+
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
