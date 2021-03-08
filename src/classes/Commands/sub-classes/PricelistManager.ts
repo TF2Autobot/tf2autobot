@@ -173,8 +173,6 @@ export default class PricelistManagerCommands {
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
         const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
-        const listingsCap = this.bot.listingManager.cap;
-        const currentUsedSlots = this.bot.listingManager.listings.length;
 
         return (
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
@@ -185,8 +183,7 @@ export default class PricelistManagerCommands {
             (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
             `\n🔰 Group: ${entry.group}` +
             `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}` +
-            `\n\n🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
         );
     }
 
@@ -894,8 +891,6 @@ export default class PricelistManagerCommands {
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
-        const listingsCap = this.bot.listingManager.cap;
-        const currentUsedSlots = this.bot.listingManager.listings.length;
 
         return (
             `\n💲 Buy: ${
@@ -939,8 +934,7 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}` +
-            `\n\n🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
         );
     }
 
