@@ -200,11 +200,13 @@ function getSummary(
                 );
             } else {
                 summary.push(
-                    `${name}${amount > 1 ? ` x${amount}` : ''}${` (${
-                        (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
-                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
-                        maxStock ? `/${maxStock.max}` : ''
-                    })`}`
+                    `${name}${amount > 1 ? ` x${amount}` : ''}${
+                        ['review-partner', 'declined'].includes(type)
+                            ? ''
+                            : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
+                                  summaryInProcess && which !== 'our' ? currentStock + amount : currentStock
+                              }${maxStock ? `/${maxStock.max}` : ''})`
+                    }`
                 );
             }
         } else {
