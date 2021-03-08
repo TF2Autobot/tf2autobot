@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "<=v2 - read v3.0.0 release note | <=v3.5.1 - manual update recommended | >=3.6.0 - clear to update with !updaterepo",
+    "updateMessage": "\n• <=v2.3.8 - latest is v3, so you need to upgrade. Read: https://github.com/TF2Autobot/tf2autobot/releases/tag/v3.0.0 \n• <=v3.5.1 - manual update recommended, read: https://github.com/TF2Autobot/tf2autobot/wiki/Updating-the-bot#updating-the-bot \n• >=3.6.0 - clear to update with !updaterepo",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
