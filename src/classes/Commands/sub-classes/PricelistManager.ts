@@ -163,7 +163,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
             })
             .catch(err => {
@@ -171,8 +171,11 @@ export default class PricelistManagerCommands {
             });
     }
 
-    private generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-        const amount = bot.inventoryManager.getInventory.getAmount(entry.sku);
+    private generateAddedReply(isPremium: boolean, entry: Entry): string {
+        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
+        const listingsCap = this.bot.listingManager.cap;
+        const currentUsedSlots = this.bot.listingManager.listings.length;
+
         return (
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
@@ -182,7 +185,8 @@ export default class PricelistManagerCommands {
             (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
             `\n🔰 Group: ${entry.group}` +
             `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}` +
+            `\n\n🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`
         );
     }
 
@@ -391,7 +395,7 @@ export default class PricelistManagerCommands {
                     this.bot.sendMessage(
                         steamID,
                         `----------\n✅ Added "${entry.name}" (${entry.sku})` +
-                            this.generateAddedReply(this.bot, isPremium, entry) +
+                            this.generateAddedReply(isPremium, entry) +
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
                             } remaining`
@@ -875,8 +879,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}" (${entry.sku})` +
-                        this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -888,9 +891,12 @@ export default class PricelistManagerCommands {
             });
     }
 
-    private generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
-        const keyPrice = bot.pricelist.getKeyPrice;
-        const amount = bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+    private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
+        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+        const listingsCap = this.bot.listingManager.cap;
+        const currentUsedSlots = this.bot.listingManager.listings.length;
+
         return (
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
@@ -933,7 +939,8 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}` +
+            `\n\n🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`
         );
     }
 
