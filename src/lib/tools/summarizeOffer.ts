@@ -175,7 +175,7 @@ function getSummary(
             const maxStock = bot.pricelist.getPrice(sku, false);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
-            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
+            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type) && which !== 'our';
 
             if (summaryAccepted) {
                 oldStock =
