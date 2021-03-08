@@ -1181,6 +1181,13 @@ export default class PricelistManagerCommands {
         }
     }
 
+    private generateOutput(filtered: Entry): string {
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
+        filtered['stock'] = currentStock;
+
+        return JSON.stringify(filtered, null, 4);
+    }
+
     async findCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
         if (
@@ -1298,9 +1305,18 @@ export default class PricelistManagerCommands {
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
         } else {
-            const list = filter.map(
-                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
-            );
+            const isPremium = this.bot.handler.getBotInfo.premium;
+
+            const list = filter.map((entry, i) => {
+                const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+
+                `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                    entry.max
+                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
+                    isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
+                }${entry.group})`;
+            });
             const listCount = list.length;
 
             const limit =
@@ -1316,7 +1332,7 @@ export default class PricelistManagerCommands {
                                   ? ` (limit set to ${limit})`
                                   : ''
                           }.`
-                }\n`
+                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n`
             );
 
             const applyLimit = limit === -1 ? listCount : limit;
@@ -1333,12 +1349,6 @@ export default class PricelistManagerCommands {
                 await sleepasync().Promise.sleep(1 * 1000);
             }
         }
-    }
-
-    private generateOutput(filtered: Entry[] | Entry, isSlice = false, start?: number, end?: number): string {
-        return isSlice
-            ? JSON.stringify((filtered as Entry[]).slice(start, end), null, 4)
-            : JSON.stringify(filtered, null, 4);
     }
 }
 
