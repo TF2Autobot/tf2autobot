@@ -883,24 +883,10 @@ export default class MyHandler extends Handler {
         // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
         // and decline if not 5x/25x and exist in pricelist
 
-        const paintedOptions =
-            opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
-                ? Object.keys(this.bot.paints).map(paint => paint.toLowerCase())
-                : opt.highValue.painted.map(paint => paint.toLowerCase());
-
         const checkExist = this.bot.pricelist;
-        const offerSKUs = offer.itemsToReceive.map(item =>
-            item.getSKU(
-                this.bot.schema,
-                opt.normalize.festivized.their,
-                opt.normalize.strangeAsSecondQuality.their,
-                opt.normalize.painted.their,
-                this.bot.paints,
-                paintedOptions
-            )
-        );
+        const theirSKUs = Object.keys(itemsDict['their']);
 
-        if (opt.miscSettings.checkUses.duel && offerSKUs.includes('241;6')) {
+        if (opt.miscSettings.checkUses.duel && theirSKUs.includes('241;6')) {
             const isNot5Uses = items.their['241;6'].some(item => item.isFullUses === false);
 
             if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
@@ -910,7 +896,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (opt.miscSettings.checkUses.noiseMaker && offerSKUs.some(sku => noiseMakers.has(sku))) {
+        if (opt.miscSettings.checkUses.noiseMaker && theirSKUs.some(sku => noiseMakers.has(sku))) {
             const noiseMaker = (items: Dict) => {
                 let isNot25Uses = false;
                 const skus: string[] = [];
