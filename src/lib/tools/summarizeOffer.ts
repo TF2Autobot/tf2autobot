@@ -174,10 +174,12 @@ function getSummary(
             const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
-            const notForPartner = ['summary-accepted', 'review-admin', 'summary-accepting'].includes(type);
+            const summaryAccepted = ['summary-accepted'].includes(type);
+            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
 
-            if (notForPartner) {
-                oldStock = which === 'our' ? currentStock + amount : currentStock === 0 ? 0 : currentStock - amount;
+            if (summaryAccepted) {
+                oldStock =
+                    which === 'our' ? currentStock + amount : summaryInProcess ? currentStock : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
@@ -191,17 +193,17 @@ function getSummary(
                                 : name
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
-                        notForPartner && oldStock !== null ? `${oldStock} → ` : ''
-                    }${currentStock === 0 ? amount : currentStock}${maxStock ? `/${maxStock.max}` : ''})`
+                        (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
+                    }${summaryInProcess ? currentStock + amount : currentStock}${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
                 summary.push(
                     `${name}${amount > 1 ? ` x${amount}` : ''}${
                         ['review-partner', 'declined'].includes(type)
                             ? ''
-                            : ` (${notForPartner && oldStock !== null ? `${oldStock} → ` : ''}${currentStock}${
-                                  maxStock ? `/${maxStock.max}` : ''
-                              })`
+                            : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
+                                  summaryInProcess ? currentStock + amount : currentStock
+                              }${maxStock ? `/${maxStock.max}` : ''})`
                     }`
                 );
             }
