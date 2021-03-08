@@ -1223,7 +1223,7 @@ export default class PricelistManagerCommands {
 
         this.bot.sendMessage(
             steamID,
-            `Found ${pluralize('item', listCount, true)} in your pricelist}${
+            `Found ${pluralize('item', listCount, true)} in your pricelist${
                 limit !== -1 && params.limit === undefined && listCount > 50
                     ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                     : `${
