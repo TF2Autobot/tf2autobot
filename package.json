@@ -22,6 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
+    "updateMessage": "<=v2 - read v3.0.0 release note | <=v3.5.1 - manual update recommended | >=3.6.0 - clear to update with !updaterepo",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
