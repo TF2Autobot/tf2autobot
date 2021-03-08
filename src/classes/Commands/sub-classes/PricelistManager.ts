@@ -1181,6 +1181,13 @@ export default class PricelistManagerCommands {
         }
     }
 
+    private generateOutput(filtered: Entry): string {
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
+        filtered['stock'] = currentStock;
+
+        return JSON.stringify(filtered, null, 4);
+    }
+
     async findCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
         if (
@@ -1299,7 +1306,10 @@ export default class PricelistManagerCommands {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
         } else {
             const list = filter.map(
-                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
+                (entry, i) =>
+                    `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(
+                        SKU.fromString(entry.sku)
+                    )} (${this.bot.inventoryManager.getInventory.getAmount(entry.sku, true)})`
             );
             const listCount = list.length;
 
@@ -1333,12 +1343,6 @@ export default class PricelistManagerCommands {
                 await sleepasync().Promise.sleep(1 * 1000);
             }
         }
-    }
-
-    private generateOutput(filtered: Entry[] | Entry, isSlice = false, start?: number, end?: number): string {
-        return isSlice
-            ? JSON.stringify((filtered as Entry[]).slice(start, end), null, 4)
-            : JSON.stringify(filtered, null, 4);
     }
 }
 
