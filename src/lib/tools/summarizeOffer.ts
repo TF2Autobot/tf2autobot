@@ -175,7 +175,7 @@ function getSummary(
             const maxStock = bot.pricelist.getPrice(sku, false);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
-            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type) && which !== 'our';
+            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
 
             if (summaryAccepted) {
                 oldStock =
@@ -194,17 +194,17 @@ function getSummary(
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
-                    }${summaryInProcess ? currentStock + amount : currentStock}${maxStock ? `/${maxStock.max}` : ''})`
+                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
+                        maxStock ? `/${maxStock.max}` : ''
+                    })`
                 );
             } else {
                 summary.push(
-                    `${name}${amount > 1 ? ` x${amount}` : ''}${
-                        ['review-partner', 'declined'].includes(type)
-                            ? ''
-                            : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
-                                  summaryInProcess ? currentStock + amount : currentStock
-                              }${maxStock ? `/${maxStock.max}` : ''})`
-                    }`
+                    `${name}${amount > 1 ? ` x${amount}` : ''}${` (${
+                        (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
+                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
+                        maxStock ? `/${maxStock.max}` : ''
+                    })`}`
                 );
             }
         } else {
