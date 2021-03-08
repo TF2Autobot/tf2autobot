@@ -376,14 +376,14 @@ export default class ManagerCommands {
             );
 
             this.bot.checkForUpdates
-                .then(({ hasNewVersion, latestVersion }) => {
+                .then(({ hasNewVersion, latestVersion, updateMessage }) => {
                     if (!hasNewVersion) {
                         return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                     } else if (this.bot.lastNotifiedVersion === latestVersion) {
                         return this.bot.sendMessage(
                             steamID,
                             `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                                '\nSend "!updaterepo i_am_sure=yes_i_am" to update your repo now!' +
+                                `\n\n• Update message: ${updateMessage}` +
                                 `\n\nRelease note: https://github.com/TF2Autobot/tf2autobot/releases`
                         );
                     }
@@ -413,7 +413,7 @@ export default class ManagerCommands {
                     this.bot.sendMessage(steamID, '⌛ Pulling changes...');
 
                     // git pull
-                    child.exec('git pull', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                    child.exec('git pull --prune', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
                         // ignore err
 
                         void promiseDelay(3 * 1000);

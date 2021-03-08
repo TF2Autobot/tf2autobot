@@ -836,11 +836,15 @@ export default class Pricelist extends EventEmitter {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
 
-                                currPrice.buy = newBuy;
-                                currPrice.sell = newSell;
-                                currPrice.time = newestPrice.time;
+                                if (currPrice.group !== 'isPartialPriced') {
+                                    // Only update if group is not "isPartialPriced"
 
-                                pricesChanged = true;
+                                    currPrice.buy = newBuy;
+                                    currPrice.sell = newSell;
+                                    currPrice.time = newestPrice.time;
+
+                                    pricesChanged = true;
+                                }
                             }
                         }
 
@@ -1010,41 +1014,45 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                match.buy = newPrices.buy;
-                match.sell = newPrices.sell;
-                match.time = data.time;
+                if (match.group !== 'isPartialPriced') {
+                    // Only update if group is not "isPartialPriced"
 
-                pricesChanged = true;
+                    match.buy = newPrices.buy;
+                    match.sell = newPrices.sell;
+                    match.time = data.time;
 
-                if (pricesChanged) {
-                    this.priceChanged(match.sku, match);
-                }
+                    pricesChanged = true;
 
-                const dw = opt.discordWebhook.priceUpdate;
+                    if (pricesChanged) {
+                        this.priceChanged(match.sku, match);
+                    }
 
-                if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
-                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+                    const dw = opt.discordWebhook.priceUpdate;
 
-                    if (showOnlyInStock) {
-                        const tz = opt.timezone;
-                        const format = opt.customTimeFormat;
+                    if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
+                        const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                        const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
-                        const time = dayjs()
-                            .tz(tz ? tz : 'UTC')
-                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+                        if (showOnlyInStock) {
+                            const tz = opt.timezone;
+                            const format = opt.customTimeFormat;
 
-                        sendWebHookPriceUpdateV1(
-                            data.sku,
-                            match,
-                            time,
-                            this.schema,
-                            opt,
-                            currentStock,
-                            oldPrice,
-                            this.getKeyPrice.metal,
-                            this.isUseCustomPricer
-                        );
+                            const time = dayjs()
+                                .tz(tz ? tz : 'UTC')
+                                .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                            sendWebHookPriceUpdateV1(
+                                data.sku,
+                                match,
+                                time,
+                                this.schema,
+                                opt,
+                                currentStock,
+                                oldPrice,
+                                this.getKeyPrice.metal,
+                                this.isUseCustomPricer
+                            );
+                        }
                     }
                 }
             }

@@ -65,9 +65,9 @@ export default function sendWebHookPriceUpdateV1(
     const oldSellValue = oldPrice.sell.toValue(keyPrice);
     const newSellValue = newPrice.sell.toValue(keyPrice);
 
-    const buyChangesValue = newBuyValue - oldBuyValue;
+    const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
     const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
-    const sellChangesValue = newSellValue - oldSellValue;
+    const sellChangesValue = Math.round(newSellValue - oldSellValue);
     const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
     const opt = options.discordWebhook;

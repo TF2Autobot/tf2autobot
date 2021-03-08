@@ -163,7 +163,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
             })
             .catch(err => {
@@ -171,8 +171,9 @@ export default class PricelistManagerCommands {
             });
     }
 
-    private generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-        const amount = bot.inventoryManager.getInventory.getAmount(entry.sku);
+    private generateAddedReply(isPremium: boolean, entry: Entry): string {
+        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
+
         return (
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
@@ -391,7 +392,7 @@ export default class PricelistManagerCommands {
                     this.bot.sendMessage(
                         steamID,
                         `----------\n✅ Added "${entry.name}" (${entry.sku})` +
-                            this.generateAddedReply(this.bot, isPremium, entry) +
+                            this.generateAddedReply(isPremium, entry) +
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
                             } remaining`
@@ -875,8 +876,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}" (${entry.sku})` +
-                        this.generateUpdateReply(this.bot, isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -888,9 +888,10 @@ export default class PricelistManagerCommands {
             });
     }
 
-    private generateUpdateReply(bot: Bot, isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
-        const keyPrice = bot.pricelist.getKeyPrice;
-        const amount = bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+    private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
+        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+
         return (
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
@@ -1122,6 +1123,13 @@ export default class PricelistManagerCommands {
             );
     }
 
+    getSlotsCommand(steamID: SteamID): void {
+        const listingsCap = this.bot.listingManager.cap;
+        const currentUsedSlots = this.bot.listingManager.listings.length;
+
+        return this.bot.sendMessage(steamID, `🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`);
+    }
+
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
@@ -1178,6 +1186,65 @@ export default class PricelistManagerCommands {
             this.bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
         } else {
             this.bot.sendMessage(steamID, `/code ${this.generateOutput(match)}`);
+        }
+    }
+
+    private generateOutput(filtered: Entry): string {
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
+        filtered['stock'] = currentStock;
+
+        return JSON.stringify(filtered, null, 4);
+    }
+
+    async getAllCommand(steamID: SteamID, message: string): Promise<void> {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        const pricelist = this.bot.pricelist.getPrices;
+        if (pricelist.length === 0) {
+            return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
+        }
+
+        const isPremium = this.bot.handler.getBotInfo.premium;
+
+        const list = pricelist.map((entry, i) => {
+            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+
+            return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                entry.max
+            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
+                isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
+            }${entry.group})`;
+        });
+
+        const listCount = list.length;
+
+        const limit = params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
+        this.bot.sendMessage(
+            steamID,
+            `Found ${pluralize('item', listCount, true)} in your pricelist}${
+                limit !== -1 && params.limit === undefined && listCount > 200
+                    ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                    : `${
+                          limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
+                      }.`
+            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
+                '* - Only shown if your account is Backpack.tf Premium'
+        );
+
+        const applyLimit = limit === -1 ? listCount : limit;
+        const loops = Math.ceil(applyLimit / 200);
+
+        for (let i = 0; i < loops; i++) {
+            const last = loops - i === 1;
+            const i200 = i * 200;
+
+            const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+
+            this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
+
+            await sleepasync().Promise.sleep(1 * 1000);
         }
     }
 
@@ -1298,9 +1365,18 @@ export default class PricelistManagerCommands {
         if (filterCount === 0) {
             this.bot.sendMessage(steamID, `No items found with ${display.join('&')}.`);
         } else {
-            const list = filter.map(
-                (entry, i) => `${i + 1}. ${entry.sku} - ${this.bot.schema.getName(SKU.fromString(entry.sku))}`
-            );
+            const isPremium = this.bot.handler.getBotInfo.premium;
+
+            const list = filter.map((entry, i) => {
+                const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+
+                return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                    entry.max
+                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
+                    isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
+                }${entry.group})`;
+            });
             const listCount = list.length;
 
             const limit =
@@ -1316,7 +1392,7 @@ export default class PricelistManagerCommands {
                                   ? ` (limit set to ${limit})`
                                   : ''
                           }.`
-                }\n`
+                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n`
             );
 
             const applyLimit = limit === -1 ? listCount : limit;
@@ -1333,12 +1409,6 @@ export default class PricelistManagerCommands {
                 await sleepasync().Promise.sleep(1 * 1000);
             }
         }
-    }
-
-    private generateOutput(filtered: Entry[] | Entry, isSlice = false, start?: number, end?: number): string {
-        return isSlice
-            ? JSON.stringify((filtered as Entry[]).slice(start, end), null, 4)
-            : JSON.stringify(filtered, null, 4);
     }
 }
 
