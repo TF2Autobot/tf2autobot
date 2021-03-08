@@ -1230,7 +1230,7 @@ export default class PricelistManagerCommands {
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
                       }.`
             }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
-                '* - Only shown if your account is Backpack.tf Premium'
+                '* - Only shown if your account is Backpack.tf Premium\n\n.'
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
@@ -1392,7 +1392,8 @@ export default class PricelistManagerCommands {
                                   ? ` (limit set to ${limit})`
                                   : ''
                           }.`
-                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n`
+                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
+                    '* - Only shown if your account is Backpack.tf Premium\n\n.'
             );
 
             const applyLimit = limit === -1 ? listCount : limit;
