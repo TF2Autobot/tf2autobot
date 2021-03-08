@@ -1216,9 +1216,9 @@ export default class PricelistManagerCommands {
             const name = this.bot.schema.getName(SKU.fromString(entry.sku));
             const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
-            `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${entry.max}, ${
-                entry.intent
-            }, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
+            return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                entry.max
+            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
                 isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
             }${entry.group})`;
         });
@@ -1235,7 +1235,8 @@ export default class PricelistManagerCommands {
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
                       }.`
-            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n`
+            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
+                '* - Only shown if your account is Backpack.tf Premium'
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
@@ -1376,7 +1377,7 @@ export default class PricelistManagerCommands {
                 const name = this.bot.schema.getName(SKU.fromString(entry.sku));
                 const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
-                `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
                 }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
                     isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
