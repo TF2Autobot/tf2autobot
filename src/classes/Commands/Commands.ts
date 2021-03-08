@@ -200,6 +200,8 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
+        } else if (command === 'getslots' && isAdmin) {
+            void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
