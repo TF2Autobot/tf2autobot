@@ -1219,12 +1219,12 @@ export default class PricelistManagerCommands {
 
         const listCount = list.length;
 
-        const limit = params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+        const limit = params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
         this.bot.sendMessage(
             steamID,
             `Found ${pluralize('item', listCount, true)} in your pricelist}${
-                limit !== -1 && params.limit === undefined && listCount > 200
+                limit !== -1 && params.limit === undefined && listCount > 50
                     ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
@@ -1234,15 +1234,15 @@ export default class PricelistManagerCommands {
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
-        const loops = Math.ceil(applyLimit / 200);
+        const loops = Math.ceil(applyLimit / 50);
 
         for (let i = 0; i < loops; i++) {
             const last = loops - i === 1;
-            const i200 = i * 200;
+            const i50 = i * 50;
 
-            const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+            const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
 
-            this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
+            this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
             await sleepasync().Promise.sleep(1 * 1000);
         }
@@ -1380,12 +1380,12 @@ export default class PricelistManagerCommands {
             const listCount = list.length;
 
             const limit =
-                params.limit === undefined ? 200 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+                params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
             this.bot.sendMessage(
                 steamID,
                 `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
-                    limit !== -1 && params.limit === undefined && listCount > 200
+                    limit !== -1 && params.limit === undefined && listCount > 50
                         ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                         : `${
                               limit < listCount && limit > 0 && params.limit !== undefined
@@ -1396,15 +1396,15 @@ export default class PricelistManagerCommands {
             );
 
             const applyLimit = limit === -1 ? listCount : limit;
-            const loops = Math.ceil(applyLimit / 200);
+            const loops = Math.ceil(applyLimit / 50);
 
             for (let i = 0; i < loops; i++) {
                 const last = loops - i === 1;
-                const i200 = i * 200;
+                const i50 = i * 50;
 
-                const firstOrLast = i < 1 && limit > 0 && limit < 200 ? limit : i200 + (applyLimit - i200);
+                const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
 
-                this.bot.sendMessage(steamID, list.slice(i200, last ? firstOrLast : (i + 1) * 200).join('\n'));
+                this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
                 await sleepasync().Promise.sleep(1 * 1000);
             }
