@@ -353,7 +353,7 @@ export default class ManagerCommands {
             });
     }
 
-    updaterepoCommand(steamID: SteamID, message: string): void {
+    updaterepoCommand(steamID: SteamID): void {
         if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
             return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
         }
@@ -368,93 +368,99 @@ export default class ManagerCommands {
             );
         }
 
-        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-        if (params.i_am_sure !== 'yes_i_am') {
-            this.bot.sendMessage(
-                steamID,
-                `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
-            );
+        this.bot.checkForUpdates
+            .then(({ hasNewVersion, latestVersion }) => {
+                if (!hasNewVersion) {
+                    return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                } else if (this.bot.lastNotifiedVersion === latestVersion) {
+                    this.bot.sendMessage(steamID, '⌛ Updating...');
+                    // Make the bot snooze on Steam, that way people will know it is not running
+                    this.bot.client.setPersona(EPersonaState.Snooze);
 
-            this.bot.checkForUpdates
-                .then(({ hasNewVersion, latestVersion, updateMessage }) => {
-                    if (!hasNewVersion) {
-                        return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
-                    } else if (this.bot.lastNotifiedVersion === latestVersion) {
-                        return this.bot.sendMessage(
-                            steamID,
-                            `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                                `\n\n• Update message: ${updateMessage}` +
-                                `\n\nRelease note: https://github.com/TF2Autobot/tf2autobot/releases`
-                        );
-                    }
-                })
-                .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
-        } else {
-            this.bot.sendMessage(steamID, '⌛ Updating...');
-            // Make the bot snooze on Steam, that way people will know it is not running
-            this.bot.client.setPersona(EPersonaState.Snooze);
+                    // Set isUpdating status, so any command will not be processed
+                    this.bot.handler.isUpdatingStatus = true;
 
-            // Set isUpdating status, so any command will not be processed
-            this.bot.handler.isUpdatingStatus = true;
+                    // Stop polling offers
+                    this.bot.manager.pollInterval = -1;
 
-            // Stop polling offers
-            this.bot.manager.pollInterval = -1;
+                    // Callback hell 😈
 
-            // Callback hell 😈
-
-            // git reset HEAD --hard
-            child.exec('git reset HEAD --hard', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
-                // ignore err
-
-                // git checkout master
-                child.exec('git checkout master', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
-                    // ignore err
-
-                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
-
-                    // git pull
-                    child.exec('git pull --prune', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
-                        // ignore err
-
-                        void promiseDelay(3 * 1000);
-
-                        this.bot.sendMessage(steamID, '⌛ Installing packages...');
-
-                        // npm install
-                        child.exec('npm install', { cwd: path.resolve(__dirname, '..', '..', '..', '..') }, () => {
+                    // git reset HEAD --hard
+                    child.exec(
+                        'git reset HEAD --hard',
+                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                        () => {
                             // ignore err
 
-                            // 10 seconds delay, because idk why this always cause some problem
-                            void promiseDelay(10 * 1000);
-
-                            this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
-
-                            // tsc -p .
+                            // git checkout master
                             child.exec(
-                                'npm run build',
+                                'git checkout master',
                                 { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                                 () => {
                                     // ignore err
 
-                                    // 5 seconds delay?
-                                    void promiseDelay(5 * 1000);
+                                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
 
-                                    this.bot.sendMessage(steamID, '⌛ Restarting...');
-
+                                    // git pull
                                     child.exec(
-                                        'pm2 restart ecosystem.json',
+                                        'git pull --prune',
                                         { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
                                         () => {
                                             // ignore err
+
+                                            void promiseDelay(3 * 1000);
+
+                                            this.bot.sendMessage(steamID, '⌛ Installing packages...');
+
+                                            // npm install
+                                            child.exec(
+                                                'npm install',
+                                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                                                () => {
+                                                    // ignore err
+
+                                                    // 10 seconds delay, because idk why this always cause some problem
+                                                    void promiseDelay(10 * 1000);
+
+                                                    this.bot.sendMessage(
+                                                        steamID,
+                                                        '⌛ Compiling TypeScript codes into JavaScript...'
+                                                    );
+
+                                                    // tsc -p .
+                                                    child.exec(
+                                                        'npm run build',
+                                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
+                                                        () => {
+                                                            // ignore err
+
+                                                            // 5 seconds delay?
+                                                            void promiseDelay(5 * 1000);
+
+                                                            this.bot.sendMessage(steamID, '⌛ Restarting...');
+
+                                                            child.exec(
+                                                                'pm2 restart ecosystem.json',
+                                                                {
+                                                                    cwd: path.resolve(__dirname, '..', '..', '..', '..')
+                                                                },
+                                                                () => {
+                                                                    // ignore err
+                                                                }
+                                                            );
+                                                        }
+                                                    );
+                                                }
+                                            );
                                         }
                                     );
                                 }
                             );
-                        });
-                    });
-                });
-            });
-        }
+                        }
+                    );
+                }
+            })
+            .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
     }
 
     autokeysCommand(steamID: SteamID): void {
