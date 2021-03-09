@@ -19,7 +19,11 @@ export default function updateListings(
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
-    const weapons = bot.craftWeapons.concat(bot.uncraftWeapons);
+    const weapons = opt.miscSettings.weaponsAsCurrency.enable
+        ? opt.miscSettings.weaponsAsCurrency.withUncraft
+            ? bot.craftWeapons.concat(bot.uncraftWeapons)
+            : bot.craftWeapons
+        : [];
 
     const skus: string[] = [];
 
@@ -35,7 +39,9 @@ export default function updateListings(
 
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
-        const isNotPure = !['5000;6', '5001;6', '5002;6'].includes(sku);
+        const pure = ['5000;6', '5001;6', '5002;6'];
+        const isNotPure = !pure.includes(sku);
+        const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
 
         const existInPricelist = inPrice !== null;
@@ -60,7 +66,7 @@ export default function updateListings(
 
         const isAutoaddInvalidItems =
             !existInPricelist &&
-            isNotPure &&
+            isNotPureOrWeapons &&
             sku !== '5021;6' && // not Mann Co. Supply Crate Key
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
             addInvalidUnusual &&
@@ -70,14 +76,14 @@ export default function updateListings(
 
         const receivedHighValueNotInPricelist =
             !existInPricelist &&
-            isNotPure &&
+            isNotPureOrWeapons &&
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
             isDisabledHV && // This is the only difference
             !isAdmin;
 
         const receivedUnusualNotInPricelist =
             !existInPricelist &&
-            isNotPure &&
+            isNotPureOrWeapons &&
             isNotSkinsOrWarPaint &&
             item.quality === 5 &&
             opt.pricelist.autoAddInvalidUnusual.enable === false &&
@@ -99,7 +105,7 @@ export default function updateListings(
                           )
                   )
                 : true) &&
-            isNotPure &&
+            isNotPureOrWeapons &&
             opt.highValue.enableHold;
 
         const isAutoRemoveIntentSell =
@@ -107,14 +113,14 @@ export default function updateListings(
             existInPricelist &&
             inPrice.intent === 1 &&
             inventory.getAmount(sku, true) < 1 && // current stock
-            isNotPure;
+            isNotPureOrWeapons;
 
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
             inPrice.group === 'isPartialPriced' &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
-            isNotPure;
+            isNotPureOrWeapons;
 
         //
 
