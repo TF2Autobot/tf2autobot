@@ -177,7 +177,7 @@ function getSummary(
             const summaryAccepted = ['summary-accepted'].includes(type);
             const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
 
-            if (summaryAccepted) {
+            if (summaryAccepted || summaryInProcess) {
                 oldStock =
                     which === 'our' ? currentStock + amount : summaryInProcess ? currentStock : currentStock - amount;
             } else {
