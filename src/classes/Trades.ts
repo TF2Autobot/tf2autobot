@@ -526,7 +526,7 @@ export default class Trades {
 
             void this.acceptOfferRetry(offer).asCallback((err, status) => {
                 const actionTime = dayjs().valueOf() - start;
-                offer.data('actionTime', actionTime);
+                log.debug('actionTime', actionTime);
 
                 if (err) {
                     return reject(err);
@@ -639,8 +639,7 @@ export default class Trades {
             });
 
             const start = dayjs().valueOf();
-            offer.data('actedOnConfirmation', true);
-            offer.data('actedOnConfirmationTimestamp', start);
+            log.debug('actedOnConfirmationTimestamp', start);
 
             this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
                 const confirmationTime = dayjs().valueOf() - start;
