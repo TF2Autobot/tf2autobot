@@ -302,7 +302,8 @@ export default class Pricelist extends EventEmitter {
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
         const keyPrices = this.getKeyPrices;
 
-        if (entry.autoprice) {
+        if (entry.autoprice && entry.group !== 'isPartialPriced') {
+            // skip this part if autoprice is true and group is "isPartialPriced"
             try {
                 const price = await this.priceSource.getPrice(entry.sku, 'bptf');
 
