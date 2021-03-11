@@ -1669,7 +1669,7 @@ export default class MyHandler extends Handler {
                     }
                 };
             } else if (
-                opt.offerReceived.invalidValue.autoDecline.enable &&
+                opt.offerReceived.invalidValue.autoDecline.enable && // ( || opt.miscSettings.counterOffer.enable)
                 isInvalidValue &&
                 !(
                     isUnderstocked ||
@@ -1683,6 +1683,16 @@ export default class MyHandler extends Handler {
             ) {
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+                /*
+                return {
+                    action: 'counter',
+                    reason: 'COUNTER_INVALID_VALUE',
+                    meta: {
+                        uniqueReasons: uniqueReasons,
+                        reasons: wrongAboutOffer
+                    }
+                };
+                */
             } else if (
                 opt.offerReceived.invalidItems.autoDecline.enable &&
                 isInvalidItem &&
@@ -1877,7 +1887,12 @@ export default class MyHandler extends Handler {
         offer.data('meta', undefined);
     }
 
-    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
+    onOfferAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        meta: Meta
+    ): void {
         if (offer.data('notify') !== true) {
             return;
         }
@@ -2174,7 +2189,7 @@ interface OnRun {
 }
 
 interface OnNewTradeOffer {
-    action: 'accept' | 'decline' | 'skip';
+    action: 'accept' | 'decline' | 'skip' | 'counter';
     reason: string;
     meta?: Meta;
 }

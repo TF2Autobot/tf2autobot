@@ -295,7 +295,7 @@ export default class Trades {
     }
 
     applyActionToOffer(
-        action: 'accept' | 'decline' | 'skip',
+        action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta,
         offer: TradeOfferManager.TradeOffer
@@ -321,6 +321,10 @@ export default class Trades {
             offer.itemsToGive.forEach(item => {
                 this.unsetItemInTrade = item.assetid;
             });
+        }
+
+        if (action === 'counter') {
+            /* new Counter class here, maybe with offer.counter() and meta.reasons for the constructor. */
         }
 
         if (actionFunc === undefined) {

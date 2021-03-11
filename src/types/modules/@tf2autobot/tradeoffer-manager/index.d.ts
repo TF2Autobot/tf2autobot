@@ -150,7 +150,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         export interface Action {
-            action: 'accept' | 'decline' | 'skip';
+            action: 'accept' | 'decline' | 'skip' | 'counter';
             reason: string;
         }
 
@@ -455,6 +455,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             send(callback?: (err: Error | null, state?: string) => void): void;
 
             decline(callback?: (err: Error | null) => void): void;
+
+            counter(): void;
 
             /**
              * Alias of decline
