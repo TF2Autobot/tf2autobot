@@ -12,8 +12,6 @@ import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
 
 export default class Trades {
-    private readonly bot: Bot;
-
     private itemsInTrade: string[] = [];
 
     private receivedOffers: string[] = [];
@@ -26,7 +24,11 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
-    constructor(bot: Bot) {
+    private retryAcceptOffer: UnknownDictionary<boolean> = {};
+
+    private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
+
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
@@ -330,57 +332,65 @@ export default class Trades {
             .catch(err => {
                 log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
-                const opt = this.bot.options;
-                if (opt.sendAlert.failedAccept) {
-                    const keyPrices = this.bot.pricelist.getKeyPrices;
-                    const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
+                const isNotInvalidStates = (err as CustomError).eresult
+                    ? ![11, 28].includes((err as CustomError).eresult)
+                    : !(err as CustomError).message.includes('is not active, so it may not be accepted');
 
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        const summary = t.summarizeToChat(
-                            offer,
-                            this.bot,
-                            'summary-accepting',
-                            true,
-                            value,
-                            keyPrices,
-                            false,
-                            false
-                        );
-                        sendAlert(
-                            `failed-${action}` as 'failed-accept' | 'failed-decline',
-                            this.bot,
-                            `Failed to ${action} on the offer #${offer.id}` +
-                                summary +
-                                `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
-                            null,
-                            err,
-                            [offer.id]
-                        );
-                    } else {
-                        const summary = t.summarizeToChat(
-                            offer,
-                            this.bot,
-                            'summary-accepting',
-                            false,
-                            value,
-                            keyPrices,
-                            true,
-                            false
-                        );
+                if (isNotInvalidStates) {
+                    const opt = this.bot.options;
 
-                        this.bot.messageAdmins(
-                            `Failed to ${action} on the offer #${offer.id}:` +
-                                summary +
-                                `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
-                                `\n\nError: ${
-                                    (err as CustomError).eresult
-                                        ? `${
-                                              TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                          } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                        : JSON.stringify(err, null, 4)
-                                }`,
-                            []
-                        );
+                    if (opt.sendAlert.failedAccept) {
+                        const keyPrices = this.bot.pricelist.getKeyPrices;
+                        const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            const summary = t.summarizeToChat(
+                                offer,
+                                this.bot,
+                                'summary-accepting',
+                                true,
+                                value,
+                                keyPrices,
+                                false,
+                                false
+                            );
+                            sendAlert(
+                                `failed-${action}` as 'failed-accept' | 'failed-decline',
+                                this.bot,
+                                `Failed to ${action} on the offer #${offer.id}` +
+                                    summary +
+                                    `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
+                                null,
+                                err,
+                                [offer.id]
+                            );
+                        } else {
+                            const summary = t.summarizeToChat(
+                                offer,
+                                this.bot,
+                                'summary-accepting',
+                                false,
+                                value,
+                                keyPrices,
+                                true,
+                                false
+                            );
+
+                            this.bot.messageAdmins(
+                                `Failed to ${action} on the offer #${offer.id}:` +
+                                    summary +
+                                    `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                                    `\n\nError: ${
+                                        (err as CustomError).eresult
+                                            ? `${
+                                                  TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                              } - https://steamerrors.com/${(err as CustomError).eresult}`
+                                            : (err as Error).message
+                                    }`,
+                                []
+                            );
+                        }
                     }
                 }
 
@@ -529,10 +539,14 @@ export default class Trades {
                     this.acceptConfirmation(offer).catch(err => {
                         log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                        if (!(err as CustomError).message?.includes('Could not act on confirmation')) {
-                            // Only notify is error is not "Could not act on confirmation"
+                        const isNotIgnoredError =
+                            !(err as CustomError).message?.includes('Could not act on confirmation') &&
+                            !(err as CustomError).message?.includes('Could not find confirmation for object');
 
+                        if (isNotIgnoredError) {
+                            // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
                             const opt = this.bot.options;
+
                             if (opt.sendAlert.failedAccept) {
                                 const keyPrices = this.bot.pricelist.getKeyPrices;
                                 const value = t.valueDiff(
@@ -594,6 +608,21 @@ export default class Trades {
                                     );
                                 }
                             }
+
+                            if (!this.retryAcceptOffer[offer.id]) {
+                                // Only retry once
+                                clearTimeout(this.resetRetryAcceptOfferTimeout);
+                                this.retryAcceptOffer[offer.id] = true;
+
+                                setTimeout(() => {
+                                    // Auto-retry after 30 seconds
+                                    void this.retryActionAfterFailure(offer.id, 'accept');
+                                }, 30 * 1000);
+                            }
+
+                            this.resetRetryAcceptOfferTimeout = setTimeout(() => {
+                                this.retryAcceptOffer = {};
+                            }, 2 * 60 * 1000);
                         }
                     });
                 }
@@ -951,7 +980,7 @@ export default class Trades {
                     this.bot.messageAdmins(
                         `⚠️ [Escrow check failed alert] Current failed count: ${
                             this.escrowCheckFailedCount
-                        }\n\nBot has been up for ${t.uptime()}`,
+                        }\n\n${t.uptime()}`,
                         []
                     );
                     void this.bot.botManager
@@ -1058,14 +1087,8 @@ export default class Trades {
             this.itemsInTrade.push(assetid);
         }
 
-        const fixDuplicate: string[] = [];
-        this.itemsInTrade.forEach(assetID => {
-            if (!fixDuplicate.includes(assetID)) {
-                fixDuplicate.push(assetID);
-            }
-        });
-
-        this.itemsInTrade = fixDuplicate;
+        const fixDuplicate = new Set(this.itemsInTrade);
+        this.itemsInTrade = [...fixDuplicate];
     }
 
     private set unsetItemInTrade(assetid: string) {

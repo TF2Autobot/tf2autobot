@@ -16,8 +16,6 @@ import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
-    private readonly bot: Bot;
-
     private checkingAllListings = false;
 
     private removingAllListings = false;
@@ -40,7 +38,7 @@ export default class Listings {
 
     private readonly checkFn;
 
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
         this.templates = {
             buy:
@@ -680,7 +678,7 @@ export default class Listings {
         const isCustomBuyNote = entry.note?.buy && intent === 0;
         const isCustomSellNote = entry.note?.sell && intent === 1;
         const isDueling = entry.sku === '241;6' && opt.miscSettings.checkUses.duel;
-        const isNoiseMaker = Object.keys(noiseMakers).includes(entry.sku) && opt.miscSettings.checkUses.noiseMaker;
+        const isNoiseMaker = noiseMakers.has(entry.sku) && opt.miscSettings.checkUses.noiseMaker;
 
         if (isCustomBuyNote || isCustomSellNote) {
             details = replaceDetails(intent === 0 ? entry.note.buy : entry.note.sell, entry, key);

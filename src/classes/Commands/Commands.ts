@@ -198,6 +198,10 @@ export default class Commands {
             void this.pManager.removeCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {
             this.pManager.getCommand(steamID, message);
+        } else if (command === 'getall' && isAdmin) {
+            void this.pManager.getAllCommand(steamID, message);
+        } else if (command === 'getslots' && isAdmin) {
+            void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
@@ -217,7 +221,7 @@ export default class Commands {
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
         } else if (command === 'updaterepo' && isAdmin) {
-            this.manager.updaterepoCommand(steamID, message);
+            this.manager.updaterepoCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.manager.refreshAutokeysCommand(steamID);
         } else if (command === 'refreshlist' && isAdmin) {

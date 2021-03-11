@@ -12,15 +12,13 @@ import { fixItem } from '../../../lib/items';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
-    private readonly bot: Bot;
-
     private getSnapshots: GetSnapshotsFn;
 
     private requestCheck: RequestCheckFn;
 
     private getPrice: GetPriceFn;
 
-    constructor(bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
 
         this.getSnapshots = this.priceSource.getSnapshots.bind(this.priceSource);

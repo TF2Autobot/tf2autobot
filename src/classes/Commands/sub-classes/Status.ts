@@ -11,9 +11,7 @@ import { sendStats } from '../../../lib/DiscordWebhook/export';
 // Bot status
 
 export default class StatusCommands {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
 
@@ -333,7 +331,7 @@ export default class StatusCommands {
         );
 
         this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion }) => {
+            .then(({ hasNewVersion, latestVersion, updateMessage }) => {
                 if (!hasNewVersion) {
                     this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
@@ -341,7 +339,11 @@ export default class StatusCommands {
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
                             `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
-                            `\n\nRun "!updaterepo" if you're running your bot with PM2 to update now!"` +
+                            (process.env.pm_id !== undefined
+                                ? `\n\nYou're running the bot with PM2!\n• Update message: ${updateMessage}`
+                                : `\n\nNavigate to your bot folder and run ` +
+                                  `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
+                                  `and then restart your bot.`) +
                             '\n\nContact IdiNium if you have any other problem. Thank you.'
                     );
                 }

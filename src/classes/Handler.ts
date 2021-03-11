@@ -6,9 +6,7 @@ import Bot from './Bot';
 import { Entry, EntryData } from './Pricelist';
 
 export default abstract class Handler {
-    readonly bot: Bot;
-
-    protected constructor(bot: Bot) {
+    protected constructor(readonly bot: Bot) {
         this.bot = bot;
     }
 

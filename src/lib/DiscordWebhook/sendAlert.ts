@@ -36,7 +36,8 @@ type AlertType =
     | 'error-accept'
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
-    | 'isPartialPriced';
+    | 'isPartialPriced'
+    | 'unusualInvalidItems';
 
 export default function sendAlert(
     type: AlertType,
@@ -58,7 +59,7 @@ export default function sendAlert(
         color = '16776960'; // yellow
     } else if (type === 'queue-problem-perform-restart') {
         title = 'Queue Problem Alert';
-        description = `Current position: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
+        description = `Current position: ${positionOrCount}, automatic restart initialized...\n\n${uptime()}`;
         color = '16711680'; // red
     } else if (['queue-problem-not-restart-bptf-down', 'queue-problem-not-restart-steam-maintenance'].includes(type)) {
         const isSteamDown = type === 'queue-problem-not-restart-steam-maintenance';
@@ -70,7 +71,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'escrow-check-failed-perform-restart') {
         title = 'Escrow check failed alert';
-        description = `Current failed count: ${positionOrCount}, automatic restart initialized...\n\nBot has been up for ${uptime()}`;
+        description = `Current failed count: ${positionOrCount}, automatic restart initialized...\n\n${uptime()}`;
         color = '16711680'; // red
     } else if (
         ['escrow-check-failed-not-restart-bptf-down', 'escrow-check-failed-not-restart-steam-maintenance'].includes(
@@ -105,6 +106,10 @@ export default function sendAlert(
         color = '8323327'; // purple
     } else if (type === 'highValuedInvalidItems') {
         title = 'Received High-value invalid item(s)';
+        description = msg;
+        color = '8323327'; // purple
+    } else if (type === 'unusualInvalidItems') {
+        title = 'Received Unusual bought with Generic Unusual feature';
         description = msg;
         color = '8323327'; // purple
     } else if (type === 'autoRemoveIntentSellFailed') {
@@ -217,7 +222,8 @@ export default function sendAlert(
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
                 'failed-accept',
-                'error-accept'
+                'error-accept',
+                'unusualInvalidItems'
             ].includes(type) && optDW.sendAlert.isMention
                 ? `<@!${optDW.ownerID}>`
                 : '') + (content ? ` - ${content}` : ''),

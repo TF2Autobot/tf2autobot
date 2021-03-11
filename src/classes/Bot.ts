@@ -13,7 +13,7 @@ import semver from 'semver';
 import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { Entry, EntryData } from './Pricelist';
+import Pricelist, { EntryData } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
@@ -111,49 +111,7 @@ export default class Bot {
 
     private ready = false;
 
-    private handleLoggedOn: OmitThisParameter<() => void>;
-
-    private handleMessage: OmitThisParameter<(steamID: SteamID, message: string) => void>;
-
-    private handleFriendRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
-
-    private handleGroupRelationship: OmitThisParameter<(steamID: SteamID, relationship: number) => void>;
-
-    private handleWebSession: OmitThisParameter<(sessionID: string, cookies: string[]) => void>;
-
-    private handleSteamGuard: OmitThisParameter<
-        (domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean) => void
-    >;
-
-    private handleLoginKey: OmitThisParameter<(loginKey: string) => void>;
-
-    private handleError: OmitThisParameter<(err: CustomError) => void>;
-
-    private handleSessionExpired: OmitThisParameter<() => void>;
-
-    private handleConfKeyNeeded: OmitThisParameter<
-        (tag: string, callback: (err: Error | null, time: number, confKey: string) => void) => void
-    >;
-
-    private handlePollData: OmitThisParameter<(pollData: TradeOfferManager.PollData) => void>;
-
-    private handleNewOffer: OmitThisParameter<(offer: TradeOfferManager.TradeOffer) => void>;
-
-    private handleOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
-
-    private handleOfferList: OmitThisParameter<
-        (filter: number, sent: TradeOfferManager.TradeOffer[], received: TradeOfferManager.TradeOffer[]) => void
-    >;
-
-    private handleHeartbeat: OmitThisParameter<(bumped: number) => void>;
-
-    private handlePricelist: OmitThisParameter<(pricelist: Entry[]) => void>;
-
-    private handlePriceChange: OmitThisParameter<(sku: string, price: Entry | null) => void>;
-
-    private receivedOfferChanged: OmitThisParameter<(offer: TradeOfferManager.TradeOffer, oldState: number) => void>;
-
-    constructor(botManager: BotManager, public options: Options, private priceSource: Pricer) {
+    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
         this.schema = this.botManager.getSchema;
@@ -213,31 +171,6 @@ export default class Bot {
                 throw new Error('Invalid Item stats whitelist steamID');
             }
         });
-
-        this.handleLoggedOn = this.handler.onLoggedOn.bind(this.handler);
-        this.handleMessage = this.onMessage.bind(this);
-        this.handleFriendRelationship = this.handler.onFriendRelationship.bind(this.handler);
-        this.handleGroupRelationship = this.handler.onGroupRelationship.bind(this.handler);
-        this.handleWebSession = this.onWebSession.bind(this);
-        this.handleSteamGuard = this.onSteamGuard.bind(this);
-        this.handleLoginKey = this.handler.onLoginKey.bind(this.handler);
-        this.handleError = this.onError.bind(this);
-
-        this.handleSessionExpired = this.onSessionExpired.bind(this);
-        this.handleConfKeyNeeded = this.onConfKeyNeeded.bind(this);
-
-        this.handlePollData = this.handler.onPollData.bind(this.handler);
-        this.handleNewOffer = this.trades.onNewOffer.bind(this.trades);
-        this.handleOfferChanged = this.trades.onOfferChanged.bind(this.trades);
-        this.receivedOfferChanged = this.trades.onOfferChanged.bind(this.trades);
-        this.handleOfferList = this.trades.onOfferList.bind(this.trades);
-
-        this.handleHeartbeat = this.handler.onHeartbeat.bind(this);
-
-        this.handlePricelist = this.handler.onPricelist.bind(this.handler);
-        this.handlePriceChange = this.handler.onPriceChange.bind(this.handler);
-
-        this.ipc = new ipcHandler(this);
     }
 
     isAdmin(steamID: SteamID | string): boolean {
@@ -329,8 +262,11 @@ export default class Bot {
         }, 10 * 60 * 1000);
     }
 
-    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
-        return this.getLatestVersion.then(latestVersion => {
+    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string; updateMessage: string }> {
+        return this.getLatestVersion.then(content => {
+            const latestVersion = content.version;
+            const updateMessage = content.message;
+
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
 
             if (this.lastNotifiedVersion !== latestVersion && hasNewVersion) {
@@ -341,7 +277,7 @@ export default class Bot {
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
                         `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                         (process.env.pm_id !== undefined
-                            ? `\n\nYou're running the bot with PM2! Send "!updaterepo" now!"`
+                            ? `\n\nYou're running the bot with PM2!\n• Update message: ${updateMessage}`
                             : `\n\nNavigate to your bot folder and run ` +
                               `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
                               `and then restart your bot.`) +
@@ -350,11 +286,11 @@ export default class Bot {
                 );
             }
 
-            return { hasNewVersion, latestVersion };
+            return { hasNewVersion, latestVersion, updateMessage };
         });
     }
 
-    private get getLatestVersion(): Promise<string> {
+    private get getLatestVersion(): Promise<{ version: string; message: string }> {
         return new Promise((resolve, reject) => {
             void request(
                 {
@@ -367,8 +303,8 @@ export default class Bot {
                         return reject(err);
                     }
 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    return resolve(body.version);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                    return resolve({ version: body.version, message: body.updateMessage });
                 }
             );
         });
@@ -383,29 +319,30 @@ export default class Bot {
         };
         let cookies: string[];
 
-        this.addListener(this.client, 'loggedOn', this.handleLoggedOn, false);
-        this.addListener(this.client, 'friendMessage', this.handleMessage, true);
-        this.addListener(this.client, 'friendRelationship', this.handleFriendRelationship, true);
-        this.addListener(this.client, 'groupRelationship', this.handleGroupRelationship, true);
-        this.addListener(this.client, 'webSession', this.handleWebSession, false);
-        this.addListener(this.client, 'steamGuard', this.handleSteamGuard, false);
-        this.addListener(this.client, 'loginKey', this.handleLoginKey, false);
-        this.addListener(this.client, 'error', this.handleError, false);
+        this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
+        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
+        this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
+        this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
+        this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
+        this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
+        this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
+        this.addListener(this.client, 'error', this.onError.bind(this), false);
 
-        this.addListener(this.community, 'sessionExpired', this.handleSessionExpired, false);
-        this.addListener(this.community, 'confKeyNeeded', this.handleConfKeyNeeded, false);
+        this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
+        this.addListener(this.community, 'confKeyNeeded', this.onConfKeyNeeded.bind(this), false);
 
-        this.addListener(this.manager, 'pollData', this.handlePollData, false);
-        this.addListener(this.manager, 'newOffer', this.handleNewOffer, true);
-        this.addListener(this.manager, 'sentOfferChanged', this.handleOfferChanged, true);
-        this.addListener(this.manager, 'receivedOfferChanged', this.receivedOfferChanged, true);
-        this.addListener(this.manager, 'offerList', this.handleOfferList, true);
+        this.addListener(this.manager, 'pollData', this.handler.onPollData.bind(this.handler), false);
+        this.addListener(this.manager, 'newOffer', this.trades.onNewOffer.bind(this.trades), true);
+        this.addListener(this.manager, 'sentOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
+        this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
+        this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handleHeartbeat, true);
+        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
 
-        this.addListener(this.pricelist, 'pricelist', this.handlePricelist, false);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
+        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
         this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
-        this.addListener(this.pricelist, 'price', this.handlePriceChange, true);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -456,7 +393,6 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
-                            this.ipc.init();
                             this.setProperties();
 
                             this.inventoryManager.setInventory = new Inventory(
