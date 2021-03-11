@@ -33,8 +33,6 @@ export default class Bot {
     // Modules and classes
     readonly ipc: ipcHandler;
 
-    readonly botManager: BotManager;
-
     readonly schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;
