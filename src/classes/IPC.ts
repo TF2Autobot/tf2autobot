@@ -37,6 +37,7 @@ export default class ipcHandler extends IPC {
     /* HANDLERS */
     connected(): void {
         log.info('IPC connected');
+        this.sendInfo();
     }
 
     disconnect(): void {
