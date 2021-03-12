@@ -507,9 +507,8 @@ export default class Pricelist extends EventEmitter {
 
     getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
         // Get name of item
-        const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
-        const findIndex = this.prices.findIndex(entry => entry.name === name);
-        return findIndex;
+        //const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
+        return this.prices.findIndex(entry => entry.sku === (sku ? sku : SKU.fromObject(parsedSku)));
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
