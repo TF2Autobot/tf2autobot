@@ -1009,7 +1009,6 @@ export default class MyHandler extends Handler {
         const itemsDiff = offer.getDiff();
         //?
         for (let i = 0; i < states.length; i++) {
-
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
