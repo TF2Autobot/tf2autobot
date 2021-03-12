@@ -54,10 +54,11 @@ export default class InventoryManager {
             // Index of of item in Pricelist
             genericIndex = this.pricelist.getIndex(null, gSku);
         }
+        const normalIndex = this.pricelist.getIndex(sku);
 
         // Pricelist entry
         const match =
-            genericCheck && genericIndex !== -1
+            genericCheck && genericIndex !== -1 && normalIndex === -1
                 ? this.pricelist.getPrice(SKU.fromObject(gSku), true, true)
                 : this.pricelist.getPrice(sku, true);
 
