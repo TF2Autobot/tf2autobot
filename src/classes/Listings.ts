@@ -178,7 +178,7 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -263,7 +263,7 @@ export default class Listings {
             }
         });
 
-        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);

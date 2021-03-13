@@ -1,5 +1,6 @@
 declare module 'tf2-schema-2' {
     import { EventEmitter } from 'events';
+    import { skuObject } from 'tf2-sku-2';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
@@ -208,6 +209,8 @@ declare module 'tf2-schema-2' {
 
             raw: {
                 schema: {
+                    qualities: { [id: string]: number };
+                    qualityNames: { [id: string]: string };
                     items_game_url: string;
                     attributes: SchemaAttribute[];
                     item_sets: ItemSet[];
@@ -227,6 +230,10 @@ declare module 'tf2-schema-2' {
             constructor(data: { version: string; raw: Record<string, unknown>; time: number });
 
             getItemByDefindex(defindex: number): SchemaItem | null;
+
+            getItemObjectFromName(name: string): skuObject;
+
+            getSkuFromName(name: string): string | null;
 
             getItemByItemName(name: string): SchemaItem | null;
 

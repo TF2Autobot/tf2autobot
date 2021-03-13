@@ -1,81 +1,120 @@
 import jsonschema from 'jsonschema';
 
 export const pricelistSchema: jsonschema.Schema = {
-    id: 'pricelist',
-    type: 'object',
-    properties: {
-        sku: {
-            // sku of the item
-            type: 'string'
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    $ref: '#/definitions/PricesObject',
+    definitions: {
+        PricesObject: {
+            type: 'object',
+            additionalProperties: {
+                $ref: '#/definitions/Entry'
+            }
         },
-        name: {
-            // name of the item (used for compatibility with v2)
-            type: 'string'
-        },
-        enabled: {
-            // if we are actually trading the item
-            type: 'boolean'
-        },
-        intent: {
-            // 0 = buy, 1 = sell, 2 = bank
-            type: 'integer',
-            minimum: 0,
-            maximum: 2
-        },
-        autoprice: {
-            // if the item is autopriced or not
-            type: 'boolean'
-        },
-        max: {
-            // maximum stock
-            type: 'integer',
-            // -1 is infinite
-            minimum: -1
-        },
-        min: {
-            // minimum stock
-            type: 'integer',
-            minimum: 0
-        },
-        buy: {
-            // buy price
-            $ref: 'tf2-currencies'
-        },
-        sell: {
-            // sell price
-            $ref: 'tf2-currencies'
-        },
-        promoted: {
-            // 0 = not promote, 1 = promote item (Sell only)
-            type: 'integer',
-            minimum: 0,
-            maximum: 1
-        },
-        group: {
-            anyOf: [
-                {
+        Entry: {
+            type: 'object',
+            properties: {
+                sku: {
                     type: 'string'
                 },
-                {
-                    type: 'null'
-                }
-            ]
-        },
-        note: {
-            $ref: 'listing-note'
-        },
-        time: {
-            // time when the price changed
-            anyOf: [
-                {
+                enabled: {
+                    type: 'boolean'
+                },
+                autoprice: {
+                    type: 'boolean'
+                },
+                max: {
                     type: 'number'
                 },
-                {
-                    type: 'null'
+                min: {
+                    type: 'number'
+                },
+                intent: {
+                    type: 'number',
+                    enum: [0, 1, 2]
+                },
+                buy: {
+                    anyOf: [
+                        {
+                            type: 'object',
+                            properties: {
+                                keys: {
+                                    type: 'number'
+                                },
+                                metal: {
+                                    type: 'number'
+                                }
+                            },
+                            required: ['keys', 'metal'],
+                            additionalProperties: false
+                        },
+                        {
+                            type: 'null'
+                        }
+                    ]
+                },
+                sell: {
+                    anyOf: [
+                        {
+                            type: 'object',
+                            properties: {
+                                keys: {
+                                    type: 'number'
+                                },
+                                metal: {
+                                    type: 'number'
+                                }
+                            },
+                            required: ['keys', 'metal'],
+                            additionalProperties: false
+                        },
+                        {
+                            type: 'null'
+                        }
+                    ]
+                },
+                promoted: {
+                    type: 'number',
+                    enum: [0, 1]
+                },
+                group: {
+                    type: ['string', 'null']
+                },
+                note: {
+                    type: 'object',
+                    properties: {
+                        buy: {
+                            type: ['string', 'null']
+                        },
+                        sell: {
+                            type: ['string', 'null']
+                        }
+                    },
+                    required: ['buy', 'sell'],
+                    additionalProperties: false
+                },
+                time: {
+                    type: ['number', 'null']
+                },
+                name: {
+                    type: 'string'
                 }
-            ]
+            },
+            required: [
+                'autoprice',
+                'buy',
+                'enabled',
+                'group',
+                'intent',
+                'max',
+                'min',
+                'name',
+                'note',
+                'promoted',
+                'sell',
+                'sku',
+                'time'
+            ],
+            additionalProperties: false
         }
-    },
-    additionalProperties: false,
-    required: ['sku', 'enabled', 'intent', 'autoprice', 'max', 'min', 'buy', 'sell', 'time']
+    }
 };

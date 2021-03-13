@@ -1055,7 +1055,7 @@ export default class PricelistManagerCommands {
 
             if (params.withgroup || params.withoutgroup) {
                 try {
-                    await this.bot.pricelist.removeByGroup(newPricelist);
+                    await this.bot.pricelist.setNewPricelist(newPricelist);
                     this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
