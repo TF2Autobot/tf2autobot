@@ -732,6 +732,7 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
+        //?
         const input: HighValueInput = {
             our: getHighValue.our,
             their: getHighValue.their
@@ -749,8 +750,9 @@ export default class MyHandler extends Handler {
                 }
             } as HighValueOutput;
         };
+        //\?
 
-        const isContainsHighValue =
+        const isContainsHighValue = //? name
             Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0;
 
         // Check if the offer is from an admin
@@ -821,59 +823,62 @@ export default class MyHandler extends Handler {
         }
 
         const offerMessage = offer.message.toLowerCase();
-        const isGift = [
-            'gift',
-            'donat', // So that 'donate' or 'donation' will also be accepted
-            'tip', // All others are synonyms
-            'tribute',
-            'souvenir',
-            'favor',
-            'giveaway',
-            'bonus',
-            'grant',
-            'bounty',
-            'present',
-            'contribution',
-            'award',
-            'nice', // Up until here actually
-            'happy', // All below people might also use
-            'thank',
-            'goo', // For 'good', 'goodie' or anything else
-            'awesome',
-            'rep',
-            'joy',
-            'cute' // right?
-        ].some(word => offerMessage.includes(word));
 
-        if (itemsToGiveCount === 0 && isGift) {
-            offer.log(
-                'trade',
-                `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                    summarize(offer, this.bot, 'summary-accepting', false),
-                    null,
-                    4
-                )}`
-            );
-            return {
-                action: 'accept',
-                reason: 'GIFT',
-                meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
-            };
-        } else if (itemsToGiveCount === 0 && itemsToReceiveCount > 0 && !isGift) {
-            if (opt.bypass.giftWithoutMessage.allow) {
+        if (itemsToGiveCount === 0) {
+            const isGift = [
+                'gift',
+                'donat', // So that 'donate' or 'donation' will also be accepted
+                'tip', // All others are synonyms
+                'tribute',
+                'souvenir',
+                'favor',
+                'giveaway',
+                'bonus',
+                'grant',
+                'bounty',
+                'present',
+                'contribution',
+                'award',
+                'nice', // Up until here actually
+                'happy', // All below people might also use
+                'thank',
+                'goo', // For 'good', 'goodie' or anything else
+                'awesome',
+                'rep',
+                'joy',
+                'cute' // right?
+            ].some(word => offerMessage.includes(word));
+
+            if (isGift) {
                 offer.log(
-                    'info',
-                    'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                    'trade',
+                    `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                        summarize(offer, this.bot, 'summary-accepting', false),
+                        null,
+                        4
+                    )}`
                 );
-
                 return {
                     action: 'accept',
                     reason: 'GIFT',
                     meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
                 };
             } else {
-                offer.log('info', 'is a gift offer without any offer message, declining...');
-                return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+                if (opt.bypass.giftWithoutMessage.allow) {
+                    offer.log(
+                        'info',
+                        'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                    );
+
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT',
+                        meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+                    };
+                } else {
+                    offer.log('info', 'is a gift offer without any offer message, declining...');
+                    return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+                }
             }
         } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
             offer.log('info', 'is taking our items for free, declining...');
@@ -886,6 +891,7 @@ export default class MyHandler extends Handler {
         const checkExist = this.bot.pricelist;
         const theirSKUs = Object.keys(itemsDict['their']);
 
+        //? why not check in first pass
         if (opt.miscSettings.checkUses.duel && theirSKUs.includes('241;6')) {
             const isNot5Uses = items.their['241;6'].some(item => item.isFullUses === false);
 
@@ -896,6 +902,7 @@ export default class MyHandler extends Handler {
             }
         }
 
+        //? why not check in first pass
         if (opt.miscSettings.checkUses.noiseMaker && theirSKUs.some(sku => noiseMakers.has(sku))) {
             const noiseMaker = (items: Dict) => {
                 let isNot25Uses = false;
@@ -914,6 +921,7 @@ export default class MyHandler extends Handler {
             };
 
             const [isNot25Uses, skus] = noiseMaker(items.their);
+            //? why not check when checking everything, if it is in pricelist
             const isHasNoiseMaker = skus.some(sku => checkExist.getPrice(sku, true) !== null);
             if (isNot25Uses && isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
@@ -999,6 +1007,7 @@ export default class MyHandler extends Handler {
         const uncraftAll = this.bot.uncraftWeapons;
 
         const itemsDiff = offer.getDiff();
+        //?
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
@@ -1009,7 +1018,8 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                const amount = items[which][sku].map(item => item.id).length; // assetids
+                const amount = items[which][sku].length;
+
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
                     exchange[which].scrap += amount;
