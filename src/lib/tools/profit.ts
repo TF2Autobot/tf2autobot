@@ -6,10 +6,18 @@ import { OfferData } from '@tf2autobot/tradeoffer-manager';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
-export default async function profit(
-    bot: Bot,
-    start = 0
-): Promise<{ tradeProfit: number; overpriceProfit: number; since: number; profitTimed: number }> {
+interface Profit {
+    tradeProfit: number;
+    overpriceProfit: number;
+    since: number;
+    profitTimed: number;
+}
+
+interface OfferDataWithTime extends OfferData {
+    time: number;
+}
+
+export default async function profit(bot: Bot, start = 0): Promise<Profit> {
     return new Promise(resolve => {
         const pollData = bot.manager.pollData;
         const now = dayjs();
@@ -228,13 +236,17 @@ export default async function profit(
     });
 }
 
+interface ItemsCountAndPrice {
+    [sku: string]: { count: number; price: number };
+}
+
 /**
  * this class tracks items in our inventory and their price
  */
 class itemTracker {
-    private itemStock: { [sku: string]: { count: number; price: number } };
+    private itemStock: ItemsCountAndPrice;
 
-    private overItems: { [sku: string]: { count: number; price: number } };
+    private overItems: ItemsCountAndPrice;
 
     constructor() {
         this.itemStock = {};
@@ -306,8 +318,4 @@ class itemTracker {
     convert(prices: Currency, keyPrice: number) {
         return new Currencies(prices).toValue(keyPrice);
     }
-}
-
-interface OfferDataWithTime extends OfferData {
-    time: number;
 }

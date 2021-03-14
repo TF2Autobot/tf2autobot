@@ -363,7 +363,7 @@ function highValue(
             s[spellsData[spellName]] = spells.includes(spellName.toLowerCase());
         } else if (
             (['Kills', 'Assists'].includes(partsString)
-                ? econ.getTag('Type') === 'Cosmetic'
+                ? econ.getItemTag('Type') === 'Cosmetic'
                 : Object.keys(parts).includes(partsString)) &&
             content.color === '756b5e'
         ) {

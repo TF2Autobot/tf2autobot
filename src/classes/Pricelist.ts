@@ -762,11 +762,9 @@ export default class Pricelist extends EventEmitter {
                     continue;
                 }
 
-                const isInStock = inventory.getAmount(currPrice.sku, true) > 0;
-
-                const item = SKU.fromString(currPrice.sku);
-                // PricesTF (and custom pricer) includes "The" in the name, we need to use proper name
-                const name = this.schema.getName(item, true);
+                const sku = currPrice.sku;
+                const isInStock = inventory.getAmount(sku, true) > 0;
+                const item = SKU.fromString(sku);
 
                 // Go through pricestf/custom pricer prices
                 const grouped = groupedPrices[item.quality][item.killstreak];
@@ -775,7 +773,7 @@ export default class Pricelist extends EventEmitter {
                 for (let j = 0; j < groupedCount; j++) {
                     const newestPrice = grouped[j];
 
-                    if (name === newestPrice.name) {
+                    if (sku === newestPrice.sku) {
                         // Found matching items
                         if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
@@ -790,7 +788,7 @@ export default class Pricelist extends EventEmitter {
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
-                            const isNotExcluded = !excludedSKU.includes(currPrice.sku);
+                            const isNotExcluded = !excludedSKU.includes(sku);
 
                             if (opt.enable && isInStock && isNotExceedThreshold && isNotExcluded) {
                                 // if optPartialUpdate.enable is true and the item is currently in stock

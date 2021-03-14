@@ -9,21 +9,24 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
     const disabledForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
+        const name = bot.schema.getName(SKU.fromString(el.sku));
+
         if (opt.enable && opt.url !== '') {
-            disabledForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_`);
+            disabledForOur.push(`_${name}_`);
         } else {
-            disabledForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)}`);
+            disabledForOur.push(`${name}`);
         }
 
         // only show to trade partner the item name
-        disabledForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
+        disabledForTheir.push(name);
     });
 
     const disabledForTheirCount = disabledForTheir.length;
+    const note = bot.options.manualReview.disabledItems.note;
 
     return {
-        note: bot.options.manualReview.disabledItems.note
-            ? `🟧_DISABLED_ITEMS - ${bot.options.manualReview.disabledItems.note}`
+        note: note
+            ? `🟧_DISABLED_ITEMS - ${note}`
                   .replace(/%itemsName%/g, disabledForTheir.join(', '))
                   .replace(/%isOrAre%/g, pluralize('is', disabledForTheirCount))
             : `🟧_DISABLED_ITEMS - ${disabledForTheir.join(', ')} ${pluralize(

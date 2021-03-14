@@ -26,7 +26,7 @@ export default function processAccepted(
 
     const offerReceived = offer.data('action') as i.Action;
     const meta = offer.data('meta') as i.Meta;
-    const offerSent = offer.data('highValue') as i.HighValueOutput;
+    const highValue = offer.data('highValue') as i.HighValueOutput; // can be both offer received and offer sent
 
     const isWebhookEnabled = opt.discordWebhook.tradeSummary.enable && opt.discordWebhook.tradeSummary.url.length > 0;
 
@@ -87,10 +87,10 @@ export default function processAccepted(
             }
         }
 
-        if (meta?.highValue && meta.highValue['has'] === undefined) {
-            if (Object.keys(meta.highValue.items.their).length > 0) {
+        if (highValue && highValue['has'] === undefined) {
+            if (Object.keys(highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(meta.highValue.items.their, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -101,8 +101,8 @@ export default function processAccepted(
                     theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
-                if (meta.highValue.isMention.their) {
-                    Object.keys(meta.highValue.items.their).forEach(sku => isDisableSKU.push(sku));
+                if (highValue.isMention.their) {
+                    Object.keys(highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
                     if (!bot.isAdmin(offer.partner)) {
                         accepted.isMention = true;
@@ -110,9 +110,9 @@ export default function processAccepted(
                 }
             }
 
-            if (Object.keys(meta.highValue.items.our).length > 0) {
+            if (Object.keys(highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(meta.highValue.items.our, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -122,18 +122,18 @@ export default function processAccepted(
                     accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
                 }
 
-                if (meta.highValue.isMention.our) {
+                if (highValue.isMention.our) {
                     if (!bot.isAdmin(offer.partner)) {
                         accepted.isMention = true;
                     }
                 }
             }
         }
-    } else if (offerSent && offerSent['has'] === undefined) {
+    } else if (highValue && highValue['has'] === undefined) {
         // This is for offer that bot created from commands
 
-        if (offerSent.items && Object.keys(offerSent.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(offerSent.items.their, bot, bot.paints, bot.strangeParts);
+        if (highValue.items && Object.keys(highValue.items.their).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -144,8 +144,8 @@ export default function processAccepted(
                 theirHighValuedItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 
-            if (offerSent.isMention.their) {
-                Object.keys(offerSent.items.their).forEach(sku => isDisableSKU.push(sku));
+            if (highValue.isMention.their) {
+                Object.keys(highValue.items.their).forEach(sku => isDisableSKU.push(sku));
 
                 if (!bot.isAdmin(offer.partner)) {
                     accepted.isMention = true;
@@ -153,8 +153,8 @@ export default function processAccepted(
             }
         }
 
-        if (offerSent.items && Object.keys(offerSent.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(offerSent.items.our, bot, bot.paints, bot.strangeParts);
+        if (highValue.items && Object.keys(highValue.items.our).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -164,7 +164,7 @@ export default function processAccepted(
                 accepted.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
 
-            if (offerSent.isMention.our) {
+            if (highValue.isMention.our) {
                 if (!bot.isAdmin(offer.partner)) {
                     accepted.isMention = true;
                 }
@@ -235,7 +235,7 @@ export default function processAccepted(
     return {
         theirHighValuedItems,
         isDisableSKU,
-        items: meta?.highValue?.items?.their || offerSent?.items?.their
+        items: highValue?.items?.their
     };
 }
 
