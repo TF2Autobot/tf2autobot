@@ -759,8 +759,7 @@ export default class MyHandler extends Handler {
         };
 
         const isContainsHighValue =
-            Object.keys(highValueMeta.items.our.items).length > 0 ||
-            Object.keys(highValueMeta.items.their.items).length > 0;
+            Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0;
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
