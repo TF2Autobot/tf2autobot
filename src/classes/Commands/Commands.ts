@@ -206,8 +206,6 @@ export default class Commands {
             void this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
-        } else if (command === 'shuffle' && isAdmin) {
-            void this.pManager.shuffleCommand(steamID);
         } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
             this.manager.TF2GCCommand(steamID, message, command as TF2GC);
         } else if (['name', 'avatar'].includes(command) && isAdmin) {

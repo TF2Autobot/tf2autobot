@@ -853,44 +853,6 @@ export default class PricelistManagerCommands {
         );
     }
 
-    async shuffleCommand(steamID: SteamID): Promise<void> {
-        const newExecutedTime = dayjs().valueOf();
-        const timeDiff = newExecutedTime - this.lastExecutedTime;
-
-        const pricelist = this.bot.pricelist.getPrices;
-
-        if (pricelist.length === 0) {
-            return this.bot.sendMessage(steamID, '❌ Pricelist is empty!');
-        }
-
-        if (this.executed === true) {
-            return this.bot.sendMessage(
-                steamID,
-                `⚠️ You need to wait ${Math.trunc(
-                    (30 * 60 * 1000 - timeDiff) / (1000 * 60)
-                )} minutes before you can shuffle pricelist/shuffle again.`
-            );
-        } else {
-            clearTimeout(this.executeTimeout);
-            this.lastExecutedTime = dayjs().valueOf();
-
-            const shufflePricelist = (arr: Entry[]) => {
-                return arr.sort(() => Math.random() - 0.5);
-            };
-
-            await this.bot.handler.onPricelist(shufflePricelist(pricelist));
-            this.bot.sendMessage(steamID, '✅ Pricelist shuffled!');
-            await this.bot.listings.redoListings();
-
-            this.executed = true;
-            this.executeTimeout = setTimeout(() => {
-                this.lastExecutedTime = null;
-                this.executed = false;
-                clearTimeout(this.executeTimeout);
-            }, 30 * 60 * 1000);
-        }
-    }
-
     async removeCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
