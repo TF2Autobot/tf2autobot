@@ -824,10 +824,7 @@ export default class UserCart extends Cart {
             }
         };
 
-        if (
-            Object.keys(highValueOut.items.our.items).length > 0 ||
-            Object.keys(highValueOut.items.their.items).length > 0
-        ) {
+        if (Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0) {
             offer.data('highValue', highValueOut);
         }
 
