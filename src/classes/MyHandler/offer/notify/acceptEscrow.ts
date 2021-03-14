@@ -2,10 +2,12 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../Bot';
 
 export default function acceptEscrow(offer: TradeOffer, bot: Bot): void {
+    const custom = bot.options.customMessage.successEscrow;
+
     bot.sendMessage(
         offer.partner,
-        bot.options.customMessage.successEscrow
-            ? bot.options.customMessage.successEscrow
+        custom
+            ? custom
             : '✅ Success! The offer has gone through successfully, but you will receive your items after several days. ' +
                   'To prevent this from happening in the future, please enable Steam Guard Mobile Authenticator.' +
                   '\nRead:\n' +

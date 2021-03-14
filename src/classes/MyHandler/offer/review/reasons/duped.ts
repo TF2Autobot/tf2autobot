@@ -9,31 +9,24 @@ export default function duped(meta: Meta, bot: Bot): { note: string; name: strin
     const dupedItemsNameTheir: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[]).forEach(el => {
+        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+
         if (opt.enable && opt.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
-            dupedItemsNameOur.push(
-                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ - [history page](https://backpack.tf/item/${
-                    el.assetid
-                })`
-            );
+            dupedItemsNameOur.push(`_${name}_ - [history page](https://backpack.tf/item/${el.assetid})`);
         } else {
             // else Discord Webhook for review offer disabled, make the link to backpack.tf item history page separate with name.
-            dupedItemsNameOur.push(
-                `${bot.schema.getName(SKU.fromString(el.sku), false)} - history page: https://backpack.tf/item/${
-                    el.assetid
-                }`
-            );
+            dupedItemsNameOur.push(`${name} - history page: https://backpack.tf/item/${el.assetid}`);
         }
-        dupedItemsNameTheir.push(
-            `${bot.schema.getName(SKU.fromString(el.sku), false)}, history page: https://backpack.tf/item/${el.assetid}`
-        );
+        dupedItemsNameTheir.push(`${name}, history page: https://backpack.tf/item/${el.assetid}`);
     });
 
     const dupedItemsNameTheirCount = dupedItemsNameTheir.length;
+    const note = bot.options.manualReview.duped.note;
 
     return {
-        note: bot.options.manualReview.duped.note
-            ? `🟫_DUPED_ITEMS - ${bot.options.manualReview.duped.note}`
+        note: note
+            ? `🟫_DUPED_ITEMS - ${note}`
                   .replace(/%itemsName%/g, dupedItemsNameTheir.join(', '))
                   .replace(/%isOrAre%/g, pluralize('is', dupedItemsNameTheirCount))
             : `🟫_DUPED_ITEMS - ${dupedItemsNameTheir.join(', ')} ${pluralize(
