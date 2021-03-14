@@ -645,12 +645,11 @@ export default class MyHandler extends Handler {
             await sleepasync().Promise.sleep(3 * 1000);
             void this.requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
-                    submitted++;
                     failed++;
                 } else {
-                    submitted++;
                     success++;
                 }
+                submitted++;
 
                 if (submitted === total) {
                     log.debug(
