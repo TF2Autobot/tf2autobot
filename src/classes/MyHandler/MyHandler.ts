@@ -654,7 +654,7 @@ export default class MyHandler extends Handler {
                 if (submitted === total) {
                     log.debug(
                         `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!` +
-                            `\nSummary: status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                            `\nSummary: ${success} success, ${failed} failed.`
                     );
 
                     // Next background pricecheckAll will start after 15 minutes
