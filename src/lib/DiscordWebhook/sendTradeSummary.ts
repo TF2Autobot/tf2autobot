@@ -50,21 +50,26 @@ export default async function sendTradeSummary(
 
     const dict = offer.data('dict') as ItemsDict;
 
-    const isMentionOurItems = enableMentionOnSpecificSKU
-        ? skuToMention.some(fromEnv => {
-              return Object.keys(dict.our).some(ourItemSKU => {
-                  return ourItemSKU.includes(fromEnv);
-              });
-          })
-        : false;
+    let isMentionOurItems = false;
+    let isMentionTheirItems = false;
 
-    const isMentionTheirItems = enableMentionOnSpecificSKU
-        ? skuToMention.some(fromEnv => {
-              return Object.keys(dict.their).some(theirItemSKU => {
-                  return theirItemSKU.includes(fromEnv);
-              });
-          })
-        : false;
+    if (skuToMention.length > 0) {
+        isMentionOurItems = enableMentionOnSpecificSKU
+            ? skuToMention.some(fromEnv => {
+                  return Object.keys(dict.our).some(ourItemSKU => {
+                      return ourItemSKU.includes(fromEnv);
+                  });
+              })
+            : false;
+
+        isMentionTheirItems = enableMentionOnSpecificSKU
+            ? skuToMention.some(fromEnv => {
+                  return Object.keys(dict.their).some(theirItemSKU => {
+                      return theirItemSKU.includes(fromEnv);
+                  });
+              })
+            : false;
+    }
 
     const valueToMention = optDW.tradeSummary.mentionOwner.tradeValueInRef;
     const isMentionOnGreaterValue = valueToMention > 0 ? value.ourValue >= Currencies.toScrap(valueToMention) : false;

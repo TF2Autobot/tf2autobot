@@ -110,8 +110,6 @@ export default class Listings {
     }
 
     private checkAccountInfo(): void {
-        log.debug('Checking account info');
-
         void this.getAccountInfo.asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
@@ -183,10 +181,11 @@ export default class Listings {
         let hasBuyListing = false;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
+
+        const amountCanBuy = invManager.amountCanTrade(sku, true, generics);
+        const amountCanSell = invManager.amountCanTrade(sku, false, generics);
 
         const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
@@ -268,82 +267,46 @@ export default class Listings {
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);
 
-            // Check if we are already making a listing for same type of item + intent
-            const created = this.bot.listingManager.actions.create;
-            let alreadyMakingAListing = false;
+            const canAffordToBuy = isFilterCantAfford
+                ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
+                : true;
 
-            if (showLogs) {
-                // we use showLogs here because this will always false on start
+            if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
+                if (showLogs) {
+                    log.debug(`We have no buy order and we can buy more items, create buy listing.`);
+                }
 
-                alreadyMakingAListing =
-                    created.length > 0
-                        ? created.some(element => {
-                              if (element.intent === 1) {
-                                  /*
-                                   * Example
-                                   * {"time":1613388425,"id":"9479836596","intent":1,"promoted":0,
-                                   * "details":"⚡ I am selling 23 for 0.11 ref each. Send offer or add me and send 💬 !buy Reserve Shooter 💬 Thank you!",
-                                   * "currencies":{"keys":0,"metal":0.11}}
-                                   */
-                                  return element.id === assetids[assetids.length - 1];
-                              } else if (element.intent === 0) {
-                                  /*
-                                   * Example
-                                   * {"time":1613388426,"sku":"415;6;uncraftable","intent":0,
-                                   * "details":"⚡ [Scrap.TF down? Sell your craft weapons to me, 2 for 1 scrap or any 1 of my craft weapons!] I am buying 4 for
-                                   *  0.05 ref each. Thank you!","currencies":{"keys":0,"metal":0.05},
-                                   * "item":{"item_name":"Reserve Shooter","quality":"Unique","craftable":0}}
-                                   */
-                                  return element.sku === matchNew.sku;
-                              }
+                doneSomething = true;
 
-                              return false;
-                          })
-                        : false;
+                this.bot.listingManager.createListing({
+                    time: matchNew.time || dayjs().unix(),
+                    sku: sku,
+                    intent: 0,
+                    details: this.getDetails(0, amountCanBuy, matchNew),
+                    currencies: matchNew.buy
+                });
             }
 
-            if (!alreadyMakingAListing) {
-                const canAffordToBuy = isFilterCantAfford
-                    ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
-                    : true;
-
-                if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
-                    if (showLogs) {
-                        log.debug(`We have no buy order and we can buy more items, create buy listing.`);
-                    }
-
-                    doneSomething = true;
-
-                    this.bot.listingManager.createListing({
-                        time: matchNew.time || dayjs().unix(),
-                        sku: sku,
-                        intent: 0,
-                        details: this.getDetails(0, amountCanBuy, matchNew),
-                        currencies: matchNew.buy
-                    });
+            if (!hasSellListing && amountCanSell > 0) {
+                if (showLogs) {
+                    log.debug(`We have no sell order and we can sell items, create sell listing.`);
                 }
 
-                if (!hasSellListing && amountCanSell > 0) {
-                    if (showLogs) {
-                        log.debug(`We have no sell order and we can sell items, create sell listing.`);
-                    }
+                doneSomething = true;
 
-                    doneSomething = true;
-
-                    this.bot.listingManager.createListing({
-                        time: matchNew.time || dayjs().unix(),
-                        id: assetids[assetids.length - 1],
-                        intent: 1,
-                        promoted: matchNew.promoted,
-                        details: this.getDetails(
-                            1,
-                            amountCanSell,
-                            matchNew,
-                            inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
-                        ),
-                        currencies: matchNew.sell
-                    });
-                }
+                this.bot.listingManager.createListing({
+                    time: matchNew.time || dayjs().unix(),
+                    id: assetids[assetids.length - 1],
+                    intent: 1,
+                    promoted: matchNew.promoted,
+                    details: this.getDetails(
+                        1,
+                        amountCanSell,
+                        matchNew,
+                        inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
+                    ),
+                    currencies: matchNew.sell
+                });
             }
         }
 
@@ -386,8 +349,8 @@ export default class Listings {
 
                         // Filter pricelist to only items we can sell and we can afford to buy
 
-                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true);
-                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false);
+                        const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
+                        const amountCanSell = inventoryManager.amountCanTrade(entry.sku, false);
 
                         if (
                             (amountCanBuy > 0 &&
