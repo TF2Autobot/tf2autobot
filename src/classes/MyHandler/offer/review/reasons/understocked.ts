@@ -9,25 +9,21 @@ export default function understocked(meta: Meta, bot: Bot): { note: string; name
     const understockedForOur: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
+        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+
         if (opt.enable && opt.url !== '') {
-            understockedForOur.push(
-                `_${bot.schema.getName(SKU.fromString(el.sku), false)}_ (can only sell ${el.amountCanTrade}, taking ${
-                    el.amountTaking
-                })`
-            );
+            understockedForOur.push(`_${name}_ (can only sell ${el.amountCanTrade}, taking ${el.amountTaking})`);
         } else {
-            understockedForOur.push(
-                `${bot.schema.getName(SKU.fromString(el.sku), false)} (can only sell ${el.amountCanTrade}, taking ${
-                    el.amountTaking
-                })`
-            );
+            understockedForOur.push(`${name} (can only sell ${el.amountCanTrade}, taking ${el.amountTaking})`);
         }
-        understockedForTheir.push(`${el.amountCanTrade} - ${bot.schema.getName(SKU.fromString(el.sku), false)}`);
+        understockedForTheir.push(`${el.amountCanTrade} - ${name}`);
     });
 
+    const note = bot.options.manualReview.understocked.note;
+
     return {
-        note: bot.options.manualReview.understocked.note
-            ? `🟩_UNDERSTOCKED - ${bot.options.manualReview.understocked.note}`
+        note: note
+            ? `🟩_UNDERSTOCKED - ${note}`
                   .replace(/%itemsName%/g, understockedForTheir.join(', '))
                   .replace(/%isOrAre%/, pluralize('is', understockedForTheir.length))
             : `🟩_UNDERSTOCKED - I can only sell ${understockedForTheir.join(', ')} right now.`,

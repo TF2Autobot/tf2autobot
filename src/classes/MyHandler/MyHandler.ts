@@ -6,8 +6,6 @@ import TradeOfferManager, {
     PollData,
     CustomError,
     ItemsDict,
-    HighValueInput,
-    HighValueOutput,
     Meta,
     WrongAboutOffer,
     Prices,
@@ -33,7 +31,7 @@ import Bot from '../Bot';
 import { Entry, EntryData } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
-import Inventory, { Dict } from '../Inventory';
+import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
@@ -49,6 +47,11 @@ import { summarize, uptime, getHighValueItems } from '../../lib/tools/export';
 import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
 import Options from '../Options';
+
+const filterReasons = (reasons: string[]) => {
+    const filtered = new Set(reasons);
+    return [...filtered];
+};
 
 export default class MyHandler extends Handler {
     readonly commands: Commands;
@@ -666,7 +669,12 @@ export default class MyHandler extends Handler {
             }
         };
 
+        let isDuelingNotFullUses = false;
+        let isNoiseMakerNotFullUses = false;
+        const noiseMakerNotFullSKUs: string[] = [];
+
         let hasInvalidItems = false;
+
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
@@ -723,6 +731,13 @@ export default class MyHandler extends Handler {
                         });
                     } else if (item.isFullUses !== undefined) {
                         getHighValue[which].items[sku] = { isFull: item.isFullUses };
+
+                        if (sku === '241;6' && item.isFullUses === false) {
+                            isDuelingNotFullUses = true;
+                        } else if (noiseMakers.has(sku) && item.isFullUses === false) {
+                            isNoiseMakerNotFullUses = true;
+                            noiseMakerNotFullSKUs.push(sku);
+                        }
                     }
                 });
             }
@@ -732,26 +747,19 @@ export default class MyHandler extends Handler {
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
-        const input: HighValueInput = {
-            our: getHighValue.our,
-            their: getHighValue.their
-        };
-
-        const highValueMeta = (info: HighValueInput) => {
-            return {
-                items: {
-                    our: info.our.items,
-                    their: info.their.items
-                },
-                isMention: {
-                    our: info.our.isMention,
-                    their: info.their.isMention
-                }
-            } as HighValueOutput;
+        const highValueMeta = {
+            items: {
+                our: getHighValue.our.items,
+                their: getHighValue.their.items
+            },
+            isMention: {
+                our: getHighValue.our.isMention,
+                their: getHighValue.their.isMention
+            }
         };
 
         const isContainsHighValue =
-            Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0;
+            Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0;
 
         // Check if the offer is from an admin
         if (this.bot.isAdmin(offer.partner)) {
@@ -767,7 +775,7 @@ export default class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'ADMIN',
-                meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
             };
         }
 
@@ -786,7 +794,7 @@ export default class MyHandler extends Handler {
             this.bot.sendMessage(
                 offer.partner,
                 `❌ Looks like there was some issue with Steam getting your offer data.` +
-                    ` I am sorry but I am not able to proceed with processing your offer.` +
+                    ` I will retry to get the offer data now.` +
                     ` My owner has been informed, and they might manually act on your offer later.`
             );
 
@@ -821,59 +829,62 @@ export default class MyHandler extends Handler {
         }
 
         const offerMessage = offer.message.toLowerCase();
-        const isGift = [
-            'gift',
-            'donat', // So that 'donate' or 'donation' will also be accepted
-            'tip', // All others are synonyms
-            'tribute',
-            'souvenir',
-            'favor',
-            'giveaway',
-            'bonus',
-            'grant',
-            'bounty',
-            'present',
-            'contribution',
-            'award',
-            'nice', // Up until here actually
-            'happy', // All below people might also use
-            'thank',
-            'goo', // For 'good', 'goodie' or anything else
-            'awesome',
-            'rep',
-            'joy',
-            'cute' // right?
-        ].some(word => offerMessage.includes(word));
 
-        if (itemsToGiveCount === 0 && isGift) {
-            offer.log(
-                'trade',
-                `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                    summarize(offer, this.bot, 'summary-accepting', false),
-                    null,
-                    4
-                )}`
-            );
-            return {
-                action: 'accept',
-                reason: 'GIFT',
-                meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
-            };
-        } else if (itemsToGiveCount === 0 && itemsToReceiveCount > 0 && !isGift) {
-            if (opt.bypass.giftWithoutMessage.allow) {
+        if (itemsToGiveCount === 0) {
+            const isGift = [
+                'gift',
+                'donat', // So that 'donate' or 'donation' will also be accepted
+                'tip', // All others are synonyms
+                'tribute',
+                'souvenir',
+                'favor',
+                'giveaway',
+                'bonus',
+                'grant',
+                'bounty',
+                'present',
+                'contribution',
+                'award',
+                'nice', // Up until here actually
+                'happy', // All below people might also use
+                'thank',
+                'goo', // For 'good', 'goodie' or anything else
+                'awesome',
+                'rep',
+                'joy',
+                'cute' // right?
+            ].some(word => offerMessage.includes(word));
+
+            if (isGift) {
                 offer.log(
-                    'info',
-                    'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                    'trade',
+                    `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                        summarize(offer, this.bot, 'summary-accepting', false),
+                        null,
+                        4
+                    )}`
                 );
-
                 return {
                     action: 'accept',
                     reason: 'GIFT',
-                    meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
                 };
             } else {
-                offer.log('info', 'is a gift offer without any offer message, declining...');
-                return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+                if (opt.bypass.giftWithoutMessage.allow) {
+                    offer.log(
+                        'info',
+                        'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                    );
+
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
+                } else {
+                    offer.log('info', 'is a gift offer without any offer message, declining...');
+                    return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+                }
             }
         } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
             offer.log('info', 'is taking our items for free, declining...');
@@ -884,38 +895,18 @@ export default class MyHandler extends Handler {
         // and decline if not 5x/25x and exist in pricelist
 
         const checkExist = this.bot.pricelist;
-        const theirSKUs = Object.keys(itemsDict['their']);
 
-        if (opt.miscSettings.checkUses.duel && theirSKUs.includes('241;6')) {
-            const isNot5Uses = items.their['241;6'].some(item => item.isFullUses === false);
-
-            if (isNot5Uses && checkExist.getPrice('241;6', true) !== null) {
+        if (opt.miscSettings.checkUses.duel && isDuelingNotFullUses) {
+            if (checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
             }
         }
 
-        if (opt.miscSettings.checkUses.noiseMaker && theirSKUs.some(sku => noiseMakers.has(sku))) {
-            const noiseMaker = (items: Dict) => {
-                let isNot25Uses = false;
-                const skus: string[] = [];
-
-                noiseMakers.forEach((name, sku: string) => {
-                    if (items[sku] !== undefined) {
-                        items[sku].forEach(item => {
-                            isNot25Uses = item.isFullUses === false;
-                            skus.push(sku);
-                        });
-                    }
-                });
-
-                return [isNot25Uses, skus] as [boolean, string[]];
-            };
-
-            const [isNot25Uses, skus] = noiseMaker(items.their);
-            const isHasNoiseMaker = skus.some(sku => checkExist.getPrice(sku, true) !== null);
-            if (isNot25Uses && isHasNoiseMaker) {
+        if (opt.miscSettings.checkUses.noiseMaker && isNoiseMakerNotFullUses) {
+            const isHasNoiseMaker = noiseMakerNotFullSKUs.some(sku => checkExist.getPrice(sku, true) !== null);
+            if (isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noise Maker that does not have 25 uses.');
                 return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
@@ -999,6 +990,7 @@ export default class MyHandler extends Handler {
         const uncraftAll = this.bot.uncraftWeapons;
 
         const itemsDiff = offer.getDiff();
+        //?
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
@@ -1009,7 +1001,8 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                const amount = items[which][sku].map(item => item.id).length; // assetids
+                const amount = items[which][sku].length;
+
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
                     exchange[which].scrap += amount;
@@ -1034,12 +1027,6 @@ export default class MyHandler extends Handler {
                         which === 'our'
                             ? this.bot.pricelist.getPrice(sku)
                             : this.bot.pricelist.getPrice(sku, false, true);
-                    const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
-                        ? !(
-                              craftAll.includes(sku) ||
-                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
-                          )
-                        : true;
 
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
@@ -1067,7 +1054,7 @@ export default class MyHandler extends Handler {
                             which === 'their'
                         ); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff) {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
@@ -1091,13 +1078,7 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        if (
-                            diff !== 0 &&
-                            !isBuying &&
-                            sku !== '5021;6' &&
-                            amountCanTrade < Math.abs(diff) &&
-                            notIncludeCraftweapons
-                        ) {
+                        if (diff !== 0 && !isBuying && sku !== '5021;6' && amountCanTrade < Math.abs(diff)) {
                             if (match.enabled) {
                                 // User is taking too many
                                 hasUnderstock = true;
@@ -1138,10 +1119,7 @@ export default class MyHandler extends Handler {
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                         //
-                    } else if (
-                        (match === null && notIncludeCraftweapons) ||
-                        (match !== null && match.intent === (buying ? 1 : 0))
-                    ) {
+                    } else if (match === null || (match !== null && match.intent === (buying ? 1 : 0))) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
@@ -1153,14 +1131,6 @@ export default class MyHandler extends Handler {
                         // await sleepasync().Promise.sleep(1 * 1000);
                         const price = await this.bot.pricelist.getItemPrices(sku);
                         const item = SKU.fromString(sku);
-
-                        // "match" will return null if the item is not enabled
-                        // define "recheckMatch" with onlyEnabled = false
-                        const recheckMatch = this.bot.pricelist.getPrice(sku, false);
-
-                        // If recheckMatch is not null, then check the enabled key (most likely false here),
-                        // else means the item is truly not in pricelist and make "isCanBePriced" true
-                        const isCanBePriced = recheckMatch !== null ? recheckMatch.enabled : true;
 
                         const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
                         // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
@@ -1181,11 +1151,9 @@ export default class MyHandler extends Handler {
                                 opt.offerReceived.invalidItems.givePrice &&
                                 !isSkinsOrWarPaints &&
                                 !isCrateOrCases &&
-                                !isWinterNoiseMaker && // all of these (with !) should be false in order to be true
-                                isCanBePriced
+                                !isWinterNoiseMaker // all of these (with !) should be false in order to be true
                             ) {
                                 // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
-                                // and the item is not enabled=false,
                                 // then give that item price and include in exchange
                                 exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                 exchange[which].keys += price[intentString].keys * amount;
@@ -1281,13 +1249,6 @@ export default class MyHandler extends Handler {
                         amountOffered: itemsDict['their']['5021;6']
                     });
 
-                    log.debug('OVERSTOCKED', {
-                        offer: offer,
-                        sku: '5021;6',
-                        diff: diff,
-                        amountCanTrade: amountCanTrade
-                    });
-
                     this.bot.listings.checkBySKU('5021;6', null, false, true);
                 }
 
@@ -1310,19 +1271,23 @@ export default class MyHandler extends Handler {
             }
         }
 
+        let isOurItems = false;
+        let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
 
-        const isOurItems = exceptionSKU.some(fromEnv => {
-            return Object.keys(itemsDict.our).some(ourItemSKU => {
-                return ourItemSKU.includes(fromEnv);
+        if (exceptionSKU.length > 0) {
+            isOurItems = exceptionSKU.some(fromEnv => {
+                return Object.keys(itemsDict.our).some(ourItemSKU => {
+                    return ourItemSKU.includes(fromEnv);
+                });
             });
-        });
 
-        const isTheirItems = exceptionSKU.some(fromEnv => {
-            return Object.keys(itemsDict.their).some(theirItemSKU => {
-                return theirItemSKU.includes(fromEnv);
+            isTheirItems = exceptionSKU.some(fromEnv => {
+                return Object.keys(itemsDict.their).some(theirItemSKU => {
+                    return theirItemSKU.includes(fromEnv);
+                });
             });
-        });
+        }
 
         const isExcept = isOurItems || isTheirItems;
         const exceptionValue = this.invalidValueException;
@@ -1350,11 +1315,6 @@ export default class MyHandler extends Handler {
                 this.hasInvalidValueException = true;
             }
         }
-
-        const filterReasons = (reasons: string[]) => {
-            const filtered = new Set(reasons);
-            return [...filtered];
-        };
 
         const manualReviewEnabled = opt.manualReview.enable;
         if (!manualReviewEnabled) {
@@ -1501,7 +1461,7 @@ export default class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                        highValue: isContainsHighValue ? highValueMeta : undefined
                     }
                 };
             } else {
@@ -1543,7 +1503,7 @@ export default class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: filterReasons(uniqueReasons),
                         reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                        highValue: isContainsHighValue ? highValueMeta : undefined
                     }
                 };
             } else {
@@ -1638,11 +1598,13 @@ export default class MyHandler extends Handler {
                 );
 
                 if (opt.offerReceived.sendPreAcceptMessage.enable) {
+                    const preAcceptMessage = opt.customMessage.accepted.automatic;
+
                     if (itemsToGiveCount + itemsToReceiveCount > 50) {
                         this.bot.sendMessage(
                             offer.partner,
-                            opt.customMessage.accepted.automatic.largeOffer
-                                ? opt.customMessage.accepted.automatic.largeOffer
+                            preAcceptMessage.largeOffer
+                                ? preAcceptMessage.largeOffer
                                 : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                                       ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
                                       'or add me and use the !sell/!sellcart or !buy/!buycart command.'
@@ -1650,8 +1612,8 @@ export default class MyHandler extends Handler {
                     } else {
                         this.bot.sendMessage(
                             offer.partner,
-                            opt.customMessage.accepted.automatic.smallOffer
-                                ? opt.customMessage.accepted.automatic.smallOffer
+                            preAcceptMessage.smallOffer
+                                ? preAcceptMessage.smallOffer
                                 : 'I have accepted your offer. The trade should be finalized shortly.' +
                                       ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
                                       'or add me and use the !sell/!sellcart or !buy/!buycart command.'
@@ -1665,7 +1627,7 @@ export default class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                        highValue: isContainsHighValue ? highValueMeta : undefined
                     }
                 };
             } else if (
@@ -1734,7 +1696,7 @@ export default class MyHandler extends Handler {
                     meta: {
                         uniqueReasons: uniqueReasons,
                         reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta(input) : undefined
+                        highValue: isContainsHighValue ? highValueMeta : undefined
                     }
                 };
             }
@@ -1746,11 +1708,13 @@ export default class MyHandler extends Handler {
         );
 
         if (opt.offerReceived.sendPreAcceptMessage.enable) {
+            const preAcceptMessage = opt.customMessage.accepted.automatic;
+
             if (itemsToGiveCount + itemsToReceiveCount > 50) {
                 this.bot.sendMessage(
                     offer.partner,
-                    opt.customMessage.accepted.automatic.largeOffer
-                        ? opt.customMessage.accepted.automatic.largeOffer
+                    preAcceptMessage.largeOffer
+                        ? preAcceptMessage.largeOffer
                         : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                               ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
                               'or add me and use the !sell/!sellcart or !buy/!buycart command.'
@@ -1758,8 +1722,8 @@ export default class MyHandler extends Handler {
             } else {
                 this.bot.sendMessage(
                     offer.partner,
-                    opt.customMessage.accepted.automatic.smallOffer
-                        ? opt.customMessage.accepted.automatic.smallOffer
+                    preAcceptMessage.smallOffer
+                        ? preAcceptMessage.smallOffer
                         : 'I have accepted your offer. The trade will be finalized shortly.' +
                               ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
                               'or add me and use the !sell/!sellcart or !buy/!buycart command.'
@@ -1770,7 +1734,7 @@ export default class MyHandler extends Handler {
         return {
             action: 'accept',
             reason: 'VALID',
-            meta: isContainsHighValue ? { highValue: highValueMeta(input) } : undefined
+            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
         };
     }
 
@@ -1890,7 +1854,7 @@ export default class MyHandler extends Handler {
     private sortInventory(): void {
         if (this.opt.miscSettings.sortInventory.enable) {
             const type = this.opt.miscSettings.sortInventory.type;
-            this.bot.tf2gc.sortInventory([1, 2, 3, 4, 5, 101, 102].includes(type) ? type : 3);
+            this.bot.tf2gc.sortInventory(type);
         }
     }
 
@@ -2045,7 +2009,8 @@ export default class MyHandler extends Handler {
                               /%name%/g,
                               this.bot.friends.getFriend(element.steamID).player_name
                           )
-                        : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. Please feel free to add me again if you want to trade at a later time!'
+                        : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
+                              'Please feel free to add me again if you want to trade at a later time!'
                 );
                 this.bot.client.removeFriend(element.steamID);
             });

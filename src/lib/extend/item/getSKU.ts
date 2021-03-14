@@ -83,8 +83,8 @@ function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null
         return parseInt(item.app_data.quality, 10);
     }
 
-    const quality = item.getTag('Quality');
-    const isExterior = item.getTag('Exterior');
+    const quality = item.getItemTag('Quality');
+    const isExterior = item.getItemTag('Exterior');
     if (quality !== null) {
         if (isExterior !== null) {
             return 15;
@@ -121,7 +121,7 @@ function getKillstreak(item: EconItem): number {
  * @param item - Item object
  */
 function isAustralium(item: EconItem): boolean {
-    if (item.getTag('Quality') !== 'Strange') {
+    if (item.getItemTag('Quality') !== 'Strange') {
         return false;
     }
 
@@ -165,7 +165,7 @@ function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null 
  */
 function getWear(item: EconItem): number | null {
     const wear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
-        item.getTag('Exterior')
+        item.getItemTag('Exterior')
     );
 
     return wear === -1 ? null : wear + 1;
@@ -228,7 +228,7 @@ function getElevatedQuality(
     const quality = getQuality(item, schema);
 
     const isUnusualHat =
-        item.getTag('Type') === 'Cosmetic' &&
+        item.getItemTag('Type') === 'Cosmetic' &&
         quality === 5 &&
         item.type.includes('Strange') &&
         item.type.includes('Points Scored');
