@@ -30,7 +30,7 @@ import { BPTFGetUserInfo } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
-import { Entry, EntryData } from '../Pricelist';
+import { Entry, EntryData, PricesDataObject, PricesObject } from "../Pricelist";
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory, { Dict } from '../Inventory';
@@ -233,7 +233,7 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, Entry[], number[], PollData]) => {
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, PricesDataObject, number[], PollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -2132,7 +2132,7 @@ export default class MyHandler extends Handler {
         });
     }
 
-    async onPricelist(pricelist: Entry[]): Promise<void> {
+    async onPricelist(pricelist: PricesObject): Promise<void> {
         if (pricelist.length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll();
@@ -2168,7 +2168,7 @@ export default class MyHandler extends Handler {
 
 interface OnRun {
     loginAttempts?: number[];
-    pricelist?: EntryData[];
+    pricelist?: PricesDataObject;
     loginKey?: string;
     pollData?: PollData;
 }

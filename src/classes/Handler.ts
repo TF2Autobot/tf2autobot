@@ -3,7 +3,7 @@
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
-import { Entry, EntryData } from './Pricelist';
+import { Entry, PricesDataObject } from './Pricelist';
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {
@@ -19,7 +19,7 @@ export default abstract class Handler {
      */
     abstract onRun(): Promise<{
         loginAttempts?: number[];
-        pricelist?: EntryData[];
+        pricelist?: PricesDataObject;
         loginKey?: string;
         pollData?: PollData;
     }>;

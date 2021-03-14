@@ -69,8 +69,6 @@ export class Entry implements EntryData {
         this.min = entry.min;
         this.intent = entry.intent;
 
-        // TODO: Validate entry
-
         if (entry.buy && entry.sell) {
             // Added both buy and sell
             this.buy = new Currencies(entry.buy);
@@ -141,6 +139,10 @@ export class Entry implements EntryData {
 
 export interface PricesObject {
     [id: string]: Entry;
+}
+
+export interface PricesDataObject {
+    [id: string]: EntryData;
 }
 
 export default class Pricelist extends EventEmitter {
@@ -419,35 +421,24 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    setPricelist(prices: EntryData[], bot: Bot): Promise<void> {
-        //TODO: continue
-        if (prices.length !== 0) {
-            const errors = validator(
-                {
-                    sku: prices[0].sku,
-                    enabled: prices[0].enabled,
-                    intent: prices[0].intent,
-                    max: prices[0].max,
-                    min: prices[0].min,
-                    autoprice: prices[0].autoprice,
-                    buy: prices[0].buy,
-                    sell: prices[0].sell,
-                    promoted: prices[0].promoted,
-                    group: prices[0].group,
-                    note: prices[0].note,
-                    time: prices[0].time
-                },
-                'pricelist'
-            );
+    setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
+        let errors = validator(prices, 'pricelistDataObject');
 
-            if (errors !== null) {
-                throw new Error(errors.join(', '));
-            }
+        if (errors !== null) {
+            throw new Error(errors.join(', '));
         }
 
         this.bot = bot;
 
-        this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
+        for (const sku in prices) {
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) continue;
+            this.prices[sku] = Entry.fromData(prices[sku], this.schema);
+        }
+
+        errors = validator(this.prices, 'pricelist');
+        if (errors !== null) {
+            throw new Error(errors.join(', '));
+        }
         return this.setupPricelist();
     }
 
@@ -632,7 +623,7 @@ export default class Pricelist extends EventEmitter {
         return this.priceSource.getPricelist('bptf').then(pricelist => {
             log.debug('Got pricelist');
 
-            const transformedPrices = Pricelist.transformPrices(pricelist.items);
+            const transformedPrices = Pricelist.transformPricesFromPricer(pricelist.items);
 
             let pricesChanged = false;
 
@@ -945,7 +936,7 @@ export default class Pricelist extends EventEmitter {
             return this.prices;
         }
         const now = dayjs().unix();
-        const prices = JSON.parse(JSON.stringify(this.prices)) as PricesObject; //TODO: better way to copy ?
+        const prices = Object.assign({}, this.prices); //TODO: better way to copy ?
         for (const sku in prices) {
             if (!Object.prototype.hasOwnProperty.call(prices, sku)) continue;
             if (this.prices[sku].time + this.maxAge > now) delete prices[sku];
@@ -953,7 +944,7 @@ export default class Pricelist extends EventEmitter {
         return prices;
     }
 
-    static transformPrices(prices: Item[]): { [id: string]: Item } {
+    static transformPricesFromPricer(prices: Item[]): { [p: string]: Item } {
         return prices.reduce((obj, i) => {
             obj[i.sku] = i;
             return obj;
