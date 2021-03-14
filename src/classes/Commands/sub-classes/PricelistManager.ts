@@ -5,12 +5,11 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
-import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
-import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../functions/utils';
+import { fixSKU, getItemFromParams, removeLinkProtocol, testSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { Entry, EntryData, PricelistChangedSource, PricesObject } from '../../Pricelist';
+import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -862,11 +861,6 @@ export default class PricelistManagerCommands {
             if (pricelistLength === 0) {
                 return this.bot.sendMessage(steamID, '❌ Your pricelist is already empty!');
             }
-
-            const pricelist = this.bot.pricelist.getPrices;
-            let newPricelist: Entry[] = [];
-            let newPricelistCount: Entry[] = [];
-
             if (params.withgroup && params.withoutgroup) {
                 return this.bot.sendMessage(
                     steamID,
@@ -874,58 +868,26 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (params.withgroup) {
-                // first filter out pricelist with ONLY "withgroup" value.
-                newPricelistCount = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
+            const pricelist = this.bot.pricelist.getPrices;
+            let newPricelist = Object.assign({}, pricelist);
 
-                if (newPricelistCount.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
-                    );
+            if (params.withgroup || params.withoutgroup) {
+                for (const sku in newPricelist) {
+                    if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) continue;
+                    const entity = newPricelist[sku];
+                    if (params.withgroup && entity.group === params.withgroup) delete newPricelist[sku];
+                    else if (params.withoutgroup && entity.group !== params.withgroup) delete newPricelist[sku];
                 }
-
-                // then filter out pricelist with NOT "withgroup" value.
-                newPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-            } else if (params.withoutgroup) {
-                // reverse of withgroup
-                newPricelistCount = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-
-                if (newPricelistCount.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry other than "${
-                            params.withoutgroup as string
-                        }" group found in your pricelist.`
-                    );
-                }
-
-                newPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
             } else {
-                newPricelistCount = pricelist;
+                newPricelist = {};
             }
 
+            const removeCount = pricelistLength - Object.keys(newPricelist).length;
             if (params.i_am_sure !== 'yes_i_am') {
                 return this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
-                        pluralize('item', newPricelistCount.length, true) +
+                        pluralize('item', removeCount, true) +
                         '? Try again with i_am_sure=yes_i_am'
                 );
             }
@@ -933,7 +895,7 @@ export default class PricelistManagerCommands {
             if (params.withgroup || params.withoutgroup) {
                 try {
                     await this.bot.pricelist.setNewPricelist(newPricelist);
-                    this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                    this.bot.sendMessage(steamID, `✅ Removed ${removeCount} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
                     return this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
@@ -954,28 +916,12 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            let match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false);
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
-            } else if (Array.isArray(match)) {
-                const matchCount = match.length;
-                if (matchCount > 20) {
-                    match = match.splice(0, 20);
-                }
-
-                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
-                    ',\n'
-                )}`;
-
-                if (matchCount > match.length) {
-                    const other = matchCount - match.length;
-                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-                }
-
-                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -1015,29 +961,13 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            let match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false);
 
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
-            } else if (Array.isArray(match)) {
-                const matchCount = match.length;
-                if (matchCount > 20) {
-                    match = match.splice(0, 20);
-                }
-
-                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
-                    ',\n'
-                )}`;
-
-                if (matchCount > match.length) {
-                    const other = matchCount - match.length;
-                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-                }
-
-                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -1067,8 +997,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
-        filtered['stock'] = currentStock;
+        filtered['stock'] = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
 
         return JSON.stringify(filtered, null, 4);
     }
@@ -1077,14 +1006,15 @@ export default class PricelistManagerCommands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         const pricelist = this.bot.pricelist.getPrices;
-        if (pricelist.length === 0) {
+        if (Object.keys(pricelist).length === 0) {
             return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
         }
 
         const isPremium = this.bot.handler.getBotInfo.premium;
 
-        const list = pricelist.map((entry, i) => {
-            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+        const list = Object.keys(pricelist).map((sku, i) => {
+            const entry = pricelist[sku];
+            const name = entry.name;
             const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
@@ -1121,7 +1051,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
-            await sleepasync().Promise.sleep(1 * 1000);
+            await sleepasync().Promise.sleep(1000);
         }
     }
 
@@ -1144,7 +1074,10 @@ export default class PricelistManagerCommands {
             );
         }
 
-        let filter = this.bot.pricelist.getPrices;
+        const pricelist = this.bot.pricelist.getPrices;
+        let filter = Object.keys(pricelist).map(sku => {
+            return pricelist[sku];
+        });
         if (params.enabled !== undefined) {
             if (typeof params.enabled !== 'boolean') {
                 return this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');

@@ -173,12 +173,12 @@ export default class Inventory {
     findBySKU(sku: string, tradableOnly = true): string[] {
         if (tradableOnly) {
             // Copies the array
-            return (this.tradable[sku] || []).map(item => (item ? item.id : undefined)).slice(0);
+            return (this.tradable[sku] || []).map(item => item?.id).slice(0);
         }
 
         return (this.nonTradable[sku] || [])
-            .map(item => (item ? item.id : undefined))
-            .concat((this.tradable[sku] || []).map(item => (item ? item.id : undefined)))
+            .map(item => item?.id)
+            .concat((this.tradable[sku] || []).map(item => item?.id))
             .slice(0);
     }
 

@@ -410,14 +410,15 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removePrice(sku: string, emitChange: boolean): Promise<boolean> {
+    removePrice(sku: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
             if (!this.hasPrice(sku)) return reject(new Error('Item is not priced'));
+            const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
             delete this.prices[sku];
             if (emitChange) {
-                this.priceChanged(sku);
+                this.priceChanged(sku, entry);
             }
-            return resolve(true);
+            return resolve(entry);
         });
     }
 
@@ -926,7 +927,7 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    private priceChanged(sku: string, entry?: Entry): void {
+    private priceChanged(sku: string, entry: Entry): void {
         this.emit('price', sku, entry);
         this.emit('pricelist', this.prices);
     }
