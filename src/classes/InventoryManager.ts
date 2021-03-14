@@ -38,16 +38,15 @@ export default class InventoryManager {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
-        const isGenericSku = /^[0-9]*;5$/.test(sku);
 
         // Pricelist entry
-        const match = this.pricelist.getPrice(sku, true, generics);
-
+        let match = this.pricelist.getPrice(sku, true, false);
+        const matchGeneric = !match && generics ? this.pricelist.getPrice(sku, true, true) : null;
+        match = matchGeneric || match;
         // Amount in inventory should only use generic amount if there is a generic sku
-        const amount =
-            genericCheck && match && genericIndex !== -1
-                ? this.inventory.getAmountOfGenerics(SKU.fromObject(gSku), true)
-                : this.inventory.getAmount(sku, true);
+        const amount = matchGeneric
+            ? this.inventory.getAmountOfGenerics(sku, true)
+            : this.inventory.getAmount(sku, true);
 
         if (match === null) {
             // No price for item

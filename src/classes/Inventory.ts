@@ -190,16 +190,14 @@ export default class Inventory {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
-            // generic getAmount so return total that match the generic sku type
-            return (
-                this.effects
-                    .map(e => {
-                        s.effect = e.id;
-                        return this.getAmount(SKU.fromObject(s), tradableOnly);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
-            );
+            const all = tradableOnly
+                ? Object.keys(this.tradable)
+                : Object.keys(this.tradable).concat(Object.keys(this.nonTradable));
+            return all
+                .filter(e => e.startsWith(sku))
+                .reduce((sum, s) => {
+                    return sum + this.getAmount(s, tradableOnly);
+                }, 0);
         } else {
             return this.getAmount(sku, tradableOnly);
         }
