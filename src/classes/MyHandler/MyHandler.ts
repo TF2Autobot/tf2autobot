@@ -646,8 +646,15 @@ export default class MyHandler extends Handler {
             void this.requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
                     failed++;
+                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
+                    log.debug(
+                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
                 } else {
                     success++;
+                    log.debug(
+                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
                 }
                 submitted++;
 
