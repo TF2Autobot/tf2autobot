@@ -9,23 +9,26 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
     const invalidForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[]).forEach(el => {
+        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+
         if (opt.enable && opt.url !== '') {
             // show both item name and prices.tf price
-            invalidForOur.push(`_${bot.schema.getName(SKU.fromString(el.sku), false)}_ - ${el.price}`);
+            invalidForOur.push(`_${name}_ - ${el.price}`);
         } else {
             // show both item name and prices.tf price
-            invalidForOur.push(`${bot.schema.getName(SKU.fromString(el.sku), false)} - ${el.price}`);
+            invalidForOur.push(`${name} - ${el.price}`);
         }
 
         // only show to trade partner the item name
-        invalidForTheir.push(bot.schema.getName(SKU.fromString(el.sku), false));
+        invalidForTheir.push(name);
     });
 
     const invalidForTheirCount = invalidForTheir.length;
+    const note = bot.options.manualReview.invalidItems.note;
 
     return {
-        note: bot.options.manualReview.invalidItems.note
-            ? `🟨_INVALID_ITEMS - ${bot.options.manualReview.invalidItems.note}`
+        note: note
+            ? `🟨_INVALID_ITEMS - ${note}`
                   .replace(/%itemsName%/g, invalidForTheir.join(', '))
                   .replace(/%isOrAre%/g, pluralize('is', invalidForTheirCount))
             : `🟨_INVALID_ITEMS - ${invalidForTheir.join(', ')} ${pluralize(

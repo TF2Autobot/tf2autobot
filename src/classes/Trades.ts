@@ -317,6 +317,10 @@ export default class Trades {
 
         offer.data('meta', meta);
 
+        if (meta.highValue) {
+            offer.data('highValue', meta.highValue);
+        }
+
         if (action === 'skip') {
             offer.itemsToGive.forEach(item => {
                 this.unsetItemInTrade = item.assetid;

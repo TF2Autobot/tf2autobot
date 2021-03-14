@@ -2,7 +2,7 @@ import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import async from 'async';
-import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
+import { ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
@@ -813,26 +813,19 @@ export default class UserCart extends Cart {
             }
         });
 
-        const input: HighValueInput = {
-            our: getHighValue.our,
-            their: getHighValue.their
+        const highValueOut = {
+            items: {
+                our: getHighValue.our.items,
+                their: getHighValue.their.items
+            },
+            isMention: {
+                our: getHighValue.our.isMention,
+                their: getHighValue.their.isMention
+            }
         };
 
-        const highValueOut = (info: HighValueInput) => {
-            return {
-                items: {
-                    our: info.our.items,
-                    their: info.their.items
-                },
-                isMention: {
-                    our: info.our.isMention,
-                    their: info.their.isMention
-                }
-            } as HighValueOutput;
-        };
-
-        if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
-            offer.data('highValue', highValueOut(input));
+        if (Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0) {
+            offer.data('highValue', highValueOut);
         }
 
         if (required.change !== 0) {
