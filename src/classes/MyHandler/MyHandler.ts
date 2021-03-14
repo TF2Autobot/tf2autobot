@@ -16,7 +16,6 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from 'tf2-currencies-2';
 import async from 'async';
-import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
@@ -295,9 +294,6 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
-
-        // Initialize background pricecheckAll
-        void this.pricecheckAll();
     }
 
     onShutdown(): Promise<void> {
@@ -617,60 +613,6 @@ export default class MyHandler extends Handler {
 
     disableSendStats(): void {
         clearInterval(this.sendStatsInterval);
-    }
-
-    async pricecheckAll(): Promise<void> {
-        const pricelist = this.bot.pricelist.getPrices;
-
-        const total = pricelist.length;
-        const totalTime = total * 3 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
-        log.debug(
-            `⌛ Running background pricecheck for all ${total} items. It will be completed in approximately ${
-                totalTime < aMin
-                    ? `${Math.round(totalTime / aSecond)} seconds.`
-                    : totalTime < anHour
-                    ? `${Math.round(totalTime / aMin)} minutes.`
-                    : `${Math.round(totalTime / anHour)} hours.`
-            } (about 3 seconds for each item).`
-        );
-
-        const skus = pricelist.map(entry => entry.sku);
-        let submitted = 0;
-        let success = 0;
-        let failed = 0;
-        for (const sku of skus) {
-            await sleepasync().Promise.sleep(3 * 1000);
-            void this.requestCheck(sku, 'bptf').asCallback(err => {
-                if (err) {
-                    failed++;
-                    log.debug(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
-                    log.debug(
-                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                } else {
-                    success++;
-                    log.debug(
-                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                }
-                submitted++;
-
-                if (submitted === total) {
-                    log.debug(
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!` +
-                            `\nSummary: ${success} success, ${failed} failed.`
-                    );
-
-                    // Next background pricecheckAll will start after 15 minutes
-                    setTimeout(() => {
-                        void this.pricecheckAll();
-                    }, 15 * aMin);
-                }
-            });
-        }
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {

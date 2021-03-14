@@ -65,6 +65,9 @@ export default class HelpCommands {
                           }`,
                           `!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
                               isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                          }`,
+                          `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
+                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
                           }\n\n✨=== Misc ===✨`,
                           "!autokeys - Get info on the bot's current autokeys settings 🔑",
                           "!time - Show the owner's current time 🕥",

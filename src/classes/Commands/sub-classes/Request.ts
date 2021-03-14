@@ -2,10 +2,12 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
+import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies-2';
 import { removeLinkProtocol, getItemFromParams, testSKU, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
+import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
@@ -158,6 +160,56 @@ export default class RequestCommands {
                 );
             }
         });
+    }
+
+    async pricecheckAllCommand(steamID: SteamID): Promise<void> {
+        const pricelist = this.bot.pricelist.getPrices;
+
+        const total = pricelist.length;
+        const totalTime = total * 2 * 1000;
+        const aSecond = 1 * 1000;
+        const aMin = 1 * 60 * 1000;
+        const anHour = 1 * 60 * 60 * 1000;
+        this.bot.sendMessage(
+            steamID,
+            `⌛ Price check requested for ${total} items. It will be completed in approximately ${
+                totalTime < aMin
+                    ? `${Math.round(totalTime / aSecond)} seconds.`
+                    : totalTime < anHour
+                    ? `${Math.round(totalTime / aMin)} minutes.`
+                    : `${Math.round(totalTime / anHour)} hours.`
+            } (about 2 seconds for each item).`
+        );
+
+        const skus = pricelist.map(entry => entry.sku);
+        let submitted = 0;
+        let success = 0;
+        let failed = 0;
+        for (const sku of skus) {
+            await sleepasync().Promise.sleep(2 * 1000);
+            void this.requestCheck(sku, 'bptf').asCallback(err => {
+                if (err) {
+                    submitted++;
+                    failed++;
+                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
+                    log.debug(
+                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                } else {
+                    submitted++;
+                    success++;
+                    log.debug(
+                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                }
+                if (submitted === total) {
+                    this.bot.sendMessage(
+                        steamID,
+                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
+                    );
+                }
+            });
+        }
     }
 
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
