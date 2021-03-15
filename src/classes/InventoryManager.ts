@@ -1,7 +1,6 @@
 import Currencies from 'tf2-currencies-2';
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
-import SKU from 'tf2-sku-2';
 
 export default class InventoryManager {
     constructor(private readonly pricelist: Pricelist, private inventory: Inventory = null) {

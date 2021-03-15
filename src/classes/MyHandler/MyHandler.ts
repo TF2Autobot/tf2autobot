@@ -509,54 +509,39 @@ export default class MyHandler extends Handler {
                     });
 
                     // Remove duplicate elements
-                    const newlistingsSKUs = new Set(listingsSKUs);
-                    const uniqueSKUs = [...newlistingsSKUs];
+                    const uniqueSKUs = [...new Set(listingsSKUs)];
+                    const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+                    for (const sku in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) continue;
+                        if (uniqueSKUs.includes(sku)) delete pricelist[sku];
+                        const amountCanBuy = inventory.amountCanTrade(sku, true);
+                        const amountCanSell = inventory.amountCanTrade(sku, false);
 
-                    const prices = this.bot.pricelist.getPrices;
-                    const skus = Object.keys(prices);
-
-                    for (const sku of skus) {
-                        // First find out if lising for this item from bptf already exist.
-                        const isExist = uniqueSKUs.find(lgSKU => sku === lgSKU);
-
-                        if (!isExist) {
-                            // undefined - listing does not exist but item is in the pricelist
-
-                            // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                            const amountCanBuy = inventory.amountCanTrade(sku, true);
-                            const amountCanSell = inventory.amountCanTrade(sku, false);
-
-                            if (
-                                (amountCanBuy > 0 &&
-                                    inventory.isCanAffordToBuy(prices[sku].buy, inventory.getInventory)) ||
-                                amountCanSell > 0
-                            ) {
-                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
-                                // return this entry
-                                log.debug(
-                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`
-                                );
-                            }
-
-                            // Else ignore
-                            delete prices[sku];
+                        if (
+                            (amountCanBuy > 0 &&
+                                inventory.isCanAffordToBuy(pricelist[sku].buy, inventory.getInventory)) ||
+                            amountCanSell > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // return this entry
+                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                        } else {
+                            delete pricelist[sku];
                         }
-
-                        // Else if listing already exist on backpack.tf, ignore
-                        delete prices[sku];
                     }
 
-                    const pricelistCount = Object.keys(prices).length;
+                    const pricelistCount = Object.keys(pricelist).length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${Object.keys(prices).join(', ')}]...`
+                                ` [${Object.keys(pricelist).join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
-                            prices, // FIXME: Still error here
+                            Object.keys(pricelist),
+                            pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
                             true
@@ -610,7 +595,7 @@ export default class MyHandler extends Handler {
                         });
                     }
                 }
-            }, 1 * 60 * 1000);
+            }, 60 * 1000);
         }
     }
 
@@ -1772,13 +1757,13 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     invalid(offer, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 }
             }
 
@@ -1831,7 +1816,7 @@ export default class MyHandler extends Handler {
             this.inviteToGroups(offer.partner);
 
             // delete notify and meta keys from polldata after each successful trades
-            this.removePolldataKeys(offer);
+            MyHandler.removePolldataKeys(offer);
 
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
@@ -1839,7 +1824,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private removePolldataKeys(offer: TradeOffer): void {
+    private static removePolldataKeys(offer: TradeOffer): void {
         offer.data('notify', undefined);
         offer.data('meta', undefined);
     }
@@ -2106,15 +2091,9 @@ export default class MyHandler extends Handler {
             await this.bot.listings.removeAll();
         }
 
-        files
-            .writeFile(
-                this.paths.files.pricelist,
-                JSON.stringify(pricelist), // Only this?
-                true
-            )
-            .catch(err => {
-                log.warn('Failed to save pricelist: ', err);
-            });
+        files.writeFile(this.paths.files.pricelist, pricelist.getJSON, true).catch(err => {
+            log.warn('Failed to save pricelist: ', err);
+        });
     }
 
     onPriceChange(sku: string, entry: Entry): void {

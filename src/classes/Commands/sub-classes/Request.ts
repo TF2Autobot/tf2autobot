@@ -165,11 +165,11 @@ export default class RequestCommands {
     async pricecheckAllCommand(steamID: SteamID): Promise<void> {
         const pricelist = this.bot.pricelist.getPrices;
 
-        const total = pricelist.length;
+        const total = Object.keys(pricelist).length;
         const totalTime = total * 2 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
+        const aSecond = 1000;
+        const aMin = 60 * 1000;
+        const anHour = 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
             `⌛ Price check requested for ${total} items. It will be completed in approximately ${
@@ -181,7 +181,7 @@ export default class RequestCommands {
             } (about 2 seconds for each item).`
         );
 
-        const skus = pricelist.map(entry => entry.sku);
+        const skus = Object.keys(pricelist);
         let submitted = 0;
         let success = 0;
         let failed = 0;

@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies-2';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
-import { Entry } from './Pricelist';
+import { Entry, PricesObject } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -340,22 +340,16 @@ export default class Listings {
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
-                // FIXME: for filter would be the same as in MyHandler L515-543, but idk how to sort it.
-                const pricelist = this.bot.pricelist.getPrices
-                    .filter(entry => {
-                        if (!this.bot.options.pricelist.filterCantAfford.enable) {
-                            // if this option is set to false, then always return true
-                            return true;
-                        }
-
-                        // Filter pricelist to only items we can sell and we can afford to buy
-
-                        const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
-                        const amountCanSell = inventoryManager.amountCanTrade(entry.sku, false);
+                const pricelist = this.bot.pricelist.getPrices;
+                let skus = Object.keys(pricelist);
+                if (this.bot.options.pricelist.filterCantAfford.enable) {
+                    skus = skus.filter(sku => {
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        const amountCanSell = inventoryManager.amountCanTrade(sku, false);
 
                         if (
                             (amountCanBuy > 0 &&
-                                inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
+                                inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventoryManager.getInventory)) ||
                             amountCanSell > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
@@ -365,21 +359,23 @@ export default class Listings {
 
                         // Else ignore
                         return false;
-                    })
+                    });
+                }
+                skus = skus
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
-                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
-                            (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
+                            (pricelist[b].buy.keys - pricelist[a].buy.keys) * keyPrice.toValue() +
+                            (currentPure.metal - Currencies.toScrap(pricelist[b].buy.metal - pricelist[a].buy.metal))
                         );
                     })
                     .sort((a, b) => {
-                        return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
+                        return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
                     });
 
-                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
 
-                void this.recursiveCheckPricelist(pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -397,25 +393,30 @@ export default class Listings {
         });
     }
 
-    // FIXME: Array -> Object
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number, showLogs = false): Promise<void> {
+    recursiveCheckPricelist(
+        skus: string[],
+        pricelist: PricesObject,
+        withDelay = false,
+        time?: number,
+        showLogs = false
+    ): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
             const iteration = async (): Promise<void> => {
-                if (pricelist.length <= index || this.cancelCheckingListings) {
+                if (skus.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index], false, showLogs);
+                    this.checkBySKU(skus[index], pricelist[skus[index]], false, showLogs);
                     index++;
                     await sleepasync().Promise.sleep(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                        this.checkBySKU(skus[index], pricelist[skus[index]]);
                         index++;
                         void iteration();
                     });

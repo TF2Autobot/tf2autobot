@@ -169,6 +169,15 @@ export default class Pricelist extends EventEmitter {
         return this.globalKeyPrices.sell;
     }
 
+    get getJSON(): PricesDataObject {
+        const ret: PricesDataObject = {};
+        for (const sku in this.prices) {
+            if (!Object.prototype.hasOwnProperty.call(this.prices, sku)) continue;
+            ret[sku] = this.prices[sku].getJSON();
+        }
+        return ret;
+    }
+
     /**
      * Current key rate before receiving new prices data, this
      * can be different with global key rate.

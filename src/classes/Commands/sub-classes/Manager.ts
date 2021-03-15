@@ -544,42 +544,28 @@ export default class ManagerCommands {
                 });
 
                 // Remove duplicate elements
-                const newlistingsSKUs = new Set(listingsSKUs);
-                const uniqueSKUs = [...newlistingsSKUs];
+                const uniqueSKUs = [...new Set(listingsSKUs)];
 
-                const prices = this.bot.pricelist.getPrices;
-                const skus = Object.keys(prices);
+                const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+                for (const sku in pricelist) {
+                    if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) continue;
+                    if (uniqueSKUs.includes(sku)) delete pricelist[sku];
+                    const amountCanBuy = inventory.amountCanTrade(sku, true);
+                    const amountCanSell = inventory.amountCanTrade(sku, false);
 
-                for (const sku of skus) {
-                    // First find out if lising for this item from bptf already exist.
-                    const isExist = uniqueSKUs.find(lgSKU => sku === lgSKU);
-
-                    if (!isExist) {
-                        // undefined - listing does not exist but item is in the pricelist
-
-                        // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                        const amountCanBuy = inventory.amountCanTrade(sku, true);
-                        const amountCanSell = inventory.amountCanTrade(sku, false);
-
-                        if (
-                            (amountCanBuy > 0 && inventory.isCanAffordToBuy(prices[sku].buy, inventory.getInventory)) ||
-                            amountCanSell > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
-                            // return this entry
-                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
-                        }
-
-                        // Else ignore
-                        delete prices[sku];
+                    if (
+                        (amountCanBuy > 0 && inventory.isCanAffordToBuy(pricelist[sku].buy, inventory.getInventory)) ||
+                        amountCanSell > 0
+                    ) {
+                        // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                        // return this entry
+                        log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                    } else {
+                        delete pricelist[sku];
                     }
-
-                    // Else if listing already exist on backpack.tf, ignore
-                    delete prices[sku];
                 }
 
-                const filteredSKUs = Object.keys(prices);
-                const pricelistCount = filteredSKUs.length;
+                const pricelistCount = Object.keys(pricelist).length;
 
                 if (pricelistCount > 0) {
                     clearTimeout(this.executeTimeout);
@@ -588,7 +574,7 @@ export default class ManagerCommands {
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelistCount, true) +
-                            ` [${filteredSKUs.join(', ')}] ...`
+                            ` [${Object.keys(pricelist).join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
@@ -608,7 +594,8 @@ export default class ManagerCommands {
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
-                        prices, // FIXME: Still error here
+                        Object.keys(pricelist),
+                        pricelist,
                         true,
                         this.pricelistCount > 4000 ? 400 : 200,
                         true
