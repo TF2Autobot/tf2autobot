@@ -340,6 +340,7 @@ export default class Listings {
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
+                // FIXME: for filter would be the same as in MyHandler L515-543, but idk how to sort it.
                 const pricelist = this.bot.pricelist.getPrices
                     .filter(entry => {
                         if (!this.bot.options.pricelist.filterCantAfford.enable) {
@@ -396,6 +397,7 @@ export default class Listings {
         });
     }
 
+    // FIXME: Array -> Object
     recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number, showLogs = false): Promise<void> {
         return new Promise(resolve => {
             let index = 0;

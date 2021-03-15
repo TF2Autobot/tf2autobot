@@ -28,7 +28,7 @@ import { BPTFGetUserInfo } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
-import { Entry, EntryData, PricesDataObject, PricesObject } from "../Pricelist";
+import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
@@ -512,48 +512,51 @@ export default class MyHandler extends Handler {
                     const newlistingsSKUs = new Set(listingsSKUs);
                     const uniqueSKUs = [...newlistingsSKUs];
 
-                    const pricelist = this.bot.pricelist.getPrices.filter(entry => {
+                    const prices = this.bot.pricelist.getPrices;
+                    const skus = Object.keys(prices);
+
+                    for (const sku of skus) {
                         // First find out if lising for this item from bptf already exist.
-                        const isExist = uniqueSKUs.find(sku => entry.sku === sku);
+                        const isExist = uniqueSKUs.find(lgSKU => sku === lgSKU);
 
                         if (!isExist) {
                             // undefined - listing does not exist but item is in the pricelist
 
                             // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+                            const amountCanBuy = inventory.amountCanTrade(sku, true);
+                            const amountCanSell = inventory.amountCanTrade(sku, false);
 
                             if (
-                                (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
+                                (amountCanBuy > 0 &&
+                                    inventory.isCanAffordToBuy(prices[sku].buy, inventory.getInventory)) ||
                                 amountCanSell > 0
                             ) {
                                 // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
                                 // return this entry
                                 log.debug(
-                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
+                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`
                                 );
-                                return true;
                             }
 
                             // Else ignore
-                            return false;
+                            delete prices[sku];
                         }
 
                         // Else if listing already exist on backpack.tf, ignore
-                        return false;
-                    });
+                        delete prices[sku];
+                    }
 
-                    const pricelistCount = pricelist.length;
+                    const pricelistCount = Object.keys(prices).length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${pricelist.map(entry => entry.sku).join(', ')}]...`
+                                ` [${Object.keys(prices).join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
-                            pricelist,
+                            prices, // FIXME: Still error here
                             true,
                             pricelistCount > 4000 ? 400 : 200,
                             true
@@ -2098,7 +2101,7 @@ export default class MyHandler extends Handler {
     }
 
     async onPricelist(pricelist: PricesObject): Promise<void> {
-        if (pricelist.length === 0) {
+        if (Object.keys(pricelist).length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll();
         }
@@ -2106,7 +2109,7 @@ export default class MyHandler extends Handler {
         files
             .writeFile(
                 this.paths.files.pricelist,
-                pricelist.map(entry => entry.getJSON()),
+                JSON.stringify(pricelist), // Only this?
                 true
             )
             .catch(err => {

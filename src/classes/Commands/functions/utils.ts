@@ -52,7 +52,7 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = bot.pricelist.searchByName(name, true);
+    const match = bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -74,7 +74,11 @@ export function getItemAndAmount(
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
-        for (const pricedItem of bot.pricelist.getPrices) {
+        const prices = bot.pricelist.getPrices;
+        const skus = Object.keys(bot.pricelist.getPrices);
+        for (const sku of skus) {
+            const pricedItem = prices[sku];
+
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -165,22 +169,23 @@ export function getItemAndAmount(
 
             return null;
         }
-    } else if (Array.isArray(match)) {
-        const matchCount = match.length;
-
-        if (matchCount > 20) {
-            match = match.splice(0, 20);
-        }
-
-        let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
-        if (matchCount > match.length) {
-            const other = matchCount - match.length;
-            reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-        }
-
-        bot.sendMessage(steamID, reply);
-        return null;
     }
+    // } else if (Array.isArray(match)) {
+    //     const matchCount = match.length;
+
+    //     if (matchCount > 20) {
+    //         match = match.splice(0, 20);
+    //     }
+
+    //     let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
+    //     if (matchCount > match.length) {
+    //         const other = matchCount - match.length;
+    //         reply += `,\nand ${other} other ${pluralize('item', other)}.`;
+    //     }
+
+    //     bot.sendMessage(steamID, reply);
+    //     return null;
+    // }
 
     return {
         amount: amount,
