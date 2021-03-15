@@ -4,7 +4,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-import { Item } from '../../../types/TeamFortress2';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
@@ -192,7 +192,7 @@ export function getItemFromParams(
     steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
     bot: Bot
-): Item | null {
+): MinimumItem | null {
     const item = SKU.fromString('');
     delete item.craftnumber;
 
