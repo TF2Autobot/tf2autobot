@@ -867,10 +867,17 @@ export default class Pricelist extends EventEmitter {
         const match = this.getPrice(data.sku);
         const opt = this.options;
 
-        const newPrices = {
-            buy: new Currencies(data.buy),
-            sell: new Currencies(data.sell)
-        };
+        let newPrices: BuyAndSell;
+
+        try {
+            newPrices = {
+                buy: new Currencies(data.buy),
+                sell: new Currencies(data.sell)
+            };
+        } catch (err) {
+            log.error(`Fail to update ${data.sku}`, err);
+            return;
+        }
 
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
@@ -1103,6 +1110,11 @@ export interface KeyPrices {
     sell: Currencies;
     src: string;
     time: number;
+}
+
+interface BuyAndSell {
+    buy: Currencies;
+    sell: Currencies;
 }
 
 export class ParsedPrice {
