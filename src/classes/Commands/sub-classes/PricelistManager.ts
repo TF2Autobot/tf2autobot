@@ -473,15 +473,15 @@ export default class PricelistManagerCommands {
 
                 if (typeof params.buy === 'object' || typeof params.sell === 'object') {
                     if (
-                        new Currencies(params.buy).toValue(keyPrice.metal) >=
-                        new Currencies(params.sell).toValue(keyPrice.metal)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                    } else if (
                         (params.buy !== null && params.sell === undefined) ||
                         (params.buy === undefined && params.sell !== null)
                     ) {
                         return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                    } else if (
+                        new Currencies(params.buy).toValue(keyPrice.metal) >=
+                        new Currencies(params.sell).toValue(keyPrice.metal)
+                    ) {
+                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
                     }
                 }
             } else if (params.withoutgroup) {
@@ -510,15 +510,15 @@ export default class PricelistManagerCommands {
 
                 if (typeof params.buy === 'object' || typeof params.sell === 'object') {
                     if (
-                        new Currencies(params.buy).toValue(keyPrice.metal) >=
-                        new Currencies(params.sell).toValue(keyPrice.metal)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                    } else if (
                         (params.buy !== null && params.sell === undefined) ||
                         (params.buy === undefined && params.sell !== null)
                     ) {
                         return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                    } else if (
+                        new Currencies(params.buy).toValue(keyPrice.metal) >=
+                        new Currencies(params.sell).toValue(keyPrice.metal)
+                    ) {
+                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
                     }
                 }
             } else {
