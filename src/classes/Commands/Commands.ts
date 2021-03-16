@@ -264,6 +264,8 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
+        } else if (command === 'sku' && isAdmin) {
+            this.getSKU(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))
@@ -276,6 +278,13 @@ export default class Commands {
                 custom ? custom : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
         }
+    }
+
+    private getSKU(steamID: SteamID, message: string): void {
+        const itemName = CommandParser.removeCommand(removeLinkProtocol(message));
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        this.bot.sendMessage(steamID, this.bot.schema.getSkuFromName(itemName));
     }
 
     private priceCommand(steamID: SteamID, message: string): void {
