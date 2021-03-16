@@ -1028,6 +1028,13 @@ export default class MyHandler extends Handler {
                             ? this.bot.pricelist.getPrice(sku)
                             : this.bot.pricelist.getPrice(sku, false, true);
 
+                    const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
+                        ? !(
+                              craftAll.includes(sku) ||
+                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
+                          )
+                        : true;
+
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
                     if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
@@ -1054,7 +1061,7 @@ export default class MyHandler extends Handler {
                             which === 'their'
                         ); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
@@ -1078,7 +1085,13 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        if (diff !== 0 && !isBuying && sku !== '5021;6' && amountCanTrade < Math.abs(diff)) {
+                        if (
+                            diff !== 0 &&
+                            !isBuying &&
+                            sku !== '5021;6' &&
+                            amountCanTrade < Math.abs(diff) &&
+                            notIncludeCraftweapons
+                        ) {
                             if (match.enabled) {
                                 // User is taking too many
                                 hasUnderstock = true;
@@ -1119,7 +1132,10 @@ export default class MyHandler extends Handler {
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                         //
-                    } else if (match === null || (match !== null && match.intent === (buying ? 1 : 0))) {
+                    } else if (
+                        (match === null && notIncludeCraftweapons) ||
+                        (match !== null && match.intent === (buying ? 1 : 0))
+                    ) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
