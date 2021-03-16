@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
 import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
@@ -866,11 +866,28 @@ export default class Pricelist extends EventEmitter {
 
         const match = this.getPrice(data.sku);
         const opt = this.options;
+        const dw = opt.discordWebhook.sendAlert;
+        const isDwEnabled = dw.enable && dw.url !== '';
 
-        const newPrices = {
-            buy: new Currencies(data.buy),
-            sell: new Currencies(data.sell)
-        };
+        let newPrices: BuyAndSell;
+
+        try {
+            newPrices = {
+                buy: new Currencies(data.buy),
+                sell: new Currencies(data.sell)
+            };
+        } catch (err) {
+            log.error(`Fail to update ${data.sku}`, {
+                error: err as Error,
+                rawData: data
+            });
+
+            if (isDwEnabled) {
+                sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
+            }
+
+            return;
+        }
 
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
@@ -977,8 +994,6 @@ export default class Pricelist extends EventEmitter {
                     if (isUpdate) {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
-                        const dw = opt.discordWebhook.sendAlert;
-                        const isDwEnabled = dw.enable && dw.url !== '';
 
                         const msg =
                             `${
@@ -1041,6 +1056,7 @@ export default class Pricelist extends EventEmitter {
 
                             sendWebHookPriceUpdateV1(
                                 data.sku,
+                                data.name,
                                 match,
                                 time,
                                 this.schema,
@@ -1103,6 +1119,11 @@ export interface KeyPrices {
     sell: Currencies;
     src: string;
     time: number;
+}
+
+interface BuyAndSell {
+    buy: Currencies;
+    sell: Currencies;
 }
 
 export class ParsedPrice {
