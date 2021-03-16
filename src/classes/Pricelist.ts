@@ -1056,6 +1056,7 @@ export default class Pricelist extends EventEmitter {
 
                             sendWebHookPriceUpdateV1(
                                 data.sku,
+                                data.name,
                                 match,
                                 time,
                                 this.schema,
