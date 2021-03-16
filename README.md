@@ -1,6 +1,6 @@
 # TF2Autobot
 
-<div align="center"><img src="https://user-images.githubusercontent.com/47635037/100915844-e05e7380-350f-11eb-96f1-6d61141c4a44.png" alt="TF2Autobot" style="display: block; margin-left: auto; margin-right: auto;"></div>
+<div align="center"><a href="https://autobot.tf/"><img src="https://user-images.githubusercontent.com/47635037/100915844-e05e7380-350f-11eb-96f1-6d61141c4a44.png" alt="TF2Autobot" style="display: block; margin-left: auto; margin-right: auto;"></a></div>
 
 
 A free and open source fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf.
