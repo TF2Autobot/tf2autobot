@@ -432,7 +432,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
-        let errors = validator(prices, 'pricelistDataObject');
+        let errors = validator(prices, 'prices-data-object');
 
         if (errors !== null) {
             throw new Error(errors.join(', '));
