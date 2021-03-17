@@ -2017,18 +2017,21 @@ export default class MyHandler extends Handler {
                 .splice(1, friendsToRemoveCount - 2 <= 0 ? 2 : friendsToRemoveCount);
 
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
-            friendsToRemove.forEach(element => {
+            friendsToRemove.forEach(friend => {
+                const friendSteamID = friend.steamID;
+                const getFriend = this.bot.friends.getFriend(friendSteamID);
+
                 this.bot.sendMessage(
-                    element.steamID,
+                    friendSteamID,
                     this.opt.customMessage.clearFriends
                         ? this.opt.customMessage.clearFriends.replace(
                               /%name%/g,
-                              this.bot.friends.getFriend(element.steamID).player_name
+                              getFriend ? getFriend.player_name : friendSteamID
                           )
                         : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
                               'Please feel free to add me again if you want to trade at a later time!'
                 );
-                this.bot.client.removeFriend(element.steamID);
+                this.bot.client.removeFriend(friendSteamID);
             });
         }
     }
