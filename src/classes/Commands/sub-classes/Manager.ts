@@ -548,8 +548,15 @@ export default class ManagerCommands {
 
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
                 for (const sku in pricelist) {
-                    if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) continue;
-                    if (uniqueSKUs.includes(sku)) delete pricelist[sku];
+                    if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                        continue;
+                    }
+
+                    if (uniqueSKUs.includes(sku)) {
+                        delete pricelist[sku];
+                        continue;
+                    }
+
                     const amountCanBuy = inventory.amountCanTrade(sku, true);
                     const amountCanSell = inventory.amountCanTrade(sku, false);
 
