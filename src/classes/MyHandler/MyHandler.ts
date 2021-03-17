@@ -2091,7 +2091,13 @@ export default class MyHandler extends Handler {
             await this.bot.listings.removeAll();
         }
 
-        files.writeFile(this.paths.files.pricelist, pricelist.getJSON, true).catch(err => {
+        /*
+         * Failed to save pricelist:  The "data" argument must be of type string or an instance of Buffer, TypedArray, or
+         * DataView. Received undefined {"code":"ERR_INVALID_ARG_TYPE"}
+         *
+         * This will also save the "name" property. I think it's okay.
+         */
+        files.writeFile(this.paths.files.pricelist, pricelist, true).catch(err => {
             log.warn('Failed to save pricelist: ', err);
         });
     }
