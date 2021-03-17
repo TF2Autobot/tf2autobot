@@ -204,7 +204,10 @@ export default class Pricelist extends EventEmitter {
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
-        if (!this.prices[sku]) return false;
+        if (!this.prices[sku]) {
+            return false;
+        }
+
         return this.prices[sku].enabled || !onlyEnabled;
     }
 
@@ -212,12 +215,14 @@ export default class Pricelist extends EventEmitter {
         if (this.hasPrice(sku, onlyEnabled)) {
             return this.prices[sku];
         }
+
         if (generics) {
             const gSku = generics ? sku.replace(/;u\d+/, '') : null;
             if (this.hasPrice(gSku, onlyEnabled)) {
                 return this.prices[gSku];
             }
         }
+
         return null;
     }
 
@@ -227,6 +232,7 @@ export default class Pricelist extends EventEmitter {
         if (this.hasPrice(sku, enabledOnly)) {
             return this.prices[sku];
         }
+
         return null;
     }
 
@@ -347,6 +353,7 @@ export default class Pricelist extends EventEmitter {
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
         }
+
         return entry;
     }
 
@@ -412,12 +419,17 @@ export default class Pricelist extends EventEmitter {
 
     removePrice(sku: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            if (!this.hasPrice(sku)) return reject(new Error('Item is not priced'));
+            if (!this.hasPrice(sku)) {
+                return reject(new Error('Item is not priced'));
+            }
+
             const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
             delete this.prices[sku];
+
             if (emitChange) {
                 this.priceChanged(sku, entry);
             }
+
             return resolve(entry);
         });
     }
@@ -432,7 +444,10 @@ export default class Pricelist extends EventEmitter {
         this.bot = bot;
 
         for (const sku in prices) {
-            if (!Object.prototype.hasOwnProperty.call(prices, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+                continue;
+            }
+
             this.prices[sku] = Entry.fromData(prices[sku], this.schema);
         }
 
@@ -440,6 +455,7 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             throw new Error(errors.join(', '));
         }
+
         return this.setupPricelist();
     }
 
@@ -597,6 +613,7 @@ export default class Pricelist extends EventEmitter {
                         'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                             'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                     );
+
                     return;
                 }
 
@@ -636,7 +653,10 @@ export default class Pricelist extends EventEmitter {
             const keyPrice = this.getKeyPrice.metal;
 
             for (const sku in old) {
-                if (!Object.prototype.hasOwnProperty.call(old, sku)) continue;
+                if (!Object.prototype.hasOwnProperty.call(old, sku)) {
+                    continue;
+                }
+
                 const currPrice = old[sku];
                 if (currPrice.autoprice !== true) {
                     continue;
@@ -752,6 +772,7 @@ export default class Pricelist extends EventEmitter {
                     'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                         'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                 );
+
                 return;
             }
 
@@ -936,12 +957,20 @@ export default class Pricelist extends EventEmitter {
         if (this.maxAge <= 0) {
             return this.prices;
         }
+
         const now = dayjs().unix();
         const prices = Object.assign({}, this.prices); //TODO: better way to copy ?
+
         for (const sku in prices) {
-            if (!Object.prototype.hasOwnProperty.call(prices, sku)) continue;
-            if (this.prices[sku].time + this.maxAge > now) delete prices[sku];
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+                continue;
+            }
+
+            if (this.prices[sku].time + this.maxAge > now) {
+                delete prices[sku];
+            }
         }
+
         return prices;
     }
 

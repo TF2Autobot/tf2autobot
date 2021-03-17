@@ -62,6 +62,7 @@ export function getItemAndAmount(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
             );
+
             return null;
         }
     }
@@ -76,7 +77,10 @@ export function getItemAndAmount(
         const genericEffect = genericNameAndMatch(name, bot.effects);
         const pricelist = bot.pricelist.getPrices;
         for (const sku in pricelist) {
-            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) continue;
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
             const pricedItem = pricelist[sku];
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);

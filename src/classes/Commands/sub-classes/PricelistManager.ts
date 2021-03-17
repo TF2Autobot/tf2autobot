@@ -18,12 +18,6 @@ import log from '../../../lib/logger';
 export default class PricelistManagerCommands {
     private stopAutoAdd = false;
 
-    private executed = false;
-
-    private lastExecutedTime: number | null = null;
-
-    private executeTimeout: NodeJS.Timeout;
-
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
