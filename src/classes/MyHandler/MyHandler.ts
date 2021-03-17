@@ -2092,7 +2092,7 @@ export default class MyHandler extends Handler {
         }
 
         /*
-         * Failed to save pricelist:  The "data" argument must be of type string or an instance of Buffer, TypedArray, or
+         * was: Failed to save pricelist:  The "data" argument must be of type string or an instance of Buffer, TypedArray, or
          * DataView. Received undefined {"code":"ERR_INVALID_ARG_TYPE"}
          *
          * This will also save the "name" property. I think it's okay.
