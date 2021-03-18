@@ -487,6 +487,15 @@ export default class ManagerCommands {
     }
 
     refreshListingsCommand(steamID: SteamID): void {
+        const opt = this.bot.options;
+
+        if (opt.miscSettings.createListings.enable === false) {
+            return this.bot.sendMessage(
+                steamID,
+                'miscSettings.crateListings.enable is set to false, thus this command is disabled'
+            );
+        }
+
         const newExecutedTime = dayjs().valueOf();
         const timeDiff = newExecutedTime - this.lastExecutedTime;
 
@@ -508,20 +517,20 @@ export default class ManagerCommands {
                 }
 
                 const inventory = this.bot.inventoryManager;
-                const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable;
+                const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                 this.bot.listingManager.listings.forEach(listing => {
                     let listingSKU = listing.getSKU();
                     if (listing.intent === 1) {
-                        if (this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                        if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
                             listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
                         }
 
-                        if (this.bot.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                        if (opt.normalize.festivized.our && listingSKU.includes(';festive')) {
                             listingSKU = listingSKU.replace(';festive', '');
                         }
 
-                        if (this.bot.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                        if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                             listingSKU = listingSKU.replace(';strange', '');
                         }
                     } else {
