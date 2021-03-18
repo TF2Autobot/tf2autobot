@@ -1255,6 +1255,9 @@ export const optionsSchema: jsonschema.Schema = {
                         showOnlyInStock: {
                             type: 'boolean'
                         },
+                        showFailedToUpdate: {
+                            type: 'boolean'
+                        },
                         url: {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
@@ -1263,7 +1266,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['enable', 'showOnlyInStock', 'url', 'note'],
+                    required: ['enable', 'showOnlyInStock', 'showFailedToUpdate', 'url', 'note'],
                     additionalProperties: false
                 },
                 sendAlert: {

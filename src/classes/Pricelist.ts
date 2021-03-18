@@ -866,7 +866,7 @@ export default class Pricelist extends EventEmitter {
 
         const match = this.getPrice(data.sku);
         const opt = this.options;
-        const dw = opt.discordWebhook.sendAlert;
+        const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
 
         let newPrices: BuyAndSell;
@@ -882,7 +882,7 @@ export default class Pricelist extends EventEmitter {
                 rawData: data
             });
 
-            if (isDwEnabled) {
+            if (isDwEnabled && dw.showFailedToUpdate) {
                 sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
             }
 
@@ -1039,8 +1039,6 @@ export default class Pricelist extends EventEmitter {
                     if (pricesChanged) {
                         this.priceChanged(match.sku, match);
                     }
-
-                    const dw = opt.discordWebhook.priceUpdate;
 
                     if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
                         const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
