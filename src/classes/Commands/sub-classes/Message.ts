@@ -91,9 +91,9 @@ export default class MessageCommand {
                 this.bot.messageAdmins(
                     `${
                         customInitializer ? customInitializer : '/quote'
-                    } 💬 Message sent to #${recipientSteamID.toString()} (${
-                        recipientDetails.player_name
-                    }): "${reply}". `,
+                    } 💬 Message sent to #${recipientSteamID.toString()}${
+                        recipientDetails ? ` (${recipientDetails.player_name})` : ''
+                    }: "${reply}". `,
                     []
                 );
             }
@@ -146,7 +146,9 @@ export default class MessageCommand {
                 this.bot.messageAdmins(
                     `${
                         customInitializer ? customInitializer : '/quote'
-                    } 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +
+                    } 💬 You've got a message from #${steamID.toString()}${
+                        senderDetails ? ` (${senderDetails.player_name})` : ''
+                    }:` +
                         `"${msg}". ` +
                         `\nSteam: ${links.steam}` +
                         `\nBackpack.tf: ${links.bptf}` +
