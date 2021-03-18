@@ -419,6 +419,7 @@ export const DEFAULTS = {
         priceUpdate: {
             enable: true,
             showOnlyInStock: false,
+            showFailedToUpdate: true,
             url: '',
             note: ''
         },
@@ -1373,6 +1374,7 @@ interface MessagesDW extends OnlyEnable {
 
 interface PriceUpdateDW extends OnlyEnable, OnlyNote {
     showOnlyInStock?: boolean;
+    showFailedToUpdate?: boolean;
     url?: string;
 }
 
