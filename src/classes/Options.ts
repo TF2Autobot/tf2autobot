@@ -600,6 +600,7 @@ export const DEFAULTS = {
         },
         message: {
             enable: true,
+            showOwnerName: true,
             customReply: {
                 disabled: '',
                 wrongSyntax: '',
@@ -1558,6 +1559,7 @@ interface AutokeysCommand extends OnlyEnable {
 }
 
 interface Message extends OnlyEnable {
+    showOwnerName?: boolean;
     customReply?: MessageCustom;
 }
 

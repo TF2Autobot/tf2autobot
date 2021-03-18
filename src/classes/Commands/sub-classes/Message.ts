@@ -64,14 +64,18 @@ export default class MessageCommand {
             }
 
             const recipientDetails = this.bot.friends.getFriend(recipientSteamID);
+            const adminDetails = this.bot.friends.getFriend(steamID);
             const reply = steamIdAndMessage.substr(steamIDString.length);
+            const isShowOwner = this.bot.options.commands.message.showOwnerName;
 
             // Send message to recipient
             this.bot.sendMessage(
                 recipientSteamID,
                 custom.fromOwner
                     ? custom.fromOwner.replace(/%reply%/g, reply)
-                    : `/quote 💬 Message from the owner: ${reply}` +
+                    : `/quote 💬 Message from ${
+                          isShowOwner && adminDetails ? adminDetails.player_name : 'the owner'
+                      }: ${reply}` +
                           '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
                           '\nExample: !message Hi Thanks!'
             );
