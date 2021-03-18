@@ -303,12 +303,14 @@ export default class ManagerCommands {
         );
 
         for (const steamid of friendsToRemove) {
+            const getFriend = this.bot.friends.getFriend(steamid);
+
             this.bot.sendMessage(
                 steamid,
                 this.bot.options.customMessage.clearFriends
                     ? this.bot.options.customMessage.clearFriends
                     : `/quote Hey ${
-                          this.bot.friends.getFriend(steamid).player_name
+                          getFriend ? getFriend.player_name : steamid
                       }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
             );
 
