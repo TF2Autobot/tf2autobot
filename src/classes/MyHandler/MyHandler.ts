@@ -444,10 +444,18 @@ export default class MyHandler extends Handler {
 
         this.autoRefreshListingsInterval = setInterval(
             () => {
-                if (this.alreadyExecutedRefreshlist) {
+                const opt = this.opt;
+                const createListingsEnabled = opt.miscSettings.createListings.enable;
+
+                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
                     log.debug(
-                        '❌ Just recently executed refreshlist command, will not run automatic check for missing listings.'
+                        `❌ ${
+                            this.alreadyExecutedRefreshlist
+                                ? 'Just recently executed refreshlist command'
+                                : 'miscSettings.createListings.enable is set to false'
+                        }, will not run automatic check for missing listings.`
                     );
+
                     setTimeout(() => {
                         this.enableAutoRefreshListings();
                     }, this.executedDelayTime);
@@ -472,20 +480,20 @@ export default class MyHandler extends Handler {
                     }
 
                     const inventory = this.bot.inventoryManager;
-                    const isFilterCantAfford = this.opt.pricelist.filterCantAfford.enable;
+                    const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                     this.bot.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
                         if (listing.intent === 1) {
-                            if (this.opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                            if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
                                 listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
                             }
 
-                            if (this.opt.normalize.festivized.our && listingSKU.includes(';festive')) {
+                            if (opt.normalize.festivized.our && listingSKU.includes(';festive')) {
                                 listingSKU = listingSKU.replace(';festive', '');
                             }
 
-                            if (this.opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                            if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
                         } else {
