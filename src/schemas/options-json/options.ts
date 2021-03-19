@@ -536,6 +536,26 @@ export const optionsSchema: jsonschema.Schema = {
                 autoAddPaintedItems: {
                     $ref: '#/definitions/only-enable'
                 },
+                sortSettings{
+                    type: 'object'
+                    properties: {
+                        prioritizeUnusuals: {
+                            type: 'boolean'              
+						},
+                        prioritizeStranges: {
+                            type: 'boolean'              
+						},
+                        prioritizeNeededStock:{
+                            type: 'number'              
+						},
+                        prioritizeConsumableItems{
+                            type: 'boolean'             
+						},
+                        typeOfSort: {
+                            type: 'integer'              
+						}
+					}
+				},
                 priceAge: {
                     type: 'object',
                     properties: {
