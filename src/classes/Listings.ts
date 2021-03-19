@@ -375,6 +375,53 @@ export default class Listings {
                     .sort((a, b) => {
                         return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                     });
+                //TODO: This doesn't allow you to prioritize individual items nor items by type(e.g. consumables). i just want to get this done for now but I can see about adding those later
+                const makeListings = [];
+                for (entry in pricelist){
+                    
+                    if(entry.quality === 5&&this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true){
+                        if (make.Listings.indexOf(entry) < 0){
+                            makeListings.push(entry);         
+                        }
+					}
+                    if(entry.quality === 11&&this.bot.options.pricelist.sortSettings.prioritizeStranges === true){
+                        if (makeListings.indexOf(entry) < 0){
+                            makeListings.push(entry);           
+                        }
+					}
+                    if(entry.max - inventory.getAmount(entry) > this.bot.options.pricelist.sortSettings.prioritizeNeededStock){
+                        if (make.Listings.indexOf(entry) < 0){
+                            makeListings.push(entry);         
+                        } 
+					}
+                if(this.bot.options.pricelist.sortSettings.typeOfSort === 1){
+                        pricelist.sort(a,b) => {
+                            return (b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
+                        )}
+				}
+                if(this.bot.options.pricelist.sortSettings.typeOfSort === 2){
+                        pricelist.sort(a,b) => {
+                            return (b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
+                        )}
+				}
+                /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
+                        pricelist.sort(a,b) => {
+                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                            (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
+                        )}
+				}TODO: the third sort feature, i cant remember what it was*/
+
+                for(entry in pricelist){
+                    if(makeListings.indexOf(entry) < 0){
+                        makeListings.push(entry);         
+                    }         
+				}
+                var i, n = makeListings.length;
+                    for (i = 0; i < n; ++i) {
+                    pricelist[i] = makeListings[i];
+                }
+       
+			}
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
