@@ -91,6 +91,13 @@ export const DEFAULTS = {
         autoAddPaintedItems: {
             enable: true
         },
+        sortSettings: {
+            prioritizeUnusuals: false
+            prioritizeStranges: false
+            prioritizeConsumableItems: false
+            prioritizeNeededStock: -1
+            typeOfSort: 1
+		},
         priceAge: {
             maxInSeconds: 28800
         }
@@ -1064,6 +1071,7 @@ interface Pricelist {
     autoAddInvalidItems?: OnlyEnable;
     autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
+    sortSettings?: SortSettings;
     priceAge?: PriceAge;
 }
 
@@ -1071,7 +1079,13 @@ interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
     excludeSKU?: string[];
 }
-
+interface SortSettings{
+    prioritizeUnusuals: boolean;
+    prioritizeStranges: boolean;
+    prioritizeNeededStock: number;
+    prioritizeConsumableItems: boolean;
+    typeOfSort: number;
+}
 interface PriceAge {
     maxInSeconds?: number;
 }
