@@ -1130,44 +1130,43 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
                         return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                     });
                 //TODO: This doesn't allow you to prioritize individual items nor items by type(e.g. consumables). i just want to get this done for now but I can see about adding those later
-                const makeListings = [];
-                for (entry in pricelist){
-                    
-                    if(entry.quality === 5&&this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true){
-                        if (make.Listings.indexOf(entry) < 0){
-                            makeListings.push(entry);         
+                for (i = 0; i < pricelist.length; i++){
+                    const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
+                    if(qualChecker === 5&&this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true){
+                        if (makeListings.indexOf(pricelist[i]) < 0){
+                            makeListings.push(pricelist[i]);         
                         }
 					}
-                    if(entry.quality === 11&&this.bot.options.pricelist.sortSettings.prioritizeStranges === true){
-                        if (makeListings.indexOf(entry) < 0){
-                            makeListings.push(entry);           
+                    if(qualChecker === 11&&this.bot.options.pricelist.sortSettings.prioritizeStranges === true){
+                        if (makeListings.indexOf(pricelist[i]) < 0){
+                            makeListings.push(pricelist[i]);           
                         }
 					}
-                    if(entry.max - inventory.getAmount(entry) > this.bot.options.pricelist.sortSettings.prioritizeNeededStock){
-                        if (make.Listings.indexOf(entry) < 0){
-                            makeListings.push(entry);         
+                    if(pricelist[i].max - inventory.getAmount(pricelist[i].sku) > this.bot.options.pricelist.sortSettings.prioritizeNeededStock){
+                        if (makeListings.indexOf(pricelist[i]) < 0){
+                            makeListings.push(pricelist[i]);         
                         } 
 					}
                 if(this.bot.options.pricelist.sortSettings.typeOfSort === 1){
-                        pricelist.sort(a,b) => {
-                            return (b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
-                        )}
-				}
+                        pricelist.sort((a, b) => {
+                            return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
+                        }
+                        })
                 if(this.bot.options.pricelist.sortSettings.typeOfSort === 2){
-                        pricelist.sort(a,b) => {
-                            return (b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
-                        )}
-				}
+                        pricelist.sort((a, b) => {
+                            return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
+                        }
+                        })
                 /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
                         pricelist.sort(a,b) => {
                             (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
                             (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
-                        )}
+                        })
 				}TODO: the third sort feature, i cant remember what it was*/
 
-                for(entry in pricelist){
-                    if(makeListings.indexOf(entry) < 0){
-                        makeListings.push(entry);         
+                for(i = 0; i < pricelist.length; i++){
+                    if(makeListings.indexOf(pricelist[i]) < 0){
+                        makeListings.push(pricelist[i]);         
                     }         
 				}
                 var i, n = makeListings.length;
