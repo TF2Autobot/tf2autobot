@@ -1074,6 +1074,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
                     .sort((a, b) => {
                         return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                     });
+		const makeListings = [];
                 //TODO: This doesn't allow you to prioritize individual items nor items by type(e.g. consumables). i just want to get this done for now but I can see about adding those later
                 for (i = 0; i < pricelist.length; i++){
                     const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
