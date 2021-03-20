@@ -375,25 +375,24 @@ export default class Listings {
                     .sort((a, b) => {
                         return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                     });
-                    //TODO: This doesn't allow you to prioritize individual items nor items by type(e.g. consumables). i just want to get this done for now but I can see about adding those later
                 const makeListings = [];
                 for (i = 0; i < pricelist.length; i++){
                     const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
-                    if(qualChecker === 5&&this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true){
+                    if(qualChecker === 5 && this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true){
                         if (makeListings.indexOf(pricelist[i]) < 0){
                             makeListings.push(pricelist[i]);         
                         }
-					}
-                    if(qualChecker === 11&&this.bot.options.pricelist.sortSettings.prioritizeStranges === true){
+		    }
+                    if(qualChecker === 11 && this.bot.options.pricelist.sortSettings.prioritizeStranges === true){
                         if (makeListings.indexOf(pricelist[i]) < 0){
                             makeListings.push(pricelist[i]);           
                         }
-					}
+		    }
                     if(pricelist[i].max - inventory.getAmount(pricelist[i].sku) > this.bot.options.pricelist.sortSettings.prioritizeNeededStock){
                         if (makeListings.indexOf(pricelist[i]) < 0){
                             makeListings.push(pricelist[i]);         
                         } 
-					}
+		    }
                 if(this.bot.options.pricelist.sortSettings.typeOfSort === 1){
                         pricelist.sort((a, b) => {
                             return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
