@@ -550,11 +550,13 @@ export const optionsSchema: jsonschema.Schema = {
 			},
                         prioritizeConsumableItems: {
                             type: 'boolean'             
-			},
+		        },
                         typeOfSort: {
-                            type: 'integer'              
+                            type: 'number'              
 			}
-			},
+		    },
+                    required: [],
+                    additionalProperties: false
 		},
                 priceAge: {
                     type: 'object',
