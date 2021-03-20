@@ -53,22 +53,7 @@ export default class Listings {
     setupAutorelist(): void {
         if (!this.isAutoRelistEnabled || !this.isCreateListing) {
             // Autobump is not enabled
-            return;import callbackQueue from 'callback-queue';
-import pluralize from 'pluralize';
-import request from 'request-retry-dayjs';
-import async from 'async';
-import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
-import sleepasync from 'sleep-async';
-import Bot from './Bot';
-import { Entry } from './Pricelist';
-import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
-import log from '../lib/logger';
-import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import { DictItem } from './Inventory';
-import { PaintedNames } from './Options';
-import { Paints, StrangeParts } from 'tf2-schema-2';
+            return;
 
 export default class Listings {
     private checkingAllListings = false;
