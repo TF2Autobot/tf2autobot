@@ -54,46 +54,6 @@ export default class Listings {
         if (!this.isAutoRelistEnabled || !this.isCreateListing) {
             // Autobump is not enabled
             return;
-
-export default class Listings {
-    private checkingAllListings = false;
-
-    private removingAllListings = false;
-
-    private cancelCheckingListings = false;
-
-    private autoRelistEnabled = false;
-
-    private autoRelistTimeout: NodeJS.Timeout;
-
-    private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.miscSettings.autobump.enable;
-    }
-
-    private get isCreateListing(): boolean {
-        return this.bot.options.miscSettings.createListings.enable;
-    }
-
-    private templates: { buy: string; sell: string };
-
-    private readonly checkFn;
-
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-        this.templates = {
-            buy:
-                this.bot.options.details.buy ||
-                'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
-            sell: this.bot.options.details.sell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
-        };
-
-        this.checkFn = this.checkAccountInfo.bind(this);
-    }
-
-    setupAutorelist(): void {
-        if (!this.isAutoRelistEnabled || !this.isCreateListing) {
-            // Autobump is not enabled
-            return;
         }
 
         // Autobump is enabled, add heartbeat listener
