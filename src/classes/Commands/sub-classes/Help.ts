@@ -25,6 +25,7 @@ export default class HelpCommands {
                     ? [
                           '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
                           '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
+                          '!sku <Full Item Name> - Get the sku of an item.',
                           '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
                           '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
                           '!stopautoadd - Stop automatic add items operation 🛑',
@@ -32,7 +33,7 @@ export default class HelpCommands {
                           '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
                           '!shuffle - Shuffle pricelist entries.',
                           '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
-                          '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all\n\n✨=== Bot manager ===✨',
+                          '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                           '!getSlots - Get current used listings slot per cap count.\n\n✨=== Bot manager ===✨',
                           "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
                           '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
