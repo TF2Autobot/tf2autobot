@@ -536,7 +536,7 @@ export const optionsSchema: jsonschema.Schema = {
                 autoAddPaintedItems: {
                     $ref: '#/definitions/only-enable'
                 },
-                sortSettings{
+                sortSettings: {
                     type: 'object',
                     properties: {
                         prioritizeUnusuals: {
