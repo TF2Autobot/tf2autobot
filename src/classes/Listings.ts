@@ -1150,13 +1150,13 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
                 if(this.bot.options.pricelist.sortSettings.typeOfSort === 1){
                         pricelist.sort((a, b) => {
                             return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
+                        })
                         }
-                        )}
                 if(this.bot.options.pricelist.sortSettings.typeOfSort === 2){
                         pricelist.sort((a, b) => {
                             return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
+                        })
                         }
-                        )}
                 /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
                         pricelist.sort(a,b) => {
                             (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
