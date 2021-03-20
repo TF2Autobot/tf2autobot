@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "• <=v3.5.1 - manual update recommended, read: https://github.com/TF2Autobot/tf2autobot/wiki/Updating-the-bot#updating-the-bot \n• >=3.6.0 - clear to update with !updaterepo",
+    "updateMessage": "• <=v3.6.8 - Check your Node.js version. Make sure it's at least version 14 before updating your bot to v3.7.0. Manual update recommended.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
