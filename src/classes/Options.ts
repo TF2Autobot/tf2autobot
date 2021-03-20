@@ -92,10 +92,10 @@ export const DEFAULTS = {
             enable: true
         },
         sortSettings: {
-            prioritizeUnusuals: false
-            prioritizeStranges: false
-            prioritizeConsumableItems: false
-            prioritizeNeededStock: -1
+            prioritizeUnusuals: false,
+            prioritizeStranges: false,
+            prioritizeConsumableItems: false,
+            prioritizeNeededStock: -1,
             typeOfSort: 1
 		},
         priceAge: {
