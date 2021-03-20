@@ -97,7 +97,7 @@ export const DEFAULTS = {
             prioritizeConsumableItems: false,
             prioritizeNeededStock: -1,
             typeOfSort: 1
-		},
+	},
         priceAge: {
             maxInSeconds: 28800
         }
