@@ -537,25 +537,25 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 sortSettings{
-                    type: 'object'
+                    type: 'object',
                     properties: {
                         prioritizeUnusuals: {
                             type: 'boolean'              
-						},
+			},
                         prioritizeStranges: {
                             type: 'boolean'              
-						},
+			},
                         prioritizeNeededStock:{
                             type: 'number'              
-						},
+			},
                         prioritizeConsumableItems{
                             type: 'boolean'             
-						},
+			},
                         typeOfSort: {
                             type: 'integer'              
-						}
-					}
-				},
+			}
+			}
+		},
                 priceAge: {
                     type: 'object',
                     properties: {
