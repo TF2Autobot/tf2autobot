@@ -545,16 +545,16 @@ export const optionsSchema: jsonschema.Schema = {
                         prioritizeStranges: {
                             type: 'boolean'              
 			},
-                        prioritizeNeededStock:{
+                        prioritizeNeededStock: {
                             type: 'number'              
 			},
-                        prioritizeConsumableItems{
+                        prioritizeConsumableItems: {
                             type: 'boolean'             
 			},
                         typeOfSort: {
                             type: 'integer'              
 			}
-			}
+			},
 		},
                 priceAge: {
                     type: 'object',
