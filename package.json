@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "• <=v3.5.1 - manual update recommended, read: https://github.com/TF2Autobot/tf2autobot/wiki/Updating-the-bot#updating-the-bot \n• >=3.6.0 - clear to update with !updaterepo",
+    "updateMessage": "• <=v3.6.8 - Check your Node.js version. Make sure it's at least version 14 before updating your bot to v3.7.0. Manual update recommended.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
@@ -30,7 +30,7 @@
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
         "body-parser": "^1.19.0",
-        "bptf-listings-2": "^1.2.1",
+        "bptf-listings-2": "^1.3.5",
         "bptf-login-2": "^1.0.2",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
@@ -61,8 +61,8 @@
         "steamid": "^1.1.3",
         "tf2": "^3.0.2",
         "tf2-currencies-2": "^1.2.5",
-        "tf2-schema-2": "^1.4.1",
-        "tf2-sku-2": "^1.0.3",
+        "tf2-schema-2": "^1.5.0",
+        "tf2-sku-2": "^1.1.1",
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
         "websocket-extensions": "^0.1.4",

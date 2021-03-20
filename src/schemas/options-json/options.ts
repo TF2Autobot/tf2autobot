@@ -1628,6 +1628,9 @@ export const optionsSchema: jsonschema.Schema = {
                         enable: {
                             type: 'boolean'
                         },
+                        showOwnerName: {
+                            type: 'boolean'
+                        },
                         customReply: {
                             type: 'object',
                             properties: {
@@ -1648,7 +1651,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['enable', 'customReply'],
+                    required: ['enable', 'showOwnerName', 'customReply'],
                     additionalProperties: false
                 },
                 time: {

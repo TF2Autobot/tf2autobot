@@ -162,9 +162,14 @@ export default class ManagerCommands {
             }
 
             const targetedSKU = fixSKU(params.sku);
-            const [uncraft, untrade] = [targetedSKU.includes(';uncraftable'), targetedSKU.includes(';untradable')];
+            const [uncraft, untrade] = [
+                targetedSKU.includes(';uncraftable'),
+                targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')
+            ];
 
-            const item = SKU.fromString(targetedSKU.replace(';uncraftable', '').replace(';untradable', ''));
+            const item = SKU.fromString(
+                targetedSKU.replace(';uncraftable', '').replace(';untradable', '').replace(';untradeable', '')
+            );
 
             if (uncraft) {
                 item.craftable = !uncraft;
