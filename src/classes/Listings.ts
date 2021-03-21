@@ -415,7 +415,6 @@ export default class Listings {
                         makeListings.push(pricelist[i]);         
                     }         
 				}
-                var i, n = makeListings.length;
                     for (var i = 0; i < n; ++i) {
                     pricelist[i] = makeListings[i];
                 }
