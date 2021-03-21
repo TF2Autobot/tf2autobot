@@ -399,13 +399,13 @@ export default class Listings {
                 }
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 1) {
                     pricelist.sort((a, b) => {
-                        (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                        return (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
                         Currencies.toScrap(b.buy.metal - a.buy.metal)
                     });
                 }
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 2) {
                     pricelist.sort((a, b) => {
-                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                            return (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
                             Currencies.toScrap(b.buy.metal - a.buy.metal) * -1
                     });
                 }
