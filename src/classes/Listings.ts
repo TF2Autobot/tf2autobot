@@ -388,22 +388,27 @@ export default class Listings {
                             makeListings.push(pricelist[i]);
                         }
                     }
-                    if (this.bot.options.pricelist.sortSettings.prioritizeNeededStock < pricelist[i].max - inventory.getAmount(pricelist[i].sku)) {
+                    if (
+                        this.bot.options.pricelist.sortSettings.prioritizeNeededStock <
+                        pricelist[i].max - inventory.getAmount(pricelist[i].sku)
+                    ) {
                         if (makeListings.indexOf(pricelist[i]) < 0) {
                             makeListings.push(pricelist[i]);
                         }
                     }
-		}
+                }
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 1) {
                     pricelist.sort((a, b) => {
-                        return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
-                    }
-                    )}
+                        (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                        Currencies.toScrap(b.buy.metal - a.buy.metal)
+                    });
+                }
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 2) {
                     pricelist.sort((a, b) => {
-                        return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
-                    }
-                    )}
+                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                            Currencies.toScrap(b.buy.metal - a.buy.metal) * -1
+                    });
+                }
                 /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
                         pricelist.sort(a,b) => {
                             (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
@@ -413,8 +418,8 @@ export default class Listings {
 
                 for (let i = 0; i < pricelist.length; i++) {
                     if (makeListings.indexOf(pricelist[i]) < 0) {
-                        makeListings.push(pricelist[i]);         
-                    }         
+                        makeListings.push(pricelist[i]);
+                    }
                 }
                 for (let i = 0; i < pricelist.length; i++) {
                     pricelist[i] = makeListings[i];
