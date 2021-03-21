@@ -380,29 +380,30 @@ export default class Listings {
                     const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
                     if (qualChecker === 5 && this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true) {
                         if (makeListings.indexOf(pricelist[i]) < 0) {
-				makeListings.push(pricelist[i]);
-			}
-		    }
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
                     if (qualChecker === 11 && this.bot.options.pricelist.sortSettings.prioritizeStranges === true) {
                         if (makeListings.indexOf(pricelist[i]) < 0) {
-				makeListings.push(pricelist[i]);           
+                            makeListings.push(pricelist[i]);
                         }
-		    }
-                    if (pricelist[i].max - inventory.getAmount(pricelist[i].sku) > this.bot.options.pricelist.sortSettings.prioritizeNeededStock) {
+                    }
+                    if (this.bot.options.pricelist.sortSettings.prioritizeNeededStock < pricelist[i].max - inventory.getAmount(pricelist[i].sku)) {
                         if (makeListings.indexOf(pricelist[i]) < 0) {
-				makeListings.push(pricelist[i]);         
-                        } 
-		    }
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
+		}
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 1) {
-                        pricelist.sort((a, b) => {
-                            return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
-                        }
-                        )}
+                    pricelist.sort((a, b) => {
+                        return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal) * -1)
+                    }
+                    )}
                 if (this.bot.options.pricelist.sortSettings.typeOfSort === 2) {
-                        pricelist.sort((a, b) => {
-                            return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
-                        }
-                        )}
+                    pricelist.sort((a, b) => {
+                        return ((b.buy.keys - a.buy.keys) * keyPrice.toValue() + Currencies.toScrap(b.buy.metal - a.buy.metal))
+                    }
+                    )}
                 /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
                         pricelist.sort(a,b) => {
                             (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
@@ -414,12 +415,10 @@ export default class Listings {
                     if (makeListings.indexOf(pricelist[i]) < 0) {
                         makeListings.push(pricelist[i]);         
                     }         
-				}
-                    for (let i = 0; i < pricelist.length; i++) {
-                    pricelist[i] = makeListings[i];
                 }
-       
-			}
+                for (let i = 0; i < pricelist.length; i++) {
+                    pricelist[i] = makeListings[i];
+		}
 
                 log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
 
