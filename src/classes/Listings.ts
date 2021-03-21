@@ -376,7 +376,7 @@ export default class Listings {
                         return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
                     });
                 const makeListings = [];
-                for (const i = 0; i < pricelist.length; i++) {
+                for (var i = 0; i < pricelist.length; i++) {
                     const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
                     if (qualChecker === 5 && this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true) {
                         if (makeListings.indexOf(pricelist[i]) < 0) {
@@ -410,13 +410,13 @@ export default class Listings {
                         )}
 				}TODO: the third sort feature, i cant remember what it was*/
 
-                for (const i = 0; i < pricelist.length; i++) {
+                for (var i = 0; i < pricelist.length; i++) {
                     if (makeListings.indexOf(pricelist[i]) < 0) {
                         makeListings.push(pricelist[i]);         
                     }         
 				}
                 var i, n = makeListings.length;
-                    for (const i = 0; i < n; ++i) {
+                    for (var i = 0; i < n; ++i) {
                     pricelist[i] = makeListings[i];
                 }
        
