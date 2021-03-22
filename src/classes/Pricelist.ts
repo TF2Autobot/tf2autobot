@@ -176,6 +176,12 @@ export default class Pricelist extends EventEmitter {
 
     private retryGetKeyPrices: NodeJS.Timeout;
 
+    failedUpdateOldPrices: string[] = [];
+
+    set resetFailedUpdateOldPrices(value: number) {
+        this.failedUpdateOldPrices.length = value;
+    }
+
     constructor(
         private readonly priceSource: Pricer,
         private readonly schema: SchemaManager.Schema,
@@ -767,7 +773,23 @@ export default class Pricelist extends EventEmitter {
                 const item = SKU.fromString(sku);
 
                 // Go through pricestf/custom pricer prices
-                const grouped = groupedPrices[item.quality][item.killstreak];
+                let grouped: Item[];
+                try {
+                    grouped = groupedPrices[item.quality][item.killstreak];
+                } catch (err) {
+                    const index = this.getIndex(sku);
+
+                    if (this.prices[index].group !== 'failed-updateOldPrices') {
+                        this.prices[index].enabled = false;
+                        this.prices[index].group = 'failed-updateOldPrices';
+                        this.failedUpdateOldPrices.push(sku);
+                        log.warn(`updateOldPrices failed for ${sku}`, err);
+                        pricesChanged = true;
+                    }
+
+                    continue;
+                }
+
                 const groupedCount = grouped.length;
 
                 for (let j = 0; j < groupedCount; j++) {
