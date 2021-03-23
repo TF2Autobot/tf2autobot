@@ -119,7 +119,7 @@ export default function sendAlert(
     } else if (type === 'autoUpdatePartialPriceSuccess') {
         title = '✅ Automatically update partially priced item';
         description = msg;
-        color = '16711680'; // red
+        color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceFailed') {
         title = 'Failed update item prices (Partial price update)';
         description = msg;
