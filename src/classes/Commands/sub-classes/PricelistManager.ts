@@ -231,7 +231,13 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
+            params['buy'] = {
+                keys: 0,
+                metal: 0
+            };
         }
+
         if (typeof params.sell === 'object') {
             params.sell.keys = params.sell.keys || 0;
             params.sell.metal = params.sell.metal || 0;
@@ -239,6 +245,11 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
+            params['sell'] = {
+                keys: 0,
+                metal: 0
+            };
         }
 
         if (
