@@ -800,6 +800,18 @@ export default class PricelistManagerCommands {
 
         const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
 
+        if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
+            params['buy'] = {
+                keys: itemEntry.buy.keys,
+                metal: itemEntry.buy.metal
+            };
+        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
+            params['sell'] = {
+                keys: itemEntry.sell.keys,
+                metal: itemEntry.sell.metal
+            };
+        }
+
         if (typeof params.note === 'object') {
             params.note.buy = params.note.buy || itemEntry.note.buy;
             params.note.sell = params.note.sell || itemEntry.note.sell;
