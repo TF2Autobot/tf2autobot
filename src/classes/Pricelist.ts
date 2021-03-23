@@ -777,11 +777,9 @@ export default class Pricelist extends EventEmitter {
                 try {
                     grouped = groupedPrices[item.quality][item.killstreak];
                 } catch (err) {
-                    const index = this.getIndex(sku);
-
-                    if (this.prices[index].group !== 'failed-updateOldPrices') {
-                        this.prices[index].enabled = false;
-                        this.prices[index].group = 'failed-updateOldPrices';
+                    if (currPrice.group !== 'failed-updateOldPrices') {
+                        currPrice.enabled = false;
+                        currPrice.group = 'failed-updateOldPrices';
                         this.failedUpdateOldPrices.push(sku);
                         log.warn(`updateOldPrices failed for ${sku}`, err);
                         pricesChanged = true;
