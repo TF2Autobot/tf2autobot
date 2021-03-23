@@ -361,7 +361,7 @@ export default function updateListings(
                         `${name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
-                            `new: ${data.buy.toString()}/${data.buy.toString()}`
+                            `new: ${data.buy.toString()}/${data.sell.toString()}`
                         ].join('\n▸ ');
 
                     log.debug(msg);
