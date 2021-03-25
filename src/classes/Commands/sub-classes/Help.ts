@@ -34,7 +34,7 @@ export default class HelpCommands {
                           '!shuffle - Shuffle pricelist entries.',
                           '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
                           '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
-                          '!getSlots - Get current used listings slot per cap count.\n\n✨=== Bot manager ===✨',
+                          '!getSlots or !listings - Get current used listings slot per cap count.\n\n✨=== Bot manager ===✨',
                           "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
                           '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
                           "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
