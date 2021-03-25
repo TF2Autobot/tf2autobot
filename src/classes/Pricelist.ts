@@ -794,7 +794,7 @@ export default class Pricelist extends EventEmitter {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
-                                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+                                const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                                 if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
                                     // Only trigger this if difference of new selling price and current buying price is negative
@@ -964,7 +964,7 @@ export default class Pricelist extends EventEmitter {
                 const currBuyingValue = match.buy.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
-                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+                const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                 if (isNegativeDiff || match.group === 'isPartialPriced') {
                     // Only trigger this if difference of new selling price and current buying price is negative
