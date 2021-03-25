@@ -485,6 +485,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 receivedUnusualNotInPricelist: {
                     type: 'boolean'
+                },
+                failedToUpdateOldPrices: {
+                    type: 'boolean'
                 }
             },
             required: [

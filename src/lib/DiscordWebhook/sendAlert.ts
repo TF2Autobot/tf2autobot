@@ -37,7 +37,8 @@ type AlertType =
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
     | 'isPartialPriced'
-    | 'unusualInvalidItems';
+    | 'unusualInvalidItems'
+    | 'failedToUpdateOldPrices';
 
 export default function sendAlert(
     type: AlertType,
@@ -119,7 +120,7 @@ export default function sendAlert(
     } else if (type === 'autoUpdatePartialPriceSuccess') {
         title = '✅ Automatically update partially priced item';
         description = msg;
-        color = '16711680'; // red
+        color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceFailed') {
         title = 'Failed update item prices (Partial price update)';
         description = msg;
@@ -192,6 +193,12 @@ export default function sendAlert(
         title = 'Partial price update';
         description = msg;
         color = '16776960'; // yellow
+    } else if (type === 'failedToUpdateOldPrices') {
+        title = 'Failed to update old prices';
+        description =
+            `Failed to update old prices (probably because autoprice is set to true but item does not exist` +
+            ` on the pricer source):\n\n${items.join('\n')}\n\nAll items above has been temporarily disabled.`;
+        color = '16711680'; // red
     } else {
         title = 'High Valued Items';
         description = `Someone is trying to take your **${items.join(', ')}** that is not in your pricelist.`;

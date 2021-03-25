@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
@@ -200,7 +200,7 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
-        } else if (command === 'getslots' && isAdmin) {
+        } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);

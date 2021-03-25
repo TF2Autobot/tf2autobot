@@ -294,6 +294,30 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
+
+        // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
+        const failedToUpdateOldPrices = this.bot.pricelist.failedUpdateOldPrices;
+
+        if (failedToUpdateOldPrices.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
+                if (isDwEnabled) {
+                    sendAlert('failedToUpdateOldPrices', this.bot, '', null, null, failedToUpdateOldPrices);
+                } else {
+                    this.bot.messageAdmins(
+                        `Failed to update old prices (probably because autoprice is set to true but item does not exist` +
+                            ` on the pricer source):\n\n${failedToUpdateOldPrices.join(
+                                '\n'
+                            )}\n\nAll items above has been temporarily disabled.`,
+                        []
+                    );
+                }
+            }
+
+            this.bot.pricelist.resetFailedUpdateOldPrices = 0;
+        }
     }
 
     onShutdown(): Promise<void> {

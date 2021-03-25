@@ -16,7 +16,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 ![License](https://img.shields.io/github/license/idinium96/tf2autobot)
 
 **TF2Autobot made by IdiNium**
-[![profile](https://user-images.githubusercontent.com/47635037/100916111-4945eb80-3510-11eb-8036-86c032cb6627.png)](https://backpack.tf/profiles/76561198013127982)
+[![profile](https://user-images.githubusercontent.com/47635037/112201149-edcc7480-8c4a-11eb-9756-fcf1509a74d0.png)](https://backpack.tf/profiles/76561198013127982)
 
 Before you install the bot, there are a few things you will need:
 
@@ -45,7 +45,7 @@ If you run into trouble when running the bot, make sure to head to [Common Error
 
 Join the [TF2Autobot Discord server](https://discord.gg/D2GNnp7tv8) and head over to [`#🆚roles`](https://discordapp.com/channels/664971400678998016/719391430669500447/771188962550611988) channel and react to the first message to get notified whenever an update has been released!
 
-<div align="center"><img src="https://user-images.githubusercontent.com/47635037/88795539-c8c65580-d1d2-11ea-993e-4161083b3e36.PNG" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
+<div align="center"><img src="https://user-images.githubusercontent.com/47635037/112201587-5fa4be00-8c4b-11eb-8757-86d176e27086.png" alt="update-noti" style="display:block;margin-left:auto;margin-right:auto;width:400px;height:250px;"></div>
 
 \*\*There are also giveaways held every Thursday, 8 AM - 8 PM (12 hours) Malaysia time!
 
