@@ -174,6 +174,7 @@ export default class PricelistManagerCommands {
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
                         }
 
                         if (!body) {
@@ -433,6 +434,7 @@ export default class PricelistManagerCommands {
                         (err: ErrorRequest, body: RequestCheckResponse) => {
                             if (err) {
                                 log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                                return;
                             }
 
                             if (!body) {
@@ -947,6 +949,7 @@ export default class PricelistManagerCommands {
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
                         }
 
                         if (!body) {
@@ -1204,6 +1207,7 @@ export default class PricelistManagerCommands {
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
                         }
 
                         if (!body) {
