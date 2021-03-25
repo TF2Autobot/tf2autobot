@@ -797,7 +797,7 @@ export default class Pricelist extends EventEmitter {
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                                 if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
-                                    // Only trigger this if difference of new selling price and current buying price is negative
+                                    // Only trigger this if difference of new selling price and current buying price is negative or zero
                                     // Or item group is "isPartialPriced".
 
                                     if (newBuyValue < currSellingValue) {
@@ -967,7 +967,7 @@ export default class Pricelist extends EventEmitter {
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                 if (isNegativeDiff || match.group === 'isPartialPriced') {
-                    // Only trigger this if difference of new selling price and current buying price is negative
+                    // Only trigger this if difference of new selling price and current buying price is negative or zero
                     // Or item group is "isPartialPriced".
 
                     let isUpdate = false;
