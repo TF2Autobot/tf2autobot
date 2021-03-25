@@ -22,8 +22,8 @@ export interface EntryData {
     sku: string;
     enabled: boolean;
     autoprice: boolean;
-    max: number;
     min: number;
+    max: number;
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
@@ -42,9 +42,9 @@ export class Entry {
 
     autoprice: boolean;
 
-    max: number;
-
     min: number;
+
+    max: number;
 
     intent: 0 | 1 | 2;
 
@@ -65,8 +65,8 @@ export class Entry {
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
-        this.max = entry.max;
         this.min = entry.min;
+        this.max = entry.max;
         this.intent = entry.intent;
 
         // TODO: Validate entry
@@ -126,8 +126,8 @@ export class Entry {
             sku: this.sku,
             enabled: this.enabled,
             autoprice: this.autoprice,
-            max: this.max,
             min: this.min,
+            max: this.max,
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
@@ -539,8 +539,8 @@ export default class Pricelist extends EventEmitter {
                     sku: prices[0].sku,
                     enabled: prices[0].enabled,
                     intent: prices[0].intent,
-                    max: prices[0].max,
                     min: prices[0].min,
+                    max: prices[0].max,
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
