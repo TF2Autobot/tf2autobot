@@ -597,6 +597,10 @@ export default class PricelistManagerCommands {
                     entry.note.sell = null;
                 }
 
+                if (params.resetgroup === true) {
+                    entry.group = 'all';
+                }
+
                 if (typeof params.autoprice === 'boolean') {
                     if (params.autoprice === false) {
                         entry.time = null;
@@ -658,6 +662,10 @@ export default class PricelistManagerCommands {
 
             if (params.removenote) {
                 delete params.removenote;
+            }
+
+            if (params.resetgroup) {
+                delete params.resetgroup;
             }
 
             if (params.withgroup) {
