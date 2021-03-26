@@ -112,6 +112,7 @@ export default function updateListings(
             opt.pricelist.autoRemoveIntentSell.enable &&
             existInPricelist &&
             inPrice.intent === 1 &&
+            (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
