@@ -164,7 +164,7 @@ export default class RequestCommands {
     }
 
     pricecheckAllCommand(steamID: SteamID): void {
-        if (Pricecheck.isRunning(steamID)) {
+        if (Pricecheck.isRunning()) {
             return this.bot.sendMessage(steamID, "❌ Pricecheck is still running. Please wait until it's completed.");
         }
 
@@ -193,7 +193,7 @@ export default class RequestCommands {
             pricecheck.enqueue(sku);
         }
 
-        Pricecheck.addJob(pricecheck);
+        Pricecheck.addJob();
         void pricecheck.executeCheck();
     }
 
@@ -245,7 +245,7 @@ export default class RequestCommands {
 class Pricecheck {
     // reference: https://www.youtube.com/watch?v=bK7I79hcm08
 
-    private static pricecheck: UnknownDictionary<Pricecheck> = {};
+    private static pricecheck: UnknownDictionary<boolean> = {};
 
     private requestCheck: RequestCheckFn;
 
@@ -289,7 +289,7 @@ class Pricecheck {
             }
 
             if (this.isEmpty) {
-                Pricecheck.removeJob(this.steamID);
+                Pricecheck.removeJob();
                 return this.bot.sendMessage(
                     this.steamID,
                     `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
@@ -317,16 +317,16 @@ class Pricecheck {
         return this.collection.length === 0;
     }
 
-    static addJob(pc: Pricecheck): void {
-        this.pricecheck[pc.steamID.getSteamID64()] = pc;
+    static addJob(): void {
+        this.pricecheck['1'] = true;
     }
 
-    static isRunning(steamID: SteamID): boolean {
-        return this.pricecheck[steamID.getSteamID64()] !== undefined;
+    static isRunning(): boolean {
+        return this.pricecheck['1'] !== undefined;
     }
 
-    static removeJob(steamID: SteamID): void {
-        delete this.pricecheck[steamID.getSteamID64()];
+    static removeJob(): void {
+        delete this.pricecheck['1'];
     }
 }
 
