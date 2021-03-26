@@ -302,19 +302,19 @@ class Pricecheck {
         });
     }
 
-    dequeue(): void {
+    private dequeue(): void {
         this.collection.shift();
     }
 
-    get front(): string {
+    private get front(): string {
         return this.collection[0];
     }
 
-    get size(): number {
+    private get size(): number {
         return this.collection.length;
     }
 
-    get isEmpty(): boolean {
+    private get isEmpty(): boolean {
         return this.collection.length === 0;
     }
 
@@ -326,7 +326,7 @@ class Pricecheck {
         return this.pricecheck['1'] !== undefined;
     }
 
-    static removeJob(): void {
+    private static removeJob(): void {
         delete this.pricecheck['1'];
     }
 }
