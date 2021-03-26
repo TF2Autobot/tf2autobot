@@ -257,6 +257,8 @@ class Pricecheck {
 
     private failed = 0;
 
+    private total = 0;
+
     constructor(private readonly bot: Bot, private priceSource: Pricer, private steamID: SteamID) {
         this.bot = bot;
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
@@ -264,6 +266,7 @@ class Pricecheck {
 
     enqueue(sku: string): void {
         this.collection.push(sku);
+        this.total++;
     }
 
     async executeCheck(): Promise<void> {
@@ -291,7 +294,7 @@ class Pricecheck {
             if (this.isEmpty) {
                 this.bot.sendMessage(
                     this.steamID,
-                    `✅ Successfully pricecheck for all ${this.size} ${pluralize('item', this.size)}!`
+                    `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
                 );
                 Pricecheck.removeJob(this.steamID);
             }
