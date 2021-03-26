@@ -189,9 +189,7 @@ export default class RequestCommands {
         const skus = pricelist.map(entry => entry.sku);
 
         const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
-        for (const sku of skus) {
-            pricecheck.enqueue(sku);
-        }
+        pricecheck.enqueue = skus;
 
         Pricecheck.addJob();
         void pricecheck.executeCheck();
@@ -264,9 +262,9 @@ class Pricecheck {
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
-    enqueue(sku: string): void {
-        this.skus.push(sku);
-        this.total++;
+    set enqueue(skus: string[]) {
+        this.skus = skus;
+        this.total = skus.length;
     }
 
     async executeCheck(): Promise<void> {
