@@ -9,6 +9,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
+import { UnknownDictionary } from '../../../types/common';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
@@ -162,7 +163,11 @@ export default class RequestCommands {
         });
     }
 
-    async pricecheckAllCommand(steamID: SteamID): Promise<void> {
+    pricecheckAllCommand(steamID: SteamID): void {
+        if (Pricecheck.isRunning(steamID)) {
+            return this.bot.sendMessage(steamID, "❌ Pricecheck is still running. Please wait until it's completed.");
+        }
+
         const pricelist = this.bot.pricelist.getPrices;
 
         const total = pricelist.length;
@@ -182,34 +187,14 @@ export default class RequestCommands {
         );
 
         const skus = pricelist.map(entry => entry.sku);
-        let submitted = 0;
-        let success = 0;
-        let failed = 0;
+
+        const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
         for (const sku of skus) {
-            await sleepasync().Promise.sleep(2 * 1000);
-            void this.requestCheck(sku, 'bptf').asCallback(err => {
-                if (err) {
-                    submitted++;
-                    failed++;
-                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
-                    log.debug(
-                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                } else {
-                    submitted++;
-                    success++;
-                    log.debug(
-                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                }
-                if (submitted === total) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
-                    );
-                }
-            });
+            pricecheck.enqueue(sku);
         }
+
+        Pricecheck.addJob(pricecheck);
+        void pricecheck.executeCheck();
     }
 
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
@@ -254,6 +239,91 @@ export default class RequestCommands {
                 }`
             );
         }
+    }
+}
+
+class Pricecheck {
+    // reference: https://www.youtube.com/watch?v=bK7I79hcm08
+
+    private static pricecheck: UnknownDictionary<Pricecheck> = {};
+
+    private requestCheck: RequestCheckFn;
+
+    private collection: string[] = [];
+
+    private submitted = 0;
+
+    private success = 0;
+
+    private failed = 0;
+
+    constructor(private readonly bot: Bot, private priceSource: Pricer, private steamID: SteamID) {
+        this.bot = bot;
+        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+    }
+
+    enqueue(sku: string): void {
+        this.collection.push(sku);
+    }
+
+    async executeCheck(): Promise<void> {
+        await sleepasync().Promise.sleep(2 * 1000);
+
+        void this.requestCheck(this.front, 'bptf').asCallback(err => {
+            if (err) {
+                this.submitted++;
+                this.failed++;
+                log.warn(`pricecheck failed for ${this.front}: ${JSON.stringify(err)}`);
+                log.debug(
+                    `pricecheck for ${this.front} failed, status: ${this.submitted}/${this.size}, ${this.success} success, ${this.failed} failed.`
+                );
+            } else {
+                this.submitted++;
+                this.success++;
+                log.debug(
+                    `pricecheck for ${this.front} success, status: ${this.submitted}/${this.size}, ${this.success} success, ${this.failed} failed.`
+                );
+            }
+
+            this.dequeue();
+            void this.executeCheck();
+
+            if (this.isEmpty) {
+                this.bot.sendMessage(
+                    this.steamID,
+                    `✅ Successfully pricecheck for all ${this.size} ${pluralize('item', this.size)}!`
+                );
+                Pricecheck.removeJob(this.steamID);
+            }
+        });
+    }
+
+    dequeue(): void {
+        this.collection.shift();
+    }
+
+    get front(): string {
+        return this.collection[0];
+    }
+
+    get size(): number {
+        return this.collection.length;
+    }
+
+    get isEmpty(): boolean {
+        return this.collection.length === 0;
+    }
+
+    static addJob(pc: Pricecheck): void {
+        this.pricecheck[pc.steamID.getSteamID64()] = pc;
+    }
+
+    static isRunning(steamID: SteamID): boolean {
+        return this.pricecheck[steamID.getSteamID64()] !== undefined;
+    }
+
+    static removeJob(steamID: SteamID): void {
+        delete this.pricecheck[steamID.getSteamID64()];
     }
 }
 
