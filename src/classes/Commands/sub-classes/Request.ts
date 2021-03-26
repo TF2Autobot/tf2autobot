@@ -249,7 +249,7 @@ class Pricecheck {
 
     private requestCheck: RequestCheckFn;
 
-    private collection: string[] = [];
+    private skus: string[] = [];
 
     private submitted = 0;
 
@@ -265,26 +265,26 @@ class Pricecheck {
     }
 
     enqueue(sku: string): void {
-        this.collection.push(sku);
+        this.skus.push(sku);
         this.total++;
     }
 
     async executeCheck(): Promise<void> {
         await sleepasync().Promise.sleep(2 * 1000);
 
-        void this.requestCheck(this.front, 'bptf').asCallback(err => {
+        void this.requestCheck(this.sku, 'bptf').asCallback(err => {
             if (err) {
                 this.submitted++;
                 this.failed++;
-                log.warn(`pricecheck failed for ${this.front}: ${JSON.stringify(err)}`);
+                log.warn(`pricecheck failed for ${this.sku}: ${JSON.stringify(err)}`);
                 log.debug(
-                    `pricecheck for ${this.front} failed, status: ${this.submitted}/${this.size}, ${this.success} success, ${this.failed} failed.`
+                    `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
                 );
             } else {
                 this.submitted++;
                 this.success++;
                 log.debug(
-                    `pricecheck for ${this.front} success, status: ${this.submitted}/${this.size}, ${this.success} success, ${this.failed} failed.`
+                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
                 );
             }
 
@@ -303,19 +303,19 @@ class Pricecheck {
     }
 
     private dequeue(): void {
-        this.collection.shift();
+        this.skus.shift();
     }
 
-    private get front(): string {
-        return this.collection[0];
+    private get sku(): string {
+        return this.skus[0];
     }
 
-    private get size(): number {
-        return this.collection.length;
+    private get remaining(): number {
+        return this.skus.length;
     }
 
     private get isEmpty(): boolean {
-        return this.collection.length === 0;
+        return this.skus.length === 0;
     }
 
     static addJob(): void {
