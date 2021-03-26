@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
@@ -200,7 +200,7 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
-        } else if (command === 'getslots' && isAdmin) {
+        } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);
@@ -249,7 +249,7 @@ export default class Commands {
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void this.request.pricecheckAllCommand(steamID);
+            this.request.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             void this.request.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
@@ -266,6 +266,8 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
+        } else if (command === 'sku' && isAdmin) {
+            this.getSKU(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))
@@ -277,6 +279,17 @@ export default class Commands {
                 steamID,
                 custom ? custom : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
+        }
+    }
+
+    private getSKU(steamID: SteamID, message: string): void {
+        const itemName = CommandParser.removeCommand(removeLinkProtocol(message));
+        const sku = this.bot.schema.getSkuFromName(itemName);
+
+        this.bot.sendMessage(steamID, sku);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let IdiNium know. Thank you.');
         }
     }
 

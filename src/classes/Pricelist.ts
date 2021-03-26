@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
 import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
@@ -22,8 +22,8 @@ export interface EntryData {
     sku: string;
     enabled: boolean;
     autoprice: boolean;
-    max: number;
     min: number;
+    max: number;
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
@@ -42,9 +42,9 @@ export class Entry {
 
     autoprice: boolean;
 
-    max: number;
-
     min: number;
+
+    max: number;
 
     intent: 0 | 1 | 2;
 
@@ -65,8 +65,8 @@ export class Entry {
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
-        this.max = entry.max;
         this.min = entry.min;
+        this.max = entry.max;
         this.intent = entry.intent;
 
         // TODO: Validate entry
@@ -126,8 +126,8 @@ export class Entry {
             sku: this.sku,
             enabled: this.enabled,
             autoprice: this.autoprice,
-            max: this.max,
             min: this.min,
+            max: this.max,
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
@@ -175,6 +175,12 @@ export default class Pricelist extends EventEmitter {
     private readonly boundHandlePriceChange;
 
     private retryGetKeyPrices: NodeJS.Timeout;
+
+    failedUpdateOldPrices: string[] = [];
+
+    set resetFailedUpdateOldPrices(value: number) {
+        this.failedUpdateOldPrices.length = value;
+    }
 
     constructor(
         private readonly priceSource: Pricer,
@@ -539,8 +545,8 @@ export default class Pricelist extends EventEmitter {
                     sku: prices[0].sku,
                     enabled: prices[0].enabled,
                     intent: prices[0].intent,
-                    max: prices[0].max,
                     min: prices[0].min,
+                    max: prices[0].max,
                     autoprice: prices[0].autoprice,
                     buy: prices[0].buy,
                     sell: prices[0].sell,
@@ -767,7 +773,21 @@ export default class Pricelist extends EventEmitter {
                 const item = SKU.fromString(sku);
 
                 // Go through pricestf/custom pricer prices
-                const grouped = groupedPrices[item.quality][item.killstreak];
+                let grouped: Item[];
+                try {
+                    grouped = groupedPrices[item.quality][item.killstreak];
+                } catch (err) {
+                    if (currPrice.group !== 'failed-updateOldPrices') {
+                        currPrice.enabled = false;
+                        currPrice.group = 'failed-updateOldPrices';
+                        this.failedUpdateOldPrices.push(sku);
+                        log.warn(`updateOldPrices failed for ${sku}`, err);
+                        pricesChanged = true;
+                    }
+
+                    continue;
+                }
+
                 const groupedCount = grouped.length;
 
                 for (let j = 0; j < groupedCount; j++) {
@@ -794,10 +814,10 @@ export default class Pricelist extends EventEmitter {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
 
-                                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+                                const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                                 if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
-                                    // Only trigger this if difference of new selling price and current buying price is negative
+                                    // Only trigger this if difference of new selling price and current buying price is negative or zero
                                     // Or item group is "isPartialPriced".
 
                                     if (newBuyValue < currSellingValue) {
@@ -866,11 +886,28 @@ export default class Pricelist extends EventEmitter {
 
         const match = this.getPrice(data.sku);
         const opt = this.options;
+        const dw = opt.discordWebhook.priceUpdate;
+        const isDwEnabled = dw.enable && dw.url !== '';
 
-        const newPrices = {
-            buy: new Currencies(data.buy),
-            sell: new Currencies(data.sell)
-        };
+        let newPrices: BuyAndSell;
+
+        try {
+            newPrices = {
+                buy: new Currencies(data.buy),
+                sell: new Currencies(data.sell)
+            };
+        } catch (err) {
+            log.error(`Fail to update ${data.sku}`, {
+                error: err as Error,
+                rawData: data
+            });
+
+            if (isDwEnabled && dw.showFailedToUpdate) {
+                sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
+            }
+
+            return;
+        }
 
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
@@ -947,10 +984,10 @@ export default class Pricelist extends EventEmitter {
                 const currBuyingValue = match.buy.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
-                const isNegativeDiff = newSellValue - currBuyingValue < 0;
+                const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
                 if (isNegativeDiff || match.group === 'isPartialPriced') {
-                    // Only trigger this if difference of new selling price and current buying price is negative
+                    // Only trigger this if difference of new selling price and current buying price is negative or zero
                     // Or item group is "isPartialPriced".
 
                     let isUpdate = false;
@@ -977,8 +1014,6 @@ export default class Pricelist extends EventEmitter {
                     if (isUpdate) {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
-                        const dw = opt.discordWebhook.sendAlert;
-                        const isDwEnabled = dw.enable && dw.url !== '';
 
                         const msg =
                             `${
@@ -1025,8 +1060,6 @@ export default class Pricelist extends EventEmitter {
                         this.priceChanged(match.sku, match);
                     }
 
-                    const dw = opt.discordWebhook.priceUpdate;
-
                     if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
                         const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
                         const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
@@ -1041,6 +1074,7 @@ export default class Pricelist extends EventEmitter {
 
                             sendWebHookPriceUpdateV1(
                                 data.sku,
+                                data.name,
                                 match,
                                 time,
                                 this.schema,
@@ -1103,6 +1137,11 @@ export interface KeyPrices {
     sell: Currencies;
     src: string;
     time: number;
+}
+
+interface BuyAndSell {
+    buy: Currencies;
+    sell: Currencies;
 }
 
 export class ParsedPrice {

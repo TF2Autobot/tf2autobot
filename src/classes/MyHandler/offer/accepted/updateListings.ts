@@ -112,6 +112,7 @@ export default function updateListings(
             opt.pricelist.autoRemoveIntentSell.enable &&
             existInPricelist &&
             inPrice.intent === 1 &&
+            (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
             inventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
@@ -361,7 +362,7 @@ export default function updateListings(
                         `${name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
-                            `new: ${data.buy.toString()}/${data.buy.toString()}`
+                            `new: ${data.buy.toString()}/${data.sell.toString()}`
                         ].join('\n▸ ');
 
                     log.debug(msg);
