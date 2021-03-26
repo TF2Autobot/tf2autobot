@@ -288,16 +288,16 @@ class Pricecheck {
                 );
             }
 
-            this.dequeue();
-            void this.executeCheck();
-
             if (this.isEmpty) {
-                this.bot.sendMessage(
+                Pricecheck.removeJob(this.steamID);
+                return this.bot.sendMessage(
                     this.steamID,
                     `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
                 );
-                Pricecheck.removeJob(this.steamID);
             }
+
+            this.dequeue();
+            void this.executeCheck();
         });
     }
 
